@@ -25,6 +25,7 @@ import {
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
 } from "./supabaseServices";
+import { seedSupabaseDatabaseIfEmpty, subscribeToSupabaseRealtime } from "./supabaseSync";
 import { getQuiz } from "./quizzes";
 import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
 
@@ -1378,23 +1379,49 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  /* Load all entities from Supabase database */
+  /* Load all entities from Supabase database, auto-seed if empty & subscribe to Realtime events */
   useEffect(() => {
-    fetchSupabaseEnrollments().then((r) => r.length && setAllEnrollments(r));
-    fetchSupabasePayments().then((r) => r.length && setPayments(r));
-    fetchSupabaseEvents().then((r) => r.length && setEvents(r));
-    fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
-    fetchSupabaseThreads().then((r) => r.length && setThreads(r));
-    fetchSupabaseReplies().then((r) => r.length && setReplies(r));
-    fetchSupabaseClubs().then((r) => r.length && setClubs(r));
-    fetchSupabaseClubMessages().then((r) => r.length && setClubMessages(r));
-    fetchSupabaseNews().then((r) => r.length && setNews(r));
-    fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
-    fetchSupabaseEnquiries().then((r) => r.length && setEnquiries(r));
-    fetchSupabaseCoupons().then((r) => r.length && setCoupons(r));
-    fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
-    fetchSupabaseSOTW().then((r) => r && setStudentOfTheWeek(r));
-    fetchSupabaseReviews().then((r) => r.length && setReviews(r));
+    const refreshAllFromSupabase = () => {
+      fetchSupabaseAccounts().then((r) => r.length && setAccounts(r));
+      fetchSupabaseEnrollments().then((r) => r.length && setAllEnrollments(r));
+      fetchSupabasePayments().then((r) => r.length && setPayments(r));
+      fetchSupabaseEvents().then((r) => r.length && setEvents(r));
+      fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
+      fetchSupabaseThreads().then((r) => r.length && setThreads(r));
+      fetchSupabaseReplies().then((r) => r.length && setReplies(r));
+      fetchSupabaseClubs().then((r) => r.length && setClubs(r));
+      fetchSupabaseClubMessages().then((r) => r.length && setClubMessages(r));
+      fetchSupabaseNews().then((r) => r.length && setNews(r));
+      fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
+      fetchSupabaseEnquiries().then((r) => r.length && setEnquiries(r));
+      fetchSupabaseCoupons().then((r) => r.length && setCoupons(r));
+      fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
+      fetchSupabaseSOTW().then((r) => r && setStudentOfTheWeek(r));
+      fetchSupabaseReviews().then((r) => r.length && setReviews(r));
+    };
+
+    // 1. Fetch initial records
+    refreshAllFromSupabase();
+
+    // 2. Auto-seed Supabase database if tables are empty
+    seedSupabaseDatabaseIfEmpty({
+      courses: managedCourses,
+      accounts,
+      news,
+      events,
+      reviews,
+      sotw: studentOfTheWeek,
+      giveaways,
+    });
+
+    // 3. Subscribe to live Realtime database updates
+    const unsubscribe = subscribeToSupabaseRealtime((_table) => {
+      refreshAllFromSupabase();
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const account = useMemo(() => accounts.find((a) => a.id === sessionId) ?? null, [accounts, sessionId]);
