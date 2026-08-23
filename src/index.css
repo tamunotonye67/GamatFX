@@ -1,0 +1,362 @@
+@import "tailwindcss";
+
+/* ============ Brand theme (matches reference: red #dc3545, ink #212529, cream #fdfdfd) ============ */
+@theme {
+  --color-brand: #dc3545;
+  --color-brand-dark: #b02a37;
+  --color-brand-light: #fdecee;
+  --color-ink: #16181c;
+  --color-ink-soft: #212529;
+  --color-cream: #fdfdfd;
+  --color-muted: #6c757d;
+  --color-line: #ececef;
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 84px;
+}
+
+body {
+  @apply bg-cream text-ink-soft antialiased;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-brand);
+  color: #fff;
+}
+
+@keyframes cursorTicker {
+  0% {
+    transform: translateX(-50%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-cursor-ticker {
+  animation: cursorTicker 14s linear infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ============ Reusable component styles ============ */
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-6xl px-6;
+  }
+
+  .section {
+    @apply py-20 md:py-28;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
+  }
+
+  .btn-outline-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 px-7 py-3 text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand;
+  }
+
+  .section-title {
+    @apply font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-white p-7 shadow-[0_10px_40px_-20px_rgba(22,24,28,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_-25px_rgba(22,24,28,0.35)];
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full bg-brand-light px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes vibrateDance {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-2.5px, 1.5px) rotate(-2deg); }
+  40% { transform: translate(2.5px, -1.5px) rotate(2deg); }
+  60% { transform: translate(-1.5px, -1px) rotate(-1.5deg); }
+  80% { transform: translate(1.5px, 1px) rotate(1.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes gamepadWiggle {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-16deg) scale(1.25); }
+  50% { transform: rotate(16deg) scale(1.35); }
+  75% { transform: rotate(-10deg) scale(1.25); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.animate-vibrate-dance {
+  animation: vibrateDance 0.35s ease-in-out infinite alternate;
+}
+
+.animate-gamepad-wiggle {
+  animation: gamepadWiggle 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite alternate;
+}
+
+@keyframes doodleWalkSlow {
+  0% { transform: translateX(-35px); }
+  100% { transform: translateX(270px); }
+}
+
+@keyframes doodleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes moneyDrop {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: translate(-12px, 10px) scale(1.2) rotate(120deg); opacity: 0.8; }
+  100% { transform: translate(-22px, 18px) scale(0.6) rotate(240deg); opacity: 0; }
+}
+
+.animate-doodle-walk-slow {
+  animation: doodleWalkSlow 11s linear infinite;
+}
+
+.animate-doodle-bounce {
+  animation: doodleBounce 0.3s ease-in-out infinite alternate;
+}
+
+.animate-money-drop-1 {
+  animation: moneyDrop 1.2s ease-out infinite;
+}
+
+.animate-money-drop-2 {
+  animation: moneyDrop 1.2s ease-out infinite 0.6s;
+}
+
+@keyframes floatAlt {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+@keyframes growBar {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* ---- Service gallery ---- */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: .25; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes sheen {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(120%); }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ring {
+  from { stroke-dashoffset: 144.5; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Legal pages: print only the document body */
+@media print {
+  header, footer, aside, button { display: none !important; }
+  .section { padding: 0 !important; }
+  body { background: #fff !important; }
+}
+
+/* ---- Ask Anything glowing border ---- */
+.ask-glow {
+  isolation: isolate;
+}
+.ask-glow-spin {
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 240deg,
+    #dc3545 300deg,
+    #ffffff 330deg,
+    transparent 360deg
+  );
+  animation: askSpin 2.4s linear infinite;
+  z-index: 0;
+}
+.ask-glow-spin::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  background: #16181c;
+  z-index: 0;
+}
+.ask-glow:hover .ask-glow-spin {
+  animation-duration: 1.2s;
+  filter: drop-shadow(0 0 8px rgba(220, 53, 69, 0.55));
+}
+@keyframes askSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Hide host-injected "Built with Arena" / similar badges */
+a[href*="arena"],
+iframe[src*="arena"],
+[class*="arena-badge"],
+[id*="arena-badge"],
+[data-testid*="arena"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ---------- Video protection ---------- */
+/* Hide the native download / overflow buttons where browsers still show them. */
+video::-webkit-media-controls-download-button,
+video::-internal-media-controls-download-button { display: none !important; }
+video::-webkit-media-controls-enclosure { overflow: hidden; }
+video::-webkit-media-controls-panel { width: calc(100% + 32px); }
+video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+/* ---------- Rich text editor & rendered article content ---------- */
+.rte:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.rte h1, .article-body h1 { font-family: var(--font-display); font-size: 1.85rem; font-weight: 800; margin: 1.4rem 0 .6rem; color: var(--color-ink); }
+.rte h2, .article-body h2 { font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; margin: 1.3rem 0 .5rem; color: var(--color-ink); }
+.rte h3, .article-body h3 { font-family: var(--font-display); font-size: 1.18rem; font-weight: 700; margin: 1.1rem 0 .4rem; color: var(--color-ink); }
+.rte p, .article-body p { margin: .7rem 0; }
+.rte ul, .article-body ul { list-style: disc; padding-left: 1.5rem; margin: .7rem 0; }
+.rte ol, .article-body ol { list-style: decimal; padding-left: 1.5rem; margin: .7rem 0; }
+.rte li, .article-body li { margin: .3rem 0; }
+.rte a, .article-body a { color: var(--color-brand); text-decoration: underline; }
+.rte blockquote, .article-body blockquote {
+  border-left: 4px solid var(--color-brand);
+  background: var(--color-brand-light);
+  padding: 1rem 1.25rem;
+  border-radius: 0 .75rem .75rem 0;
+  margin: 1rem 0;
+  font-style: italic;
+  font-weight: 600;
+}
+.rte pre, .article-body pre {
+  background: var(--color-ink); color: #f4f4f5;
+  padding: 1rem; border-radius: .75rem; overflow-x: auto;
+  font-size: .875rem; margin: 1rem 0;
+}
+.rte img, .article-body img { max-width: 100%; border-radius: .75rem; margin: 1rem 0; }
+.rte hr, .article-body hr { border: 0; border-top: 1px solid var(--color-line); margin: 1.5rem 0; }
+.article-body { font-size: 15px; line-height: 1.85; color: rgb(33 37 41 / 0.8); }
+
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Reveal-on-scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Print Layout Styles (A4 Letterhead, Invoice, Receipt) ---------- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #16181c !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide screen chrome & controls when printing */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Make target printable canvas and its contents strictly visible */
+  #printable-letterhead, #printable-letterhead *,
+  #printable-invoice, #printable-invoice *,
+  #printable-receipt, #printable-receipt * {
+    visibility: visible !important;
+  }
+
+  /* Isolate printable letterhead to fill the printed A4 sheet cleanly */
+  #printable-letterhead {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    padding: 18mm 16mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    z-index: 999999 !important;
+  }
+
+  #printable-invoice, #printable-receipt {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    border-radius: 0 !important;
+    z-index: 999999 !important;
+  }
+}

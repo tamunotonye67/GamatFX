@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="GAMAT Fx Academy — premier forex trading education, mentorship, and a results-driven community. Learn to trade currencies, crypto, CFDs and synthetic indices with confidence." />
+    <title>GAMAT Fx Academy | Premier Forex Trading Education & Mentorship</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      /* Hide third-party "Built with Arena" / similar floating badges if injected. */
+      a[href*="arena.im"],
+      a[href*="arena.com"],
+      a[href*="arenasocial"],
+      iframe[src*="arena"],
+      [class*="arena-"],
+      [id*="arena-"],
+      [class*="Arena"],
+      [id*="Arena"],
+      [data-arena],
+      div[style*="z-index: 999999"],
+      div[style*="z-index:999999"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Remove common floating "Built with …" badges if a host injects them after load.
+      (function () {
+        function scrub() {
+          document.querySelectorAll("a, button, div, span, iframe").forEach(function (el) {
+            var t = (el.textContent || "").toLowerCase();
+            var h = ((el.getAttribute && el.getAttribute("href")) || "").toLowerCase();
+            var s = ((el.getAttribute && el.getAttribute("src")) || "").toLowerCase();
+            if (
+              t.indexOf("built with arena") !== -1 ||
+              t.indexOf("built with") !== -1 && t.indexOf("arena") !== -1 ||
+              h.indexOf("arena.") !== -1 ||
+              s.indexOf("arena.") !== -1
+            ) {
+              el.style.setProperty("display", "none", "important");
+              el.remove();
+            }
+          });
+        }
+        scrub();
+        document.addEventListener("DOMContentLoaded", scrub);
+        setTimeout(scrub, 500);
+        setTimeout(scrub, 2000);
+        setTimeout(scrub, 5000);
+        try {
+          new MutationObserver(scrub).observe(document.documentElement, { childList: true, subtree: true });
+        } catch (e) {}
+      })();
+    </script>
+  </body>
+</html>
