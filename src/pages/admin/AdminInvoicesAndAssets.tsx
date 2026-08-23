@@ -8,6 +8,7 @@ import {
   Receipt, Download, Printer, Plus, FileText, CheckCircle2, ShieldCheck,
   Image, AlertTriangle, Wallet, Upload, X
 } from "lucide-react";
+import { uploadCompanyAsset } from "../../lib/supabaseStorage";
 
 /* ========================================================================== */
 /*                            1. INVOICES & RECEIPTS                          */
@@ -497,16 +498,21 @@ export function AdminCompanyAssets() {
   const [signatoryTitle, setSignatoryTitle] = useState("Managing Director & Head of Trading");
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
 
-  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        if (evt.target?.result) {
-          setSignatureUrl(evt.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      const res = await uploadCompanyAsset("signature", file);
+      if (res.ok && res.url) {
+        setSignatureUrl(res.url);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          if (evt.target?.result) {
+            setSignatureUrl(evt.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

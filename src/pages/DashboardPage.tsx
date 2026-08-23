@@ -13,6 +13,7 @@ import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
 import { CONTACT } from "../lib/contact";
 import { rankForXp, progressToNext, nextRank } from "../lib/combat";
+import { uploadAvatar } from "../lib/supabaseStorage";
 
 type Tab = "overview" | "courses" | "certificates" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
@@ -817,27 +818,20 @@ export default function DashboardPage() {
       }, 500);
     };
 
-    const pick = (file?: File) => {
+    const pick = async (file?: File) => {
       if (!file) return;
       if (!file.type.startsWith("image/")) { setErr("Please choose an image file."); return; }
-      if (file.size > 3 * 1024 * 1024) { setErr("Image must be smaller than 3MB."); return; }
+      if (file.size > 5 * 1024 * 1024) { setErr("Image must be smaller than 5MB."); return; }
       setErr(null);
-      const reader = new FileReader();
-      reader.onload = () => {
-        // Downscale to a square 320px thumbnail to keep storage small.
-        const img = new Image();
-        img.onload = () => {
-          const size = 320;
-          const cv = document.createElement("canvas");
-          cv.width = size; cv.height = size;
-          const ctx = cv.getContext("2d")!;
-          const s = Math.min(img.width, img.height);
-          ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-          setAvatar(cv.toDataURL("image/jpeg", 0.85));
-        };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
+
+      const res = await uploadAvatar(user!.id, file);
+      if (res.ok && res.url) {
+        setAvatar(res.url);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => setAvatar(reader.result as string);
+        reader.readAsDataURL(file);
+      }
     };
 
     const initials = `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase();
