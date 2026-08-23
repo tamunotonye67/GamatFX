@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { supabase } from "./supabase";
 import { COURSES, getCourse, totalLessons } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
 import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount } from "./supabaseAuth";
@@ -1320,7 +1321,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => write(K.studentOfTheWeek, studentOfTheWeek), [studentOfTheWeek]);
   useEffect(() => write(K.sotwHistory, studentOfTheWeekHistory), [studentOfTheWeekHistory]);
   useEffect(() => write(K.coupons, coupons), [coupons]);
-  useEffect(() => write("gamat_reviews_v1", reviews), [reviews]);
+  /* Sync active user session with native Supabase Auth */
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) {
+        setSessionId(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.id) {
+        setSessionId(session.user.id);
+      } else if (_event === "SIGNED_OUT") {
+        setSessionId(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   /* Load and sync accounts from Supabase database */
   useEffect(() => {
