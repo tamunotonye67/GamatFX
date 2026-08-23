@@ -7,6 +7,7 @@ import {
   ArrowLeft, Lock, CreditCard, Building2, Smartphone, CheckCircle2,
   ShieldCheck, ArrowUpRight, Loader2, Tag, Video, MessagesSquare, Send, MessageSquare, Check,
 } from "lucide-react";
+import { payWithPaystack, generateTxRef } from "../lib/paystack";
 
 type Method = "card" | "transfer" | "ussd";
 
@@ -86,7 +87,10 @@ export default function CheckoutPage({ id }: { id: string }) {
   const pay = (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
-    window.setTimeout(() => {
+
+    const ref = generateTxRef("GFX");
+
+    const completePayment = () => {
       enroll(course.id);
       recordPayment({
         userId: user!.id,
@@ -104,7 +108,24 @@ export default function CheckoutPage({ id }: { id: string }) {
       setProcessing(false);
       setDone(true);
       window.scrollTo({ top: 0 });
-    }, 1600);
+    };
+
+    if (method === "card") {
+      payWithPaystack({
+        key: "pk_test_gamatfx_public_key",
+        email: user!.email,
+        amountInKobo: total * 100,
+        ref,
+        metadata: {
+          course_id: course.id,
+          student_id: user!.id,
+        },
+        onSuccess: () => completePayment(),
+        onClose: () => setProcessing(false),
+      });
+    } else {
+      setTimeout(completePayment, 1200);
+    }
   };
 
   /* ----------------------------- Success ----------------------------- */
