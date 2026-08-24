@@ -84,8 +84,8 @@ export default function Hero() {
           </div>
         </div>
 
-          {/* Live market-session clock — pushed right so the headline can breathe */}
-          <div className="hidden justify-end lg:flex lg:translate-x-4 xl:translate-x-8">
+          {/* Live market-session clock */}
+          <div className="mt-10 flex justify-center lg:mt-0 lg:justify-end lg:translate-x-4 xl:translate-x-8">
             <MarketClock />
           </div>
         </div>

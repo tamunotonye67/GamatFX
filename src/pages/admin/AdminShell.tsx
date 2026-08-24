@@ -153,7 +153,7 @@ export function AdminShell({ title, subtitle, action, children }: {
 
                 {/* Floating Activity Notifications Panel */}
                 {notifOpen && (
-                  <div className="absolute right-0 top-full mt-3 w-80 sm:w-96 rounded-2xl border border-line bg-white p-4 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 top-full mt-3 w-[calc(100vw-32px)] max-w-sm sm:w-96 rounded-2xl border border-line bg-white p-4 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex items-center justify-between border-b border-line pb-3 mb-3">
                       <div className="flex items-center gap-2">
                         <Bell className="h-4 w-4 text-brand" />

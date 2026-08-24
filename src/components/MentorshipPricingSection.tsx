@@ -119,13 +119,13 @@ export default function MentorshipPricingSection() {
 
             let stackStyles = "";
             if (isPro) {
-              stackStyles = "bg-slate-950 text-white border-2 border-brand shadow-[0_35px_90px_-15px_rgba(220,53,69,0.6)] scale-105 z-20 relative";
+              stackStyles = "bg-slate-950 text-white border-2 border-brand shadow-[0_35px_90px_-15px_rgba(220,53,69,0.6)] lg:scale-105 z-20 relative";
             } else if (idx === 0) {
               // Starter (Left) stacked behind Pro
-              stackStyles = "bg-white text-ink border border-line shadow-md scale-95 z-10 lg:-mr-10 opacity-90 hover:opacity-100 hover:scale-100 hover:z-30";
+              stackStyles = "bg-white text-ink border border-line shadow-md lg:scale-95 z-10 lg:-mr-10 opacity-95 hover:opacity-100 hover:scale-100 hover:z-30";
             } else {
               // Elite (Right) stacked behind Pro
-              stackStyles = "bg-white text-ink border border-line shadow-md scale-95 z-10 lg:-ml-10 opacity-90 hover:opacity-100 hover:scale-100 hover:z-30";
+              stackStyles = "bg-white text-ink border border-line shadow-md lg:scale-95 z-10 lg:-ml-10 opacity-95 hover:opacity-100 hover:scale-100 hover:z-30";
             }
 
             return (

@@ -150,7 +150,7 @@ export default function MarketClock() {
       </svg>
 
       {/* Legend */}
-      <div className="mt-4 grid grid-cols-4 gap-1.5">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {SESSIONS.map((x) => {
           const on = isOpen(x, utcH);
           return (
