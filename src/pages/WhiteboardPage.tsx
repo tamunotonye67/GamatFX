@@ -3147,6 +3147,9 @@ export default function WhiteboardPage() {
               <div className="space-y-6 max-w-5xl">
                 {/* Hero Guide Banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-brand-dark p-8 text-white shadow-xl">
+                  {/* Subtle Graduation Cap Watermark */}
+                  <GraduationCap className="absolute -right-8 -bottom-10 h-64 w-64 text-white/5 pointer-events-none rotate-12" />
+
                   <div className="relative z-10 max-w-2xl space-y-3">
                     <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand/30 border border-brand/40 text-brand-light text-xs font-black uppercase tracking-wider">
                       Workspace Learning Center
