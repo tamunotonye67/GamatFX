@@ -1023,10 +1023,10 @@ export default function WhiteboardPage() {
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
+          className="flex items-center justify-center rounded-xl border border-line bg-white p-1.5 text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
           title="Back to GAMAT FX Website"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> <span>Back to Site</span>
+          <ArrowLeft className="h-4 w-4" />
         </button>
 
         {/* Vertical Separator Line */}
