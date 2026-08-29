@@ -2230,7 +2230,7 @@ export default function WhiteboardPage() {
                     onClick={() => { loadSampleClassChart("mindmap"); setDiagramsMenuOpen(false); }}
                     className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <span>🧠 Forex Basics Mind Map</span>
+                    <span>Forex Basics Mind Map</span>
                   </button>
 
                   <button
@@ -2238,7 +2238,7 @@ export default function WhiteboardPage() {
                     onClick={() => { loadSampleClassChart("smc"); setDiagramsMenuOpen(false); }}
                     className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <span>⚡ SMC Order Block & Liquidity</span>
+                    <span>SMC Order Block & Liquidity</span>
                   </button>
 
                   <button
@@ -2246,7 +2246,7 @@ export default function WhiteboardPage() {
                     onClick={() => { loadSampleClassChart("risk"); setDiagramsMenuOpen(false); }}
                     className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <span>🛡️ Risk Management Matrix</span>
+                    <span>Risk Management Matrix</span>
                   </button>
 
                   <p className="text-[10px] font-black uppercase text-muted tracking-wider pt-2">Live Class Chart Analysis</p>
@@ -2257,7 +2257,7 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-2 text-left text-xs font-bold text-blue-900 hover:bg-blue-100 transition"
                   >
                     <div>
-                      <p className="font-extrabold text-blue-950">📈 EUR/USD H4 BOS & FVG Class Chart</p>
+                      <p className="font-extrabold text-blue-950">EUR/USD H4 BOS & FVG Class Chart</p>
                       <p className="text-[10px] text-blue-700 font-normal">Candlesticks, Break of Structure line, FVG box & Buy Limit</p>
                     </div>
                   </button>
@@ -2268,7 +2268,7 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-2 text-left text-xs font-bold text-emerald-900 hover:bg-emerald-100 transition"
                   >
                     <div>
-                      <p className="font-extrabold text-emerald-950">📉 London Asian Sweep Class Setup</p>
+                      <p className="font-extrabold text-emerald-950">London Asian Sweep Class Setup</p>
                       <p className="text-[10px] text-emerald-700 font-normal">Asian range box, Judas Swing sweep arrow & reversal target</p>
                     </div>
                   </button>
