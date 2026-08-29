@@ -63,7 +63,11 @@ import {
   BookOpen,
   Clock,
   FileText,
+  User,
+  ShieldCheck,
+  LogOut,
 } from "lucide-react";
+import { useStore } from "../lib/store";
 
 /* ========================================================================== */
 /*                               TYPES & DATA                                 */
@@ -309,6 +313,10 @@ const INITIAL_TABS: DiagramTab[] = [
 /* ========================================================================== */
 
 export default function WhiteboardPage() {
+  const { user, isAuthed, logout, isAdmin } = useStore();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
   const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
   const [activeTabId, setActiveTabId] = useState("blank");
   const [draggedTabIdx, setDraggedTabIdx] = useState<number | null>(null);
@@ -440,6 +448,24 @@ export default function WhiteboardPage() {
 
     return () => {
       document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  // Close User Menu on Outside Click / Escape
+  useEffect(() => {
+    const handleDocClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const handleDocKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setUserMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleDocClick);
+    document.addEventListener("keydown", handleDocKey);
+    return () => {
+      document.removeEventListener("mousedown", handleDocClick);
+      document.removeEventListener("keydown", handleDocKey);
     };
   }, []);
 
@@ -1564,6 +1590,67 @@ export default function WhiteboardPage() {
 
   const selectedShape = shapes.find((s) => s.id === selectedShapeIds[0]);
 
+  // Authentication Gate: Require user to have an active account & be logged in
+  if (!isAuthed || !user) {
+    return (
+      <div className="fixed inset-0 h-screen w-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden select-none">
+        {/* Ambient Gradient Glow */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/5 rounded-full blur-[180px] pointer-events-none" />
+
+        <div className="relative z-10 w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl text-center space-y-6 animate-in fade-in zoom-in-95">
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="h-16 w-16 rounded-2xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand shadow-inner">
+                <Lock className="h-8 w-8" />
+              </div>
+              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-black text-white shadow-md">
+                FX
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="font-display text-2xl font-black text-white tracking-tight">
+              Member Account Required
+            </h1>
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+              Please sign in or create an account to access the GAMAT FX Technical Analysis Whiteboard, interactive Forex setups, Fibonacci tools, and cloud drafts.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="w-full py-3.5 rounded-2xl bg-brand text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-brand/30 hover:bg-brand-dark transition transform active:scale-[0.98]"
+            >
+              Sign In to Your Account
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="w-full py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 hover:text-white transition transform active:scale-[0.98]"
+            >
+              Create a Free Account
+            </button>
+          </div>
+
+          <div className="border-t border-slate-800/80 pt-4">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition font-medium"
+            >
+              <Home className="h-3.5 w-3.5" /> Back to GAMAT FX Platform
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
       {/* Toast Notification */}
@@ -2343,6 +2430,89 @@ export default function WhiteboardPage() {
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
+
+          {/* User Account Avatar & Profile Menu */}
+          <div ref={userMenuRef} className="relative ml-1 pl-2 border-l border-line">
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              className="flex items-center gap-2 rounded-2xl p-1 hover:bg-cream transition group"
+              title={`${user.firstName} ${user.lastName} (${user.email})`}
+            >
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.firstName}
+                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition"
+                />
+              ) : (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition">
+                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                </span>
+              )}
+              <span className="hidden xl:inline text-xs font-bold text-ink max-w-[90px] truncate">
+                {user.nickname || user.firstName}
+              </span>
+              <ChevronDown className={`h-3 w-3 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Profile Popover Dropdown */}
+            {userMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
+                <div className="border-b border-line bg-cream p-3.5">
+                  <div className="flex items-center gap-2.5">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
+                    ) : (
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
+                        {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-xs text-ink truncate">{user.firstName} {user.lastName}</p>
+                      <p className="text-[10px] text-muted truncate">{user.email}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
+                        {user.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2 space-y-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                  >
+                    <User className="h-4 w-4 text-slate-700" /> Student Dashboard
+                  </button>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                    >
+                      <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); navigate("/"); }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-cream transition text-left"
+                  >
+                    <Home className="h-4 w-4 text-slate-700" /> Platform Home
+                  </button>
+                  <div className="border-t border-line my-1" />
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); logout(); }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 font-bold hover:bg-rose-50 transition text-left"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
