@@ -56,7 +56,6 @@ import {
   Minus,
   Sparkles,
   MousePointerClick,
-  Sliders,
   Crosshair,
 } from "lucide-react";
 
