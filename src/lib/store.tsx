@@ -1062,23 +1062,26 @@ const uid = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toStr
 const ticketCode = () =>
   `GX-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
+/** Default administrator account for GAMAT FX. */
+export const DEFAULT_ADMIN: Account = {
+  id: "u_admin",
+  firstName: "Tonye",
+  lastName: "Taylor",
+  email: "admin@gamatfx.com",
+  password: "admin123",
+  role: "admin",
+  status: "active",
+  country: "Nigeria",
+  phone: "+234 806 194 9891",
+  joined: "2024-01-01T00:00:00.000Z",
+};
+
 /** Seeds a default admin account the first time the app runs. */
 function seedAccounts(): Account[] {
   const existing = read<Account[]>(K.accounts, []);
-  if (existing.some((a) => a.role === "admin")) return existing;
-  const admin: Account = {
-    id: "u_admin",
-    firstName: "Tonye",
-    lastName: "Taylor",
-    email: "admin@gamatfx.com",
-    password: "admin123",
-    role: "admin",
-    status: "active",
-    country: "Nigeria",
-    phone: "+234 806 194 9891",
-    joined: new Date().toISOString(),
-  };
-  const next = [admin, ...existing];
+  const hasAdmin = existing.some((a) => a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
+  if (hasAdmin) return existing;
+  const next = [DEFAULT_ADMIN, ...existing.filter((a) => a.id !== DEFAULT_ADMIN.id)];
   write(K.accounts, next);
   return next;
 }
@@ -1090,7 +1093,7 @@ type Ctx = {
   user: User | null;
   isAuthed: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => { ok: boolean; error?: string };
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
   signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string }) => { ok: boolean; error?: string };
   logout: () => void;
   updateProfile: (patch: Partial<User>) => void;
@@ -1402,7 +1405,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* Load all entities from Supabase database, auto-seed if empty & subscribe to Realtime events */
   useEffect(() => {
     const refreshAllFromSupabase = () => {
-      fetchSupabaseAccounts().then((r) => r.length && setAccounts(r));
+      fetchSupabaseAccounts().then((r) => {
+        if (r.length) {
+          setAccounts((prev) => {
+            const map = new Map<string, Account>();
+            map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
+            prev.forEach((a) => map.set(a.id, a));
+            r.forEach((a) => map.set(a.id, a));
+            return Array.from(map.values());
+          });
+        }
+      });
       fetchSupabaseEnrollments().then((r) => r.length && setAllEnrollments(r));
       fetchSupabasePayments().then((r) => r.length && setPayments(r));
       fetchSupabaseEvents().then((r) => r.length && setEvents(r));
@@ -1491,9 +1504,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return { ok: true };
   }, [accounts]);
 
-  const login: Ctx["login"] = useCallback((email, password) => {
+  const login: Ctx["login"] = useCallback(async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
-    const found = accounts.find((a) => a.email === cleanEmail);
+
+    // 1. Check default admin account explicitly
+    if (cleanEmail === DEFAULT_ADMIN.email.toLowerCase()) {
+      if (password !== DEFAULT_ADMIN.password) {
+        return { ok: false, error: "Incorrect password. Please try again." };
+      }
+      setAccounts((prev) => {
+        const next = prev.some((a) => a.id === DEFAULT_ADMIN.id) ? prev : [DEFAULT_ADMIN, ...prev];
+        write(K.accounts, next);
+        return next;
+      });
+      setSessionId(DEFAULT_ADMIN.id);
+      signInSupabaseUser(cleanEmail, password);
+      return { ok: true };
+    }
+
+    // 2. Check in-memory accounts state
+    let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
+
+    // 3. If not in state, check localStorage accounts
+    if (!found) {
+      const localAccs = read<Account[]>(K.accounts, []);
+      found = localAccs.find((a) => a.email.toLowerCase() === cleanEmail);
+      if (found) {
+        setAccounts((prev) => (prev.some((a) => a.id === found!.id) ? prev : [...prev, found!]));
+      }
+    }
 
     if (found) {
       if (found.password !== password) return { ok: false, error: "Incorrect password. Please try again." };
@@ -1503,15 +1542,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ok: true };
     }
 
-    // Try Supabase auth login directly
-    signInSupabaseUser(cleanEmail, password).then((res) => {
+    // 4. Check remote Supabase Auth and database accounts
+    try {
+      const res = await signInSupabaseUser(cleanEmail, password);
       if (res.ok && res.account) {
-        setAccounts((p) => (p.some((a) => a.id === res.account!.id) ? p : [...p, res.account!]));
+        setAccounts((p) => {
+          const next = p.some((a) => a.id === res.account!.id) ? p : [...p, res.account!];
+          write(K.accounts, next);
+          return next;
+        });
         setSessionId(res.account.id);
+        return { ok: true };
       }
-    });
+      if (!res.ok && res.error && !res.error.toLowerCase().includes("invalid login")) {
+        return { ok: false, error: res.error };
+      }
+    } catch {
+      // Offline / network failure
+    }
 
-    return { ok: false, error: "No account found with that email." };
+    return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
   }, [accounts]);
 
   const logout = useCallback(() => {

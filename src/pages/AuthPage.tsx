@@ -376,14 +376,23 @@ export function LoginPage() {
     );
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = login(email, password);
-    if (!res.ok) {
-      setError(res.error ?? "Unable to log in.");
-      return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await login(email, password);
+      if (!res.ok) {
+        setError(res.error ?? "Unable to log in.");
+        setLoading(false);
+        return;
+      }
+      navigate(nextTarget());
+    } catch {
+      setError("An unexpected error occurred during login. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    navigate(nextTarget());
   };
 
   const handleForgotSubmit = async (e: React.FormEvent) => {
