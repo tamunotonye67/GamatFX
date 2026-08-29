@@ -722,6 +722,15 @@ export default function WhiteboardPage() {
   const [shortcutFilter, setShortcutFilter] = useState("");
   const [maxTabPromptOpen, setMaxTabPromptOpen] = useState(false);
 
+  // Comprehensive New Canvas Creator Modal State
+  const [createCanvasModalOpen, setCreateCanvasModalOpen] = useState(false);
+  const [newCanvasName, setNewCanvasName] = useState("");
+  const [newCanvasTheme, setNewCanvasTheme] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
+  const [newCanvasTemplate, setNewCanvasTemplate] = useState<"blank" | "risk_1_3" | "smc_zones" | "killzones" | "top_down">("blank");
+  const [newCanvasPair, setNewCanvasPair] = useState("EUR/USD");
+  const [newCanvasTimeframe, setNewCanvasTimeframe] = useState("15m");
+  const [newCanvasSnapToGrid, setNewCanvasSnapToGrid] = useState(true);
+
   // Custom New Tab Naming Modal State
   const [newTabModalOpen, setNewTabModalOpen] = useState(false);
   const [newTabInputName, setNewTabInputName] = useState("");
@@ -859,6 +868,12 @@ export default function WhiteboardPage() {
       const isCtrl = e.ctrlKey || e.metaKey;
 
       // 1. Action Shortcuts
+      if (isCtrl && key === "n") {
+        e.preventDefault();
+        openCreateCanvasModal();
+        return;
+      }
+
       if (isCtrl && key === "s") {
         e.preventDefault();
         handleSaveCurrentDraft();
@@ -1682,24 +1697,119 @@ export default function WhiteboardPage() {
   };
 
   /* Tab Management Functions with Custom Tab Name Input Modal & MAX 5 TABS PROMPT */
-  const handleAddNewTab = () => {
+  const openCreateCanvasModal = (initialName?: string) => {
     if (tabs.length >= 5) {
       setMaxTabPromptOpen(true);
       showToast("Tab limit reached! (Maximum 5 tabs)");
       return;
     }
-    setNewTabInputName(`Canvas ${tabs.length + 1}`);
-    setNewTabModalOpen(true);
+    setNewCanvasName(initialName || `Canvas ${tabs.length + 1}`);
+    setCreateCanvasModalOpen(true);
+  };
+
+  const handleAddNewTab = () => {
+    openCreateCanvasModal();
+  };
+
+  const handleConfirmCreateCustomCanvas = () => {
+    const finalName = newCanvasName.trim() || `Canvas ${tabs.length + 1}`;
+    if (tabs.length >= 5 && !tabs.some((t) => t.name === finalName)) {
+      setMaxTabPromptOpen(true);
+      showToast("Maximum 5 tabs reached! Please close a tab first.");
+      return;
+    }
+
+    const newId = `canvas_${Date.now()}`;
+    setTabs((prev) => [...prev, { id: newId, name: finalName }]);
+    setActiveTabId(newId);
+
+    // Apply selected theme and grid settings
+    setBgGrid(newCanvasTheme);
+    setSnapToGrid(newCanvasSnapToGrid);
+
+    // Generate template shapes
+    let initialShapes: Shape[] = [];
+    if (newCanvasTemplate === "risk_1_3") {
+      initialShapes = [
+        { id: "pos", type: "long", color: "#10b981", strokeWidth: 2, points: [{ x: 180, y: 300 }, { x: 440, y: 140 }] },
+        { id: "sl_line", type: "line", color: "#ef4444", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 140, y: 360 }, { x: 480, y: 360 }] },
+        { id: "sltxt", type: "text", color: "#ef4444", strokeWidth: 2, points: [{ x: 150, y: 380 }], text: "Stop Loss Invalidation (-20 Pips)" },
+        { id: "tp_line", type: "line", color: "#10b981", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 140, y: 140 }, { x: 480, y: 140 }] },
+        { id: "tptxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 150, y: 120 }], text: "Take Profit Target 1:3 (+60 Pips)" },
+        {
+          id: "note_risk",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 520, y: 120 }],
+          text: `📊 TRADE PLAN: ${newCanvasPair || "EUR/USD"} (${newCanvasTimeframe || "15m"})\n\n• Entry Model: 1:3 R:R Institutional Setup\n• Max Risk: 1.0% Capital\n• Target: Liquidity High Pool\n• Invalidation: Below Swing Low`,
+          stickyColor: "#bbf7d0",
+        },
+      ];
+    } else if (newCanvasTemplate === "smc_zones") {
+      initialShapes = [
+        { id: "ob", type: "rectangle", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 120, y: 260 }, { x: 320, y: 340 }] },
+        { id: "obtxt", type: "text", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 130, y: 295 }], text: "Bullish Order Block (OB Demand Zone)" },
+        { id: "fvg", type: "rectangle", color: "#f59e0b", strokeWidth: 2, points: [{ x: 260, y: 180 }, { x: 420, y: 240 }] },
+        { id: "fvgtxt", type: "text", color: "#f59e0b", strokeWidth: 2, points: [{ x: 270, y: 210 }], text: "Fair Value Gap (FVG Imbalance)" },
+        { id: "bos", type: "arrow", color: "#3b82f6", strokeWidth: 3, points: [{ x: 320, y: 300 }, { x: 550, y: 120 }] },
+        { id: "bostxt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 420, y: 190 }], text: "Break of Structure (BOS) ↗" },
+        {
+          id: "note_smc",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 580, y: 120 }],
+          text: `⚡ SMC ANALYSIS: ${newCanvasPair || "EUR/USD"} (${newCanvasTimeframe || "15m"})\n\n• HTF Trend Bias: Bullish\n• Target Zone: External Range Liquidity\n• Confirmation: LTF CHoCH on 5m\n• Entry: 50% FVG mitigation`,
+          stickyColor: "#bae6fd",
+        },
+      ];
+    } else if (newCanvasTemplate === "killzones") {
+      initialShapes = [
+        { id: "asia_box", type: "rectangle", color: "#64748b", strokeWidth: 2, points: [{ x: 100, y: 180 }, { x: 260, y: 320 }] },
+        { id: "asia_txt", type: "text", color: "#64748b", strokeWidth: 2, points: [{ x: 110, y: 200 }], text: "Asian Range (00:00 - 06:00 GMT)" },
+        { id: "london_box", type: "rectangle", color: "#3b82f6", strokeWidth: 2, points: [{ x: 290, y: 140 }, { x: 480, y: 350 }] },
+        { id: "london_txt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 300, y: 160 }], text: "London Killzone (07:00 - 10:00 GMT)" },
+        { id: "ny_box", type: "rectangle", color: "#ea580c", strokeWidth: 2, points: [{ x: 510, y: 120 }, { x: 700, y: 380 }] },
+        { id: "ny_txt", type: "text", color: "#ea580c", strokeWidth: 2, points: [{ x: 520, y: 140 }], text: "New York Killzone (12:00 - 15:00 GMT)" },
+        {
+          id: "note_kz",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 740, y: 120 }],
+          text: `⏱️ KILLZONES: ${newCanvasPair || "EUR/USD"}\n\n• Look for Asian High/Low manipulation.\n• London Judas Swing sweeps liquidity.\n• New York Open continuation impulse.`,
+          stickyColor: "#fef08a",
+        },
+      ];
+    } else if (newCanvasTemplate === "top_down") {
+      initialShapes = [
+        { id: "htf_box", type: "rectangle", color: "#3b82f6", strokeWidth: 2, points: [{ x: 100, y: 120 }, { x: 320, y: 420 }] },
+        { id: "htf_txt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 110, y: 145 }], text: "1. High Timeframe (Daily/4H)" },
+        { id: "itf_box", type: "rectangle", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 350, y: 120 }, { x: 570, y: 420 }] },
+        { id: "itf_txt", type: "text", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 360, y: 145 }], text: "2. Intermediate (1H/15m)" },
+        { id: "ltf_box", type: "rectangle", color: "#10b981", strokeWidth: 2, points: [{ x: 600, y: 120 }, { x: 820, y: 420 }] },
+        { id: "ltf_txt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 610, y: 145 }], text: "3. Low Timeframe (5m/1m Trigger)" },
+        {
+          id: "note_td",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 850, y: 120 }],
+          text: `🔍 TOP-DOWN: ${newCanvasPair || "EUR/USD"}\n\n• HTF: Directional Order Flow\n• ITF: Key Supply/Demand POIs\n• LTF: Entry confirmation & tight SL`,
+          stickyColor: "#ddd6fe",
+        },
+      ];
+    }
+
+    setShapes(initialShapes);
+    setCreateCanvasModalOpen(false);
+    setViewMode("canvas");
+    showToast(`Created canvas: "${finalName}"!`);
   };
 
   const handleConfirmCreateTab = () => {
-    const finalName = newTabInputName.trim() || `Canvas ${tabs.length + 1}`;
-    const newId = `tab_${Date.now()}`;
-    setTabs((prev) => [...prev, { id: newId, name: finalName }]);
-    setActiveTabId(newId);
-    setShapes([]);
-    setNewTabModalOpen(false);
-    showToast(`Created new diagram tab: ${finalName}`);
+    handleConfirmCreateCustomCanvas();
   };
 
   const handleCloseTab = (tabIdToClose: string) => {
@@ -1708,25 +1818,24 @@ export default function WhiteboardPage() {
       return;
     }
 
-    const tabToClose = tabs.find((t) => t.id === tabIdToClose);
-    if (tabToClose) {
-      // Move to Trash Bin instead of permanent deletion!
+    const tabToRemove = tabs.find((t) => t.id === tabIdToClose);
+    if (tabToRemove) {
       const trashedItem: TrashedTab = {
-        id: tabToClose.id,
-        name: tabToClose.name,
-        shapes: [...shapes],
+        id: tabToRemove.id,
+        name: tabToRemove.name,
+        shapes: tabToRemove.id === activeTabId ? shapes : [],
         deletedAt: Date.now(),
       };
-      setTrashedTabs((prev) => [trashedItem, ...prev.filter((t) => t.id !== tabToClose.id)]);
+      setTrashedTabs((prev) => [trashedItem, ...prev]);
     }
 
-    const updatedTabs = tabs.filter((t) => t.id !== tabIdToClose);
-    setTabs(updatedTabs);
+    const remaining = tabs.filter((t) => t.id !== tabIdToClose);
+    setTabs(remaining);
     if (activeTabId === tabIdToClose) {
-      setActiveTabId(updatedTabs[updatedTabs.length - 1].id);
-      handleSelectTab(updatedTabs[updatedTabs.length - 1].id);
+      setActiveTabId(remaining[0].id);
+      setShapes([]);
     }
-    showToast(`Moved "${tabToClose?.name || 'Tab'}" to Trash (Auto-purges in 30 days)`);
+    showToast(`Tab moved to Trash (retained for 30 days)`);
   };
 
   /* ---------------------- DRAFTS, SAMPLES, TRASH & SAVE HANDLERS ------------- */
@@ -1883,27 +1992,7 @@ export default function WhiteboardPage() {
 
   /* ----------------- FIGMA-STYLE HUB ACTION HANDLERS ------------------------ */
   const handleCreateNewCanvasFromHub = (customName?: string) => {
-    const finalName = customName || `Untitled Canvas ${tabs.length + 1}`;
-    if (tabs.length >= 5) {
-      const blankTab = tabs.find((t) => t.id === "blank");
-      if (blankTab) {
-        setActiveTabId("blank");
-        setShapes([]);
-        setViewMode("canvas");
-        showToast("Created new blank canvas!");
-        return;
-      }
-      setMaxTabPromptOpen(true);
-      showToast("Maximum 5 tabs reached! Please close a tab first.");
-      return;
-    }
-
-    const newId = `canvas_${Date.now()}`;
-    setTabs((prev) => [...prev, { id: newId, name: finalName }]);
-    setActiveTabId(newId);
-    setShapes([]);
-    setViewMode("canvas");
-    showToast(`Created new canvas: "${finalName}"!`);
+    openCreateCanvasModal(customName);
   };
 
   const handleCreateCanvasFromResource = (resource: HubResourceGuide) => {
@@ -3723,42 +3812,286 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Custom New Tab Name Input Modal */}
-      {newTabModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 text-center">
-            <div className="h-12 w-12 rounded-full bg-brand-light text-brand flex items-center justify-center mx-auto font-extrabold">
-              <Plus className="h-6 w-6" />
-            </div>
-            <h3 className="font-display font-extrabold text-ink text-base">Name Your Diagram Tab</h3>
-            <p className="text-xs text-muted leading-relaxed font-medium">
-              Enter a custom name for your new whiteboard tab:
-            </p>
-            <input
-              autoFocus
-              type="text"
-              value={newTabInputName}
-              onChange={(e) => setNewTabInputName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleConfirmCreateTab();
-              }}
-              placeholder="e.g. EUR/USD SMC Setup"
-              className="w-full rounded-xl border border-line bg-cream p-3 text-xs font-bold text-ink outline-none focus:border-brand"
-            />
-            <div className="flex gap-2 pt-2">
+      {/* Interactive Create New Canvas & Environment Setup Modal */}
+      {createCanvasModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+          <div className="w-full max-w-xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-5 text-left my-auto max-h-[92vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-line pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-brand-light text-brand flex items-center justify-center font-extrabold shadow-xs">
+                  <Plus className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-extrabold text-ink text-base">Create New Canvas</h3>
+                  <p className="text-xs text-muted font-medium">Configure diagram name, theme, and trading setup.</p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setNewTabModalOpen(false)}
-                className="flex-1 rounded-xl bg-cream py-2.5 text-xs font-bold text-muted hover:text-ink transition"
+                onClick={() => setCreateCanvasModalOpen(false)}
+                className="h-8 w-8 rounded-full flex items-center justify-center text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Canvas Name & Quick Presets */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-ink flex items-center justify-between">
+                <span>Canvas Name</span>
+                <span className="text-[10px] text-muted font-normal">Press Enter to create</span>
+              </label>
+              <input
+                autoFocus
+                type="text"
+                value={newCanvasName}
+                onChange={(e) => setNewCanvasName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleConfirmCreateCustomCanvas();
+                }}
+                placeholder="e.g. EUR/USD London Session Markup"
+                className="w-full rounded-xl border border-line bg-cream p-3 text-xs font-bold text-ink outline-none focus:border-brand transition"
+              />
+              {/* Quick Preset Pills */}
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  "EUR/USD Technical Breakdown",
+                  "London Killzone Setup",
+                  "SMC Liquidity Markup",
+                  "Gold (XAU/USD) Scalp",
+                  "Weekly Trade Journal",
+                ].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setNewCanvasName(preset)}
+                    className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                  >
+                    + {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Workspace Theme & Grid Picker */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-ink">Choose Canvas Theme</label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {[
+                  {
+                    id: "dots" as const,
+                    name: "Dots Grid",
+                    desc: "Figma style",
+                    bgClass: "bg-white border-slate-300",
+                    indicator: "radial-gradient(#94a3b8 1.5px, transparent 1.5px)",
+                    indicatorSize: "8px 8px",
+                  },
+                  {
+                    id: "lines" as const,
+                    name: "Tech Lines",
+                    desc: "Graph paper",
+                    bgClass: "bg-white border-slate-300",
+                    indicator: "linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)",
+                    indicatorSize: "10px 10px",
+                  },
+                  {
+                    id: "blank" as const,
+                    name: "Clean Blank",
+                    desc: "Pure white",
+                    bgClass: "bg-slate-50 border-slate-300",
+                    indicator: "none",
+                    indicatorSize: "auto",
+                  },
+                  {
+                    id: "dark" as const,
+                    name: "Obsidian",
+                    desc: "Dark mode",
+                    bgClass: "bg-slate-900 border-slate-700 text-white",
+                    indicator: "radial-gradient(#475569 1px, transparent 1px)",
+                    indicatorSize: "8px 8px",
+                  },
+                  {
+                    id: "chalkboard" as const,
+                    name: "Chalkboard",
+                    desc: "Classic green",
+                    bgClass: "bg-emerald-950 border-emerald-800 text-white",
+                    indicator: "none",
+                    indicatorSize: "auto",
+                  },
+                ].map((th) => {
+                  const isSelected = newCanvasTheme === th.id;
+                  return (
+                    <button
+                      key={th.id}
+                      type="button"
+                      onClick={() => setNewCanvasTheme(th.id)}
+                      className={`relative flex flex-col items-center justify-between p-2.5 rounded-2xl border-2 transition cursor-pointer text-center ${
+                        isSelected
+                          ? "border-brand bg-brand-light/30 shadow-xs ring-2 ring-brand/20"
+                          : "border-line hover:border-slate-300 bg-white"
+                      }`}
+                    >
+                      {/* Theme Preview Swatch */}
+                      <div
+                        className={`h-10 w-full rounded-xl border ${th.bgClass} flex items-center justify-center relative overflow-hidden mb-1.5`}
+                        style={{
+                          backgroundImage: th.indicator,
+                          backgroundSize: th.indicatorSize,
+                        }}
+                      >
+                        {isSelected && (
+                          <div className="h-5 w-5 rounded-full bg-brand text-white flex items-center justify-center shadow-xs">
+                            <Check className="h-3 w-3 stroke-[3]" />
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-bold text-ink leading-tight">{th.name}</span>
+                      <span className="text-[9px] text-muted">{th.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Trading Details: Pair & Timeframe */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Asset / Market Pair */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-ink">Asset / Currency Pair</label>
+                <div className="flex flex-wrap gap-1">
+                  {["EUR/USD", "GBP/USD", "USD/JPY", "XAU/USD", "BTC/USD", "NAS100"].map((pair) => (
+                    <button
+                      key={pair}
+                      type="button"
+                      onClick={() => setNewCanvasPair(pair)}
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer ${
+                        newCanvasPair === pair
+                          ? "bg-brand text-white border-brand shadow-xs"
+                          : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {pair}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Timeframe Bias */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-ink">Trading Timeframe</label>
+                <div className="flex flex-wrap gap-1">
+                  {["1m", "5m", "15m", "1H", "4H", "Daily", "Weekly"].map((tf) => (
+                    <button
+                      key={tf}
+                      type="button"
+                      onClick={() => setNewCanvasTimeframe(tf)}
+                      className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer ${
+                        newCanvasTimeframe === tf
+                          ? "bg-brand text-white border-brand shadow-xs"
+                          : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {tf}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Starter Template Pack */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-ink">Starter Template Setup</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  {
+                    id: "blank" as const,
+                    title: "Blank Clean Slate",
+                    desc: "Pure empty workspace ready for freehand technical analysis.",
+                  },
+                  {
+                    id: "risk_1_3" as const,
+                    title: "1:3 Risk Management Plan",
+                    desc: "Pre-places 1:3 Long setup with SL invalidation & risk note.",
+                  },
+                  {
+                    id: "smc_zones" as const,
+                    title: "SMC Liquidity & Order Blocks",
+                    desc: "Pre-loads Bullish OB demand zone, FVG imbalance & BOS arrow.",
+                  },
+                  {
+                    id: "killzones" as const,
+                    title: "London & NY Session Killzones",
+                    desc: "Pre-places Asian, London & New York session time boxes.",
+                  },
+                  {
+                    id: "top_down" as const,
+                    title: "Multi-Timeframe Top-Down",
+                    desc: "3-column structured template for HTF, ITF & LTF alignment.",
+                  },
+                ].map((tpl) => {
+                  const isSelected = newCanvasTemplate === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setNewCanvasTemplate(tpl.id)}
+                      className={`flex items-start gap-2.5 p-2.5 rounded-2xl border text-left transition cursor-pointer ${
+                        isSelected
+                          ? "border-brand bg-brand-light/30 ring-2 ring-brand/20 shadow-xs"
+                          : "border-line bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div
+                        className={`h-5 w-5 rounded-full mt-0.5 flex items-center justify-center shrink-0 border ${
+                          isSelected ? "border-brand bg-brand text-white" : "border-slate-300 bg-slate-50"
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-ink">{tpl.title}</div>
+                        <div className="text-[10px] text-muted leading-tight mt-0.5">{tpl.desc}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Grid Snapping Preference */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-cream border border-line">
+              <div className="flex items-center gap-2.5">
+                <Magnet className="h-4 w-4 text-brand" />
+                <div>
+                  <span className="text-xs font-bold text-ink block">Snap Elements to Grid</span>
+                  <span className="text-[10px] text-muted">Automatically align objects to clean 20px grid increments</span>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={newCanvasSnapToGrid}
+                onChange={(e) => setNewCanvasSnapToGrid(e.target.checked)}
+                className="h-4 w-4 rounded text-brand focus:ring-brand cursor-pointer"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2.5 pt-2 border-t border-line">
+              <button
+                type="button"
+                onClick={() => setCreateCanvasModalOpen(false)}
+                className="flex-1 rounded-xl bg-cream py-2.5 text-xs font-bold text-muted hover:text-ink transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleConfirmCreateTab}
-                className="btn-primary flex-1 !py-2.5 text-xs font-bold"
+                onClick={handleConfirmCreateCustomCanvas}
+                className="btn-primary flex-1 !py-2.5 text-xs font-bold shadow-md cursor-pointer flex items-center justify-center gap-2"
               >
-                Create Tab
+                <span>Create & Open Canvas</span>
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -4292,7 +4625,7 @@ export default function WhiteboardPage() {
           <button
             type="button"
             onClick={handleReturnToHub}
-            className="flex items-center justify-center p-1.5 rounded-xl border border-line bg-white text-slate-700 hover:bg-brand-light hover:text-brand hover:border-brand/40 transition shrink-0 cursor-pointer shadow-xs"
+            className="flex items-center justify-center p-1 text-slate-600 hover:text-brand transition shrink-0 cursor-pointer"
             title="Return to Files Hub (Auto-saves current canvas)"
           >
             <Home className="h-4 w-4" />
@@ -4732,12 +5065,12 @@ export default function WhiteboardPage() {
 
           {/* Bottom Actions */}
           <div className="space-y-1 w-full border-t border-line pt-2">
-            <div className="grid grid-cols-2 gap-1">
+            <div className="flex flex-col gap-1">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={shapes.length === 0}
-                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30"
+                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30 cursor-pointer"
                 title="Undo (Ctrl + Z)"
               >
                 <RotateCcw className="h-3.5 w-3.5 shrink-0" />
@@ -4746,7 +5079,7 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={handleRedo}
                 disabled={redoStack.length === 0}
-                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30"
+                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30 cursor-pointer"
                 title="Redo (Ctrl + Y)"
               >
                 <RotateCw className="h-3.5 w-3.5 shrink-0" />
@@ -4756,7 +5089,7 @@ export default function WhiteboardPage() {
               type="button"
               onClick={handleClear}
               disabled={shapes.length === 0}
-              className="w-full h-8 rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30"
+              className="w-full h-8 rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 cursor-pointer"
               title="Clear Whiteboard"
             >
               <Trash2 className="h-3.5 w-3.5 shrink-0" />
