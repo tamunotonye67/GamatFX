@@ -49,7 +49,6 @@ import {
   Unlock,
   Eye,
   EyeOff,
-  Folder,
   AlertTriangle,
 } from "lucide-react";
 
@@ -1375,7 +1374,7 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Distinct Folder/Tab Icon -> Truncated Tab Names */}
+      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Diagram Tabs (Clean without tab text/icon) */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
         <button
           type="button"
@@ -1389,11 +1388,8 @@ export default function WhiteboardPage() {
         {/* Vertical Separator Line */}
         <span className="h-5 w-px bg-line/80 shrink-0" />
 
-        {/* Diagram Tabs Bar (Distinct Folder/Tab Icon + Ellipsis Truncation + Prompt on Limit) */}
+        {/* Diagram Tabs Bar */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[11px] font-bold text-muted flex items-center gap-1 shrink-0">
-            <Folder className="h-3.5 w-3.5 text-brand" /> Tabs:
-          </span>
           {tabs.map((tab) => (
             <div
               key={tab.id}
