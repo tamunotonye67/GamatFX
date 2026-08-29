@@ -57,6 +57,11 @@ import {
   Sparkles,
   MousePointerClick,
   Crosshair,
+  Save,
+  FolderKanban,
+  BookOpen,
+  Clock,
+  FileText,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -101,6 +106,20 @@ type Shape = {
 type DiagramTab = {
   id: string;
   name: string;
+};
+
+type TrashedTab = {
+  id: string;
+  name: string;
+  shapes: Shape[];
+  deletedAt: number;
+};
+
+type SavedDraft = {
+  id: string;
+  name: string;
+  shapes: Shape[];
+  savedAt: number;
 };
 
 type ResizeHandle = "tl" | "tr" | "bl" | "br";
@@ -227,6 +246,15 @@ export default function WhiteboardPage() {
   const [activeTabId, setActiveTabId] = useState("blank");
   const [draggedTabIdx, setDraggedTabIdx] = useState<number | null>(null);
 
+  // Saved Drafts & Trashed Tabs State (Persistent LocalStorage)
+  const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>([]);
+  const [trashedTabs, setTrashedTabs] = useState<TrashedTab[]>([]);
+
+  // Sub-Header Action Dropdown States
+  const [draftsOpen, setDraftsOpen] = useState(false);
+  const [samplesOpen, setSamplesOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
+
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("arrow");
@@ -317,15 +345,47 @@ export default function WhiteboardPage() {
   const isPanning = useRef(false);
   const startPan = useRef({ x: 0, y: 0 });
 
-  /* -------------------------- Page Scroll Lock Fix ------------------------- */
+  /* -------------------------- Page Scroll Lock & LocalStorage Initializer --- */
 
   useEffect(() => {
     const originalStyle = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    // Load persisted drafts & trashed items from LocalStorage
+    try {
+      const storedDrafts = localStorage.getItem("gamat_fx_saved_drafts");
+      if (storedDrafts) setSavedDrafts(JSON.parse(storedDrafts));
+
+      const storedTrash = localStorage.getItem("gamat_fx_trashed_tabs");
+      if (storedTrash) {
+        const parsedTrash: TrashedTab[] = JSON.parse(storedTrash);
+        // Auto-purge items older than 30 days!
+        const validTrash = parsedTrash.filter(
+          (item) => Date.now() - item.deletedAt < 30 * 24 * 60 * 60 * 1000
+        );
+        setTrashedTabs(validTrash);
+      }
+    } catch (e) {
+      console.error("Failed loading LocalStorage drafts/trash", e);
+    }
+
     return () => {
       document.body.style.overflow = originalStyle;
     };
   }, []);
+
+  /* Sync LocalStorage whenever drafts or trash state changes */
+  useEffect(() => {
+    try {
+      localStorage.setItem("gamat_fx_saved_drafts", JSON.stringify(savedDrafts));
+    } catch (e) {}
+  }, [savedDrafts]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("gamat_fx_trashed_tabs", JSON.stringify(trashedTabs));
+    } catch (e) {}
+  }, [trashedTabs]);
 
   /* -------------------------- Non-Passive Canvas Wheel Event --------------- */
 
@@ -363,6 +423,12 @@ export default function WhiteboardPage() {
       const isCtrl = e.ctrlKey || e.metaKey;
 
       // 1. Action Shortcuts
+      if (isCtrl && key === "s") {
+        e.preventDefault();
+        handleSaveCurrentDraft();
+        return;
+      }
+
       if (isCtrl && key === "z" && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
@@ -428,6 +494,9 @@ export default function WhiteboardPage() {
         setSelectedShapeIds([]);
         setActiveTool("select");
         setContextMenu(null);
+        setDraftsOpen(false);
+        setSamplesOpen(false);
+        setTrashOpen(false);
         return;
       }
 
@@ -739,6 +808,9 @@ export default function WhiteboardPage() {
     setSettingsOpen(false);
     setFlyoutGroup(null);
     setContextMenu(null);
+    setDraftsOpen(false);
+    setSamplesOpen(false);
+    setTrashOpen(false);
 
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -1114,13 +1186,153 @@ export default function WhiteboardPage() {
       return;
     }
 
+    const tabToClose = tabs.find((t) => t.id === tabIdToClose);
+    if (tabToClose) {
+      // Move to Trash Bin instead of permanent deletion!
+      const trashedItem: TrashedTab = {
+        id: tabToClose.id,
+        name: tabToClose.name,
+        shapes: [...shapes],
+        deletedAt: Date.now(),
+      };
+      setTrashedTabs((prev) => [trashedItem, ...prev.filter((t) => t.id !== tabToClose.id)]);
+    }
+
     const updatedTabs = tabs.filter((t) => t.id !== tabIdToClose);
     setTabs(updatedTabs);
     if (activeTabId === tabIdToClose) {
       setActiveTabId(updatedTabs[updatedTabs.length - 1].id);
       handleSelectTab(updatedTabs[updatedTabs.length - 1].id);
     }
-    showToast("Tab closed!");
+    showToast(`Moved "${tabToClose?.name || 'Tab'}" to Trash (Auto-purges in 30 days)`);
+  };
+
+  /* ---------------------- DRAFTS, SAMPLES, TRASH & SAVE HANDLERS ------------- */
+
+  const handleSaveCurrentDraft = () => {
+    const activeTab = tabs.find((t) => t.id === activeTabId);
+    const draftName = activeTab ? activeTab.name : "Saved Whiteboard Draft";
+
+    const newDraft: SavedDraft = {
+      id: `draft_${Date.now()}`,
+      name: draftName,
+      shapes: [...shapes],
+      savedAt: Date.now(),
+    };
+
+    setSavedDrafts((prev) => [newDraft, ...prev.filter((d) => d.name !== draftName)]);
+    showToast(`Draft "${draftName}" saved successfully! You can resume anytime.`);
+  };
+
+  const loadSavedDraft = (draft: SavedDraft) => {
+    if (tabs.length >= 5 && !tabs.some((t) => t.name === draft.name)) {
+      setMaxTabPromptOpen(true);
+      showToast("Max 5 tabs reached! Close a tab to load this draft.");
+      return;
+    }
+
+    const existingTab = tabs.find((t) => t.name === draft.name);
+    if (existingTab) {
+      setActiveTabId(existingTab.id);
+    } else {
+      const newTabId = `tab_${Date.now()}`;
+      setTabs((prev) => [...prev, { id: newTabId, name: draft.name }]);
+      setActiveTabId(newTabId);
+    }
+
+    setShapes(draft.shapes);
+    setDraftsOpen(false);
+    showToast(`Loaded draft "${draft.name}"!`);
+  };
+
+  const deleteDraft = (draftId: string) => {
+    setSavedDrafts((prev) => prev.filter((d) => d.id !== draftId));
+    showToast("Deleted draft!");
+  };
+
+  const restoreTrashedTab = (item: TrashedTab) => {
+    if (tabs.length >= 5) {
+      setMaxTabPromptOpen(true);
+      showToast("Cannot restore! Maximum 5 active tabs allowed.");
+      return;
+    }
+
+    setTabs((prev) => [...prev, { id: item.id, name: item.name }]);
+    setTrashedTabs((prev) => prev.filter((t) => t.id !== item.id));
+    setActiveTabId(item.id);
+    setShapes(item.shapes);
+    setTrashOpen(false);
+    showToast(`Restored "${item.name}" from Trash!`);
+  };
+
+  const deleteTrashedTabPermanently = (itemId: string) => {
+    setTrashedTabs((prev) => prev.filter((t) => t.id !== itemId));
+    showToast("Permanently deleted tab from Trash.");
+  };
+
+  const loadSampleClassChart = (sampleType: string) => {
+    if (sampleType === "mindmap") {
+      handleSelectTab("mindmap");
+    } else if (sampleType === "smc") {
+      handleSelectTab("smc_diag");
+    } else if (sampleType === "risk") {
+      handleSelectTab("risk_diag");
+    } else if (sampleType === "class_chart_eurusd") {
+      if (tabs.length >= 5 && !tabs.some((t) => t.id === "sample_eurusd")) {
+        setMaxTabPromptOpen(true);
+        showToast("Max 5 tabs reached! Close a tab to load sample chart.");
+        return;
+      }
+      const newTabId = "sample_eurusd";
+      if (!tabs.some((t) => t.id === newTabId)) {
+        setTabs((prev) => [...prev, { id: newTabId, name: "EUR/USD H4 Class Analysis" }]);
+      }
+      setActiveTabId(newTabId);
+      setShapes([
+        // Candlesticks
+        { id: "c1", type: "rectangle", color: "#ef4444", strokeWidth: 2, points: [{ x: 100, y: 300 }, { x: 130, y: 380 }] },
+        { id: "c1w", type: "line", color: "#ef4444", strokeWidth: 2, points: [{ x: 115, y: 280 }, { x: 115, y: 400 }] },
+        { id: "c2", type: "rectangle", color: "#10b981", strokeWidth: 2, points: [{ x: 150, y: 220 }, { x: 180, y: 320 }] },
+        { id: "c2w", type: "line", color: "#10b981", strokeWidth: 2, points: [{ x: 165, y: 200 }, { x: 165, y: 340 }] },
+        // BOS Line
+        { id: "bos", type: "line", color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 140, y: 200 }, { x: 500, y: 200 }] },
+        { id: "bostxt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 300, y: 185 }], text: "H4 Break of Structure (BOS) ↗" },
+        // FVG Box
+        { id: "fvg", type: "rectangle", color: "#f59e0b", strokeWidth: 2, points: [{ x: 220, y: 240 }, { x: 420, y: 290 }] },
+        { id: "fvgtxt", type: "text", color: "#f59e0b", strokeWidth: 2, points: [{ x: 230, y: 270 }], text: "H4 Fair Value Gap (FVG Demand)" },
+        // Long Position Box
+        { id: "pos", type: "long", color: "#10b981", strokeWidth: 2, points: [{ x: 450, y: 240 }, { x: 650, y: 100 }] },
+        // Class Note Sticky
+        { id: "note", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 690, y: 120 }], text: "🎓 CLASS ANALYSIS NOTE:\nWait for H4 candle close above BOS, then place Buy Limit at top of FVG box!", stickyColor: "#fef08a" }
+      ]);
+      showToast("Loaded EUR/USD H4 Class Analysis Sample Chart!");
+    } else if (sampleType === "sample_london_sweep") {
+      if (tabs.length >= 5 && !tabs.some((t) => t.id === "sample_london")) {
+        setMaxTabPromptOpen(true);
+        showToast("Max 5 tabs reached! Close a tab to load sample chart.");
+        return;
+      }
+      const newTabId = "sample_london";
+      if (!tabs.some((t) => t.id === newTabId)) {
+        setTabs((prev) => [...prev, { id: newTabId, name: "London Sweep Class Setup" }]);
+      }
+      setActiveTabId(newTabId);
+      setShapes([
+        // Asian Range Box
+        { id: "asian", type: "rectangle", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 100, y: 200 }, { x: 350, y: 320 }] },
+        { id: "asiantxt", type: "text", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 110, y: 180 }], text: "Asian Session Consolidation Range (00:00 - 08:00 UTC)" },
+        // Sweep Arrow
+        { id: "sweep", type: "arrow", color: "#dc3545", strokeWidth: 3, points: [{ x: 380, y: 300 }, { x: 380, y: 380 }] },
+        { id: "sweeptxt", type: "text", color: "#dc3545", strokeWidth: 2, points: [{ x: 400, y: 370 }], text: "Judas Swing Sweeps Asian Low Liquidity ⚡" },
+        // Expansion Trendline
+        { id: "exp", type: "arrow", color: "#10b981", strokeWidth: 3, points: [{ x: 390, y: 380 }, { x: 650, y: 120 }] },
+        { id: "exptxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 500, y: 220 }], text: "London Bullish Expansion Trend" },
+        // Class Note Sticky
+        { id: "note2", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 680, y: 240 }], text: "🏫 LIVE CLASS SETUP:\nLondon open sweeps Asian Low liquidity to trap retail sellers before explosive reversal.", stickyColor: "#bae6fd" }
+      ]);
+      showToast("Loaded London Sweep Class Setup Sample Chart!");
+    }
+    setSamplesOpen(false);
   };
 
   /* Toolbar Actions */
@@ -1238,7 +1450,7 @@ export default function WhiteboardPage() {
         },
       ]);
       showToast("Switched to SMC Liquidity Diagram Tab!");
-    } else {
+    } else if (tabId === "risk_diag") {
       setShapes([
         {
           id: "r1",
@@ -1594,76 +1806,319 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
-      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="flex items-center justify-center rounded-xl border border-line bg-white p-1.5 text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
-          title="Back to GAMAT FX Website"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-
-        {/* Vertical Separator Line */}
-        <span className="h-5 w-px bg-line/80 shrink-0" />
-
-        {/* Diagram Tabs Bar with Drag & Drop Reordering */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {tabs.map((tab, idx) => (
-            <div
-              key={tab.id}
-              draggable
-              onDragStart={() => setDraggedTabIdx(idx)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (draggedTabIdx !== null && draggedTabIdx !== idx) {
-                  setTabs((prev) => {
-                    const copy = [...prev];
-                    const [moved] = copy.splice(draggedTabIdx, 1);
-                    copy.splice(idx, 0, moved);
-                    return copy;
-                  });
-                  setDraggedTabIdx(null);
-                  showToast("Reordered diagram tab!");
-                }
-              }}
-              onClick={() => handleSelectTab(tab.id)}
-              className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-grab active:cursor-grabbing transition-all border-t border-x ${
-                activeTabId === tab.id
-                  ? "bg-white text-brand border-line shadow-sm"
-                  : "border-transparent text-muted hover:text-ink hover:bg-white/60"
-              }`}
-              title={`Drag to reorder "${tab.name}"`}
-            >
-              <GripVertical className="h-3 w-3 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
-              {/* Ellipsis Truncated Tab Name */}
-              <span className="truncate max-w-[110px] inline-block align-bottom">
-                {tab.name}
-              </span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCloseTab(tab.id);
-                }}
-                className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
-                title="Close Tab"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-
-          {/* New Tab Button */}
+      {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar + Right Action Features */}
+      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-20 overflow-x-auto">
+        {/* Left Side: Back Home & Active Tabs List */}
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
-            onClick={handleAddNewTab}
-            className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
-            title="Create New Diagram Tab (Max 5)"
+            onClick={() => navigate("/")}
+            className="flex items-center justify-center rounded-xl border border-line bg-white p-1.5 text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
+            title="Back to GAMAT FX Website"
           >
-            <Plus className="h-3.5 w-3.5" /> New Tab
+            <ArrowLeft className="h-4 w-4" />
           </button>
+
+          {/* Vertical Separator Line */}
+          <span className="h-5 w-px bg-line/80 shrink-0" />
+
+          {/* Diagram Tabs Bar with Drag & Drop Reordering */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {tabs.map((tab, idx) => (
+              <div
+                key={tab.id}
+                draggable
+                onDragStart={() => setDraggedTabIdx(idx)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => {
+                  if (draggedTabIdx !== null && draggedTabIdx !== idx) {
+                    setTabs((prev) => {
+                      const copy = [...prev];
+                      const [moved] = copy.splice(draggedTabIdx, 1);
+                      copy.splice(idx, 0, moved);
+                      return copy;
+                    });
+                    setDraggedTabIdx(null);
+                    showToast("Reordered diagram tab!");
+                  }
+                }}
+                onClick={() => handleSelectTab(tab.id)}
+                className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-grab active:cursor-grabbing transition-all border-t border-x ${
+                  activeTabId === tab.id
+                    ? "bg-white text-brand border-line shadow-sm"
+                    : "border-transparent text-muted hover:text-ink hover:bg-white/60"
+                }`}
+                title={`Drag to reorder "${tab.name}"`}
+              >
+                <GripVertical className="h-3 w-3 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
+                {/* Ellipsis Truncated Tab Name */}
+                <span className="truncate max-w-[110px] inline-block align-bottom">
+                  {tab.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseTab(tab.id);
+                  }}
+                  className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
+                  title="Move to Trash"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+
+            {/* New Tab Button */}
+            <button
+              type="button"
+              onClick={handleAddNewTab}
+              className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
+              title="Create New Diagram Tab (Max 5)"
+            >
+              <Plus className="h-3.5 w-3.5" /> New Tab
+            </button>
+          </div>
+        </div>
+
+        {/* Right Side Action Features: Save Draft | Drafts | Samples | Trash */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
+          {/* 1. SAVE DRAFT BUTTON */}
+          <button
+            type="button"
+            onClick={handleSaveCurrentDraft}
+            className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand hover:border-brand transition shadow-sm"
+            title="Save Current Tab & Whiteboard State as Draft (Ctrl + S)"
+          >
+            <Save className="h-3.5 w-3.5 text-brand" /> Save Draft
+          </button>
+
+          {/* 2. DRAFTS DROPDOWN */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setDraftsOpen(!draftsOpen);
+                setSamplesOpen(false);
+                setTrashOpen(false);
+              }}
+              className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shadow-sm"
+              title="View All Active Tabs & Saved Drafts"
+            >
+              <FolderKanban className="h-3.5 w-3.5 text-blue-600" /> Drafts ({tabs.length + savedDrafts.length}) <ChevronDown className="h-3 w-3 text-slate-400" />
+            </button>
+
+            {draftsOpen && (
+              <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-line bg-white p-3 shadow-2xl z-50 animate-in fade-in space-y-3">
+                <div className="flex items-center justify-between border-b border-line pb-2">
+                  <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
+                    <FolderKanban className="h-4 w-4 text-blue-600" /> Saved Whiteboard Drafts
+                  </span>
+                  <button onClick={() => setDraftsOpen(false)} className="text-slate-400 hover:text-ink">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                  <p className="text-[10px] font-black uppercase text-muted tracking-wider">Active Open Tabs</p>
+                  {tabs.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => { handleSelectTab(t.id); setDraftsOpen(false); }}
+                      className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition ${
+                        activeTabId === t.id ? "border-brand bg-brand-light/30 font-bold" : "border-line hover:bg-cream"
+                      }`}
+                    >
+                      <span className="truncate text-ink flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5 text-brand" /> {t.name}
+                      </span>
+                      {activeTabId === t.id && <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold">Active</span>}
+                    </div>
+                  ))}
+
+                  {savedDrafts.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-black uppercase text-muted tracking-wider pt-2">Saved Draft Presets</p>
+                      {savedDrafts.map((d) => (
+                        <div
+                          key={d.id}
+                          className="flex items-center justify-between p-2 rounded-xl border border-line bg-cream hover:bg-white text-xs transition"
+                        >
+                          <div className="truncate flex-1 cursor-pointer" onClick={() => loadSavedDraft(d)}>
+                            <p className="font-bold text-ink truncate">{d.name}</p>
+                            <p className="text-[9px] text-muted">{d.shapes.length} layers • Saved {new Date(d.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => deleteDraft(d.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 transition"
+                            title="Delete Draft"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 3. SAMPLES DROPDOWN */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setSamplesOpen(!samplesOpen);
+                setDraftsOpen(false);
+                setTrashOpen(false);
+              }}
+              className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shadow-sm"
+              title="Forex Class Sample Chart Templates"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-amber-600" /> Samples <ChevronDown className="h-3 w-3 text-slate-400" />
+            </button>
+
+            {samplesOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-line bg-white p-3 shadow-2xl z-50 animate-in fade-in space-y-2.5">
+                <div className="flex items-center justify-between border-b border-line pb-2">
+                  <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
+                    <BookOpen className="h-4 w-4 text-amber-600" /> Class Sample Templates
+                  </span>
+                  <button onClick={() => setSamplesOpen(false)} className="text-slate-400 hover:text-ink">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                  <p className="text-[10px] font-black uppercase text-muted tracking-wider">Concept Mind Maps</p>
+
+                  <button
+                    type="button"
+                    onClick={() => loadSampleClassChart("mindmap")}
+                    className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <span>🧠 Forex Basics Mind Map</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => loadSampleClassChart("smc")}
+                    className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <span>⚡ SMC Order Block & Liquidity</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => loadSampleClassChart("risk")}
+                    className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <span>🛡️ Risk Management Matrix</span>
+                  </button>
+
+                  <p className="text-[10px] font-black uppercase text-muted tracking-wider pt-2">Live Class Chart Analysis</p>
+
+                  <button
+                    type="button"
+                    onClick={() => loadSampleClassChart("class_chart_eurusd")}
+                    className="flex w-full items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-2 text-left text-xs font-bold text-blue-900 hover:bg-blue-100 transition"
+                  >
+                    <div>
+                      <p className="font-extrabold text-blue-950">📈 EUR/USD H4 BOS & FVG Class Chart</p>
+                      <p className="text-[10px] text-blue-700 font-normal">Candlesticks, Break of Structure line, FVG box & Buy Limit</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => loadSampleClassChart("sample_london_sweep")}
+                    className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-2 text-left text-xs font-bold text-emerald-900 hover:bg-emerald-100 transition"
+                  >
+                    <div>
+                      <p className="font-extrabold text-emerald-950">📉 London Asian Sweep Class Setup</p>
+                      <p className="text-[10px] text-emerald-700 font-normal">Asian range box, Judas Swing sweep arrow & reversal target</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 4. TRASH BIN DROPDOWN */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setTrashOpen(!trashOpen);
+                setDraftsOpen(false);
+                setSamplesOpen(false);
+              }}
+              className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition shadow-sm"
+              title="Deleted Tabs (Auto-purges after 30 days)"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-rose-500" /> Trash ({trashedTabs.length}) <ChevronDown className="h-3 w-3 text-slate-400" />
+            </button>
+
+            {trashOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-line bg-white p-3 shadow-2xl z-50 animate-in fade-in space-y-2.5">
+                <div className="flex items-center justify-between border-b border-line pb-2">
+                  <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
+                    <Trash2 className="h-4 w-4 text-rose-500" /> Trash Bin (30-Day Auto Purge)
+                  </span>
+                  <button onClick={() => setTrashOpen(false)} className="text-slate-400 hover:text-ink">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {trashedTabs.length === 0 ? (
+                  <div className="text-center py-6 space-y-1">
+                    <Trash2 className="h-8 w-8 text-slate-300 mx-auto" />
+                    <p className="font-bold text-xs text-ink">Trash is Empty</p>
+                    <p className="text-[10px] text-muted">Closed tabs appear here and automatically disappear after 30 days.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {trashedTabs.map((item) => {
+                      const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24)));
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between p-2.5 rounded-xl border border-line bg-cream text-xs space-x-2"
+                        >
+                          <div className="truncate flex-1">
+                            <p className="font-bold text-ink truncate">{item.name}</p>
+                            <p className="text-[9px] text-amber-600 font-bold flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> Deletes in {daysLeft} days
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => restoreTrashedTab(item)}
+                              className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] flex items-center gap-1 transition"
+                              title="Restore Tab"
+                            >
+                              <RotateCcw className="h-3 w-3" /> Restore
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteTrashedTabPermanently(item.id)}
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 transition"
+                              title="Delete Permanently"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
