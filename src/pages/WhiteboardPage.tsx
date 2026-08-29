@@ -1709,7 +1709,7 @@ export default function WhiteboardPage() {
               onClick={() => setBgOpen(!bgOpen)}
               className="rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-white transition flex items-center gap-1.5"
             >
-              <Grid className="h-4 w-4 text-brand" /> Canvas Theme <ChevronDown className="h-3.5 w-3.5 text-muted" />
+              <Grid className="h-4 w-4 text-slate-700" /> Canvas Theme <ChevronDown className="h-3.5 w-3.5 text-muted" />
             </button>
 
             {bgOpen && (
@@ -1753,21 +1753,21 @@ export default function WhiteboardPage() {
                   onClick={() => handleExport("png")}
                   className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                 >
-                  <FileImage className="h-4 w-4 text-brand" /> Export PNG
+                  <FileImage className="h-4 w-4 text-slate-700" /> Export PNG
                 </button>
                 <button
                   type="button"
                   onClick={() => handleExport("jpeg")}
                   className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                 >
-                  <FileImage className="h-4 w-4 text-emerald-600" /> Export JPEG
+                  <FileImage className="h-4 w-4 text-slate-700" /> Export JPEG
                 </button>
                 <button
                   type="button"
                   onClick={() => handleExport("svg")}
                   className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                 >
-                  <FileCode className="h-4 w-4 text-blue-600" /> Export SVG
+                  <FileCode className="h-4 w-4 text-slate-700" /> Export SVG
                 </button>
               </div>
             )}
@@ -1890,7 +1890,7 @@ export default function WhiteboardPage() {
             className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand hover:border-brand transition shadow-sm"
             title="Save Current Tab & Whiteboard State as Draft (Ctrl + S)"
           >
-            <Save className="h-3.5 w-3.5 text-brand" /> Save Draft
+            <Save className="h-3.5 w-3.5 text-slate-700" /> Save Draft
           </button>
 
           {/* 2. DRAFTS DROPDOWN */}
@@ -1905,14 +1905,14 @@ export default function WhiteboardPage() {
               className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shadow-sm"
               title="View All Active Tabs & Saved Drafts"
             >
-              <FolderKanban className="h-3.5 w-3.5 text-blue-600" /> Drafts ({tabs.length + savedDrafts.length}) <ChevronDown className="h-3 w-3 text-slate-400" />
+              <FolderKanban className="h-3.5 w-3.5 text-slate-700" /> Drafts ({tabs.length + savedDrafts.length}) <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
             {draftsOpen && (
               <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-line bg-white p-3 shadow-2xl z-50 animate-in fade-in space-y-3">
                 <div className="flex items-center justify-between border-b border-line pb-2">
                   <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
-                    <FolderKanban className="h-4 w-4 text-blue-600" /> Saved Whiteboard Drafts
+                    <FolderKanban className="h-4 w-4 text-slate-700" /> Saved Whiteboard Drafts
                   </span>
                   <button onClick={() => setDraftsOpen(false)} className="text-slate-400 hover:text-ink">
                     <X className="h-3.5 w-3.5" />
@@ -1930,7 +1930,7 @@ export default function WhiteboardPage() {
                       }`}
                     >
                       <span className="truncate text-ink flex items-center gap-1.5">
-                        <FileText className="h-3.5 w-3.5 text-brand" /> {t.name}
+                        <FileText className="h-3.5 w-3.5 text-slate-700" /> {t.name}
                       </span>
                       {activeTabId === t.id && <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold">Active</span>}
                     </div>
@@ -1977,14 +1977,14 @@ export default function WhiteboardPage() {
               className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shadow-sm"
               title="Forex Class Sample Chart Templates"
             >
-              <BookOpen className="h-3.5 w-3.5 text-amber-600" /> Samples <ChevronDown className="h-3 w-3 text-slate-400" />
+              <BookOpen className="h-3.5 w-3.5 text-slate-700" /> Samples <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
             {samplesOpen && (
               <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-line bg-white p-3 shadow-2xl z-50 animate-in fade-in space-y-2.5">
                 <div className="flex items-center justify-between border-b border-line pb-2">
                   <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
-                    <BookOpen className="h-4 w-4 text-amber-600" /> Class Sample Templates
+                    <BookOpen className="h-4 w-4 text-slate-700" /> Class Sample Templates
                   </span>
                   <button onClick={() => setSamplesOpen(false)} className="text-slate-400 hover:text-ink">
                     <X className="h-3.5 w-3.5" />
@@ -2058,14 +2058,14 @@ export default function WhiteboardPage() {
               className="flex items-center gap-1 rounded-lg border border-line bg-white px-2.5 py-1 text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition shadow-sm"
               title="Deleted Tabs (Auto-purges after 30 days)"
             >
-              <Trash2 className="h-3.5 w-3.5 text-rose-500" /> Trash ({trashedTabs.length}) <ChevronDown className="h-3 w-3 text-slate-400" />
+              <Trash2 className="h-3.5 w-3.5 text-slate-700" /> Trash ({trashedTabs.length}) <ChevronDown className="h-3 w-3 text-slate-400" />
             </button>
 
             {trashOpen && (
               <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-line bg-white p-3 shadow-2xl z-50 animate-in fade-in space-y-2.5">
                 <div className="flex items-center justify-between border-b border-line pb-2">
                   <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
-                    <Trash2 className="h-4 w-4 text-rose-500" /> Trash Bin (30-Day Auto Purge)
+                    <Trash2 className="h-4 w-4 text-slate-700" /> Trash Bin (30-Day Auto Purge)
                   </span>
                   <button onClick={() => setTrashOpen(false)} className="text-slate-400 hover:text-ink">
                     <X className="h-3.5 w-3.5" />
