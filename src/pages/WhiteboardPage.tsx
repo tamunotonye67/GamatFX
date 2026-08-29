@@ -86,6 +86,35 @@ import {
 } from "lucide-react";
 import { useStore } from "../lib/store";
 
+/* Custom Forex SVG Icons */
+const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {/* Left candle */}
+    <line x1="6" y1="3" x2="6" y2="7" />
+    <rect x="4" y="7" width="4" height="8" rx="0.5" fill="currentColor" fillOpacity="0.2" />
+    <line x1="6" y1="15" x2="6" y2="21" />
+
+    {/* Center tall imbalance candle */}
+    <line x1="12" y1="2" x2="12" y2="5" />
+    <rect x="10" y="5" width="4" height="13" rx="0.5" fill="currentColor" />
+    <line x1="12" y1="18" x2="12" y2="22" />
+
+    {/* Right candle */}
+    <line x1="18" y1="5" x2="18" y2="9" />
+    <rect x="16" y="9" width="4" height="8" rx="0.5" fill="currentColor" fillOpacity="0.2" />
+    <line x1="18" y1="17" x2="18" y2="21" />
+  </svg>
+);
+
+const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {/* Market Structure Break stair line */}
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M14 7h7v7" />
+    <line x1="9" y1="11" x2="21" y2="11" strokeDasharray="2 2" strokeWidth="1.5" />
+  </svg>
+);
+
 /* ========================================================================== */
 /*                               TYPES & DATA                                 */
 /* ========================================================================== */
@@ -5015,7 +5044,7 @@ export default function WhiteboardPage() {
                   >
                     <span className="flex items-center gap-2.5">
                       <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <Zap className="h-3.5 w-3.5" />
+                        <FvgCandlesIcon className="h-3.5 w-3.5" />
                       </span>
                       <span>Fair Value Gap (FVG)</span>
                     </span>
@@ -5037,7 +5066,7 @@ export default function WhiteboardPage() {
                   >
                     <span className="flex items-center gap-2.5">
                       <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <Activity className="h-3.5 w-3.5" />
+                        <BosIcon className="h-3.5 w-3.5" />
                       </span>
                       <span>Break of Structure (BOS)</span>
                     </span>
@@ -7601,8 +7630,8 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "long": return TrendingUp;
     case "short": return TrendingDown;
     case "orderblock": return Boxes;
-    case "fvg": return Zap;
-    case "bos": return Activity;
+    case "fvg": return FvgCandlesIcon;
+    case "bos": return BosIcon;
     case "liquidity": return Target;
     default: return Pencil;
   }
@@ -8366,7 +8395,12 @@ function getToolCursorStyle(tool: Tool): React.CSSProperties {
           `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
             <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
-            <path d="M18 4L15 8H18L16 11" stroke="#000000" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="14" y="6" width="2" height="4" fill="#000000"/>
+            <line x1="15" y1="4" x2="15" y2="12" stroke="#000000" stroke-width="0.7"/>
+            <rect x="17" y="4" width="2.5" height="7" fill="#000000"/>
+            <line x1="18.25" y1="2" x2="18.25" y2="13" stroke="#000000" stroke-width="0.7"/>
+            <rect x="20.5" y="7" width="2" height="4" fill="#000000"/>
+            <line x1="21.5" y1="5" x2="21.5" y2="12" stroke="#000000" stroke-width="0.7"/>
           </svg>`,
           12,
           12,
