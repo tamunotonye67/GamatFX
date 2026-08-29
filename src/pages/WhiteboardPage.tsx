@@ -326,6 +326,7 @@ export default function WhiteboardPage() {
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("arrow");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
   const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short">("fibo");
+  const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky">("text");
 
   // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
   const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short"]);
@@ -377,7 +378,7 @@ export default function WhiteboardPage() {
   const [newTabModalOpen, setNewTabModalOpen] = useState(false);
   const [newTabInputName, setNewTabInputName] = useState("");
 
-  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "single" | null>(null);
+  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "notes" | "single" | null>(null);
 
   // Context Menu State (Canvas or Object Context)
   const [contextMenu, setContextMenu] = useState<{
@@ -612,8 +613,8 @@ export default function WhiteboardPage() {
         else if (key === "l" && e.shiftKey) { setActiveLineTool("line"); setActiveTool("line"); showToast("Tool: Straight Line (Shift+L)"); }
         else if (key === "a") { setActiveLineTool("arrow"); setActiveTool("arrow"); showToast("Tool: Arrow (A)"); }
         else if (key === "b") { setActiveLineTool("bezier"); setActiveTool("bezier"); showToast("Tool: Chart Pattern Path (B)"); }
-        else if (key === "n") { setActiveTool("sticky"); showToast("Tool: Sticky Note (N)"); }
-        else if (key === "t") { setActiveTool("text"); showToast("Tool: Text Label (T)"); }
+        else if (key === "n") { setActiveNoteTool("sticky"); setActiveTool("sticky"); showToast("Tool: Sticky Note (N)"); }
+        else if (key === "t") { setActiveNoteTool("text"); setActiveTool("text"); showToast("Tool: Text Label (T)"); }
         else if (key === "e") { setActiveTool("eraser"); showToast("Tool: Precision Eraser (E)"); }
         else if (key === "z") { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
         else if (key === "f") { setActiveForexTool("fibo"); setActiveTool("fibo"); showToast("Forex Tool: Fibonacci Retracement (F)"); }
@@ -2709,35 +2710,57 @@ export default function WhiteboardPage() {
               )}
             </div>
 
+            {/* 5. TEXT & STICKY NOTES GROUP */}
             <div className="relative">
               <MiroToolBtn
-                active={activeTool === "sticky"}
-                onClick={() => setActiveTool("sticky")}
+                active={activeTool === "text" || activeTool === "sticky"}
+                onClick={() => setActiveTool(activeNoteTool)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  toggleFavoriteTool("sticky");
+                  setFlyoutGroup(flyoutGroup === "notes" ? null : "notes");
                 }}
-                title="Sticky Note (Right click to favorite)"
-                toolKey="sticky"
-                icon={StickyNote}
-                badge="NOTE"
+                title="Text & Sticky Notes (Right click to choose tool or favorite)"
+                toolKey={activeNoteTool}
+                icon={activeNoteTool === "sticky" ? StickyNote : Type}
+                badge={activeNoteTool === "sticky" ? "NOTE" : undefined}
+                hasFlyout
                 showTooltips={showTooltips}
               />
-            </div>
+              {flyoutGroup === "notes" && (
+                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Text & Note Tools</p>
 
-            <div className="relative">
-              <MiroToolBtn
-                active={activeTool === "text"}
-                onClick={() => setActiveTool("text")}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  toggleFavoriteTool("text");
-                }}
-                title="Text Label (Right click to favorite)"
-                toolKey="text"
-                icon={Type}
-                showTooltips={showTooltips}
-              />
+                  {/* Text Label */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveNoteTool("text"); setActiveTool("text"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeNoteTool === "text" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Text Label (T)</span>
+                    <span title={favoritedTools.includes("text") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("text"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("text") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* Sticky Note */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveNoteTool("sticky"); setActiveTool("sticky"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeNoteTool === "sticky" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><StickyNote className="h-3.5 w-3.5" /> Sticky Note (N)</span>
+                    <span title={favoritedTools.includes("sticky") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("sticky"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("sticky") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="relative">
