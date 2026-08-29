@@ -458,6 +458,171 @@ const HUB_RESOURCES: HubResourceGuide[] = [
   },
 ];
 
+interface HubLessonItem {
+  id: string;
+  num: string;
+  title: string;
+  subtitle: string;
+  desc: string;
+  colorClass: string;
+  badgeBg: string;
+  badgeText: string;
+  items: { label: string; value: string; isMono?: boolean }[];
+}
+
+const HUB_LESSONS: HubLessonItem[] = [
+  {
+    id: "nav",
+    num: "01",
+    title: "Canvas Navigation & Controls",
+    subtitle: "Fluid infinite canvas movement",
+    desc: "Pan seamlessly across your chart by holding the Spacebar and dragging with your mouse, or select the Hand Tool (H). Zoom in and out using Ctrl + Mouse Wheel or the bottom zoom bar.",
+    colorClass: "bg-blue-50 text-blue-600",
+    badgeBg: "bg-slate-50 border-line",
+    badgeText: "text-slate-700",
+    items: [
+      { label: "Pan Canvas", value: "Space + Drag / H", isMono: true },
+      { label: "Zoom In / Out", value: "Ctrl + Scroll / + -", isMono: true },
+      { label: "Reset View (100%)", value: "Ctrl + 0", isMono: true },
+    ]
+  },
+  {
+    id: "smc",
+    num: "02",
+    title: "Smart Money Concepts (SMC) Markup",
+    subtitle: "Institutional supply/demand zones",
+    desc: "Highlight institutional order blocks using Rectangles (R) with 20% opacity. Mark Break of Structure (BOS) and Change of Character (CHoCH) with labeled arrows, and use the Path Tool (P) to map multi-leg Elliott Wave impulses.",
+    colorClass: "bg-purple-50 text-purple-600",
+    badgeBg: "bg-purple-50/60 border-purple-100",
+    badgeText: "text-purple-900",
+    items: [
+      { label: "Order Blocks (OB)", value: "Translucent Demand Zones" },
+      { label: "Fair Value Gaps (FVG)", value: "3-Candle Imbalances" },
+      { label: "Break of Structure (BOS)", value: "Trend continuation lines" },
+    ]
+  },
+  {
+    id: "risk",
+    num: "03",
+    title: "Risk Tool & Trade Journals",
+    subtitle: "Automated 1:3 Risk-to-Reward setup",
+    desc: "Plot Long/Short Positions (S) to calculate Stop Loss vs Take Profit zones automatically. Add Sticky Notes (N) directly onto your charts to write execution checklists, entry confirmations, and pre-session trade ideas.",
+    colorClass: "bg-emerald-50 text-emerald-600",
+    badgeBg: "bg-emerald-50/60 border-emerald-100",
+    badgeText: "text-emerald-900",
+    items: [
+      { label: "Position Tool", value: "Press S", isMono: true },
+      { label: "Editable Sticky Notes", value: "Press N", isMono: true },
+      { label: "Candlestick Patterns", value: "Press K", isMono: true },
+    ]
+  },
+  {
+    id: "multitab",
+    num: "04",
+    title: "Multi-Tabs, Auto-Save & Exports",
+    subtitle: "Never lose analysis progress",
+    desc: "Open up to 5 concurrent charts in the top tab bar. Every markup stroke is automatically saved locally. Closed tabs are moved to the Trash Bin with a 30-day grace period. Export crystal-clear High-DPI PNGs, SVGs, or JPEGs anytime.",
+    colorClass: "bg-amber-50 text-amber-600",
+    badgeBg: "bg-amber-50/60 border-amber-100",
+    badgeText: "text-amber-900",
+    items: [
+      { label: "New Canvas Tab", value: "Ctrl + N", isMono: true },
+      { label: "Export PNG Diagram", value: "Ctrl + E", isMono: true },
+      { label: "Restore Trashed Charts", value: "Hub → Trash Bin" },
+    ]
+  },
+  {
+    id: "fibo",
+    num: "05",
+    title: "Fibonacci Retracement & Golden Pocket",
+    subtitle: "Precision 61.8% - 78.6% reversal levels",
+    desc: "Drag the Fibonacci Tool (F) from swing low to swing high in an uptrend to reveal optimal trade entry (OTE) zones. The 0.618 Golden Ratio and 0.786 deep discount offer the highest probability entries when aligned with Order Blocks.",
+    colorClass: "bg-indigo-50 text-indigo-600",
+    badgeBg: "bg-indigo-50/60 border-indigo-100",
+    badgeText: "text-indigo-900",
+    items: [
+      { label: "0.618 - 0.786 Zone", value: "Golden Pocket Confluence" },
+      { label: "0.500 Equilibrium", value: "Premium / Discount Boundary" },
+      { label: "Fib Tool Hotkey", value: "Press F", isMono: true },
+    ]
+  },
+  {
+    id: "topdown",
+    num: "06",
+    title: "Multi-Timeframe Top-Down Analysis",
+    subtitle: "Aligning Daily bias with 5m execution",
+    desc: "Start on Daily / 4H charts to identify the directional trend and high-liquidity sweep pools. Switch to 15m / 5m charts to capture tight-spread execution entries with minimal drawdowns and maximum risk-to-reward ratios.",
+    colorClass: "bg-cyan-50 text-cyan-600",
+    badgeBg: "bg-cyan-50/60 border-cyan-100",
+    badgeText: "text-cyan-900",
+    items: [
+      { label: "High Timeframe (HTF)", value: "Daily & 4H Directional Bias" },
+      { label: "Intermediate (ITF)", value: "1H & 15m Key Structural Zones" },
+      { label: "Low Timeframe (LTF)", value: "5m & 1m Entry Trigger Execution" },
+    ]
+  },
+  {
+    id: "candles",
+    num: "07",
+    title: "Candlestick Entry Formations",
+    subtitle: "High-probability trigger signals",
+    desc: "Validate key support and resistance bounces using high-probability candlestick signals: Pin Bars (rejection wicks), Engulfing Candles (momentum displacement), and Morning/Evening Stars.",
+    colorClass: "bg-rose-50 text-rose-600",
+    badgeBg: "bg-rose-50/60 border-rose-100",
+    badgeText: "text-rose-900",
+    items: [
+      { label: "Pin Bar Rejection", value: "Long wick sweeping liquidity" },
+      { label: "Engulfing Candle", value: "Full body overtaking previous candle" },
+      { label: "Plot Candlesticks Tool", value: "Press K", isMono: true },
+    ]
+  },
+  {
+    id: "layers",
+    num: "08",
+    title: "Layers, Locking & Z-Index Ordering",
+    subtitle: "Pro Photoshop-style layer stacking",
+    desc: "Keep complex chart breakdowns clean by locking chart backgrounds and order block rectangles with Ctrl + L. Use the right-hand Layers Inspector to reorder elements, toggle visibility, and adjust layer transparency.",
+    colorClass: "bg-teal-50 text-teal-600",
+    badgeBg: "bg-teal-50/60 border-teal-100",
+    badgeText: "text-teal-900",
+    items: [
+      { label: "Lock / Unlock Object", value: "Ctrl + L", isMono: true },
+      { label: "Bring Layer to Front", value: "Ctrl + ]", isMono: true },
+      { label: "Send Layer to Back", value: "Ctrl + [", isMono: true },
+    ]
+  },
+  {
+    id: "killzones",
+    num: "09",
+    title: "London & NY Session Killzones",
+    subtitle: "Institutional volatility windows",
+    desc: "Highlight peak liquidity sessions using vertical shading boxes: London Open (07:00 - 10:00 GMT) and New York Open (12:00 - 15:00 GMT). Look for early fakeouts (Judas Swings) that take out Asian highs/lows before running the true trend.",
+    colorClass: "bg-orange-50 text-orange-600",
+    badgeBg: "bg-orange-50/60 border-orange-100",
+    badgeText: "text-orange-900",
+    items: [
+      { label: "Asian Range Sweep", value: "00:00 - 06:00 GMT High/Low mark" },
+      { label: "London Killzone", value: "07:00 - 10:00 GMT expansion" },
+      { label: "New York Killzone", value: "12:00 - 15:00 GMT continuation" },
+    ]
+  },
+  {
+    id: "journal",
+    num: "10",
+    title: "Trade Journaling & Homework Submission",
+    subtitle: "Document setups for mentor grading",
+    desc: "Attach Sticky Notes (N) outlining your pre-trade checklist: Entry Reason, HTF Confluence, Stop Loss Pips, and Take Profit Target. Export high-resolution PNGs with Ctrl + E to submit homework assignments to GAMATFX coaches.",
+    colorClass: "bg-emerald-50 text-emerald-600",
+    badgeBg: "bg-emerald-50/60 border-emerald-100",
+    badgeText: "text-emerald-900",
+    items: [
+      { label: "Sticky Note Checklist", value: "Press N", isMono: true },
+      { label: "Ultra-HD 2x Diagram Export", value: "Ctrl + E", isMono: true },
+      { label: "Duplicate Trade Setup", value: "Ctrl + D", isMono: true },
+    ]
+  }
+];
+
 const INITIAL_TABS: DiagramTab[] = [
   { id: "blank", name: "Blank Canvas" },
 ];
@@ -475,6 +640,7 @@ export default function WhiteboardPage() {
   const [viewMode, setViewMode] = useState<"hub" | "canvas">("hub");
   const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash" | "guide">("drafts");
   const [hubSearch, setHubSearch] = useState("");
+  const [selectedResource, setSelectedResource] = useState<HubResourceGuide | null>(null);
   const [hubLayout, setHubLayout] = useState<"grid" | "list">(() => {
     try {
       const saved = localStorage.getItem("gamat_hub_layout");
@@ -1740,6 +1906,68 @@ export default function WhiteboardPage() {
     showToast(`Created new canvas: "${finalName}"!`);
   };
 
+  const handleCreateCanvasFromResource = (resource: HubResourceGuide) => {
+    const finalName = resource.title;
+    if (tabs.length >= 5 && !tabs.some((t) => t.name === finalName)) {
+      setMaxTabPromptOpen(true);
+      showToast("Maximum 5 tabs reached! Please close a tab first.");
+      return;
+    }
+
+    const newId = `guide_${resource.id}_${Date.now()}`;
+    if (!tabs.some((t) => t.name === finalName)) {
+      setTabs((prev) => [...prev, { id: newId, name: finalName }]);
+    }
+    setActiveTabId(newId);
+
+    let initialShapes: Shape[] = [];
+    if (resource.id === "patterns") {
+      initialShapes = [
+        { id: "p1", type: "path", color: "#3b82f6", strokeWidth: 3, points: [{ x: 100, y: 180 }, { x: 180, y: 320 }, { x: 260, y: 220 }, { x: 340, y: 320 }, { x: 420, y: 150 }] },
+        { id: "neckline", type: "line", color: "#ef4444", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 150, y: 220 }, { x: 500, y: 220 }] },
+        { id: "necktxt", type: "text", color: "#ef4444", strokeWidth: 2, points: [{ x: 280, y: 205 }], text: "Neckline Breakout Level" },
+        { id: "target", type: "arrow", color: "#10b981", strokeWidth: 3, points: [{ x: 420, y: 220 }, { x: 420, y: 100 }] },
+        { id: "tgttxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 435, y: 150 }], text: "Measured Target Projection" },
+        { id: "note_pat", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 560, y: 110 }], text: `📘 ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#fef08a" }
+      ];
+    } else if (resource.id === "smc_guide") {
+      initialShapes = [
+        { id: "ob", type: "rectangle", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 120, y: 260 }, { x: 320, y: 340 }] },
+        { id: "obtxt", type: "text", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 130, y: 295 }], text: "Bullish Order Block (OB Demand Zone)" },
+        { id: "fvg", type: "rectangle", color: "#f59e0b", strokeWidth: 2, points: [{ x: 260, y: 180 }, { x: 420, y: 240 }] },
+        { id: "fvgtxt", type: "text", color: "#f59e0b", strokeWidth: 2, points: [{ x: 270, y: 210 }], text: "Fair Value Gap (FVG Imbalance)" },
+        { id: "bos", type: "arrow", color: "#3b82f6", strokeWidth: 3, points: [{ x: 320, y: 300 }, { x: 550, y: 120 }] },
+        { id: "bostxt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 420, y: 190 }], text: "Break of Structure (BOS) ↗" },
+        { id: "note_smc", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 580, y: 120 }], text: `⚡ ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#bae6fd" }
+      ];
+    } else if (resource.id === "position_sizing") {
+      initialShapes = [
+        { id: "pos", type: "long", color: "#10b981", strokeWidth: 2, points: [{ x: 200, y: 280 }, { x: 460, y: 120 }] },
+        { id: "sl_line", type: "line", color: "#ef4444", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 160, y: 340 }, { x: 500, y: 340 }] },
+        { id: "sltxt", type: "text", color: "#ef4444", strokeWidth: 2, points: [{ x: 170, y: 360 }], text: "Invalidation Stop Loss: 20 Pips" },
+        { id: "tp_line", type: "line", color: "#10b981", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 160, y: 120 }, { x: 500, y: 120 }] },
+        { id: "tptxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 170, y: 100 }], text: "Take Profit Target (1:3 R:R): 60 Pips" },
+        { id: "note_risk", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 550, y: 110 }], text: `📊 ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#bbf7d0" }
+      ];
+    } else if (resource.id === "hotkeys") {
+      initialShapes = [
+        { id: "pencil_demo", type: "pencil", color: "#dc3545", strokeWidth: 3, points: [{ x: 140, y: 200 }, { x: 180, y: 160 }, { x: 220, y: 220 }, { x: 280, y: 140 }] },
+        { id: "pencil_txt", type: "text", color: "#dc3545", strokeWidth: 2, points: [{ x: 140, y: 240 }], text: "Draw Tool (Pencil: P)" },
+        { id: "rect_demo", type: "rectangle", color: "#3b82f6", strokeWidth: 2, points: [{ x: 340, y: 150 }, { x: 480, y: 250 }] },
+        { id: "rect_txt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 350, y: 270 }], text: "Rectangle Box (R)" },
+        { id: "note_keys", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 550, y: 110 }], text: `⌨️ ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#fef08a" }
+      ];
+    } else {
+      initialShapes = [
+        { id: "note_gen", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 200, y: 160 }], text: `📝 ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#fef08a" }
+      ];
+    }
+
+    setShapes(initialShapes);
+    setViewMode("canvas");
+    showToast(`Loaded "${resource.title}" guide setup into whiteboard!`);
+  };
+
   const handleOpenDraftFromHub = (draft: SavedDraft) => {
     loadSavedDraft(draft);
     setViewMode("canvas");
@@ -2014,6 +2242,14 @@ export default function WhiteboardPage() {
     !hubSearch.trim() || t.name.toLowerCase().includes(hubSearch.toLowerCase())
   );
 
+  const filteredLessons = HUB_LESSONS.filter((l) =>
+    !hubSearch.trim() ||
+    l.title.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    l.subtitle.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    l.desc.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    l.items.some((item) => item.label.toLowerCase().includes(hubSearch.toLowerCase()) || item.value.toLowerCase().includes(hubSearch.toLowerCase()))
+  );
+
   /* -------------------------------------------------------------------------- */
   /*                        VIEW MODE 1: FIGMA-STYLE HUB                        */
   /* -------------------------------------------------------------------------- */
@@ -2052,7 +2288,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setHubSearch("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-700"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-700 cursor-pointer"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -2063,7 +2299,7 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => handleCreateNewCanvasFromHub()}
-              className="w-full flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark text-white px-4 py-3 text-xs font-black shadow-lg shadow-brand/25 hover:shadow-xl hover:shadow-brand/35 transition transform active:scale-[0.98] group"
+              className="w-full flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark text-white px-4 py-3 text-xs font-black shadow-lg shadow-brand/25 hover:shadow-xl hover:shadow-brand/35 transition transform active:scale-[0.98] group cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
@@ -2079,8 +2315,8 @@ export default function WhiteboardPage() {
               {/* 1. Drafts */}
               <button
                 type="button"
-                onClick={() => { setHubTab("drafts"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
+                onClick={() => setHubTab("drafts")}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "drafts" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
@@ -2090,15 +2326,15 @@ export default function WhiteboardPage() {
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "drafts" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
-                  {allDraftsList.length}
+                  {hubSearch ? filteredDrafts.length : allDraftsList.length}
                 </span>
               </button>
 
               {/* 2. Samples */}
               <button
                 type="button"
-                onClick={() => { setHubTab("samples"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
+                onClick={() => setHubTab("samples")}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "samples" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
@@ -2108,15 +2344,15 @@ export default function WhiteboardPage() {
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "samples" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
-                  {HUB_SAMPLES.length}
+                  {hubSearch ? filteredSamples.length : HUB_SAMPLES.length}
                 </span>
               </button>
 
               {/* 3. Resources */}
               <button
                 type="button"
-                onClick={() => { setHubTab("resources"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
+                onClick={() => setHubTab("resources")}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "resources" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
@@ -2126,24 +2362,24 @@ export default function WhiteboardPage() {
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "resources" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
-                  {HUB_RESOURCES.length}
+                  {hubSearch ? filteredResources.length : HUB_RESOURCES.length}
                 </span>
               </button>
 
               {/* 4. Trash */}
               <button
                 type="button"
-                onClick={() => { setHubTab("trash"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
+                onClick={() => setHubTab("trash")}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "trash" ? "bg-rose-50 text-rose-700 shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 <span className="flex items-center gap-2">
                   <Trash2 className="h-3.5 w-3.5" /> Trash
                 </span>
-                {trashedTabs.length > 0 && (
+                {(hubSearch ? filteredTrash.length > 0 : trashedTabs.length > 0) && (
                   <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700">
-                    {trashedTabs.length}
+                    {hubSearch ? filteredTrash.length : trashedTabs.length}
                   </span>
                 )}
               </button>
@@ -2154,16 +2390,18 @@ export default function WhiteboardPage() {
               {/* 5. Learn Workspace */}
               <button
                 type="button"
-                onClick={() => { setHubTab("guide"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
+                onClick={() => setHubTab("guide")}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "guide" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 <span className="flex items-center gap-2">
                   <GraduationCap className="h-3.5 w-3.5 text-black" /> Learn Workspace
                 </span>
-                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-brand/10 text-brand">
-                  Guide
+                <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
+                  hubTab === "guide" ? "bg-brand text-white" : "bg-brand/10 text-brand"
+                }`}>
+                  {hubSearch ? `${filteredLessons.length}` : "Guide"}
                 </span>
               </button>
             </div>
@@ -2174,14 +2412,14 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
-              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition cursor-pointer"
             >
               <Settings className="h-3.5 w-3.5 text-slate-500" /> Preferences
             </button>
             <button
               type="button"
               onClick={() => setShortcutsOpen(true)}
-              className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
+              className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <Keyboard className="h-3.5 w-3.5 text-slate-500" /> Shortcuts
@@ -2252,7 +2490,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group"
+                  className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
                   title={`${user.firstName} ${user.lastName} (${user.email})`}
                 >
                   {user.avatar ? (
@@ -2294,7 +2532,7 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
                       >
                         <User className="h-4 w-4 text-slate-700" /> Student Dashboard
                       </button>
@@ -2302,7 +2540,7 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
                         >
                           <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
                         </button>
@@ -2310,7 +2548,7 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); navigate("/"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-cream transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-cream transition text-left cursor-pointer"
                       >
                         <Home className="h-4 w-4 text-slate-700" /> Platform Home
                       </button>
@@ -2318,14 +2556,14 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
                       >
                         <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
                       </button>
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
-                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
                       >
                         <span className="flex items-center gap-2.5">
                           <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
@@ -2336,7 +2574,7 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); logout(); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 hover:bg-rose-50 transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
                       >
                         <LogOut className="h-4 w-4" /> Sign Out
                       </button>
@@ -2348,11 +2586,74 @@ export default function WhiteboardPage() {
           </header>
 
           {/* Main Gallery Area */}
-          <main className="flex-1 overflow-y-auto p-8">
+          <main className="flex-1 overflow-y-auto p-8 space-y-6">
+            {/* Active Search Filter Status Banner */}
+            {hubSearch.trim() && (
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-line shadow-xs">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <Search className="h-4 w-4 text-brand" />
+                  <span>
+                    Searching for <strong className="text-ink">"{hubSearch}"</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHubSearch("")}
+                  className="flex items-center gap-1 text-xs font-extrabold text-brand hover:text-brand-dark px-2.5 py-1 rounded-lg hover:bg-brand-light transition cursor-pointer"
+                >
+                  <X className="h-3.5 w-3.5" /> Clear Search Filter
+                </button>
+              </div>
+            )}
+
             {/* ===================== TAB 1: DRAFTS & WORKSPACES ===================== */}
             {hubTab === "drafts" && (
               <div className="space-y-6">
-                {hubLayout === "grid" ? (
+                {filteredDrafts.length === 0 && hubSearch.trim() ? (
+                  <div className="text-center py-12 space-y-3 rounded-2xl border border-line bg-white p-8">
+                    <Search className="h-10 w-10 text-slate-300 mx-auto" />
+                    <h3 className="font-extrabold text-sm text-ink">No drafts match "{hubSearch}"</h3>
+                    <p className="text-xs text-muted max-w-sm mx-auto">
+                      Try searching in other sections or clear the search query.
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      {filteredSamples.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("samples")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Samples ({filteredSamples.length})
+                        </button>
+                      )}
+                      {filteredResources.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("resources")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Resources ({filteredResources.length})
+                        </button>
+                      )}
+                      {filteredLessons.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("guide")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Guides ({filteredLessons.length})
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setHubSearch("")}
+                        className="px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition cursor-pointer"
+                      >
+                        Clear Search
+                      </button>
+                    </div>
+                  </div>
+                ) : hubLayout === "grid" ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {/* Quick Create Blank Canvas Card */}
                     <div
@@ -2414,7 +2715,7 @@ export default function WhiteboardPage() {
                               <button
                                 type="button"
                                 onClick={() => handleDuplicateDraft(draft as SavedDraft)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-brand hover:bg-slate-100 transition"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-brand hover:bg-slate-100 transition cursor-pointer"
                                 title="Duplicate Draft"
                               >
                                 <Copy className="h-3.5 w-3.5" />
@@ -2422,7 +2723,7 @@ export default function WhiteboardPage() {
                               <button
                                 type="button"
                                 onClick={() => deleteDraft(draft.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                                 title="Delete Draft"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -2462,7 +2763,7 @@ export default function WhiteboardPage() {
                               if (draft.isTab) handleOpenTabFromHub(draft.id);
                               else handleOpenDraftFromHub(draft as SavedDraft);
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs"
+                            className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs cursor-pointer"
                           >
                             Open Canvas
                           </button>
@@ -2470,7 +2771,7 @@ export default function WhiteboardPage() {
                             <button
                               type="button"
                               onClick={() => deleteDraft(draft.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 transition"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
                               title="Delete"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -2487,7 +2788,42 @@ export default function WhiteboardPage() {
             {/* ===================== TAB 2: SAMPLES & TEMPLATES ===================== */}
             {hubTab === "samples" && (
               <div className="space-y-6">
-                {hubLayout === "grid" ? (
+                {filteredSamples.length === 0 && hubSearch.trim() ? (
+                  <div className="text-center py-12 space-y-3 rounded-2xl border border-line bg-white p-8">
+                    <Search className="h-10 w-10 text-slate-300 mx-auto" />
+                    <h3 className="font-extrabold text-sm text-ink">No samples match "{hubSearch}"</h3>
+                    <p className="text-xs text-muted max-w-sm mx-auto">
+                      Try searching in other sections or clear the search query.
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      {filteredResources.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("resources")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Resources ({filteredResources.length})
+                        </button>
+                      )}
+                      {filteredLessons.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("guide")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Guides ({filteredLessons.length})
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setHubSearch("")}
+                        className="px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition cursor-pointer"
+                      >
+                        Clear Search
+                      </button>
+                    </div>
+                  </div>
+                ) : hubLayout === "grid" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredSamples.map((sample) => (
                       <div
@@ -2575,7 +2911,7 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => handleOpenSampleFromHub(sample.id)}
-                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 ml-4"
+                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 ml-4 cursor-pointer"
                         >
                           Use Template →
                         </button>
@@ -2589,43 +2925,89 @@ export default function WhiteboardPage() {
             {/* ===================== TAB 3: RESOURCES & GUIDES ===================== */}
             {hubTab === "resources" && (
               <div className="space-y-6">
-                {hubLayout === "grid" ? (
+                {filteredResources.length === 0 && hubSearch.trim() ? (
+                  <div className="text-center py-12 space-y-3 rounded-2xl border border-line bg-white p-8">
+                    <Search className="h-10 w-10 text-slate-300 mx-auto" />
+                    <h3 className="font-extrabold text-sm text-ink">No resources match "{hubSearch}"</h3>
+                    <p className="text-xs text-muted max-w-sm mx-auto">
+                      Try searching in other sections or clear the search query.
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      {filteredSamples.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("samples")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Samples ({filteredSamples.length})
+                        </button>
+                      )}
+                      {filteredLessons.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setHubTab("guide")}
+                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-light hover:text-brand text-xs font-bold transition cursor-pointer"
+                        >
+                          View in Guides ({filteredLessons.length})
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setHubSearch("")}
+                        className="px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition cursor-pointer"
+                      >
+                        Clear Search
+                      </button>
+                    </div>
+                  </div>
+                ) : hubLayout === "grid" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredResources.map((res) => (
                       <div
                         key={res.id}
-                        className="rounded-2xl border border-line bg-white p-6 shadow-xs hover:shadow-lg transition space-y-4"
+                        className="rounded-3xl border border-line bg-white p-6 shadow-xs hover:shadow-xl transition flex flex-col justify-between space-y-4"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-700">
-                            {res.category}
-                          </span>
-                          <span className="text-xs text-muted font-bold">{res.readTime}</span>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700">
+                              {res.category}
+                            </span>
+                            <span className="text-xs text-muted font-bold flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" /> {res.readTime}
+                            </span>
+                          </div>
+
+                          <div>
+                            <h3 className="font-extrabold text-base text-ink">{res.title}</h3>
+                            <p className="text-xs text-muted mt-1 leading-relaxed">{res.desc}</p>
+                          </div>
+
+                          {/* Key Takeaways */}
+                          <div className="p-3.5 rounded-2xl bg-slate-50 border border-line space-y-2">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted">Core Principles</p>
+                            <ul className="space-y-1.5 text-xs text-slate-700">
+                              {res.points.map((pt, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-brand shrink-0 mt-1.5" />
+                                  <span className="leading-snug">{pt}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-extrabold text-base text-ink">{res.title}</h3>
-                          <p className="text-xs text-muted leading-relaxed mt-1 font-medium">{res.desc}</p>
-                        </div>
-                        <div className="space-y-2 rounded-xl bg-cream/70 p-3.5 border border-line text-xs font-medium text-slate-800">
-                          {res.points.map((pt, idx) => (
-                            <div key={idx} className="flex items-start gap-2">
-                              <span className="text-brand font-black">•</span>
-                              <span>{pt}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="pt-2 flex items-center justify-between">
+
+                        <div className="pt-2 border-t border-line flex items-center justify-between">
                           <button
                             type="button"
-                            onClick={() => handleCreateNewCanvasFromHub(res.title)}
-                            className="px-3.5 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs flex items-center gap-1.5"
+                            onClick={() => handleCreateCanvasFromResource(res)}
+                            className="btn-primary !py-2 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
                           >
                             <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
                           </button>
                           <button
                             type="button"
-                            onClick={() => showToast(`Opened full reference: ${res.title}`)}
-                            className="text-xs font-bold text-slate-600 hover:text-brand transition"
+                            onClick={() => setSelectedResource(res)}
+                            className="text-xs font-bold text-slate-600 hover:text-brand transition cursor-pointer"
                           >
                             View Full Details →
                           </button>
@@ -2651,13 +3033,22 @@ export default function WhiteboardPage() {
                           <h4 className="font-extrabold text-sm text-ink">{res.title}</h4>
                           <p className="text-xs text-muted font-medium line-clamp-1">{res.desc}</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleCreateNewCanvasFromHub(res.title)}
-                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 self-start sm:self-center flex items-center gap-1.5"
-                        >
-                          <Plus className="h-3.5 w-3.5" /> Create Canvas
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedResource(res)}
+                            className="px-3 py-2 rounded-xl border border-line text-slate-700 hover:bg-slate-100 font-bold text-xs transition cursor-pointer"
+                          >
+                            View Details
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCreateCanvasFromResource(res)}
+                            className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -2696,14 +3087,14 @@ export default function WhiteboardPage() {
                             <button
                               type="button"
                               onClick={() => { restoreTrashedTab(item); setViewMode("canvas"); }}
-                              className="flex-1 py-2 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-xs flex items-center justify-center gap-1 transition"
+                              className="flex-1 py-2 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer"
                             >
                               <RotateCcw className="h-3.5 w-3.5" /> Restore
                             </button>
                             <button
                               type="button"
                               onClick={() => deleteTrashedTabPermanently(item.id)}
-                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer"
                               title="Delete Permanently"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -2730,14 +3121,14 @@ export default function WhiteboardPage() {
                             <button
                               type="button"
                               onClick={() => { restoreTrashedTab(item); setViewMode("canvas"); }}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-xs flex items-center gap-1 transition"
+                              className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-xs flex items-center gap-1 transition cursor-pointer"
                             >
                               <RotateCcw className="h-3.5 w-3.5" /> Restore to Canvas
                             </button>
                             <button
                               type="button"
                               onClick={() => deleteTrashedTabPermanently(item.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 transition"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
                               title="Delete Permanently"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -2785,332 +3176,160 @@ export default function WhiteboardPage() {
                   </div>
                 </div>
 
-                {/* 10 Interactive Comprehensive Lessons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Lesson 01: Canvas Navigation & Gestures */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">
-                          01
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Canvas Navigation & Controls</h4>
-                          <p className="text-xs text-muted">Fluid infinite canvas movement</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Pan seamlessly across your chart by holding the <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-line font-mono text-[10px] font-bold">Spacebar</kbd> and dragging with your mouse, or select the <strong>Hand Tool (H)</strong>. Zoom in and out using <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-line font-mono text-[10px] font-bold">Ctrl + Mouse Wheel</kbd> or the bottom zoom bar.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-line flex items-center justify-between">
-                          <span className="font-bold text-slate-700">Pan Canvas</span>
-                          <span className="font-mono text-[10px] font-bold text-slate-500">Space + Drag / H</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-line flex items-center justify-between">
-                          <span className="font-bold text-slate-700">Zoom In / Out</span>
-                          <span className="font-mono text-[10px] font-bold text-slate-500">Ctrl + Scroll / + -</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-slate-50 border border-line flex items-center justify-between">
-                          <span className="font-bold text-slate-700">Reset View (100%)</span>
-                          <span className="font-mono text-[10px] font-bold text-slate-500">Ctrl + 0</span>
-                        </div>
-                      </div>
-                    </div>
+                {/* 10 Interactive Comprehensive Lessons (Filterable) */}
+                {filteredLessons.length === 0 && hubSearch.trim() ? (
+                  <div className="text-center py-12 space-y-3 rounded-2xl border border-line bg-white p-8">
+                    <Search className="h-10 w-10 text-slate-300 mx-auto" />
+                    <h3 className="font-extrabold text-sm text-ink">No lessons match "{hubSearch}"</h3>
+                    <p className="text-xs text-muted max-w-sm mx-auto">
+                      Try searching for "Fibonacci", "SMC", "Risk", "Order Block", or "Navigation".
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setHubSearch("")}
+                      className="px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition cursor-pointer"
+                    >
+                      Clear Search
+                    </button>
                   </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredLessons.map((lesson) => (
+                      <div
+                        key={lesson.id}
+                        className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-2xl ${lesson.colorClass} flex items-center justify-center font-black text-sm shrink-0`}>
+                              {lesson.num}
+                            </div>
+                            <div>
+                              <h4 className="font-extrabold text-sm text-ink">{lesson.title}</h4>
+                              <p className="text-xs text-muted font-medium">{lesson.subtitle}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                            {lesson.desc}
+                          </p>
+                          <div className="space-y-2 pt-1 text-xs">
+                            {lesson.items.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className={`p-2.5 rounded-xl ${lesson.badgeBg} border flex items-center justify-between ${lesson.badgeText}`}
+                              >
+                                <span className="font-bold">{item.label}</span>
+                                <span className={item.isMono ? "font-mono text-[10px] font-bold" : "font-medium text-[11px]"}>
+                                  {item.value}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
 
-                  {/* Lesson 02: Smart Money Concepts Markup */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-sm">
-                          02
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Smart Money Concepts (SMC) Markup</h4>
-                          <p className="text-xs text-muted">Institutional supply/demand zones</p>
+                        <div className="pt-2 border-t border-line flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => handleCreateNewCanvasFromHub(`Lesson ${lesson.num}: ${lesson.title}`)}
+                            className="flex items-center gap-1.5 text-xs font-extrabold text-brand hover:text-brand-dark transition cursor-pointer"
+                          >
+                            <PlayCircle className="h-3.5 w-3.5" /> Practice this Setup →
+                          </button>
                         </div>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Highlight institutional order blocks using <strong>Rectangles (R)</strong> with 20% opacity. Mark <strong>Break of Structure (BOS)</strong> and <strong>Change of Character (CHoCH)</strong> with labeled arrows, and use the <strong>Path Tool (P)</strong> to map multi-leg Elliott Wave impulses.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
-                          <span className="font-bold">Order Blocks (OB)</span>
-                          <span className="font-medium text-[11px]">Translucent Demand Zones</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
-                          <span className="font-bold">Fair Value Gaps (FVG)</span>
-                          <span className="font-medium text-[11px]">3-Candle Imbalances</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
-                          <span className="font-bold">Break of Structure (BOS)</span>
-                          <span className="font-medium text-[11px]">Trend continuation lines</span>
-                        </div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-
-                  {/* Lesson 03: Risk Calculation & Position Tool */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm">
-                          03
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Risk Tool & Trade Journals</h4>
-                          <p className="text-xs text-muted">Automated 1:3 Risk-to-Reward setup</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Plot <strong>Long/Short Positions (S)</strong> to calculate Stop Loss vs Take Profit zones automatically. Add <strong>Sticky Notes (N)</strong> directly onto your charts to write execution checklists, entry confirmations, and pre-session trade ideas.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
-                          <span className="font-bold">Position Tool</span>
-                          <span className="font-mono text-[10px] font-bold">Press S</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
-                          <span className="font-bold">Editable Sticky Notes</span>
-                          <span className="font-mono text-[10px] font-bold">Press N</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
-                          <span className="font-bold">Candlestick Patterns</span>
-                          <span className="font-mono text-[10px] font-bold">Press K</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 04: Multi-Tab Tabs, Auto-Save & Export */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-sm">
-                          04
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Multi-Tabs, Auto-Save & Exports</h4>
-                          <p className="text-xs text-muted">Never lose analysis progress</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Open up to 5 concurrent charts in the top tab bar. Every markup stroke is automatically saved locally. Closed tabs are moved to the <strong>Trash Bin</strong> with a 30-day grace period. Export crystal-clear <strong>High-DPI PNGs, SVGs, or JPEGs</strong> anytime.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
-                          <span className="font-bold">New Canvas Tab</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + N</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
-                          <span className="font-bold">Export PNG Diagram</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + E</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
-                          <span className="font-bold">Restore Trashed Charts</span>
-                          <span className="font-medium text-[11px]">Hub → Trash Bin</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 05: Fibonacci Retracement & Golden Pocket */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-sm">
-                          05
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Fibonacci Retracement & Golden Pocket</h4>
-                          <p className="text-xs text-muted">Precision 61.8% - 78.6% reversal levels</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Drag the <strong>Fibonacci Tool (F)</strong> from swing low to swing high in an uptrend to reveal optimal trade entry (OTE) zones. The <strong>0.618 Golden Ratio</strong> and <strong>0.786 deep discount</strong> offer the highest probability entries when aligned with Order Blocks.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900">
-                          <span className="font-bold">0.618 - 0.786 Zone</span>
-                          <span className="font-medium text-[11px]">Golden Pocket Confluence</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900">
-                          <span className="font-bold">0.500 Equilibrium</span>
-                          <span className="font-medium text-[11px]">Premium / Discount Boundary</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900">
-                          <span className="font-bold">Fib Tool Hotkey</span>
-                          <span className="font-mono text-[10px] font-bold">Press F</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 06: Multi-Timeframe Top-Down Analysis */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-black text-sm">
-                          06
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Multi-Timeframe Top-Down Analysis</h4>
-                          <p className="text-xs text-muted">Aligning Daily bias with 5m execution</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Start on <strong>Daily / 4H charts</strong> to identify the directional trend and high-liquidity sweep pools. Switch to <strong>15m / 5m charts</strong> to capture tight-spread execution entries with minimal drawdowns and maximum risk-to-reward ratios.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-cyan-50/60 border border-cyan-100 flex items-center justify-between text-cyan-900">
-                          <span className="font-bold">High Timeframe (HTF)</span>
-                          <span className="font-medium text-[11px]">Daily & 4H Directional Bias</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-cyan-50/60 border border-cyan-100 flex items-center justify-between text-cyan-900">
-                          <span className="font-bold">Intermediate (ITF)</span>
-                          <span className="font-medium text-[11px]">1H & 15m Key Structural Zones</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-cyan-50/60 border border-cyan-100 flex items-center justify-between text-cyan-900">
-                          <span className="font-bold">Low Timeframe (LTF)</span>
-                          <span className="font-medium text-[11px]">5m & 1m Entry Trigger Execution</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 07: Candlestick Price Action & Entry Confirmations */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-sm">
-                          07
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Candlestick Entry Formations</h4>
-                          <p className="text-xs text-muted">High-probability trigger signals</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Validate key support and resistance bounces using high-probability candlestick signals: <strong>Pin Bars</strong> (rejection wicks), <strong>Engulfing Candles</strong> (momentum displacement), and <strong>Morning/Evening Stars</strong>.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between text-rose-900">
-                          <span className="font-bold">Pin Bar Rejection</span>
-                          <span className="font-medium text-[11px]">Long wick sweeping liquidity</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between text-rose-900">
-                          <span className="font-bold">Engulfing Candle</span>
-                          <span className="font-medium text-[11px]">Full body overtaking previous candle</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between text-rose-900">
-                          <span className="font-bold">Plot Candlesticks Tool</span>
-                          <span className="font-mono text-[10px] font-bold">Press K</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 08: Photoshop-Style Layers & Z-Index Management */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-black text-sm">
-                          08
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Layers, Locking & Z-Index Ordering</h4>
-                          <p className="text-xs text-muted">Pro Photoshop-style layer stacking</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Keep complex chart breakdowns clean by locking chart backgrounds and order block rectangles with <strong>Ctrl + L</strong>. Use the right-hand <strong>Layers Inspector</strong> to reorder elements, toggle visibility, and adjust layer transparency.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between text-teal-900">
-                          <span className="font-bold">Lock / Unlock Object</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + L</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between text-teal-900">
-                          <span className="font-bold">Bring Layer to Front</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + ]</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between text-teal-900">
-                          <span className="font-bold">Send Layer to Back</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + [</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 09: London & New York Session Killzones */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center font-black text-sm">
-                          09
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">London & NY Session Killzones</h4>
-                          <p className="text-xs text-muted">Institutional volatility windows</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Highlight peak liquidity sessions using vertical shading boxes: <strong>London Open (07:00 - 10:00 GMT)</strong> and <strong>New York Open (12:00 - 15:00 GMT)</strong>. Look for early fakeouts (Judas Swings) that take out Asian highs/lows before running the true trend.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-between text-orange-900">
-                          <span className="font-bold">Asian Range Sweep</span>
-                          <span className="font-medium text-[11px]">00:00 - 06:00 GMT High/Low mark</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-between text-orange-900">
-                          <span className="font-bold">London Killzone</span>
-                          <span className="font-medium text-[11px]">07:00 - 10:00 GMT expansion</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-between text-orange-900">
-                          <span className="font-bold">New York Killzone</span>
-                          <span className="font-medium text-[11px]">12:00 - 15:00 GMT continuation</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Lesson 10: Trade Journaling & Homework Submission */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm">
-                          10
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-ink">Trade Journaling & Homework Submission</h4>
-                          <p className="text-xs text-muted">Document setups for mentor grading</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Attach <strong>Sticky Notes (N)</strong> outlining your pre-trade checklist: Entry Reason, HTF Confluence, Stop Loss Pips, and Take Profit Target. Export high-resolution PNGs with <strong>Ctrl + E</strong> to submit homework assignments to GAMATFX coaches.
-                      </p>
-                      <div className="space-y-2 pt-1 text-xs">
-                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
-                          <span className="font-bold">Sticky Note Checklist</span>
-                          <span className="font-mono text-[10px] font-bold">Press N</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
-                          <span className="font-bold">Ultra-HD 2x Diagram Export</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + E</span>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
-                          <span className="font-bold">Duplicate Trade Setup</span>
-                          <span className="font-mono text-[10px] font-bold">Ctrl + D</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             )}
           </main>
         </div>
+
+        {/* RESOURCE FULL DETAILS MODAL */}
+        {selectedResource && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+            <div className="w-full max-w-xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-5 animate-in zoom-in-95">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 border-b border-line pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-brand-light text-brand text-[10px] font-black uppercase tracking-wider">
+                      {selectedResource.category}
+                    </span>
+                    <span className="text-xs text-muted font-bold flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> {selectedResource.readTime}
+                    </span>
+                  </div>
+                  <h3 className="font-display font-black text-lg text-ink">
+                    {selectedResource.title}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedResource(null)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-ink hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Description */}
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                {selectedResource.desc}
+              </p>
+
+              {/* Core Principles & Checklist */}
+              <div className="space-y-2.5 rounded-2xl bg-slate-50 p-4 border border-line">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-brand" /> Institutional Trading Playbook
+                </p>
+                <ul className="space-y-2 text-xs text-slate-700 font-medium">
+                  {selectedResource.points.map((pt, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5">
+                      <span className="h-2 w-2 rounded-full bg-brand shrink-0 mt-1.5" />
+                      <span className="leading-relaxed">{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const textToCopy = `${selectedResource.title}\n\n${selectedResource.points.join("\n")}`;
+                    navigator.clipboard.writeText(textToCopy);
+                    showToast("Copied guide points to clipboard!");
+                  }}
+                  className="flex items-center gap-2 rounded-xl border border-line bg-cream px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <Copy className="h-3.5 w-3.5" /> Copy Reference
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedResource(null)}
+                    className="rounded-xl px-4 py-2.5 text-xs font-bold text-muted hover:text-ink transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const res = selectedResource;
+                      setSelectedResource(null);
+                      handleCreateCanvasFromResource(res);
+                    }}
+                    className="flex items-center gap-2 rounded-xl bg-brand text-white px-5 py-2.5 text-xs font-black hover:bg-brand-dark shadow-md shadow-brand/20 transition cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" /> Create Canvas with Guide
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* EXPANDED RICH WHITEBOARD PREFERENCES SETTINGS MODAL (ACCESSIBLE IN HUB) */}
         {settingsOpen && (
