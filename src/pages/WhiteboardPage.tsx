@@ -284,8 +284,8 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
     category: "Forex & Trading Setups",
     items: [
       { label: "Fibonacci Retracement", keys: ["F"] },
-      { label: "Long Position (Risk:Reward)", keys: ["L"] },
-      { label: "Short Position (Risk:Reward)", keys: ["S"] },
+      { label: "Long Position", keys: ["L"] },
+      { label: "Short Position", keys: ["S"] },
     ],
   },
   {
@@ -4845,7 +4845,12 @@ export default function WhiteboardPage() {
                       activeForexTool === "fibo" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
                     }`}
                   >
-                    <span className="flex items-center gap-2"><Percent className="h-3.5 w-3.5" /> Fibonacci Retracement</span>
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <Percent className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Fibonacci Retracement</span>
+                    </span>
                     <span title={favoritedTools.includes("fibo") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fibo"); }}
@@ -4862,7 +4867,12 @@ export default function WhiteboardPage() {
                       activeForexTool === "long" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
                     }`}
                   >
-                    <span className="flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5" /> Long Position (Risk:Reward)</span>
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Long Position</span>
+                    </span>
                     <span title={favoritedTools.includes("long") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("long"); }}
@@ -4879,7 +4889,12 @@ export default function WhiteboardPage() {
                       activeForexTool === "short" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
                     }`}
                   >
-                    <span className="flex items-center gap-2"><TrendingDown className="h-3.5 w-3.5" /> Short Position (Risk:Reward)</span>
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <TrendingDown className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Short Position</span>
+                    </span>
                     <span title={favoritedTools.includes("short") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("short"); }}
