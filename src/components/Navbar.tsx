@@ -25,6 +25,7 @@ import {
   Shield,
   Sparkles,
   Award,
+  Pencil,
 } from "lucide-react";
 import Logo from "./Logo";
 import TopCouponBar from "./TopCouponBar";
@@ -58,6 +59,7 @@ const moreGroups: { title: string; items: (NavLink & { icon: React.ElementType; 
   {
     title: "Explore",
     items: [
+      { label: "Trading Whiteboard", to: "/whiteboard", icon: Pencil, desc: "Interactive TradingView-style teaching canvas" },
       { label: "Student Forum", to: "/forum", icon: MessagesSquare, desc: "Meet students & ask questions" },
       { label: "Blog", to: "/blog", icon: Newspaper, desc: "Forex articles & market insight" },
       { label: "Community", to: "/community", icon: Users, desc: "Join 40K+ traders on Telegram" },

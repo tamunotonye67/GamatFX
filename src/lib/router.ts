@@ -21,6 +21,7 @@ export const STATIC_ROUTES = [
   "/dashboard",
   "/checkout",
   "/mentorship-survey",
+  "/whiteboard",
 ] as const;
 
 function parse(): string {

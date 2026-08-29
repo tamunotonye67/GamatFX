@@ -46,6 +46,7 @@ import { AdminStudentOfTheWeek } from "./pages/admin/AdminStudentOfTheWeek";
 import { AdminCoupons } from "./pages/admin/AdminCoupons";
 import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
 import { AdminInvoices, AdminCompanyAssets } from "./pages/admin/AdminInvoicesAndAssets";
+import WhiteboardPage from "./pages/WhiteboardPage";
 import { useRoute, segments } from "./lib/router";
 
 const staticPages: Record<string, React.ComponentType> = {
@@ -67,6 +68,7 @@ const staticPages: Record<string, React.ComponentType> = {
   "/reset-password": ResetPasswordPage,
   "/dashboard": DashboardPage,
   "/mentorship-survey": MentorshipSurveyPage,
+  "/whiteboard": WhiteboardPage,
   "/admin": AdminDashboard,
   "/admin/analytics": AdminAnalytics,
   "/admin/students": AdminStudents,
