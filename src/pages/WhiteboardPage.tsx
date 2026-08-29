@@ -29,6 +29,7 @@ import {
   FileCode,
   Layers,
   Grid,
+  Magnet,
   X,
   Plus,
   Settings,
@@ -357,7 +358,7 @@ export default function WhiteboardPage() {
   const [showTooltips, setShowTooltips] = useState(true);
   const [showFavoritesBar, setShowFavoritesBar] = useState(true);
   const [showCursorCoords, setShowCursorCoords] = useState(true);
-  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [snapToGrid, setSnapToGrid] = useState(true);
   const [gridSnapSize, setGridSnapSize] = useState<number>(10);
   const [eraserSize, setEraserSize] = useState<number>(18);
   const [defaultRiskReward, setDefaultRiskReward] = useState<number>(3);
@@ -408,10 +409,11 @@ export default function WhiteboardPage() {
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
 
-  // Text Modal Input State
+  // Text Modal Input & Note Editing State
   const [textModalPos, setTextModalPos] = useState<{ x: number; y: number } | null>(null);
   const [textValue, setTextValue] = useState("");
   const [isStickyMode, setIsStickyMode] = useState(false);
+  const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
 
   // References
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1008,12 +1010,16 @@ export default function WhiteboardPage() {
     isDrawing.current = true;
 
     if (activeTool === "text") {
+      setEditingShapeId(null);
+      setTextValue("");
       setIsStickyMode(false);
       setTextModalPos(pt);
       return;
     }
 
     if (activeTool === "sticky") {
+      setEditingShapeId(null);
+      setTextValue("");
       setIsStickyMode(true);
       setTextModalPos(pt);
       return;
@@ -1048,26 +1054,7 @@ export default function WhiteboardPage() {
     const pt = getCanvasCoords(e);
     setCursorCoords(pt);
 
-    if (activeResizeHandle) {
-      setShapes((prev) =>
-        prev.map((s) => {
-          if (s.id !== activeResizeHandle.shapeId || s.isLocked) return s;
-          return resizeShapePoints(s, activeResizeHandle.handle, pt);
-        })
-      );
-      return;
-    }
-
-    if (activeTool === "eraser" && e.buttons === 1) {
-      performPrecisionErasing(pt, eraserSize);
-      return;
-    }
-
-    if (marqueeBox) {
-      setMarqueeBox((prev) => (prev ? { ...prev, x2: pt.x, y2: pt.y } : null));
-      return;
-    }
-
+    // 1. Move/Drag existing selected shape
     if (isDraggingShape.current && selectedShapeIds.length > 0) {
       const dx = pt.x - dragStartPt.current.x;
       const dy = pt.y - dragStartPt.current.y;
@@ -1075,31 +1062,93 @@ export default function WhiteboardPage() {
 
       setShapes((prev) =>
         prev.map((s) => {
-          if (!selectedShapeIds.includes(s.id) || s.isLocked) return s;
-          return {
-            ...s,
-            points: s.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
-          };
+          if (selectedShapeIds.includes(s.id) && !s.isLocked) {
+            return {
+              ...s,
+              points: s.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
+            };
+          }
+          return s;
         })
       );
       return;
     }
 
+    // 2. Interactive Resize Handle Drag
+    if (activeResizeHandle) {
+      const targetShape = shapes.find((s) => s.id === activeResizeHandle.shapeId);
+      if (targetShape && !targetShape.isLocked) {
+        const pts = targetShape.points;
+        let minX = Math.min(...pts.map((p) => p.x));
+        let maxX = Math.max(...pts.map((p) => p.x));
+        let minY = Math.min(...pts.map((p) => p.y));
+        let maxY = Math.max(...pts.map((p) => p.y));
+
+        if (activeResizeHandle.handle === "tl") {
+          minX = pt.x;
+          minY = pt.y;
+        } else if (activeResizeHandle.handle === "tr") {
+          maxX = pt.x;
+          minY = pt.y;
+        } else if (activeResizeHandle.handle === "br") {
+          maxX = pt.x;
+          maxY = pt.y;
+        } else if (activeResizeHandle.handle === "bl") {
+          minX = pt.x;
+          maxY = pt.y;
+        }
+
+        setShapes((prev) =>
+          prev.map((s) => {
+            if (s.id === targetShape.id) {
+              if (s.type === "sticky" || s.type === "text") {
+                return { ...s, points: [{ x: minX, y: minY }] };
+              }
+              return {
+                ...s,
+                points: [
+                  { x: minX, y: minY },
+                  { x: maxX, y: maxY },
+                ],
+              };
+            }
+            return s;
+          })
+        );
+      }
+      return;
+    }
+
+    // 3. Selection Marquee Box
+    if (marqueeBox) {
+      setMarqueeBox((prev) => (prev ? { ...prev, x2: pt.x, y2: pt.y } : null));
+      return;
+    }
+
+    // 4. Live Erasing while dragging
+    if (isDrawing.current && activeTool === "eraser") {
+      performPrecisionErasing(pt, eraserSize);
+      return;
+    }
+
     if (!isDrawing.current || !currentShape) return;
 
-    if (currentShape.type === "pencil" || currentShape.type === "highlighter") {
+    // 5. Draw / Expand active shape
+    if (currentShape.type === "pen" || currentShape.type === "highlighter") {
       setCurrentShape({
         ...currentShape,
         points: [...currentShape.points, pt],
       });
-    } else if (currentShape.type === "bezier") {
-      const updatedPts = [...currentShape.points];
-      updatedPts[updatedPts.length - 1] = pt;
-      setCurrentShape({
-        ...currentShape,
-        points: updatedPts,
-      });
-    } else {
+    } else if (
+      currentShape.type === "rectangle" ||
+      currentShape.type === "circle" ||
+      currentShape.type === "diamond" ||
+      currentShape.type === "arrow" ||
+      currentShape.type === "line" ||
+      currentShape.type === "long" ||
+      currentShape.type === "short" ||
+      currentShape.type === "fibo"
+    ) {
       setCurrentShape({
         ...currentShape,
         points: [currentShape.points[0], pt],
@@ -1112,29 +1161,21 @@ export default function WhiteboardPage() {
     isDraggingShape.current = false;
     setActiveResizeHandle(null);
 
+    // Finalize Multi-Select Marquee
     if (marqueeBox) {
       const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
       const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
       const minY = Math.min(marqueeBox.y1, marqueeBox.y2);
       const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
 
-      const selected = shapes.filter((s) => {
+      const enclosedShapes = shapes.filter((s) => {
         if (s.isHidden) return false;
-        const shapeMinX = Math.min(...s.points.map((p) => p.x));
-        const shapeMaxX = Math.max(...s.points.map((p) => p.x));
-        const shapeMinY = Math.min(...s.points.map((p) => p.y));
-        const shapeMaxY = Math.max(...s.points.map((p) => p.y));
-        return shapeMinX >= minX && shapeMaxX <= maxX && shapeMinY >= minY && shapeMaxY <= maxY;
+        return s.points.some((p) => p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY);
       });
 
-      setSelectedShapeIds(selected.map((s) => s.id));
-      setIsInspectorOpen(selected.length > 0);
+      setSelectedShapeIds(enclosedShapes.map((s) => s.id));
       setMarqueeBox(null);
-      if (selected.length > 0) showToast(`Selected ${selected.length} object(s)!`);
-      return;
     }
-
-    if (activeTool === "bezier") return;
 
     if (!isDrawing.current) return;
     isDrawing.current = false;
@@ -1146,12 +1187,28 @@ export default function WhiteboardPage() {
     }
   };
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (currentShape && currentShape.type === "bezier") {
       setShapes((prev) => [...prev, currentShape]);
       setCurrentShape(null);
       setRedoStack([]);
       showToast("Chart Pattern Path completed!");
+      return;
+    }
+
+    const pt = getCanvasCoords(e);
+    const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
+    if (hitShape && (hitShape.type === "sticky" || hitShape.type === "text")) {
+      if (hitShape.isLocked) {
+        showToast("Locked note! Unlock it first to edit 🔓");
+        return;
+      }
+      setEditingShapeId(hitShape.id);
+      setTextValue(hitShape.text || "");
+      setIsStickyMode(hitShape.type === "sticky");
+      if (hitShape.stickyColor) setStickyColor(hitShape.stickyColor);
+      setTextModalPos(hitShape.points[0] || pt);
+      setSelectedShapeIds([hitShape.id]);
     }
   };
 
@@ -1182,6 +1239,25 @@ export default function WhiteboardPage() {
   const handleAddTextOrSticky = () => {
     if (!textValue.trim() || !textModalPos) return;
 
+    if (editingShapeId) {
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === editingShapeId
+            ? {
+                ...s,
+                text: textValue.trim(),
+                stickyColor: isStickyMode ? stickyColor : s.stickyColor,
+              }
+            : s
+        )
+      );
+      setEditingShapeId(null);
+      setTextValue("");
+      setTextModalPos(null);
+      showToast(isStickyMode ? "Updated Sticky Note!" : "Updated Text Label!");
+      return;
+    }
+
     const newShape: Shape = {
       id: `shape_${Date.now()}`,
       type: isStickyMode ? "sticky" : "text",
@@ -1197,6 +1273,7 @@ export default function WhiteboardPage() {
     setShapes((prev) => [...prev, newShape]);
     setTextValue("");
     setTextModalPos(null);
+    showToast(isStickyMode ? "Added Sticky Note!" : "Added Text Label!");
   };
 
   /* Context Menu Object Layering & Duplicate Actions */
@@ -2041,6 +2118,26 @@ export default function WhiteboardPage() {
           {/* Vertical Divider */}
           <span className="h-4 w-px bg-line/80 shrink-0" />
 
+          {/* Snap to Grid Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setSnapToGrid(!snapToGrid);
+              showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
+            }}
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+              snapToGrid ? "bg-emerald-50 text-emerald-700 font-extrabold" : "hover:bg-slate-100 text-ink"
+            }`}
+            title="Toggle Snap to Grid (Active by Default)"
+          >
+            <Magnet className={`h-4 w-4 ${snapToGrid ? "text-emerald-600" : "text-slate-700"}`} />
+            <span>Snap</span>
+            {snapToGrid && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
+          </button>
+
+          {/* Vertical Divider */}
+          <span className="h-4 w-px bg-line/80 shrink-0" />
+
           {/* Export Dropdown */}
           <div className="relative">
             <button
@@ -2809,14 +2906,17 @@ export default function WhiteboardPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        setIsStickyMode(contextMenu.targetShape?.type === "sticky");
-                        setTextValue(contextMenu.targetShape?.text || "");
-                        setTextModalPos(contextMenu.canvasPt);
+                        setEditingShapeId(contextMenu.targetShape!.id);
+                        setIsStickyMode(contextMenu.targetShape!.type === "sticky");
+                        setTextValue(contextMenu.targetShape!.text || "");
+                        if (contextMenu.targetShape!.stickyColor) setStickyColor(contextMenu.targetShape!.stickyColor);
+                        setTextModalPos(contextMenu.targetShape!.points[0] || contextMenu.canvasPt);
+                        setSelectedShapeIds([contextMenu.targetShape!.id]);
                         setContextMenu(null);
                       }}
                       className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                     >
-                      <Edit3 className="h-3.5 w-3.5 text-brand" /> Edit Text
+                      <Edit3 className="h-3.5 w-3.5 text-brand" /> {contextMenu.targetShape.type === "sticky" ? "Edit Sticky Note" : "Edit Text"}
                     </button>
                   )}
 
@@ -3408,7 +3508,7 @@ export default function WhiteboardPage() {
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-ink flex items-center gap-1.5">
                   {isStickyMode ? <StickyNote className="h-4 w-4 text-amber-500" /> : <Type className="h-4 w-4 text-brand" />}
-                  {isStickyMode ? "Add Sticky Note" : "Add Teaching Text"}
+                  {editingShapeId ? (isStickyMode ? "Edit Sticky Note" : "Edit Text Label") : (isStickyMode ? "Add Sticky Note" : "Add Teaching Text")}
                 </p>
               </div>
 
@@ -3424,7 +3524,10 @@ export default function WhiteboardPage() {
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setTextModalPos(null)}
+                  onClick={() => {
+                    setTextModalPos(null);
+                    setEditingShapeId(null);
+                  }}
                   className="rounded-lg bg-cream px-3 py-1.5 text-xs font-bold text-muted hover:text-ink"
                 >
                   Cancel
@@ -3434,7 +3537,7 @@ export default function WhiteboardPage() {
                   onClick={handleAddTextOrSticky}
                   className="btn-primary !py-1.5 !px-3 text-xs font-bold"
                 >
-                  Save Note
+                  {editingShapeId ? "Update Note" : "Save Note"}
                 </button>
               </div>
             </div>
@@ -3499,6 +3602,34 @@ export default function WhiteboardPage() {
                         )}
                       </p>
                     </div>
+
+                    {/* EDITABLE NOTE / TEXT CONTENT IN INSPECTOR */}
+                    {selectedShape && (selectedShape.type === "sticky" || selectedShape.type === "text") && (
+                      <div className="rounded-2xl border border-line bg-cream p-3 space-y-2">
+                        <label className="text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-ink">
+                            <Edit3 className="h-3.5 w-3.5 text-brand" />
+                            {selectedShape.type === "sticky" ? "Sticky Note Text" : "Text Label"}
+                          </span>
+                          {selectedShape.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={selectedShape.text || ""}
+                          onChange={(e) => {
+                            const newTxt = e.target.value;
+                            setShapes((prev) =>
+                              prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                            );
+                          }}
+                          disabled={selectedShape.isLocked}
+                          placeholder={selectedShape.type === "sticky" ? "Type note content..." : "Type text content..."}
+                          className={`w-full rounded-xl border border-line bg-white p-2.5 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
+                            selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                        />
+                      </div>
+                    )}
 
                     {/* COLOR & STROKE APPEARANCE */}
                     <div className="space-y-3 border-b border-line pb-3">
