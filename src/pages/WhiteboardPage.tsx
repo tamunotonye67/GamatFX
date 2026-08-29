@@ -39,6 +39,9 @@ import {
   ArrowUp,
   ArrowDown,
   Edit3,
+  SlidersHorizontal,
+  PanelRightClose,
+  PanelRightOpen,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -127,6 +130,9 @@ export default function WhiteboardPage() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  // Inspector Panel State (Expandable & Collapsible Figma/Photoshop Panel)
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
 
   // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
@@ -600,7 +606,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  /* Contextual Right-Click Handler (Detects object hit vs canvas hit) */
+  /* Contextual Right-Click Handler */
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     const pt = getCanvasCoords(e);
@@ -874,6 +880,8 @@ export default function WhiteboardPage() {
     }
   };
 
+  const selectedShape = shapes.find((s) => s.id === selectedShapeIds[0]);
+
   return (
     <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
       {/* Toast Notification */}
@@ -883,7 +891,7 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar (GAMAT Logo -> Active Tool Options Properties Bar -> Themes -> Export -> Settings -> Fullscreen) */}
+      {/* Main Header Bar */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
         {/* Left Section: GAMAT Logo */}
         <div className="flex items-center gap-3">
@@ -994,7 +1002,7 @@ export default function WhiteboardPage() {
           </div>
         </div>
 
-        {/* Right Section: Canvas Theme -> Export Dropdown -> Settings -> Fullscreen */}
+        {/* Right Section: Canvas Theme -> Export -> Inspector Toggle -> Settings -> Fullscreen */}
         <div className="flex items-center gap-2 shrink-0">
           {/* Canvas Background Theme Dropdown */}
           <div className="relative">
@@ -1066,6 +1074,18 @@ export default function WhiteboardPage() {
               </div>
             )}
           </div>
+
+          {/* Inspector Panel Toggle Button (Figma Style) */}
+          <button
+            type="button"
+            onClick={() => setIsInspectorOpen(!isInspectorOpen)}
+            className={`rounded-xl border p-2 transition ${
+              isInspectorOpen ? "border-brand bg-brand-light text-brand" : "border-line bg-cream text-ink hover:bg-white"
+            }`}
+            title="Toggle Figma Inspector Panel"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </button>
 
           {/* Whiteboard Settings Button */}
           <button
@@ -1144,7 +1164,7 @@ export default function WhiteboardPage() {
 
       {/* Main Miro Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Toolbar Dock (Grouped Miro Tools with Sub-menu Flyouts) */}
+        {/* Left Toolbar Dock */}
         <aside className="w-16 border-r border-line bg-white p-2 flex flex-col items-center justify-between gap-3 shrink-0 z-20 shadow-md">
           <div className="space-y-1.5 w-full">
             <MiroToolBtn
@@ -1160,18 +1180,16 @@ export default function WhiteboardPage() {
               icon={Hand}
             />
 
-            {/* 1. FREEHAND GROUP (Pencil / Highlighter) */}
+            {/* 1. FREEHAND GROUP */}
             <div className="relative">
               <MiroToolBtn
                 active={activeTool === "pencil" || activeTool === "highlighter"}
-                onClick={() => {
-                  setActiveTool(activePenTool);
-                }}
+                onClick={() => setActiveTool(activePenTool)}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "pen" ? null : "pen");
                 }}
-                title="Freehand Pen (Right click or hover arrow to change tool)"
+                title="Freehand Pen (Right click to change tool)"
                 icon={activePenTool === "highlighter" ? Highlighter : Pencil}
                 hasFlyout
               />
@@ -1196,18 +1214,16 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* 2. SHAPES GROUP (Rectangle / Circle / Diamond) */}
+            {/* 2. SHAPES GROUP */}
             <div className="relative">
               <MiroToolBtn
                 active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
-                onClick={() => {
-                  setActiveTool(activeShapeTool);
-                }}
+                onClick={() => setActiveTool(activeShapeTool)}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes");
                 }}
-                title="Geometric Shapes (Right click or hover arrow to change shape)"
+                title="Geometric Shapes (Right click to change shape)"
                 icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
                 hasFlyout
               />
@@ -1239,18 +1255,16 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* 3. LINES & PATHS GROUP (Arrow / Bezier Chart Pattern) */}
+            {/* 3. LINES GROUP */}
             <div className="relative">
               <MiroToolBtn
                 active={activeTool === "arrow" || activeTool === "bezier"}
-                onClick={() => {
-                  setActiveTool(activeLineTool);
-                }}
+                onClick={() => setActiveTool(activeLineTool)}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "lines" ? null : "lines");
                 }}
-                title="Lines & Paths (Right click or hover arrow to change line type)"
+                title="Lines & Paths (Right click to change line type)"
                 icon={activeLineTool === "bezier" ? Activity : ArrowRight}
                 badge={activeLineTool === "bezier" ? "PATH" : undefined}
                 hasFlyout
@@ -1292,18 +1306,18 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "eraser"}
               onClick={() => setActiveTool("eraser")}
-              title="Precision Eraser Tool (Erases touched stroke parts)"
+              title="Precision Eraser Tool"
               icon={Eraser}
             />
             <MiroToolBtn
               active={activeTool === "zoom"}
               onClick={() => setActiveTool("zoom")}
-              title="Zoom Tool (or use mouse scroll wheel)"
+              title="Zoom Tool"
               icon={Search}
             />
           </div>
 
-          {/* Bottom Actions: Undo, Redo, Clear */}
+          {/* Bottom Actions */}
           <div className="space-y-1.5 w-full border-t border-line pt-2">
             <div className="grid grid-cols-2 gap-1">
               <button
@@ -1340,7 +1354,7 @@ export default function WhiteboardPage() {
         {/* Central Miro Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
           {/* Bottom Zoom & Navigation Bar */}
-          <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
+          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
@@ -1392,20 +1406,18 @@ export default function WhiteboardPage() {
             }`}
           />
 
-          {/* Contextual Right-Click Popover Menu (Object vs Canvas) */}
+          {/* Contextual Right-Click Popover Menu */}
           {contextMenu && (
             <div
               className="fixed z-50 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl animate-in fade-in"
               style={{ left: contextMenu.x, top: contextMenu.y }}
             >
               {contextMenu.targetShape ? (
-                /* OBJECT / TEXT / STICKY RIGHT-CLICK OPTIONS */
                 <div className="space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
                     Selected {contextMenu.targetShape.type.toUpperCase()}
                   </p>
 
-                  {/* Inline Color Palette for Selected Object */}
                   <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line pb-2 mb-1">
                     {PALETTE.map((c) => (
                       <button
@@ -1420,7 +1432,6 @@ export default function WhiteboardPage() {
                     ))}
                   </div>
 
-                  {/* Text Edit Option if Sticky or Text */}
                   {(contextMenu.targetShape.type === "text" || contextMenu.targetShape.type === "sticky") && (
                     <button
                       type="button"
@@ -1471,7 +1482,6 @@ export default function WhiteboardPage() {
                   </div>
                 </div>
               ) : (
-                /* CANVAS RIGHT-CLICK OPTIONS */
                 <div className="space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Canvas Quick Tools</p>
 
@@ -1647,6 +1657,209 @@ export default function WhiteboardPage() {
             </div>
           )}
         </main>
+
+        {/* Right Collapsible & Expandable Inspector Panel (Figma / Photoshop Style) */}
+        {isInspectorOpen ? (
+          <aside className="w-72 border-l border-line bg-white p-4 flex flex-col justify-between shrink-0 z-20 shadow-xl overflow-y-auto animate-in slide-in-from-right duration-200">
+            <div className="space-y-5">
+              {/* Panel Header */}
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="h-4.5 w-4.5 text-brand" />
+                  <span className="font-display font-extrabold text-xs uppercase tracking-wider text-ink">Inspector</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsInspectorOpen(false)}
+                  className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition"
+                  title="Collapse Panel"
+                >
+                  <PanelRightClose className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* 1. SELECTION TYPE & IDENTITY */}
+              <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted">Active Element</p>
+                <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
+                  {selectedShape ? (
+                    <span className="text-brand">{selectedShape.type}</span>
+                  ) : selectedShapeIds.length > 1 ? (
+                    <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
+                  ) : (
+                    <span>Tool: {activeTool}</span>
+                  )}
+                </p>
+              </div>
+
+              {/* 2. COLOR & STROKE APPEARANCE */}
+              <div className="space-y-3 border-b border-line pb-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
+
+                {/* Stroke Palette */}
+                <div>
+                  <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Color</label>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {PALETTE.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => applyColorToSelected(c)}
+                        className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                          strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                        }`}
+                        style={{ background: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Sticky Note Colors (when sticky) */}
+                {(activeTool === "sticky" || selectedShape?.type === "sticky") && (
+                  <div>
+                    <label className="text-[11px] font-bold text-ink block mb-1.5">Sticky Note Color</label>
+                    <div className="flex items-center gap-1.5">
+                      {STICKY_COLORS.map((s) => (
+                        <button
+                          key={s.color}
+                          type="button"
+                          onClick={() => applyStickyColorToSelected(s.color)}
+                          className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
+                            stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                          }`}
+                          style={{ background: s.color }}
+                          title={s.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Stroke Thickness */}
+                <div>
+                  <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                    <span>Stroke Thickness</span>
+                    <strong className="text-brand">{strokeWidth}px</strong>
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[1, 2, 4, 6].map((w) => (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => {
+                          setStrokeWidth(w);
+                          if (selectedShapeIds.length > 0) {
+                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
+                          }
+                        }}
+                        className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
+                          strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                        }`}
+                      >
+                        {w}px
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Line Dash Style */}
+                <div>
+                  <label className="text-[11px] font-bold text-ink block mb-1.5">Line Pattern</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLineStyle("solid");
+                        if (selectedShapeIds.length > 0) {
+                          setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
+                        }
+                      }}
+                      className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                        lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                      }`}
+                    >
+                      Solid
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLineStyle("dashed");
+                        if (selectedShapeIds.length > 0) {
+                          setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
+                        }
+                      }}
+                      className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                        lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                      }`}
+                    >
+                      Dashed
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. LAYERING & OBJECT ACTIONS (Photoshop Style) */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
+
+                {selectedShape ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => bringToFront(selectedShape.id)}
+                        className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => sendToBack(selectedShape.id)}
+                        className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => duplicateSelectedObject(selectedShape)}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteSelectedObject(selectedShape.id)}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or style.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Panel Footer Stats */}
+            <div className="border-t border-line pt-3 mt-4 text-[10px] text-muted flex items-center justify-between font-bold">
+              <span>Elements: {shapes.length}</span>
+              <span>Zoom: {Math.round(zoom * 100)}%</span>
+            </div>
+          </aside>
+        ) : (
+          /* COLLAPSED EXPAND BUTTON */
+          <button
+            type="button"
+            onClick={() => setIsInspectorOpen(true)}
+            className="absolute right-4 top-4 z-30 rounded-2xl border border-line bg-white p-2.5 text-ink shadow-2xl hover:bg-brand-light hover:text-brand transition animate-in fade-in"
+            title="Expand Inspector Panel"
+          >
+            <PanelRightOpen className="h-5 w-5" />
+          </button>
+        )}
       </div>
     </div>
   );
