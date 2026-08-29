@@ -47,6 +47,8 @@ import {
   Star,
   Lock,
   Unlock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -80,6 +82,7 @@ type Shape = {
   text?: string;
   stickyColor?: StickyColor;
   isLocked?: boolean;
+  isHidden?: boolean;
 };
 
 type DiagramTab = {
@@ -214,8 +217,9 @@ export default function WhiteboardPage() {
   // Preference Setting: Show Tooltip Explanations
   const [showTooltips, setShowTooltips] = useState(true);
 
-  // Inspector Panel State (Expandable & Collapsible Figma/Photoshop Overlay Panel)
+  // Inspector & Photoshop Layers Panel State
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers">("inspector");
 
   // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
@@ -380,9 +384,13 @@ export default function WhiteboardPage() {
       }
     }
 
-    // Render All Shapes & Sticky Notes
+    // Render All Shapes & Sticky Notes (skip hidden shapes!)
     const allShapes = [...shapes, ...(currentShape ? [currentShape] : [])];
-    allShapes.forEach((s) => renderMiroShape(ctx, s, selectedShapeIds.includes(s.id)));
+    allShapes.forEach((s) => {
+      if (!s.isHidden) {
+        renderMiroShape(ctx, s, selectedShapeIds.includes(s.id));
+      }
+    });
 
     // Render Marquee Selection Rubberband Box
     if (marqueeBox) {
@@ -425,8 +433,8 @@ export default function WhiteboardPage() {
       let result: Shape[] = [];
 
       for (const s of prevShapes) {
-        // Skip precision erasing on locked shapes!
-        if (s.isLocked) {
+        // Skip precision erasing on locked or hidden shapes!
+        if (s.isLocked || s.isHidden) {
           result.push(s);
           continue;
         }
@@ -518,6 +526,43 @@ export default function WhiteboardPage() {
     setContextMenu(null);
   };
 
+  /* ------------------------- Object Visibility Toggle Function -------------- */
+
+  const toggleHideShape = (shapeId: string) => {
+    setShapes((prev) =>
+      prev.map((s) => {
+        if (s.id !== shapeId) return s;
+        const nextHidden = !s.isHidden;
+        showToast(nextHidden ? "Hidden layer 🙈" : "Visible layer 👁️");
+        return { ...s, isHidden: nextHidden };
+      })
+    );
+  };
+
+  /* ------------------------- Layer Reordering Functions --------------------- */
+
+  const moveLayerUp = (index: number) => {
+    if (index >= shapes.length - 1) return;
+    setShapes((prev) => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[index + 1];
+      copy[index + 1] = temp;
+      return copy;
+    });
+  };
+
+  const moveLayerDown = (index: number) => {
+    if (index <= 0) return;
+    setShapes((prev) => {
+      const copy = [...prev];
+      const temp = copy[index];
+      copy[index] = copy[index - 1];
+      copy[index - 1] = temp;
+      return copy;
+    });
+  };
+
   /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -547,7 +592,7 @@ export default function WhiteboardPage() {
 
     if (activeTool === "select" && selectedShapeIds.length === 1) {
       const selShape = shapes.find((s) => s.id === selectedShapeIds[0]);
-      if (selShape && !selShape.isLocked) {
+      if (selShape && !selShape.isLocked && !selShape.isHidden) {
         const handleHit = getResizeHandleHit(pt, selShape);
         if (handleHit) {
           setActiveResizeHandle({ shapeId: selShape.id, handle: handleHit });
@@ -558,7 +603,7 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "select") {
-      const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
+      const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
       if (hitShape) {
         if (e.altKey && !hitShape.isLocked) {
@@ -723,6 +768,7 @@ export default function WhiteboardPage() {
       const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
 
       const selected = shapes.filter((s) => {
+        if (s.isHidden) return false;
         const shapeMinX = Math.min(...s.points.map((p) => p.x));
         const shapeMaxX = Math.max(...s.points.map((p) => p.x));
         const shapeMinY = Math.min(...s.points.map((p) => p.y));
@@ -761,7 +807,7 @@ export default function WhiteboardPage() {
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     const pt = getCanvasCoords(e);
-    const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
+    const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
     if (hitShape) {
       setSelectedShapeIds([hitShape.id]);
@@ -866,8 +912,13 @@ export default function WhiteboardPage() {
     }
   };
 
-  /* Tab Management Functions (Add New Tab & Close Tab) */
+  /* Tab Management Functions (Add New Tab & Close Tab) with MAXIMUM 5 TABS RULE */
   const handleAddNewTab = () => {
+    if (tabs.length >= 5) {
+      showToast("Maximum of 5 diagram tabs allowed. Close an existing tab to create a new one!");
+      return;
+    }
+
     const newId = `tab_${Date.now()}`;
     const newName = `Canvas ${tabs.length + 1}`;
     setTabs((prev) => [...prev, { id: newId, name: newName }]);
@@ -1272,7 +1323,7 @@ export default function WhiteboardPage() {
             className={`rounded-xl border p-2 transition ${
               isInspectorOpen ? "border-brand bg-brand-light text-brand" : "border-line bg-cream text-ink hover:bg-white"
             }`}
-            title="Toggle Floating Inspector Panel"
+            title="Toggle Floating Inspector & Layers Panel"
           >
             <SlidersHorizontal className="h-4 w-4" />
           </button>
@@ -1298,7 +1349,7 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Diagrams Tabs */}
+      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Diagrams Tabs (Max 5 Tabs Rule) */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
         <button
           type="button"
@@ -1312,10 +1363,10 @@ export default function WhiteboardPage() {
         {/* Vertical Separator Line */}
         <span className="h-5 w-px bg-line/80 shrink-0" />
 
-        {/* Diagram Tabs Bar */}
+        {/* Diagram Tabs Bar (Max 5 Tabs Limit) */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="text-[11px] font-bold text-muted flex items-center gap-1 shrink-0">
-            <Layers className="h-3.5 w-3.5 text-brand" /> Diagrams:
+            <Layers className="h-3.5 w-3.5 text-brand" /> Tabs ({tabs.length}/5):
           </span>
           {tabs.map((tab) => (
             <div
@@ -1341,14 +1392,20 @@ export default function WhiteboardPage() {
               </button>
             </div>
           ))}
-          <button
-            type="button"
-            onClick={handleAddNewTab}
-            className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
-            title="Create New Blank Diagram Tab"
-          >
-            <Plus className="h-3.5 w-3.5" /> New Tab
-          </button>
+          {tabs.length < 5 ? (
+            <button
+              type="button"
+              onClick={handleAddNewTab}
+              className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
+              title="Create New Diagram Tab (Max 5)"
+            >
+              <Plus className="h-3.5 w-3.5" /> New Tab
+            </button>
+          ) : (
+            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 ml-1" title="Max 5 tabs reached. Close a tab to open a new one.">
+              Max 5 Tabs
+            </span>
+          )}
         </div>
       </div>
 
@@ -1977,16 +2034,33 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Floating Overlay Right Inspector Panel */}
+          {/* Floating Overlay Right Inspector & Photoshop-Style Layers Panel */}
           {isInspectorOpen ? (
-            <aside className="absolute right-4 top-4 z-40 w-72 rounded-3xl border border-line bg-white/95 backdrop-blur-md p-4 flex flex-col justify-between shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-right duration-200">
+            <aside className="absolute right-4 top-4 z-40 w-80 rounded-3xl border border-line bg-white/95 backdrop-blur-md p-4 flex flex-col justify-between shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-right duration-200">
               <div className="space-y-4">
-                {/* Panel Header */}
+                {/* Panel Header & Inspector / Layers Tab Switcher */}
                 <div className="flex items-center justify-between border-b border-line pb-2.5">
-                  <div className="flex items-center gap-2">
-                    <SlidersHorizontal className="h-4.5 w-4.5 text-brand" />
-                    <span className="font-display font-extrabold text-xs uppercase tracking-wider text-ink">Inspector</span>
+                  <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
+                    <button
+                      type="button"
+                      onClick={() => setRightPanelTab("inspector")}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition ${
+                        rightPanelTab === "inspector" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                      }`}
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRightPanelTab("layers")}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition ${
+                        rightPanelTab === "layers" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                      }`}
+                    >
+                      <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
+                    </button>
                   </div>
+
                   <button
                     type="button"
                     onClick={() => setIsInspectorOpen(false)}
@@ -1997,205 +2071,305 @@ export default function WhiteboardPage() {
                   </button>
                 </div>
 
-                {/* 1. SELECTION TYPE & IDENTITY */}
-                <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                    <span>Active Element</span>
-                    {selectedShape?.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
-                  </p>
-                  <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
-                    {selectedShape ? (
-                      <span className="text-brand flex items-center gap-1.5">
-                        {selectedShape.type}
-                        {selectedShape.isLocked && <Lock className="h-3.5 w-3.5 text-amber-600" />}
-                      </span>
-                    ) : selectedShapeIds.length > 1 ? (
-                      <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
-                    ) : (
-                      <span>Tool: {activeTool}</span>
-                    )}
-                  </p>
-                </div>
-
-                {/* 2. COLOR & STROKE APPEARANCE */}
-                <div className="space-y-3 border-b border-line pb-3">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
-
-                  {/* Stroke Palette */}
-                  <div>
-                    <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Color</label>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {PALETTE.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => applyColorToSelected(c)}
-                          disabled={selectedShape?.isLocked}
-                          className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                            strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                          } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                          style={{ background: c }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Sticky Note Colors (when sticky) */}
-                  {(activeTool === "sticky" || selectedShape?.type === "sticky") && (
-                    <div>
-                      <label className="text-[11px] font-bold text-ink block mb-1.5">Sticky Note Color</label>
-                      <div className="flex items-center gap-1.5">
-                        {STICKY_COLORS.map((s) => (
-                          <button
-                            key={s.color}
-                            type="button"
-                            onClick={() => applyStickyColorToSelected(s.color)}
-                            disabled={selectedShape?.isLocked}
-                            className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
-                              stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                            } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                            style={{ background: s.color }}
-                            title={s.name}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Stroke Thickness */}
-                  <div>
-                    <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                      <span>Stroke Thickness</span>
-                      <strong className="text-brand">{strokeWidth}px</strong>
-                    </label>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[1, 2, 4, 6].map((w) => (
-                        <button
-                          key={w}
-                          type="button"
-                          onClick={() => {
-                            setStrokeWidth(w);
-                            if (selectedShapeIds.length > 0) {
-                              setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                            }
-                          }}
-                          disabled={selectedShape?.isLocked}
-                          className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
-                            strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
-                          } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                        >
-                          {w}px
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Line Dash Style */}
-                  <div>
-                    <label className="text-[11px] font-bold text-ink block mb-1.5">Line Pattern</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLineStyle("solid");
-                          if (selectedShapeIds.length > 0) {
-                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
-                          }
-                        }}
-                        disabled={selectedShape?.isLocked}
-                        className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                          lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                        } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                      >
-                        Solid
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLineStyle("dashed");
-                          if (selectedShapeIds.length > 0) {
-                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
-                          }
-                        }}
-                        disabled={selectedShape?.isLocked}
-                        className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                          lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                        } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                      >
-                        Dashed
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. LOCK, LAYERING & OBJECT ACTIONS */}
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
-
-                  {selectedShape ? (
-                    <div className="space-y-2">
-                      {/* Lock / Unlock Toggle Button in Inspector */}
-                      <button
-                        type="button"
-                        onClick={() => toggleLockShape(selectedShape.id)}
-                        className={`w-full flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-bold transition ${
-                          selectedShape.isLocked
-                            ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                            : "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                        }`}
-                      >
-                        {selectedShape.isLocked ? (
-                          <><Unlock className="h-4 w-4" /> Unlock Object 🔓</>
+                {/* TAB 1: INSPECTOR TAB */}
+                {rightPanelTab === "inspector" && (
+                  <div className="space-y-4">
+                    {/* SELECTION TYPE & IDENTITY */}
+                    <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                        <span>Active Element</span>
+                        {selectedShape?.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
+                      </p>
+                      <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
+                        {selectedShape ? (
+                          <span className="text-brand flex items-center gap-1.5">
+                            {selectedShape.type}
+                            {selectedShape.isLocked && <Lock className="h-3.5 w-3.5 text-amber-600" />}
+                          </span>
+                        ) : selectedShapeIds.length > 1 ? (
+                          <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
                         ) : (
-                          <><Lock className="h-4 w-4" /> Lock Object 🔒</>
+                          <span>Tool: {activeTool}</span>
                         )}
-                      </button>
+                      </p>
+                    </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => bringToFront(selectedShape.id)}
-                          disabled={selectedShape.isLocked}
-                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
-                        >
-                          <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => sendToBack(selectedShape.id)}
-                          disabled={selectedShape.isLocked}
-                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
-                        >
-                          <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
-                        </button>
+                    {/* COLOR & STROKE APPEARANCE */}
+                    <div className="space-y-3 border-b border-line pb-3">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
+
+                      {/* Stroke Palette */}
+                      <div>
+                        <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Color</label>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {PALETTE.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => applyColorToSelected(c)}
+                              disabled={selectedShape?.isLocked}
+                              className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              style={{ background: c }}
+                            />
+                          ))}
+                        </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => duplicateSelectedObject(selectedShape)}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                      >
-                        <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
-                      </button>
+                      {/* Sticky Note Colors (when sticky) */}
+                      {(activeTool === "sticky" || selectedShape?.type === "sticky") && (
+                        <div>
+                          <label className="text-[11px] font-bold text-ink block mb-1.5">Sticky Note Color</label>
+                          <div className="flex items-center gap-1.5">
+                            {STICKY_COLORS.map((s) => (
+                              <button
+                                key={s.color}
+                                type="button"
+                                onClick={() => applyStickyColorToSelected(s.color)}
+                                disabled={selectedShape?.isLocked}
+                                className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
+                                  stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                style={{ background: s.color }}
+                                title={s.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                      <button
-                        type="button"
-                        onClick={() => deleteSelectedObject(selectedShape.id)}
-                        disabled={selectedShape.isLocked}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" /> Delete Selected
-                      </button>
+                      {/* Stroke Thickness */}
+                      <div>
+                        <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                          <span>Stroke Thickness</span>
+                          <strong className="text-brand">{strokeWidth}px</strong>
+                        </label>
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[1, 2, 4, 6].map((w) => (
+                            <button
+                              key={w}
+                              type="button"
+                              onClick={() => {
+                                setStrokeWidth(w);
+                                if (selectedShapeIds.length > 0) {
+                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
+                                }
+                              }}
+                              disabled={selectedShape?.isLocked}
+                              className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
+                                strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                            >
+                              {w}px
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Line Dash Style */}
+                      <div>
+                        <label className="text-[11px] font-bold text-ink block mb-1.5">Line Pattern</label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLineStyle("solid");
+                              if (selectedShapeIds.length > 0) {
+                                setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
+                              }
+                            }}
+                            disabled={selectedShape?.isLocked}
+                            className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                              lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                            } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                          >
+                            Solid
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLineStyle("dashed");
+                              if (selectedShapeIds.length > 0) {
+                                setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
+                              }
+                            }}
+                            disabled={selectedShape?.isLocked}
+                            className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                              lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                            } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                          >
+                            Dashed
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or lock state.</p>
-                  )}
-                </div>
+
+                    {/* LOCK, LAYERING & OBJECT ACTIONS */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
+
+                      {selectedShape ? (
+                        <div className="space-y-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleLockShape(selectedShape.id)}
+                            className={`w-full flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-bold transition ${
+                              selectedShape.isLocked
+                                ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                : "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                            }`}
+                          >
+                            {selectedShape.isLocked ? (
+                              <><Unlock className="h-4 w-4" /> Unlock Object 🔓</>
+                            ) : (
+                              <><Lock className="h-4 w-4" /> Lock Object 🔒</>
+                            )}
+                          </button>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => bringToFront(selectedShape.id)}
+                              disabled={selectedShape.isLocked}
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
+                            >
+                              <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => sendToBack(selectedShape.id)}
+                              disabled={selectedShape.isLocked}
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => duplicateSelectedObject(selectedShape)}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                          >
+                            <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => deleteSelectedObject(selectedShape.id)}
+                            disabled={selectedShape.isLocked}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or lock state.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: PHOTOSHOP-STYLE LAYERS PANEL */}
+                {rightPanelTab === "layers" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
+                      <span className="text-[10px] font-bold text-brand">{shapes.length} Layers</span>
+                    </div>
+
+                    {shapes.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-muted space-y-1">
+                        <Layers className="h-8 w-8 text-slate-300 mx-auto" />
+                        <p className="font-bold text-ink">No Layers Yet</p>
+                        <p className="text-[11px]">Draw shapes, notes or lines on the canvas to see them in this layers stack.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
+                        {/* Reverse to show Top Layer first (Photoshop style Z-order) */}
+                        {[...shapes].reverse().map((shape, revIdx) => {
+                          const realIdx = shapes.length - 1 - revIdx;
+                          const isSelected = selectedShapeIds.includes(shape.id);
+                          const IconComponent = getToolIcon(shape.type);
+
+                          return (
+                            <div
+                              key={shape.id}
+                              onClick={() => setSelectedShapeIds([shape.id])}
+                              className={`group flex items-center justify-between rounded-2xl border p-2 text-xs transition cursor-pointer ${
+                                isSelected
+                                  ? "border-brand bg-brand-light/40 font-bold"
+                                  : "border-line bg-cream hover:bg-white"
+                              } ${shape.isHidden ? "opacity-40" : ""}`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                {/* Color Swatch Badge */}
+                                <span
+                                  className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                                  style={{ background: shape.stickyColor || shape.color }}
+                                />
+                                <IconComponent className="h-4 w-4 text-brand shrink-0" />
+                                <span className="truncate text-ink font-bold capitalize">
+                                  {shape.text ? `"${shape.text.slice(0, 14)}..."` : `${shape.type}`}
+                                </span>
+                              </div>
+
+                              {/* Layer Actions: Reorder Up/Down, Visibility & Lock */}
+                              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                {/* Move Up in Z-stack */}
+                                <button
+                                  type="button"
+                                  onClick={() => moveLayerUp(realIdx)}
+                                  disabled={realIdx >= shapes.length - 1}
+                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
+                                  title="Move Layer Up (Bring Forward)"
+                                >
+                                  <ArrowUp className="h-3.5 w-3.5" />
+                                </button>
+
+                                {/* Move Down in Z-stack */}
+                                <button
+                                  type="button"
+                                  onClick={() => moveLayerDown(realIdx)}
+                                  disabled={realIdx <= 0}
+                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
+                                  title="Move Layer Down (Send Backward)"
+                                >
+                                  <ArrowDown className="h-3.5 w-3.5" />
+                                </button>
+
+                                {/* Hide / Show Eye Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleHideShape(shape.id)}
+                                  className="p-1 rounded text-slate-400 hover:text-blue-600"
+                                  title={shape.isHidden ? "Unhide Layer" : "Hide Layer"}
+                                >
+                                  {shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}
+                                </button>
+
+                                {/* Lock / Unlock Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleLockShape(shape.id)}
+                                  className="p-1 rounded text-slate-400 hover:text-amber-600"
+                                  title={shape.isLocked ? "Unlock Layer" : "Lock Layer"}
+                                >
+                                  {shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Panel Footer Stats */}
               <div className="border-t border-line pt-2.5 mt-3 text-[10px] text-muted flex items-center justify-between font-bold">
-                <span>Elements: {shapes.length}</span>
+                <span>Total Layers: {shapes.length}</span>
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
               </div>
             </aside>
@@ -2205,7 +2379,7 @@ export default function WhiteboardPage() {
               type="button"
               onClick={() => setIsInspectorOpen(true)}
               className="absolute right-4 top-4 z-30 rounded-2xl border border-line bg-white p-2.5 text-ink shadow-2xl hover:bg-brand-light hover:text-brand transition animate-in fade-in"
-              title="Expand Inspector Panel"
+              title="Expand Inspector & Layers Panel"
             >
               <PanelRightOpen className="h-5 w-5" />
             </button>
