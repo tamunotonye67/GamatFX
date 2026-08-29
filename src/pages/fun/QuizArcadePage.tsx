@@ -5,7 +5,7 @@ import { pickQuestions, type Difficulty, type TriviaQ } from "../../lib/trivia";
 import { useSolidNavbar } from "../../lib/chrome";
 import {
   Zap, CheckCircle2, XCircle, Flame, Trophy, RotateCcw, ArrowRight,
-  Timer, Target, Zap, Heart, Infinity as InfinityIcon,
+  Timer, Target, Heart, Infinity as InfinityIcon,
 } from "lucide-react";
 
 type Mode = "endless" | "timed" | "survival";

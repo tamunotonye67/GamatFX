@@ -23,7 +23,6 @@ import {
   UserPlus,
   History,
   Shield,
-  Zap,
   Award,
   Pencil,
 } from "lucide-react";
