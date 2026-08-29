@@ -50,6 +50,12 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Zap,
+  Calculator,
+  Percent,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -69,7 +75,13 @@ type Tool =
   | "bezier"
   | "text"
   | "eraser"
-  | "zoom";
+  | "zoom"
+  | "fibo"
+  | "long"
+  | "short"
+  | "fvg"
+  | "liquidity"
+  | "position_size";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -177,6 +189,36 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     desc: "Click to zoom into details or use your mouse scroll wheel to zoom in and out smoothly.",
     shortcut: "Z / Scroll",
   },
+  fibo: {
+    title: "Fibonacci Retracement",
+    desc: "Draw Golden Ratio Fibonacci levels (0.618 Golden Pocket, 0.5 Equilibrium, 0.786, 0.382) between Swing Low and Swing High.",
+    shortcut: "F",
+  },
+  long: {
+    title: "Long Position Calculator",
+    desc: "TradingView-style Long Position tool showing Green Take Profit target, Red Stop Loss zone, and Risk-to-Reward ratio.",
+    shortcut: "L",
+  },
+  short: {
+    title: "Short Position Calculator",
+    desc: "TradingView-style Short Position tool showing Red Stop Loss zone, Green Take Profit target, and Risk-to-Reward ratio.",
+    shortcut: "S",
+  },
+  fvg: {
+    title: "Fair Value Gap (FVG)",
+    desc: "Smart Money Concepts (SMC) Fair Value Gap tool. Highlights 3-candle price imbalance zones for institutional retests.",
+    shortcut: "G",
+  },
+  liquidity: {
+    title: "Liquidity Sweep ($$$)",
+    desc: "Draw Equal Highs (EQH) / Equal Lows (EQL) liquidity sweep lines annotated with $$$ indicators.",
+    shortcut: "Q",
+  },
+  position_size: {
+    title: "Position Size & Risk Box",
+    desc: "Calculate 1% Risk Amount, Target Profit (+3%), and Lot Size (Standard/Mini lots) for position management.",
+    shortcut: "M",
+  },
 };
 
 const INITIAL_TABS: DiagramTab[] = [
@@ -198,9 +240,10 @@ export default function WhiteboardPage() {
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"arrow" | "bezier">("arrow");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
+  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "fvg" | "liquidity" | "position_size">("fibo");
 
   // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
-  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "rectangle", "bezier", "sticky"]);
+  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "fibo", "long", "short", "fvg"]);
   const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
@@ -227,7 +270,7 @@ export default function WhiteboardPage() {
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [maxTabPromptOpen, setMaxTabPromptOpen] = useState(false);
-  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "single" | null>(null);
+  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "single" | null>(null);
 
   // Context Menu State (Canvas or Object Context)
   const [contextMenu, setContextMenu] = useState<{
@@ -411,6 +454,12 @@ export default function WhiteboardPage() {
         else if (key === "t") { setActiveTool("text"); showToast("Tool: Text Label (T)"); }
         else if (key === "e") { setActiveTool("eraser"); showToast("Tool: Precision Eraser (E)"); }
         else if (key === "z") { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
+        else if (key === "f") { setActiveForexTool("fibo"); setActiveTool("fibo"); showToast("Forex Tool: Fibonacci Retracement (F)"); }
+        else if (key === "l") { setActiveForexTool("long"); setActiveTool("long"); showToast("Forex Tool: Long Position (L)"); }
+        else if (key === "s") { setActiveForexTool("short"); setActiveTool("short"); showToast("Forex Tool: Short Position (S)"); }
+        else if (key === "g") { setActiveForexTool("fvg"); setActiveTool("fvg"); showToast("Forex Tool: Fair Value Gap (G)"); }
+        else if (key === "q") { setActiveForexTool("liquidity"); setActiveTool("liquidity"); showToast("Forex Tool: Liquidity Sweep (Q)"); }
+        else if (key === "m") { setActiveForexTool("position_size"); setActiveTool("position_size"); showToast("Forex Tool: Position Size Calculator (M)"); }
       }
     };
 
@@ -767,10 +816,21 @@ export default function WhiteboardPage() {
       return;
     }
 
+    const defaultForexColor =
+      activeTool === "long"
+        ? "#10b981"
+        : activeTool === "short"
+        ? "#dc3545"
+        : activeTool === "fvg"
+        ? "#a855f7"
+        : activeTool === "liquidity"
+        ? "#f59e0b"
+        : strokeColor;
+
     const newShape: Shape = {
       id: `miro_${Date.now()}`,
       type: activeTool,
-      color: strokeColor,
+      color: defaultForexColor,
       strokeWidth,
       lineStyle,
       points: [pt],
@@ -1552,7 +1612,133 @@ export default function WhiteboardPage() {
               showTooltips={showTooltips}
             />
 
-            {/* 1. FREEHAND GROUP */}
+            {/* 1. FOREX & SMC TRADING TOOLS GROUP (NESTED GROUP) */}
+            <div className="relative">
+              <MiroToolBtn
+                active={["fibo", "long", "short", "fvg", "liquidity", "position_size"].includes(activeTool)}
+                onClick={() => setActiveTool(activeForexTool)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFlyoutGroup(flyoutGroup === "forex" ? null : "forex");
+                }}
+                title="Forex & SMC Trading Tools (Right click to choose tool or favorite)"
+                toolKey={activeForexTool}
+                icon={
+                  activeForexTool === "long"
+                    ? TrendingUp
+                    : activeForexTool === "short"
+                    ? TrendingDown
+                    : activeForexTool === "fvg"
+                    ? Zap
+                    : activeForexTool === "liquidity"
+                    ? DollarSign
+                    : activeForexTool === "position_size"
+                    ? Calculator
+                    : Percent
+                }
+                badge="FX"
+                hasFlyout
+                showTooltips={showTooltips}
+              />
+
+              {flyoutGroup === "forex" && (
+                <div className="absolute left-full top-0 ml-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
+
+                  {/* 1. Fibonacci Retracement */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveForexTool("fibo"); setActiveTool("fibo"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "fibo" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><Percent className="h-4 w-4 text-amber-500" /> Fibonacci Retracement</span>
+                    <span title={favoritedTools.includes("fibo") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fibo"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fibo") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 2. Long Position */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveForexTool("long"); setActiveTool("long"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "long" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-emerald-600" /> Long Position (Risk:Reward)</span>
+                    <span title={favoritedTools.includes("long") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("long"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("long") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 3. Short Position */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveForexTool("short"); setActiveTool("short"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "short" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><TrendingDown className="h-4 w-4 text-rose-600" /> Short Position (Risk:Reward)</span>
+                    <span title={favoritedTools.includes("short") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("short"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("short") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 4. Fair Value Gap */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveForexTool("fvg"); setActiveTool("fvg"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "fvg" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><Zap className="h-4 w-4 text-purple-600" /> Fair Value Gap (FVG Zone)</span>
+                    <span title={favoritedTools.includes("fvg") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fvg"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fvg") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 5. Liquidity Sweep */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveForexTool("liquidity"); setActiveTool("liquidity"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "liquidity" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><DollarSign className="h-4 w-4 text-amber-500" /> Liquidity Sweep ($$$)</span>
+                    <span title={favoritedTools.includes("liquidity") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("liquidity"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("liquidity") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 6. Position Size & Risk Box */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveForexTool("position_size"); setActiveTool("position_size"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "position_size" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><Calculator className="h-4 w-4 text-blue-600" /> Position Size & Risk Box</span>
+                    <span title={favoritedTools.includes("position_size") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("position_size"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("position_size") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 2. FREEHAND GROUP */}
             <div className="relative">
               <MiroToolBtn
                 active={activeTool === "pencil" || activeTool === "highlighter"}
@@ -1600,7 +1786,7 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* 2. SHAPES GROUP */}
+            {/* 3. SHAPES GROUP */}
             <div className="relative">
               <MiroToolBtn
                 active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
@@ -1661,7 +1847,7 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* 3. LINES GROUP */}
+            {/* 4. LINES GROUP */}
             <div className="relative">
               <MiroToolBtn
                 active={activeTool === "arrow" || activeTool === "bezier"}
@@ -1956,6 +2142,39 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      setActiveTool("fibo");
+                      setContextMenu(null);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Percent className="h-3.5 w-3.5 text-amber-500" /> Fibonacci Retracement
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTool("long");
+                      setContextMenu(null);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <TrendingUp className="h-3.5 w-3.5 text-emerald-600" /> Long Position Box
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTool("short");
+                      setContextMenu(null);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <TrendingDown className="h-3.5 w-3.5 text-rose-600" /> Short Position Box
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
                       setIsStickyMode(true);
                       setTextModalPos(contextMenu.canvasPt);
                       setActiveTool("sticky");
@@ -1977,38 +2196,6 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
                     <Type className="h-3.5 w-3.5 text-brand" /> Add Text Label Here
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTool("pencil"); setContextMenu(null); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Pencil className="h-3.5 w-3.5 text-ink" /> Freehand Pen
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTool("bezier"); setContextMenu(null); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Activity className="h-3.5 w-3.5 text-brand" /> Chart Pattern Path
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTool("rectangle"); setContextMenu(null); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Square className="h-3.5 w-3.5 text-blue-600" /> Rectangle Zone Box
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setActiveTool("eraser"); setContextMenu(null); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Eraser className="h-3.5 w-3.5 text-rose-500" /> Eraser Tool
                   </button>
 
                   <div className="border-t border-line pt-1 mt-1">
@@ -2596,6 +2783,77 @@ function MiroToolBtn({
 
 /** Animated GIF-style SVG Visual Illustrations for Tool Usage */
 function ToolGifAnimation({ toolKey }: { toolKey: string }) {
+  if (toolKey === "fibo") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <line x1="20" y1="15" x2="140" y2="15" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="3 3" />
+        <text x="142" y="18" fill="#f43f5e" fontSize="8" fontWeight="bold">0.0%</text>
+        <line x1="20" y1="35" x2="140" y2="35" stroke="#f59e0b" strokeWidth="1.5" />
+        <text x="142" y="38" fill="#f59e0b" fontSize="8" fontWeight="bold">0.382</text>
+        <rect x="20" y="45" width="120" height="15" fill="rgba(234, 179, 8, 0.25)" />
+        <line x1="20" y1="45" x2="140" y2="45" stroke="#eab308" strokeWidth="2" />
+        <text x="142" y="48" fill="#eab308" fontSize="8" fontWeight="bold">0.50</text>
+        <line x1="20" y1="60" x2="140" y2="60" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <text x="142" y="63" fill="#10b981" fontSize="8" fontWeight="bold">0.618</text>
+        <line x1="20" y1="75" x2="140" y2="75" stroke="#3b82f6" strokeWidth="1.5" />
+        <text x="142" y="78" fill="#3b82f6" fontSize="8" fontWeight="bold">1.00</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "long") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="30" y="15" width="100" height="30" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="80" y="34" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">TP: +90 pips</text>
+        <line x1="30" y1="45" x2="130" y2="45" stroke="#3b82f6" strokeWidth="2.5" />
+        <rect x="30" y="45" width="100" height="25" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="80" y="61" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">SL: -30 pips (R:R 1:3)</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "short") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="30" y="15" width="100" height="25" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="80" y="31" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">SL: -25 pips (R:R 1:3)</text>
+        <line x1="30" y1="40" x2="130" y2="40" stroke="#3b82f6" strokeWidth="2.5" />
+        <rect x="30" y="40" width="100" height="35" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="80" y="60" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">TP: +75 pips</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "fvg") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="25" y="25" width="110" height="40" rx="4" fill="rgba(168, 85, 247, 0.25)" stroke="#a855f7" strokeWidth="2" strokeDasharray="4 4" className="animate-pulse" />
+        <text x="80" y="48" textAnchor="middle" fill="#c084fc" fontSize="10" fontWeight="bold">FVG IMBALANCE</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "liquidity") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <line x1="20" y1="45" x2="140" y2="45" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 3" />
+        <text x="80" y="38" textAnchor="middle" fill="#fbbf24" fontSize="11" fontWeight="bold">$$$ Asian Sweep (EQH)</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "position_size") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="25" y="15" width="110" height="60" rx="8" fill="#1e293b" stroke="#3b82f6" strokeWidth="2" />
+        <text x="80" y="33" textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="bold">RISK: $100 (1%)</text>
+        <text x="80" y="48" textAnchor="middle" fill="#34d399" fontSize="9" fontWeight="bold">LOTS: 0.50 Lots</text>
+        <text x="80" y="63" textAnchor="middle" fill="#f43f5e" fontSize="9" fontWeight="bold">TARGET: +$300 (+3%)</text>
+      </svg>
+    );
+  }
+
   if (toolKey === "select") {
     return (
       <svg className="w-full h-full" viewBox="0 0 160 90">
@@ -2742,6 +3000,12 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "text": return Type;
     case "eraser": return Eraser;
     case "zoom": return Search;
+    case "fibo": return Percent;
+    case "long": return TrendingUp;
+    case "short": return TrendingDown;
+    case "fvg": return Zap;
+    case "liquidity": return DollarSign;
+    case "position_size": return Calculator;
     default: return Pencil;
   }
 }
@@ -2800,7 +3064,17 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
 
   let newPts = [...pts];
 
-  if (shape.type === "rectangle" || shape.type === "circle" || shape.type === "diamond") {
+  if (
+    shape.type === "rectangle" ||
+    shape.type === "circle" ||
+    shape.type === "diamond" ||
+    shape.type === "fibo" ||
+    shape.type === "long" ||
+    shape.type === "short" ||
+    shape.type === "fvg" ||
+    shape.type === "liquidity" ||
+    shape.type === "position_size"
+  ) {
     let p0 = { ...pts[0] };
     let p1 = { ...pts[1] };
 
@@ -2822,7 +3096,7 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
   return { ...shape, points: newPts };
 }
 
-/** Renders shapes and Miro sticky notes on canvas */
+/** Renders shapes, Miro sticky notes, and Forex SMC Trading Tools on canvas */
 function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false) {
   const pts = shape.points;
   if (pts.length === 0) return;
@@ -2879,6 +3153,189 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
         ctx.fillText(line, p.x + 12, p.y + 26 + idx * 18, w - 24);
       });
     }
+  } else if (shape.type === "fibo" && pts.length >= 2) {
+    /* 1. FIBONACCI RETRACEMENT TOOL */
+    const x1 = pts[0].x;
+    const y1 = pts[0].y;
+    const x2 = pts[1].x;
+    const y2 = pts[1].y;
+
+    const width = x2 - x1;
+    const height = y2 - y1;
+
+    const fibLevels = [
+      { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444" },
+      { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316" },
+      { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b" },
+      { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308" },
+      { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981" },
+      { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6" },
+      { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6" },
+    ];
+
+    // Shaded Golden Pocket Zone (Between 0.5 and 0.618)
+    const y50 = y1 + height * 0.5;
+    const y618 = y1 + height * 0.618;
+    ctx.fillStyle = "rgba(234, 179, 8, 0.18)";
+    ctx.fillRect(Math.min(x1, x2), Math.min(y50, y618), Math.abs(width), Math.abs(y618 - y50));
+
+    // Draw level lines & text tags
+    fibLevels.forEach((lvl) => {
+      const ly = y1 + height * lvl.ratio;
+      ctx.strokeStyle = lvl.color;
+      ctx.lineWidth = lvl.ratio === 0.618 || lvl.ratio === 0.5 ? 2 : 1;
+      ctx.setLineDash(lvl.ratio === 0.5 ? [4, 4] : []);
+      ctx.beginPath();
+      ctx.moveTo(x1, ly);
+      ctx.lineTo(x2, ly);
+      ctx.stroke();
+
+      ctx.fillStyle = lvl.color;
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.fillText(lvl.label, Math.max(x1, x2) + 8, ly + 4);
+    });
+  } else if (shape.type === "long" && pts.length >= 2) {
+    /* 2. LONG POSITION CALCULATOR TOOL */
+    const x1 = pts[0].x;
+    const yEntry = pts[0].y;
+    const x2 = pts[1].x;
+    const yExt = pts[1].y;
+
+    const minX = Math.min(x1, x2);
+    const boxW = Math.abs(x2 - x1) || 160;
+
+    const targetHeight = Math.abs(yExt - yEntry) || 80;
+    const stopHeight = targetHeight / 3; // 1:3 R:R default
+
+    // Target Green Box (Top)
+    ctx.fillStyle = "rgba(16, 185, 129, 0.22)";
+    ctx.fillRect(minX, yEntry - targetHeight, boxW, targetHeight);
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minX, yEntry - targetHeight, boxW, targetHeight);
+
+    // Stop Loss Red Box (Bottom)
+    ctx.fillStyle = "rgba(239, 68, 68, 0.22)";
+    ctx.fillRect(minX, yEntry, boxW, stopHeight);
+    ctx.strokeStyle = "#ef4444";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minX, yEntry, boxW, stopHeight);
+
+    // Entry Line (Center)
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(minX, yEntry);
+    ctx.lineTo(minX + boxW, yEntry);
+    ctx.stroke();
+
+    // R:R Statistics Banner
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(minX, yEntry - targetHeight - 22, boxW, 20);
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillText("LONG | Target: +300 pips | Risk: 100 pips | R:R 1:3.0", minX + 6, yEntry - targetHeight - 8);
+  } else if (shape.type === "short" && pts.length >= 2) {
+    /* 3. SHORT POSITION CALCULATOR TOOL */
+    const x1 = pts[0].x;
+    const yEntry = pts[0].y;
+    const x2 = pts[1].x;
+    const yExt = pts[1].y;
+
+    const minX = Math.min(x1, x2);
+    const boxW = Math.abs(x2 - x1) || 160;
+
+    const targetHeight = Math.abs(yExt - yEntry) || 80;
+    const stopHeight = targetHeight / 3; // 1:3 R:R default
+
+    // Stop Loss Red Box (Top)
+    ctx.fillStyle = "rgba(239, 68, 68, 0.22)";
+    ctx.fillRect(minX, yEntry - stopHeight, boxW, stopHeight);
+    ctx.strokeStyle = "#ef4444";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minX, yEntry - stopHeight, boxW, stopHeight);
+
+    // Target Green Box (Bottom)
+    ctx.fillStyle = "rgba(16, 185, 129, 0.22)";
+    ctx.fillRect(minX, yEntry, boxW, targetHeight);
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minX, yEntry, boxW, targetHeight);
+
+    // Entry Line (Center)
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(minX, yEntry);
+    ctx.lineTo(minX + boxW, yEntry);
+    ctx.stroke();
+
+    // R:R Statistics Banner
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(minX, yEntry - stopHeight - 22, boxW, 20);
+    ctx.fillStyle = "#f43f5e";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillText("SHORT | Risk: 100 pips | Target: +300 pips | R:R 1:3.0", minX + 6, yEntry - stopHeight - 8);
+  } else if (shape.type === "fvg" && pts.length >= 2) {
+    /* 4. FAIR VALUE GAP (FVG ZONE) TOOL */
+    const minX = Math.min(pts[0].x, pts[1].x);
+    const minY = Math.min(pts[0].y, pts[1].y);
+    const w = Math.abs(pts[1].x - pts[0].x) || 180;
+    const h = Math.abs(pts[1].y - pts[0].y) || 50;
+
+    ctx.fillStyle = "rgba(168, 85, 247, 0.22)";
+    ctx.fillRect(minX, minY, w, h);
+    ctx.strokeStyle = "#a855f7";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.strokeRect(minX, minY, w, h);
+
+    ctx.fillStyle = "#c084fc";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillText("⚡ FVG / Institutional Imbalance Retest Zone", minX + 8, minY + 20);
+  } else if (shape.type === "liquidity" && pts.length >= 2) {
+    /* 5. LIQUIDITY SWEEP ($$$) TOOL */
+    const minX = Math.min(pts[0].x, pts[1].x);
+    const maxX = Math.max(pts[0].x, pts[1].x) || minX + 200;
+    const y = pts[0].y;
+
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(minX, y);
+    ctx.lineTo(maxX, y);
+    ctx.stroke();
+
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillText("💸 EQH / EQL Liquidity Sweep Line ($$$)", minX + 10, y - 8);
+  } else if (shape.type === "position_size" && pts.length >= 2) {
+    /* 6. POSITION SIZE & RISK CALCULATOR BOX */
+    const minX = Math.min(pts[0].x, pts[1].x);
+    const minY = Math.min(pts[0].y, pts[1].y);
+    const w = Math.max(180, Math.abs(pts[1].x - pts[0].x));
+    const h = Math.max(90, Math.abs(pts[1].y - pts[0].y));
+
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(minX, minY, w, h);
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(minX, minY, w, h);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillText("📊 POSITION SIZE CALCULATOR", minX + 12, minY + 22);
+
+    ctx.fillStyle = "#f43f5e";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillText("• Risk: $100.00 (1.0% Account)", minX + 12, minY + 40);
+
+    ctx.fillStyle = "#34d399";
+    ctx.fillText("• Target Profit: +$300.00 (+3.0%)", minX + 12, minY + 56);
+
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillText("• Lot Size: 0.50 Standard Lots", minX + 12, minY + 72);
   } else if (shape.type === "bezier" && pts.length >= 2) {
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
