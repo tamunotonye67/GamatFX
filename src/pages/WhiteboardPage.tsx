@@ -2445,7 +2445,6 @@ export default function WhiteboardPage() {
                     ? TrendingDown
                     : Percent
                 }
-                badge="FX"
                 hasFlyout
                 showTooltips={showTooltips}
               />
@@ -2629,7 +2628,6 @@ export default function WhiteboardPage() {
                 title="Lines & Paths (Right click to change line type or favorite)"
                 toolKey={activeLineTool}
                 icon={activeLineTool === "line" ? Minus : activeLineTool === "bezier" ? Activity : ArrowRight}
-                badge={activeLineTool === "bezier" ? "PATH" : undefined}
                 hasFlyout
                 showTooltips={showTooltips}
               />
@@ -2697,7 +2695,6 @@ export default function WhiteboardPage() {
                 title="Text & Sticky Notes (Right click to choose tool or favorite)"
                 toolKey={activeNoteTool}
                 icon={activeNoteTool === "sticky" ? StickyNote : Type}
-                badge={activeNoteTool === "sticky" ? "NOTE" : undefined}
                 hasFlyout
                 showTooltips={showTooltips}
               />
@@ -3998,7 +3995,6 @@ function WhiteboardToolBtn({
   title,
   toolKey,
   icon: Icon,
-  badge,
   hasFlyout,
   showTooltips,
 }: {
@@ -4008,7 +4004,6 @@ function WhiteboardToolBtn({
   title: string;
   toolKey: string;
   icon: React.ElementType;
-  badge?: string;
   hasFlyout?: boolean;
   showTooltips: boolean;
 }) {
@@ -4033,21 +4028,16 @@ function WhiteboardToolBtn({
         }`}
       >
         <Icon className="h-4 w-4 shrink-0" />
-        {badge && (
-          <span className="absolute -top-1 -right-1 text-[7px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-0.5 rounded pointer-events-none">
-            {badge}
-          </span>
-        )}
         {hasFlyout && (
           <ChevronRight className="absolute right-0.5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 opacity-60 pointer-events-none" />
         )}
       </button>
 
-      {/* Rich Interactive Tooltip Popover with GIF-Style Animated Visual Illustration */}
+      {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && (
-        <div className="absolute left-full top-0 ml-3 w-64 rounded-2xl border border-slate-700 bg-slate-900 text-white p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2.5">
-          {/* Animated Visual GIF-Style Illustration Container */}
-          <div className="w-full h-24 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
+        <div className="absolute left-full top-0 ml-3 w-52 rounded-2xl border border-slate-700 bg-slate-900 text-white p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
+          {/* Visual Illustration Container - Compact and Proportional */}
+          <div className="w-full h-28 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
             <ToolGifAnimation toolKey={toolKey} />
           </div>
 
@@ -4060,7 +4050,7 @@ function WhiteboardToolBtn({
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
+            <p className="text-[10px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
           </div>
         </div>
       )}
@@ -4072,57 +4062,57 @@ function WhiteboardToolBtn({
 function ToolGifAnimation({ toolKey }: { toolKey: string }) {
   if (toolKey === "fibo") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <line x1="20" y1="15" x2="140" y2="15" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="3 3" />
-        <text x="142" y="18" fill="#f43f5e" fontSize="8" fontWeight="bold">0.0%</text>
-        <line x1="20" y1="35" x2="140" y2="35" stroke="#f59e0b" strokeWidth="1.5" />
-        <text x="142" y="38" fill="#f59e0b" fontSize="8" fontWeight="bold">0.382</text>
-        <rect x="20" y="45" width="120" height="15" fill="rgba(234, 179, 8, 0.25)" />
-        <line x1="20" y1="45" x2="140" y2="45" stroke="#eab308" strokeWidth="2" />
-        <text x="142" y="48" fill="#eab308" fontSize="8" fontWeight="bold">0.50</text>
-        <line x1="20" y1="60" x2="140" y2="60" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
-        <text x="142" y="63" fill="#10b981" fontSize="8" fontWeight="bold">0.618</text>
-        <line x1="20" y1="75" x2="140" y2="75" stroke="#3b82f6" strokeWidth="1.5" />
-        <text x="142" y="78" fill="#3b82f6" fontSize="8" fontWeight="bold">1.00</text>
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="15" y1="12" x2="105" y2="12" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="3 3" />
+        <text x="108" y="15" fill="#f43f5e" fontSize="7.5" fontWeight="bold">0.0%</text>
+        <line x1="15" y1="30" x2="105" y2="30" stroke="#f59e0b" strokeWidth="1.5" />
+        <text x="108" y="33" fill="#f59e0b" fontSize="7.5" fontWeight="bold">0.382</text>
+        <rect x="15" y="42" width="90" height="15" fill="rgba(234, 179, 8, 0.25)" />
+        <line x1="15" y1="42" x2="105" y2="42" stroke="#eab308" strokeWidth="2" />
+        <text x="108" y="45" fill="#eab308" fontSize="7.5" fontWeight="bold">0.50</text>
+        <line x1="15" y1="57" x2="105" y2="57" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <text x="108" y="60" fill="#10b981" fontSize="7.5" fontWeight="bold">0.618</text>
+        <line x1="15" y1="78" x2="105" y2="78" stroke="#3b82f6" strokeWidth="1.5" />
+        <text x="108" y="81" fill="#3b82f6" fontSize="7.5" fontWeight="bold">1.00</text>
       </svg>
     );
   }
 
   if (toolKey === "long") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="30" y="15" width="100" height="30" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
-        <text x="80" y="34" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">TP: +90 pips</text>
-        <line x1="30" y1="45" x2="130" y2="45" stroke="#3b82f6" strokeWidth="2.5" />
-        <rect x="30" y="45" width="100" height="25" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
-        <text x="80" y="61" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">SL: -30 pips (R:R 1:3)</text>
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="20" y="12" width="100" height="34" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="70" y="33" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">TP: +90 pips</text>
+        <line x1="20" y1="46" x2="120" y2="46" stroke="#3b82f6" strokeWidth="2.5" />
+        <rect x="20" y="46" width="100" height="34" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="70" y="67" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">SL: -30 pips (1:3)</text>
       </svg>
     );
   }
 
   if (toolKey === "short") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="30" y="15" width="100" height="25" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
-        <text x="80" y="31" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">SL: -25 pips (R:R 1:3)</text>
-        <line x1="30" y1="40" x2="130" y2="40" stroke="#3b82f6" strokeWidth="2.5" />
-        <rect x="30" y="40" width="100" height="35" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
-        <text x="80" y="60" textAnchor="middle" fill="#10b981" fontSize="9" fontWeight="bold">TP: +75 pips</text>
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="20" y="12" width="100" height="34" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="70" y="33" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">SL: -25 pips (1:3)</text>
+        <line x1="20" y1="46" x2="120" y2="46" stroke="#3b82f6" strokeWidth="2.5" />
+        <rect x="20" y="46" width="100" height="34" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="70" y="67" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">TP: +75 pips</text>
       </svg>
     );
   }
 
   if (toolKey === "select") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="35" y="20" width="90" height="50" rx="6" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4 4" />
-        <circle cx="35" cy="20" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
-        <circle cx="125" cy="20" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
-        <circle cx="125" cy="70" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
-        <circle cx="35" cy="70" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="25" y="18" width="80" height="54" rx="6" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="3 3" />
+        <circle cx="25" cy="18" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="105" cy="18" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="105" cy="72" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="25" cy="72" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
         <g className="animate-pulse">
-          <path d="M 125 70 L 140 82" stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
-          <polygon points="125,70 135,70 125,80" fill="#dc3545" />
+          <path d="M 105 72 L 120 84" stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
+          <polygon points="105,72 114,72 105,81" fill="#dc3545" />
         </g>
       </svg>
     );
@@ -4130,122 +4120,122 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
 
   if (toolKey === "pencil") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <path d="M 20 60 Q 50 10, 80 50 T 140 30" fill="none" stroke="#dc3545" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
-        <circle cx="140" cy="30" r="4" fill="#dc3545" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <path d="M 18 68 Q 45 15, 75 55 T 122 28" fill="none" stroke="#dc3545" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
+        <circle cx="122" cy="28" r="4" fill="#dc3545" />
       </svg>
     );
   }
 
   if (toolKey === "highlighter") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="20" y="30" width="120" height="20" rx="4" fill="rgba(253, 224, 71, 0.4)" />
-        <line x1="25" y1="40" x2="135" y2="40" stroke="#fef08a" strokeWidth="6" strokeLinecap="round" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="15" y="32" width="110" height="28" rx="6" fill="rgba(253, 224, 71, 0.4)" />
+        <line x1="20" y1="46" x2="120" y2="46" stroke="#fef08a" strokeWidth="8" strokeLinecap="round" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "rectangle") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="30" y="20" width="100" height="50" rx="8" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" strokeWidth="2.5" className="animate-pulse" />
-        <text x="80" y="50" textAnchor="middle" fill="#93c5fd" fontSize="10" fontWeight="bold">ORDER BLOCK</text>
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="20" y="20" width="100" height="55" rx="8" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" strokeWidth="2" className="animate-pulse" />
+        <text x="70" y="52" textAnchor="middle" fill="#93c5fd" fontSize="9.5" fontWeight="bold">ORDER BLOCK</text>
       </svg>
     );
   }
 
   if (toolKey === "circle") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <circle cx="80" cy="45" r="30" fill="rgba(16,185,129,0.2)" stroke="#10b981" strokeWidth="2.5" className="animate-pulse" />
-        <circle cx="80" cy="45" r="4" fill="#10b981" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <circle cx="70" cy="48" r="30" fill="rgba(16,185,129,0.2)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <circle cx="70" cy="48" r="4" fill="#10b981" />
       </svg>
     );
   }
 
   if (toolKey === "diamond") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <polygon points="80,15 130,45 80,75 30,45" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" strokeWidth="2.5" className="animate-pulse" />
-        <text x="80" y="48" textAnchor="middle" fill="#fde68a" fontSize="9" fontWeight="bold">TRIGGER</text>
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <polygon points="70,14 115,48 70,82 25,48" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" strokeWidth="2" className="animate-pulse" />
+        <text x="70" y="51" textAnchor="middle" fill="#fde68a" fontSize="8.5" fontWeight="bold">TRIGGER</text>
       </svg>
     );
   }
 
   if (toolKey === "line") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <line x1="25" y1="65" x2="135" y2="25" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="20" y1="72" x2="120" y2="24" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "arrow") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <line x1="25" y1="45" x2="125" y2="45" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-        <polygon points="135,45 120,37 120,53" fill="#10b981" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="20" y1="48" x2="110" y2="48" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+        <polygon points="122,48 108,39 108,57" fill="#10b981" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "bezier") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <polyline points="20,70 50,30 80,60 110,20 140,55" fill="none" stroke="#dc3545" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="20" cy="70" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
-        <circle cx="50" cy="30" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
-        <circle cx="80" cy="60" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
-        <circle cx="110" cy="20" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
-        <circle cx="140" cy="55" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <polyline points="15,75 45,30 75,65 102,22 125,58" fill="none" stroke="#dc3545" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="15" cy="75" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="45" cy="30" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="75" cy="65" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="102" cy="22" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="125" cy="58" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
       </svg>
     );
   }
 
   if (toolKey === "sticky") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="45" y="15" width="70" height="60" rx="4" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
-        <line x1="55" y1="28" x2="105" y2="28" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
-        <line x1="55" y1="38" x2="95" y2="38" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
-        <line x1="55" y1="48" x2="100" y2="48" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="35" y="16" width="70" height="62" rx="4" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+        <line x1="45" y1="28" x2="95" y2="28" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+        <line x1="45" y1="40" x2="88" y2="40" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+        <line x1="45" y1="52" x2="92" y2="52" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
       </svg>
     );
   }
 
   if (toolKey === "text") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <text x="30" y="52" fill="#38bdf8" fontSize="16" fontWeight="bold" fontFamily="sans-serif">EUR/USD +150</text>
-        <line x1="142" y1="34" x2="142" y2="54" stroke="#ffffff" strokeWidth="2" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <text x="20" y="52" fill="#38bdf8" fontSize="13" fontWeight="bold" fontFamily="sans-serif">EUR/USD +150</text>
+        <line x1="122" y1="36" x2="122" y2="54" stroke="#ffffff" strokeWidth="2" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "eraser") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <path d="M 20 45 L 80 45" stroke="#475569" strokeWidth="3" strokeDasharray="4 4" />
-        <path d="M 80 45 L 140 45" stroke="#f43f5e" strokeWidth="3" />
-        <rect x="70" y="32" width="24" height="24" rx="4" fill="#f43f5e" stroke="#ffffff" strokeWidth="1.5" className="animate-bounce" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <path d="M 15 48 L 70 48" stroke="#475569" strokeWidth="3" strokeDasharray="4 4" />
+        <path d="M 70 48 L 125 48" stroke="#f43f5e" strokeWidth="3" />
+        <rect x="58" y="34" width="24" height="24" rx="4" fill="#f43f5e" stroke="#ffffff" strokeWidth="1.5" className="animate-bounce" />
       </svg>
     );
   }
 
   if (toolKey === "zoom") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <circle cx="70" cy="40" r="24" fill="none" stroke="#38bdf8" strokeWidth="3" />
-        <line x1="88" y1="58" x2="110" y2="80" stroke="#38bdf8" strokeWidth="5" strokeLinecap="round" />
-        <path d="M 55 45 L 65 35 L 75 48 L 85 30" fill="none" stroke="#10b981" strokeWidth="2" />
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <circle cx="60" cy="44" r="22" fill="none" stroke="#38bdf8" strokeWidth="3" />
+        <line x1="76" y1="60" x2="98" y2="82" stroke="#38bdf8" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 48 48 L 56 38 L 64 50 L 72 34" fill="none" stroke="#10b981" strokeWidth="2" />
       </svg>
     );
   }
 
   return (
-    <svg className="w-full h-full" viewBox="0 0 160 90">
-      <path d="M 30 45 Q 80 15, 130 45" fill="none" stroke="#38bdf8" strokeWidth="3" className="animate-pulse" />
+    <svg className="w-full h-full" viewBox="0 0 140 95">
+      <path d="M 25 48 Q 70 18, 115 48" fill="none" stroke="#38bdf8" strokeWidth="3" className="animate-pulse" />
     </svg>
   );
 }
