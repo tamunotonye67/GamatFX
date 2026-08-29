@@ -1758,340 +1758,16 @@ export default function WhiteboardPage() {
 
       {/* Main Header Bar */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-[60] relative shadow-sm">
-        {/* Left Section: GAMAT Logo */}
-        <div className="flex items-center gap-3">
+        {/* Left Section: GAMAT Logo & Board Title */}
+        <div className="flex items-center gap-3 shrink-0">
           <Logo variant="dark" />
+          <span className="h-5 w-px bg-line shrink-0 hidden sm:inline" />
+          <span className="hidden md:inline text-xs font-bold text-ink/70">
+            Technical Analysis Whiteboard
+          </span>
         </div>
 
-        {/* Center Section: Dynamic Tool-Specific Options & Properties Bar */}
-        <div className="flex-1 flex justify-center max-w-3xl px-2">
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner overflow-x-auto max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {/* Active Tool Badge */}
-            <div className="flex items-center gap-1.5 font-black text-[10px] uppercase tracking-wider text-muted shrink-0">
-              <span className="p-1 rounded-lg bg-brand-light text-brand">
-                {(() => {
-                  const IconComp = getToolIcon(activeTool);
-                  return <IconComp className="h-3.5 w-3.5" />;
-                })()}
-              </span>
-              <strong className="text-ink">{TOOL_EXPLANATIONS[activeTool]?.title.split(" ")[0] || activeTool}</strong>
-            </div>
-
-            <span className="h-4 w-px bg-line shrink-0" />
-
-            {/* 1. SELECT TOOL OPTIONS */}
-            {activeTool === "select" && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                {selectedShapeIds.length > 0 ? (
-                  <>
-                    <span className="text-[10px] font-extrabold text-brand bg-brand-light px-2 py-0.5 rounded-full">
-                      {selectedShapeIds.length} Selected
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {PALETTE.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => applyColorToSelected(c)}
-                          className={`h-4.5 w-4.5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
-                          style={{ background: c }}
-                        />
-                      ))}
-                    </div>
-                    <span className="h-4 w-px bg-line" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const s = shapes.find((x) => selectedShapeIds.includes(x.id));
-                        if (s) duplicateSelectedObject(s);
-                      }}
-                      className="px-2 py-1 rounded-lg bg-white border border-line text-[10px] font-bold text-ink hover:bg-brand-light hover:text-brand"
-                    >
-                      Duplicate
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        selectedShapeIds.forEach((id) => toggleLockShape(id));
-                      }}
-                      className="px-2 py-1 rounded-lg bg-white border border-line text-[10px] font-bold text-amber-700 hover:bg-amber-50"
-                    >
-                      Lock/Unlock
-                    </button>
-                  </>
-                ) : (
-                  <span className="text-[11px] text-muted font-medium">Click elements to select • Alt + Drag to duplicate</span>
-                )}
-              </div>
-            )}
-
-            {/* 2. HAND / PAN TOOL OPTIONS */}
-            {activeTool === "hand" && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <button
-                  type="button"
-                  onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-                  className="px-2.5 py-1 rounded-lg bg-white border border-line text-[10px] font-bold text-ink hover:bg-brand-light hover:text-brand flex items-center gap-1"
-                >
-                  <RefreshCw className="h-3 w-3 text-brand" /> Reset View (100%)
-                </button>
-                <span className="text-[11px] text-muted font-medium">Drag anywhere on canvas to pan around</span>
-              </div>
-            )}
-
-            {/* 3. FREEHAND PEN & HIGHLIGHTER OPTIONS */}
-            {(activeTool === "pencil" || activeTool === "highlighter") && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <div className="flex items-center gap-1">
-                  {PALETTE.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => applyColorToSelected(c)}
-                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <div className="flex items-center gap-1">
-                  {[2, 4, 8, 14].map((sz) => (
-                    <button
-                      key={sz}
-                      type="button"
-                      onClick={() => setStrokeWidth(sz)}
-                      className={`h-6 px-2 rounded-md text-[10px] font-extrabold transition ${strokeWidth === sz ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
-                    >
-                      {sz}px
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 4. GEOMETRIC SHAPES OPTIONS */}
-            {(activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond") && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <div className="flex items-center gap-1">
-                  {PALETTE.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => applyColorToSelected(c)}
-                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <div className="flex items-center gap-1">
-                  {[1, 2, 4, 6].map((w) => (
-                    <button
-                      key={w}
-                      type="button"
-                      onClick={() => setStrokeWidth(w)}
-                      className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
-                    >
-                      {w}px
-                    </button>
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setLineStyle("solid")}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "solid" ? "bg-ink text-white" : "bg-white text-muted"}`}
-                  >
-                    Solid
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLineStyle("dashed")}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "dashed" ? "bg-ink text-white" : "bg-white text-muted"}`}
-                  >
-                    Dashed
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 5. LINES & PATHS OPTIONS */}
-            {(activeTool === "line" || activeTool === "arrow" || activeTool === "bezier") && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <div className="flex items-center gap-1">
-                  {PALETTE.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => applyColorToSelected(c)}
-                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <div className="flex items-center gap-1">
-                  {[1, 2, 4, 6].map((w) => (
-                    <button
-                      key={w}
-                      type="button"
-                      onClick={() => setStrokeWidth(w)}
-                      className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
-                    >
-                      {w}px
-                    </button>
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setLineStyle("solid")}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "solid" ? "bg-ink text-white" : "bg-white text-muted"}`}
-                  >
-                    Solid
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLineStyle("dashed")}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "dashed" ? "bg-ink text-white" : "bg-white text-muted"}`}
-                  >
-                    Dashed
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 6. FOREX TRADING TOOLS OPTIONS */}
-            {(activeTool === "fibo" || activeTool === "long" || activeTool === "short") && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <span className="text-[10px] font-bold text-muted">Risk:Reward Ratio</span>
-                <div className="flex gap-1">
-                  {[1, 1.5, 2, 3, 5].map((rr) => (
-                    <button
-                      key={rr}
-                      type="button"
-                      onClick={() => {
-                        setDefaultRiskReward(rr);
-                        showToast(`Set Risk:Reward ratio to 1:${rr}`);
-                      }}
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition ${defaultRiskReward === rr ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
-                    >
-                      1:{rr}
-                    </button>
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  TP Target / SL Zone Active
-                </span>
-              </div>
-            )}
-
-            {/* 7. STICKY NOTE OPTIONS */}
-            {activeTool === "sticky" && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <span className="text-[10px] font-bold text-muted">Paper Color:</span>
-                <div className="flex items-center gap-1">
-                  {STICKY_COLORS.map((s) => (
-                    <button
-                      key={s.color}
-                      type="button"
-                      onClick={() => applyStickyColorToSelected(s.color)}
-                      className={`h-5 w-5 rounded-md border border-black/10 transition-transform ${stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
-                      style={{ background: s.color }}
-                      title={`${s.name} Sticky Note`}
-                    />
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <span className="text-[10px] font-bold text-ink">Click canvas to place Sticky Note</span>
-              </div>
-            )}
-
-            {/* 8. TEXT LABEL OPTIONS */}
-            {activeTool === "text" && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <div className="flex items-center gap-1">
-                  {PALETTE.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => applyColorToSelected(c)}
-                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
-                      style={{ background: c }}
-                    />
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <span className="text-[10px] font-bold text-ink">Click canvas to insert text label</span>
-              </div>
-            )}
-
-            {/* 9. ERASER OPTIONS */}
-            {activeTool === "eraser" && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <span className="text-[10px] font-bold text-muted">Tip Size:</span>
-                <div className="flex gap-1">
-                  {[
-                    { sz: 10, lbl: "Small" },
-                    { sz: 18, lbl: "Med" },
-                    { sz: 28, lbl: "Large" },
-                    { sz: 45, lbl: "XL" },
-                  ].map((item) => (
-                    <button
-                      key={item.sz}
-                      type="button"
-                      onClick={() => setEraserSize(item.sz)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-extrabold transition ${eraserSize === item.sz ? "bg-rose-600 text-white" : "bg-white text-ink"}`}
-                    >
-                      {item.lbl} ({item.sz}px)
-                    </button>
-                  ))}
-                </div>
-                <span className="h-4 w-px bg-line" />
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="px-2 py-0.5 rounded text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100"
-                >
-                  Clear Whiteboard
-                </button>
-              </div>
-            )}
-
-            {/* 10. ZOOM TOOL OPTIONS */}
-            {activeTool === "zoom" && (
-              <div className="flex items-center gap-2 text-xs shrink-0">
-                <span className="text-[10px] font-bold text-muted">Current Zoom: {Math.round(zoom * 100)}%</span>
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
-                  className="px-2 py-0.5 rounded bg-white border border-line text-[10px] font-bold"
-                >
-                  Zoom Out (-)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.min(3.0, z + 0.15))}
-                  className="px-2 py-0.5 rounded bg-white border border-line text-[10px] font-bold"
-                >
-                  Zoom In (+)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-                  className="px-2 py-0.5 rounded bg-brand text-white text-[10px] font-bold"
-                >
-                  Reset (100%)
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Section: Diagrams -> Canvas Theme -> Export -> Inspector Toggle -> Shortcuts -> Settings -> Fullscreen */}
+        {/* Right Section: Diagrams -> Canvas Theme -> Export -> Inspector Toggle -> Settings -> Fullscreen -> Avatar */}
         <div className="flex items-center gap-2 shrink-0">
           {/* Diagrams Workspace Options Dropdown */}
           <div className="relative">
@@ -2401,38 +2077,17 @@ export default function WhiteboardPage() {
             <SlidersHorizontal className="h-4 w-4" />
           </button>
 
-          {/* Keyboard Shortcuts Reference Guide */}
-          <button
-            type="button"
-            onClick={() => setShortcutsOpen(true)}
-            className="rounded-xl border border-line bg-cream px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-white transition flex items-center gap-1.5 shadow-sm"
-            title="Keyboard Shortcuts & Controls (?)"
-          >
-            <Keyboard className="h-4 w-4 text-slate-700" />
-            <span className="hidden md:inline">Shortcuts</span>
-          </button>
-
-          {/* Whiteboard Settings Preferences Button */}
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            className="rounded-xl border border-line bg-cream p-2 text-ink hover:bg-white transition"
-            title="Whiteboard Preferences Settings"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="rounded-xl border border-line bg-cream p-2 text-ink hover:bg-white transition"
+            className="rounded-xl border border-line bg-cream p-2 text-ink hover:bg-white transition shrink-0"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
 
           {/* User Account Avatar & Profile Menu */}
-          <div ref={userMenuRef} className="relative ml-1 pl-2 border-l border-line">
+          <div ref={userMenuRef} className="relative ml-1 pl-2 border-l border-line shrink-0">
             <button
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
@@ -2443,14 +2098,14 @@ export default function WhiteboardPage() {
                 <img
                   src={user.avatar}
                   alt={user.firstName}
-                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition"
+                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
                 />
               ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition">
-                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                  {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
               )}
-              <span className="hidden xl:inline text-xs font-bold text-ink max-w-[90px] truncate">
+              <span className="hidden sm:inline text-xs font-bold text-ink max-w-[100px] truncate">
                 {user.nickname || user.firstName}
               </span>
               <ChevronDown className={`h-3 w-3 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
