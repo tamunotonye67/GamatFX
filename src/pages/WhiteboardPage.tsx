@@ -1767,14 +1767,16 @@ export default function WhiteboardPage() {
           </span>
         </div>
 
-        {/* Right Section: Diagrams -> Canvas Theme -> Export -> Inspector Toggle -> Settings -> Fullscreen -> Avatar */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right Section: Photoshop-Style Menu Bar with Vertical Dividers */}
+        <div className="flex items-center gap-1.5 shrink-0 text-xs font-bold text-ink">
           {/* Diagrams Workspace Options Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setDiagramsMenuOpen(!diagramsMenuOpen)}
-              className="rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-white transition flex items-center gap-1.5 shadow-sm"
+              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+                diagramsMenuOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
+              }`}
               title="Click to view Drafts, Samples & Trash"
             >
               <FolderKanban className="h-4 w-4 text-slate-700" />
@@ -1994,14 +1996,22 @@ export default function WhiteboardPage() {
             )}
           </div>
 
+          {/* Vertical Divider */}
+          <span className="h-4 w-px bg-line/80 shrink-0" />
+
           {/* Canvas Background Theme Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setBgOpen(!bgOpen)}
-              className="rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-white transition flex items-center gap-1.5"
+              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+                bgOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
+              }`}
+              title="Canvas Background Theme"
             >
-              <Grid className="h-4 w-4 text-slate-700" /> Canvas Theme <ChevronDown className="h-3.5 w-3.5 text-muted" />
+              <Grid className="h-4 w-4 text-slate-700" />
+              <span>Theme</span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted" />
             </button>
 
             {bgOpen && (
@@ -2028,14 +2038,22 @@ export default function WhiteboardPage() {
             )}
           </div>
 
+          {/* Vertical Divider */}
+          <span className="h-4 w-px bg-line/80 shrink-0" />
+
           {/* Export Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setExportOpen(!exportOpen)}
-              className="btn-primary !py-2 text-xs font-bold flex items-center gap-1.5"
+              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+                exportOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
+              }`}
+              title="Export Canvas"
             >
-              <Download className="h-4 w-4" /> Export <ChevronDown className="h-3.5 w-3.5" />
+              <Download className="h-4 w-4 text-slate-700" />
+              <span>Export</span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted" />
             </button>
 
             {exportOpen && (
@@ -2065,33 +2083,44 @@ export default function WhiteboardPage() {
             )}
           </div>
 
+          {/* Vertical Divider */}
+          <span className="h-4 w-px bg-line/80 shrink-0" />
+
           {/* Inspector Panel Toggle Button */}
           <button
             type="button"
             onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-            className={`rounded-xl border p-2 transition ${
-              isInspectorOpen ? "border-brand bg-brand-light text-brand" : "border-line bg-cream text-ink hover:bg-white"
+            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+              isInspectorOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
             }`}
             title="Toggle Floating Inspector & Layers Panel"
           >
-            <SlidersHorizontal className="h-4 w-4" />
+            <SlidersHorizontal className="h-4 w-4 text-slate-700" />
+            <span className="hidden md:inline">Inspector</span>
           </button>
 
+          {/* Vertical Divider */}
+          <span className="h-4 w-px bg-line/80 shrink-0" />
+
+          {/* Fullscreen Toggle Button */}
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="rounded-xl border border-line bg-cream p-2 text-ink hover:bg-white transition shrink-0"
+            className="flex items-center justify-center rounded-xl p-1.5 text-ink hover:bg-slate-100 transition shrink-0"
             title="Toggle Fullscreen"
           >
-            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {isFullscreen ? <Minimize2 className="h-4 w-4 text-slate-700" /> : <Maximize2 className="h-4 w-4 text-slate-700" />}
           </button>
 
-          {/* User Account Avatar & Profile Menu */}
-          <div ref={userMenuRef} className="relative ml-1 pl-2 border-l border-line shrink-0">
+          {/* Vertical Divider */}
+          <span className="h-4 w-px bg-line/80 shrink-0" />
+
+          {/* User Account Avatar & Profile Menu (Avatar + Dropdown Only) */}
+          <div ref={userMenuRef} className="relative shrink-0">
             <button
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-2xl p-1 hover:bg-cream transition group"
+              className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group"
               title={`${user.firstName} ${user.lastName} (${user.email})`}
             >
               {user.avatar ? (
@@ -2105,10 +2134,7 @@ export default function WhiteboardPage() {
                   {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
               )}
-              <span className="hidden sm:inline text-xs font-bold text-ink max-w-[100px] truncate">
-                {user.nickname || user.firstName}
-              </span>
-              <ChevronDown className={`h-3 w-3 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {/* Profile Popover Dropdown */}
