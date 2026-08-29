@@ -1817,8 +1817,8 @@ export default function WhiteboardPage() {
           {/* Vertical Separator Line */}
           <span className="h-5 w-px bg-line/80 shrink-0" />
 
-          {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable) */}
-          <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-[50vw] scrollbar-none">
+          {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable - No Visible Scrollbar) */}
+          <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-[50vw] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab, idx) => (
               <div
                 key={tab.id}
