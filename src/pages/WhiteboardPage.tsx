@@ -2160,7 +2160,7 @@ export default function WhiteboardPage() {
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <GraduationCap className="h-3.5 w-3.5 text-brand" /> Learn Workspace
+                  <GraduationCap className="h-3.5 w-3.5 text-black" /> Learn Workspace
                 </span>
                 <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-brand/10 text-brand">
                   Guide
@@ -2757,14 +2757,14 @@ export default function WhiteboardPage() {
                 {/* Hero Guide Banner */}
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-brand-dark p-8 text-white shadow-xl">
                   <div className="relative z-10 max-w-2xl space-y-3">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand/30 border border-brand/40 text-brand-light text-xs font-black uppercase tracking-wider">
-                      <GraduationCap className="h-3.5 w-3.5" /> Workspace Learning Center
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand/30 border border-brand/40 text-brand-light text-xs font-black uppercase tracking-wider">
+                      Workspace Learning Center
                     </span>
                     <h3 className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
                       Master Technical Analysis & Whiteboard Charting
                     </h3>
                     <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
-                      Learn how to annotate multi-timeframe Forex charts, markup Smart Money Concepts (Order Blocks, Imbalances, BOS), calculate risk-to-reward ratios, and organize pro trading journal workspaces.
+                      Master the complete suite of institutional Forex tools: multi-timeframe top-down charting, Smart Money Concepts (Order Blocks, FVGs, BOS), automated 1:3 Risk-to-Reward calculators, Fibonacci retracements, and trade journal workspaces.
                     </p>
                     <div className="pt-2 flex flex-wrap items-center gap-3">
                       <button
@@ -2783,15 +2783,12 @@ export default function WhiteboardPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none flex items-center justify-center">
-                    <GraduationCap className="w-80 h-80 text-white" />
-                  </div>
                 </div>
 
-                {/* 4 Interactive Feature Guides */}
+                {/* 10 Interactive Comprehensive Lessons */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Step 1: Canvas Navigation & Gestures */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                  {/* Lesson 01: Canvas Navigation & Gestures */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">
@@ -2822,20 +2819,20 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
 
-                  {/* Step 2: Smart Money Concepts Markup */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                  {/* Lesson 02: Smart Money Concepts Markup */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-sm">
                           02
                         </div>
                         <div>
-                          <h4 className="font-extrabold text-sm text-ink">Smart Money Concepts Markup</h4>
+                          <h4 className="font-extrabold text-sm text-ink">Smart Money Concepts (SMC) Markup</h4>
                           <p className="text-xs text-muted">Institutional supply/demand zones</p>
                         </div>
                       </div>
                       <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                        Highlight high-probability order blocks using <strong>Rectangles (R)</strong> with 20% opacity. Mark <strong>Break of Structure (BOS)</strong> and <strong>Change of Character (CHoCH)</strong> with labeled arrows, and use the <strong>Path Tool (P)</strong> to map multi-leg Elliott Wave impulses.
+                        Highlight institutional order blocks using <strong>Rectangles (R)</strong> with 20% opacity. Mark <strong>Break of Structure (BOS)</strong> and <strong>Change of Character (CHoCH)</strong> with labeled arrows, and use the <strong>Path Tool (P)</strong> to map multi-leg Elliott Wave impulses.
                       </p>
                       <div className="space-y-2 pt-1 text-xs">
                         <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
@@ -2854,8 +2851,8 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
 
-                  {/* Step 3: Risk Calculation & Position Tool */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                  {/* Lesson 03: Risk Calculation & Position Tool */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm">
@@ -2886,8 +2883,8 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
 
-                  {/* Step 4: Multi-Tab Tabs, Auto-Save & Export */}
-                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                  {/* Lesson 04: Multi-Tab Tabs, Auto-Save & Export */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-sm">
@@ -2913,6 +2910,198 @@ export default function WhiteboardPage() {
                         <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
                           <span className="font-bold">Restore Trashed Charts</span>
                           <span className="font-medium text-[11px]">Hub → Trash Bin</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lesson 05: Fibonacci Retracement & Golden Pocket */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-sm">
+                          05
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Fibonacci Retracement & Golden Pocket</h4>
+                          <p className="text-xs text-muted">Precision 61.8% - 78.6% reversal levels</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Drag the <strong>Fibonacci Tool (F)</strong> from swing low to swing high in an uptrend to reveal optimal trade entry (OTE) zones. The <strong>0.618 Golden Ratio</strong> and <strong>0.786 deep discount</strong> offer the highest probability entries when aligned with Order Blocks.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900">
+                          <span className="font-bold">0.618 - 0.786 Zone</span>
+                          <span className="font-medium text-[11px]">Golden Pocket Confluence</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900">
+                          <span className="font-bold">0.500 Equilibrium</span>
+                          <span className="font-medium text-[11px]">Premium / Discount Boundary</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between text-indigo-900">
+                          <span className="font-bold">Fib Tool Hotkey</span>
+                          <span className="font-mono text-[10px] font-bold">Press F</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lesson 06: Multi-Timeframe Top-Down Analysis */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-black text-sm">
+                          06
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Multi-Timeframe Top-Down Analysis</h4>
+                          <p className="text-xs text-muted">Aligning Daily bias with 5m execution</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Start on <strong>Daily / 4H charts</strong> to identify the directional trend and high-liquidity sweep pools. Switch to <strong>15m / 5m charts</strong> to capture tight-spread execution entries with minimal drawdowns and maximum risk-to-reward ratios.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-cyan-50/60 border border-cyan-100 flex items-center justify-between text-cyan-900">
+                          <span className="font-bold">High Timeframe (HTF)</span>
+                          <span className="font-medium text-[11px]">Daily & 4H Directional Bias</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-cyan-50/60 border border-cyan-100 flex items-center justify-between text-cyan-900">
+                          <span className="font-bold">Intermediate (ITF)</span>
+                          <span className="font-medium text-[11px]">1H & 15m Key Structural Zones</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-cyan-50/60 border border-cyan-100 flex items-center justify-between text-cyan-900">
+                          <span className="font-bold">Low Timeframe (LTF)</span>
+                          <span className="font-medium text-[11px]">5m & 1m Entry Trigger Execution</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lesson 07: Candlestick Price Action & Entry Confirmations */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-sm">
+                          07
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Candlestick Entry Formations</h4>
+                          <p className="text-xs text-muted">High-probability trigger signals</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Validate key support and resistance bounces using high-probability candlestick signals: <strong>Pin Bars</strong> (rejection wicks), <strong>Engulfing Candles</strong> (momentum displacement), and <strong>Morning/Evening Stars</strong>.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between text-rose-900">
+                          <span className="font-bold">Pin Bar Rejection</span>
+                          <span className="font-medium text-[11px]">Long wick sweeping liquidity</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between text-rose-900">
+                          <span className="font-bold">Engulfing Candle</span>
+                          <span className="font-medium text-[11px]">Full body overtaking previous candle</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-rose-50/60 border border-rose-100 flex items-center justify-between text-rose-900">
+                          <span className="font-bold">Plot Candlesticks Tool</span>
+                          <span className="font-mono text-[10px] font-bold">Press K</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lesson 08: Photoshop-Style Layers & Z-Index Management */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-black text-sm">
+                          08
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Layers, Locking & Z-Index Ordering</h4>
+                          <p className="text-xs text-muted">Pro Photoshop-style layer stacking</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Keep complex chart breakdowns clean by locking chart backgrounds and order block rectangles with <strong>Ctrl + L</strong>. Use the right-hand <strong>Layers Inspector</strong> to reorder elements, toggle visibility, and adjust layer transparency.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between text-teal-900">
+                          <span className="font-bold">Lock / Unlock Object</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + L</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between text-teal-900">
+                          <span className="font-bold">Bring Layer to Front</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + ]</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between text-teal-900">
+                          <span className="font-bold">Send Layer to Back</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + [</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lesson 09: London & New York Session Killzones */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center font-black text-sm">
+                          09
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">London & NY Session Killzones</h4>
+                          <p className="text-xs text-muted">Institutional volatility windows</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Highlight peak liquidity sessions using vertical shading boxes: <strong>London Open (07:00 - 10:00 GMT)</strong> and <strong>New York Open (12:00 - 15:00 GMT)</strong>. Look for early fakeouts (Judas Swings) that take out Asian highs/lows before running the true trend.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-between text-orange-900">
+                          <span className="font-bold">Asian Range Sweep</span>
+                          <span className="font-medium text-[11px]">00:00 - 06:00 GMT High/Low mark</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-between text-orange-900">
+                          <span className="font-bold">London Killzone</span>
+                          <span className="font-medium text-[11px]">07:00 - 10:00 GMT expansion</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-orange-50/60 border border-orange-100 flex items-center justify-between text-orange-900">
+                          <span className="font-bold">New York Killzone</span>
+                          <span className="font-medium text-[11px]">12:00 - 15:00 GMT continuation</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Lesson 10: Trade Journaling & Homework Submission */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm">
+                          10
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Trade Journaling & Homework Submission</h4>
+                          <p className="text-xs text-muted">Document setups for mentor grading</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Attach <strong>Sticky Notes (N)</strong> outlining your pre-trade checklist: Entry Reason, HTF Confluence, Stop Loss Pips, and Take Profit Target. Export high-resolution PNGs with <strong>Ctrl + E</strong> to submit homework assignments to GAMATFX coaches.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
+                          <span className="font-bold">Sticky Note Checklist</span>
+                          <span className="font-mono text-[10px] font-bold">Press N</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
+                          <span className="font-bold">Ultra-HD 2x Diagram Export</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + E</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
+                          <span className="font-bold">Duplicate Trade Setup</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + D</span>
                         </div>
                       </div>
                     </div>
