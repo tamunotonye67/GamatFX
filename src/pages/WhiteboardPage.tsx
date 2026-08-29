@@ -49,6 +49,8 @@ import {
   Unlock,
   Eye,
   EyeOff,
+  Folder,
+  AlertTriangle,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -225,6 +227,7 @@ export default function WhiteboardPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [maxTabPromptOpen, setMaxTabPromptOpen] = useState(false);
   const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "single" | null>(null);
 
   // Context Menu State (Canvas or Object Context)
@@ -912,10 +915,11 @@ export default function WhiteboardPage() {
     }
   };
 
-  /* Tab Management Functions (Add New Tab & Close Tab) with MAXIMUM 5 TABS RULE */
+  /* Tab Management Functions with MAX 5 TABS POPUP PROMPT */
   const handleAddNewTab = () => {
     if (tabs.length >= 5) {
-      showToast("Maximum of 5 diagram tabs allowed. Close an existing tab to create a new one!");
+      setMaxTabPromptOpen(true);
+      showToast("Tab limit reached! (Maximum 5 tabs)");
       return;
     }
 
@@ -1097,6 +1101,28 @@ export default function WhiteboardPage() {
       {statusMsg && (
         <div className="fixed top-20 right-6 z-50 rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
           <Check className="h-4 w-4" /> {statusMsg}
+        </div>
+      )}
+
+      {/* Maximum 5 Tabs Limit Prompt Modal */}
+      {maxTabPromptOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 text-center">
+            <div className="h-12 w-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <h3 className="font-display font-extrabold text-ink text-base">Maximum 5 Tabs Reached</h3>
+            <p className="text-xs text-muted leading-relaxed font-medium">
+              You have reached the maximum limit of <strong>5 diagram tabs</strong> open at once. Please close an existing tab before creating a new one.
+            </p>
+            <button
+              type="button"
+              onClick={() => setMaxTabPromptOpen(false)}
+              className="btn-primary w-full !py-2.5 text-xs font-bold"
+            >
+              Got it, thanks!
+            </button>
+          </div>
         </div>
       )}
 
@@ -1349,7 +1375,7 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Diagrams Tabs (Max 5 Tabs Rule) */}
+      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Distinct Folder/Tab Icon -> Truncated Tab Names */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
         <button
           type="button"
@@ -1363,22 +1389,25 @@ export default function WhiteboardPage() {
         {/* Vertical Separator Line */}
         <span className="h-5 w-px bg-line/80 shrink-0" />
 
-        {/* Diagram Tabs Bar (Max 5 Tabs Limit) */}
+        {/* Diagram Tabs Bar (Distinct Folder/Tab Icon + Ellipsis Truncation + Prompt on Limit) */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="text-[11px] font-bold text-muted flex items-center gap-1 shrink-0">
-            <Layers className="h-3.5 w-3.5 text-brand" /> Tabs ({tabs.length}/5):
+            <Folder className="h-3.5 w-3.5 text-brand" /> Tabs:
           </span>
           {tabs.map((tab) => (
             <div
               key={tab.id}
               onClick={() => handleSelectTab(tab.id)}
-              className={`group flex items-center gap-2 rounded-t-xl px-3.5 py-1 text-xs font-bold cursor-pointer transition-all border-t border-x ${
+              className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-pointer transition-all border-t border-x ${
                 activeTabId === tab.id
                   ? "bg-white text-brand border-line shadow-sm"
                   : "border-transparent text-muted hover:text-ink hover:bg-white/60"
               }`}
             >
-              <span>{tab.name}</span>
+              {/* Ellipsis Truncated Tab Name */}
+              <span className="truncate max-w-[110px] inline-block align-bottom" title={tab.name}>
+                {tab.name}
+              </span>
               <button
                 type="button"
                 onClick={(e) => {
@@ -1392,20 +1421,16 @@ export default function WhiteboardPage() {
               </button>
             </div>
           ))}
-          {tabs.length < 5 ? (
-            <button
-              type="button"
-              onClick={handleAddNewTab}
-              className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
-              title="Create New Diagram Tab (Max 5)"
-            >
-              <Plus className="h-3.5 w-3.5" /> New Tab
-            </button>
-          ) : (
-            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 ml-1" title="Max 5 tabs reached. Close a tab to open a new one.">
-              Max 5 Tabs
-            </span>
-          )}
+
+          {/* New Tab Button */}
+          <button
+            type="button"
+            onClick={handleAddNewTab}
+            className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
+            title="Create New Diagram Tab (Max 5)"
+          >
+            <Plus className="h-3.5 w-3.5" /> New Tab
+          </button>
         </div>
       </div>
 
