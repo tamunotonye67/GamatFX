@@ -2174,11 +2174,11 @@ export default function WhiteboardPage() {
           {/* Top Header Bar with Avatar at Top Right */}
           <header className="h-16 border-b border-line bg-white px-8 flex items-center justify-between gap-4 shrink-0 z-20">
             <div>
-              <h2 className="font-display font-black text-base text-ink flex items-center gap-2">
-                {hubTab === "drafts" && "📁 Drafts & Workspaces"}
-                {hubTab === "samples" && "🎨 Interactive Samples & Lesson Templates"}
-                {hubTab === "resources" && "📚 Trading Resources & Cheatsheets"}
-                {hubTab === "trash" && "🗑️ Trash Bin"}
+              <h2 className="font-display font-black text-base text-ink">
+                {hubTab === "drafts" && "Drafts & Workspaces"}
+                {hubTab === "samples" && "Interactive Samples & Lesson Templates"}
+                {hubTab === "resources" && "Trading Resources & Cheatsheets"}
+                {hubTab === "trash" && "Trash Bin"}
               </h2>
               <p className="text-xs text-muted font-medium">
                 {hubTab === "drafts" && "Resume where you left off or start a fresh technical analysis canvas"}
