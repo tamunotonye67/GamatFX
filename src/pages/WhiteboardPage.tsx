@@ -1585,7 +1585,7 @@ export default function WhiteboardPage() {
       )}
 
       {/* Main Header Bar */}
-      <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
+      <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-[60] relative shadow-sm">
         {/* Left Section: GAMAT Logo */}
         <div className="flex items-center gap-3">
           <Logo variant="dark" />
@@ -1932,7 +1932,7 @@ export default function WhiteboardPage() {
             </button>
 
             {bgOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
                 <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Background Theme</p>
                 {CANVAS_THEMES.map((theme) => (
                   <button
@@ -1966,7 +1966,7 @@ export default function WhiteboardPage() {
             </button>
 
             {exportOpen && (
-              <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
                 <button
                   type="button"
                   onClick={() => handleExport("png")}
