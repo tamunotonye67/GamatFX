@@ -28,6 +28,7 @@ import {
   FileImage,
   FileCode,
   Layers,
+  Grid,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -71,7 +72,14 @@ const STICKY_COLORS: { color: StickyColor; name: string }[] = [
 
 const PALETTE = ["#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#16181c", "#ffffff"];
 
-/* Preset Diagram Tabs */
+const CANVAS_THEMES = [
+  { id: "dots", name: "Dots Grid" },
+  { id: "lines", name: "Square Grid" },
+  { id: "blank", name: "Pure White" },
+  { id: "dark", name: "Dark Theme" },
+  { id: "chalkboard", name: "Chalkboard Green" },
+];
+
 const DIAGRAM_TABS = [
   { id: "blank", name: "Blank Canvas" },
   { id: "mindmap", name: "Forex Basics Mind Map" },
@@ -98,11 +106,15 @@ export default function WhiteboardPage() {
 
   // Dropdown States
   const [exportOpen, setExportOpen] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; groupKey?: string } | null>(null);
+  const [bgOpen, setBgOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
-  // Selection & Active Shapes
+  // Selection & Multi-Select Marquee State
   const [shapes, setShapes] = useState<Shape[]>([]);
-  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
+  const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+
+  // Undo/Redo & Active Drawing
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
 
@@ -124,16 +136,29 @@ export default function WhiteboardPage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeId) {
-        if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
-        setShapes((prev) => prev.filter((s) => s.id !== selectedShapeId));
-        setSelectedShapeId(null);
-        showToast("Selected item deleted!");
+      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+
+      // Delete Selected Shapes
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeIds.length > 0) {
+        setShapes((prev) => prev.filter((s) => !selectedShapeIds.includes(s.id)));
+        setSelectedShapeIds([]);
+        showToast(`Deleted ${selectedShapeIds.length} object(s)!`);
+      }
+
+      // Ctrl + Z (Undo)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+        handleUndo();
+      }
+
+      // Ctrl + Y or Ctrl + Shift + Z (Redo)
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) {
+        handleRedo();
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedShapeId]);
+  }, [selectedShapeIds, shapes, redoStack]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
@@ -163,7 +188,7 @@ export default function WhiteboardPage() {
     ctx.translate(pan.x, pan.y);
     ctx.scale(zoom, zoom);
 
-    // Draw Grid Background
+    // Draw Grid Background Pattern
     const isDarkBg = bgGrid === "dark" || bgGrid === "chalkboard";
     const gridColor = isDarkBg ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
 
@@ -195,12 +220,28 @@ export default function WhiteboardPage() {
       }
     }
 
-    // Render Shapes & Miro Sticky Notes
+    // Render All Shapes & Sticky Notes
     const allShapes = [...shapes, ...(currentShape ? [currentShape] : [])];
-    allShapes.forEach((s) => renderMiroShape(ctx, s, s.id === selectedShapeId));
+    allShapes.forEach((s) => renderMiroShape(ctx, s, selectedShapeIds.includes(s.id)));
+
+    // Render Marquee Selection Rubberband Box
+    if (marqueeBox) {
+      const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
+      const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
+      const minY = Math.min(marqueeBox.y1, marqueeBox.y2);
+      const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
+
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "rgba(59, 130, 246, 0.12)";
+      ctx.setLineDash([4, 4]);
+      ctx.fillRect(minX, minY, maxX - minX, maxY - minY);
+      ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+      ctx.setLineDash([]);
+    }
 
     ctx.restore();
-  }, [shapes, currentShape, selectedShapeId, bgGrid, pan, zoom]);
+  }, [shapes, currentShape, selectedShapeIds, marqueeBox, bgGrid, pan, zoom]);
 
   /* ------------------------- Coordinate Conversions ----------------------- */
 
@@ -222,6 +263,7 @@ export default function WhiteboardPage() {
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setContextMenu(null);
     setExportOpen(false);
+    setBgOpen(false);
 
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -231,18 +273,44 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
+    // 1. SELECT TOOL BEHAVIOR (Hit Test, Alt+Drag Duplicate, Marquee Box, Resize)
     if (activeTool === "select") {
       const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
+
       if (hitShape) {
-        setSelectedShapeId(hitShape.id);
+        // Alt + Drag Duplicate Shortcut
+        if (e.altKey) {
+          const duplicatedShape: Shape = {
+            ...hitShape,
+            id: `miro_dup_${Date.now()}`,
+            points: hitShape.points.map((p) => ({ x: p.x + 20, y: p.y + 20 })),
+          };
+          setShapes((prev) => [...prev, duplicatedShape]);
+          setSelectedShapeIds([duplicatedShape.id]);
+          isDraggingShape.current = true;
+          dragStartPt.current = pt;
+          showToast("Duplicated object! (Alt + Drag)");
+          return;
+        }
+
+        // Multi-select with Shift, or single select
+        if (e.shiftKey) {
+          setSelectedShapeIds((prev) => (prev.includes(hitShape.id) ? prev.filter((id) => id !== hitShape.id) : [...prev, hitShape.id]));
+        } else if (!selectedShapeIds.includes(hitShape.id)) {
+          setSelectedShapeIds([hitShape.id]);
+        }
+
         isDraggingShape.current = true;
         dragStartPt.current = pt;
       } else {
-        setSelectedShapeId(null);
+        // Clicked empty canvas -> Start Marquee Rubberband Selection
+        setSelectedShapeIds([]);
+        setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
       }
       return;
     }
 
+    // 2. BEZIER / CHART PATTERN TOOL (Continuous Multi-Point Path)
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
         setCurrentShape({
@@ -301,14 +369,21 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    if (isDraggingShape.current && selectedShapeId) {
+    // Marquee Selection Box Update
+    if (marqueeBox) {
+      setMarqueeBox((prev) => (prev ? { ...prev, x2: pt.x, y2: pt.y } : null));
+      return;
+    }
+
+    // Dragging / Moving Selected Shapes
+    if (isDraggingShape.current && selectedShapeIds.length > 0) {
       const dx = pt.x - dragStartPt.current.x;
       const dy = pt.y - dragStartPt.current.y;
       dragStartPt.current = pt;
 
       setShapes((prev) =>
         prev.map((s) => {
-          if (s.id !== selectedShapeId) return s;
+          if (!selectedShapeIds.includes(s.id)) return s;
           return {
             ...s,
             points: s.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
@@ -343,6 +418,27 @@ export default function WhiteboardPage() {
   const handleMouseUp = () => {
     isPanning.current = false;
     isDraggingShape.current = false;
+
+    // Complete Marquee Box Multi-Selection
+    if (marqueeBox) {
+      const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
+      const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
+      const minY = Math.min(marqueeBox.y1, marqueeBox.y2);
+      const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
+
+      const selected = shapes.filter((s) => {
+        const shapeMinX = Math.min(...s.points.map((p) => p.x));
+        const shapeMaxX = Math.max(...s.points.map((p) => p.x));
+        const shapeMinY = Math.min(...s.points.map((p) => p.y));
+        const shapeMaxY = Math.max(...s.points.map((p) => p.y));
+        return shapeMinX >= minX && shapeMaxX <= maxX && shapeMinY >= minY && shapeMaxY <= maxY;
+      });
+
+      setSelectedShapeIds(selected.map((s) => s.id));
+      setMarqueeBox(null);
+      if (selected.length > 0) showToast(`Selected ${selected.length} object(s)!`);
+      return;
+    }
 
     if (activeTool === "bezier") return;
 
@@ -389,6 +485,25 @@ export default function WhiteboardPage() {
     setTextModalPos(null);
   };
 
+  /* Bulk Apply Color / Properties to Selected Objects */
+  const applyColorToSelected = (color: string) => {
+    setStrokeColor(color);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, color } : s))
+      );
+    }
+  };
+
+  const applyStickyColorToSelected = (sColor: StickyColor) => {
+    setStickyColor(sColor);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, stickyColor: sColor } : s))
+      );
+    }
+  };
+
   /* ---------------------------- Toolbar Actions ---------------------------- */
 
   const handleUndo = () => {
@@ -408,17 +523,15 @@ export default function WhiteboardPage() {
   const handleClear = () => {
     setShapes([]);
     setRedoStack([]);
-    setSelectedShapeId(null);
+    setSelectedShapeIds([]);
   };
 
-  /* Export Functions (PNG / JPEG / SVG) */
   const handleExport = (format: "png" | "jpeg" | "svg") => {
     setExportOpen(false);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     if (format === "svg") {
-      // Export SVG format
       const svgHeader = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}">`;
       const svgFooter = `</svg>`;
       const blob = new Blob([svgHeader + `<rect width="100%" height="100%" fill="#ffffff"/>` + svgFooter], { type: "image/svg+xml" });
@@ -548,7 +661,7 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar (GAMAT Logo -> Back to Site -> Dynamic Tool Properties Bar -> Export Dropdown) */}
+      {/* Main Header Bar (GAMAT Logo -> Back to Site -> Dynamic Tool Properties Bar -> Canvas Theme -> Export Dropdown) */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
         {/* Left Section: Logo -> Back to Site */}
         <div className="flex items-center gap-3">
@@ -578,12 +691,7 @@ export default function WhiteboardPage() {
                 <button
                   key={c}
                   type="button"
-                  onClick={() => {
-                    setStrokeColor(c);
-                    if (selectedShapeId) {
-                      setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, color: c } : s)));
-                    }
-                  }}
+                  onClick={() => applyColorToSelected(c)}
                   className={`h-5 w-5 rounded-full transition-transform border border-line ${
                     strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
                   }`}
@@ -592,7 +700,7 @@ export default function WhiteboardPage() {
               ))}
             </div>
 
-            {/* Sticky Note Colors (when activeTool === sticky) */}
+            {/* Sticky Note Colors (when activeTool === sticky or sticky selected) */}
             {activeTool === "sticky" && (
               <>
                 <span className="h-4 w-px bg-line" />
@@ -601,7 +709,7 @@ export default function WhiteboardPage() {
                     <button
                       key={s.color}
                       type="button"
-                      onClick={() => setStickyColor(s.color)}
+                      onClick={() => applyStickyColorToSelected(s.color)}
                       className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
                         stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
                       }`}
@@ -623,8 +731,8 @@ export default function WhiteboardPage() {
                   type="button"
                   onClick={() => {
                     setStrokeWidth(w);
-                    if (selectedShapeId) {
-                      setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, strokeWidth: w } : s)));
+                    if (selectedShapeIds.length > 0) {
+                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
                     }
                   }}
                   className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
@@ -644,8 +752,8 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={() => {
                   setLineStyle("solid");
-                  if (selectedShapeId) {
-                    setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, lineStyle: "solid" } : s)));
+                  if (selectedShapeIds.length > 0) {
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
                   }
                 }}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
@@ -658,8 +766,8 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={() => {
                   setLineStyle("dashed");
-                  if (selectedShapeId) {
-                    setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, lineStyle: "dashed" } : s)));
+                  if (selectedShapeIds.length > 0) {
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
                   }
                 }}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
@@ -672,8 +780,42 @@ export default function WhiteboardPage() {
           </div>
         </div>
 
-        {/* Right Section: Export Dropdown & Fullscreen */}
+        {/* Right Section: Canvas Background Selector -> Export Dropdown -> Fullscreen */}
         <div className="flex items-center gap-2">
+          {/* Canvas Background / Theme Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setBgOpen(!bgOpen)}
+              className="rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-white transition flex items-center gap-1.5"
+            >
+              <Grid className="h-4 w-4 text-brand" /> Canvas Theme <ChevronDown className="h-3.5 w-3.5 text-muted" />
+            </button>
+
+            {bgOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
+                <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Background Theme</p>
+                {CANVAS_THEMES.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => {
+                      setBgGrid(theme.id as any);
+                      setBgOpen(false);
+                      showToast(`Switched canvas to ${theme.name}!`);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition ${
+                      bgGrid === theme.id ? "bg-brand-light text-brand" : "text-ink hover:bg-cream"
+                    }`}
+                  >
+                    {theme.name}
+                    {bgGrid === theme.id && <span className="h-2 w-2 rounded-full bg-brand" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Export Dropdown */}
           <div className="relative">
             <button
@@ -751,7 +893,7 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
-              title="Select & Move Tool"
+              title="Select, Move, Resize & Alt+Drag Duplicate"
               icon={MousePointer}
             />
             <MiroToolBtn
@@ -826,7 +968,7 @@ export default function WhiteboardPage() {
                 onClick={handleUndo}
                 disabled={shapes.length === 0}
                 className="h-9 rounded-xl flex items-center justify-center text-ink/70 hover:bg-cream disabled:opacity-30"
-                title="Undo"
+                title="Undo (Ctrl + Z)"
               >
                 <RotateCcw className="h-4 w-4" />
               </button>
@@ -835,7 +977,7 @@ export default function WhiteboardPage() {
                 onClick={handleRedo}
                 disabled={redoStack.length === 0}
                 className="h-9 rounded-xl flex items-center justify-center text-ink/70 hover:bg-cream disabled:opacity-30"
-                title="Redo"
+                title="Redo (Ctrl + Y)"
               >
                 <RotateCw className="h-4 w-4" />
               </button>
@@ -854,46 +996,6 @@ export default function WhiteboardPage() {
 
         {/* Central Miro Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
-          {/* Background Pattern Switcher */}
-          <div className="absolute top-4 left-4 z-20 flex items-center gap-1 rounded-2xl border border-line bg-white/95 p-1.5 backdrop-blur shadow-xl text-xs">
-            <button
-              type="button"
-              onClick={() => setBgGrid("dots")}
-              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                bgGrid === "dots" ? "bg-brand text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              Dots
-            </button>
-            <button
-              type="button"
-              onClick={() => setBgGrid("lines")}
-              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                bgGrid === "lines" ? "bg-brand text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              Grid
-            </button>
-            <button
-              type="button"
-              onClick={() => setBgGrid("blank")}
-              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                bgGrid === "blank" ? "bg-brand text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              White
-            </button>
-            <button
-              type="button"
-              onClick={() => setBgGrid("dark")}
-              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                bgGrid === "dark" ? "bg-slate-950 text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              Dark
-            </button>
-          </div>
-
           {/* Bottom Zoom & Navigation Bar */}
           <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
             <button
@@ -1217,7 +1319,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.fillText(shape.text, pts[0].x, pts[0].y);
   }
 
-  ctx.setLineDash([]); // Reset line dash
+  ctx.setLineDash([]);
 
   // Draw Selection Highlight Box if shape is selected
   if (isSelected) {
