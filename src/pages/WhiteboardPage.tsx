@@ -45,6 +45,8 @@ import {
   Info,
   GripVertical,
   Star,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -77,6 +79,7 @@ type Shape = {
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
+  isLocked?: boolean;
 };
 
 type DiagramTab = {
@@ -289,9 +292,19 @@ export default function WhiteboardPage() {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
 
       if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeIds.length > 0) {
-        setShapes((prev) => prev.filter((s) => !selectedShapeIds.includes(s.id)));
-        setSelectedShapeIds([]);
-        showToast(`Deleted ${selectedShapeIds.length} object(s)!`);
+        // Only delete unlocked shapes!
+        const deletable = selectedShapeIds.filter((id) => {
+          const target = shapes.find((s) => s.id === id);
+          return target && !target.isLocked;
+        });
+
+        if (deletable.length > 0) {
+          setShapes((prev) => prev.filter((s) => !deletable.includes(s.id)));
+          setSelectedShapeIds([]);
+          showToast(`Deleted ${deletable.length} unlocked object(s)!`);
+        } else {
+          showToast("Locked object(s) cannot be deleted!");
+        }
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
@@ -412,6 +425,12 @@ export default function WhiteboardPage() {
       let result: Shape[] = [];
 
       for (const s of prevShapes) {
+        // Skip precision erasing on locked shapes!
+        if (s.isLocked) {
+          result.push(s);
+          continue;
+        }
+
         if (s.type === "pencil" || s.type === "highlighter" || s.type === "bezier") {
           const subPaths: { x: number; y: number }[][] = [];
           let currentSub: { x: number; y: number }[] = [];
@@ -485,6 +504,20 @@ export default function WhiteboardPage() {
     showToast(favoritedTools.includes(toolToToggle) ? "Removed from Favorites Toolbar" : "Added to Favorites Toolbar!");
   };
 
+  /* ------------------------- Object Lock Toggle Function -------------------- */
+
+  const toggleLockShape = (shapeId: string) => {
+    setShapes((prev) =>
+      prev.map((s) => {
+        if (s.id !== shapeId) return s;
+        const nextLock = !s.isLocked;
+        showToast(nextLock ? "Locked object! 🔒 (Cannot be moved or deleted)" : "Unlocked object! 🔓");
+        return { ...s, isLocked: nextLock };
+      })
+    );
+    setContextMenu(null);
+  };
+
   /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -514,7 +547,7 @@ export default function WhiteboardPage() {
 
     if (activeTool === "select" && selectedShapeIds.length === 1) {
       const selShape = shapes.find((s) => s.id === selectedShapeIds[0]);
-      if (selShape) {
+      if (selShape && !selShape.isLocked) {
         const handleHit = getResizeHandleHit(pt, selShape);
         if (handleHit) {
           setActiveResizeHandle({ shapeId: selShape.id, handle: handleHit });
@@ -528,7 +561,7 @@ export default function WhiteboardPage() {
       const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
 
       if (hitShape) {
-        if (e.altKey) {
+        if (e.altKey && !hitShape.isLocked) {
           const duplicatedShape: Shape = {
             ...hitShape,
             id: `miro_dup_${Date.now()}`,
@@ -548,8 +581,12 @@ export default function WhiteboardPage() {
           setSelectedShapeIds([hitShape.id]);
         }
 
-        isDraggingShape.current = true;
-        dragStartPt.current = pt;
+        if (!hitShape.isLocked) {
+          isDraggingShape.current = true;
+          dragStartPt.current = pt;
+        } else {
+          showToast("Object is locked 🔒");
+        }
       } else {
         setSelectedShapeIds([]);
         setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
@@ -618,7 +655,7 @@ export default function WhiteboardPage() {
     if (activeResizeHandle) {
       setShapes((prev) =>
         prev.map((s) => {
-          if (s.id !== activeResizeHandle.shapeId) return s;
+          if (s.id !== activeResizeHandle.shapeId || s.isLocked) return s;
           return resizeShapePoints(s, activeResizeHandle.handle, pt);
         })
       );
@@ -642,7 +679,7 @@ export default function WhiteboardPage() {
 
       setShapes((prev) =>
         prev.map((s) => {
-          if (!selectedShapeIds.includes(s.id)) return s;
+          if (!selectedShapeIds.includes(s.id) || s.isLocked) return s;
           return {
             ...s,
             points: s.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
@@ -768,6 +805,7 @@ export default function WhiteboardPage() {
     const dup: Shape = {
       ...shapeToDup,
       id: `miro_dup_${Date.now()}`,
+      isLocked: false,
       points: shapeToDup.points.map((p) => ({ x: p.x + 25, y: p.y + 25 })),
     };
     setShapes((prev) => [...prev, dup]);
@@ -777,6 +815,12 @@ export default function WhiteboardPage() {
   };
 
   const deleteSelectedObject = (shapeId: string) => {
+    const target = shapes.find((s) => s.id === shapeId);
+    if (target?.isLocked) {
+      showToast("Locked object cannot be deleted! Unlock it first 🔓");
+      return;
+    }
+
     setShapes((prev) => prev.filter((s) => s.id !== shapeId));
     setSelectedShapeIds([]);
     setContextMenu(null);
@@ -808,7 +852,7 @@ export default function WhiteboardPage() {
     setStrokeColor(color);
     if (selectedShapeIds.length > 0) {
       setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, color } : s))
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, color } : s))
       );
     }
   };
@@ -817,7 +861,7 @@ export default function WhiteboardPage() {
     setStickyColor(sColor);
     if (selectedShapeIds.length > 0) {
       setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, stickyColor: sColor } : s))
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, stickyColor: sColor } : s))
       );
     }
   };
@@ -1005,7 +1049,7 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* TradingView-Style Floating Draggable Favorites Toolbar (Floats anywhere on whole page!) */}
+      {/* TradingView-Style Floating Draggable Favorites Toolbar */}
       {favoritedTools.length > 0 && (
         <div
           className="fixed z-50 flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
@@ -1100,7 +1144,7 @@ export default function WhiteboardPage() {
                   onClick={() => {
                     setStrokeWidth(w);
                     if (selectedShapeIds.length > 0) {
-                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
+                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
                     }
                   }}
                   className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
@@ -1121,7 +1165,7 @@ export default function WhiteboardPage() {
                 onClick={() => {
                   setLineStyle("solid");
                   if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
                   }
                 }}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
@@ -1135,7 +1179,7 @@ export default function WhiteboardPage() {
                 onClick={() => {
                   setLineStyle("dashed");
                   if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
                   }
                 }}
                 className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
@@ -1647,24 +1691,40 @@ export default function WhiteboardPage() {
               {contextMenu.targetShape ? (
                 <div className="space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
-                    Selected {contextMenu.targetShape.type.toUpperCase()}
+                    <span>Selected {contextMenu.targetShape.type.toUpperCase()}</span>
+                    {contextMenu.targetShape.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
                   </p>
 
-                  <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line pb-2 mb-1">
-                    {PALETTE.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => applyColorToSelected(c)}
-                        className={`h-4.5 w-4.5 rounded-full border border-line transition-transform ${
-                          strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                        }`}
-                        style={{ background: c }}
-                      />
-                    ))}
-                  </div>
+                  {!contextMenu.targetShape.isLocked && (
+                    <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line pb-2 mb-1">
+                      {PALETTE.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => applyColorToSelected(c)}
+                          className={`h-4.5 w-4.5 rounded-full border border-line transition-transform ${
+                            strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                          }`}
+                          style={{ background: c }}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-                  {(contextMenu.targetShape.type === "text" || contextMenu.targetShape.type === "sticky") && (
+                  {/* Lock / Unlock Object Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleLockShape(contextMenu.targetShape!.id)}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    {contextMenu.targetShape.isLocked ? (
+                      <><Unlock className="h-3.5 w-3.5 text-emerald-600" /> Unlock Object 🔓</>
+                    ) : (
+                      <><Lock className="h-3.5 w-3.5 text-amber-600" /> Lock Object 🔒</>
+                    )}
+                  </button>
+
+                  {!contextMenu.targetShape.isLocked && (contextMenu.targetShape.type === "text" || contextMenu.targetShape.type === "sticky") && (
                     <button
                       type="button"
                       onClick={() => {
@@ -1687,27 +1747,33 @@ export default function WhiteboardPage() {
                     <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => bringToFront(contextMenu.targetShape!.id)}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring to Front
-                  </button>
+                  {!contextMenu.targetShape.isLocked && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => bringToFront(contextMenu.targetShape!.id)}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring to Front
+                      </button>
 
-                  <button
-                    type="button"
-                    onClick={() => sendToBack(contextMenu.targetShape!.id)}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send to Back
-                  </button>
+                      <button
+                        type="button"
+                        onClick={() => sendToBack(contextMenu.targetShape!.id)}
+                        className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send to Back
+                      </button>
+                    </>
+                  )}
 
                   <div className="border-t border-line pt-1 mt-1">
                     <button
                       type="button"
                       onClick={() => deleteSelectedObject(contextMenu.targetShape!.id)}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
+                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                        contextMenu.targetShape.isLocked ? "text-slate-400 cursor-not-allowed" : "text-rose-600 hover:bg-rose-50"
+                      }`}
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Delete Object
                     </button>
@@ -1839,9 +1905,9 @@ export default function WhiteboardPage() {
                   <div className="flex items-center justify-between pt-2 border-t border-line">
                     <div>
                       <label className="font-bold text-ink flex items-center gap-1.5">
-                        <Info className="h-4 w-4 text-brand" /> Show Tooltip Explanations
+                        <Info className="h-4 w-4 text-brand" /> Show Tooltip Explanations & Animated Demos
                       </label>
-                      <p className="text-[10px] text-muted">Displays helpful guide cards when hovering left dock tools</p>
+                      <p className="text-[10px] text-muted">Displays guide cards with GIF-style animations when hovering tools</p>
                     </div>
                     <button
                       type="button"
@@ -1933,10 +1999,16 @@ export default function WhiteboardPage() {
 
                 {/* 1. SELECTION TYPE & IDENTITY */}
                 <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-muted">Active Element</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                    <span>Active Element</span>
+                    {selectedShape?.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
+                  </p>
                   <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
                     {selectedShape ? (
-                      <span className="text-brand">{selectedShape.type}</span>
+                      <span className="text-brand flex items-center gap-1.5">
+                        {selectedShape.type}
+                        {selectedShape.isLocked && <Lock className="h-3.5 w-3.5 text-amber-600" />}
+                      </span>
                     ) : selectedShapeIds.length > 1 ? (
                       <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
                     ) : (
@@ -1958,9 +2030,10 @@ export default function WhiteboardPage() {
                           key={c}
                           type="button"
                           onClick={() => applyColorToSelected(c)}
+                          disabled={selectedShape?.isLocked}
                           className={`h-6 w-6 rounded-full transition-transform border border-line ${
                             strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                          }`}
+                          } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                           style={{ background: c }}
                         />
                       ))}
@@ -1977,9 +2050,10 @@ export default function WhiteboardPage() {
                             key={s.color}
                             type="button"
                             onClick={() => applyStickyColorToSelected(s.color)}
+                            disabled={selectedShape?.isLocked}
                             className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
                               stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                            }`}
+                            } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                             style={{ background: s.color }}
                             title={s.name}
                           />
@@ -2002,12 +2076,13 @@ export default function WhiteboardPage() {
                           onClick={() => {
                             setStrokeWidth(w);
                             if (selectedShapeIds.length > 0) {
-                              setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
+                              setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
                             }
                           }}
+                          disabled={selectedShape?.isLocked}
                           className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
                             strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
-                          }`}
+                          } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                         >
                           {w}px
                         </button>
@@ -2024,12 +2099,13 @@ export default function WhiteboardPage() {
                         onClick={() => {
                           setLineStyle("solid");
                           if (selectedShapeIds.length > 0) {
-                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
+                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
                           }
                         }}
+                        disabled={selectedShape?.isLocked}
                         className={`py-1.5 rounded-xl text-xs font-bold transition ${
                           lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                        }`}
+                        } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                       >
                         Solid
                       </button>
@@ -2038,12 +2114,13 @@ export default function WhiteboardPage() {
                         onClick={() => {
                           setLineStyle("dashed");
                           if (selectedShapeIds.length > 0) {
-                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
+                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
                           }
                         }}
+                        disabled={selectedShape?.isLocked}
                         className={`py-1.5 rounded-xl text-xs font-bold transition ${
                           lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                        }`}
+                        } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                       >
                         Dashed
                       </button>
@@ -2051,24 +2128,43 @@ export default function WhiteboardPage() {
                   </div>
                 </div>
 
-                {/* 3. LAYERING & OBJECT ACTIONS */}
+                {/* 3. LOCK, LAYERING & OBJECT ACTIONS */}
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
 
                   {selectedShape ? (
                     <div className="space-y-2">
+                      {/* Lock / Unlock Toggle Button in Inspector */}
+                      <button
+                        type="button"
+                        onClick={() => toggleLockShape(selectedShape.id)}
+                        className={`w-full flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-bold transition ${
+                          selectedShape.isLocked
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                        }`}
+                      >
+                        {selectedShape.isLocked ? (
+                          <><Unlock className="h-4 w-4" /> Unlock Object 🔓</>
+                        ) : (
+                          <><Lock className="h-4 w-4" /> Lock Object 🔒</>
+                        )}
+                      </button>
+
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
                           onClick={() => bringToFront(selectedShape.id)}
-                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                          disabled={selectedShape.isLocked}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
                         >
                           <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
                         </button>
                         <button
                           type="button"
                           onClick={() => sendToBack(selectedShape.id)}
-                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                          disabled={selectedShape.isLocked}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
                         >
                           <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
                         </button>
@@ -2085,13 +2181,14 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => deleteSelectedObject(selectedShape.id)}
-                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition"
+                        disabled={selectedShape.isLocked}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Trash2 className="h-3.5 w-3.5" /> Delete Selected
                       </button>
                     </div>
                   ) : (
-                    <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or style.</p>
+                    <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or lock state.</p>
                   )}
                 </div>
               </div>
@@ -2175,21 +2272,160 @@ function MiroToolBtn({
         )}
       </button>
 
-      {/* Rich Interactive Tooltip Popover with Brief Explanation */}
+      {/* Rich Interactive Tooltip Popover with GIF-Style Animated Visual Illustration */}
       {showTooltips && isHovered && explanation && (
-        <div className="absolute left-full top-0 ml-3 w-60 rounded-2xl border border-line bg-slate-900 text-white p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1.5">
-            <h4 className="font-extrabold text-xs text-amber-400">{explanation.title}</h4>
-            {explanation.shortcut && (
-              <span className="text-[9px] font-black uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
-                {explanation.shortcut}
-              </span>
-            )}
+        <div className="absolute left-full top-0 ml-3 w-64 rounded-2xl border border-slate-700 bg-slate-900 text-white p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2.5">
+          {/* Animated Visual GIF-Style Illustration Container */}
+          <div className="w-full h-24 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
+            <ToolGifAnimation toolKey={toolKey} />
           </div>
-          <p className="text-[11px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
+
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+              <h4 className="font-extrabold text-xs text-amber-400">{explanation.title}</h4>
+              {explanation.shortcut && (
+                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
+                  {explanation.shortcut}
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+/** Animated GIF-style SVG Visual Illustrations for Tool Usage */
+function ToolGifAnimation({ toolKey }: { toolKey: string }) {
+  if (toolKey === "select") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="35" y="20" width="90" height="50" rx="6" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4 4" />
+        <circle cx="35" cy="20" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+        <circle cx="125" cy="20" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+        <circle cx="125" cy="70" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+        <circle cx="35" cy="70" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+        <g className="animate-pulse">
+          <path d="M 125 70 L 140 82" stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
+          <polygon points="125,70 135,70 125,80" fill="#dc3545" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (toolKey === "pencil") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <path d="M 20 60 Q 50 10, 80 50 T 140 30" fill="none" stroke="#dc3545" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
+        <circle cx="140" cy="30" r="4" fill="#dc3545" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "highlighter") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="20" y="30" width="120" height="20" rx="4" fill="rgba(253, 224, 71, 0.4)" />
+        <line x1="25" y1="40" x2="135" y2="40" stroke="#fef08a" strokeWidth="6" strokeLinecap="round" className="animate-pulse" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "rectangle") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="30" y="20" width="100" height="50" rx="8" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" strokeWidth="2.5" className="animate-pulse" />
+        <text x="80" y="50" textAnchor="middle" fill="#93c5fd" fontSize="10" fontWeight="bold">ORDER BLOCK</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "circle") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <circle cx="80" cy="45" r="30" fill="rgba(16,185,129,0.2)" stroke="#10b981" strokeWidth="2.5" className="animate-pulse" />
+        <circle cx="80" cy="45" r="4" fill="#10b981" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "diamond") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <polygon points="80,15 130,45 80,75 30,45" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" strokeWidth="2.5" className="animate-pulse" />
+        <text x="80" y="48" textAnchor="middle" fill="#fde68a" fontSize="9" fontWeight="bold">TRIGGER</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "arrow") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <line x1="25" y1="45" x2="125" y2="45" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+        <polygon points="135,45 120,37 120,53" fill="#10b981" className="animate-pulse" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "bezier") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <polyline points="20,70 50,30 80,60 110,20 140,55" fill="none" stroke="#dc3545" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="20" cy="70" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
+        <circle cx="50" cy="30" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
+        <circle cx="80" cy="60" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
+        <circle cx="110" cy="20" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
+        <circle cx="140" cy="55" r="3.5" fill="#ffffff" stroke="#dc3545" strokeWidth="2" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "sticky") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <rect x="45" y="15" width="70" height="60" rx="4" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+        <line x1="55" y1="28" x2="105" y2="28" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+        <line x1="55" y1="38" x2="95" y2="38" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+        <line x1="55" y1="48" x2="100" y2="48" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "text") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <text x="30" y="52" fill="#38bdf8" fontSize="16" fontWeight="bold" fontFamily="sans-serif">EUR/USD +150</text>
+        <line x1="142" y1="34" x2="142" y2="54" stroke="#ffffff" strokeWidth="2" className="animate-pulse" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "eraser") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <path d="M 20 45 L 80 45" stroke="#475569" strokeWidth="3" strokeDasharray="4 4" />
+        <path d="M 80 45 L 140 45" stroke="#f43f5e" strokeWidth="3" />
+        <rect x="70" y="32" width="24" height="24" rx="4" fill="#f43f5e" stroke="#ffffff" strokeWidth="1.5" className="animate-bounce" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "zoom") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <circle cx="70" cy="40" r="24" fill="none" stroke="#38bdf8" strokeWidth="3" />
+        <line x1="88" y1="58" x2="110" y2="80" stroke="#38bdf8" strokeWidth="5" strokeLinecap="round" />
+        <path d="M 55 45 L 65 35 L 75 48 L 85 30" fill="none" stroke="#10b981" strokeWidth="2" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="w-full h-full" viewBox="0 0 160 90">
+      <path d="M 30 45 Q 80 15, 130 45" fill="none" stroke="#38bdf8" strokeWidth="3" className="animate-pulse" />
+    </svg>
   );
 }
 
@@ -2418,6 +2654,26 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
 
   ctx.setLineDash([]);
 
+  // Render Lock Indicator Badge on Canvas if Locked 🔒
+  if (shape.isLocked) {
+    let minX = Math.min(...pts.map((p) => p.x));
+    let minY = Math.min(...pts.map((p) => p.y));
+
+    if (shape.type === "sticky") {
+      minX = pts[0].x;
+      minY = pts[0].y;
+    }
+
+    ctx.fillStyle = "#d97706";
+    ctx.beginPath();
+    ctx.arc(minX - 10, minY - 10, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "10px sans-serif";
+    ctx.fillText("🔒", minX - 14, minY - 6);
+  }
+
   // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
   if (isSelected) {
     let minX = Math.min(...pts.map((p) => p.x));
@@ -2433,26 +2689,28 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     }
 
     const pad = 6;
-    ctx.strokeStyle = "#3b82f6";
+    ctx.strokeStyle = shape.isLocked ? "#f59e0b" : "#3b82f6";
     ctx.lineWidth = 1.5;
     ctx.setLineDash([5, 5]);
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
     ctx.setLineDash([]);
 
-    // Corner Resize Handle Nodes
-    const corners = [
-      { x: minX - pad, y: minY - pad },
-      { x: maxX + pad, y: minY - pad },
-      { x: maxX + pad, y: maxY + pad },
-      { x: minX - pad, y: maxY + pad },
-    ];
-    corners.forEach((c) => {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(c.x - 5, c.y - 5, 10, 10);
-      ctx.strokeStyle = "#3b82f6";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
-    });
+    // Corner Resize Handle Nodes (only if NOT locked)
+    if (!shape.isLocked) {
+      const corners = [
+        { x: minX - pad, y: minY - pad },
+        { x: maxX + pad, y: minY - pad },
+        { x: maxX + pad, y: maxY + pad },
+        { x: minX - pad, y: maxY + pad },
+      ];
+      corners.forEach((c) => {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(c.x - 5, c.y - 5, 10, 10);
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
+      });
+    }
   }
 }
 
