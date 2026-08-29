@@ -159,7 +159,6 @@ export default function WhiteboardPage() {
   /* -------------------------- Page Scroll Lock Fix ------------------------- */
 
   useEffect(() => {
-    // Prevent document body scrolling on Whiteboard page
     const originalStyle = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -315,7 +314,6 @@ export default function WhiteboardPage() {
       let result: Shape[] = [];
 
       for (const s of prevShapes) {
-        // Freehand / Bezier path stroke: Erase individual points & split stroke into sub-paths!
         if (s.type === "pencil" || s.type === "highlighter" || s.type === "bezier") {
           const subPaths: { x: number; y: number }[][] = [];
           let currentSub: { x: number; y: number }[] = [];
@@ -335,7 +333,6 @@ export default function WhiteboardPage() {
             subPaths.push(currentSub);
           }
 
-          // Create new shape sub-paths for remaining segments
           subPaths.forEach((pts, idx) => {
             if (pts.length > (s.type === "pencil" || s.type === "highlighter" ? 1 : 0)) {
               result.push({
@@ -346,7 +343,6 @@ export default function WhiteboardPage() {
             }
           });
         } else {
-          // Solid geometric shapes / sticky notes: Remove if touched by eraser
           if (!isPointInShape(eraserPt, s)) {
             result.push(s);
           }
@@ -817,162 +813,114 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Top Header Bar (GAMAT Logo -> Back to Site -> Vertical Line -> Diagrams Tabs -> Properties -> Settings) */}
-      <header className="h-16 border-b border-line bg-white px-4 flex items-center justify-between gap-3 shrink-0 z-30 shadow-sm">
-        {/* Left Section: GAMAT Logo -> Back to Site -> Vertical Line | -> Diagrams Tabs */}
-        <div className="flex items-center gap-3 overflow-x-auto">
+      {/* Main Header Bar (GAMAT Logo -> Active Tool Options Properties Bar -> Themes -> Export -> Settings -> Fullscreen) */}
+      <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
+        {/* Left Section: GAMAT Logo */}
+        <div className="flex items-center gap-3">
           <Logo variant="dark" />
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
-            title="Back to GAMAT FX Website"
-          >
-            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Site</span>
-          </button>
-
-          {/* Vertical Separator Line */}
-          <span className="h-6 w-px bg-line shrink-0" />
-
-          {/* Closeable Diagram Tabs */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[11px] font-bold text-muted flex items-center gap-1 shrink-0">
-              <Layers className="h-3.5 w-3.5 text-brand" /> Diagrams:
-            </span>
-            {tabs.map((tab) => (
-              <div
-                key={tab.id}
-                onClick={() => handleSelectTab(tab.id)}
-                className={`group flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all border ${
-                  activeTabId === tab.id
-                    ? "bg-brand-light text-brand border-brand/40 shadow-sm"
-                    : "border-line bg-cream/70 text-muted hover:text-ink hover:bg-white"
-                }`}
-              >
-                <span>{tab.name}</span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCloseTab(tab.id);
-                  }}
-                  className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
-                  title="Close Tab"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={handleAddNewTab}
-              className="flex items-center gap-1 rounded-xl border border-dashed border-slate-300 px-2 py-1.5 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition"
-              title="Create New Blank Diagram Tab"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </button>
-          </div>
         </div>
 
         {/* Center Section: Dynamic Tool Options & Properties Bar */}
-        <div className="hidden lg:flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner">
-          <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
-            Tool: <strong className="text-brand uppercase">{activeTool}</strong>
-          </span>
+        <div className="flex-1 flex justify-center max-w-2xl">
+          <div className="flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner">
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
+              Tool: <strong className="text-brand uppercase">{activeTool}</strong>
+            </span>
 
-          <span className="h-4 w-px bg-line" />
+            <span className="h-4 w-px bg-line" />
 
-          {/* Stroke Color Palette */}
-          <div className="flex items-center gap-1">
-            {PALETTE.map((c) => (
+            {/* Stroke Color Palette */}
+            <div className="flex items-center gap-1">
+              {PALETTE.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => applyColorToSelected(c)}
+                  className={`h-5 w-5 rounded-full transition-transform border border-line ${
+                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                  }`}
+                  style={{ background: c }}
+                />
+              ))}
+            </div>
+
+            {/* Sticky Note Colors (when activeTool === sticky) */}
+            {activeTool === "sticky" && (
+              <>
+                <span className="h-4 w-px bg-line" />
+                <div className="flex items-center gap-1">
+                  {STICKY_COLORS.map((s) => (
+                    <button
+                      key={s.color}
+                      type="button"
+                      onClick={() => applyStickyColorToSelected(s.color)}
+                      className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
+                        stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                      }`}
+                      style={{ background: s.color }}
+                      title={`${s.name} Sticky Note`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            <span className="h-4 w-px bg-line" />
+
+            {/* Stroke Width Selector */}
+            <div className="flex items-center gap-1 text-xs">
+              {[1, 2, 4, 6].map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => {
+                    setStrokeWidth(w);
+                    if (selectedShapeIds.length > 0) {
+                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
+                    }
+                  }}
+                  className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
+                    strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"
+                  }`}
+                >
+                  {w}px
+                </button>
+              ))}
+            </div>
+
+            <span className="h-4 w-px bg-line" />
+
+            {/* Line Style (Solid / Dashed) */}
+            <div className="flex items-center gap-1 text-xs">
               <button
-                key={c}
-                type="button"
-                onClick={() => applyColorToSelected(c)}
-                className={`h-5 w-5 rounded-full transition-transform border border-line ${
-                  strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                }`}
-                style={{ background: c }}
-              />
-            ))}
-          </div>
-
-          {/* Sticky Note Colors (when activeTool === sticky) */}
-          {activeTool === "sticky" && (
-            <>
-              <span className="h-4 w-px bg-line" />
-              <div className="flex items-center gap-1">
-                {STICKY_COLORS.map((s) => (
-                  <button
-                    key={s.color}
-                    type="button"
-                    onClick={() => applyStickyColorToSelected(s.color)}
-                    className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
-                      stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                    }`}
-                    style={{ background: s.color }}
-                    title={`${s.name} Sticky Note`}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-
-          <span className="h-4 w-px bg-line" />
-
-          {/* Stroke Width Selector */}
-          <div className="flex items-center gap-1 text-xs">
-            {[1, 2, 4, 6].map((w) => (
-              <button
-                key={w}
                 type="button"
                 onClick={() => {
-                  setStrokeWidth(w);
+                  setLineStyle("solid");
                   if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
                   }
                 }}
-                className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
-                  strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                  lineStyle === "solid" ? "bg-ink text-white" : "text-muted hover:text-ink"
                 }`}
               >
-                {w}px
+                Solid
               </button>
-            ))}
-          </div>
-
-          <span className="h-4 w-px bg-line" />
-
-          {/* Line Style (Solid / Dashed) */}
-          <div className="flex items-center gap-1 text-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setLineStyle("solid");
-                if (selectedShapeIds.length > 0) {
-                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
-                }
-              }}
-              className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                lineStyle === "solid" ? "bg-ink text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              Solid
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setLineStyle("dashed");
-                if (selectedShapeIds.length > 0) {
-                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
-                }
-              }}
-              className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                lineStyle === "dashed" ? "bg-ink text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              Dashed
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLineStyle("dashed");
+                  if (selectedShapeIds.length > 0) {
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
+                  }
+                }}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                  lineStyle === "dashed" ? "bg-ink text-white" : "text-muted hover:text-ink"
+                }`}
+              >
+                Dashed
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1069,6 +1017,60 @@ export default function WhiteboardPage() {
           </button>
         </div>
       </header>
+
+      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Diagrams Tabs */}
+      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
+          title="Back to GAMAT FX Website"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> <span>Back to Site</span>
+        </button>
+
+        {/* Vertical Separator Line */}
+        <span className="h-5 w-px bg-line/80 shrink-0" />
+
+        {/* Diagram Tabs Bar */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[11px] font-bold text-muted flex items-center gap-1 shrink-0">
+            <Layers className="h-3.5 w-3.5 text-brand" /> Diagrams:
+          </span>
+          {tabs.map((tab) => (
+            <div
+              key={tab.id}
+              onClick={() => handleSelectTab(tab.id)}
+              className={`group flex items-center gap-2 rounded-t-xl px-3.5 py-1 text-xs font-bold cursor-pointer transition-all border-t border-x ${
+                activeTabId === tab.id
+                  ? "bg-white text-brand border-line shadow-sm"
+                  : "border-transparent text-muted hover:text-ink hover:bg-white/60"
+              }`}
+            >
+              <span>{tab.name}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseTab(tab.id);
+                }}
+                className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
+                title="Close Tab"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={handleAddNewTab}
+            className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
+            title="Create New Blank Diagram Tab"
+          >
+            <Plus className="h-3.5 w-3.5" /> New Tab
+          </button>
+        </div>
+      </div>
 
       {/* Main Miro Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
