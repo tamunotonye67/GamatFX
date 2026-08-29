@@ -88,21 +88,31 @@ import { useStore } from "../lib/store";
 
 /* Custom Forex SVG Icons */
 const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    {/* Left candle */}
-    <line x1="6" y1="3" x2="6" y2="7" />
-    <rect x="4" y="7" width="4" height="8" rx="0.5" fill="currentColor" fillOpacity="0.2" />
-    <line x1="6" y1="15" x2="6" y2="21" />
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Highlighted FVG Imbalance Corridor */}
+    <rect x="5" y="8" width="14" height="4" rx="0.75" fill="currentColor" fillOpacity="0.25" stroke="none" />
+    <line x1="3" y1="8" x2="21" y2="8" strokeWidth="1.2" strokeDasharray="2 1.5" opacity="0.9" />
+    <line x1="3" y1="12" x2="21" y2="12" strokeWidth="1.2" strokeDasharray="2 1.5" opacity="0.9" />
 
-    {/* Center tall imbalance candle */}
-    <line x1="12" y1="2" x2="12" y2="5" />
-    <rect x="10" y="5" width="4" height="13" rx="0.5" fill="currentColor" />
-    <line x1="12" y1="18" x2="12" y2="22" />
+    {/* Candle 1 (Left base candle) */}
+    <line x1="4.5" y1="12" x2="4.5" y2="20" strokeWidth="1.5" />
+    <rect x="3" y="14" width="3" height="4.5" rx="0.5" fill="currentColor" />
 
-    {/* Right candle */}
-    <line x1="18" y1="5" x2="18" y2="9" />
-    <rect x="16" y="9" width="4" height="8" rx="0.5" fill="currentColor" fillOpacity="0.2" />
-    <line x1="18" y1="17" x2="18" y2="21" />
+    {/* Candle 2 (Center tall expansion candle) */}
+    <line x1="12" y1="2" x2="12" y2="22" strokeWidth="1.75" />
+    <rect x="10" y="4" width="4" height="15" rx="0.75" fill="currentColor" />
+
+    {/* Candle 3 (Right high candle) */}
+    <line x1="19.5" y1="3" x2="19.5" y2="8" strokeWidth="1.5" />
+    <rect x="18" y="4.5" width="3" height="3" rx="0.5" fill="currentColor" />
   </svg>
 );
 
@@ -7443,10 +7453,24 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
   if (toolKey === "fvg") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="18" y="20" width="104" height="54" rx="4" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" strokeWidth="1.5" />
-        <line x1="18" y1="47" x2="122" y2="47" stroke="#f59e0b" strokeWidth="1" strokeDasharray="4 4" />
-        <text x="70" y="36" textAnchor="middle" fill="#f59e0b" fontSize="9" fontWeight="bold">FAIR VALUE GAP (FVG)</text>
-        <text x="70" y="60" textAnchor="middle" fill="#fde68a" fontSize="7.5" fontWeight="bold">50% C.E. Midline</text>
+        {/* Shaded FVG Imbalance Box */}
+        <rect x="25" y="32" width="90" height="26" rx="4" fill="rgba(245, 158, 11, 0.22)" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 3" />
+        <line x1="25" y1="45" x2="115" y2="45" stroke="#f59e0b" strokeWidth="1" strokeDasharray="2 2" />
+
+        {/* Candle 1 (Left base candle) */}
+        <line x1="38" y1="58" x2="38" y2="82" stroke="#64748b" strokeWidth="2" />
+        <rect x="33" y="64" width="10" height="14" rx="2" fill="#ef4444" />
+
+        {/* Candle 2 (Center tall green impulse candle) */}
+        <line x1="70" y1="12" x2="70" y2="84" stroke="#10b981" strokeWidth="2" />
+        <rect x="64" y="20" width="12" height="56" rx="2" fill="#10b981" />
+
+        {/* Candle 3 (Right high candle) */}
+        <line x1="102" y1="14" x2="102" y2="32" stroke="#64748b" strokeWidth="2" />
+        <rect x="97" y="16" width="10" height="12" rx="2" fill="#10b981" />
+
+        {/* FVG Label */}
+        <text x="70" y="48" textAnchor="middle" fill="#d97706" fontSize="9" fontWeight="900">FVG (50% C.E.)</text>
       </svg>
     );
   }
