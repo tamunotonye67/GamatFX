@@ -196,7 +196,7 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
   },
   sticky: {
     title: "Teaching Sticky Note",
-    desc: "Add colorful Miro-style sticky notes to write trading rules, teaching tips, or trade setups.",
+    desc: "Add colorful teaching sticky notes to write trading rules, teaching tips, or trade setups.",
     shortcut: "N",
   },
   text: {
@@ -540,7 +540,7 @@ export default function WhiteboardPage() {
         const toDup = shapes.filter((s) => selectedShapeIds.includes(s.id));
         const dups: Shape[] = toDup.map((s) => ({
           ...s,
-          id: `miro_dup_${Date.now()}_${Math.random()}`,
+          id: `shape_dup_${Date.now()}_${Math.random()}`,
           isLocked: false,
           points: s.points.map((p) => ({ x: p.x + 25, y: p.y + 25 })),
         }));
@@ -691,7 +691,7 @@ export default function WhiteboardPage() {
     const allShapes = [...shapes, ...(currentShape ? [currentShape] : [])];
     allShapes.forEach((s) => {
       if (!s.isHidden) {
-        renderMiroShape(ctx, s, selectedShapeIds.includes(s.id), defaultRiskReward);
+        renderWhiteboardShape(ctx, s, selectedShapeIds.includes(s.id), defaultRiskReward);
       }
     });
 
@@ -923,7 +923,7 @@ export default function WhiteboardPage() {
         if (e.altKey && !hitShape.isLocked) {
           const duplicatedShape: Shape = {
             ...hitShape,
-            id: `miro_dup_${Date.now()}`,
+            id: `shape_dup_${Date.now()}`,
             points: hitShape.points.map((p) => ({ x: p.x + 20, y: p.y + 20 })),
           };
           setShapes((prev) => [...prev, duplicatedShape]);
@@ -966,7 +966,7 @@ export default function WhiteboardPage() {
         });
       } else {
         const newShape: Shape = {
-          id: `miro_${Date.now()}`,
+          id: `shape_${Date.now()}`,
           type: "bezier",
           color: strokeColor,
           strokeWidth,
@@ -997,7 +997,7 @@ export default function WhiteboardPage() {
       activeTool === "long" ? "#10b981" : activeTool === "short" ? "#dc3545" : strokeColor;
 
     const newShape: Shape = {
-      id: `miro_${Date.now()}`,
+      id: `shape_${Date.now()}`,
       type: activeTool,
       color: defaultForexColor,
       strokeWidth,
@@ -1157,7 +1157,7 @@ export default function WhiteboardPage() {
     if (!textValue.trim() || !textModalPos) return;
 
     const newShape: Shape = {
-      id: `miro_${Date.now()}`,
+      id: `shape_${Date.now()}`,
       type: isStickyMode ? "sticky" : "text",
       color: strokeColor,
       strokeWidth,
@@ -1177,7 +1177,7 @@ export default function WhiteboardPage() {
   const duplicateSelectedObject = (shapeToDup: Shape) => {
     const dup: Shape = {
       ...shapeToDup,
-      id: `miro_dup_${Date.now()}`,
+      id: `shape_dup_${Date.now()}`,
       isLocked: false,
       points: shapeToDup.points.map((p) => ({ x: p.x + 25, y: p.y + 25 })),
     };
@@ -2422,12 +2422,12 @@ export default function WhiteboardPage() {
         </div>
       </div>
 
-      {/* Main Miro Workspace */}
+      {/* Main Whiteboard Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Toolbar Dock */}
         <aside className="w-14 border-r border-line bg-white p-1.5 flex flex-col items-center justify-between gap-2 shrink-0 z-20 shadow-md">
           <div className="space-y-1 w-full">
-            <MiroToolBtn
+            <WhiteboardToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
               onContextMenu={(e) => {
@@ -2439,7 +2439,7 @@ export default function WhiteboardPage() {
               icon={MousePointer}
               showTooltips={showTooltips}
             />
-            <MiroToolBtn
+            <WhiteboardToolBtn
               active={activeTool === "hand"}
               onClick={() => setActiveTool("hand")}
               onContextMenu={(e) => {
@@ -2454,7 +2454,7 @@ export default function WhiteboardPage() {
 
             {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={["fibo", "long", "short"].includes(activeTool)}
                 onClick={() => setActiveTool(activeForexTool)}
                 onContextMenu={(e) => {
@@ -2535,7 +2535,7 @@ export default function WhiteboardPage() {
 
             {/* 2. FREEHAND GROUP */}
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={activeTool === "pencil" || activeTool === "highlighter"}
                 onClick={() => setActiveTool(activePenTool)}
                 onContextMenu={(e) => {
@@ -2583,7 +2583,7 @@ export default function WhiteboardPage() {
 
             {/* 3. SHAPES GROUP */}
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
                 onClick={() => setActiveTool(activeShapeTool)}
                 onContextMenu={(e) => {
@@ -2644,7 +2644,7 @@ export default function WhiteboardPage() {
 
             {/* 4. LINES & PATHS GROUP */}
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={activeTool === "line" || activeTool === "arrow" || activeTool === "bezier"}
                 onClick={() => setActiveTool(activeLineTool)}
                 onContextMenu={(e) => {
@@ -2712,7 +2712,7 @@ export default function WhiteboardPage() {
 
             {/* 5. TEXT & STICKY NOTES GROUP */}
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={activeTool === "text" || activeTool === "sticky"}
                 onClick={() => setActiveTool(activeNoteTool)}
                 onContextMenu={(e) => {
@@ -2764,7 +2764,7 @@ export default function WhiteboardPage() {
             </div>
 
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={activeTool === "eraser"}
                 onClick={() => setActiveTool("eraser")}
                 onContextMenu={(e) => {
@@ -2779,7 +2779,7 @@ export default function WhiteboardPage() {
             </div>
 
             <div className="relative">
-              <MiroToolBtn
+              <WhiteboardToolBtn
                 active={activeTool === "zoom"}
                 onClick={() => setActiveTool("zoom")}
                 onContextMenu={(e) => {
@@ -2828,7 +2828,7 @@ export default function WhiteboardPage() {
           </div>
         </aside>
 
-        {/* Central Miro Drawing Canvas */}
+        {/* Central Whiteboard Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
           {/* Bottom Zoom & Navigation Bar */}
           <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
@@ -3979,10 +3979,10 @@ export default function WhiteboardPage() {
 }
 
 /* ========================================================================== */
-/*                             MIRO DRAWING ENGINE                            */
+/*                          WHITEBOARD DRAWING ENGINE                         */
 /* ========================================================================== */
 
-function MiroToolBtn({
+function WhiteboardToolBtn({
   active,
   onClick,
   onContextMenu,
@@ -4350,8 +4350,8 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
   return { ...shape, points: newPts };
 }
 
-/** Renders shapes, Miro sticky notes, and Forex Trading Tools on canvas */
-function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false, defaultRiskReward: number = 3) {
+/** Renders shapes, sticky notes, and Forex Trading Tools on canvas */
+function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false, defaultRiskReward: number = 3) {
   const pts = shape.points;
   if (pts.length === 0) return;
 
