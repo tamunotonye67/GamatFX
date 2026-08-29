@@ -624,7 +624,7 @@ const HUB_LESSONS: HubLessonItem[] = [
 ];
 
 const INITIAL_TABS: DiagramTab[] = [
-  { id: "blank", name: "Blank Canvas" },
+  { id: "canvas_1", name: "Canvas 1" },
 ];
 
 /* ========================================================================== */
@@ -658,7 +658,7 @@ export default function WhiteboardPage() {
   };
 
   const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
-  const [activeTabId, setActiveTabId] = useState("blank");
+  const [activeTabId, setActiveTabId] = useState("canvas_1");
   const [draggedTabIdx, setDraggedTabIdx] = useState<number | null>(null);
 
   // Saved Drafts & Trashed Tabs State (Persistent LocalStorage)
@@ -722,13 +722,21 @@ export default function WhiteboardPage() {
   const [shortcutFilter, setShortcutFilter] = useState("");
   const [maxTabPromptOpen, setMaxTabPromptOpen] = useState(false);
 
+  // Tab Renaming & Tab Context Menu State
+  const [editingTabId, setEditingTabId] = useState<string | null>(null);
+  const [editingTabName, setEditingTabName] = useState("");
+  const [tabContextMenu, setTabContextMenu] = useState<{
+    x: number;
+    y: number;
+    tabId: string;
+    tabName: string;
+  } | null>(null);
+
   // Comprehensive New Canvas Creator Modal State
   const [createCanvasModalOpen, setCreateCanvasModalOpen] = useState(false);
   const [newCanvasName, setNewCanvasName] = useState("");
   const [newCanvasTheme, setNewCanvasTheme] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
   const [newCanvasTemplate, setNewCanvasTemplate] = useState<"blank" | "risk_1_3" | "smc_zones" | "killzones" | "top_down">("blank");
-  const [newCanvasPair, setNewCanvasPair] = useState("EUR/USD");
-  const [newCanvasTimeframe, setNewCanvasTimeframe] = useState("15m");
   const [newCanvasSnapToGrid, setNewCanvasSnapToGrid] = useState(true);
 
   // Custom New Tab Naming Modal State
@@ -817,6 +825,15 @@ export default function WhiteboardPage() {
       document.removeEventListener("mousedown", handleDocClick);
       document.removeEventListener("keydown", handleDocKey);
     };
+  }, []);
+
+  // Close Tab Context Menu on Global Outside Click
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setTabContextMenu(null);
+    };
+    window.addEventListener("click", handleGlobalClick);
+    return () => window.removeEventListener("click", handleGlobalClick);
   }, []);
 
   /* Sync LocalStorage whenever drafts or trash state changes */
@@ -951,6 +968,8 @@ export default function WhiteboardPage() {
         setSelectedShapeIds([]);
         setActiveTool("select");
         setContextMenu(null);
+        setTabContextMenu(null);
+        setEditingTabId(null);
         setDiagramsMenuOpen(false);
         setShortcutsOpen(false);
         setSettingsOpen(false);
@@ -1265,6 +1284,7 @@ export default function WhiteboardPage() {
     setSettingsOpen(false);
     setFlyoutGroup(null);
     setContextMenu(null);
+    setTabContextMenu(null);
     setDiagramsMenuOpen(false);
 
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
@@ -1742,7 +1762,7 @@ export default function WhiteboardPage() {
           color: "#16181c",
           strokeWidth: 2,
           points: [{ x: 520, y: 120 }],
-          text: `📊 TRADE PLAN: ${newCanvasPair || "EUR/USD"} (${newCanvasTimeframe || "15m"})\n\n• Entry Model: 1:3 R:R Institutional Setup\n• Max Risk: 1.0% Capital\n• Target: Liquidity High Pool\n• Invalidation: Below Swing Low`,
+          text: `📊 TRADE PLAN & RISK RULES\n\n• Entry Model: 1:3 R:R Institutional Setup\n• Max Risk: 1.0% Capital\n• Target: Liquidity High Pool\n• Invalidation: Below Key Low`,
           stickyColor: "#bbf7d0",
         },
       ];
@@ -1760,7 +1780,7 @@ export default function WhiteboardPage() {
           color: "#16181c",
           strokeWidth: 2,
           points: [{ x: 580, y: 120 }],
-          text: `⚡ SMC ANALYSIS: ${newCanvasPair || "EUR/USD"} (${newCanvasTimeframe || "15m"})\n\n• HTF Trend Bias: Bullish\n• Target Zone: External Range Liquidity\n• Confirmation: LTF CHoCH on 5m\n• Entry: 50% FVG mitigation`,
+          text: `⚡ SMC ANALYSIS GUIDE\n\n• HTF Trend Bias: Bullish Order Flow\n• Target Zone: External Range Liquidity\n• Confirmation: LTF CHoCH Trigger\n• Entry: 50% FVG Mitigation`,
           stickyColor: "#bae6fd",
         },
       ];
@@ -1778,7 +1798,7 @@ export default function WhiteboardPage() {
           color: "#16181c",
           strokeWidth: 2,
           points: [{ x: 740, y: 120 }],
-          text: `⏱️ KILLZONES: ${newCanvasPair || "EUR/USD"}\n\n• Look for Asian High/Low manipulation.\n• London Judas Swing sweeps liquidity.\n• New York Open continuation impulse.`,
+          text: `⏱️ KILLZONES RULES\n\n• Look for Asian High/Low manipulation.\n• London Judas Swing sweeps liquidity.\n• New York Open continuation impulse.`,
           stickyColor: "#fef08a",
         },
       ];
@@ -1796,7 +1816,7 @@ export default function WhiteboardPage() {
           color: "#16181c",
           strokeWidth: 2,
           points: [{ x: 850, y: 120 }],
-          text: `🔍 TOP-DOWN: ${newCanvasPair || "EUR/USD"}\n\n• HTF: Directional Order Flow\n• ITF: Key Supply/Demand POIs\n• LTF: Entry confirmation & tight SL`,
+          text: `🔍 TOP-DOWN FRAMEWORK\n\n• HTF: Directional Order Flow\n• ITF: Key Supply/Demand POIs\n• LTF: Entry confirmation & tight SL`,
           stickyColor: "#ddd6fe",
         },
       ];
@@ -1810,6 +1830,41 @@ export default function WhiteboardPage() {
 
   const handleConfirmCreateTab = () => {
     handleConfirmCreateCustomCanvas();
+  };
+
+  const handleStartRenameTab = (tabId: string, currentName: string) => {
+    setEditingTabId(tabId);
+    setEditingTabName(currentName);
+    setTabContextMenu(null);
+  };
+
+  const handleSaveRenameTab = () => {
+    if (!editingTabId) return;
+    const finalName = editingTabName.trim() || "Untitled Canvas";
+    setTabs((prev) => prev.map((t) => (t.id === editingTabId ? { ...t, name: finalName } : t)));
+    setEditingTabId(null);
+    setEditingTabName("");
+    showToast(`Renamed tab to "${finalName}"`);
+  };
+
+  const handleDuplicateTab = (tabIdToDup: string) => {
+    if (tabs.length >= 5) {
+      setMaxTabPromptOpen(true);
+      showToast("Tab limit reached! (Maximum 5 tabs)");
+      return;
+    }
+    const sourceTab = tabs.find((t) => t.id === tabIdToDup);
+    if (!sourceTab) return;
+    const newId = `tab_${Date.now()}`;
+    const newName = `${sourceTab.name} (Copy)`;
+    setTabs((prev) => [...prev, { id: newId, name: newName }]);
+    if (activeTabId === tabIdToDup) {
+      setActiveTabId(newId);
+    } else {
+      setActiveTabId(newId);
+    }
+    setTabContextMenu(null);
+    showToast(`Duplicated tab: "${newName}"`);
   };
 
   const handleCloseTab = (tabIdToClose: string) => {
@@ -2506,51 +2561,6 @@ export default function WhiteboardPage() {
                   </button>
                 );
               })}
-            </div>
-          </div>
-
-          {/* Trading Details: Pair & Timeframe */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Asset / Market Pair */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-ink">Asset / Currency Pair</label>
-              <div className="flex flex-wrap gap-1">
-                {["EUR/USD", "GBP/USD", "USD/JPY", "XAU/USD", "BTC/USD", "NAS100"].map((pair) => (
-                  <button
-                    key={pair}
-                    type="button"
-                    onClick={() => setNewCanvasPair(pair)}
-                    className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer ${
-                      newCanvasPair === pair
-                        ? "bg-brand text-white border-brand shadow-xs"
-                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {pair}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Timeframe Bias */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-ink">Trading Timeframe</label>
-              <div className="flex flex-wrap gap-1">
-                {["1m", "5m", "15m", "1H", "4H", "Daily", "Weekly"].map((tf) => (
-                  <button
-                    key={tf}
-                    type="button"
-                    onClick={() => setNewCanvasTimeframe(tf)}
-                    className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer ${
-                      newCanvasTimeframe === tf
-                        ? "bg-brand text-white border-brand shadow-xs"
-                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {tf}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -4120,7 +4130,7 @@ export default function WhiteboardPage() {
       {/* TradingView-Style Floating Draggable Favorites Toolbar */}
       {favoritedTools.length > 0 && showFavoritesBar && (
         <div
-          className="fixed z-50 flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
+          className="fixed z-[150] flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
           style={{ left: favPos.x, top: favPos.y }}
         >
           <div
@@ -4658,7 +4668,7 @@ export default function WhiteboardPage() {
             {tabs.map((tab, idx) => (
               <div
                 key={tab.id}
-                draggable
+                draggable={editingTabId !== tab.id}
                 onDragStart={() => setDraggedTabIdx(idx)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => {
@@ -4674,25 +4684,61 @@ export default function WhiteboardPage() {
                   }
                 }}
                 onClick={() => handleSelectTab(tab.id)}
-                className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 ${
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setTabContextMenu({
+                    x: Math.min(e.clientX, window.innerWidth - 220),
+                    y: Math.min(e.clientY, window.innerHeight - 260),
+                    tabId: tab.id,
+                    tabName: tab.name,
+                  });
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  handleStartRenameTab(tab.id, tab.name);
+                }}
+                className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
                   activeTabId === tab.id
                     ? "bg-white text-brand border-line shadow-sm"
                     : "border-transparent text-muted hover:text-ink hover:bg-white/60"
                 }`}
-                title={`Drag to reorder "${tab.name}"`}
+                title={`Right-click for options • Double-click to rename • Drag to reorder "${tab.name}"`}
               >
                 <GripVertical className="h-3 w-3 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
-                {/* Ellipsis Truncated Tab Name */}
-                <span className="truncate max-w-[140px] inline-block align-bottom">
-                  {tab.name}
-                </span>
+                {/* Editable / Truncated Tab Name */}
+                {editingTabId === tab.id ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editingTabName}
+                    onChange={(e) => setEditingTabName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveRenameTab();
+                      else if (e.key === "Escape") setEditingTabId(null);
+                    }}
+                    onBlur={handleSaveRenameTab}
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-1.5 py-0.5 rounded border border-brand bg-white text-xs font-bold text-ink outline-none w-28 shadow-xs"
+                  />
+                ) : (
+                  <span
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      handleStartRenameTab(tab.id, tab.name);
+                    }}
+                    className="truncate max-w-[140px] inline-block align-bottom"
+                  >
+                    {tab.name}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCloseTab(tab.id);
                   }}
-                  className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
+                  className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition cursor-pointer"
                   title="Move to Trash"
                 >
                   <X className="h-3 w-3" />
@@ -4704,7 +4750,7 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={handleAddNewTab}
-              className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1 shrink-0"
+              className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1 shrink-0 cursor-pointer"
               title="Create New Diagram Tab (Max 5)"
             >
               <Plus className="h-3.5 w-3.5" /> New Tab
@@ -5350,9 +5396,83 @@ export default function WhiteboardPage() {
             </div>
           )}
 
+          {/* TAB RIGHT-CLICK CONTEXT MENU */}
+          {tabContextMenu && (
+            <div
+              className="fixed z-[200] w-52 rounded-2xl border border-line bg-white/95 p-1.5 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 text-xs font-medium"
+              style={{ left: tabContextMenu.x, top: tabContextMenu.y }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-muted border-b border-line mb-1 truncate">
+                {tabContextMenu.tabName}
+              </div>
+              <button
+                type="button"
+                onClick={() => handleStartRenameTab(tabContextMenu.tabId, tabContextMenu.tabName)}
+                className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-700 hover:bg-cream hover:text-brand transition cursor-pointer"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                <span>Rename Tab</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDuplicateTab(tabContextMenu.tabId)}
+                className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-700 hover:bg-cream hover:text-brand transition cursor-pointer"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span>Duplicate Tab</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBgOpen(true);
+                  setTabContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-700 hover:bg-cream hover:text-brand transition cursor-pointer"
+              >
+                <Grid className="h-3.5 w-3.5" />
+                <span>Change Theme / Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleSaveCurrentDraft();
+                  setTabContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-700 hover:bg-cream hover:text-brand transition cursor-pointer"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Save as Draft</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setExportOpen(true);
+                  setTabContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-700 hover:bg-cream hover:text-brand transition cursor-pointer"
+              >
+                <FileImage className="h-3.5 w-3.5" />
+                <span>Export Diagram</span>
+              </button>
+              <div className="h-px bg-line my-1" />
+              <button
+                type="button"
+                onClick={() => {
+                  handleCloseTab(tabContextMenu.tabId);
+                  setTabContextMenu(null);
+                }}
+                className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Close & Move to Trash</span>
+              </button>
+            </div>
+          )}
+
           {/* EXPANDED KEYBOARD SHORTCUTS REFERENCE MODAL */}
           {shortcutsOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+            <div className="fixed inset-0 z-[300] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
               <div className="w-full max-w-2xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 max-h-[88vh] flex flex-col">
                 {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-line pb-3 shrink-0">
@@ -5368,7 +5488,7 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => setShortcutsOpen(false)}
-                    className="rounded-xl p-1.5 text-muted hover:text-ink hover:bg-cream transition"
+                    className="rounded-xl p-1.5 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
                   >
                     <X className="h-5 w-5" />
                   </button>
