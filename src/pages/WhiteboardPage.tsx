@@ -4719,14 +4719,14 @@ export default function WhiteboardPage() {
                   e.stopPropagation();
                   handleStartRenameTab(tab.id, tab.name);
                 }}
-                className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
+                className={`group flex items-center gap-1.5 rounded-t-xl px-2.5 py-1 text-[11px] font-semibold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
                   activeTabId === tab.id
-                    ? "bg-white text-brand border-line shadow-sm"
+                    ? "bg-white text-brand border-line shadow-xs font-bold"
                     : "border-transparent text-muted hover:text-ink hover:bg-white/60"
                 }`}
                 title={`Right-click for options • Double-click to rename • Drag to reorder "${tab.name}"`}
               >
-                <GripVertical className="h-3 w-3 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
+                <GripVertical className="h-2.5 w-2.5 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
                 {/* Editable / Truncated Tab Name */}
                 {editingTabId === tab.id ? (
                   <input
@@ -4740,7 +4740,7 @@ export default function WhiteboardPage() {
                     }}
                     onBlur={handleSaveRenameTab}
                     onClick={(e) => e.stopPropagation()}
-                    className="px-1.5 py-0.5 rounded border border-brand bg-white text-xs font-bold text-ink outline-none w-28 shadow-xs"
+                    className="px-1 py-0.5 rounded border border-brand bg-white text-[11px] font-bold text-ink outline-none w-24 shadow-xs"
                   />
                 ) : (
                   <span
@@ -4748,7 +4748,7 @@ export default function WhiteboardPage() {
                       e.stopPropagation();
                       handleStartRenameTab(tab.id, tab.name);
                     }}
-                    className="truncate max-w-[140px] inline-block align-bottom"
+                    className="truncate max-w-[130px] inline-block align-bottom text-[11px]"
                   >
                     {tab.name}
                   </span>
@@ -4762,19 +4762,19 @@ export default function WhiteboardPage() {
                   className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition cursor-pointer"
                   title="Move to Trash"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-2.5 w-2.5" />
                 </button>
               </div>
             ))}
 
-            {/* New Tab Button */}
+            {/* New Tab Plus Button */}
             <button
               type="button"
               onClick={handleAddNewTab}
-              className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1 shrink-0 cursor-pointer"
+              className="flex items-center justify-center h-6 w-6 rounded-lg border border-dashed border-slate-300 text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1 shrink-0 cursor-pointer"
               title="Create New Diagram Tab (Max 5)"
             >
-              <Plus className="h-3.5 w-3.5" /> New Tab
+              <Plus className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
