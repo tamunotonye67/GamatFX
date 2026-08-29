@@ -167,6 +167,40 @@ const TradingViewShortIcon = ({ className = "h-3.5 w-3.5" }: { className?: strin
   </svg>
 );
 
+const BullishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Full Wick */}
+    <line x1="12" y1="2" x2="12" y2="22" stroke="#10b981" />
+    {/* Bullish Green Body */}
+    <rect x="7" y="6" width="10" height="12" rx="1.5" fill="#10b981" fillOpacity="0.3" stroke="#10b981" strokeWidth="2" />
+  </svg>
+);
+
+const BearishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Full Wick */}
+    <line x1="12" y1="2" x2="12" y2="22" stroke="#ef4444" />
+    {/* Bearish Red Body */}
+    <rect x="7" y="6" width="10" height="12" rx="1.5" fill="#ef4444" fillOpacity="0.3" stroke="#ef4444" strokeWidth="2" />
+  </svg>
+);
+
 /* ========================================================================== */
 /*                               TYPES & DATA                                 */
 /* ========================================================================== */
@@ -192,7 +226,9 @@ type Tool =
   | "orderblock"
   | "fvg"
   | "bos"
-  | "liquidity";
+  | "liquidity"
+  | "bullish_candle"
+  | "bearish_candle";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -358,6 +394,16 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     desc: "Mark Buy-Side (BSL) and Sell-Side (SSL) liquidity sweep pools and equal highs/lows.",
     shortcut: "Q",
   },
+  bullish_candle: {
+    title: "Bullish Candlestick",
+    desc: "Draw an authentic TradingView-style green Bullish Candlestick with upper and lower wicks.",
+    shortcut: "U",
+  },
+  bearish_candle: {
+    title: "Bearish Candlestick",
+    desc: "Draw an authentic TradingView-style red Bearish Candlestick with upper and lower wicks.",
+    shortcut: "J",
+  },
 };
 
 interface ShortcutItem {
@@ -400,6 +446,8 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Fair Value Gap (FVG)", keys: ["G"] },
       { label: "Break of Structure (BOS)", keys: ["K"] },
       { label: "Liquidity Pool ($$$)", keys: ["Q"] },
+      { label: "Bullish Candlestick", keys: ["U"] },
+      { label: "Bearish Candlestick", keys: ["J"] },
     ],
   },
   {
@@ -787,11 +835,11 @@ export default function WhiteboardPage() {
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
-  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity">("fibo");
+  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "bullish_candle" | "bearish_candle">("fibo");
   const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky">("text");
 
   // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
-  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity"]);
+  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"]);
   const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
@@ -1140,6 +1188,8 @@ export default function WhiteboardPage() {
         else if (key === "g") { setActiveForexTool("fvg"); setActiveTool("fvg"); showToast("Forex Tool: Fair Value Gap / FVG (G)"); }
         else if (key === "k") { setActiveForexTool("bos"); setActiveTool("bos"); showToast("Forex Tool: Break of Structure / BOS (K)"); }
         else if (key === "q") { setActiveForexTool("liquidity"); setActiveTool("liquidity"); showToast("Forex Tool: Liquidity Pool / $$$ (Q)"); }
+        else if (key === "u") { setActiveForexTool("bullish_candle"); setActiveTool("bullish_candle"); showToast("Forex Tool: Bullish Candlestick (U)"); }
+        else if (key === "j") { setActiveForexTool("bearish_candle"); setActiveTool("bearish_candle"); showToast("Forex Tool: Bearish Candlestick (J)"); }
       }
     };
 
@@ -1180,65 +1230,78 @@ export default function WhiteboardPage() {
     const gridColor = isDarkBg ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
 
     if (bgGrid === "dots") {
+      const dotSpacing = 24;
+      const startX = Math.floor(-pan.x / zoom / dotSpacing) * dotSpacing;
+      const endX = startX + width / zoom + dotSpacing * 2;
+      const startY = Math.floor(-pan.y / zoom / dotSpacing) * dotSpacing;
+      const endY = startY + height / zoom + dotSpacing * 2;
+
       ctx.fillStyle = gridColor;
-      const step = 28;
-      for (let x = -2000; x < 4000; x += step) {
-        for (let y = -2000; y < 4000; y += step) {
+      for (let x = startX; x < endX; x += dotSpacing) {
+        for (let y = startY; y < endY; y += dotSpacing) {
           ctx.beginPath();
-          ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+          ctx.arc(x, y, 1.2 / zoom, 0, Math.PI * 2);
           ctx.fill();
         }
       }
     } else if (bgGrid === "lines") {
+      const lineSpacing = 30;
+      const startX = Math.floor(-pan.x / zoom / lineSpacing) * lineSpacing;
+      const endX = startX + width / zoom + lineSpacing * 2;
+      const startY = Math.floor(-pan.y / zoom / lineSpacing) * lineSpacing;
+      const endY = startY + height / zoom + lineSpacing * 2;
+
       ctx.strokeStyle = gridColor;
-      ctx.lineWidth = 0.8;
-      const step = 32;
-      for (let x = -2000; x < 4000; x += step) {
-        ctx.beginPath();
-        ctx.moveTo(x, -2000);
-        ctx.lineTo(x, 4000);
-        ctx.stroke();
+      ctx.lineWidth = 1 / zoom;
+      ctx.beginPath();
+      for (let x = startX; x < endX; x += lineSpacing) {
+        ctx.moveTo(x, startY);
+        ctx.lineTo(x, endY);
       }
-      for (let y = -2000; y < 4000; y += step) {
-        ctx.beginPath();
-        ctx.moveTo(-2000, y);
-        ctx.lineTo(4000, y);
-        ctx.stroke();
+      for (let y = startY; y < endY; y += lineSpacing) {
+        ctx.moveTo(startX, y);
+        ctx.lineTo(endX, y);
       }
+      ctx.stroke();
     }
 
-    // Render All Shapes & Sticky Notes (skip hidden shapes!)
-    const allShapes = [...shapes, ...(currentShape ? [currentShape] : [])];
-    allShapes.forEach((s) => {
+    // Render All Shapes (Back-to-Front)
+    shapes.forEach((s) => {
       if (!s.isHidden) {
-        renderWhiteboardShape(ctx, s, selectedShapeIds.includes(s.id), defaultRiskReward);
+        const isSel = selectedShapeIds.includes(s.id);
+        renderWhiteboardShape(ctx, s, isSel, defaultRiskReward);
       }
     });
 
-    // Render Marquee Selection Rubberband Box
+    // Render Currently Active In-Progress Shape
+    if (currentShape) {
+      renderWhiteboardShape(ctx, currentShape, false, defaultRiskReward);
+    }
+
+    // Render Multi-Select Marquee Drag Box
     if (marqueeBox) {
       const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
       const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
       const minY = Math.min(marqueeBox.y1, marqueeBox.y2);
       const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
 
-      ctx.strokeStyle = "#3b82f6";
-      ctx.lineWidth = 1;
       ctx.fillStyle = "rgba(59, 130, 246, 0.12)";
-      ctx.setLineDash([4, 4]);
       ctx.fillRect(minX, minY, maxX - minX, maxY - minY);
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 1.5 / zoom;
+      ctx.setLineDash([4 / zoom, 4 / zoom]);
       ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
       ctx.setLineDash([]);
     }
 
     ctx.restore();
-  }, [shapes, currentShape, selectedShapeIds, marqueeBox, bgGrid, pan, zoom, defaultRiskReward]);
+  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward]);
 
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
   const selectTool = (tool: ToolType) => {
     setActiveTool(tool);
-    if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity"].includes(tool)) {
+    if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(tool)) {
       setActiveForexTool(tool as any);
     } else if (tool === "pencil" || tool === "highlighter") {
       setActivePenTool(tool);
@@ -1536,9 +1599,9 @@ export default function WhiteboardPage() {
     }
 
     const defaultForexColor =
-      activeTool === "long"
+      activeTool === "long" || activeTool === "bullish_candle"
         ? "#10b981"
-        : activeTool === "short"
+        : activeTool === "short" || activeTool === "bearish_candle"
         ? "#dc3545"
         : activeTool === "orderblock"
         ? "#8b5cf6"
@@ -1660,8 +1723,13 @@ export default function WhiteboardPage() {
     }
 
     // 3. Selection Marquee Box
-    if (marqueeBox) {
-      setMarqueeBox((prev) => (prev ? { ...prev, x2: pt.x, y2: pt.y } : null));
+    if (isDrawing.current && activeTool === "select" && dragStartPt.current) {
+      setMarqueeBox({
+        x1: dragStartPt.current.x,
+        y1: dragStartPt.current.y,
+        x2: pt.x,
+        y2: pt.y,
+      });
       return;
     }
 
@@ -1695,7 +1763,9 @@ export default function WhiteboardPage() {
       currentShape.type === "orderblock" ||
       currentShape.type === "fvg" ||
       currentShape.type === "bos" ||
-      currentShape.type === "liquidity"
+      currentShape.type === "liquidity" ||
+      currentShape.type === "bullish_candle" ||
+      currentShape.type === "bearish_candle"
     ) {
       setCurrentShape({
         ...currentShape,
@@ -4999,7 +5069,7 @@ export default function WhiteboardPage() {
             {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
             <div className="relative">
               <WhiteboardToolBtn
-                active={["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity"].includes(activeTool)}
+                active={["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(activeTool)}
                 onClick={() => selectTool(activeForexTool)}
                 onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "forex" ? null : "forex")}
                 onContextMenu={(e) => {
@@ -5167,6 +5237,50 @@ export default function WhiteboardPage() {
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("liquidity"); }}
                         className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("liquidity") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 8. Bullish Candlestick */}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("bullish_candle"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      activeForexTool === "bullish_candle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <BullishCandleIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Bullish Candlestick</span>
+                    </span>
+                    <span title={favoritedTools.includes("bullish_candle") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bullish_candle"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bullish_candle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 9. Bearish Candlestick */}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("bearish_candle"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      activeForexTool === "bearish_candle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <BearishCandleIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Bearish Candlestick</span>
+                    </span>
+                    <span title={favoritedTools.includes("bearish_candle") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bearish_candle"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bearish_candle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -6808,6 +6922,29 @@ export default function WhiteboardPage() {
                             </div>
                           </div>
 
+                          {/* Micro Label Input */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? `1:${defaultRiskReward.toFixed(1)}`}
+                                placeholder="e.g. 1:3.0, TP 1, Swing Long..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
                           <div className="grid grid-cols-2 gap-2 text-[11px] font-bold">
                             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
                               <span className="block text-[9px] uppercase tracking-wider text-emerald-600">Take Profit</span>
@@ -6845,6 +6982,29 @@ export default function WhiteboardPage() {
                             </div>
                           </div>
 
+                          {/* Micro Label Input */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? "OB"}
+                                placeholder="e.g. OB, H4 Supply..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
                           {/* Mitigation Line */}
                           <div className="p-2.5 rounded-xl bg-purple-50 text-purple-900 border border-purple-200 text-xs space-y-1">
                             <div className="flex items-center justify-between font-bold">
@@ -6879,6 +7039,29 @@ export default function WhiteboardPage() {
                               ))}
                             </div>
                           </div>
+
+                          {/* Micro Label Input */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? "FVG"}
+                                placeholder="e.g. FVG, M15 Imbalance..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
 
                           {/* Consequent Encroachment (50% C.E.) */}
                           <div className="p-2.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-xs space-y-1">
@@ -6915,6 +7098,29 @@ export default function WhiteboardPage() {
                             </div>
                           </div>
 
+                          {/* Micro Label Input */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? "BOS"}
+                                placeholder="e.g. BOS, CHoCH, MSS..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
                           <div className="p-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-xs font-medium space-y-1">
                             <div className="flex items-center justify-between font-bold">
                               <span>Structure Type</span>
@@ -6949,12 +7155,149 @@ export default function WhiteboardPage() {
                             </div>
                           </div>
 
+                          {/* Micro Label Input */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? "$$$"}
+                                placeholder="e.g. $$$ , BSL, SSL, EQH..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
                           <div className="p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-200 text-xs font-medium space-y-1">
                             <div className="flex items-center justify-between font-bold">
                               <span>Liquidity Pool Target</span>
                               <span className="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-800 font-mono">BSL / SSL</span>
                             </div>
                             <p className="text-[11px] text-rose-700">Equal highs (BSL) or equal lows (SSL) stop run magnet.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (L) BULLISH CANDLESTICK */}
+                      {targetTool === "bullish_candle" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Bullish Candlestick</p>
+
+                          {/* Candle Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Candle Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Micro Label Tag */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? ""}
+                                placeholder="e.g. Bullish Engulfing, Hammer..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
+                          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs font-medium space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>Bullish Candle</span>
+                              <span className="text-[10px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-800 font-mono">Close &gt; Open</span>
+                            </div>
+                            <p className="text-[11px] text-emerald-700">Drag high to low to draw candlestick with proportional wicks and body.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (M) BEARISH CANDLESTICK */}
+                      {targetTool === "bearish_candle" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Bearish Candlestick</p>
+
+                          {/* Candle Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Candle Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Micro Label Tag */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? ""}
+                                placeholder="e.g. Shooting Star, Bearish Engulfing..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
+                          <div className="p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-200 text-xs font-medium space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>Bearish Candle</span>
+                              <span className="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-800 font-mono">Open &gt; Close</span>
+                            </div>
+                            <p className="text-[11px] text-rose-700">Drag high to low to draw candlestick with proportional wicks and body.</p>
                           </div>
                         </div>
                       )}
@@ -7731,6 +8074,8 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "fvg": return FvgCandlesIcon;
     case "bos": return BosIcon;
     case "liquidity": return Target;
+    case "bullish_candle": return BullishCandleIcon;
+    case "bearish_candle": return BearishCandleIcon;
     default: return Pencil;
   }
 }
@@ -7801,7 +8146,9 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
     shape.type === "orderblock" ||
     shape.type === "fvg" ||
     shape.type === "bos" ||
-    shape.type === "liquidity"
+    shape.type === "liquidity" ||
+    shape.type === "bullish_candle" ||
+    shape.type === "bearish_candle"
   ) {
     let p0 = { ...pts[0] };
     let p1 = { ...pts[1] };
@@ -7913,7 +8260,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.fillStyle = "rgba(234, 179, 8, 0.18)";
     ctx.fillRect(Math.min(x1, x2), Math.min(y50, y618), Math.abs(width), Math.abs(y618 - y50));
 
-    // Draw level lines & text tags
+    // Draw level lines & subtle micro-percentage labels
     fibLevels.forEach((lvl) => {
       const ly = y1 + height * lvl.ratio;
       ctx.strokeStyle = lvl.color;
@@ -7925,8 +8272,8 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
       ctx.stroke();
 
       ctx.fillStyle = lvl.color;
-      ctx.font = "bold 11px Inter, sans-serif";
-      ctx.fillText(lvl.label, Math.max(x1, x2) + 8, ly + 4);
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(lvl.label.split(" ")[0], Math.max(x1, x2) + 6, ly + 3);
     });
   } else if (shape.type === "long" && pts.length >= 2) {
     /* 2. LONG POSITION CALCULATOR TOOL */
@@ -7962,6 +8309,14 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.moveTo(minX, yEntry);
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
+
+    // TradingView Micro-Label
+    const labelText = shape.text !== undefined ? shape.text : `1:${defaultRiskReward.toFixed(1)}`;
+    if (labelText) {
+      ctx.fillStyle = "#10b981";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(labelText, minX + 6, yEntry - 5);
+    }
   } else if (shape.type === "short" && pts.length >= 2) {
     /* 3. SHORT POSITION CALCULATOR TOOL */
     const x1 = pts[0].x;
@@ -7996,6 +8351,14 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.moveTo(minX, yEntry);
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
+
+    // TradingView Micro-Label
+    const labelText = shape.text !== undefined ? shape.text : `1:${defaultRiskReward.toFixed(1)}`;
+    if (labelText) {
+      ctx.fillStyle = "#ef4444";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(labelText, minX + 6, yEntry - 5);
+    }
   } else if (shape.type === "orderblock" && pts.length >= 2) {
     /* 4. ORDER BLOCK / POI ZONE */
     const minX = Math.min(pts[0].x, pts[1].x);
@@ -8021,6 +8384,14 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(minX + boxW, midY);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // TradingView Micro-Label
+    const labelText = shape.text !== undefined ? shape.text : "OB";
+    if (labelText) {
+      ctx.fillStyle = shape.color || "#8b5cf6";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(labelText, minX + 6, minY + 11);
+    }
   } else if (shape.type === "fvg" && pts.length >= 2) {
     /* 5. FAIR VALUE GAP (FVG / IMBALANCE) */
     const minX = Math.min(pts[0].x, pts[1].x);
@@ -8046,6 +8417,14 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(minX + boxW, ceY);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // TradingView Micro-Label
+    const labelText = shape.text !== undefined ? shape.text : "FVG";
+    if (labelText) {
+      ctx.fillStyle = shape.color || "#f59e0b";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(labelText, minX + 6, minY + 11);
+    }
   } else if (shape.type === "bos" && pts.length >= 2) {
     /* 6. BREAK OF STRUCTURE (BOS / CHoCH) */
     const p1 = pts[0];
@@ -8059,6 +8438,14 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // TradingView Micro-Label
+    const labelText = shape.text !== undefined ? shape.text : "BOS";
+    if (labelText) {
+      ctx.fillStyle = shape.color || "#3b82f6";
+      ctx.font = "bold 8px Inter, -apple-system, sans-serif";
+      ctx.fillText(labelText, (p1.x + p2.x) / 2 + 4, (p1.y + p2.y) / 2 - 4);
+    }
   } else if (shape.type === "liquidity" && pts.length >= 2) {
     /* 7. LIQUIDITY POOL ($$$ / SWEEP TARGET) */
     const p1 = pts[0];
@@ -8072,6 +8459,93 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // TradingView Micro-Label
+    const labelText = shape.text !== undefined ? shape.text : "$$$";
+    if (labelText) {
+      const minX = Math.min(p1.x, p2.x);
+      ctx.fillStyle = shape.color || "#e11d48";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(labelText, minX + 6, Math.min(p1.y, p2.y) - 4);
+    }
+  } else if (shape.type === "bullish_candle" && pts.length >= 2) {
+    /* 8. BULLISH CANDLESTICK TOOL */
+    const x1 = pts[0].x;
+    const y1 = pts[0].y;
+    const x2 = pts[1].x;
+    const y2 = pts[1].y;
+
+    const yHigh = Math.min(y1, y2);
+    const yLow = Math.max(y1, y2);
+    const totalH = Math.max(16, yLow - yHigh);
+    const bodyW = Math.max(16, Math.abs(x2 - x1) || 22);
+    const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
+    const bodyX = centerX - bodyW / 2;
+
+    const bodyH = Math.max(10, totalH * 0.62);
+    const bodyY = yHigh + (totalH - bodyH) / 2;
+
+    // Center Wick
+    ctx.strokeStyle = shape.color || "#10b981";
+    ctx.lineWidth = 1.75;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(centerX, yHigh);
+    ctx.lineTo(centerX, yLow);
+    ctx.stroke();
+
+    // Bullish Candle Body
+    ctx.fillStyle = "rgba(16, 185, 129, 0.35)";
+    ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+    ctx.strokeStyle = shape.color || "#10b981";
+    ctx.lineWidth = 1.75;
+    ctx.strokeRect(bodyX, bodyY, bodyW, bodyH);
+
+    // Optional Micro-Label
+    if (shape.text) {
+      ctx.fillStyle = shape.color || "#10b981";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(shape.text, bodyX + bodyW + 4, bodyY + 10);
+    }
+  } else if (shape.type === "bearish_candle" && pts.length >= 2) {
+    /* 9. BEARISH CANDLESTICK TOOL */
+    const x1 = pts[0].x;
+    const y1 = pts[0].y;
+    const x2 = pts[1].x;
+    const y2 = pts[1].y;
+
+    const yHigh = Math.min(y1, y2);
+    const yLow = Math.max(y1, y2);
+    const totalH = Math.max(16, yLow - yHigh);
+    const bodyW = Math.max(16, Math.abs(x2 - x1) || 22);
+    const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
+    const bodyX = centerX - bodyW / 2;
+
+    const bodyH = Math.max(10, totalH * 0.62);
+    const bodyY = yHigh + (totalH - bodyH) / 2;
+
+    // Center Wick
+    ctx.strokeStyle = shape.color || "#ef4444";
+    ctx.lineWidth = 1.75;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(centerX, yHigh);
+    ctx.lineTo(centerX, yLow);
+    ctx.stroke();
+
+    // Bearish Candle Body
+    ctx.fillStyle = "rgba(239, 68, 68, 0.35)";
+    ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+    ctx.strokeStyle = shape.color || "#ef4444";
+    ctx.lineWidth = 1.75;
+    ctx.strokeRect(bodyX, bodyY, bodyW, bodyH);
+
+    // Optional Micro-Label
+    if (shape.text) {
+      ctx.fillStyle = shape.color || "#ef4444";
+      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      ctx.fillText(shape.text, bodyX + bodyW + 4, bodyY + 10);
+    }
   } else if (shape.type === "bezier" && pts.length >= 2) {
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
@@ -8481,6 +8955,34 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null): Re
             <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
             <circle cx="18" cy="7" r="3.5" stroke="#000000" stroke-width="1"/>
             <circle cx="18" cy="7" r="1" fill="#000000"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
+    case "bullish_candle":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="18" y1="3" x2="18" y2="13" stroke="#000000" stroke-width="0.8"/>
+            <rect x="16" y="5" width="4" height="6" fill="#10b981" stroke="#000000" stroke-width="0.8" rx="0.5"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
+    case "bearish_candle":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="18" y1="3" x2="18" y2="13" stroke="#000000" stroke-width="0.8"/>
+            <rect x="16" y="5" width="4" height="6" fill="#ef4444" stroke="#000000" stroke-width="0.8" rx="0.5"/>
           </svg>`,
           12,
           12,
