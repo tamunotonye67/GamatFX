@@ -156,7 +156,36 @@ export default function WhiteboardPage() {
   const isPanning = useRef(false);
   const startPan = useRef({ x: 0, y: 0 });
 
-  /* -------------------------- Keyboard & Wheel Handlers -------------------- */
+  /* -------------------------- Page Scroll Lock Fix ------------------------- */
+
+  useEffect(() => {
+    // Prevent document body scrolling on Whiteboard page
+    const originalStyle = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  /* -------------------------- Non-Passive Canvas Wheel Event --------------- */
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleNonPassiveWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      setZoom((z) => Math.min(3.0, Math.max(0.3, z * zoomFactor)));
+    };
+
+    canvas.addEventListener("wheel", handleNonPassiveWheel, { passive: false });
+    return () => {
+      canvas.removeEventListener("wheel", handleNonPassiveWheel);
+    };
+  }, []);
+
+  /* -------------------------- Keyboard Handlers ---------------------------- */
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -180,12 +209,6 @@ export default function WhiteboardPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedShapeIds, shapes, redoStack]);
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-    setZoom((z) => Math.min(3.0, Math.max(0.3, z * zoomFactor)));
-  };
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
@@ -285,6 +308,55 @@ export default function WhiteboardPage() {
     };
   };
 
+  /* ------------------------- Precision Part-By-Part Eraser ---------------- */
+
+  const performPrecisionErasing = (eraserPt: { x: number; y: number }, radius: number = 18) => {
+    setShapes((prevShapes) => {
+      let result: Shape[] = [];
+
+      for (const s of prevShapes) {
+        // Freehand / Bezier path stroke: Erase individual points & split stroke into sub-paths!
+        if (s.type === "pencil" || s.type === "highlighter" || s.type === "bezier") {
+          const subPaths: { x: number; y: number }[][] = [];
+          let currentSub: { x: number; y: number }[] = [];
+
+          for (const p of s.points) {
+            const dist = Math.hypot(p.x - eraserPt.x, p.y - eraserPt.y);
+            if (dist > radius) {
+              currentSub.push(p);
+            } else {
+              if (currentSub.length > 0) {
+                subPaths.push(currentSub);
+                currentSub = [];
+              }
+            }
+          }
+          if (currentSub.length > 0) {
+            subPaths.push(currentSub);
+          }
+
+          // Create new shape sub-paths for remaining segments
+          subPaths.forEach((pts, idx) => {
+            if (pts.length > (s.type === "pencil" || s.type === "highlighter" ? 1 : 0)) {
+              result.push({
+                ...s,
+                id: `${s.id}_part_${idx}_${Date.now()}`,
+                points: pts,
+              });
+            }
+          });
+        } else {
+          // Solid geometric shapes / sticky notes: Remove if touched by eraser
+          if (!isPointInShape(eraserPt, s)) {
+            result.push(s);
+          }
+        }
+      }
+
+      return result;
+    });
+  };
+
   /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -307,9 +379,9 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Dedicated Eraser Tool Action
+    // Dedicated Precision Eraser Tool Action
     if (activeTool === "eraser") {
-      setShapes((prev) => prev.filter((s) => !isPointInShape(pt, s)));
+      performPrecisionErasing(pt, 18);
       return;
     }
 
@@ -430,9 +502,9 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Eraser dragging over shapes
+    // Precision Part-by-part Eraser dragging
     if (activeTool === "eraser" && e.buttons === 1) {
-      setShapes((prev) => prev.filter((s) => !isPointInShape(pt, s)));
+      performPrecisionErasing(pt, 18);
       return;
     }
 
@@ -737,7 +809,7 @@ export default function WhiteboardPage() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none">
+    <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
       {/* Toast Notification */}
       {statusMsg && (
         <div className="fixed top-20 right-6 z-50 rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
@@ -1148,7 +1220,7 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "eraser"}
               onClick={() => setActiveTool("eraser")}
-              title="Eraser Tool"
+              title="Precision Eraser Tool (Erases touched stroke parts)"
               icon={Eraser}
             />
             <MiroToolBtn
@@ -1234,7 +1306,6 @@ export default function WhiteboardPage() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
-            onWheel={handleWheel}
             className={`w-full h-full block ${
               activeTool === "hand"
                 ? "cursor-grab active:cursor-grabbing"
