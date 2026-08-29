@@ -86,7 +86,7 @@ import {
 } from "lucide-react";
 import { useStore } from "../lib/store";
 
-/* Custom Forex SVG Icons (Minimalist Design) */
+/* Custom Forex SVG Icons (Ultra-Minimalist Lucide-Style Line Art) */
 const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
@@ -97,17 +97,17 @@ const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) =
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Candle 1 (Left base) */}
-    <line x1="5" y1="11" x2="5" y2="19" />
-    <rect x="3.5" y="13" width="3" height="5" rx="0.5" fill="currentColor" fillOpacity="0.2" />
+    {/* Left candle base */}
+    <line x1="5" y1="12" x2="5" y2="20" />
+    <rect x="3.5" y="14" width="3" height="4" rx="0.5" />
 
-    {/* Candle 2 (Center tall expansion candle) */}
+    {/* Center impulse candle (creates the imbalance gap) */}
     <line x1="12" y1="3" x2="12" y2="21" />
-    <rect x="10.5" y="6" width="3" height="12" rx="0.5" fill="currentColor" />
+    <rect x="10.5" y="6" width="3" height="12" rx="0.5" />
 
-    {/* Candle 3 (Right high) */}
-    <line x1="19" y1="5" x2="19" y2="13" />
-    <rect x="17.5" y="6" width="3" height="5" rx="0.5" fill="currentColor" fillOpacity="0.2" />
+    {/* Right candle high */}
+    <line x1="19" y1="4" x2="19" y2="12" />
+    <rect x="17.5" y="6" width="3" height="4" rx="0.5" />
   </svg>
 );
 
@@ -121,11 +121,11 @@ const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Horizontal Structure Line */}
-    <line x1="8" y1="10" x2="21" y2="10" strokeDasharray="2 2" strokeWidth="1.5" />
-    {/* Breakout Path */}
-    <path d="M3 18L8 10L13 14L21 6" />
-    <path d="M17 6H21V10" />
+    {/* Structural resistance line */}
+    <line x1="8" y1="9" x2="21" y2="9" strokeDasharray="2 2" strokeWidth="1.5" />
+    {/* Clean breakout pathway */}
+    <polyline points="3 17 8 9 13 13 21 5" />
+    <polyline points="16 5 21 5 21 10" />
   </svg>
 );
 
@@ -139,12 +139,10 @@ const TradingViewLongIcon = ({ className = "h-3.5 w-3.5" }: { className?: string
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Split Box Container */}
     <rect x="4" y="3" width="16" height="18" rx="2" />
-    {/* Entry Divider Line */}
-    <line x1="4" y1="12" x2="20" y2="12" />
-    {/* Minimalist Profit Arrow Up */}
-    <path d="M12 9.5V5.5M9.5 7.5L12 5L14.5 7.5" />
+    <line x1="4" y1="13" x2="20" y2="13" />
+    <polyline points="9 8 12 5 15 8" />
+    <line x1="12" y1="5" x2="12" y2="10" />
   </svg>
 );
 
@@ -158,12 +156,10 @@ const TradingViewShortIcon = ({ className = "h-3.5 w-3.5" }: { className?: strin
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Split Box Container */}
     <rect x="4" y="3" width="16" height="18" rx="2" />
-    {/* Entry Divider Line */}
-    <line x1="4" y1="12" x2="20" y2="12" />
-    {/* Minimalist Profit Arrow Down */}
-    <path d="M12 14.5V18.5M9.5 16.5L12 19L14.5 16.5" />
+    <line x1="4" y1="11" x2="20" y2="11" />
+    <polyline points="9 16 12 19 15 16" />
+    <line x1="12" y1="14" x2="12" y2="19" />
   </svg>
 );
 
@@ -177,10 +173,10 @@ const BullishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Full Wick */}
-    <line x1="12" y1="2" x2="12" y2="22" stroke="#10b981" />
-    {/* Bullish Green Body */}
-    <rect x="7" y="6" width="10" height="12" rx="1.5" fill="#10b981" fillOpacity="0.3" stroke="#10b981" strokeWidth="2" />
+    <line x1="12" y1="2" x2="12" y2="6" />
+    <rect x="7" y="6" width="10" height="11" rx="1" />
+    <line x1="12" y1="17" x2="12" y2="22" />
+    <polyline points="10 11 12 9 14 11" strokeWidth="1.5" />
   </svg>
 );
 
@@ -194,10 +190,42 @@ const BearishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Full Wick */}
-    <line x1="12" y1="2" x2="12" y2="22" stroke="#ef4444" />
-    {/* Bearish Red Body */}
-    <rect x="7" y="6" width="10" height="12" rx="1.5" fill="#ef4444" fillOpacity="0.3" stroke="#ef4444" strokeWidth="2" />
+    <line x1="12" y1="2" x2="12" y2="7" />
+    <rect x="7" y="7" width="10" height="11" rx="1" />
+    <line x1="12" y1="18" x2="12" y2="22" />
+    <polyline points="10 13 12 15 14 13" strokeWidth="1.5" />
+  </svg>
+);
+
+const OrderBlockIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <line x1="3" y1="12" x2="21" y2="12" strokeDasharray="2 2" strokeWidth="1.5" />
+  </svg>
+);
+
+const LiquidityIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="3" y1="12" x2="21" y2="12" strokeDasharray="3 3" strokeWidth="1.5" />
+    <circle cx="7" cy="12" r="1.75" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.75" fill="currentColor" />
+    <circle cx="17" cy="12" r="1.75" fill="currentColor" />
   </svg>
 );
 
@@ -5121,7 +5149,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="orderblock"
                     label="Order Block (OB Zone)"
-                    icon={Boxes}
+                    icon={OrderBlockIcon}
                     isActive={activeForexTool === "orderblock"}
                     isFavorited={favoritedTools.includes("orderblock")}
                     onSelect={() => { selectTool("orderblock"); setFlyoutGroup(null); }}
@@ -5151,7 +5179,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="liquidity"
                     label="Liquidity Pool ($$$)"
-                    icon={Target}
+                    icon={LiquidityIcon}
                     isActive={activeForexTool === "liquidity"}
                     isFavorited={favoritedTools.includes("liquidity")}
                     onSelect={() => { selectTool("liquidity"); setFlyoutGroup(null); }}
@@ -8030,10 +8058,10 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "fibo": return Percent;
     case "long": return TradingViewLongIcon;
     case "short": return TradingViewShortIcon;
-    case "orderblock": return Boxes;
+    case "orderblock": return OrderBlockIcon;
     case "fvg": return FvgCandlesIcon;
     case "bos": return BosIcon;
-    case "liquidity": return Target;
+    case "liquidity": return LiquidityIcon;
     case "bullish_candle": return BullishCandleIcon;
     case "bearish_candle": return BearishCandleIcon;
     default: return Pencil;
