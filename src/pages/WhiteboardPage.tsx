@@ -34,6 +34,7 @@ import {
   Settings,
   Check,
   Search,
+  ChevronRight,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -73,6 +74,8 @@ type DiagramTab = {
   name: string;
 };
 
+type ResizeHandle = "tl" | "tr" | "bl" | "br";
+
 const STICKY_COLORS: { color: StickyColor; name: string }[] = [
   { color: "#fef08a", name: "Yellow" },
   { color: "#fbcfe8", name: "Pink" },
@@ -107,6 +110,10 @@ export default function WhiteboardPage() {
   const [activeTabId, setActiveTabId] = useState("blank");
 
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
+  const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
+  const [activeLineTool, setActiveLineTool] = useState<"arrow" | "bezier">("arrow");
+  const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
+
   const [strokeColor, setStrokeColor] = useState("#dc3545");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
@@ -117,16 +124,19 @@ export default function WhiteboardPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
-  // Modals & Dropdowns
+  // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | null>(null);
 
   // Selection & Multi-Select Marquee State
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
   const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+
+  // Interactive Shape Resizing State
+  const [activeResizeHandle, setActiveResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
 
   // Undo/Redo & Active Drawing
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
@@ -278,10 +288,10 @@ export default function WhiteboardPage() {
   /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setContextMenu(null);
     setExportOpen(false);
     setBgOpen(false);
     setSettingsOpen(false);
+    setFlyoutGroup(null);
 
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -303,7 +313,20 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Select Tool Hit Test & Alt+Drag Duplicate
+    // 1. Check for Resize Handles Click on Single Selected Shape
+    if (activeTool === "select" && selectedShapeIds.length === 1) {
+      const selShape = shapes.find((s) => s.id === selectedShapeIds[0]);
+      if (selShape) {
+        const handleHit = getResizeHandleHit(pt, selShape);
+        if (handleHit) {
+          setActiveResizeHandle({ shapeId: selShape.id, handle: handleHit });
+          dragStartPt.current = pt;
+          return;
+        }
+      }
+    }
+
+    // 2. Select Tool Hit Test & Alt+Drag Duplicate
     if (activeTool === "select") {
       const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
 
@@ -337,7 +360,7 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Bezier / Chart Pattern Tool
+    // 3. Bezier / Chart Pattern Tool
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
         setCurrentShape({
@@ -396,6 +419,17 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
+    // Interactive Shape Resizing
+    if (activeResizeHandle) {
+      setShapes((prev) =>
+        prev.map((s) => {
+          if (s.id !== activeResizeHandle.shapeId) return s;
+          return resizeShapePoints(s, activeResizeHandle.handle, pt);
+        })
+      );
+      return;
+    }
+
     // Eraser dragging over shapes
     if (activeTool === "eraser" && e.buttons === 1) {
       setShapes((prev) => prev.filter((s) => !isPointInShape(pt, s)));
@@ -449,6 +483,7 @@ export default function WhiteboardPage() {
   const handleMouseUp = () => {
     isPanning.current = false;
     isDraggingShape.current = false;
+    setActiveResizeHandle(null);
 
     if (marqueeBox) {
       const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
@@ -489,11 +524,6 @@ export default function WhiteboardPage() {
       setRedoStack([]);
       showToast("Chart Pattern Path completed!");
     }
-  };
-
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   const handleAddTextOrSticky = () => {
@@ -715,127 +745,167 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar (Logo -> Back to Site -> Tool Properties -> Theme Dropdown -> Export Dropdown -> Settings) */}
-      <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
-        {/* Left Section: Logo -> Back to Site */}
-        <div className="flex items-center gap-3">
+      {/* Top Header Bar (GAMAT Logo -> Back to Site -> Vertical Line -> Diagrams Tabs -> Properties -> Settings) */}
+      <header className="h-16 border-b border-line bg-white px-4 flex items-center justify-between gap-3 shrink-0 z-30 shadow-sm">
+        {/* Left Section: GAMAT Logo -> Back to Site -> Vertical Line | -> Diagrams Tabs */}
+        <div className="flex items-center gap-3 overflow-x-auto">
           <Logo variant="dark" />
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+            className="flex items-center gap-1.5 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
             title="Back to GAMAT FX Website"
           >
             <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Site</span>
           </button>
+
+          {/* Vertical Separator Line */}
+          <span className="h-6 w-px bg-line shrink-0" />
+
+          {/* Closeable Diagram Tabs */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[11px] font-bold text-muted flex items-center gap-1 shrink-0">
+              <Layers className="h-3.5 w-3.5 text-brand" /> Diagrams:
+            </span>
+            {tabs.map((tab) => (
+              <div
+                key={tab.id}
+                onClick={() => handleSelectTab(tab.id)}
+                className={`group flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all border ${
+                  activeTabId === tab.id
+                    ? "bg-brand-light text-brand border-brand/40 shadow-sm"
+                    : "border-line bg-cream/70 text-muted hover:text-ink hover:bg-white"
+                }`}
+              >
+                <span>{tab.name}</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseTab(tab.id);
+                  }}
+                  className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
+                  title="Close Tab"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddNewTab}
+              className="flex items-center gap-1 rounded-xl border border-dashed border-slate-300 px-2 py-1.5 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition"
+              title="Create New Blank Diagram Tab"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Center Section: Dynamic Tool Options & Properties Bar */}
-        <div className="flex-1 flex justify-center max-w-2xl">
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner">
-            <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
-              Tool: <strong className="text-brand uppercase">{activeTool}</strong>
-            </span>
+        <div className="hidden lg:flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner">
+          <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
+            Tool: <strong className="text-brand uppercase">{activeTool}</strong>
+          </span>
 
-            <span className="h-4 w-px bg-line" />
+          <span className="h-4 w-px bg-line" />
 
-            {/* Stroke Color Palette */}
-            <div className="flex items-center gap-1">
-              {PALETTE.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => applyColorToSelected(c)}
-                  className={`h-5 w-5 rounded-full transition-transform border border-line ${
-                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                  }`}
-                  style={{ background: c }}
-                />
-              ))}
-            </div>
-
-            {/* Sticky Note Colors (when activeTool === sticky) */}
-            {activeTool === "sticky" && (
-              <>
-                <span className="h-4 w-px bg-line" />
-                <div className="flex items-center gap-1">
-                  {STICKY_COLORS.map((s) => (
-                    <button
-                      key={s.color}
-                      type="button"
-                      onClick={() => applyStickyColorToSelected(s.color)}
-                      className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
-                        stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                      }`}
-                      style={{ background: s.color }}
-                      title={`${s.name} Sticky Note`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-
-            <span className="h-4 w-px bg-line" />
-
-            {/* Stroke Width Selector */}
-            <div className="flex items-center gap-1 text-xs">
-              {[1, 2, 4, 6].map((w) => (
-                <button
-                  key={w}
-                  type="button"
-                  onClick={() => {
-                    setStrokeWidth(w);
-                    if (selectedShapeIds.length > 0) {
-                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
-                    }
-                  }}
-                  className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
-                    strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"
-                  }`}
-                >
-                  {w}px
-                </button>
-              ))}
-            </div>
-
-            <span className="h-4 w-px bg-line" />
-
-            {/* Line Style (Solid / Dashed) */}
-            <div className="flex items-center gap-1 text-xs">
+          {/* Stroke Color Palette */}
+          <div className="flex items-center gap-1">
+            {PALETTE.map((c) => (
               <button
+                key={c}
+                type="button"
+                onClick={() => applyColorToSelected(c)}
+                className={`h-5 w-5 rounded-full transition-transform border border-line ${
+                  strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                }`}
+                style={{ background: c }}
+              />
+            ))}
+          </div>
+
+          {/* Sticky Note Colors (when activeTool === sticky) */}
+          {activeTool === "sticky" && (
+            <>
+              <span className="h-4 w-px bg-line" />
+              <div className="flex items-center gap-1">
+                {STICKY_COLORS.map((s) => (
+                  <button
+                    key={s.color}
+                    type="button"
+                    onClick={() => applyStickyColorToSelected(s.color)}
+                    className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
+                      stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                    }`}
+                    style={{ background: s.color }}
+                    title={`${s.name} Sticky Note`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          <span className="h-4 w-px bg-line" />
+
+          {/* Stroke Width Selector */}
+          <div className="flex items-center gap-1 text-xs">
+            {[1, 2, 4, 6].map((w) => (
+              <button
+                key={w}
                 type="button"
                 onClick={() => {
-                  setLineStyle("solid");
+                  setStrokeWidth(w);
                   if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
+                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
                   }
                 }}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                  lineStyle === "solid" ? "bg-ink text-white" : "text-muted hover:text-ink"
+                className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
+                  strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"
                 }`}
               >
-                Solid
+                {w}px
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLineStyle("dashed");
-                  if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
-                  }
-                }}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                  lineStyle === "dashed" ? "bg-ink text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Dashed
-              </button>
-            </div>
+            ))}
+          </div>
+
+          <span className="h-4 w-px bg-line" />
+
+          {/* Line Style (Solid / Dashed) */}
+          <div className="flex items-center gap-1 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setLineStyle("solid");
+                if (selectedShapeIds.length > 0) {
+                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
+                }
+              }}
+              className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                lineStyle === "solid" ? "bg-ink text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Solid
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLineStyle("dashed");
+                if (selectedShapeIds.length > 0) {
+                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
+                }
+              }}
+              className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                lineStyle === "dashed" ? "bg-ink text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Dashed
+            </button>
           </div>
         </div>
 
         {/* Right Section: Canvas Theme -> Export Dropdown -> Settings -> Fullscreen */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Canvas Background Theme Dropdown */}
           <div className="relative">
             <button
@@ -928,54 +998,15 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Closeable Diagram Tabs Bar */}
-      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-1.5 shrink-0 z-20 overflow-x-auto">
-        <span className="text-[11px] font-bold text-muted mr-2 flex items-center gap-1 shrink-0">
-          <Layers className="h-3.5 w-3.5 text-brand" /> Tabs:
-        </span>
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            onClick={() => handleSelectTab(tab.id)}
-            className={`group flex items-center gap-2 rounded-t-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all border-t border-x ${
-              activeTabId === tab.id
-                ? "bg-white text-brand border-line shadow-sm"
-                : "border-transparent text-muted hover:text-ink hover:bg-white/60"
-            }`}
-          >
-            <span>{tab.name}</span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseTab(tab.id);
-              }}
-              className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
-              title="Close Tab"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={handleAddNewTab}
-          className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
-          title="Create New Blank Diagram Tab"
-        >
-          <Plus className="h-3.5 w-3.5" /> New Tab
-        </button>
-      </div>
-
       {/* Main Miro Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Toolbar Dock (Miro Tools) */}
+        {/* Left Toolbar Dock (Grouped Miro Tools with Sub-menu Flyouts) */}
         <aside className="w-16 border-r border-line bg-white p-2 flex flex-col items-center justify-between gap-3 shrink-0 z-20 shadow-md">
           <div className="space-y-1.5 w-full">
             <MiroToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
-              title="Select, Move & Alt+Drag Duplicate"
+              title="Select, Move, Resize & Alt+Drag Duplicate"
               icon={MousePointer}
             />
             <MiroToolBtn
@@ -984,24 +1015,135 @@ export default function WhiteboardPage() {
               title="Pan / Hand Tool (Drag background)"
               icon={Hand}
             />
-            <MiroToolBtn
-              active={activeTool === "pencil"}
-              onClick={() => setActiveTool("pencil")}
-              title="Pen / Marker"
-              icon={Pencil}
-            />
-            <MiroToolBtn
-              active={activeTool === "highlighter"}
-              onClick={() => setActiveTool("highlighter")}
-              title="Yellow Highlighter"
-              icon={Highlighter}
-            />
+
+            {/* 1. FREEHAND GROUP (Pencil / Highlighter) */}
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "pencil" || activeTool === "highlighter"}
+                onClick={() => {
+                  setActiveTool(activePenTool);
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFlyoutGroup(flyoutGroup === "pen" ? null : "pen");
+                }}
+                title="Freehand Pen (Right click or hover arrow to change tool)"
+                icon={activePenTool === "highlighter" ? Highlighter : Pencil}
+                hasFlyout
+              />
+              {flyoutGroup === "pen" && (
+                <div className="absolute left-full top-0 ml-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Pen Tools</p>
+                  <button
+                    type="button"
+                    onClick={() => { setActivePenTool("pencil"); setActiveTool("pencil"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "pencil" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <Pencil className="h-4 w-4" /> Freehand Pen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActivePenTool("highlighter"); setActiveTool("highlighter"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "highlighter" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <Highlighter className="h-4 w-4 text-amber-500" /> Highlighter
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 2. SHAPES GROUP (Rectangle / Circle / Diamond) */}
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
+                onClick={() => {
+                  setActiveTool(activeShapeTool);
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes");
+                }}
+                title="Geometric Shapes (Right click or hover arrow to change shape)"
+                icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
+                hasFlyout
+              />
+              {flyoutGroup === "shapes" && (
+                <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Shape Tools</p>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveShapeTool("rectangle"); setActiveTool("rectangle"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "rectangle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <Square className="h-4 w-4" /> Rectangle Zone
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveShapeTool("circle"); setActiveTool("circle"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "circle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <Circle className="h-4 w-4" /> Circle Node
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveShapeTool("diamond"); setActiveTool("diamond"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "diamond" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <Diamond className="h-4 w-4" /> Decision Diamond
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 3. LINES & PATHS GROUP (Arrow / Bezier Chart Pattern) */}
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "arrow" || activeTool === "bezier"}
+                onClick={() => {
+                  setActiveTool(activeLineTool);
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFlyoutGroup(flyoutGroup === "lines" ? null : "lines");
+                }}
+                title="Lines & Paths (Right click or hover arrow to change line type)"
+                icon={activeLineTool === "bezier" ? Activity : ArrowRight}
+                badge={activeLineTool === "bezier" ? "PATH" : undefined}
+                hasFlyout
+              />
+              {flyoutGroup === "lines" && (
+                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveLineTool("arrow"); setActiveTool("arrow"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "arrow" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <ArrowRight className="h-4 w-4" /> Connector Arrow
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setActiveLineTool("bezier"); setActiveTool("bezier"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "bezier" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                  >
+                    <Activity className="h-4 w-4 text-brand" /> Chart Pattern Path
+                  </button>
+                </div>
+              )}
+            </div>
+
             <MiroToolBtn
               active={activeTool === "sticky"}
               onClick={() => setActiveTool("sticky")}
               title="Sticky Note"
               icon={StickyNote}
               badge="NOTE"
+            />
+            <MiroToolBtn
+              active={activeTool === "text"}
+              onClick={() => setActiveTool("text")}
+              title="Text Label"
+              icon={Type}
             />
             <MiroToolBtn
               active={activeTool === "eraser"}
@@ -1014,43 +1156,6 @@ export default function WhiteboardPage() {
               onClick={() => setActiveTool("zoom")}
               title="Zoom Tool (or use mouse scroll wheel)"
               icon={Search}
-            />
-            <MiroToolBtn
-              active={activeTool === "bezier"}
-              onClick={() => setActiveTool("bezier")}
-              title="Continuous Path / Chart Pattern Tool (Double click to finish)"
-              icon={Activity}
-              badge="PATH"
-            />
-            <MiroToolBtn
-              active={activeTool === "rectangle"}
-              onClick={() => setActiveTool("rectangle")}
-              title="Rectangle Zone"
-              icon={Square}
-            />
-            <MiroToolBtn
-              active={activeTool === "circle"}
-              onClick={() => setActiveTool("circle")}
-              title="Circle Node"
-              icon={Circle}
-            />
-            <MiroToolBtn
-              active={activeTool === "diamond"}
-              onClick={() => setActiveTool("diamond")}
-              title="Decision Diamond Node"
-              icon={Diamond}
-            />
-            <MiroToolBtn
-              active={activeTool === "arrow"}
-              onClick={() => setActiveTool("arrow")}
-              title="Connector Arrow Line"
-              icon={ArrowRight}
-            />
-            <MiroToolBtn
-              active={activeTool === "text"}
-              onClick={() => setActiveTool("text")}
-              title="Text Label"
-              icon={Type}
             />
           </div>
 
@@ -1129,7 +1234,6 @@ export default function WhiteboardPage() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
-            onContextMenu={handleContextMenu}
             onWheel={handleWheel}
             className={`w-full h-full block ${
               activeTool === "hand"
@@ -1143,44 +1247,6 @@ export default function WhiteboardPage() {
                 : "cursor-crosshair"
             }`}
           />
-
-          {/* Right Click Context Menu */}
-          {contextMenu && (
-            <div
-              className="fixed z-50 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl animate-in fade-in"
-              style={{ left: contextMenu.x, top: contextMenu.y }}
-            >
-              <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Quick Tools</p>
-              <button
-                type="button"
-                onClick={() => { setActiveTool("pencil"); setContextMenu(null); }}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
-              >
-                <Pencil className="h-3.5 w-3.5" /> Freehand Pen
-              </button>
-              <button
-                type="button"
-                onClick={() => { setActiveTool("bezier"); setContextMenu(null); }}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
-              >
-                <Activity className="h-3.5 w-3.5 text-brand" /> Chart Pattern Path
-              </button>
-              <button
-                type="button"
-                onClick={() => { setActiveTool("sticky"); setContextMenu(null); }}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
-              >
-                <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Sticky Note
-              </button>
-              <button
-                type="button"
-                onClick={() => { setActiveTool("eraser"); setContextMenu(null); }}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
-              >
-                <Eraser className="h-3.5 w-3.5 text-rose-500" /> Eraser Tool
-              </button>
-            </div>
-          )}
 
           {/* Settings Preferences Modal */}
           {settingsOpen && (
@@ -1294,20 +1360,25 @@ export default function WhiteboardPage() {
 function MiroToolBtn({
   active,
   onClick,
+  onContextMenu,
   title,
   icon: Icon,
   badge,
+  hasFlyout,
 }: {
   active: boolean;
   onClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   title: string;
   icon: React.ElementType;
   badge?: string;
+  hasFlyout?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onContextMenu={onContextMenu}
       title={title}
       className={`relative h-11 w-full rounded-xl flex items-center justify-center transition-all ${
         active
@@ -1321,11 +1392,14 @@ function MiroToolBtn({
           {badge}
         </span>
       )}
+      {hasFlyout && (
+        <ChevronRight className="absolute right-0.5 bottom-0.5 h-2.5 w-2.5 opacity-60" />
+      )}
     </button>
   );
 }
 
-/** Hit test to check if point (x,y) lies inside or near a shape */
+/** Check if point is inside shape */
 function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const pts = shape.points;
   if (!pts.length) return false;
@@ -1341,6 +1415,64 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const maxY = Math.max(...pts.map((p) => p.y)) + 10;
 
   return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+}
+
+/** Check hit test on 4 corner resize handle nodes */
+function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeHandle | null {
+  const pts = shape.points;
+  if (!pts.length) return null;
+
+  let minX = Math.min(...pts.map((p) => p.x));
+  let maxX = Math.max(...pts.map((p) => p.x));
+  let minY = Math.min(...pts.map((p) => p.y));
+  let maxY = Math.max(...pts.map((p) => p.y));
+
+  if (shape.type === "sticky") {
+    minX = pts[0].x;
+    minY = pts[0].y;
+    maxX = pts[0].x + 180;
+    maxY = pts[0].y + 140;
+  }
+
+  const pad = 6;
+  const corners: { handle: ResizeHandle; x: number; y: number }[] = [
+    { handle: "tl", x: minX - pad, y: minY - pad },
+    { handle: "tr", x: maxX + pad, y: minY - pad },
+    { handle: "br", x: maxX + pad, y: maxY + pad },
+    { handle: "bl", x: minX - pad, y: maxY + pad },
+  ];
+
+  const hit = corners.find((c) => Math.hypot(pt.x - c.x, pt.y - c.y) <= 12);
+  return hit ? hit.handle : null;
+}
+
+/** Smoothly resizes shape points when user drags corner handle */
+function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; y: number }): Shape {
+  const pts = shape.points;
+  if (pts.length < 2) return shape;
+
+  let newPts = [...pts];
+
+  if (shape.type === "rectangle" || shape.type === "circle" || shape.type === "diamond") {
+    let p0 = { ...pts[0] };
+    let p1 = { ...pts[1] };
+
+    if (handle === "br") {
+      p1 = pt;
+    } else if (handle === "tl") {
+      p0 = pt;
+    } else if (handle === "tr") {
+      p1.x = pt.x;
+      p0.y = pt.y;
+    } else if (handle === "bl") {
+      p0.x = pt.x;
+      p1.y = pt.y;
+    }
+
+    newPts = [p0, p1];
+  }
+
+  return { ...shape, points: newPts };
 }
 
 /** Renders shapes and Miro sticky notes on canvas */
@@ -1472,6 +1604,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
 
   ctx.setLineDash([]);
 
+  // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
   if (isSelected) {
     let minX = Math.min(...pts.map((p) => p.x));
     let maxX = Math.max(...pts.map((p) => p.x));
@@ -1492,6 +1625,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
     ctx.setLineDash([]);
 
+    // Corner Resize Handle Nodes
     const corners = [
       { x: minX - pad, y: minY - pad },
       { x: maxX + pad, y: minY - pad },
@@ -1500,10 +1634,10 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ];
     corners.forEach((c) => {
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(c.x - 3, c.y - 3, 6, 6);
+      ctx.fillRect(c.x - 5, c.y - 5, 10, 10);
       ctx.strokeStyle = "#3b82f6";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(c.x - 3, c.y - 3, 6, 6);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
     });
   }
 }
