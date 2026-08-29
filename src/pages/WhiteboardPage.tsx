@@ -56,7 +56,9 @@ import {
   TrendingDown,
   Percent,
   Minus,
-  Sparkles,
+  LayoutTemplate,
+  Palette,
+  Boxes,
   MousePointerClick,
   Crosshair,
   Save,
@@ -385,7 +387,7 @@ interface HubResourceGuide {
   category: string;
   readTime: string;
   desc: string;
-  iconName: "activity" | "sparkles" | "percent" | "keyboard";
+  iconName: "activity" | "palette" | "percent" | "keyboard";
   color: string;
   points: string[];
 }
@@ -412,7 +414,7 @@ const HUB_RESOURCES: HubResourceGuide[] = [
     category: "Strategy Guide",
     readTime: "4 min read",
     desc: "Institutional liquidity playbook explaining Order Blocks, Change of Character, and Imbalances.",
-    iconName: "sparkles",
+    iconName: "palette",
     color: "#8b5cf6",
     points: [
       "Order Block (OB): The last opposing candle before an aggressive displacement move.",
@@ -2098,7 +2100,7 @@ export default function WhiteboardPage() {
                 }`}
               >
                 <span className="flex items-center gap-2.5">
-                  <Sparkles className="h-4 w-4" /> Samples & Templates
+                  <LayoutTemplate className="h-4 w-4" /> Samples & Templates
                 </span>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                   hubTab === "samples" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
@@ -2189,26 +2191,32 @@ export default function WhiteboardPage() {
             {/* Header Right Actions & User Avatar */}
             <div className="flex items-center gap-3">
               {/* Layout Grid / List Switcher */}
-              <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-line">
+              <div className="flex items-center rounded-xl bg-slate-200/80 p-1 border border-line gap-0.5">
                 <button
                   type="button"
                   onClick={() => handleToggleHubLayout("grid")}
-                  className={`p-1.5 rounded-lg transition ${
-                    hubLayout === "grid" ? "bg-white text-brand shadow-xs" : "text-slate-500 hover:text-ink"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    hubLayout === "grid"
+                      ? "bg-brand text-white shadow-sm font-black"
+                      : "text-slate-600 hover:text-ink hover:bg-white/60 font-semibold"
                   }`}
-                  title="Grid View"
+                  title="Switch to Grid View"
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Grid</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleToggleHubLayout("list")}
-                  className={`p-1.5 rounded-lg transition ${
-                    hubLayout === "list" ? "bg-white text-brand shadow-xs" : "text-slate-500 hover:text-ink"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    hubLayout === "list"
+                      ? "bg-brand text-white shadow-sm font-black"
+                      : "text-slate-600 hover:text-ink hover:bg-white/60 font-semibold"
                   }`}
-                  title="List View"
+                  title="Switch to List View"
                 >
-                  <List className="h-4 w-4" />
+                  <List className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">List</span>
                 </button>
               </div>
 
@@ -2325,6 +2333,7 @@ export default function WhiteboardPage() {
                     {/* Quick Create Blank Canvas Card */}
                     <div
                       onClick={() => handleCreateNewCanvasFromHub()}
+                      title="Create a new blank canvas"
                       className="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 hover:border-brand bg-white p-5 flex flex-col items-center justify-center text-center space-y-3 min-h-[220px] transition-all hover:shadow-lg hover:-translate-y-0.5"
                     >
                       <div className="h-12 w-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -2346,7 +2355,8 @@ export default function WhiteboardPage() {
                           if (draft.isTab) handleOpenTabFromHub(draft.id);
                           else handleOpenDraftFromHub(draft as SavedDraft);
                         }}
-                        className="group cursor-pointer rounded-2xl border border-line bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
+                        title={`Click to open "${draft.name}" in Whiteboard`}
+                        className="group cursor-pointer rounded-2xl border border-line hover:border-brand/60 bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
                       >
                         {/* Miniature Canvas Diagram Preview */}
                         <div className="h-36 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
@@ -2356,8 +2366,9 @@ export default function WhiteboardPage() {
                               Active Tab
                             </span>
                           )}
-                          <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-xs shadow-md">
+                          {/* Sleek Tooltip indicator on hover */}
+                          <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <span className="px-2 py-1 rounded-lg bg-slate-900/90 text-white font-bold text-[10px] shadow-md backdrop-blur-xs">
                               Open Canvas →
                             </span>
                           </div>
@@ -2408,6 +2419,7 @@ export default function WhiteboardPage() {
                           if (draft.isTab) handleOpenTabFromHub(draft.id);
                           else handleOpenDraftFromHub(draft as SavedDraft);
                         }}
+                        title={`Click to open "${draft.name}" in Whiteboard`}
                         className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition"
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
@@ -2457,7 +2469,8 @@ export default function WhiteboardPage() {
                       <div
                         key={sample.id}
                         onClick={() => handleOpenSampleFromHub(sample.id)}
-                        className="group cursor-pointer rounded-2xl border border-line bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
+                        title={`Click to open "${sample.name}" template in Whiteboard`}
+                        className="group cursor-pointer rounded-2xl border border-line hover:border-brand/60 bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
                       >
                         {/* Interactive Diagram Preview Banner */}
                         <div className="h-40 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
@@ -2474,9 +2487,10 @@ export default function WhiteboardPage() {
                               {sample.difficulty}
                             </span>
                           </div>
-                          <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="px-3.5 py-2 rounded-xl bg-brand text-white font-black text-xs shadow-lg">
-                              Open Template in Whiteboard →
+                          {/* Sleek Tooltip indicator on hover */}
+                          <div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <span className="px-2.5 py-1 rounded-lg bg-slate-900/90 text-white font-bold text-[10px] shadow-md backdrop-blur-xs">
+                              Use Template →
                             </span>
                           </div>
                         </div>
@@ -2509,6 +2523,7 @@ export default function WhiteboardPage() {
                       <div
                         key={sample.id}
                         onClick={() => handleOpenSampleFromHub(sample.id)}
+                        title={`Click to open "${sample.name}" template in Whiteboard`}
                         className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition"
                       >
                         <div className="flex items-center gap-4 min-w-0">
@@ -4275,7 +4290,7 @@ export default function WhiteboardPage() {
                       settingsTab === "general" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
                     }`}
                   >
-                    <Sparkles className="h-3.5 w-3.5" /> General & UI
+                    <SlidersHorizontal className="h-3.5 w-3.5" /> General & UI
                   </button>
                   <button
                     type="button"
