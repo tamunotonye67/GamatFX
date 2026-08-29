@@ -140,6 +140,52 @@ const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   </svg>
 );
 
+const TradingViewLongIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Target Box (Top Green/Profit Area) */}
+    <rect x="3.5" y="3" width="17" height="10" rx="1.5" fill="#10b981" fillOpacity="0.25" stroke="#10b981" strokeWidth="1.5" />
+    
+    {/* Upward Profit Arrow */}
+    <path d="M12 10.5V5.5M9.5 8L12 5.5L14.5 8" stroke="#10b981" strokeWidth="1.75" />
+
+    {/* Stop Loss Box (Bottom Red/Risk Area) */}
+    <rect x="3.5" y="13" width="17" height="8" rx="1.5" fill="#ef4444" fillOpacity="0.25" stroke="#ef4444" strokeWidth="1.5" />
+    
+    {/* Entry Divider Line */}
+    <line x1="3.5" y1="13" x2="20.5" y2="13" stroke="#3b82f6" strokeWidth="1.75" />
+  </svg>
+);
+
+const TradingViewShortIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Stop Loss Box (Top Red/Risk Area) */}
+    <rect x="3.5" y="3" width="17" height="8" rx="1.5" fill="#ef4444" fillOpacity="0.25" stroke="#ef4444" strokeWidth="1.5" />
+
+    {/* Target Box (Bottom Green/Profit Area) */}
+    <rect x="3.5" y="11" width="17" height="10" rx="1.5" fill="#10b981" fillOpacity="0.25" stroke="#10b981" strokeWidth="1.5" />
+    
+    {/* Downward Profit Arrow */}
+    <path d="M12 13.5V18.5M9.5 16L12 18.5L14.5 16" stroke="#10b981" strokeWidth="1.75" />
+
+    {/* Entry Divider Line */}
+    <line x1="3.5" y1="11" x2="20.5" y2="11" stroke="#3b82f6" strokeWidth="1.75" />
+  </svg>
+);
+
 /* ========================================================================== */
 /*                               TYPES & DATA                                 */
 /* ========================================================================== */
@@ -5003,7 +5049,7 @@ export default function WhiteboardPage() {
                   >
                     <span className="flex items-center gap-2.5">
                       <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <TrendingUp className="h-3.5 w-3.5" />
+                        <TradingViewLongIcon className="h-4 w-4" />
                       </span>
                       <span>Long Position</span>
                     </span>
@@ -5025,7 +5071,7 @@ export default function WhiteboardPage() {
                   >
                     <span className="flex items-center gap-2.5">
                       <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <TrendingDown className="h-3.5 w-3.5" />
+                        <TradingViewShortIcon className="h-4 w-4" />
                       </span>
                       <span>Short Position</span>
                     </span>
@@ -5605,7 +5651,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <TrendingUp className="h-3.5 w-3.5 text-slate-700" /> Long Position Box
+                    <TradingViewLongIcon className="h-3.5 w-3.5" /> Long Position Box
                   </button>
 
                   <button
@@ -5616,7 +5662,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <TrendingDown className="h-3.5 w-3.5 text-slate-700" /> Short Position Box
+                    <TradingViewShortIcon className="h-3.5 w-3.5" /> Short Position Box
                   </button>
 
                   <button
@@ -7679,8 +7725,8 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "eraser": return Eraser;
     case "zoom": return Search;
     case "fibo": return Percent;
-    case "long": return TrendingUp;
-    case "short": return TrendingDown;
+    case "long": return TradingViewLongIcon;
+    case "short": return TradingViewShortIcon;
     case "orderblock": return Boxes;
     case "fvg": return FvgCandlesIcon;
     case "bos": return BosIcon;
