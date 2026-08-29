@@ -86,9 +86,9 @@ export function AdminShell({ title, subtitle, action, children }: {
   };
 
   return (
-    <div className="min-h-screen bg-cream lg:flex">
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-ink text-white transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+    <div className="min-h-screen bg-cream">
+      {/* Sidebar - Fixed to viewport */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-ink text-white transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-[72px] items-center justify-between border-b border-white/10 px-5">
           <Logo variant="light" />
           <button onClick={() => setOpen(false)} className="lg:hidden" aria-label="Close menu">
@@ -125,8 +125,8 @@ export function AdminShell({ title, subtitle, action, children }: {
 
       {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-ink/50 lg:hidden" />}
 
-      {/* Main */}
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col justify-between">
+      {/* Main Content Area */}
+      <div className="flex min-h-screen min-w-0 flex-col justify-between lg:pl-64">
         <div>
           <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-line bg-white/90 px-5 backdrop-blur lg:px-8">
             <button onClick={() => setOpen(true)} className="rounded-lg p-2 text-ink lg:hidden" aria-label="Open menu">
