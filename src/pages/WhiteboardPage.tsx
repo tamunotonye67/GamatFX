@@ -1475,7 +1475,7 @@ export default function WhiteboardPage() {
             </button>
           </div>
 
-          {/* Canvas with Mouse Wheel Zoom & Contextual Right-Click */}
+          {/* Canvas with Dynamic Tool Cursor, Mouse Wheel Zoom & Contextual Right-Click */}
           <canvas
             ref={canvasRef}
             onMouseDown={handleMouseDown}
@@ -1483,17 +1483,8 @@ export default function WhiteboardPage() {
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
-            className={`w-full h-full block ${
-              activeTool === "hand"
-                ? "cursor-grab active:cursor-grabbing"
-                : activeTool === "select"
-                ? "cursor-default"
-                : activeTool === "eraser"
-                ? "cursor-pointer"
-                : activeTool === "zoom"
-                ? "cursor-zoom-in"
-                : "cursor-crosshair"
-            }`}
+            style={getToolCursorStyle(activeTool)}
+            className="w-full h-full block"
           />
 
           {/* Contextual Right-Click Popover Menu */}
@@ -2292,4 +2283,37 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
       ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
     });
   }
+}
+
+/** Generates dynamic contextual mouse cursors for active whiteboard tools */
+function getToolCursorStyle(tool: Tool): React.CSSProperties {
+  if (tool === "hand") {
+    return { cursor: "grab" };
+  }
+  if (tool === "select") {
+    return { cursor: "default" };
+  }
+  if (tool === "eraser") {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>`;
+    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 4 20, pointer` };
+  }
+  if (tool === "pencil") {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`;
+    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 2 22, crosshair` };
+  }
+  if (tool === "highlighter") {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>`;
+    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 4 20, crosshair` };
+  }
+  if (tool === "text") {
+    return { cursor: "text" };
+  }
+  if (tool === "sticky") {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23fef08a" stroke="%23ca8a04" stroke-width="1.5"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M14 3v5a1 1 0 0 0 1 1h5"/></svg>`;
+    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 4 4, copy` };
+  }
+  if (tool === "zoom") {
+    return { cursor: "zoom-in" };
+  }
+  return { cursor: "crosshair" };
 }
