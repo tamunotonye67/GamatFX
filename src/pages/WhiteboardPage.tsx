@@ -24,6 +24,10 @@ import {
   ZoomOut,
   RefreshCw,
   Activity,
+  ChevronDown,
+  FileImage,
+  FileCode,
+  Layers,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -51,6 +55,7 @@ type Shape = {
   type: Tool;
   color: string;
   strokeWidth: number;
+  lineStyle?: "solid" | "dashed";
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
@@ -66,11 +71,12 @@ const STICKY_COLORS: { color: StickyColor; name: string }[] = [
 
 const PALETTE = ["#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#16181c", "#ffffff"];
 
-/* Miro Teaching Diagrams */
-const LESSON_PRESETS = [
-  { id: "mindmap", name: "Forex Basics Mind Map", desc: "Core Pillars: Analysis, Risk & Mindset" },
-  { id: "smc_diag", name: "SMC Liquidity Diagram", desc: "Order Block, BOS & Liquidity Sweep" },
-  { id: "risk_diag", name: "Risk Management Matrix", desc: "1% Risk Rule & R:R Ratio Breakdown" },
+/* Preset Diagram Tabs */
+const DIAGRAM_TABS = [
+  { id: "blank", name: "Blank Canvas" },
+  { id: "mindmap", name: "Forex Basics Mind Map" },
+  { id: "smc_diag", name: "SMC Liquidity Diagram" },
+  { id: "risk_diag", name: "Risk Management Matrix" },
 ];
 
 /* ========================================================================== */
@@ -78,15 +84,21 @@ const LESSON_PRESETS = [
 /* ========================================================================== */
 
 export default function WhiteboardPage() {
+  const [activeTab, setActiveTab] = useState("blank");
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [strokeColor, setStrokeColor] = useState("#dc3545");
-  const [strokeWidth] = useState(3);
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
   const [stickyColor, setStickyColor] = useState<StickyColor>("#fef08a");
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  // Dropdown States
+  const [exportOpen, setExportOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; groupKey?: string } | null>(null);
 
   // Selection & Active Shapes
   const [shapes, setShapes] = useState<Shape[]>([]);
@@ -208,6 +220,9 @@ export default function WhiteboardPage() {
   /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setContextMenu(null);
+    setExportOpen(false);
+
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
       startPan.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
@@ -216,7 +231,6 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    // 1. SELECT TOOL BEHAVIOR (Hit Test & Dragging)
     if (activeTool === "select") {
       const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
       if (hitShape) {
@@ -229,7 +243,6 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // 2. BEZIER / CHART PATTERN TOOL (Continuous Multi-Point Path)
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
         setCurrentShape({
@@ -242,6 +255,7 @@ export default function WhiteboardPage() {
           type: "bezier",
           color: strokeColor,
           strokeWidth,
+          lineStyle,
           points: [pt, pt],
         };
         setCurrentShape(newShape);
@@ -268,6 +282,7 @@ export default function WhiteboardPage() {
       type: activeTool,
       color: strokeColor,
       strokeWidth,
+      lineStyle,
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
     };
@@ -286,7 +301,6 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    // Handle Moving Selected Shape
     if (isDraggingShape.current && selectedShapeId) {
       const dx = pt.x - dragStartPt.current.x;
       const dy = pt.y - dragStartPt.current.y;
@@ -312,7 +326,6 @@ export default function WhiteboardPage() {
         points: [...currentShape.points, pt],
       });
     } else if (currentShape.type === "bezier") {
-      // Update preview of current drawing point for Bezier / Chart Pattern
       const updatedPts = [...currentShape.points];
       updatedPts[updatedPts.length - 1] = pt;
       setCurrentShape({
@@ -331,7 +344,7 @@ export default function WhiteboardPage() {
     isPanning.current = false;
     isDraggingShape.current = false;
 
-    if (activeTool === "bezier") return; // Bezier paths finish on double click
+    if (activeTool === "bezier") return;
 
     if (!isDrawing.current) return;
     isDrawing.current = false;
@@ -344,13 +357,17 @@ export default function WhiteboardPage() {
   };
 
   const handleDoubleClick = () => {
-    // Finish Bezier / Chart Pattern Path on Double Click
     if (currentShape && currentShape.type === "bezier") {
       setShapes((prev) => [...prev, currentShape]);
       setCurrentShape(null);
       setRedoStack([]);
       showToast("Chart Pattern Path completed!");
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
   };
 
   const handleAddTextOrSticky = () => {
@@ -361,6 +378,7 @@ export default function WhiteboardPage() {
       type: isStickyMode ? "sticky" : "text",
       color: strokeColor,
       strokeWidth,
+      lineStyle,
       points: [textModalPos],
       text: textValue.trim(),
       stickyColor: isStickyMode ? stickyColor : undefined,
@@ -393,19 +411,41 @@ export default function WhiteboardPage() {
     setSelectedShapeId(null);
   };
 
-  const handleExportPNG = () => {
+  /* Export Functions (PNG / JPEG / SVG) */
+  const handleExport = (format: "png" | "jpeg" | "svg") => {
+    setExportOpen(false);
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const url = canvas.toDataURL("image/png");
+
+    if (format === "svg") {
+      // Export SVG format
+      const svgHeader = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}">`;
+      const svgFooter = `</svg>`;
+      const blob = new Blob([svgHeader + `<rect width="100%" height="100%" fill="#ffffff"/>` + svgFooter], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `GAMAT_FX_Whiteboard_${Date.now()}.svg`;
+      a.click();
+      showToast("Exported as SVG Vector File!");
+      return;
+    }
+
+    const mime = format === "jpeg" ? "image/jpeg" : "image/png";
+    const url = canvas.toDataURL(mime, 0.95);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `GAMAT_FX_Miro_Whiteboard_${Date.now()}.png`;
+    a.download = `GAMAT_FX_Whiteboard_${Date.now()}.${format}`;
     a.click();
-    showToast("Miro Teaching Diagram exported as PNG!");
+    showToast(`Exported diagram as ${format.toUpperCase()}!`);
   };
 
-  const loadPresetDiagram = (presetId: string) => {
-    if (presetId === "mindmap") {
+  const handleSelectTab = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId === "blank") {
+      setShapes([]);
+      showToast("Opened Blank Canvas!");
+    } else if (tabId === "mindmap") {
       setShapes([
         {
           id: "m1",
@@ -435,8 +475,8 @@ export default function WhiteboardPage() {
           stickyColor: "#fbcfe8",
         },
       ]);
-      showToast("Loaded Forex Basics Mind Map!");
-    } else if (presetId === "smc_diag") {
+      showToast("Switched to Forex Basics Mind Map Tab!");
+    } else if (tabId === "smc_diag") {
       setShapes([
         {
           id: "s1",
@@ -466,7 +506,7 @@ export default function WhiteboardPage() {
           stickyColor: "#fef08a",
         },
       ]);
-      showToast("Loaded SMC Liquidity Diagram!");
+      showToast("Switched to SMC Liquidity Diagram Tab!");
     } else {
       setShapes([
         {
@@ -479,7 +519,7 @@ export default function WhiteboardPage() {
           stickyColor: "#bbf7d0",
         },
       ]);
-      showToast("Loaded Risk Management Matrix!");
+      showToast("Switched to Risk Management Matrix Tab!");
     }
   };
 
@@ -508,9 +548,11 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Miro Header Toolbar */}
+      {/* Main Header Bar (GAMAT Logo -> Back to Site -> Dynamic Tool Properties Bar -> Export Dropdown) */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
-        <div className="flex items-center gap-4">
+        {/* Left Section: Logo -> Back to Site */}
+        <div className="flex items-center gap-3">
+          <Logo variant="dark" />
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -519,53 +561,155 @@ export default function WhiteboardPage() {
           >
             <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Site</span>
           </button>
-          <span className="h-6 w-px bg-line" />
-          <Logo variant="dark" />
-          <span className="hidden sm:inline-block h-6 w-px bg-line" />
-          <div className="flex items-center gap-2">
-            <span className="rounded-lg bg-brand-light px-2.5 py-1 text-xs font-black text-brand">MIRO WHITEBOARD</span>
-            <span className="hidden md:inline-block text-xs font-semibold text-muted">Forex Teaching & Diagram Canvas</span>
+        </div>
+
+        {/* Center Section: Dynamic Tool Options & Properties Bar */}
+        <div className="flex-1 flex justify-center max-w-2xl">
+          <div className="flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner">
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
+              Tool: <strong className="text-brand uppercase">{activeTool}</strong>
+            </span>
+
+            <span className="h-4 w-px bg-line" />
+
+            {/* Stroke Color Palette */}
+            <div className="flex items-center gap-1">
+              {PALETTE.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => {
+                    setStrokeColor(c);
+                    if (selectedShapeId) {
+                      setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, color: c } : s)));
+                    }
+                  }}
+                  className={`h-5 w-5 rounded-full transition-transform border border-line ${
+                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                  }`}
+                  style={{ background: c }}
+                />
+              ))}
+            </div>
+
+            {/* Sticky Note Colors (when activeTool === sticky) */}
+            {activeTool === "sticky" && (
+              <>
+                <span className="h-4 w-px bg-line" />
+                <div className="flex items-center gap-1">
+                  {STICKY_COLORS.map((s) => (
+                    <button
+                      key={s.color}
+                      type="button"
+                      onClick={() => setStickyColor(s.color)}
+                      className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
+                        stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                      }`}
+                      style={{ background: s.color }}
+                      title={`${s.name} Sticky Note`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            <span className="h-4 w-px bg-line" />
+
+            {/* Stroke Width Selector */}
+            <div className="flex items-center gap-1 text-xs">
+              {[1, 2, 4, 6].map((w) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => {
+                    setStrokeWidth(w);
+                    if (selectedShapeId) {
+                      setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, strokeWidth: w } : s)));
+                    }
+                  }}
+                  className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
+                    strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"
+                  }`}
+                >
+                  {w}px
+                </button>
+              ))}
+            </div>
+
+            <span className="h-4 w-px bg-line" />
+
+            {/* Line Style (Solid / Dashed) */}
+            <div className="flex items-center gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setLineStyle("solid");
+                  if (selectedShapeId) {
+                    setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, lineStyle: "solid" } : s)));
+                  }
+                }}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                  lineStyle === "solid" ? "bg-ink text-white" : "text-muted hover:text-ink"
+                }`}
+              >
+                Solid
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLineStyle("dashed");
+                  if (selectedShapeId) {
+                    setShapes((prev) => prev.map((s) => (s.id === selectedShapeId ? { ...s, lineStyle: "dashed" } : s)));
+                  }
+                }}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
+                  lineStyle === "dashed" ? "bg-ink text-white" : "text-muted hover:text-ink"
+                }`}
+              >
+                Dashed
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Preset Diagram Templates */}
-        <div className="hidden lg:flex items-center gap-2">
-          {LESSON_PRESETS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => loadPresetDiagram(p.id)}
-              className="rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink-soft hover:bg-brand-light hover:text-brand hover:border-brand/40 transition"
-            >
-              ⚡ {p.name}
-            </button>
-          ))}
-        </div>
-
-        {/* Action Buttons */}
+        {/* Right Section: Export Dropdown & Fullscreen */}
         <div className="flex items-center gap-2">
-          {selectedShapeId && (
+          {/* Export Dropdown */}
+          <div className="relative">
             <button
               type="button"
-              onClick={() => {
-                setShapes((prev) => prev.filter((s) => s.id !== selectedShapeId));
-                setSelectedShapeId(null);
-                showToast("Item deleted!");
-              }}
-              className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition flex items-center gap-1"
+              onClick={() => setExportOpen(!exportOpen)}
+              className="btn-primary !py-2 text-xs font-bold flex items-center gap-1.5"
             >
-              <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+              <Download className="h-4 w-4" /> Export <ChevronDown className="h-3.5 w-3.5" />
             </button>
-          )}
 
-          <button
-            type="button"
-            onClick={handleExportPNG}
-            className="btn-primary !py-2 text-xs font-bold"
-            title="Export Miro Diagram as PNG"
-          >
-            <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export PNG</span>
-          </button>
+            {exportOpen && (
+              <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
+                <button
+                  type="button"
+                  onClick={() => handleExport("png")}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                >
+                  <FileImage className="h-4 w-4 text-brand" /> Export PNG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExport("jpeg")}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                >
+                  <FileImage className="h-4 w-4 text-emerald-600" /> Export JPEG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExport("svg")}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                >
+                  <FileCode className="h-4 w-4 text-blue-600" /> Export SVG
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             type="button"
@@ -577,6 +721,27 @@ export default function WhiteboardPage() {
           </button>
         </div>
       </header>
+
+      {/* Sub-Header Diagram Tabs Bar */}
+      <div className="h-10 border-b border-line bg-slate-100 px-6 flex items-center gap-2 shrink-0 z-20 overflow-x-auto">
+        <span className="text-[11px] font-bold text-muted mr-2 flex items-center gap-1">
+          <Layers className="h-3.5 w-3.5 text-brand" /> Diagrams:
+        </span>
+        {DIAGRAM_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => handleSelectTab(tab.id)}
+            className={`rounded-t-xl px-4 py-2 text-xs font-bold transition-all border-t border-x ${
+              activeTab === tab.id
+                ? "bg-white text-brand border-line shadow-sm"
+                : "border-transparent text-muted hover:text-ink hover:bg-white/50"
+            }`}
+          >
+            {tab.name}
+          </button>
+        ))}
+      </div>
 
       {/* Main Miro Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
@@ -689,95 +854,44 @@ export default function WhiteboardPage() {
 
         {/* Central Miro Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
-          {/* Top Floating Color & Sticky Note Palette Bar */}
-          <div className="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-white/95 p-2.5 backdrop-blur shadow-xl">
-            {/* Pen Stroke Palette */}
-            <div className="flex items-center gap-1.5">
-              {PALETTE.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setStrokeColor(c)}
-                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                    strokeColor === c ? "scale-125 ring-2 ring-brand ring-offset-2" : "hover:scale-110"
-                  }`}
-                  style={{ background: c }}
-                />
-              ))}
-            </div>
-
-            <span className="h-5 w-px bg-line" />
-
-            {/* Sticky Note Colors */}
-            <div className="flex items-center gap-1.5 text-xs font-bold">
-              <span className="text-muted text-[11px]">Sticky:</span>
-              {STICKY_COLORS.map((s) => (
-                <button
-                  key={s.color}
-                  type="button"
-                  onClick={() => {
-                    setStickyColor(s.color);
-                    setActiveTool("sticky");
-                  }}
-                  className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
-                    stickyColor === s.color && activeTool === "sticky" ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                  }`}
-                  style={{ background: s.color }}
-                  title={`${s.name} Sticky Note`}
-                />
-              ))}
-            </div>
-
-            <span className="h-5 w-px bg-line" />
-
-            {/* Background Grid Pattern Selector */}
-            <div className="flex items-center gap-1 text-xs">
-              <button
-                type="button"
-                onClick={() => setBgGrid("dots")}
-                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                  bgGrid === "dots" ? "bg-brand text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Dots
-              </button>
-              <button
-                type="button"
-                onClick={() => setBgGrid("lines")}
-                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                  bgGrid === "lines" ? "bg-brand text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Grid
-              </button>
-              <button
-                type="button"
-                onClick={() => setBgGrid("blank")}
-                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                  bgGrid === "blank" ? "bg-brand text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                White
-              </button>
-              <button
-                type="button"
-                onClick={() => setBgGrid("dark")}
-                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                  bgGrid === "dark" ? "bg-slate-950 text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Dark
-              </button>
-              <button
-                type="button"
-                onClick={() => setBgGrid("chalkboard")}
-                className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
-                  bgGrid === "chalkboard" ? "bg-emerald-800 text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Chalk
-              </button>
-            </div>
+          {/* Background Pattern Switcher */}
+          <div className="absolute top-4 left-4 z-20 flex items-center gap-1 rounded-2xl border border-line bg-white/95 p-1.5 backdrop-blur shadow-xl text-xs">
+            <button
+              type="button"
+              onClick={() => setBgGrid("dots")}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
+                bgGrid === "dots" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Dots
+            </button>
+            <button
+              type="button"
+              onClick={() => setBgGrid("lines")}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
+                bgGrid === "lines" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setBgGrid("blank")}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
+                bgGrid === "blank" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              White
+            </button>
+            <button
+              type="button"
+              onClick={() => setBgGrid("dark")}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition ${
+                bgGrid === "dark" ? "bg-slate-950 text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Dark
+            </button>
           </div>
 
           {/* Bottom Zoom & Navigation Bar */}
@@ -819,6 +933,7 @@ export default function WhiteboardPage() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
+            onContextMenu={handleContextMenu}
             className={`w-full h-full block ${
               activeTool === "hand"
                 ? "cursor-grab active:cursor-grabbing"
@@ -827,6 +942,44 @@ export default function WhiteboardPage() {
                 : "cursor-crosshair"
             }`}
           />
+
+          {/* Right Click Context Menu */}
+          {contextMenu && (
+            <div
+              className="fixed z-50 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl animate-in fade-in"
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+            >
+              <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Quick Tools</p>
+              <button
+                type="button"
+                onClick={() => { setActiveTool("pencil"); setContextMenu(null); }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
+              >
+                <Pencil className="h-3.5 w-3.5" /> Freehand Pen
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTool("bezier"); setContextMenu(null); }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
+              >
+                <Activity className="h-3.5 w-3.5 text-brand" /> Chart Pattern Path
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTool("sticky"); setContextMenu(null); }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
+              >
+                <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Sticky Note
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveTool("rectangle"); setContextMenu(null); }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
+              >
+                <Square className="h-3.5 w-3.5" /> Rectangle Box
+              </button>
+            </div>
+          )}
 
           {/* Text / Sticky Note Input Modal */}
           {textModalPos && (
@@ -925,7 +1078,6 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
     return pt.x >= p.x && pt.x <= p.x + 180 && pt.y >= p.y && pt.y <= p.y + 140;
   }
 
-  // Bounding box hit test for other shapes
   const minX = Math.min(...pts.map((p) => p.x)) - 10;
   const maxX = Math.max(...pts.map((p) => p.x)) + 10;
   const minY = Math.min(...pts.map((p) => p.y)) - 10;
@@ -944,6 +1096,12 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
   ctx.lineWidth = shape.strokeWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+
+  if (shape.lineStyle === "dashed") {
+    ctx.setLineDash([8, 6]);
+  } else {
+    ctx.setLineDash([]);
+  }
 
   if (shape.type === "pencil") {
     ctx.beginPath();
@@ -990,13 +1148,11 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
       });
     }
   } else if (shape.type === "bezier" && pts.length >= 2) {
-    // Continuous Path / Chart Pattern Tool
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
     ctx.stroke();
 
-    // Draw pattern waypoints
     pts.forEach((p) => {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
@@ -1050,7 +1206,6 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.lineTo(to.x, to.y);
     ctx.stroke();
 
-    // Arrow Head
     ctx.beginPath();
     ctx.moveTo(to.x, to.y);
     ctx.lineTo(to.x - headlen * Math.cos(angle - Math.PI / 6), to.y - headlen * Math.sin(angle - Math.PI / 6));
@@ -1061,6 +1216,8 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.font = "bold 15px Inter, sans-serif";
     ctx.fillText(shape.text, pts[0].x, pts[0].y);
   }
+
+  ctx.setLineDash([]); // Reset line dash
 
   // Draw Selection Highlight Box if shape is selected
   if (isSelected) {
@@ -1081,9 +1238,8 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.lineWidth = 1.5;
     ctx.setLineDash([5, 5]);
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
-    ctx.setLineDash([]); // Reset line dash
+    ctx.setLineDash([]);
 
-    // Control points
     const corners = [
       { x: minX - pad, y: minY - pad },
       { x: maxX + pad, y: minY - pad },
