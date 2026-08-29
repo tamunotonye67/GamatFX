@@ -117,11 +117,26 @@ const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) =
 );
 
 const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    {/* Market Structure Break stair line */}
-    <path d="M3 17l6-6 4 4 8-8" />
-    <path d="M14 7h7v7" />
-    <line x1="9" y1="11" x2="21" y2="11" strokeDasharray="2 2" strokeWidth="1.5" />
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Horizontal Structure Level Line (Dashed) */}
+    <line x1="7" y1="10" x2="21" y2="10" strokeWidth="1.5" strokeDasharray="2 2" opacity="0.65" />
+
+    {/* Market Structure Price Path (Higher High Breakout) */}
+    <path d="M3 18L8 10L13 15L21 5" strokeWidth="2" />
+
+    {/* Breakout Arrowhead piercing the structure */}
+    <path d="M16 5H21V10" strokeWidth="2" />
+
+    {/* Swing High Peak Trigger Node */}
+    <circle cx="8" cy="10" r="1.5" fill="currentColor" />
   </svg>
 );
 
@@ -7478,9 +7493,22 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
   if (toolKey === "bos") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="20" y1="65" x2="115" y2="30" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4 4" />
-        <circle cx="67.5" cy="47.5" r="11" fill="#3b82f6" />
-        <text x="67.5" y="50.5" textAnchor="middle" fill="#ffffff" fontSize="7.5" fontWeight="bold">BOS</text>
+        {/* Horizontal Structure Level Line */}
+        <line x1="45" y1="42" x2="125" y2="42" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 4" />
+        <text x="126" y="44" fill="#3b82f6" fontSize="7.5" fontWeight="bold">BOS LEVEL</text>
+
+        {/* Impulsive Zig-Zag Breakout Path */}
+        <polyline points="20,78 45,42 72,62 118,22" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        
+        {/* Breakout Arrowhead */}
+        <polygon points="126,16 112,20 120,28" fill="#3b82f6" />
+
+        {/* Peak Trigger Point */}
+        <circle cx="45" cy="42" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+
+        {/* BOS Badge */}
+        <rect x="85" y="24" width="30" height="15" rx="4" fill="#3b82f6" />
+        <text x="100" y="34.5" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="bold">BOS ↗</text>
       </svg>
     );
   }
@@ -8437,8 +8465,9 @@ function getToolCursorStyle(tool: Tool): React.CSSProperties {
           `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
             <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="14" y1="9" x2="22" y2="4" stroke="#000000" stroke-width="1.2" stroke-dasharray="1.5 1.5"/>
-            <circle cx="18" cy="6.5" r="1.5" fill="#000000"/>
+            <line x1="15" y1="8" x2="22" y2="8" stroke="#000000" stroke-width="0.8" stroke-dasharray="1.5 1.5"/>
+            <path d="M14 11L17 8L19 10L22 5" stroke="#000000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 5H22V7" stroke="#000000" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>`,
           12,
           12,
