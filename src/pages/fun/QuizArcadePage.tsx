@@ -5,7 +5,7 @@ import { pickQuestions, type Difficulty, type TriviaQ } from "../../lib/trivia";
 import { useSolidNavbar } from "../../lib/chrome";
 import {
   Zap, CheckCircle2, XCircle, Flame, Trophy, RotateCcw, ArrowRight,
-  Timer, Target, Sparkles, Heart, Infinity as InfinityIcon,
+  Timer, Target, Zap, Heart, Infinity as InfinityIcon,
 } from "lucide-react";
 
 type Mode = "endless" | "timed" | "survival";
@@ -171,7 +171,7 @@ export default function QuizArcadePage() {
               { l: "Score", v: score, i: Zap },
               { l: "Answered", v: idx, i: Target },
               { l: "Best streak", v: bestStreak, i: Flame },
-              { l: "Accuracy", v: `${accuracy}%`, i: Sparkles },
+              { l: "Accuracy", v: `${accuracy}%`, i: Zap },
             ].map((s) => (
               <div key={s.l} className="rounded-2xl bg-cream p-5">
                 <s.i className="mx-auto h-5 w-5 text-brand" />

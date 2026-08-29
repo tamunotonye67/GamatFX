@@ -4,7 +4,7 @@ import PageCta from "../../components/PageCta";
 import { HISTOFACTS, type HistoFact, type HistoFactCategory, type HistoFactTheme } from "../../lib/histofact";
 import { useReveal } from "../../lib/useReveal";
 import {
-  History, Sparkles, RotateCw, Search, CheckCircle2,
+  History, Zap, RotateCw, Search, CheckCircle2,
   Landmark, Coins, Globe, Lightbulb, HelpCircle, Eye, EyeOff, User, ChevronLeft, ChevronRight
 } from "lucide-react";
 
@@ -304,7 +304,7 @@ export default function HistofactPage() {
               onClick={flipRandom}
               className="inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-4 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-brand-light hover:text-brand"
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Draw Random Card
+              <Zap className="h-3.5 w-3.5 text-amber-500" /> Draw Random Card
             </button>
 
             <button

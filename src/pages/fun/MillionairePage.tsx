@@ -4,7 +4,7 @@ import { navigate } from "../../lib/router";
 import { LADDER, ladderDifficulty, pickQuestions, fmtNaira, type TriviaQ } from "../../lib/trivia";
 import {
   Crown, Users, Split, PhoneCall, Trophy, RotateCcw, Handshake,
-  CheckCircle2, XCircle, Timer, Sparkles, ShieldCheck,
+  CheckCircle2, XCircle, Timer, Zap, ShieldCheck,
 } from "lucide-react";
 
 type Phase = "intro" | "playing" | "won" | "lost" | "banked";
@@ -242,7 +242,7 @@ export default function MillionairePage() {
             <div key={level} className="mt-6 animate-[riseIn_.5s_cubic-bezier(.22,1,.36,1)]">
               <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.09] to-white/[0.03] p-8 text-center shadow-2xl">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
-                  <Sparkles className="h-3 w-3" /> {q.difficulty} · {q.topic}
+                  <Zap className="h-3 w-3" /> {q.difficulty} · {q.topic}
                 </span>
                 <h2 className="mt-4 font-display text-xl font-extrabold leading-snug md:text-2xl">{q.q}</h2>
               </div>

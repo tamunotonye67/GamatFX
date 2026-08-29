@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Sparkles, Zap, Crown, ArrowRight, UserCheck, ShieldCheck, PhoneCall, Video } from "lucide-react";
+import { Check, Zap, Crown, ArrowRight, UserCheck, ShieldCheck, PhoneCall, Video } from "lucide-react";
 import { navigate } from "../lib/router";
 
 export type MentorshipPlanId = "starter" | "pro" | "elite";
@@ -137,7 +137,7 @@ export default function MentorshipPricingSection() {
                 {isPro && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-4 py-1 text-xs font-black uppercase tracking-wider text-white shadow-lg">
-                      <Sparkles className="h-3.5 w-3.5" /> Popular Plan
+                      <Zap className="h-3.5 w-3.5" /> Popular Plan
                     </span>
                   </div>
                 )}

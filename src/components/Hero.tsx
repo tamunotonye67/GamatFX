@@ -1,4 +1,4 @@
-import { ArrowUpRight, PlayCircle, Sparkles } from "lucide-react";
+import { ArrowUpRight, PlayCircle, Zap } from "lucide-react";
 import Counter from "./Counter";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
@@ -34,7 +34,7 @@ export default function Hero() {
           className="mb-8 inline-flex w-fit items-center gap-3 rounded-full border border-white/15 bg-white/5 py-2 pl-2 pr-4 backdrop-blur-sm"
         >
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-3 py-1 text-xs font-semibold text-white shadow-md animate-pulse shrink-0">
-            <Sparkles className="h-3.5 w-3.5" /> New
+            <Zap className="h-3.5 w-3.5" /> New
           </span>
 
           {/* Gliding Event Line moving out of the slim white terminal cursor and disappearing before Register button */}

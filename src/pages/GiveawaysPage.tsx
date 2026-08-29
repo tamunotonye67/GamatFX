@@ -5,7 +5,7 @@ import { useStore, type Giveaway } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import {
-  Gift, ChevronRight, ArrowLeft, Clock, Trophy, Sparkles, UserRound,
+  Gift, ChevronRight, ArrowLeft, Clock, Trophy, Zap, UserRound,
 } from "lucide-react";
 
 const fmt = (iso: string) =>
@@ -96,7 +96,7 @@ export function GiveawaysPage() {
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[11px] font-bold uppercase">
-                      <Sparkles className="h-3 w-3" /> Latest
+                      <Zap className="h-3 w-3" /> Latest
                     </span>
                     <span className="text-xs text-white/50">{fmt(featured.announcedAt)}</span>
                   </div>

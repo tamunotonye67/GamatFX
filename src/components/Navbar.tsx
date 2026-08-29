@@ -23,7 +23,7 @@ import {
   UserPlus,
   History,
   Shield,
-  Sparkles,
+  Zap,
   Award,
   Pencil,
 } from "lucide-react";
@@ -238,7 +238,7 @@ export default function Navbar() {
                           isFunGroup ? "text-brand" : "text-muted"
                         }`}
                       >
-                        {isFunGroup && <Sparkles className="h-3.5 w-3.5 text-brand animate-pulse" />}
+                        {isFunGroup && <Zap className="h-3.5 w-3.5 text-brand animate-pulse" />}
                         {group.title}
                       </p>
 
@@ -316,7 +316,7 @@ export default function Navbar() {
                                   {/* Arcade Flyout Header */}
                                   <div className="mb-2.5 flex items-center justify-between border-b border-amber-400/20 pb-2 px-1">
                                     <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-amber-300">
-                                      <Sparkles className="h-3.5 w-3.5 text-amber-400 animate-spin-slow" /> Arcade Games Zone
+                                      <Zap className="h-3.5 w-3.5 text-amber-400 animate-spin-slow" /> Arcade Games Zone
                                     </span>
                                     <span className="rounded-full bg-amber-400/20 px-2 py-0.5 text-[9px] font-bold text-amber-300">
                                       Hover to Play
@@ -349,7 +349,7 @@ export default function Navbar() {
                                               <span className="truncate font-extrabold text-xs text-white group-hover/game:text-amber-200">
                                                 {sub.label}
                                               </span>
-                                              <Sparkles className="h-3.5 w-3.5 shrink-0 text-amber-400 opacity-0 group-hover/game:opacity-100 transition-opacity duration-300 animate-pulse" />
+                                              <Zap className="h-3.5 w-3.5 shrink-0 text-amber-400 opacity-0 group-hover/game:opacity-100 transition-opacity duration-300 animate-pulse" />
                                             </div>
                                             <span className="block text-[10px] text-rose-200/80 font-normal truncate">
                                               {sub.desc}

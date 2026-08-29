@@ -5,7 +5,7 @@ import { useReveal } from "../../lib/useReveal";
 import { TRIVIA } from "../../lib/trivia";
 import {
   Gamepad2, Crown, LineChart, ArrowUpRight, Infinity as InfinityIcon,
-  Trophy, Zap, Sparkles, Swords,
+  Trophy, Zap, Swords,
 } from "lucide-react";
 
 const GAMES = [
@@ -67,7 +67,7 @@ export default function FunZonePage() {
             { i: InfinityIcon, v: "Unlimited", l: "Quiz questions" },
             { i: Trophy, v: "₦10M", l: "Top game prize" },
             { i: Zap, v: TRIVIA.length + "+", l: "Trivia in the bank" },
-            { i: Sparkles, v: "Free", l: "Always" },
+            { i: Zap, v: "Free", l: "Always" },
           ].map((s) => (
             <div key={s.l}>
               <s.i className="mx-auto h-6 w-6 text-brand" />
@@ -110,7 +110,7 @@ export default function FunZonePage() {
                   <ul className="mt-5 space-y-2">
                     {g.points.map((p) => (
                       <li key={p} className="flex items-start gap-2 text-xs text-ink/75">
-                        <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> {p}
+                        <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> {p}
                       </li>
                     ))}
                   </ul>

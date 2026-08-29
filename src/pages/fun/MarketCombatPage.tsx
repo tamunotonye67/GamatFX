@@ -9,7 +9,7 @@ import {
 } from "../../lib/combat";
 import {
   TrendingUp, TrendingDown, Trophy, Flame, Target, Clock,
-  CheckCircle2, XCircle, Lock, ChevronRight, Sparkles, Shield,
+  CheckCircle2, XCircle, Lock, ChevronRight, Zap, Shield,
   BarChart3, Users, Info,
 } from "lucide-react";
 
@@ -173,7 +173,7 @@ export default function MarketCombatPage() {
                         <span className="block font-bold">{r.title}</span>
                         <span className={`block text-[11px] ${current ? "text-white/75" : "text-muted"}`}>{r.minXp}+ XP</span>
                       </span>
-                      {current && <Sparkles className="h-4 w-4" />}
+                      {current && <Zap className="h-4 w-4" />}
                       {!unlocked && <Lock className="h-3.5 w-3.5" />}
                     </li>
                   );

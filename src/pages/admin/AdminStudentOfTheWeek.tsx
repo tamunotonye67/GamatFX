@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { AdminShell, Card, Field } from "./AdminShell";
 import { useStore, type StudentOfTheWeek } from "../../lib/store";
-import { Trophy, Save, Upload, Star, CheckCircle2, Sparkles } from "lucide-react";
+import { Trophy, Save, Upload, Star, CheckCircle2, Zap } from "lucide-react";
 
 export function AdminStudentOfTheWeek() {
   const { studentOfTheWeek, saveStudentOfTheWeek, admin } = useStore();
@@ -237,7 +237,7 @@ export function AdminStudentOfTheWeek() {
         <div className="lg:col-span-5">
           <Card className="p-6 bg-slate-950 text-white border-brand/30">
             <div className="flex items-center gap-2 mb-4 text-amber-400 font-bold text-xs uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" /> Live Public Card Preview
+              <Zap className="h-4 w-4" /> Live Public Card Preview
             </div>
 
             <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-xl">

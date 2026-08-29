@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   GraduationCap, Building2, Megaphone, Users, TrendingUp,
-  Briefcase, Sparkles, ChevronLeft, ChevronRight, Play, Pause,
+  Briefcase, Zap, ChevronLeft, ChevronRight, Play, Pause,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -139,7 +139,7 @@ export default function ServiceGallery() {
                       className="inline-flex animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_both] items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
                       style={{ background: s.accent }}
                     >
-                      <Sparkles className="h-3 w-3" /> {s.tag}
+                      <Zap className="h-3 w-3" /> {s.tag}
                     </span>
                     <p
                       className="mt-2.5 animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_.1s_both] font-display text-xl font-extrabold leading-tight text-white"

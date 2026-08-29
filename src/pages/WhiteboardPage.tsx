@@ -13,13 +13,13 @@ import {
   ArrowLeft,
   Type,
   StickyNote,
+  Eraser,
   RotateCcw,
   RotateCw,
   Trash2,
   Download,
   Maximize2,
   Minimize2,
-  Sparkles,
   ZoomIn,
   ZoomOut,
   RefreshCw,
@@ -29,6 +29,11 @@ import {
   FileCode,
   Layers,
   Grid,
+  X,
+  Plus,
+  Settings,
+  Check,
+  Search,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -47,7 +52,8 @@ type Tool =
   | "arrow"
   | "bezier"
   | "text"
-  | "eraser";
+  | "eraser"
+  | "zoom";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -60,6 +66,11 @@ type Shape = {
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
+};
+
+type DiagramTab = {
+  id: string;
+  name: string;
 };
 
 const STICKY_COLORS: { color: StickyColor; name: string }[] = [
@@ -80,7 +91,7 @@ const CANVAS_THEMES = [
   { id: "chalkboard", name: "Chalkboard Green" },
 ];
 
-const DIAGRAM_TABS = [
+const INITIAL_TABS: DiagramTab[] = [
   { id: "blank", name: "Blank Canvas" },
   { id: "mindmap", name: "Forex Basics Mind Map" },
   { id: "smc_diag", name: "SMC Liquidity Diagram" },
@@ -92,7 +103,9 @@ const DIAGRAM_TABS = [
 /* ========================================================================== */
 
 export default function WhiteboardPage() {
-  const [activeTab, setActiveTab] = useState("blank");
+  const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
+  const [activeTabId, setActiveTabId] = useState("blank");
+
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [strokeColor, setStrokeColor] = useState("#dc3545");
   const [strokeWidth, setStrokeWidth] = useState(3);
@@ -104,9 +117,10 @@ export default function WhiteboardPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
-  // Dropdown States
+  // Modals & Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   // Selection & Multi-Select Marquee State
@@ -132,25 +146,22 @@ export default function WhiteboardPage() {
   const isPanning = useRef(false);
   const startPan = useRef({ x: 0, y: 0 });
 
-  /* -------------------------- Keyboard Event Handlers ---------------------- */
+  /* -------------------------- Keyboard & Wheel Handlers -------------------- */
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
 
-      // Delete Selected Shapes
       if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeIds.length > 0) {
         setShapes((prev) => prev.filter((s) => !selectedShapeIds.includes(s.id)));
         setSelectedShapeIds([]);
         showToast(`Deleted ${selectedShapeIds.length} object(s)!`);
       }
 
-      // Ctrl + Z (Undo)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
         handleUndo();
       }
 
-      // Ctrl + Y or Ctrl + Shift + Z (Redo)
       if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) {
         handleRedo();
       }
@@ -159,6 +170,12 @@ export default function WhiteboardPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedShapeIds, shapes, redoStack]);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+    setZoom((z) => Math.min(3.0, Math.max(0.3, z * zoomFactor)));
+  };
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
@@ -264,6 +281,7 @@ export default function WhiteboardPage() {
     setContextMenu(null);
     setExportOpen(false);
     setBgOpen(false);
+    setSettingsOpen(false);
 
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -273,12 +291,23 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    // 1. SELECT TOOL BEHAVIOR (Hit Test, Alt+Drag Duplicate, Marquee Box, Resize)
+    // Zoom Tool Click
+    if (activeTool === "zoom") {
+      setZoom((z) => Math.min(3.0, z + 0.2));
+      return;
+    }
+
+    // Dedicated Eraser Tool Action
+    if (activeTool === "eraser") {
+      setShapes((prev) => prev.filter((s) => !isPointInShape(pt, s)));
+      return;
+    }
+
+    // Select Tool Hit Test & Alt+Drag Duplicate
     if (activeTool === "select") {
       const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
 
       if (hitShape) {
-        // Alt + Drag Duplicate Shortcut
         if (e.altKey) {
           const duplicatedShape: Shape = {
             ...hitShape,
@@ -293,7 +322,6 @@ export default function WhiteboardPage() {
           return;
         }
 
-        // Multi-select with Shift, or single select
         if (e.shiftKey) {
           setSelectedShapeIds((prev) => (prev.includes(hitShape.id) ? prev.filter((id) => id !== hitShape.id) : [...prev, hitShape.id]));
         } else if (!selectedShapeIds.includes(hitShape.id)) {
@@ -303,14 +331,13 @@ export default function WhiteboardPage() {
         isDraggingShape.current = true;
         dragStartPt.current = pt;
       } else {
-        // Clicked empty canvas -> Start Marquee Rubberband Selection
         setSelectedShapeIds([]);
         setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
       }
       return;
     }
 
-    // 2. BEZIER / CHART PATTERN TOOL (Continuous Multi-Point Path)
+    // Bezier / Chart Pattern Tool
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
         setCurrentShape({
@@ -369,13 +396,17 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    // Marquee Selection Box Update
+    // Eraser dragging over shapes
+    if (activeTool === "eraser" && e.buttons === 1) {
+      setShapes((prev) => prev.filter((s) => !isPointInShape(pt, s)));
+      return;
+    }
+
     if (marqueeBox) {
       setMarqueeBox((prev) => (prev ? { ...prev, x2: pt.x, y2: pt.y } : null));
       return;
     }
 
-    // Dragging / Moving Selected Shapes
     if (isDraggingShape.current && selectedShapeIds.length > 0) {
       const dx = pt.x - dragStartPt.current.x;
       const dy = pt.y - dragStartPt.current.y;
@@ -419,7 +450,6 @@ export default function WhiteboardPage() {
     isPanning.current = false;
     isDraggingShape.current = false;
 
-    // Complete Marquee Box Multi-Selection
     if (marqueeBox) {
       const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
       const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
@@ -485,7 +515,7 @@ export default function WhiteboardPage() {
     setTextModalPos(null);
   };
 
-  /* Bulk Apply Color / Properties to Selected Objects */
+  /* Bulk Apply Color / Properties */
   const applyColorToSelected = (color: string) => {
     setStrokeColor(color);
     if (selectedShapeIds.length > 0) {
@@ -504,8 +534,32 @@ export default function WhiteboardPage() {
     }
   };
 
-  /* ---------------------------- Toolbar Actions ---------------------------- */
+  /* Tab Management Functions (Add New Tab & Close Tab) */
+  const handleAddNewTab = () => {
+    const newId = `tab_${Date.now()}`;
+    const newName = `Canvas ${tabs.length + 1}`;
+    setTabs((prev) => [...prev, { id: newId, name: newName }]);
+    setActiveTabId(newId);
+    setShapes([]);
+    showToast(`Created new diagram tab: ${newName}`);
+  };
 
+  const handleCloseTab = (tabIdToClose: string) => {
+    if (tabs.length === 1) {
+      showToast("Cannot close the only open tab.");
+      return;
+    }
+
+    const updatedTabs = tabs.filter((t) => t.id !== tabIdToClose);
+    setTabs(updatedTabs);
+    if (activeTabId === tabIdToClose) {
+      setActiveTabId(updatedTabs[updatedTabs.length - 1].id);
+      handleSelectTab(updatedTabs[updatedTabs.length - 1].id);
+    }
+    showToast("Tab closed!");
+  };
+
+  /* Toolbar Actions */
   const handleUndo = () => {
     if (shapes.length === 0) return;
     const last = shapes[shapes.length - 1];
@@ -554,7 +608,7 @@ export default function WhiteboardPage() {
   };
 
   const handleSelectTab = (tabId: string) => {
-    setActiveTab(tabId);
+    setActiveTabId(tabId);
     if (tabId === "blank") {
       setShapes([]);
       showToast("Opened Blank Canvas!");
@@ -657,11 +711,11 @@ export default function WhiteboardPage() {
       {/* Toast Notification */}
       {statusMsg && (
         <div className="fixed top-20 right-6 z-50 rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
-          <Sparkles className="h-4 w-4" /> {statusMsg}
+          <Check className="h-4 w-4" /> {statusMsg}
         </div>
       )}
 
-      {/* Main Header Bar (GAMAT Logo -> Back to Site -> Dynamic Tool Properties Bar -> Canvas Theme -> Export Dropdown) */}
+      {/* Main Header Bar (Logo -> Back to Site -> Tool Properties -> Theme Dropdown -> Export Dropdown -> Settings) */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
         {/* Left Section: Logo -> Back to Site */}
         <div className="flex items-center gap-3">
@@ -700,7 +754,7 @@ export default function WhiteboardPage() {
               ))}
             </div>
 
-            {/* Sticky Note Colors (when activeTool === sticky or sticky selected) */}
+            {/* Sticky Note Colors (when activeTool === sticky) */}
             {activeTool === "sticky" && (
               <>
                 <span className="h-4 w-px bg-line" />
@@ -780,9 +834,9 @@ export default function WhiteboardPage() {
           </div>
         </div>
 
-        {/* Right Section: Canvas Background Selector -> Export Dropdown -> Fullscreen */}
+        {/* Right Section: Canvas Theme -> Export Dropdown -> Settings -> Fullscreen */}
         <div className="flex items-center gap-2">
-          {/* Canvas Background / Theme Dropdown */}
+          {/* Canvas Background Theme Dropdown */}
           <div className="relative">
             <button
               type="button"
@@ -853,6 +907,16 @@ export default function WhiteboardPage() {
             )}
           </div>
 
+          {/* Whiteboard Settings Button */}
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="rounded-xl border border-line bg-cream p-2 text-ink hover:bg-white transition"
+            title="Whiteboard Preferences Settings"
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+
           <button
             type="button"
             onClick={toggleFullscreen}
@@ -864,25 +928,43 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Diagram Tabs Bar */}
-      <div className="h-10 border-b border-line bg-slate-100 px-6 flex items-center gap-2 shrink-0 z-20 overflow-x-auto">
-        <span className="text-[11px] font-bold text-muted mr-2 flex items-center gap-1">
-          <Layers className="h-3.5 w-3.5 text-brand" /> Diagrams:
+      {/* Sub-Header Closeable Diagram Tabs Bar */}
+      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-1.5 shrink-0 z-20 overflow-x-auto">
+        <span className="text-[11px] font-bold text-muted mr-2 flex items-center gap-1 shrink-0">
+          <Layers className="h-3.5 w-3.5 text-brand" /> Tabs:
         </span>
-        {DIAGRAM_TABS.map((tab) => (
-          <button
+        {tabs.map((tab) => (
+          <div
             key={tab.id}
-            type="button"
             onClick={() => handleSelectTab(tab.id)}
-            className={`rounded-t-xl px-4 py-2 text-xs font-bold transition-all border-t border-x ${
-              activeTab === tab.id
+            className={`group flex items-center gap-2 rounded-t-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all border-t border-x ${
+              activeTabId === tab.id
                 ? "bg-white text-brand border-line shadow-sm"
-                : "border-transparent text-muted hover:text-ink hover:bg-white/50"
+                : "border-transparent text-muted hover:text-ink hover:bg-white/60"
             }`}
           >
-            {tab.name}
-          </button>
+            <span>{tab.name}</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCloseTab(tab.id);
+              }}
+              className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition"
+              title="Close Tab"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
         ))}
+        <button
+          type="button"
+          onClick={handleAddNewTab}
+          className="flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-1 text-xs font-bold text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1"
+          title="Create New Blank Diagram Tab"
+        >
+          <Plus className="h-3.5 w-3.5" /> New Tab
+        </button>
       </div>
 
       {/* Main Miro Workspace */}
@@ -893,7 +975,7 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
-              title="Select, Move, Resize & Alt+Drag Duplicate"
+              title="Select, Move & Alt+Drag Duplicate"
               icon={MousePointer}
             />
             <MiroToolBtn
@@ -920,6 +1002,18 @@ export default function WhiteboardPage() {
               title="Sticky Note"
               icon={StickyNote}
               badge="NOTE"
+            />
+            <MiroToolBtn
+              active={activeTool === "eraser"}
+              onClick={() => setActiveTool("eraser")}
+              title="Eraser Tool"
+              icon={Eraser}
+            />
+            <MiroToolBtn
+              active={activeTool === "zoom"}
+              onClick={() => setActiveTool("zoom")}
+              title="Zoom Tool (or use mouse scroll wheel)"
+              icon={Search}
             />
             <MiroToolBtn
               active={activeTool === "bezier"}
@@ -1000,18 +1094,18 @@ export default function WhiteboardPage() {
           <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
             <button
               type="button"
-              onClick={() => setZoom((z) => Math.max(0.4, z - 0.15))}
+              onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
               className="p-1.5 text-ink hover:bg-cream rounded-lg"
-              title="Zoom Out"
+              title="Zoom Out (or scroll wheel)"
             >
               <ZoomOut className="h-4 w-4" />
             </button>
             <span className="w-12 text-center text-ink">{Math.round(zoom * 100)}%</span>
             <button
               type="button"
-              onClick={() => setZoom((z) => Math.min(2.5, z + 0.15))}
+              onClick={() => setZoom((z) => Math.min(3.0, z + 0.15))}
               className="p-1.5 text-ink hover:bg-cream rounded-lg"
-              title="Zoom In"
+              title="Zoom In (or scroll wheel)"
             >
               <ZoomIn className="h-4 w-4" />
             </button>
@@ -1028,7 +1122,7 @@ export default function WhiteboardPage() {
             </button>
           </div>
 
-          {/* Canvas */}
+          {/* Canvas with Mouse Wheel Zoom */}
           <canvas
             ref={canvasRef}
             onMouseDown={handleMouseDown}
@@ -1036,11 +1130,16 @@ export default function WhiteboardPage() {
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
+            onWheel={handleWheel}
             className={`w-full h-full block ${
               activeTool === "hand"
                 ? "cursor-grab active:cursor-grabbing"
                 : activeTool === "select"
                 ? "cursor-default"
+                : activeTool === "eraser"
+                ? "cursor-pointer"
+                : activeTool === "zoom"
+                ? "cursor-zoom-in"
                 : "cursor-crosshair"
             }`}
           />
@@ -1075,11 +1174,67 @@ export default function WhiteboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => { setActiveTool("rectangle"); setContextMenu(null); }}
+                onClick={() => { setActiveTool("eraser"); setContextMenu(null); }}
                 className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand"
               >
-                <Square className="h-3.5 w-3.5" /> Rectangle Box
+                <Eraser className="h-3.5 w-3.5 text-rose-500" /> Eraser Tool
               </button>
+            </div>
+          )}
+
+          {/* Settings Preferences Modal */}
+          {settingsOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+              <div className="w-full max-w-md rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-5">
+                <div className="flex items-center justify-between border-b border-line pb-3">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-brand" />
+                    <h3 className="font-display font-extrabold text-ink text-base">Whiteboard Preferences</h3>
+                  </div>
+                  <button onClick={() => setSettingsOpen(false)} className="rounded-lg p-1 text-muted hover:text-ink">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4 text-xs">
+                  <div>
+                    <label className="font-bold text-ink block mb-1">Default Canvas Theme</label>
+                    <select
+                      value={bgGrid}
+                      onChange={(e) => setBgGrid(e.target.value as any)}
+                      className="w-full rounded-xl border border-line bg-cream p-2.5 font-bold text-ink outline-none focus:border-brand"
+                    >
+                      {CANVAS_THEMES.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-ink block mb-1">Default Stroke Width</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 4, 6].map((w) => (
+                        <button
+                          key={w}
+                          type="button"
+                          onClick={() => setStrokeWidth(w)}
+                          className={`flex-1 py-2 rounded-xl font-extrabold transition ${
+                            strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                          }`}
+                        >
+                          {w}px
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button onClick={() => setSettingsOpen(false)} className="btn-primary w-full !py-2.5 text-xs font-bold">
+                    Save Preferences
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1222,17 +1377,14 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     const w = 180;
     const h = 140;
 
-    // Shadow
     ctx.fillStyle = "rgba(0,0,0,0.08)";
     ctx.fillRect(p.x + 4, p.y + 4, w, h);
 
-    // Sticky Note Body
     ctx.fillStyle = shape.stickyColor || "#fef08a";
     ctx.fillRect(p.x, p.y, w, h);
     ctx.strokeStyle = "rgba(0,0,0,0.12)";
     ctx.strokeRect(p.x, p.y, w, h);
 
-    // Folded Corner
     ctx.fillStyle = "rgba(0,0,0,0.10)";
     ctx.beginPath();
     ctx.moveTo(p.x + w - 16, p.y + h);
@@ -1240,7 +1392,6 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.lineTo(p.x + w - 16, p.y + h - 16);
     ctx.fill();
 
-    // Sticky Note Text
     if (shape.text) {
       ctx.fillStyle = "#1e293b";
       ctx.font = "bold 12px Inter, sans-serif";
@@ -1321,7 +1472,6 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
 
   ctx.setLineDash([]);
 
-  // Draw Selection Highlight Box if shape is selected
   if (isSelected) {
     let minX = Math.min(...pts.map((p) => p.x));
     let maxX = Math.max(...pts.map((p) => p.x));

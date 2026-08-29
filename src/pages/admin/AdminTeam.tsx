@@ -4,7 +4,7 @@ import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type TeamProfile, type TeamBioSubmission } from "../../lib/store";
 import {
   Users, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
-  UserRound, Sparkles,
+  UserRound, Zap,
 } from "lucide-react";
 
 type Draft = Partial<TeamProfile> & {
@@ -113,7 +113,7 @@ export function AdminTeam() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={Users} label="Team profiles" value={teamProfiles.length} />
         <StatCard icon={CheckCircle2} label="Published" value={teamProfiles.filter((t) => t.published).length} />
-        <StatCard icon={Sparkles} label="Pending bios" value={pending.length} sub={pending.length ? "Needs review" : undefined} />
+        <StatCard icon={Zap} label="Pending bios" value={pending.length} sub={pending.length ? "Needs review" : undefined} />
         <StatCard icon={EyeOff} label="Hidden" value={teamProfiles.filter((t) => !t.published).length} />
       </div>
 
