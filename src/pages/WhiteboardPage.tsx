@@ -78,6 +78,9 @@ import {
   HelpCircle,
   CheckCircle2,
   Zap,
+  GraduationCap,
+  PlayCircle,
+  Lightbulb,
 } from "lucide-react";
 import { useStore } from "../lib/store";
 
@@ -470,7 +473,7 @@ export default function WhiteboardPage() {
 
   // Figma-Style Whiteboard Hub Launcher State (Defaults to Hub on Login)
   const [viewMode, setViewMode] = useState<"hub" | "canvas">("hub");
-  const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash">("drafts");
+  const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash" | "guide">("drafts");
   const [hubSearch, setHubSearch] = useState("");
   const [hubLayout, setHubLayout] = useState<"grid" | "list">(() => {
     try {
@@ -2070,21 +2073,21 @@ export default function WhiteboardPage() {
             </button>
 
             {/* Navigation Menu List */}
-            <div className="space-y-1 pt-1">
-              <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Workspace</p>
+            <div className="space-y-0.5 pt-1">
+              <p className="px-2.5 py-1 text-[9px] font-black uppercase text-muted tracking-wider">Workspace</p>
 
               {/* 1. Drafts */}
               <button
                 type="button"
                 onClick={() => { setHubTab("drafts"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
                   hubTab === "drafts" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2.5">
-                  <FolderKanban className="h-4 w-4" /> Drafts & Files
+                <span className="flex items-center gap-2">
+                  <FolderKanban className="h-3.5 w-3.5" /> Drafts & Files
                 </span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "drafts" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
                   {allDraftsList.length}
@@ -2095,14 +2098,14 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => { setHubTab("samples"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
                   hubTab === "samples" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2.5">
-                  <LayoutTemplate className="h-4 w-4" /> Samples & Templates
+                <span className="flex items-center gap-2">
+                  <LayoutTemplate className="h-3.5 w-3.5" /> Samples & Templates
                 </span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "samples" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
                   {HUB_SAMPLES.length}
@@ -2113,14 +2116,14 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => { setHubTab("resources"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
                   hubTab === "resources" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2.5">
-                  <BookOpen className="h-4 w-4" /> Resources & Guides
+                <span className="flex items-center gap-2">
+                  <BookOpen className="h-3.5 w-3.5" /> Resources & Guides
                 </span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "resources" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
                   {HUB_RESOURCES.length}
@@ -2131,40 +2134,59 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => { setHubTab("trash"); setHubSearch(""); }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
                   hubTab === "trash" ? "bg-rose-50 text-rose-700 shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2.5">
-                  <Trash2 className="h-4 w-4" /> Trash
+                <span className="flex items-center gap-2">
+                  <Trash2 className="h-3.5 w-3.5" /> Trash
                 </span>
                 {trashedTabs.length > 0 && (
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
+                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700">
                     {trashedTabs.length}
                   </span>
                 )}
+              </button>
+
+              {/* Horizontal Divider */}
+              <div className="border-t border-line my-1.5" />
+
+              {/* 5. Learn Workspace */}
+              <button
+                type="button"
+                onClick={() => { setHubTab("guide"); setHubSearch(""); }}
+                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition ${
+                  hubTab === "guide" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <GraduationCap className="h-3.5 w-3.5 text-brand" /> Learn Workspace
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-brand/10 text-brand">
+                  Guide
+                </span>
               </button>
             </div>
           </div>
 
           {/* Sidebar Bottom Quick Utilities */}
-          <div className="space-y-1 border-t border-line pt-3 text-xs">
+          <div className="space-y-0.5 border-t border-line pt-2.5 text-[11.5px]">
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
             >
-              <Settings className="h-4 w-4 text-slate-500" /> Preferences
+              <Settings className="h-3.5 w-3.5 text-slate-500" /> Preferences
             </button>
             <button
               type="button"
               onClick={() => setShortcutsOpen(true)}
-              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
+              className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
             >
               <span className="flex items-center gap-2">
-                <Keyboard className="h-4 w-4 text-slate-500" /> Shortcuts
+                <Keyboard className="h-3.5 w-3.5 text-slate-500" /> Shortcuts
               </span>
-              <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-muted">?</span>
+              <span className="text-[9px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-muted">?</span>
             </button>
           </div>
         </aside>
@@ -2179,12 +2201,14 @@ export default function WhiteboardPage() {
                 {hubTab === "samples" && "Interactive Samples & Lesson Templates"}
                 {hubTab === "resources" && "Trading Resources & Cheatsheets"}
                 {hubTab === "trash" && "Trash Bin"}
+                {hubTab === "guide" && "Learn Whiteboard Workspace"}
               </h2>
               <p className="text-xs text-muted font-medium">
                 {hubTab === "drafts" && "Resume where you left off or start a fresh technical analysis canvas"}
                 {hubTab === "samples" && "Pre-built technical setups, Smart Money Concepts, and lesson chart models"}
                 {hubTab === "resources" && "Price action cheatsheets, risk calculation formulas, and quick references"}
                 {hubTab === "trash" && "Closed diagram tabs (automatically purged after 30 days)"}
+                {hubTab === "guide" && "Interactive master guide to technical analysis markup, Smart Money tools, and keyboard controls"}
               </p>
             </div>
 
@@ -2726,115 +2750,525 @@ export default function WhiteboardPage() {
                 )}
               </div>
             )}
+
+            {/* ===================== TAB 5: LEARN WORKSPACE ===================== */}
+            {hubTab === "guide" && (
+              <div className="space-y-6 max-w-5xl">
+                {/* Hero Guide Banner */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-brand-dark p-8 text-white shadow-xl">
+                  <div className="relative z-10 max-w-2xl space-y-3">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand/30 border border-brand/40 text-brand-light text-xs font-black uppercase tracking-wider">
+                      <GraduationCap className="h-3.5 w-3.5" /> Workspace Learning Center
+                    </span>
+                    <h3 className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+                      Master Technical Analysis & Whiteboard Charting
+                    </h3>
+                    <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
+                      Learn how to annotate multi-timeframe Forex charts, markup Smart Money Concepts (Order Blocks, Imbalances, BOS), calculate risk-to-reward ratios, and organize pro trading journal workspaces.
+                    </p>
+                    <div className="pt-2 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleCreateNewCanvasFromHub("Interactive Practice Setup")}
+                        className="flex items-center gap-2 rounded-2xl bg-brand text-white px-5 py-3 text-xs font-black shadow-lg shadow-brand/30 hover:bg-brand-dark transition transform active:scale-95 cursor-pointer"
+                      >
+                        <PlayCircle className="h-4 w-4" /> Open Practice Canvas
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShortcutsOpen(true)}
+                        className="flex items-center gap-2 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white px-4 py-3 text-xs font-bold transition backdrop-blur-xs cursor-pointer"
+                      >
+                        <Keyboard className="h-4 w-4 text-slate-300" /> View Keyboard Shortcuts (?)
+                      </button>
+                    </div>
+                  </div>
+                  <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 pointer-events-none flex items-center justify-center">
+                    <GraduationCap className="w-80 h-80 text-white" />
+                  </div>
+                </div>
+
+                {/* 4 Interactive Feature Guides */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Step 1: Canvas Navigation & Gestures */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">
+                          01
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Canvas Navigation & Controls</h4>
+                          <p className="text-xs text-muted">Fluid infinite canvas movement</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Pan seamlessly across your chart by holding the <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-line font-mono text-[10px] font-bold">Spacebar</kbd> and dragging with your mouse, or select the <strong>Hand Tool (H)</strong>. Zoom in and out using <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-line font-mono text-[10px] font-bold">Ctrl + Mouse Wheel</kbd> or the bottom zoom bar.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-line flex items-center justify-between">
+                          <span className="font-bold text-slate-700">Pan Canvas</span>
+                          <span className="font-mono text-[10px] font-bold text-slate-500">Space + Drag / H</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-line flex items-center justify-between">
+                          <span className="font-bold text-slate-700">Zoom In / Out</span>
+                          <span className="font-mono text-[10px] font-bold text-slate-500">Ctrl + Scroll / + -</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-line flex items-center justify-between">
+                          <span className="font-bold text-slate-700">Reset View (100%)</span>
+                          <span className="font-mono text-[10px] font-bold text-slate-500">Ctrl + 0</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Smart Money Concepts Markup */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-black text-sm">
+                          02
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Smart Money Concepts Markup</h4>
+                          <p className="text-xs text-muted">Institutional supply/demand zones</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Highlight high-probability order blocks using <strong>Rectangles (R)</strong> with 20% opacity. Mark <strong>Break of Structure (BOS)</strong> and <strong>Change of Character (CHoCH)</strong> with labeled arrows, and use the <strong>Path Tool (P)</strong> to map multi-leg Elliott Wave impulses.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
+                          <span className="font-bold">Order Blocks (OB)</span>
+                          <span className="font-medium text-[11px]">Translucent Demand Zones</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
+                          <span className="font-bold">Fair Value Gaps (FVG)</span>
+                          <span className="font-medium text-[11px]">3-Candle Imbalances</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between text-purple-900">
+                          <span className="font-bold">Break of Structure (BOS)</span>
+                          <span className="font-medium text-[11px]">Trend continuation lines</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Risk Calculation & Position Tool */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm">
+                          03
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Risk Tool & Trade Journals</h4>
+                          <p className="text-xs text-muted">Automated 1:3 Risk-to-Reward setup</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Plot <strong>Long/Short Positions (S)</strong> to calculate Stop Loss vs Take Profit zones automatically. Add <strong>Sticky Notes (N)</strong> directly onto your charts to write execution checklists, entry confirmations, and pre-session trade ideas.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
+                          <span className="font-bold">Position Tool</span>
+                          <span className="font-mono text-[10px] font-bold">Press S</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
+                          <span className="font-bold">Editable Sticky Notes</span>
+                          <span className="font-mono text-[10px] font-bold">Press N</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between text-emerald-900">
+                          <span className="font-bold">Candlestick Patterns</span>
+                          <span className="font-mono text-[10px] font-bold">Press K</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 4: Multi-Tab Tabs, Auto-Save & Export */}
+                  <div className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-sm">
+                          04
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-ink">Multi-Tabs, Auto-Save & Exports</h4>
+                          <p className="text-xs text-muted">Never lose analysis progress</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                        Open up to 5 concurrent charts in the top tab bar. Every markup stroke is automatically saved locally. Closed tabs are moved to the <strong>Trash Bin</strong> with a 30-day grace period. Export crystal-clear <strong>High-DPI PNGs, SVGs, or JPEGs</strong> anytime.
+                      </p>
+                      <div className="space-y-2 pt-1 text-xs">
+                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
+                          <span className="font-bold">New Canvas Tab</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + N</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
+                          <span className="font-bold">Export PNG Diagram</span>
+                          <span className="font-mono text-[10px] font-bold">Ctrl + E</span>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between text-amber-900">
+                          <span className="font-bold">Restore Trashed Charts</span>
+                          <span className="font-medium text-[11px]">Hub → Trash Bin</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </main>
         </div>
 
-        {/* Global Settings Modal accessible in Hub */}
+        {/* EXPANDED RICH WHITEBOARD PREFERENCES SETTINGS MODAL (ACCESSIBLE IN HUB) */}
         {settingsOpen && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
             <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4">
+              {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-line pb-3">
-                <h3 className="font-display font-extrabold text-ink text-base flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-brand" /> Whiteboard Preferences
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen(false)}
-                  className="text-slate-400 hover:text-ink p-1 rounded-lg hover:bg-slate-100"
-                >
+                <div className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-brand" />
+                  <h3 className="font-display font-extrabold text-ink text-base">Whiteboard Preferences</h3>
+                </div>
+                <button onClick={() => setSettingsOpen(false)} className="rounded-lg p-1 text-muted hover:text-ink cursor-pointer">
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-ink">Interactive Tooltips</span>
-                  <input
-                    type="checkbox"
-                    checked={showTooltips}
-                    onChange={(e) => setShowTooltips(e.target.checked)}
-                    className="h-4 w-4 rounded accent-brand"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-ink">Snap to Grid ($10\text{px}$)</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToGrid}
-                    onChange={(e) => setSnapToGrid(e.target.checked)}
-                    className="h-4 w-4 rounded accent-brand"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-ink">Floating Favorites Toolbar</span>
-                  <input
-                    type="checkbox"
-                    checked={showFavoritesBar}
-                    onChange={(e) => setShowFavoritesBar(e.target.checked)}
-                    className="h-4 w-4 rounded accent-brand"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end">
+              {/* Preference Category Tabs */}
+              <div className="flex items-center gap-1.5 rounded-2xl bg-cream p-1 border border-line">
                 <button
                   type="button"
-                  onClick={() => setSettingsOpen(false)}
-                  className="btn-primary !py-2 px-5 text-xs font-bold"
+                  onClick={() => setSettingsTab("general")}
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    settingsTab === "general" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                  }`}
                 >
-                  Done
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> General & UI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettingsTab("canvas")}
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    settingsTab === "canvas" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                  }`}
+                >
+                  <Grid className="h-3.5 w-3.5" /> Canvas & Tools
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettingsTab("forex")}
+                  className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    settingsTab === "forex" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                  }`}
+                >
+                  <TrendingUp className="h-3.5 w-3.5" /> Forex & Risk
+                </button>
+              </div>
+
+              {/* TAB 1: GENERAL & UI PREFERENCES */}
+              {settingsTab === "general" && (
+                <div className="space-y-3 text-xs max-h-[55vh] overflow-y-auto pr-1">
+                  {/* Tooltip Explanation & GIF Demo Toggle */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                    <div>
+                      <label className="font-bold text-ink flex items-center gap-1.5">
+                        <Info className="h-4 w-4 text-brand" /> Show Tooltips & GIF Demos
+                      </label>
+                      <p className="text-[10px] text-muted">Displays guide cards with GIF-style animations when hovering tools</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTooltips(!showTooltips);
+                        showToast(showTooltips ? "Disabled tool explanations" : "Enabled tool explanations");
+                      }}
+                      className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center cursor-pointer ${
+                        showTooltips ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
+
+                  {/* Show TradingView Floating Favorites Bar Toggle */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                    <div>
+                      <label className="font-bold text-ink flex items-center gap-1.5">
+                        <Star className="h-4 w-4 text-amber-500" /> Show Floating Favorites Toolbar
+                      </label>
+                      <p className="text-[10px] text-muted">Displays the TradingView-style draggable floating favorites bar</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowFavoritesBar(!showFavoritesBar);
+                        showToast(showFavoritesBar ? "Hidden favorites toolbar" : "Shown favorites toolbar");
+                      }}
+                      className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center cursor-pointer ${
+                        showFavoritesBar ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
+
+                  {/* Show Cursor Canvas Coordinates Toggle */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                    <div>
+                      <label className="font-bold text-ink flex items-center gap-1.5">
+                        <Crosshair className="h-4 w-4 text-blue-600" /> Show Cursor Coordinates (X, Y)
+                      </label>
+                      <p className="text-[10px] text-muted">Displays live mouse position X & Y coordinates in the bottom status bar</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCursorCoords(!showCursorCoords);
+                        showToast(showCursorCoords ? "Disabled cursor coordinates" : "Enabled cursor coordinates");
+                      }}
+                      className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center cursor-pointer ${
+                        showCursorCoords ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
+
+                  {/* Mouse Scroll Wheel Action */}
+                  <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                    <label className="font-bold text-ink flex items-center gap-1.5">
+                      <MousePointerClick className="h-4 w-4 text-brand" /> Mouse Wheel Action
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setMouseWheelMode("zoom")}
+                        className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          mouseWheelMode === "zoom" ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                        }`}
+                      >
+                        Zoom In / Out
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMouseWheelMode("pan")}
+                        className={`py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          mouseWheelMode === "pan" ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                        }`}
+                      >
+                        Pan Canvas
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: CANVAS & DRAWING PREFERENCES */}
+              {settingsTab === "canvas" && (
+                <div className="space-y-3 text-xs max-h-[55vh] overflow-y-auto pr-1">
+                  {/* Default Canvas Grid Theme */}
+                  <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1">
+                    <label className="font-bold text-ink block">Default Canvas Grid Theme</label>
+                    <select
+                      value={bgGrid}
+                      onChange={(e) => setBgGrid(e.target.value as any)}
+                      className="w-full rounded-xl border border-line bg-white p-2.5 font-bold text-ink outline-none focus:border-brand"
+                    >
+                      {CANVAS_THEMES.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Snap to Grid Preference */}
+                  <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="font-bold text-ink flex items-center gap-1.5">
+                          <Grid className="h-4 w-4 text-emerald-600" /> Snap to Grid
+                        </label>
+                        <p className="text-[10px] text-muted">Automatically aligns shape coordinates to grid steps</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSnapToGrid(!snapToGrid);
+                          showToast(snapToGrid ? "Disabled grid snapping" : "Enabled grid snapping");
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center cursor-pointer ${
+                          snapToGrid ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* High DPI Image Export */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                    <div>
+                      <label className="font-bold text-ink flex items-center gap-1.5">
+                        <Save className="h-4 w-4 text-brand" /> High-Resolution 2x Export
+                      </label>
+                      <p className="text-[10px] text-muted">Exports crisp, high-DPI screenshots for trade journal submissions</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHighDpiExport(!highDpiExport);
+                        showToast(highDpiExport ? "Standard 1x export active" : "Ultra-crisp 2x export active");
+                      }}
+                      className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center cursor-pointer ${
+                        highDpiExport ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: FOREX & RISK PREFERENCES */}
+              {settingsTab === "forex" && (
+                <div className="space-y-3 text-xs max-h-[55vh] overflow-y-auto pr-1">
+                  {/* Default Risk:Reward Ratio */}
+                  <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                    <label className="font-bold text-ink flex items-center justify-between">
+                      <span>Default Position Risk-to-Reward Ratio</span>
+                      <strong className="text-brand">1:{defaultRiskReward}</strong>
+                    </label>
+                    <div className="grid grid-cols-5 gap-1">
+                      {[1, 1.5, 2, 3, 5].map((rr) => (
+                        <button
+                          key={rr}
+                          type="button"
+                          onClick={() => {
+                            setDefaultRiskReward(rr);
+                            showToast(`Set default R:R ratio to 1:${rr}`);
+                          }}
+                          className={`py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+                            defaultRiskReward === rr ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                          }`}
+                        >
+                          1:{rr}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2 border-t border-line">
+                <button onClick={() => setSettingsOpen(false)} className="btn-primary w-full !py-2.5 text-xs font-bold cursor-pointer">
+                  Save & Apply Preferences
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Global Keyboard Shortcuts Modal accessible in Hub */}
+        {/* EXPANDED KEYBOARD SHORTCUTS REFERENCE MODAL (ACCESSIBLE IN HUB) */}
         {shortcutsOpen && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
-            <div className="w-full max-w-2xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <h3 className="font-display font-extrabold text-ink text-base flex items-center gap-2">
-                  <Keyboard className="h-5 w-5 text-brand" /> Complete Whiteboard Shortcuts Guide
-                </h3>
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+            <div className="w-full max-w-2xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 max-h-[88vh] flex flex-col">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-line pb-3 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-2xl bg-brand-light text-brand flex items-center justify-center shrink-0">
+                    <Keyboard className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-extrabold text-ink text-base">Keyboard Shortcuts & Quick Controls</h3>
+                    <p className="text-[11px] text-muted font-medium">Quick reference cheat-sheet for fast technical analysis & charting</p>
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShortcutsOpen(false)}
-                  className="text-slate-400 hover:text-ink p-1 rounded-lg hover:bg-slate-100"
+                  className="rounded-xl p-1.5 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="overflow-y-auto pr-1 space-y-4 flex-1">
-                {SHORTCUT_CATEGORIES.map((cat, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <h4 className="text-xs font-black uppercase text-muted tracking-wider">{cat.category}</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {cat.items.map((item, itemIdx) => (
-                        <div key={itemIdx} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line text-xs">
-                          <span className="text-slate-700 font-medium">{item.label}</span>
-                          <div className="flex items-center gap-1">
-                            {item.keys.map((k, kIdx) => (
-                              <kbd key={kIdx} className="px-1.5 py-0.5 rounded-md border border-line bg-white font-mono text-[10px] font-bold text-slate-800 shadow-2xs">
-                                {k}
-                              </kbd>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+              {/* Search Bar */}
+              <div className="relative shrink-0">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted pointer-events-none" />
+                <input
+                  type="text"
+                  value={shortcutFilter}
+                  onChange={(e) => setShortcutFilter(e.target.value)}
+                  placeholder="Search shortcuts (e.g., select, fibo, undo, duplicate, path, eraser)..."
+                  className="w-full pl-10 pr-14 py-2 rounded-2xl border border-line bg-cream text-xs text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition"
+                />
+                {shortcutFilter && (
+                  <button
+                    type="button"
+                    onClick={() => setShortcutFilter("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted hover:text-ink cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
 
-              <div className="pt-2 border-t border-line flex justify-end">
+              {/* Shortcuts List by Categories */}
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+                {SHORTCUT_GROUPS.map((group) => {
+                  const filteredItems = group.items.filter((item) =>
+                    !shortcutFilter ||
+                    item.label.toLowerCase().includes(shortcutFilter.toLowerCase()) ||
+                    item.keys.some((k) => k.toLowerCase().includes(shortcutFilter.toLowerCase()))
+                  );
+
+                  if (filteredItems.length === 0) return null;
+
+                  return (
+                    <div key={group.category} className="space-y-2 rounded-2xl border border-line bg-cream/50 p-3.5">
+                      <div className="flex items-center justify-between text-ink font-extrabold text-xs">
+                        <h4>{group.category}</h4>
+                        <span className="text-[10px] text-muted font-normal">({filteredItems.length})</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {filteredItems.map((item) => (
+                          <div
+                            key={item.label}
+                            className="flex items-center justify-between p-2 rounded-xl bg-white border border-line shadow-xs"
+                          >
+                            <span className="font-semibold text-slate-800 text-[11px]">{item.label}</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {item.keys.map((key) => (
+                                <kbd
+                                  key={key}
+                                  className="px-2 py-0.5 rounded-lg border border-slate-300 bg-slate-100 font-mono text-[10px] font-extrabold text-slate-800 shadow-xs"
+                                >
+                                  {key}
+                                </kbd>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer Note */}
+              <div className="flex items-center justify-between border-t border-line pt-3 text-[11px] text-muted shrink-0">
+                <div className="flex items-center gap-1.5">
+                  <span>Press <kbd className="px-1.5 py-0.5 rounded border border-slate-300 bg-slate-100 font-mono text-[10px] font-bold text-ink">?</kbd> anywhere to toggle this cheat-sheet</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShortcutsOpen(false)}
-                  className="btn-primary !py-2 px-5 text-xs font-bold"
+                  className="btn-primary !py-1.5 !px-4 text-xs font-bold cursor-pointer"
                 >
-                  Close Guide
+                  Close
                 </button>
               </div>
             </div>
