@@ -43,6 +43,8 @@ import {
   PanelRightClose,
   PanelRightOpen,
   Info,
+  GripVertical,
+  Star,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -190,6 +192,12 @@ export default function WhiteboardPage() {
   const [activeLineTool, setActiveLineTool] = useState<"arrow" | "bezier">("arrow");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
 
+  // TradingView Style Floating Favorites Toolbar State
+  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "rectangle", "bezier", "sticky"]);
+  const [favPos, setFavPos] = useState({ x: 100, y: 80 });
+  const isDraggingFav = useRef(false);
+  const dragFavStart = useRef({ x: 0, y: 0 });
+
   const [strokeColor, setStrokeColor] = useState("#dc3545");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
@@ -203,7 +211,7 @@ export default function WhiteboardPage() {
   // Preference Setting: Show Tooltip Explanations
   const [showTooltips, setShowTooltips] = useState(true);
 
-  // Inspector Panel State (Expandable & Collapsible Figma/Photoshop Panel)
+  // Inspector Panel State (Expandable & Collapsible Figma/Photoshop Overlay Panel)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
 
   // Modals & Flyout Dropdowns
@@ -441,6 +449,40 @@ export default function WhiteboardPage() {
 
       return result;
     });
+  };
+
+  /* ------------------------- Favorites Floating Bar Dragging --------------- */
+
+  const handleFavDragStart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    isDraggingFav.current = true;
+    dragFavStart.current = { x: e.clientX - favPos.x, y: e.clientY - favPos.y };
+
+    const handleFavMouseMove = (ev: MouseEvent) => {
+      if (!isDraggingFav.current) return;
+      setFavPos({
+        x: Math.max(10, Math.min(window.innerWidth - 300, ev.clientX - dragFavStart.current.x)),
+        y: Math.max(10, Math.min(window.innerHeight - 80, ev.clientY - dragFavStart.current.y)),
+      });
+    };
+
+    const handleFavMouseUp = () => {
+      isDraggingFav.current = false;
+      window.removeEventListener("mousemove", handleFavMouseMove);
+      window.removeEventListener("mouseup", handleFavMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleFavMouseMove);
+    window.addEventListener("mouseup", handleFavMouseUp);
+  };
+
+  const toggleFavoriteTool = (toolToToggle: Tool) => {
+    setFavoritedTools((prev) =>
+      prev.includes(toolToToggle)
+        ? prev.filter((t) => t !== toolToToggle)
+        : [...prev, toolToToggle]
+    );
+    showToast(favoritedTools.includes(toolToToggle) ? "Removed from Favorites Toolbar" : "Added to Favorites Toolbar!");
   };
 
   /* ------------------------- Drawing & Selection Handlers ------------------- */
@@ -1154,7 +1196,7 @@ export default function WhiteboardPage() {
             className={`rounded-xl border p-2 transition ${
               isInspectorOpen ? "border-brand bg-brand-light text-brand" : "border-line bg-cream text-ink hover:bg-white"
             }`}
-            title="Toggle Figma Inspector Panel"
+            title="Toggle Floating Inspector Panel"
           >
             <SlidersHorizontal className="h-4 w-4" />
           </button>
@@ -1246,6 +1288,8 @@ export default function WhiteboardPage() {
               toolKey="select"
               icon={MousePointer}
               showTooltips={showTooltips}
+              isFavorited={favoritedTools.includes("select")}
+              onToggleFavorite={() => toggleFavoriteTool("select")}
             />
             <MiroToolBtn
               active={activeTool === "hand"}
@@ -1254,6 +1298,8 @@ export default function WhiteboardPage() {
               toolKey="hand"
               icon={Hand}
               showTooltips={showTooltips}
+              isFavorited={favoritedTools.includes("hand")}
+              onToggleFavorite={() => toggleFavoriteTool("hand")}
             />
 
             {/* 1. FREEHAND GROUP */}
@@ -1270,6 +1316,8 @@ export default function WhiteboardPage() {
                 icon={activePenTool === "highlighter" ? Highlighter : Pencil}
                 hasFlyout
                 showTooltips={showTooltips}
+                isFavorited={favoritedTools.includes(activePenTool)}
+                onToggleFavorite={() => toggleFavoriteTool(activePenTool)}
               />
               {flyoutGroup === "pen" && (
                 <div className="absolute left-full top-0 ml-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
@@ -1277,16 +1325,24 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActivePenTool("pencil"); setActiveTool("pencil"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "pencil" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "pencil" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <Pencil className="h-4 w-4" /> Freehand Pen
+                    <span className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Freehand Pen</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("pencil"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("pencil") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActivePenTool("highlighter"); setActiveTool("highlighter"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "highlighter" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "highlighter" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <Highlighter className="h-4 w-4 text-amber-500" /> Highlighter
+                    <span className="flex items-center gap-2"><Highlighter className="h-4 w-4 text-amber-500" /> Highlighter</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("highlighter"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("highlighter") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                 </div>
               )}
@@ -1306,6 +1362,8 @@ export default function WhiteboardPage() {
                 icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
                 hasFlyout
                 showTooltips={showTooltips}
+                isFavorited={favoritedTools.includes(activeShapeTool)}
+                onToggleFavorite={() => toggleFavoriteTool(activeShapeTool)}
               />
               {flyoutGroup === "shapes" && (
                 <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
@@ -1313,23 +1371,35 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActiveShapeTool("rectangle"); setActiveTool("rectangle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "rectangle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "rectangle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <Square className="h-4 w-4" /> Rectangle Zone
+                    <span className="flex items-center gap-2"><Square className="h-4 w-4" /> Rectangle Zone</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("rectangle"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("rectangle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActiveShapeTool("circle"); setActiveTool("circle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "circle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "circle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <Circle className="h-4 w-4" /> Circle Node
+                    <span className="flex items-center gap-2"><Circle className="h-4 w-4" /> Circle Node</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("circle"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("circle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActiveShapeTool("diamond"); setActiveTool("diamond"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "diamond" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "diamond" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <Diamond className="h-4 w-4" /> Decision Diamond
+                    <span className="flex items-center gap-2"><Diamond className="h-4 w-4" /> Decision Diamond</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("diamond"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("diamond") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                 </div>
               )}
@@ -1350,6 +1420,8 @@ export default function WhiteboardPage() {
                 badge={activeLineTool === "bezier" ? "PATH" : undefined}
                 hasFlyout
                 showTooltips={showTooltips}
+                isFavorited={favoritedTools.includes(activeLineTool)}
+                onToggleFavorite={() => toggleFavoriteTool(activeLineTool)}
               />
               {flyoutGroup === "lines" && (
                 <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
@@ -1357,16 +1429,24 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActiveLineTool("arrow"); setActiveTool("arrow"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "arrow" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "arrow" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <ArrowRight className="h-4 w-4" /> Connector Arrow
+                    <span className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /> Connector Arrow</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("arrow") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActiveLineTool("bezier"); setActiveTool("bezier"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "bezier" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "bezier" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
-                    <Activity className="h-4 w-4 text-brand" /> Chart Pattern Path
+                    <span className="flex items-center gap-2"><Activity className="h-4 w-4 text-brand" /> Chart Pattern Path</span>
+                    <Star
+                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bezier"); }}
+                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("bezier") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                    />
                   </button>
                 </div>
               )}
@@ -1380,6 +1460,8 @@ export default function WhiteboardPage() {
               icon={StickyNote}
               badge="NOTE"
               showTooltips={showTooltips}
+              isFavorited={favoritedTools.includes("sticky")}
+              onToggleFavorite={() => toggleFavoriteTool("sticky")}
             />
             <MiroToolBtn
               active={activeTool === "text"}
@@ -1388,6 +1470,8 @@ export default function WhiteboardPage() {
               toolKey="text"
               icon={Type}
               showTooltips={showTooltips}
+              isFavorited={favoritedTools.includes("text")}
+              onToggleFavorite={() => toggleFavoriteTool("text")}
             />
             <MiroToolBtn
               active={activeTool === "eraser"}
@@ -1396,6 +1480,8 @@ export default function WhiteboardPage() {
               toolKey="eraser"
               icon={Eraser}
               showTooltips={showTooltips}
+              isFavorited={favoritedTools.includes("eraser")}
+              onToggleFavorite={() => toggleFavoriteTool("eraser")}
             />
             <MiroToolBtn
               active={activeTool === "zoom"}
@@ -1404,6 +1490,8 @@ export default function WhiteboardPage() {
               toolKey="zoom"
               icon={Search}
               showTooltips={showTooltips}
+              isFavorited={favoritedTools.includes("zoom")}
+              onToggleFavorite={() => toggleFavoriteTool("zoom")}
             />
           </div>
 
@@ -1443,6 +1531,38 @@ export default function WhiteboardPage() {
 
         {/* Central Miro Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
+          {/* TradingView-Style Floating Draggable Favorites Toolbar */}
+          {favoritedTools.length > 0 && (
+            <div
+              className="absolute z-30 flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in"
+              style={{ left: favPos.x, top: favPos.y }}
+            >
+              <div
+                onMouseDown={handleFavDragStart}
+                className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center"
+                title="Drag TradingView Favorites Toolbar"
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
+              {favoritedTools.map((tKey) => {
+                const IconComponent = getToolIcon(tKey);
+                return (
+                  <button
+                    key={tKey}
+                    type="button"
+                    onClick={() => setActiveTool(tKey)}
+                    className={`h-9 w-9 rounded-xl flex items-center justify-center transition ${
+                      activeTool === tKey ? "bg-brand text-white shadow-md" : "text-ink hover:bg-cream"
+                    }`}
+                    title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Bottom Zoom & Navigation Bar */}
           <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
             <button
@@ -1759,210 +1879,210 @@ export default function WhiteboardPage() {
               </div>
             </div>
           )}
-        </main>
 
-        {/* Right Collapsible & Expandable Inspector Panel */}
-        {isInspectorOpen ? (
-          <aside className="w-72 border-l border-line bg-white p-4 flex flex-col justify-between shrink-0 z-20 shadow-xl overflow-y-auto animate-in slide-in-from-right duration-200">
-            <div className="space-y-5">
-              {/* Panel Header */}
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-4.5 w-4.5 text-brand" />
-                  <span className="font-display font-extrabold text-xs uppercase tracking-wider text-ink">Inspector</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsInspectorOpen(false)}
-                  className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition"
-                  title="Collapse Panel"
-                >
-                  <PanelRightClose className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* 1. SELECTION TYPE & IDENTITY */}
-              <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-wider text-muted">Active Element</p>
-                <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
-                  {selectedShape ? (
-                    <span className="text-brand">{selectedShape.type}</span>
-                  ) : selectedShapeIds.length > 1 ? (
-                    <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
-                  ) : (
-                    <span>Tool: {activeTool}</span>
-                  )}
-                </p>
-              </div>
-
-              {/* 2. COLOR & STROKE APPEARANCE */}
-              <div className="space-y-3 border-b border-line pb-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
-
-                {/* Stroke Palette */}
-                <div>
-                  <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Color</label>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {PALETTE.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => applyColorToSelected(c)}
-                        className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                          strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                        }`}
-                        style={{ background: c }}
-                      />
-                    ))}
+          {/* Floating Overlay Right Inspector Panel (Does NOT shrink or skew canvas!) */}
+          {isInspectorOpen ? (
+            <aside className="absolute right-4 top-4 z-40 w-72 rounded-3xl border border-line bg-white/95 backdrop-blur-md p-4 flex flex-col justify-between shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-right duration-200">
+              <div className="space-y-4">
+                {/* Panel Header */}
+                <div className="flex items-center justify-between border-b border-line pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4.5 w-4.5 text-brand" />
+                    <span className="font-display font-extrabold text-xs uppercase tracking-wider text-ink">Inspector</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsInspectorOpen(false)}
+                    className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition"
+                    title="Collapse Panel"
+                  >
+                    <PanelRightClose className="h-4 w-4" />
+                  </button>
                 </div>
 
-                {/* Sticky Note Colors (when sticky) */}
-                {(activeTool === "sticky" || selectedShape?.type === "sticky") && (
+                {/* 1. SELECTION TYPE & IDENTITY */}
+                <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-muted">Active Element</p>
+                  <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
+                    {selectedShape ? (
+                      <span className="text-brand">{selectedShape.type}</span>
+                    ) : selectedShapeIds.length > 1 ? (
+                      <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
+                    ) : (
+                      <span>Tool: {activeTool}</span>
+                    )}
+                  </p>
+                </div>
+
+                {/* 2. COLOR & STROKE APPEARANCE */}
+                <div className="space-y-3 border-b border-line pb-3">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
+
+                  {/* Stroke Palette */}
                   <div>
-                    <label className="text-[11px] font-bold text-ink block mb-1.5">Sticky Note Color</label>
-                    <div className="flex items-center gap-1.5">
-                      {STICKY_COLORS.map((s) => (
+                    <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Color</label>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {PALETTE.map((c) => (
                         <button
-                          key={s.color}
+                          key={c}
                           type="button"
-                          onClick={() => applyStickyColorToSelected(s.color)}
-                          className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
-                            stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                          onClick={() => applyColorToSelected(c)}
+                          className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                            strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
                           }`}
-                          style={{ background: s.color }}
-                          title={s.name}
+                          style={{ background: c }}
                         />
                       ))}
                     </div>
                   </div>
-                )}
 
-                {/* Stroke Thickness */}
-                <div>
-                  <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                    <span>Stroke Thickness</span>
-                    <strong className="text-brand">{strokeWidth}px</strong>
-                  </label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[1, 2, 4, 6].map((w) => (
-                      <button
-                        key={w}
-                        type="button"
-                        onClick={() => {
-                          setStrokeWidth(w);
-                          if (selectedShapeIds.length > 0) {
-                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
-                          }
-                        }}
-                        className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
-                          strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
-                        }`}
-                      >
-                        {w}px
-                      </button>
-                    ))}
+                  {/* Sticky Note Colors (when sticky) */}
+                  {(activeTool === "sticky" || selectedShape?.type === "sticky") && (
+                    <div>
+                      <label className="text-[11px] font-bold text-ink block mb-1.5">Sticky Note Color</label>
+                      <div className="flex items-center gap-1.5">
+                        {STICKY_COLORS.map((s) => (
+                          <button
+                            key={s.color}
+                            type="button"
+                            onClick={() => applyStickyColorToSelected(s.color)}
+                            className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
+                              stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                            }`}
+                            style={{ background: s.color }}
+                            title={s.name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Stroke Thickness */}
+                  <div>
+                    <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                      <span>Stroke Thickness</span>
+                      <strong className="text-brand">{strokeWidth}px</strong>
+                    </label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[1, 2, 4, 6].map((w) => (
+                        <button
+                          key={w}
+                          type="button"
+                          onClick={() => {
+                            setStrokeWidth(w);
+                            if (selectedShapeIds.length > 0) {
+                              setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, strokeWidth: w } : s)));
+                            }
+                          }}
+                          className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
+                            strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                          }`}
+                        >
+                          {w}px
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Line Dash Style */}
-                <div>
-                  <label className="text-[11px] font-bold text-ink block mb-1.5">Line Pattern</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLineStyle("solid");
-                        if (selectedShapeIds.length > 0) {
-                          setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
-                        }
-                      }}
-                      className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                        lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                      }`}
-                    >
-                      Solid
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLineStyle("dashed");
-                        if (selectedShapeIds.length > 0) {
-                          setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
-                        }
-                      }}
-                      className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                        lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                      }`}
-                    >
-                      Dashed
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. LAYERING & OBJECT ACTIONS */}
-              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
-
-                {selectedShape ? (
-                  <div className="space-y-2">
+                  {/* Line Dash Style */}
+                  <div>
+                    <label className="text-[11px] font-bold text-ink block mb-1.5">Line Pattern</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => bringToFront(selectedShape.id)}
-                        className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                        onClick={() => {
+                          setLineStyle("solid");
+                          if (selectedShapeIds.length > 0) {
+                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "solid" } : s)));
+                          }
+                        }}
+                        className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                          lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                        }`}
                       >
-                        <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
+                        Solid
                       </button>
                       <button
                         type="button"
-                        onClick={() => sendToBack(selectedShape.id)}
-                        className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                        onClick={() => {
+                          setLineStyle("dashed");
+                          if (selectedShapeIds.length > 0) {
+                            setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, lineStyle: "dashed" } : s)));
+                          }
+                        }}
+                        className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                          lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                        }`}
                       >
-                        <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
+                        Dashed
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => duplicateSelectedObject(selectedShape)}
-                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                    >
-                      <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteSelectedObject(selectedShape.id)}
-                      className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Delete Selected
-                    </button>
                   </div>
-                ) : (
-                  <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or style.</p>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Panel Footer Stats */}
-            <div className="border-t border-line pt-3 mt-4 text-[10px] text-muted flex items-center justify-between font-bold">
-              <span>Elements: {shapes.length}</span>
-              <span>Zoom: {Math.round(zoom * 100)}%</span>
-            </div>
-          </aside>
-        ) : (
-          /* COLLAPSED EXPAND BUTTON */
-          <button
-            type="button"
-            onClick={() => setIsInspectorOpen(true)}
-            className="absolute right-4 top-4 z-30 rounded-2xl border border-line bg-white p-2.5 text-ink shadow-2xl hover:bg-brand-light hover:text-brand transition animate-in fade-in"
-            title="Expand Inspector Panel"
-          >
-            <PanelRightOpen className="h-5 w-5" />
-          </button>
-        )}
+                {/* 3. LAYERING & OBJECT ACTIONS */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
+
+                  {selectedShape ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => bringToFront(selectedShape.id)}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => sendToBack(selectedShape.id)}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => duplicateSelectedObject(selectedShape)}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                      >
+                        <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => deleteSelectedObject(selectedShape.id)}
+                        className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or style.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Panel Footer Stats */}
+              <div className="border-t border-line pt-2.5 mt-3 text-[10px] text-muted flex items-center justify-between font-bold">
+                <span>Elements: {shapes.length}</span>
+                <span>Zoom: {Math.round(zoom * 100)}%</span>
+              </div>
+            </aside>
+          ) : (
+            /* COLLAPSED EXPAND BUTTON */
+            <button
+              type="button"
+              onClick={() => setIsInspectorOpen(true)}
+              className="absolute right-4 top-4 z-30 rounded-2xl border border-line bg-white p-2.5 text-ink shadow-2xl hover:bg-brand-light hover:text-brand transition animate-in fade-in"
+              title="Expand Inspector Panel"
+            >
+              <PanelRightOpen className="h-5 w-5" />
+            </button>
+          )}
+        </main>
       </div>
     </div>
   );
@@ -1982,6 +2102,8 @@ function MiroToolBtn({
   badge,
   hasFlyout,
   showTooltips,
+  isFavorited,
+  onToggleFavorite,
 }: {
   active: boolean;
   onClick: () => void;
@@ -1992,13 +2114,15 @@ function MiroToolBtn({
   badge?: string;
   hasFlyout?: boolean;
   showTooltips: boolean;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const explanation = TOOL_EXPLANATIONS[toolKey];
 
   return (
     <div
-      className="relative w-full"
+      className="relative w-full group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -2024,6 +2148,23 @@ function MiroToolBtn({
         )}
       </button>
 
+      {/* Favorite Star Button (TradingView Style) */}
+      {onToggleFavorite && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite();
+          }}
+          className={`absolute -right-1 -top-1 z-10 p-0.5 rounded-full bg-white shadow-md border border-line transition opacity-0 group-hover:opacity-100 ${
+            isFavorited ? "opacity-100 text-amber-400" : "text-slate-300 hover:text-amber-400"
+          }`}
+          title={isFavorited ? "Remove from Favorites" : "Add to TradingView Favorites Bar"}
+        >
+          <Star className={`h-3 w-3 ${isFavorited ? "fill-amber-400" : ""}`} />
+        </button>
+      )}
+
       {/* Rich Interactive Tooltip Popover with Brief Explanation */}
       {showTooltips && isHovered && explanation && (
         <div className="absolute left-full top-0 ml-3 w-60 rounded-2xl border border-line bg-slate-900 text-white p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none">
@@ -2040,6 +2181,26 @@ function MiroToolBtn({
       )}
     </div>
   );
+}
+
+/** Helper function to map tool keys to Lucide icons */
+function getToolIcon(toolKey: Tool): React.ElementType {
+  switch (toolKey) {
+    case "select": return MousePointer;
+    case "hand": return Hand;
+    case "pencil": return Pencil;
+    case "highlighter": return Highlighter;
+    case "rectangle": return Square;
+    case "circle": return Circle;
+    case "diamond": return Diamond;
+    case "arrow": return ArrowRight;
+    case "bezier": return Activity;
+    case "sticky": return StickyNote;
+    case "text": return Type;
+    case "eraser": return Eraser;
+    case "zoom": return Search;
+    default: return Pencil;
+  }
 }
 
 /** Check if point is inside shape */
