@@ -2032,7 +2032,7 @@ export default function WhiteboardPage() {
           <div className="space-y-4">
             {/* GAMAT Brand Logo & Hub Header */}
             <div className="flex items-center justify-between">
-              <Logo variant="dark" />
+              <Logo variant="dark" asDiv />
               <span className="px-2 py-0.5 rounded-lg bg-brand-light text-brand text-[10px] font-black uppercase tracking-wider">
                 Whiteboard
               </span>
@@ -2215,31 +2215,31 @@ export default function WhiteboardPage() {
             {/* Header Right Actions & User Avatar */}
             <div className="flex items-center gap-3">
               {/* Layout Grid / List Switcher */}
-              <div className="flex items-center rounded-xl bg-slate-200/80 p-1 border border-line gap-0.5">
+              <div className="flex items-center rounded-lg bg-slate-200/80 p-0.5 border border-line gap-0.5">
                 <button
                   type="button"
                   onClick={() => handleToggleHubLayout("grid")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
                     hubLayout === "grid"
-                      ? "bg-brand text-white shadow-sm font-black"
-                      : "text-slate-600 hover:text-ink hover:bg-white/60 font-semibold"
+                      ? "bg-brand text-white shadow-xs font-black"
+                      : "text-slate-600 hover:text-ink hover:bg-white/60 font-medium"
                   }`}
                   title="Switch to Grid View"
                 >
-                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <LayoutGrid className="h-3 w-3" />
                   <span className="hidden sm:inline">Grid</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleToggleHubLayout("list")}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
                     hubLayout === "list"
-                      ? "bg-brand text-white shadow-sm font-black"
-                      : "text-slate-600 hover:text-ink hover:bg-white/60 font-semibold"
+                      ? "bg-brand text-white shadow-xs font-black"
+                      : "text-slate-600 hover:text-ink hover:bg-white/60 font-medium"
                   }`}
                   title="Switch to List View"
                 >
-                  <List className="h-3.5 w-3.5" />
+                  <List className="h-3 w-3" />
                   <span className="hidden sm:inline">List</span>
                 </button>
               </div>
@@ -3575,20 +3575,11 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar with Files Return Button */}
+      {/* Main Header Bar */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-[60] relative shadow-sm">
-        {/* Left Section: Back to Hub + GAMAT Logo & Board Title */}
+        {/* Left Section: GAMAT Logo & Board Title */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            type="button"
-            onClick={handleReturnToHub}
-            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition border border-line bg-cream/50"
-            title="Return to Whiteboard Hub (Auto-saves draft)"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Files</span>
-          </button>
-          <Logo variant="dark" />
+          <Logo variant="dark" asDiv />
           <span className="h-6 w-[1.5px] bg-slate-300 shrink-0 hidden sm:inline" />
           <span className="hidden md:inline text-xs font-bold text-ink/70">
             Technical Analysis Whiteboard
@@ -4074,15 +4065,16 @@ export default function WhiteboardPage() {
 
       {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-30 relative">
-        {/* Left Side: Back Home & Active Tabs List */}
+        {/* Left Side: Back to Files & Active Tabs List */}
         <div className="flex items-center gap-3 shrink-0 max-w-[85vw]">
           <button
             type="button"
-            onClick={() => navigate("/")}
-            className="flex items-center justify-center rounded-xl border border-line bg-white p-1.5 text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
-            title="Back to GAMAT FX Website"
+            onClick={handleReturnToHub}
+            className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-brand-light hover:text-brand transition shrink-0 cursor-pointer shadow-xs"
+            title="Back to Files & Whiteboard Hub (Auto-saves current canvas)"
           >
-            <Home className="h-4 w-4" />
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span className="text-[11px] font-extrabold">Back to Files</span>
           </button>
 
           {/* Vertical Separator Line */}
