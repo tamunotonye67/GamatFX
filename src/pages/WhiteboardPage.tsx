@@ -5080,6 +5080,7 @@ export default function WhiteboardPage() {
                 toolKey={activeForexTool}
                 icon={getToolIcon(activeForexTool)}
                 hasFlyout
+                isFlyoutOpen={flyoutGroup === "forex"}
                 showTooltips={showTooltips}
               />
 
@@ -5087,203 +5088,96 @@ export default function WhiteboardPage() {
                 <div className="absolute left-full top-0 ml-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
 
-                  {/* 1. Fibonacci Retracement */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("fibo"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "fibo" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <Percent className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Fibonacci Retracement</span>
-                    </span>
-                    <span title={favoritedTools.includes("fibo") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fibo"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fibo") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 2. Long Position */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("long"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "long" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <TradingViewLongIcon className="h-4 w-4" />
-                      </span>
-                      <span>Long Position</span>
-                    </span>
-                    <span title={favoritedTools.includes("long") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("long"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("long") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 3. Short Position */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("short"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "short" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <TradingViewShortIcon className="h-4 w-4" />
-                      </span>
-                      <span>Short Position</span>
-                    </span>
-                    <span title={favoritedTools.includes("short") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("short"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("short") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 4. Order Block Zone */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("orderblock"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "orderblock" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <Boxes className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Order Block (OB Zone)</span>
-                    </span>
-                    <span title={favoritedTools.includes("orderblock") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("orderblock"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("orderblock") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 5. Fair Value Gap (FVG) */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("fvg"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "fvg" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <FvgCandlesIcon className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Fair Value Gap (FVG)</span>
-                    </span>
-                    <span title={favoritedTools.includes("fvg") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fvg"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fvg") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 6. Break of Structure (BOS / CHoCH) */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("bos"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "bos" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <BosIcon className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Break of Structure (BOS)</span>
-                    </span>
-                    <span title={favoritedTools.includes("bos") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bos"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bos") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 7. Liquidity Sweep Pool */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("liquidity"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "liquidity" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <Target className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Liquidity Pool ($$$)</span>
-                    </span>
-                    <span title={favoritedTools.includes("liquidity") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("liquidity"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("liquidity") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 8. Bullish Candlestick */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("bullish_candle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "bullish_candle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <BullishCandleIcon className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Bullish Candlestick</span>
-                    </span>
-                    <span title={favoritedTools.includes("bullish_candle") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bullish_candle"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bullish_candle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 9. Bearish Candlestick */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("bearish_candle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-                      activeForexTool === "bearish_candle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
-                        <BearishCandleIcon className="h-3.5 w-3.5" />
-                      </span>
-                      <span>Bearish Candlestick</span>
-                    </span>
-                    <span title={favoritedTools.includes("bearish_candle") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bearish_candle"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bearish_candle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
+                  <FlyoutToolItem
+                    toolKey="fibo"
+                    label="Fibonacci Retracement"
+                    icon={Percent}
+                    isActive={activeForexTool === "fibo"}
+                    isFavorited={favoritedTools.includes("fibo")}
+                    onSelect={() => { selectTool("fibo"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("fibo")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="long"
+                    label="Long Position"
+                    icon={TradingViewLongIcon}
+                    isActive={activeForexTool === "long"}
+                    isFavorited={favoritedTools.includes("long")}
+                    onSelect={() => { selectTool("long"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("long")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="short"
+                    label="Short Position"
+                    icon={TradingViewShortIcon}
+                    isActive={activeForexTool === "short"}
+                    isFavorited={favoritedTools.includes("short")}
+                    onSelect={() => { selectTool("short"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("short")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="orderblock"
+                    label="Order Block (OB Zone)"
+                    icon={Boxes}
+                    isActive={activeForexTool === "orderblock"}
+                    isFavorited={favoritedTools.includes("orderblock")}
+                    onSelect={() => { selectTool("orderblock"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("orderblock")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="fvg"
+                    label="Fair Value Gap (FVG)"
+                    icon={FvgCandlesIcon}
+                    isActive={activeForexTool === "fvg"}
+                    isFavorited={favoritedTools.includes("fvg")}
+                    onSelect={() => { selectTool("fvg"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("fvg")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="bos"
+                    label="Break of Structure (BOS)"
+                    icon={BosIcon}
+                    isActive={activeForexTool === "bos"}
+                    isFavorited={favoritedTools.includes("bos")}
+                    onSelect={() => { selectTool("bos"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("bos")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="liquidity"
+                    label="Liquidity Pool ($$$)"
+                    icon={Target}
+                    isActive={activeForexTool === "liquidity"}
+                    isFavorited={favoritedTools.includes("liquidity")}
+                    onSelect={() => { selectTool("liquidity"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("liquidity")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="bullish_candle"
+                    label="Bullish Candlestick"
+                    icon={BullishCandleIcon}
+                    isActive={activeForexTool === "bullish_candle"}
+                    isFavorited={favoritedTools.includes("bullish_candle")}
+                    onSelect={() => { selectTool("bullish_candle"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("bullish_candle")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="bearish_candle"
+                    label="Bearish Candlestick"
+                    icon={BearishCandleIcon}
+                    isActive={activeForexTool === "bearish_candle"}
+                    isFavorited={favoritedTools.includes("bearish_candle")}
+                    onSelect={() => { selectTool("bearish_candle"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("bearish_candle")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
@@ -5302,37 +5196,32 @@ export default function WhiteboardPage() {
                 toolKey={activePenTool}
                 icon={activePenTool === "highlighter" ? Highlighter : Pencil}
                 hasFlyout
+                isFlyoutOpen={flyoutGroup === "pen"}
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "pen" && (
-                <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Pen Tools</p>
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("pencil"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activePenTool === "pencil" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Pencil className="h-3.5 w-3.5" /> Freehand Pen</span>
-                    <span title={favoritedTools.includes("pencil") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("pencil"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("pencil") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("highlighter"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activePenTool === "highlighter" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Highlighter className="h-3.5 w-3.5" /> Highlighter</span>
-                    <span title={favoritedTools.includes("highlighter") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("highlighter"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("highlighter") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
+                  <FlyoutToolItem
+                    toolKey="pencil"
+                    label="Freehand Pen"
+                    icon={Pencil}
+                    isActive={activePenTool === "pencil"}
+                    isFavorited={favoritedTools.includes("pencil")}
+                    onSelect={() => { selectTool("pencil"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("pencil")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="highlighter"
+                    label="Highlighter"
+                    icon={Highlighter}
+                    isActive={activePenTool === "highlighter"}
+                    isFavorited={favoritedTools.includes("highlighter")}
+                    onSelect={() => { selectTool("highlighter"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("highlighter")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
@@ -5351,50 +5240,42 @@ export default function WhiteboardPage() {
                 toolKey={activeShapeTool}
                 icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
                 hasFlyout
+                isFlyoutOpen={flyoutGroup === "shapes"}
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "shapes" && (
-                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Shape Tools</p>
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("rectangle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeShapeTool === "rectangle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Square className="h-3.5 w-3.5" /> Rectangle Zone</span>
-                    <span title={favoritedTools.includes("rectangle") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("rectangle"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("rectangle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("circle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeShapeTool === "circle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Circle className="h-3.5 w-3.5" /> Circle Node</span>
-                    <span title={favoritedTools.includes("circle") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("circle"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("circle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("diamond"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeShapeTool === "diamond" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Diamond className="h-3.5 w-3.5" /> Decision Diamond</span>
-                    <span title={favoritedTools.includes("diamond") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("diamond"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("diamond") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
+                  <FlyoutToolItem
+                    toolKey="rectangle"
+                    label="Rectangle Zone"
+                    icon={Square}
+                    isActive={activeShapeTool === "rectangle"}
+                    isFavorited={favoritedTools.includes("rectangle")}
+                    onSelect={() => { selectTool("rectangle"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("rectangle")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="circle"
+                    label="Circle Node"
+                    icon={Circle}
+                    isActive={activeShapeTool === "circle"}
+                    isFavorited={favoritedTools.includes("circle")}
+                    onSelect={() => { selectTool("circle"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("circle")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="diamond"
+                    label="Decision Diamond"
+                    icon={Diamond}
+                    isActive={activeShapeTool === "diamond"}
+                    isFavorited={favoritedTools.includes("diamond")}
+                    onSelect={() => { selectTool("diamond"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("diamond")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
@@ -5413,56 +5294,42 @@ export default function WhiteboardPage() {
                 toolKey={activeLineTool}
                 icon={activeLineTool === "line" ? Minus : activeLineTool === "bezier" ? Activity : ArrowUpRight}
                 hasFlyout
+                isFlyoutOpen={flyoutGroup === "lines"}
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "lines" && (
                 <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
-                  
-                  {/* Straight Line Tool */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("line"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "line" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Minus className="h-3.5 w-3.5" /> Straight Line</span>
-                    <span title={favoritedTools.includes("line") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("line"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("line") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* Connector Arrow */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("arrow"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "arrow" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><ArrowUpRight className="h-3.5 w-3.5" /> Connector Arrow</span>
-                    <span title={favoritedTools.includes("arrow") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("arrow") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* Chart Pattern Path */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("bezier"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "bezier" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5" /> Chart Pattern Path</span>
-                    <span title={favoritedTools.includes("bezier") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bezier"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bezier") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
+                  <FlyoutToolItem
+                    toolKey="line"
+                    label="Straight Line"
+                    icon={Minus}
+                    isActive={activeLineTool === "line"}
+                    isFavorited={favoritedTools.includes("line")}
+                    onSelect={() => { selectTool("line"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("line")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="arrow"
+                    label="Connector Arrow"
+                    icon={ArrowUpRight}
+                    isActive={activeLineTool === "arrow"}
+                    isFavorited={favoritedTools.includes("arrow")}
+                    onSelect={() => { selectTool("arrow"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("arrow")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="bezier"
+                    label="Chart Pattern Path"
+                    icon={Activity}
+                    isActive={activeLineTool === "bezier"}
+                    isFavorited={favoritedTools.includes("bezier")}
+                    onSelect={() => { selectTool("bezier"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("bezier")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
@@ -5481,41 +5348,32 @@ export default function WhiteboardPage() {
                 toolKey={activeNoteTool}
                 icon={activeNoteTool === "sticky" ? StickyNote : Type}
                 hasFlyout
+                isFlyoutOpen={flyoutGroup === "notes"}
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "notes" && (
                 <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Text & Note Tools</p>
-
-                  {/* Text Label */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("text"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeNoteTool === "text" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Text Label (T)</span>
-                    <span title={favoritedTools.includes("text") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("text"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("text") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* Sticky Note */}
-                  <button
-                    type="button"
-                    onClick={() => { selectTool("sticky"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeNoteTool === "sticky" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><StickyNote className="h-3.5 w-3.5" /> Sticky Note (N)</span>
-                    <span title={favoritedTools.includes("sticky") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("sticky"); }}
-                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("sticky") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
+                  <FlyoutToolItem
+                    toolKey="text"
+                    label="Text Label (T)"
+                    icon={Type}
+                    isActive={activeNoteTool === "text"}
+                    isFavorited={favoritedTools.includes("text")}
+                    onSelect={() => { selectTool("text"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("text")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="sticky"
+                    label="Sticky Note (N)"
+                    icon={StickyNote}
+                    isActive={activeNoteTool === "sticky"}
+                    isFavorited={favoritedTools.includes("sticky")}
+                    onSelect={() => { selectTool("sticky"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("sticky")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
@@ -7713,6 +7571,86 @@ function HubDiagramThumbnail({
   );
 }
 
+interface FlyoutToolItemProps {
+  toolKey: Tool;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isActive: boolean;
+  isFavorited: boolean;
+  onSelect: () => void;
+  onToggleFavorite: () => void;
+  showTooltips?: boolean;
+}
+
+function FlyoutToolItem({
+  toolKey,
+  label,
+  icon: Icon,
+  isActive,
+  isFavorited,
+  onSelect,
+  onToggleFavorite,
+  showTooltips = true,
+}: FlyoutToolItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const explanation = TOOL_EXPLANATIONS[toolKey];
+
+  return (
+    <div
+      className="relative w-full"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <button
+        type="button"
+        onClick={onSelect}
+        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+          isActive ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+        }`}
+      >
+        <span className="flex items-center gap-2.5">
+          <span className="w-4 h-4 flex items-center justify-center shrink-0">
+            <Icon className="h-3.5 w-3.5" />
+          </span>
+          <span>{label}</span>
+        </span>
+        <span title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}>
+          <Star
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite();
+            }}
+            className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${
+              isFavorited ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"
+            }`}
+          />
+        </span>
+      </button>
+
+      {/* Rich Interactive Preview Tooltip for Nested Tool */}
+      {showTooltips && isHovered && explanation && (
+        <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-slate-700 bg-slate-900 text-white p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
+          <div className="w-full h-28 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
+            <ToolGifAnimation toolKey={toolKey} />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+              <h4 className="font-extrabold text-xs text-amber-400">{explanation.title}</h4>
+              {explanation.shortcut && (
+                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
+                  {explanation.shortcut}
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WhiteboardToolBtn({
   active,
   onClick,
@@ -7721,7 +7659,8 @@ function WhiteboardToolBtn({
   title,
   toolKey,
   icon: Icon,
-  hasFlyout,
+  hasFlyout = false,
+  isFlyoutOpen = false,
   showTooltips,
 }: {
   active: boolean;
@@ -7730,8 +7669,9 @@ function WhiteboardToolBtn({
   onFlyoutToggle?: (e: React.MouseEvent) => void;
   title: string;
   toolKey: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   hasFlyout?: boolean;
+  isFlyoutOpen?: boolean;
   showTooltips: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -7775,7 +7715,7 @@ function WhiteboardToolBtn({
       </button>
 
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
-      {showTooltips && isHovered && explanation && !hasFlyout && (
+      {showTooltips && isHovered && explanation && !isFlyoutOpen && (
         <div className="absolute left-full top-0 ml-3 w-52 rounded-2xl border border-slate-700 bg-slate-900 text-white p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
           {/* Visual Illustration Container - Compact and Proportional */}
           <div className="w-full h-28 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
@@ -7801,6 +7741,26 @@ function WhiteboardToolBtn({
 
 /** Animated GIF-style SVG Visual Illustrations for Tool Usage */
 function ToolGifAnimation({ toolKey }: { toolKey: string }) {
+  if (toolKey === "bullish_candle") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="70" y1="12" x2="70" y2="82" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+        <rect x="52" y="28" width="36" height="42" rx="3" fill="rgba(16, 185, 129, 0.35)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <text x="70" y="52" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">BULLISH</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "bearish_candle") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="70" y1="12" x2="70" y2="82" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        <rect x="52" y="28" width="36" height="42" rx="3" fill="rgba(239, 68, 68, 0.35)" stroke="#ef4444" strokeWidth="2" className="animate-pulse" />
+        <text x="70" y="52" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">BEARISH</text>
+      </svg>
+    );
+  }
+
   if (toolKey === "fibo") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
