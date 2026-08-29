@@ -77,7 +77,7 @@ const LESSON_PRESETS = [
 export default function WhiteboardPage() {
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [strokeColor, setStrokeColor] = useState("#dc3545");
-  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [strokeWidth] = useState(3);
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
   const [stickyColor, setStickyColor] = useState<StickyColor>("#fef08a");
   const [zoom, setZoom] = useState(1);
@@ -215,7 +215,7 @@ export default function WhiteboardPage() {
       color: strokeColor,
       strokeWidth,
       points: [pt],
-      stickyColor: activeTool === "sticky" ? stickyColor : undefined,
+      stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
     };
 
     setCurrentShape(newShape);
