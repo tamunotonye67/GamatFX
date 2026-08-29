@@ -1591,107 +1591,331 @@ export default function WhiteboardPage() {
           <Logo variant="dark" />
         </div>
 
-        {/* Center Section: Dynamic Tool Options & Properties Bar */}
-        <div className="flex-1 flex justify-center max-w-2xl">
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner">
-            <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
-              Tool: <strong className="text-brand uppercase">{activeTool}</strong>
-            </span>
-
-            <span className="h-4 w-px bg-line" />
-
-            {/* Stroke Color Palette */}
-            <div className="flex items-center gap-1">
-              {PALETTE.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => applyColorToSelected(c)}
-                  className={`h-5 w-5 rounded-full transition-transform border border-line ${
-                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                  }`}
-                  style={{ background: c }}
-                />
-              ))}
+        {/* Center Section: Dynamic Tool-Specific Options & Properties Bar */}
+        <div className="flex-1 flex justify-center max-w-3xl px-2">
+          <div className="flex items-center gap-3 rounded-2xl border border-line bg-cream px-4 py-1.5 shadow-inner overflow-x-auto max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {/* Active Tool Badge */}
+            <div className="flex items-center gap-1.5 font-black text-[10px] uppercase tracking-wider text-muted shrink-0">
+              <span className="p-1 rounded-lg bg-brand-light text-brand">
+                {(() => {
+                  const IconComp = getToolIcon(activeTool);
+                  return <IconComp className="h-3.5 w-3.5" />;
+                })()}
+              </span>
+              <strong className="text-ink">{TOOL_EXPLANATIONS[activeTool]?.title.split(" ")[0] || activeTool}</strong>
             </div>
 
-            {/* Sticky Note Colors (when activeTool === sticky) */}
-            {activeTool === "sticky" && (
-              <>
+            <span className="h-4 w-px bg-line shrink-0" />
+
+            {/* 1. SELECT TOOL OPTIONS */}
+            {activeTool === "select" && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                {selectedShapeIds.length > 0 ? (
+                  <>
+                    <span className="text-[10px] font-extrabold text-brand bg-brand-light px-2 py-0.5 rounded-full">
+                      {selectedShapeIds.length} Selected
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {PALETTE.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => applyColorToSelected(c)}
+                          className={`h-4.5 w-4.5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
+                          style={{ background: c }}
+                        />
+                      ))}
+                    </div>
+                    <span className="h-4 w-px bg-line" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const s = shapes.find((x) => selectedShapeIds.includes(x.id));
+                        if (s) duplicateSelectedObject(s);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-white border border-line text-[10px] font-bold text-ink hover:bg-brand-light hover:text-brand"
+                    >
+                      Duplicate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        selectedShapeIds.forEach((id) => toggleLockShape(id));
+                      }}
+                      className="px-2 py-1 rounded-lg bg-white border border-line text-[10px] font-bold text-amber-700 hover:bg-amber-50"
+                    >
+                      Lock/Unlock
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-[11px] text-muted font-medium">Click elements to select • Alt + Drag to duplicate</span>
+                )}
+              </div>
+            )}
+
+            {/* 2. HAND / PAN TOOL OPTIONS */}
+            {activeTool === "hand" && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <button
+                  type="button"
+                  onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-line text-[10px] font-bold text-ink hover:bg-brand-light hover:text-brand flex items-center gap-1"
+                >
+                  <RefreshCw className="h-3 w-3 text-brand" /> Reset View (100%)
+                </button>
+                <span className="text-[11px] text-muted font-medium">Drag anywhere on canvas to pan around</span>
+              </div>
+            )}
+
+            {/* 3. FREEHAND PEN & HIGHLIGHTER OPTIONS */}
+            {(activeTool === "pencil" || activeTool === "highlighter") && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <div className="flex items-center gap-1">
+                  {PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => applyColorToSelected(c)}
+                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
                 <span className="h-4 w-px bg-line" />
+                <div className="flex items-center gap-1">
+                  {[2, 4, 8, 14].map((sz) => (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => setStrokeWidth(sz)}
+                      className={`h-6 px-2 rounded-md text-[10px] font-extrabold transition ${strokeWidth === sz ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
+                    >
+                      {sz}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. GEOMETRIC SHAPES OPTIONS */}
+            {(activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond") && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <div className="flex items-center gap-1">
+                  {PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => applyColorToSelected(c)}
+                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
+                <div className="flex items-center gap-1">
+                  {[1, 2, 4, 6].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => setStrokeWidth(w)}
+                      className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
+                    >
+                      {w}px
+                    </button>
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setLineStyle("solid")}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "solid" ? "bg-ink text-white" : "bg-white text-muted"}`}
+                  >
+                    Solid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLineStyle("dashed")}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "dashed" ? "bg-ink text-white" : "bg-white text-muted"}`}
+                  >
+                    Dashed
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 5. LINES & PATHS OPTIONS */}
+            {(activeTool === "line" || activeTool === "arrow" || activeTool === "bezier") && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <div className="flex items-center gap-1">
+                  {PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => applyColorToSelected(c)}
+                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
+                <div className="flex items-center gap-1">
+                  {[1, 2, 4, 6].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => setStrokeWidth(w)}
+                      className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
+                    >
+                      {w}px
+                    </button>
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setLineStyle("solid")}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "solid" ? "bg-ink text-white" : "bg-white text-muted"}`}
+                  >
+                    Solid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLineStyle("dashed")}
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${lineStyle === "dashed" ? "bg-ink text-white" : "bg-white text-muted"}`}
+                  >
+                    Dashed
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 6. FOREX TRADING TOOLS OPTIONS */}
+            {(activeTool === "fibo" || activeTool === "long" || activeTool === "short") && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <span className="text-[10px] font-bold text-muted">Risk:Reward Ratio</span>
+                <div className="flex gap-1">
+                  {[1, 1.5, 2, 3, 5].map((rr) => (
+                    <button
+                      key={rr}
+                      type="button"
+                      onClick={() => {
+                        setDefaultRiskReward(rr);
+                        showToast(`Set Risk:Reward ratio to 1:${rr}`);
+                      }}
+                      className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition ${defaultRiskReward === rr ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"}`}
+                    >
+                      1:{rr}
+                    </button>
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                  TP Target / SL Zone Active
+                </span>
+              </div>
+            )}
+
+            {/* 7. STICKY NOTE OPTIONS */}
+            {activeTool === "sticky" && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <span className="text-[10px] font-bold text-muted">Paper Color:</span>
                 <div className="flex items-center gap-1">
                   {STICKY_COLORS.map((s) => (
                     <button
                       key={s.color}
                       type="button"
                       onClick={() => applyStickyColorToSelected(s.color)}
-                      className={`h-5 w-5 rounded-md transition-transform border border-black/10 ${
-                        stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                      }`}
+                      className={`h-5 w-5 rounded-md border border-black/10 transition-transform ${stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
                       style={{ background: s.color }}
                       title={`${s.name} Sticky Note`}
                     />
                   ))}
                 </div>
-              </>
+                <span className="h-4 w-px bg-line" />
+                <span className="text-[10px] font-bold text-ink">Click canvas to place Sticky Note</span>
+              </div>
             )}
 
-            <span className="h-4 w-px bg-line" />
+            {/* 8. TEXT LABEL OPTIONS */}
+            {activeTool === "text" && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <div className="flex items-center gap-1">
+                  {PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => applyColorToSelected(c)}
+                      className={`h-5 w-5 rounded-full border border-line transition-transform ${strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"}`}
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
+                <span className="text-[10px] font-bold text-ink">Click canvas to insert text label</span>
+              </div>
+            )}
 
-            {/* Stroke Width Selector */}
-            <div className="flex items-center gap-1 text-xs">
-              {[1, 2, 4, 6].map((w) => (
+            {/* 9. ERASER OPTIONS */}
+            {activeTool === "eraser" && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <span className="text-[10px] font-bold text-muted">Tip Size:</span>
+                <div className="flex gap-1">
+                  {[
+                    { sz: 10, lbl: "Small" },
+                    { sz: 18, lbl: "Med" },
+                    { sz: 28, lbl: "Large" },
+                    { sz: 45, lbl: "XL" },
+                  ].map((item) => (
+                    <button
+                      key={item.sz}
+                      type="button"
+                      onClick={() => setEraserSize(item.sz)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-extrabold transition ${eraserSize === item.sz ? "bg-rose-600 text-white" : "bg-white text-ink"}`}
+                    >
+                      {item.lbl} ({item.sz}px)
+                    </button>
+                  ))}
+                </div>
+                <span className="h-4 w-px bg-line" />
                 <button
-                  key={w}
                   type="button"
-                  onClick={() => {
-                    setStrokeWidth(w);
-                    if (selectedShapeIds.length > 0) {
-                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                    }
-                  }}
-                  className={`h-6 w-6 rounded-md text-[10px] font-extrabold transition ${
-                    strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-white/80"
-                  }`}
+                  onClick={handleClear}
+                  className="px-2 py-0.5 rounded text-[10px] font-bold text-rose-600 bg-rose-50 hover:bg-rose-100"
                 >
-                  {w}px
+                  Clear Whiteboard
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
 
-            <span className="h-4 w-px bg-line" />
-
-            {/* Line Style (Solid / Dashed) */}
-            <div className="flex items-center gap-1 text-xs">
-              <button
-                type="button"
-                onClick={() => {
-                  setLineStyle("solid");
-                  if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
-                  }
-                }}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                  lineStyle === "solid" ? "bg-ink text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Solid
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLineStyle("dashed");
-                  if (selectedShapeIds.length > 0) {
-                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
-                  }
-                }}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                  lineStyle === "dashed" ? "bg-ink text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Dashed
-              </button>
-            </div>
+            {/* 10. ZOOM TOOL OPTIONS */}
+            {activeTool === "zoom" && (
+              <div className="flex items-center gap-2 text-xs shrink-0">
+                <span className="text-[10px] font-bold text-muted">Current Zoom: {Math.round(zoom * 100)}%</span>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
+                  className="px-2 py-0.5 rounded bg-white border border-line text-[10px] font-bold"
+                >
+                  Zoom Out (-)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.min(3.0, z + 0.15))}
+                  className="px-2 py-0.5 rounded bg-white border border-line text-[10px] font-bold"
+                >
+                  Zoom In (+)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                  className="px-2 py-0.5 rounded bg-brand text-white text-[10px] font-bold"
+                >
+                  Reset (100%)
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
