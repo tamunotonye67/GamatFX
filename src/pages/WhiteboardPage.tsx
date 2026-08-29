@@ -874,6 +874,7 @@ export default function WhiteboardPage() {
 
   // Interactive Shape Resizing State
   const [activeResizeHandle, setActiveResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
+  const [hoveredResizeHandle, setHoveredResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
 
   // Undo/Redo & Active Drawing
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
@@ -1574,6 +1575,24 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
     setCursorCoords(pt);
+
+    // 0. Update hovered resize handle for dynamic expandable cursor at node edges
+    if (!isDrawing.current && !isDraggingShape.current && !isPanning.current) {
+      let foundHandle: { shapeId: string; handle: ResizeHandle } | null = null;
+      if (selectedShapeIds.length > 0) {
+        for (const id of selectedShapeIds) {
+          const shape = shapes.find((s) => s.id === id);
+          if (shape && !shape.isLocked && !shape.isHidden) {
+            const h = getResizeHandleHit(pt, shape);
+            if (h) {
+              foundHandle = { shapeId: shape.id, handle: h };
+              break;
+            }
+          }
+        }
+      }
+      setHoveredResizeHandle(foundHandle);
+    }
 
     // 1. Move/Drag existing selected shape
     if (isDraggingShape.current && selectedShapeIds.length > 0) {
@@ -5505,7 +5524,7 @@ export default function WhiteboardPage() {
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
-            style={getToolCursorStyle(activeTool)}
+            style={getToolCursorStyle(activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle)}
             className="w-full h-full block"
           />
 
@@ -7943,19 +7962,6 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.moveTo(minX, yEntry);
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
-
-    // R:R Statistics Banner - Perfectly Aligned Text!
-    const bannerY = yEntry - targetHeight - 22;
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(minX, bannerY, boxW, 20);
-
-    ctx.fillStyle = "#34d399";
-    ctx.font = "bold 10px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`LONG | Target: +${Math.round(targetHeight)} pips | Risk: ${Math.round(stopHeight)} pips | R:R 1:${defaultRiskReward.toFixed(1)}`, minX + boxW / 2, bannerY + 10);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
   } else if (shape.type === "short" && pts.length >= 2) {
     /* 3. SHORT POSITION CALCULATOR TOOL */
     const x1 = pts[0].x;
@@ -7990,19 +7996,6 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.moveTo(minX, yEntry);
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
-
-    // R:R Statistics Banner - Perfectly Aligned Text!
-    const bannerY = yEntry - stopHeight - 22;
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(minX, bannerY, boxW, 20);
-
-    ctx.fillStyle = "#f43f5e";
-    ctx.font = "bold 10px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`SHORT | Risk: ${Math.round(stopHeight)} pips | Target: +${Math.round(targetHeight)} pips | R:R 1:${defaultRiskReward.toFixed(1)}`, minX + boxW / 2, bannerY + 10);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
   } else if (shape.type === "orderblock" && pts.length >= 2) {
     /* 4. ORDER BLOCK / POI ZONE */
     const minX = Math.min(pts[0].x, pts[1].x);
@@ -8028,11 +8021,6 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(minX + boxW, midY);
     ctx.stroke();
     ctx.setLineDash([]);
-
-    // Order Block Label
-    ctx.fillStyle = shape.color || "#8b5cf6";
-    ctx.font = "bold 10px Inter, sans-serif";
-    ctx.fillText("ORDER BLOCK (50% MT)", minX + 8, minY + 14);
   } else if (shape.type === "fvg" && pts.length >= 2) {
     /* 5. FAIR VALUE GAP (FVG / IMBALANCE) */
     const minX = Math.min(pts[0].x, pts[1].x);
@@ -8058,10 +8046,6 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(minX + boxW, ceY);
     ctx.stroke();
     ctx.setLineDash([]);
-
-    ctx.fillStyle = shape.color || "#f59e0b";
-    ctx.font = "bold 10px Inter, sans-serif";
-    ctx.fillText("FVG (50% C.E.)", minX + 8, minY + 14);
   } else if (shape.type === "bos" && pts.length >= 2) {
     /* 6. BREAK OF STRUCTURE (BOS / CHoCH) */
     const p1 = pts[0];
@@ -8075,21 +8059,6 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
     ctx.setLineDash([]);
-
-    // Structure Badge
-    const midX = (p1.x + p2.x) / 2;
-    const midY = (p1.y + p2.y) / 2;
-    ctx.fillStyle = shape.color || "#3b82f6";
-    ctx.beginPath();
-    ctx.arc(midX, midY, 11, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 8px Inter, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("BOS", midX, midY);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
   } else if (shape.type === "liquidity" && pts.length >= 2) {
     /* 7. LIQUIDITY POOL ($$$ / SWEEP TARGET) */
     const p1 = pts[0];
@@ -8103,12 +8072,6 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
     ctx.setLineDash([]);
-
-    // Liquidity $$$ Target Marker
-    const minX = Math.min(p1.x, p2.x);
-    ctx.fillStyle = shape.color || "#e11d48";
-    ctx.font = "bold 10px Inter, sans-serif";
-    ctx.fillText("$$$ LIQUIDITY POOL", minX + 8, Math.min(p1.y, p2.y) - 6);
   } else if (shape.type === "bezier" && pts.length >= 2) {
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
@@ -8226,7 +8189,16 @@ function makeSvgCursor(svg: string, x: number, y: number, fallback: string = "cr
 }
 
 /** Generates dynamic contextual realistic minimalist Black & White mouse cursors for active whiteboard tools */
-function getToolCursorStyle(tool: Tool): React.CSSProperties {
+function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null): React.CSSProperties {
+  if (hoveredHandle) {
+    if (hoveredHandle === "tl" || hoveredHandle === "br") {
+      return { cursor: "nwse-resize" };
+    }
+    if (hoveredHandle === "tr" || hoveredHandle === "bl") {
+      return { cursor: "nesw-resize" };
+    }
+  }
+
   switch (tool) {
     case "hand":
       return {
