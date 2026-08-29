@@ -54,6 +54,10 @@ import {
   TrendingDown,
   Percent,
   Minus,
+  Sparkles,
+  MousePointerClick,
+  Sliders,
+  Crosshair,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -245,9 +249,20 @@ export default function WhiteboardPage() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [cursorCoords, setCursorCoords] = useState<{ x: number; y: number } | null>(null);
 
-  // Preference Setting: Show Tooltip Explanations
+  /* ---------------------- WHITEBOARD SETTINGS PREFERENCES ------------------- */
   const [showTooltips, setShowTooltips] = useState(true);
+  const [showFavoritesBar, setShowFavoritesBar] = useState(true);
+  const [showCursorCoords, setShowCursorCoords] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSnapSize, setGridSnapSize] = useState<number>(10);
+  const [eraserSize, setEraserSize] = useState<number>(18);
+  const [defaultRiskReward, setDefaultRiskReward] = useState<number>(3);
+  const [mouseWheelMode, setMouseWheelMode] = useState<"zoom" | "pan">("zoom");
+  const [highDpiExport, setHighDpiExport] = useState(true);
+  const [autoLockObjects, setAutoLockObjects] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
   // Inspector & Photoshop Layers Panel State
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
@@ -321,15 +336,22 @@ export default function WhiteboardPage() {
 
     const handleNonPassiveWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-      setZoom((z) => Math.min(3.0, Math.max(0.3, z * zoomFactor)));
+      if (mouseWheelMode === "zoom") {
+        const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+        setZoom((z) => Math.min(3.0, Math.max(0.3, z * zoomFactor)));
+      } else {
+        setPan((p) => ({
+          x: p.x - e.deltaX * 0.8,
+          y: p.y - e.deltaY * 0.8,
+        }));
+      }
     };
 
     canvas.addEventListener("wheel", handleNonPassiveWheel, { passive: false });
     return () => {
       canvas.removeEventListener("wheel", handleNonPassiveWheel);
     };
-  }, []);
+  }, [mouseWheelMode]);
 
   /* -------------------------- FULL KEYBOARD SHORTCUTS ---------------------- */
 
@@ -526,7 +548,7 @@ export default function WhiteboardPage() {
     const allShapes = [...shapes, ...(currentShape ? [currentShape] : [])];
     allShapes.forEach((s) => {
       if (!s.isHidden) {
-        renderMiroShape(ctx, s, selectedShapeIds.includes(s.id));
+        renderMiroShape(ctx, s, selectedShapeIds.includes(s.id), defaultRiskReward);
       }
     });
 
@@ -547,7 +569,7 @@ export default function WhiteboardPage() {
     }
 
     ctx.restore();
-  }, [shapes, currentShape, selectedShapeIds, marqueeBox, bgGrid, pan, zoom]);
+  }, [shapes, currentShape, selectedShapeIds, marqueeBox, bgGrid, pan, zoom, defaultRiskReward]);
 
   /* ------------------------- Coordinate Conversions ----------------------- */
 
@@ -558,15 +580,24 @@ export default function WhiteboardPage() {
     const screenX = e.clientX - rect.left;
     const screenY = e.clientY - rect.top;
 
-    return {
+    const rawPt = {
       x: (screenX - pan.x) / zoom,
       y: (screenY - pan.y) / zoom,
     };
+
+    if (snapToGrid) {
+      return {
+        x: Math.round(rawPt.x / gridSnapSize) * gridSnapSize,
+        y: Math.round(rawPt.y / gridSnapSize) * gridSnapSize,
+      };
+    }
+
+    return rawPt;
   };
 
   /* ------------------------- Precision Part-By-Part Eraser ---------------- */
 
-  const performPrecisionErasing = (eraserPt: { x: number; y: number }, radius: number = 18) => {
+  const performPrecisionErasing = (eraserPt: { x: number; y: number }, radius: number = eraserSize) => {
     setShapes((prevShapes) => {
       let result: Shape[] = [];
 
@@ -724,7 +755,7 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "eraser") {
-      performPrecisionErasing(pt, 18);
+      performPrecisionErasing(pt, eraserSize);
       return;
     }
 
@@ -790,6 +821,7 @@ export default function WhiteboardPage() {
           color: strokeColor,
           strokeWidth,
           lineStyle,
+          isLocked: autoLockObjects,
           points: [pt, pt],
         };
         setCurrentShape(newShape);
@@ -820,6 +852,7 @@ export default function WhiteboardPage() {
       color: defaultForexColor,
       strokeWidth,
       lineStyle,
+      isLocked: autoLockObjects,
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
     };
@@ -837,6 +870,7 @@ export default function WhiteboardPage() {
     }
 
     const pt = getCanvasCoords(e);
+    setCursorCoords(pt);
 
     if (activeResizeHandle) {
       setShapes((prev) =>
@@ -849,7 +883,7 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "eraser" && e.buttons === 1) {
-      performPrecisionErasing(pt, 18);
+      performPrecisionErasing(pt, eraserSize);
       return;
     }
 
@@ -977,6 +1011,7 @@ export default function WhiteboardPage() {
       color: strokeColor,
       strokeWidth,
       lineStyle,
+      isLocked: autoLockObjects,
       points: [textModalPos],
       text: textValue.trim(),
       stickyColor: isStickyMode ? stickyColor : undefined,
@@ -1129,12 +1164,12 @@ export default function WhiteboardPage() {
     }
 
     const mime = format === "jpeg" ? "image/jpeg" : "image/png";
-    const url = canvas.toDataURL(mime, 0.95);
+    const url = canvas.toDataURL(mime, highDpiExport ? 1.0 : 0.8);
     const a = document.createElement("a");
     a.href = url;
     a.download = `GAMAT_FX_Whiteboard_${Date.now()}.${format}`;
     a.click();
-    showToast(`Exported diagram as ${format.toUpperCase()}!`);
+    showToast(`Exported diagram as ${format.toUpperCase()} ${highDpiExport ? "(High DPI)" : ""}!`);
   };
 
   const handleSelectTab = (tabId: string) => {
@@ -1312,7 +1347,7 @@ export default function WhiteboardPage() {
       )}
 
       {/* TradingView-Style Floating Draggable Favorites Toolbar */}
-      {favoritedTools.length > 0 && (
+      {favoritedTools.length > 0 && showFavoritesBar && (
         <div
           className="fixed z-50 flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
           style={{ left: favPos.x, top: favPos.y }}
@@ -1539,7 +1574,7 @@ export default function WhiteboardPage() {
             <SlidersHorizontal className="h-4 w-4" />
           </button>
 
-          {/* Whiteboard Settings Button */}
+          {/* Whiteboard Settings Preferences Button */}
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
@@ -2049,6 +2084,17 @@ export default function WhiteboardPage() {
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
+
+            {/* Optional Cursor Coordinates Indicator */}
+            {showCursorCoords && cursorCoords && (
+              <>
+                <span className="h-4 w-px bg-line/80 mx-1" />
+                <span className="text-[10px] text-muted flex items-center gap-1 font-mono">
+                  <Crosshair className="h-3 w-3 text-brand" />
+                  X: {Math.round(cursorCoords.x)} Y: {Math.round(cursorCoords.y)}
+                </span>
+              </>
+            )}
           </div>
 
           {/* Canvas with Dynamic Tool Cursor, Mouse Wheel Zoom & Contextual Right-Click */}
@@ -2237,10 +2283,11 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Settings Preferences Modal */}
+          {/* EXPANDED RICH WHITEBOARD PREFERENCES SETTINGS MODAL */}
           {settingsOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
-              <div className="w-full max-w-md rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-5">
+              <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4">
+                {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-line pb-3">
                   <div className="flex items-center gap-2">
                     <Settings className="h-5 w-5 text-brand" />
@@ -2251,62 +2298,338 @@ export default function WhiteboardPage() {
                   </button>
                 </div>
 
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <label className="font-bold text-ink block mb-1">Default Canvas Theme</label>
-                    <select
-                      value={bgGrid}
-                      onChange={(e) => setBgGrid(e.target.value as any)}
-                      className="w-full rounded-xl border border-line bg-cream p-2.5 font-bold text-ink outline-none focus:border-brand"
-                    >
-                      {CANVAS_THEMES.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="font-bold text-ink block mb-1">Default Stroke Width</label>
-                    <div className="flex gap-2">
-                      {[1, 2, 4, 6].map((w) => (
-                        <button
-                          key={w}
-                          type="button"
-                          onClick={() => setStrokeWidth(w)}
-                          className={`flex-1 py-2 rounded-xl font-extrabold transition ${
-                            strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
-                          }`}
-                        >
-                          {w}px
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tooltip Explanation Preference Toggle */}
-                  <div className="flex items-center justify-between pt-2 border-t border-line">
-                    <div>
-                      <label className="font-bold text-ink flex items-center gap-1.5">
-                        <Info className="h-4 w-4 text-brand" /> Show Tooltip Explanations & Animated Demos
-                      </label>
-                      <p className="text-[10px] text-muted">Displays guide cards with GIF-style animations when hovering tools</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowTooltips(!showTooltips);
-                        showToast(showTooltips ? "Disabled tool explanations" : "Enabled tool explanations");
-                      }}
-                      className={`w-12 h-6 rounded-full transition-colors p-1 flex items-center ${
-                        showTooltips ? "bg-brand justify-end" : "bg-slate-300 justify-start"
-                      }`}
-                    >
-                      <span className="h-4 w-4 rounded-full bg-white shadow-md" />
-                    </button>
-                  </div>
+                {/* Preference Category Tabs */}
+                <div className="flex items-center gap-1.5 rounded-2xl bg-cream p-1 border border-line">
+                  <button
+                    type="button"
+                    onClick={() => setSettingsTab("general")}
+                    className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                      settingsTab === "general" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                    }`}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" /> General & UI
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSettingsTab("canvas")}
+                    className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                      settingsTab === "canvas" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                    }`}
+                  >
+                    <Grid className="h-3.5 w-3.5" /> Canvas & Tools
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSettingsTab("forex")}
+                    className={`flex-1 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                      settingsTab === "forex" ? "bg-brand text-white shadow-sm" : "text-ink hover:text-brand"
+                    }`}
+                  >
+                    <TrendingUp className="h-3.5 w-3.5" /> Forex & Risk
+                  </button>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                {/* TAB 1: GENERAL & UI PREFERENCES */}
+                {settingsTab === "general" && (
+                  <div className="space-y-3 text-xs max-h-[55vh] overflow-y-auto pr-1">
+                    {/* Tooltip Explanation & GIF Demo Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                      <div>
+                        <label className="font-bold text-ink flex items-center gap-1.5">
+                          <Info className="h-4 w-4 text-brand" /> Show Tooltips & GIF Demos
+                        </label>
+                        <p className="text-[10px] text-muted">Displays guide cards with GIF-style animations when hovering tools</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowTooltips(!showTooltips);
+                          showToast(showTooltips ? "Disabled tool explanations" : "Enabled tool explanations");
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center ${
+                          showTooltips ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                      </button>
+                    </div>
+
+                    {/* Show TradingView Floating Favorites Bar Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                      <div>
+                        <label className="font-bold text-ink flex items-center gap-1.5">
+                          <Star className="h-4 w-4 text-amber-500" /> Show Floating Favorites Toolbar
+                        </label>
+                        <p className="text-[10px] text-muted">Displays the TradingView-style draggable floating favorites bar</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowFavoritesBar(!showFavoritesBar);
+                          showToast(showFavoritesBar ? "Hidden favorites toolbar" : "Shown favorites toolbar");
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center ${
+                          showFavoritesBar ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                      </button>
+                    </div>
+
+                    {/* Show Cursor Canvas Coordinates Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                      <div>
+                        <label className="font-bold text-ink flex items-center gap-1.5">
+                          <Crosshair className="h-4 w-4 text-blue-600" /> Show Cursor Coordinates (X, Y)
+                        </label>
+                        <p className="text-[10px] text-muted">Displays live mouse position X & Y coordinates in the bottom status bar</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCursorCoords(!showCursorCoords);
+                          showToast(showCursorCoords ? "Disabled cursor coordinates" : "Enabled cursor coordinates");
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center ${
+                          showCursorCoords ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                      </button>
+                    </div>
+
+                    {/* Mouse Scroll Wheel Action */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                      <label className="font-bold text-ink flex items-center gap-1.5">
+                        <MousePointerClick className="h-4 w-4 text-brand" /> Mouse Wheel Action
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setMouseWheelMode("zoom")}
+                          className={`py-2 rounded-xl text-xs font-bold transition ${
+                            mouseWheelMode === "zoom" ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                          }`}
+                        >
+                          Zoom In / Out
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMouseWheelMode("pan")}
+                          className={`py-2 rounded-xl text-xs font-bold transition ${
+                            mouseWheelMode === "pan" ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                          }`}
+                        >
+                          Pan Canvas
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: CANVAS & DRAWING PREFERENCES */}
+                {settingsTab === "canvas" && (
+                  <div className="space-y-3 text-xs max-h-[55vh] overflow-y-auto pr-1">
+                    {/* Default Canvas Grid Theme */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1">
+                      <label className="font-bold text-ink block">Default Canvas Grid Theme</label>
+                      <select
+                        value={bgGrid}
+                        onChange={(e) => setBgGrid(e.target.value as any)}
+                        className="w-full rounded-xl border border-line bg-white p-2.5 font-bold text-ink outline-none focus:border-brand"
+                      >
+                        {CANVAS_THEMES.map((t) => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Snap to Grid Preference */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="font-bold text-ink flex items-center gap-1.5">
+                            <Grid className="h-4 w-4 text-emerald-600" /> Snap to Grid
+                          </label>
+                          <p className="text-[10px] text-muted">Automatically aligns shape coordinates to grid steps</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSnapToGrid(!snapToGrid);
+                            showToast(snapToGrid ? "Disabled grid snapping" : "Enabled grid snapping");
+                          }}
+                          className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center ${
+                            snapToGrid ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                          }`}
+                        >
+                          <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                        </button>
+                      </div>
+
+                      {snapToGrid && (
+                        <div className="flex items-center justify-between pt-1 border-t border-line">
+                          <span className="text-[11px] font-bold text-ink">Grid Step Increment</span>
+                          <div className="flex gap-1">
+                            {[5, 10, 20, 50].map((sz) => (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => setGridSnapSize(sz)}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                                  gridSnapSize === sz ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                                }`}
+                              >
+                                {sz}px
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Precision Eraser Tip Size */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                      <label className="font-bold text-ink flex items-center justify-between">
+                        <span>Precision Eraser Tip Size</span>
+                        <strong className="text-brand">{eraserSize}px</strong>
+                      </label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {[
+                          { size: 10, label: "Small" },
+                          { size: 18, label: "Medium" },
+                          { size: 28, label: "Large" },
+                          { size: 45, label: "XL" },
+                        ].map((item) => (
+                          <button
+                            key={item.size}
+                            type="button"
+                            onClick={() => setEraserSize(item.size)}
+                            className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                              eraserSize === item.size ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Default Stroke Width */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                      <label className="font-bold text-ink block">Default Line Stroke Width</label>
+                      <div className="flex gap-2">
+                        {[1, 2, 4, 6].map((w) => (
+                          <button
+                            key={w}
+                            type="button"
+                            onClick={() => setStrokeWidth(w)}
+                            className={`flex-1 py-2 rounded-xl font-extrabold transition ${
+                              strokeWidth === w ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                            }`}
+                          >
+                            {w}px
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: FOREX & RISK PREFERENCES */}
+                {settingsTab === "forex" && (
+                  <div className="space-y-3 text-xs max-h-[55vh] overflow-y-auto pr-1">
+                    {/* Default Risk:Reward Ratio */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                      <label className="font-bold text-ink flex items-center justify-between">
+                        <span>Default Position Risk-to-Reward Ratio</span>
+                        <strong className="text-brand">1:{defaultRiskReward}</strong>
+                      </label>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[1, 1.5, 2, 3, 5].map((rr) => (
+                          <button
+                            key={rr}
+                            type="button"
+                            onClick={() => {
+                              setDefaultRiskReward(rr);
+                              showToast(`Set default R:R ratio to 1:${rr}`);
+                            }}
+                            className={`py-2 rounded-xl text-xs font-extrabold transition ${
+                              defaultRiskReward === rr ? "bg-brand text-white" : "bg-white text-ink hover:bg-slate-200"
+                            }`}
+                          >
+                            1:{rr}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Default Sticky Note Color */}
+                    <div className="p-3 rounded-2xl border border-line bg-cream/50 space-y-1.5">
+                      <label className="font-bold text-ink block">Default Sticky Note Color</label>
+                      <div className="flex items-center gap-2">
+                        {STICKY_COLORS.map((s) => (
+                          <button
+                            key={s.color}
+                            type="button"
+                            onClick={() => setStickyColor(s.color)}
+                            className={`flex-1 py-2.5 rounded-xl border border-black/10 transition-transform ${
+                              stickyColor === s.color ? "scale-110 ring-2 ring-brand font-bold" : "hover:scale-105"
+                            }`}
+                            style={{ background: s.color }}
+                            title={s.name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Auto-Lock Created Objects Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                      <div>
+                        <label className="font-bold text-ink flex items-center gap-1.5">
+                          <Lock className="h-4 w-4 text-amber-600" /> Auto-Lock Newly Drawn Objects
+                        </label>
+                        <p className="text-[10px] text-muted">Automatically locks shapes as soon as they are completed</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAutoLockObjects(!autoLockObjects);
+                          showToast(autoLockObjects ? "Disabled auto-lock" : "Enabled auto-lock");
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center ${
+                          autoLockObjects ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                      </button>
+                    </div>
+
+                    {/* Ultra High-DPI Export Resolution Toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
+                      <div>
+                        <label className="font-bold text-ink flex items-center gap-1.5">
+                          <Download className="h-4 w-4 text-brand" /> Ultra High-DPI Image Exports
+                        </label>
+                        <p className="text-[10px] text-muted">Exports PNG & JPEG image files in maximum crisp resolution</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHighDpiExport(!highDpiExport);
+                          showToast(highDpiExport ? "Standard resolution export" : "Ultra High-DPI export enabled");
+                        }}
+                        className={`w-11 h-6 rounded-full transition-colors p-1 flex items-center ${
+                          highDpiExport ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                        }`}
+                      >
+                        <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-2 border-t border-line">
                   <button onClick={() => setSettingsOpen(false)} className="btn-primary w-full !py-2.5 text-xs font-bold">
                     Save Preferences
                   </button>
@@ -3148,7 +3471,7 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
 }
 
 /** Renders shapes, Miro sticky notes, and Forex Trading Tools on canvas */
-function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false) {
+function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false, defaultRiskReward: number = 3) {
   const pts = shape.points;
   if (pts.length === 0) return;
 
@@ -3262,7 +3585,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     const boxW = Math.abs(x2 - x1) || 160;
 
     const targetHeight = Math.abs(yExt - yEntry) || 80;
-    const stopHeight = targetHeight / 3; // 1:3 R:R default
+    const stopHeight = targetHeight / defaultRiskReward;
 
     // Target Green Box (Top)
     ctx.fillStyle = "rgba(16, 185, 129, 0.22)";
@@ -3295,7 +3618,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.font = "bold 10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("LONG | Target: +300 pips | Risk: 100 pips | R:R 1:3.0", minX + boxW / 2, bannerY + 10);
+    ctx.fillText(`LONG | Target: +${Math.round(targetHeight)} pips | Risk: ${Math.round(stopHeight)} pips | R:R 1:${defaultRiskReward.toFixed(1)}`, minX + boxW / 2, bannerY + 10);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
   } else if (shape.type === "short" && pts.length >= 2) {
@@ -3309,7 +3632,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     const boxW = Math.abs(x2 - x1) || 160;
 
     const targetHeight = Math.abs(yExt - yEntry) || 80;
-    const stopHeight = targetHeight / 3; // 1:3 R:R default
+    const stopHeight = targetHeight / defaultRiskReward;
 
     // Stop Loss Red Box (Top)
     ctx.fillStyle = "rgba(239, 68, 68, 0.22)";
@@ -3342,7 +3665,7 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.font = "bold 10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("SHORT | Risk: 100 pips | Target: +300 pips | R:R 1:3.0", minX + boxW / 2, bannerY + 10);
+    ctx.fillText(`SHORT | Risk: ${Math.round(stopHeight)} pips | Target: +${Math.round(targetHeight)} pips | R:R 1:${defaultRiskReward.toFixed(1)}`, minX + boxW / 2, bannerY + 10);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
   } else if (shape.type === "bezier" && pts.length >= 2) {
