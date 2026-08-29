@@ -2501,7 +2501,34 @@ export default function WhiteboardPage() {
                   >
                     <Home className="h-4 w-4 text-slate-700" /> Platform Home
                   </button>
+
                   <div className="border-t border-line my-1" />
+
+                  {/* Whiteboard Preferences Settings */}
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                  >
+                    <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
+                  </button>
+
+                  {/* Keyboard Shortcuts right under Settings */}
+                  <button
+                    type="button"
+                    onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
+                    className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
+                    </span>
+                    <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">
+                      ?
+                    </span>
+                  </button>
+
+                  <div className="border-t border-line my-1" />
+
                   <button
                     type="button"
                     onClick={() => { setUserMenuOpen(false); logout(); }}
