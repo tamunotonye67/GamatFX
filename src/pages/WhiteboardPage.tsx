@@ -35,6 +35,10 @@ import {
   Check,
   Search,
   ChevronRight,
+  Copy,
+  ArrowUp,
+  ArrowDown,
+  Edit3,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -129,6 +133,14 @@ export default function WhiteboardPage() {
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | null>(null);
+
+  // Context Menu State (Canvas or Object Context)
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    canvasPt: { x: number; y: number };
+    targetShape: Shape | null;
+  } | null>(null);
 
   // Selection & Multi-Select Marquee State
   const [shapes, setShapes] = useState<Shape[]>([]);
@@ -294,7 +306,7 @@ export default function WhiteboardPage() {
 
   /* ------------------------- Coordinate Conversions ----------------------- */
 
-  const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCanvasCoords = (e: React.MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
@@ -360,6 +372,7 @@ export default function WhiteboardPage() {
     setBgOpen(false);
     setSettingsOpen(false);
     setFlyoutGroup(null);
+    setContextMenu(null);
 
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -369,19 +382,16 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    // Zoom Tool Click
     if (activeTool === "zoom") {
       setZoom((z) => Math.min(3.0, z + 0.2));
       return;
     }
 
-    // Dedicated Precision Eraser Tool Action
     if (activeTool === "eraser") {
       performPrecisionErasing(pt, 18);
       return;
     }
 
-    // 1. Check for Resize Handles Click on Single Selected Shape
     if (activeTool === "select" && selectedShapeIds.length === 1) {
       const selShape = shapes.find((s) => s.id === selectedShapeIds[0]);
       if (selShape) {
@@ -394,7 +404,6 @@ export default function WhiteboardPage() {
       }
     }
 
-    // 2. Select Tool Hit Test & Alt+Drag Duplicate
     if (activeTool === "select") {
       const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
 
@@ -428,7 +437,6 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // 3. Bezier / Chart Pattern Tool
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
         setCurrentShape({
@@ -487,7 +495,6 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    // Interactive Shape Resizing
     if (activeResizeHandle) {
       setShapes((prev) =>
         prev.map((s) => {
@@ -498,7 +505,6 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Precision Part-by-part Eraser dragging
     if (activeTool === "eraser" && e.buttons === 1) {
       performPrecisionErasing(pt, 18);
       return;
@@ -594,6 +600,30 @@ export default function WhiteboardPage() {
     }
   };
 
+  /* Contextual Right-Click Handler (Detects object hit vs canvas hit) */
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const pt = getCanvasCoords(e);
+    const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
+
+    if (hitShape) {
+      setSelectedShapeIds([hitShape.id]);
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        canvasPt: pt,
+        targetShape: hitShape,
+      });
+    } else {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        canvasPt: pt,
+        targetShape: null,
+      });
+    }
+  };
+
   const handleAddTextOrSticky = () => {
     if (!textValue.trim() || !textModalPos) return;
 
@@ -611,6 +641,46 @@ export default function WhiteboardPage() {
     setShapes((prev) => [...prev, newShape]);
     setTextValue("");
     setTextModalPos(null);
+  };
+
+  /* Context Menu Object Layering & Duplicate Actions */
+  const duplicateSelectedObject = (shapeToDup: Shape) => {
+    const dup: Shape = {
+      ...shapeToDup,
+      id: `miro_dup_${Date.now()}`,
+      points: shapeToDup.points.map((p) => ({ x: p.x + 25, y: p.y + 25 })),
+    };
+    setShapes((prev) => [...prev, dup]);
+    setSelectedShapeIds([dup.id]);
+    setContextMenu(null);
+    showToast("Duplicated object!");
+  };
+
+  const deleteSelectedObject = (shapeId: string) => {
+    setShapes((prev) => prev.filter((s) => s.id !== shapeId));
+    setSelectedShapeIds([]);
+    setContextMenu(null);
+    showToast("Deleted object!");
+  };
+
+  const bringToFront = (shapeId: string) => {
+    setShapes((prev) => {
+      const target = prev.find((s) => s.id === shapeId);
+      if (!target) return prev;
+      return [...prev.filter((s) => s.id !== shapeId), target];
+    });
+    setContextMenu(null);
+    showToast("Brought to front!");
+  };
+
+  const sendToBack = (shapeId: string) => {
+    setShapes((prev) => {
+      const target = prev.find((s) => s.id === shapeId);
+      if (!target) return prev;
+      return [target, ...prev.filter((s) => s.id !== shapeId)];
+    });
+    setContextMenu(null);
+    showToast("Sent to back!");
   };
 
   /* Bulk Apply Color / Properties */
@@ -1301,13 +1371,14 @@ export default function WhiteboardPage() {
             </button>
           </div>
 
-          {/* Canvas with Mouse Wheel Zoom */}
+          {/* Canvas with Mouse Wheel Zoom & Contextual Right-Click */}
           <canvas
             ref={canvasRef}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
+            onContextMenu={handleContextMenu}
             className={`w-full h-full block ${
               activeTool === "hand"
                 ? "cursor-grab active:cursor-grabbing"
@@ -1320,6 +1391,161 @@ export default function WhiteboardPage() {
                 : "cursor-crosshair"
             }`}
           />
+
+          {/* Contextual Right-Click Popover Menu (Object vs Canvas) */}
+          {contextMenu && (
+            <div
+              className="fixed z-50 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl animate-in fade-in"
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+            >
+              {contextMenu.targetShape ? (
+                /* OBJECT / TEXT / STICKY RIGHT-CLICK OPTIONS */
+                <div className="space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
+                    Selected {contextMenu.targetShape.type.toUpperCase()}
+                  </p>
+
+                  {/* Inline Color Palette for Selected Object */}
+                  <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line pb-2 mb-1">
+                    {PALETTE.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => applyColorToSelected(c)}
+                        className={`h-4.5 w-4.5 rounded-full border border-line transition-transform ${
+                          strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                        }`}
+                        style={{ background: c }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Text Edit Option if Sticky or Text */}
+                  {(contextMenu.targetShape.type === "text" || contextMenu.targetShape.type === "sticky") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsStickyMode(contextMenu.targetShape?.type === "sticky");
+                        setTextValue(contextMenu.targetShape?.text || "");
+                        setTextModalPos(contextMenu.canvasPt);
+                        setContextMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                    >
+                      <Edit3 className="h-3.5 w-3.5 text-brand" /> Edit Text
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => duplicateSelectedObject(contextMenu.targetShape!)}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => bringToFront(contextMenu.targetShape!.id)}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring to Front
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => sendToBack(contextMenu.targetShape!.id)}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send to Back
+                  </button>
+
+                  <div className="border-t border-line pt-1 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => deleteSelectedObject(contextMenu.targetShape!.id)}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete Object
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* CANVAS RIGHT-CLICK OPTIONS */
+                <div className="space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Canvas Quick Tools</p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsStickyMode(true);
+                      setTextModalPos(contextMenu.canvasPt);
+                      setActiveTool("sticky");
+                      setContextMenu(null);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Add Sticky Note Here
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsStickyMode(false);
+                      setTextModalPos(contextMenu.canvasPt);
+                      setActiveTool("text");
+                      setContextMenu(null);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Type className="h-3.5 w-3.5 text-brand" /> Add Text Label Here
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTool("pencil"); setContextMenu(null); }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Pencil className="h-3.5 w-3.5 text-ink" /> Freehand Pen
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTool("bezier"); setContextMenu(null); }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Activity className="h-3.5 w-3.5 text-brand" /> Chart Pattern Path
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTool("rectangle"); setContextMenu(null); }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Square className="h-3.5 w-3.5 text-blue-600" /> Rectangle Zone Box
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTool("eraser"); setContextMenu(null); }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <Eraser className="h-3.5 w-3.5 text-rose-500" /> Eraser Tool
+                  </button>
+
+                  <div className="border-t border-line pt-1 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => { handleClear(); setContextMenu(null); }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Clear Whiteboard
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Settings Preferences Modal */}
           {settingsOpen && (
