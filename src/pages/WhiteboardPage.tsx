@@ -10,7 +10,7 @@ import {
   Circle,
   Diamond,
   ArrowRight,
-  ArrowLeft,
+  Home,
   Type,
   StickyNote,
   Eraser,
@@ -2356,7 +2356,7 @@ export default function WhiteboardPage() {
             className="flex items-center justify-center rounded-xl border border-line bg-white p-1.5 text-ink hover:bg-brand-light hover:text-brand transition shrink-0"
             title="Back to GAMAT FX Website"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <Home className="h-4 w-4" />
           </button>
 
           {/* Vertical Separator Line */}
