@@ -86,33 +86,28 @@ import {
 } from "lucide-react";
 import { useStore } from "../lib/store";
 
-/* Custom Forex SVG Icons */
+/* Custom Forex SVG Icons (Minimalist Design) */
 const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.75"
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Highlighted FVG Imbalance Corridor */}
-    <rect x="5" y="8" width="14" height="4" rx="0.75" fill="currentColor" fillOpacity="0.25" stroke="none" />
-    <line x1="3" y1="8" x2="21" y2="8" strokeWidth="1.2" strokeDasharray="2 1.5" opacity="0.9" />
-    <line x1="3" y1="12" x2="21" y2="12" strokeWidth="1.2" strokeDasharray="2 1.5" opacity="0.9" />
-
-    {/* Candle 1 (Left base candle) */}
-    <line x1="4.5" y1="12" x2="4.5" y2="20" strokeWidth="1.5" />
-    <rect x="3" y="14" width="3" height="4.5" rx="0.5" fill="currentColor" />
+    {/* Candle 1 (Left base) */}
+    <line x1="5" y1="11" x2="5" y2="19" />
+    <rect x="3.5" y="13" width="3" height="5" rx="0.5" fill="currentColor" fillOpacity="0.2" />
 
     {/* Candle 2 (Center tall expansion candle) */}
-    <line x1="12" y1="2" x2="12" y2="22" strokeWidth="1.75" />
-    <rect x="10" y="4" width="4" height="15" rx="0.75" fill="currentColor" />
+    <line x1="12" y1="3" x2="12" y2="21" />
+    <rect x="10.5" y="6" width="3" height="12" rx="0.5" fill="currentColor" />
 
-    {/* Candle 3 (Right high candle) */}
-    <line x1="19.5" y1="3" x2="19.5" y2="8" strokeWidth="1.5" />
-    <rect x="18" y="4.5" width="3" height="3" rx="0.5" fill="currentColor" />
+    {/* Candle 3 (Right high) */}
+    <line x1="19" y1="5" x2="19" y2="13" />
+    <rect x="17.5" y="6" width="3" height="5" rx="0.5" fill="currentColor" fillOpacity="0.2" />
   </svg>
 );
 
@@ -126,17 +121,11 @@ const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Horizontal Structure Level Line (Dashed) */}
-    <line x1="7" y1="10" x2="21" y2="10" strokeWidth="1.5" strokeDasharray="2 2" opacity="0.65" />
-
-    {/* Market Structure Price Path (Higher High Breakout) */}
-    <path d="M3 18L8 10L13 15L21 5" strokeWidth="2" />
-
-    {/* Breakout Arrowhead piercing the structure */}
-    <path d="M16 5H21V10" strokeWidth="2" />
-
-    {/* Swing High Peak Trigger Node */}
-    <circle cx="8" cy="10" r="1.5" fill="currentColor" />
+    {/* Horizontal Structure Line */}
+    <line x1="8" y1="10" x2="21" y2="10" strokeDasharray="2 2" strokeWidth="1.5" />
+    {/* Breakout Path */}
+    <path d="M3 18L8 10L13 14L21 6" />
+    <path d="M17 6H21V10" />
   </svg>
 );
 
@@ -146,20 +135,16 @@ const TradingViewLongIcon = ({ className = "h-3.5 w-3.5" }: { className?: string
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Target Box (Top Green/Profit Area) */}
-    <rect x="3.5" y="3" width="17" height="10" rx="1.5" fill="#10b981" fillOpacity="0.25" stroke="#10b981" strokeWidth="1.5" />
-    
-    {/* Upward Profit Arrow */}
-    <path d="M12 10.5V5.5M9.5 8L12 5.5L14.5 8" stroke="#10b981" strokeWidth="1.75" />
-
-    {/* Stop Loss Box (Bottom Red/Risk Area) */}
-    <rect x="3.5" y="13" width="17" height="8" rx="1.5" fill="#ef4444" fillOpacity="0.25" stroke="#ef4444" strokeWidth="1.5" />
-    
+    {/* Split Box Container */}
+    <rect x="4" y="3" width="16" height="18" rx="2" />
     {/* Entry Divider Line */}
-    <line x1="3.5" y1="13" x2="20.5" y2="13" stroke="#3b82f6" strokeWidth="1.75" />
+    <line x1="4" y1="12" x2="20" y2="12" />
+    {/* Minimalist Profit Arrow Up */}
+    <path d="M12 9.5V5.5M9.5 7.5L12 5L14.5 7.5" />
   </svg>
 );
 
@@ -169,20 +154,16 @@ const TradingViewShortIcon = ({ className = "h-3.5 w-3.5" }: { className?: strin
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
+    strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    {/* Stop Loss Box (Top Red/Risk Area) */}
-    <rect x="3.5" y="3" width="17" height="8" rx="1.5" fill="#ef4444" fillOpacity="0.25" stroke="#ef4444" strokeWidth="1.5" />
-
-    {/* Target Box (Bottom Green/Profit Area) */}
-    <rect x="3.5" y="11" width="17" height="10" rx="1.5" fill="#10b981" fillOpacity="0.25" stroke="#10b981" strokeWidth="1.5" />
-    
-    {/* Downward Profit Arrow */}
-    <path d="M12 13.5V18.5M9.5 16L12 18.5L14.5 16" stroke="#10b981" strokeWidth="1.75" />
-
+    {/* Split Box Container */}
+    <rect x="4" y="3" width="16" height="18" rx="2" />
     {/* Entry Divider Line */}
-    <line x1="3.5" y1="11" x2="20.5" y2="11" stroke="#3b82f6" strokeWidth="1.75" />
+    <line x1="4" y1="12" x2="20" y2="12" />
+    {/* Minimalist Profit Arrow Down */}
+    <path d="M12 14.5V18.5M9.5 16.5L12 19L14.5 16.5" />
   </svg>
 );
 
