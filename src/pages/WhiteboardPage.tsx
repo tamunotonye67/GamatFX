@@ -10,6 +10,7 @@ import {
   Circle,
   Diamond,
   ArrowRight,
+  ArrowUpRight,
   Home,
   Type,
   StickyNote,
@@ -674,7 +675,7 @@ export default function WhiteboardPage() {
 
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
-  const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("arrow");
+  const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
   const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short">("fibo");
   const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky">("text");
@@ -5065,7 +5066,7 @@ export default function WhiteboardPage() {
                 }}
                 title="Lines & Paths (Click arrow or right-click to change line type)"
                 toolKey={activeLineTool}
-                icon={activeLineTool === "line" ? Minus : activeLineTool === "bezier" ? Activity : ArrowRight}
+                icon={activeLineTool === "line" ? Minus : activeLineTool === "bezier" ? Activity : ArrowUpRight}
                 hasFlyout
                 showTooltips={showTooltips}
               />
@@ -5094,7 +5095,7 @@ export default function WhiteboardPage() {
                     onClick={() => { selectTool("arrow"); setFlyoutGroup(null); }}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "arrow" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><ArrowRight className="h-3.5 w-3.5" /> Connector Arrow</span>
+                    <span className="flex items-center gap-2"><ArrowUpRight className="h-3.5 w-3.5" /> Connector Arrow</span>
                     <span title={favoritedTools.includes("arrow") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
@@ -6917,7 +6918,7 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "circle": return Circle;
     case "diamond": return Diamond;
     case "line": return Minus;
-    case "arrow": return ArrowRight;
+    case "arrow": return ArrowUpRight;
     case "bezier": return Activity;
     case "sticky": return StickyNote;
     case "text": return Type;
