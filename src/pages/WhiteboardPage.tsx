@@ -4669,35 +4669,210 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
   }
 }
 
+function makeSvgCursor(svg: string, x: number, y: number, fallback: string = "crosshair"): string {
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${x} ${y}, ${fallback}`;
+}
+
 /** Generates dynamic contextual mouse cursors for active whiteboard tools */
 function getToolCursorStyle(tool: Tool): React.CSSProperties {
-  if (tool === "hand") {
-    return { cursor: "grab" };
+  switch (tool) {
+    case "hand":
+      return { cursor: "grab" };
+    case "select":
+      return { cursor: "default" };
+    case "zoom":
+      return { cursor: "zoom-in" };
+    case "text":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <line x1="8" y1="4" x2="20" y2="4" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="14" y1="4" x2="14" y2="24" stroke="#0f172a" stroke-width="2.5"/>
+            <line x1="8" y1="24" x2="20" y2="24" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>`,
+          14,
+          14,
+          "text"
+        ),
+      };
+    case "eraser":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <path d="M7 23 L2.5 18.5 C1.8 17.8 1.8 16.7 2.5 16 L14 4.5 C14.7 3.8 15.8 3.8 16.5 4.5 L22.5 10.5 C23.2 11.2 23.2 12.3 22.5 13 L12 23.5 Z" fill="#fda4af" stroke="#e11d48" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M6 19.5 L17.5 8" stroke="#be123c" stroke-width="2"/>
+            <path d="M2 25 L16 25" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>`,
+          4,
+          22,
+          "pointer"
+        ),
+      };
+    case "pencil":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <path d="M19.5 3.5 L24.5 8.5 L9.5 23.5 L3.5 24.5 L4.5 18.5 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M16 7 L21 12" stroke="#ffffff" stroke-width="1.5"/>
+            <polygon points="3.5,24.5 4.5,18.5 9.5,23.5" fill="#f59e0b"/>
+            <circle cx="3.5" cy="24.5" r="1.5" fill="#0f172a"/>
+          </svg>`,
+          3,
+          25,
+          "crosshair"
+        ),
+      };
+    case "highlighter":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <path d="M11 13 L3 21 L3 25 L7 25 L15 17 Z" fill="#fde047" stroke="#ca8a04" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M11 13 L17 7 L23 13 L17 19 Z" fill="#eab308" stroke="#a16207" stroke-width="2"/>
+            <line x1="3" y1="25" x2="7" y2="25" stroke="#854d0e" stroke-width="3"/>
+          </svg>`,
+          3,
+          25,
+          "crosshair"
+        ),
+      };
+    case "sticky":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <rect x="3" y="3" width="20" height="20" rx="3" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+            <path d="M17 23 L23 17 L17 17 Z" fill="#eab308"/>
+            <line x1="7" y1="8" x2="15" y2="8" stroke="#854d0e" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="7" y1="12" x2="19" y2="12" stroke="#854d0e" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="7" y1="16" x2="13" y2="16" stroke="#854d0e" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>`,
+          4,
+          4,
+          "copy"
+        ),
+      };
+    case "rectangle":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <line x1="14" y1="2" x2="14" y2="26" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <line x1="2" y1="14" x2="26" y2="14" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <rect x="14" y="14" width="10" height="8" fill="#3b82f6" fill-opacity="0.3" stroke="#2563eb" stroke-width="1.5"/>
+            <circle cx="14" cy="14" r="2" fill="#ef4444"/>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    case "circle":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <line x1="14" y1="2" x2="14" y2="26" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <line x1="2" y1="14" x2="26" y2="14" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <circle cx="19" cy="19" r="6" fill="#8b5cf6" fill-opacity="0.3" stroke="#7c3aed" stroke-width="1.5"/>
+            <circle cx="14" cy="14" r="2" fill="#ef4444"/>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    case "diamond":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <line x1="14" y1="2" x2="14" y2="26" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <line x1="2" y1="14" x2="26" y2="14" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
+            <polygon points="19,13 25,19 19,25 13,19" fill="#ec4899" fill-opacity="0.3" stroke="#db2777" stroke-width="1.5"/>
+            <circle cx="14" cy="14" r="2" fill="#ef4444"/>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    case "arrow":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <path d="M4 24 L22 6 M22 6 L12 6 M22 6 L22 16" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`,
+          22,
+          6,
+          "crosshair"
+        ),
+      };
+    case "line":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <line x1="4" y1="24" x2="24" y2="4" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="4" cy="24" r="2.5" fill="#2563eb"/>
+            <circle cx="24" cy="4" r="2.5" fill="#2563eb"/>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    case "bezier":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <path d="M4 22 C10 6, 18 22, 24 6" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="4" cy="22" r="2.5" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+            <circle cx="24" cy="6" r="2.5" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+          </svg>`,
+          4,
+          22,
+          "crosshair"
+        ),
+      };
+    case "fibo":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <line x1="2" y1="5" x2="26" y2="5" stroke="#ef4444" stroke-width="1.5"/>
+            <line x1="2" y1="11" x2="26" y2="11" stroke="#f59e0b" stroke-width="1.5"/>
+            <line x1="2" y1="17" x2="26" y2="17" stroke="#10b981" stroke-width="2"/>
+            <line x1="2" y1="23" x2="26" y2="23" stroke="#3b82f6" stroke-width="1.5"/>
+            <text x="2" y="15" font-size="8" font-family="sans-serif" font-weight="bold" fill="#0f172a">FIB</text>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    case "long":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <rect x="3" y="3" width="22" height="11" fill="#10b981" fill-opacity="0.3" stroke="#059669" stroke-width="1.5"/>
+            <rect x="3" y="14" width="22" height="11" fill="#ef4444" fill-opacity="0.3" stroke="#dc2626" stroke-width="1.5"/>
+            <line x1="3" y1="14" x2="25" y2="14" stroke="#2563eb" stroke-width="2"/>
+            <path d="M14 10 L14 4 M11 7 L14 4 L17 7" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    case "short":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+            <rect x="3" y="3" width="22" height="11" fill="#ef4444" fill-opacity="0.3" stroke="#dc2626" stroke-width="1.5"/>
+            <rect x="3" y="14" width="22" height="11" fill="#10b981" fill-opacity="0.3" stroke="#059669" stroke-width="1.5"/>
+            <line x1="3" y1="14" x2="25" y2="14" stroke="#2563eb" stroke-width="2"/>
+            <path d="M14 18 L14 24 M11 21 L14 24 L17 21" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`,
+          14,
+          14,
+          "crosshair"
+        ),
+      };
+    default:
+      return { cursor: "crosshair" };
   }
-  if (tool === "select") {
-    return { cursor: "default" };
-  }
-  if (tool === "eraser") {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>`;
-    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 4 20, pointer` };
-  }
-  if (tool === "pencil") {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23dc3545" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`;
-    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 2 22, crosshair` };
-  }
-  if (tool === "highlighter") {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>`;
-    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 4 20, crosshair` };
-  }
-  if (tool === "text") {
-    return { cursor: "text" };
-  }
-  if (tool === "sticky") {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23fef08a" stroke="%23ca8a04" stroke-width="1.5"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M14 3v5a1 1 0 0 0 1 1h5"/></svg>`;
-    return { cursor: `url("data:image/svg+xml;utf8,${svg}") 4 4, copy` };
-  }
-  if (tool === "zoom") {
-    return { cursor: "zoom-in" };
-  }
-  return { cursor: "crosshair" };
 }
