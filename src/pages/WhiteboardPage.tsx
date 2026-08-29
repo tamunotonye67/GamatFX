@@ -470,7 +470,21 @@ export default function WhiteboardPage() {
   const [viewMode, setViewMode] = useState<"hub" | "canvas">("hub");
   const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash">("drafts");
   const [hubSearch, setHubSearch] = useState("");
-  const [hubLayout, setHubLayout] = useState<"grid" | "list">("grid");
+  const [hubLayout, setHubLayout] = useState<"grid" | "list">(() => {
+    try {
+      const saved = localStorage.getItem("gamat_hub_layout");
+      return saved === "list" ? "list" : "grid";
+    } catch {
+      return "grid";
+    }
+  });
+
+  const handleToggleHubLayout = (layout: "grid" | "list") => {
+    setHubLayout(layout);
+    try {
+      localStorage.setItem("gamat_hub_layout", layout);
+    } catch {}
+  };
 
   const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
   const [activeTabId, setActiveTabId] = useState("blank");
@@ -2178,7 +2192,7 @@ export default function WhiteboardPage() {
               <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-line">
                 <button
                   type="button"
-                  onClick={() => setHubLayout("grid")}
+                  onClick={() => handleToggleHubLayout("grid")}
                   className={`p-1.5 rounded-lg transition ${
                     hubLayout === "grid" ? "bg-white text-brand shadow-xs" : "text-slate-500 hover:text-ink"
                   }`}
@@ -2188,7 +2202,7 @@ export default function WhiteboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setHubLayout("list")}
+                  onClick={() => handleToggleHubLayout("list")}
                   className={`p-1.5 rounded-lg transition ${
                     hubLayout === "list" ? "bg-white text-brand shadow-xs" : "text-slate-500 hover:text-ink"
                   }`}
@@ -2437,105 +2451,178 @@ export default function WhiteboardPage() {
             {/* ===================== TAB 2: SAMPLES & TEMPLATES ===================== */}
             {hubTab === "samples" && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredSamples.map((sample) => (
-                    <div
-                      key={sample.id}
-                      onClick={() => handleOpenSampleFromHub(sample.id)}
-                      className="group cursor-pointer rounded-2xl border border-line bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
-                    >
-                      {/* Interactive Diagram Preview Banner */}
-                      <div className="h-40 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
-                        <HubDiagramThumbnail type={sample.previewType} />
-                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-black uppercase tracking-wider">
-                            {sample.tag}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                            sample.difficulty === "Beginner" ? "bg-emerald-100 text-emerald-800" :
-                            sample.difficulty === "Intermediate" ? "bg-amber-100 text-amber-800" :
-                            "bg-purple-100 text-purple-800"
-                          }`}>
-                            {sample.difficulty}
-                          </span>
+                {hubLayout === "grid" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredSamples.map((sample) => (
+                      <div
+                        key={sample.id}
+                        onClick={() => handleOpenSampleFromHub(sample.id)}
+                        className="group cursor-pointer rounded-2xl border border-line bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
+                      >
+                        {/* Interactive Diagram Preview Banner */}
+                        <div className="h-40 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
+                          <HubDiagramThumbnail type={sample.previewType} />
+                          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-black uppercase tracking-wider">
+                              {sample.tag}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                              sample.difficulty === "Beginner" ? "bg-emerald-100 text-emerald-800" :
+                              sample.difficulty === "Intermediate" ? "bg-amber-100 text-amber-800" :
+                              "bg-purple-100 text-purple-800"
+                            }`}>
+                              {sample.difficulty}
+                            </span>
+                          </div>
+                          <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="px-3.5 py-2 rounded-xl bg-brand text-white font-black text-xs shadow-lg">
+                              Open Template in Whiteboard →
+                            </span>
+                          </div>
                         </div>
-                        <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="px-3.5 py-2 rounded-xl bg-brand text-white font-black text-xs shadow-lg">
-                            Open Template in Whiteboard →
-                          </span>
-                        </div>
-                      </div>
 
-                      {/* Card Meta & Description */}
-                      <div className="p-5 space-y-2.5 flex-1 flex flex-col justify-between">
-                        <div>
-                          <p className="text-[10px] font-black uppercase text-muted tracking-wider">{sample.category}</p>
-                          <h3 className="font-extrabold text-base text-ink group-hover:text-brand transition-colors mt-0.5">
-                            {sample.name}
-                          </h3>
-                          <p className="text-xs text-muted leading-relaxed mt-1 font-medium line-clamp-2">
-                            {sample.desc}
-                          </p>
-                        </div>
-                        <div className="pt-3 border-t border-line flex items-center justify-between text-xs">
-                          <span className="text-muted font-bold">{sample.shapesCount} pre-configured layers</span>
-                          <span className="font-extrabold text-brand flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                            Use Template <ChevronRight className="h-3.5 w-3.5" />
-                          </span>
+                        {/* Card Meta & Description */}
+                        <div className="p-5 space-y-2.5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <p className="text-[10px] font-black uppercase text-muted tracking-wider">{sample.category}</p>
+                            <h3 className="font-extrabold text-base text-ink group-hover:text-brand transition-colors mt-0.5">
+                              {sample.name}
+                            </h3>
+                            <p className="text-xs text-muted leading-relaxed mt-1 font-medium line-clamp-2">
+                              {sample.desc}
+                            </p>
+                          </div>
+                          <div className="pt-3 border-t border-line flex items-center justify-between text-xs">
+                            <span className="text-muted font-bold">{sample.shapesCount} pre-configured layers</span>
+                            <span className="font-extrabold text-brand flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                              Use Template <ChevronRight className="h-3.5 w-3.5" />
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* SAMPLES LIST VIEW */
+                  <div className="rounded-2xl border border-line bg-white divide-y divide-line overflow-hidden shadow-xs">
+                    {filteredSamples.map((sample) => (
+                      <div
+                        key={sample.id}
+                        onClick={() => handleOpenSampleFromHub(sample.id)}
+                        className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition"
+                      >
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="h-14 w-24 rounded-xl border border-line bg-slate-100 overflow-hidden shrink-0">
+                            <HubDiagramThumbnail type={sample.previewType} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-extrabold text-sm text-ink truncate">{sample.name}</h4>
+                              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-black uppercase">
+                                {sample.tag}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                                sample.difficulty === "Beginner" ? "bg-emerald-100 text-emerald-800" :
+                                sample.difficulty === "Intermediate" ? "bg-amber-100 text-amber-800" :
+                                "bg-purple-100 text-purple-800"
+                              }`}>
+                                {sample.difficulty}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted truncate mt-0.5 font-medium">{sample.desc}</p>
+                            <p className="text-[10px] text-muted font-bold mt-1">{sample.category} • {sample.shapesCount} shapes</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenSampleFromHub(sample.id)}
+                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 ml-4"
+                        >
+                          Use Template →
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {/* ===================== TAB 3: RESOURCES & GUIDES ===================== */}
             {hubTab === "resources" && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {filteredResources.map((res) => (
-                    <div
-                      key={res.id}
-                      className="rounded-2xl border border-line bg-white p-6 shadow-xs hover:shadow-lg transition space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-700">
-                          {res.category}
-                        </span>
-                        <span className="text-xs text-muted font-bold">{res.readTime}</span>
+                {hubLayout === "grid" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredResources.map((res) => (
+                      <div
+                        key={res.id}
+                        className="rounded-2xl border border-line bg-white p-6 shadow-xs hover:shadow-lg transition space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-700">
+                            {res.category}
+                          </span>
+                          <span className="text-xs text-muted font-bold">{res.readTime}</span>
+                        </div>
+                        <div>
+                          <h3 className="font-extrabold text-base text-ink">{res.title}</h3>
+                          <p className="text-xs text-muted leading-relaxed mt-1 font-medium">{res.desc}</p>
+                        </div>
+                        <div className="space-y-2 rounded-xl bg-cream/70 p-3.5 border border-line text-xs font-medium text-slate-800">
+                          {res.points.map((pt, idx) => (
+                            <div key={idx} className="flex items-start gap-2">
+                              <span className="text-brand font-black">•</span>
+                              <span>{pt}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="pt-2 flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => handleCreateNewCanvasFromHub(res.title)}
+                            className="px-3.5 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs flex items-center gap-1.5"
+                          >
+                            <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => showToast(`Opened full reference: ${res.title}`)}
+                            className="text-xs font-bold text-slate-600 hover:text-brand transition"
+                          >
+                            View Full Details →
+                          </button>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-extrabold text-base text-ink">{res.title}</h3>
-                        <p className="text-xs text-muted leading-relaxed mt-1 font-medium">{res.desc}</p>
-                      </div>
-                      <div className="space-y-2 rounded-xl bg-cream/70 p-3.5 border border-line text-xs font-medium text-slate-800">
-                        {res.points.map((pt, idx) => (
-                          <div key={idx} className="flex items-start gap-2">
-                            <span className="text-brand font-black">•</span>
-                            <span>{pt}</span>
+                    ))}
+                  </div>
+                ) : (
+                  /* RESOURCES LIST VIEW */
+                  <div className="rounded-2xl border border-line bg-white divide-y divide-line overflow-hidden shadow-xs">
+                    {filteredResources.map((res) => (
+                      <div
+                        key={res.id}
+                        className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition"
+                      >
+                        <div className="space-y-1.5 min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-100 text-slate-700">
+                              {res.category}
+                            </span>
+                            <span className="text-[11px] text-muted font-bold">{res.readTime}</span>
                           </div>
-                        ))}
-                      </div>
-                      <div className="pt-2 flex items-center justify-between">
+                          <h4 className="font-extrabold text-sm text-ink">{res.title}</h4>
+                          <p className="text-xs text-muted font-medium line-clamp-1">{res.desc}</p>
+                        </div>
                         <button
                           type="button"
                           onClick={() => handleCreateNewCanvasFromHub(res.title)}
-                          className="px-3.5 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs flex items-center gap-1.5"
+                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 self-start sm:self-center flex items-center gap-1.5"
                         >
-                          <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => showToast(`Opened full reference: ${res.title}`)}
-                          className="text-xs font-bold text-slate-600 hover:text-brand transition"
-                        >
-                          View Full Details →
+                          <Plus className="h-3.5 w-3.5" /> Create Canvas
                         </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -2550,7 +2637,45 @@ export default function WhiteboardPage() {
                       Any closed or discarded whiteboard tabs will appear here and are automatically cleaned up after 30 days.
                     </p>
                   </div>
+                ) : hubLayout === "grid" ? (
+                  /* TRASH GRID VIEW */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                    {filteredTrash.map((item) => {
+                      const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24)));
+                      return (
+                        <div key={item.id} className="rounded-2xl border border-line bg-white p-5 shadow-xs flex flex-col justify-between space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 flex items-center gap-1">
+                                <Clock className="h-3 w-3" /> {daysLeft} days left
+                              </span>
+                              <span className="text-[11px] text-muted font-bold">{item.shapes.length} layers</span>
+                            </div>
+                            <h4 className="font-extrabold text-sm text-ink truncate">{item.name}</h4>
+                          </div>
+                          <div className="pt-2 border-t border-line flex items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { restoreTrashedTab(item); setViewMode("canvas"); }}
+                              className="flex-1 py-2 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-xs flex items-center justify-center gap-1 transition"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" /> Restore
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteTrashedTabPermanently(item.id)}
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                              title="Delete Permanently"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
+                  /* TRASH LIST VIEW */
                   <div className="rounded-2xl border border-line bg-white divide-y divide-line overflow-hidden shadow-xs">
                     {filteredTrash.map((item) => {
                       const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24)));
