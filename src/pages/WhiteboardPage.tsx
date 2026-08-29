@@ -84,6 +84,7 @@ type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 type Shape = {
   id: string;
   type: Tool;
+  name?: string;
   color: string;
   strokeWidth: number;
   lineStyle?: "solid" | "dashed";
@@ -221,6 +222,7 @@ const INITIAL_TABS: DiagramTab[] = [
 export default function WhiteboardPage() {
   const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
   const [activeTabId, setActiveTabId] = useState("blank");
+  const [draggedTabIdx, setDraggedTabIdx] = useState<number | null>(null);
 
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
@@ -251,11 +253,20 @@ export default function WhiteboardPage() {
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers">("inspector");
 
+  // Layer Renaming State
+  const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
+  const [editingLayerName, setEditingLayerName] = useState("");
+
   // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [maxTabPromptOpen, setMaxTabPromptOpen] = useState(false);
+
+  // Custom New Tab Naming Modal State
+  const [newTabModalOpen, setNewTabModalOpen] = useState(false);
+  const [newTabInputName, setNewTabInputName] = useState("");
+
   const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "single" | null>(null);
 
   // Context Menu State (Canvas or Object Context)
@@ -1042,20 +1053,25 @@ export default function WhiteboardPage() {
     }
   };
 
-  /* Tab Management Functions with MAX 5 TABS POPUP PROMPT */
+  /* Tab Management Functions with Custom Tab Name Input Modal & MAX 5 TABS PROMPT */
   const handleAddNewTab = () => {
     if (tabs.length >= 5) {
       setMaxTabPromptOpen(true);
       showToast("Tab limit reached! (Maximum 5 tabs)");
       return;
     }
+    setNewTabInputName(`Canvas ${tabs.length + 1}`);
+    setNewTabModalOpen(true);
+  };
 
+  const handleConfirmCreateTab = () => {
+    const finalName = newTabInputName.trim() || `Canvas ${tabs.length + 1}`;
     const newId = `tab_${Date.now()}`;
-    const newName = `Canvas ${tabs.length + 1}`;
-    setTabs((prev) => [...prev, { id: newId, name: newName }]);
+    setTabs((prev) => [...prev, { id: newId, name: finalName }]);
     setActiveTabId(newId);
     setShapes([]);
-    showToast(`Created new diagram tab: ${newName}`);
+    setNewTabModalOpen(false);
+    showToast(`Created new diagram tab: ${finalName}`);
   };
 
   const handleCloseTab = (tabIdToClose: string) => {
@@ -1249,6 +1265,48 @@ export default function WhiteboardPage() {
             >
               Got it, thanks!
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Custom New Tab Name Input Modal */}
+      {newTabModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 text-center">
+            <div className="h-12 w-12 rounded-full bg-brand-light text-brand flex items-center justify-center mx-auto font-extrabold">
+              <Plus className="h-6 w-6" />
+            </div>
+            <h3 className="font-display font-extrabold text-ink text-base">Name Your Diagram Tab</h3>
+            <p className="text-xs text-muted leading-relaxed font-medium">
+              Enter a custom name for your new whiteboard tab:
+            </p>
+            <input
+              autoFocus
+              type="text"
+              value={newTabInputName}
+              onChange={(e) => setNewTabInputName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleConfirmCreateTab();
+              }}
+              placeholder="e.g. EUR/USD SMC Setup"
+              className="w-full rounded-xl border border-line bg-cream p-3 text-xs font-bold text-ink outline-none focus:border-brand"
+            />
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setNewTabModalOpen(false)}
+                className="flex-1 rounded-xl bg-cream py-2.5 text-xs font-bold text-muted hover:text-ink transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCreateTab}
+                className="btn-primary flex-1 !py-2.5 text-xs font-bold"
+              >
+                Create Tab
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1502,7 +1560,7 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Tabs Bar */}
+      {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
         <button
           type="button"
@@ -1516,20 +1574,37 @@ export default function WhiteboardPage() {
         {/* Vertical Separator Line */}
         <span className="h-5 w-px bg-line/80 shrink-0" />
 
-        {/* Diagram Tabs Bar */}
+        {/* Diagram Tabs Bar with Drag & Drop Reordering */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {tabs.map((tab) => (
+          {tabs.map((tab, idx) => (
             <div
               key={tab.id}
+              draggable
+              onDragStart={() => setDraggedTabIdx(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => {
+                if (draggedTabIdx !== null && draggedTabIdx !== idx) {
+                  setTabs((prev) => {
+                    const copy = [...prev];
+                    const [moved] = copy.splice(draggedTabIdx, 1);
+                    copy.splice(idx, 0, moved);
+                    return copy;
+                  });
+                  setDraggedTabIdx(null);
+                  showToast("Reordered diagram tab!");
+                }
+              }}
               onClick={() => handleSelectTab(tab.id)}
-              className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-pointer transition-all border-t border-x ${
+              className={`group flex items-center gap-1.5 rounded-t-xl px-3 py-1 text-xs font-bold cursor-grab active:cursor-grabbing transition-all border-t border-x ${
                 activeTabId === tab.id
                   ? "bg-white text-brand border-line shadow-sm"
                   : "border-transparent text-muted hover:text-ink hover:bg-white/60"
               }`}
+              title={`Drag to reorder "${tab.name}"`}
             >
+              <GripVertical className="h-3 w-3 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
               {/* Ellipsis Truncated Tab Name */}
-              <span className="truncate max-w-[110px] inline-block align-bottom" title={tab.name}>
+              <span className="truncate max-w-[110px] inline-block align-bottom">
                 {tab.name}
               </span>
               <button
@@ -1560,7 +1635,7 @@ export default function WhiteboardPage() {
 
       {/* Main Miro Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Toolbar Dock with Smaller Icons & Unified Color Scheme */}
+        {/* Left Toolbar Dock */}
         <aside className="w-14 border-r border-line bg-white p-1.5 flex flex-col items-center justify-between gap-2 shrink-0 z-20 shadow-md">
           <div className="space-y-1 w-full">
             <MiroToolBtn
@@ -1997,7 +2072,7 @@ export default function WhiteboardPage() {
               {contextMenu.targetShape ? (
                 <div className="space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
-                    <span>Selected {contextMenu.targetShape.type.toUpperCase()}</span>
+                    <span>Selected {contextMenu.targetShape.name || contextMenu.targetShape.type.toUpperCase()}</span>
                     {contextMenu.targetShape.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
                   </p>
 
@@ -2333,7 +2408,7 @@ export default function WhiteboardPage() {
                       <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
                         {selectedShape ? (
                           <span className="text-brand flex items-center gap-1.5">
-                            {selectedShape.type}
+                            {selectedShape.name || selectedShape.type}
                             {selectedShape.isLocked && <Lock className="h-3.5 w-3.5 text-amber-600" />}
                           </span>
                         ) : selectedShapeIds.length > 1 ? (
@@ -2520,7 +2595,7 @@ export default function WhiteboardPage() {
                   </div>
                 )}
 
-                {/* TAB 2: PHOTOSHOP-STYLE LAYERS PANEL */}
+                {/* TAB 2: PHOTOSHOP-STYLE LAYERS PANEL WITH INLINE RENAMING */}
                 {rightPanelTab === "layers" && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -2552,20 +2627,70 @@ export default function WhiteboardPage() {
                                   : "border-line bg-cream hover:bg-white"
                               } ${shape.isHidden ? "opacity-40" : ""}`}
                             >
-                              <div className="flex items-center gap-2 truncate">
+                              <div className="flex items-center gap-2 truncate flex-1 min-w-0">
                                 {/* Color Swatch Badge */}
                                 <span
                                   className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
                                   style={{ background: shape.stickyColor || shape.color }}
                                 />
                                 <IconComponent className="h-4 w-4 text-brand shrink-0" />
-                                <span className="truncate text-ink font-bold capitalize">
-                                  {shape.text ? `"${shape.text.slice(0, 14)}..."` : `${shape.type}`}
-                                </span>
+
+                                {editingLayerId === shape.id ? (
+                                  <input
+                                    autoFocus
+                                    type="text"
+                                    value={editingLayerName}
+                                    onChange={(e) => setEditingLayerName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        setShapes((prev) =>
+                                          prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
+                                        );
+                                        setEditingLayerId(null);
+                                        showToast("Renamed layer!");
+                                      } else if (e.key === "Escape") {
+                                        setEditingLayerId(null);
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      setShapes((prev) =>
+                                        prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
+                                      );
+                                      setEditingLayerId(null);
+                                    }}
+                                    className="w-28 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
+                                  />
+                                ) : (
+                                  <span
+                                    onDoubleClick={() => {
+                                      setEditingLayerId(shape.id);
+                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
+                                    }}
+                                    className="truncate text-ink font-bold capitalize flex-1 cursor-text"
+                                    title="Double-click to rename layer"
+                                  >
+                                    {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
+                                  </span>
+                                )}
                               </div>
 
-                              {/* Layer Actions: Reorder Up/Down, Visibility, Lock & Delete */}
-                              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                              {/* Layer Actions: Rename, Reorder Up/Down, Visibility, Lock & Delete */}
+                              <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
+                                {/* Inline Rename Edit Button */}
+                                {editingLayerId !== shape.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingLayerId(shape.id);
+                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
+                                    }}
+                                    className="p-1 rounded text-slate-400 hover:text-brand"
+                                    title="Rename Layer"
+                                  >
+                                    <Edit3 className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+
                                 {/* Move Up in Z-stack */}
                                 <button
                                   type="button"
