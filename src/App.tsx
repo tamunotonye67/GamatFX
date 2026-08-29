@@ -147,6 +147,10 @@ export default function App() {
     content = <Page />;
   }
 
+  if (route === "/whiteboard") {
+    return <div className="min-h-screen bg-slate-900">{content}</div>;
+  }
+
   const isAdminRoute = route === "/admin" || route.startsWith("/admin/");
   const isAuthRoute = route === "/login" || route === "/signup" || route === "/forgot-password" || route === "/reset-password";
   const bare = BARE.some((b) => route === b || route.startsWith(`${b}/`));

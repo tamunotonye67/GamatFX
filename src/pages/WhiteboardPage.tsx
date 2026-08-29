@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Logo from "../components/Logo";
+import { navigate } from "../lib/router";
 import {
   MousePointer,
   Hand,
@@ -9,6 +10,7 @@ import {
   Circle,
   Diamond,
   ArrowRight,
+  ArrowLeft,
   Type,
   StickyNote,
   RotateCcw,
@@ -415,6 +417,15 @@ export default function WhiteboardPage() {
       {/* Miro Header Toolbar */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="flex items-center gap-1.5 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+            title="Back to GAMAT FX Website"
+          >
+            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to Site</span>
+          </button>
+          <span className="h-6 w-px bg-line" />
           <Logo variant="dark" />
           <span className="hidden sm:inline-block h-6 w-px bg-line" />
           <div className="flex items-center gap-2">
