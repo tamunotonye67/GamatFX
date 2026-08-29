@@ -126,6 +126,9 @@ type Shape = {
 type DiagramTab = {
   id: string;
   name: string;
+  shapes?: Shape[];
+  theme?: "dots" | "lines" | "blank" | "dark" | "chalkboard";
+  snapToGrid?: boolean;
 };
 
 type TrashedTab = {
@@ -624,7 +627,7 @@ const HUB_LESSONS: HubLessonItem[] = [
 ];
 
 const INITIAL_TABS: DiagramTab[] = [
-  { id: "canvas_1", name: "Canvas 1" },
+  { id: "canvas_1", name: "Canvas 1", shapes: [], theme: "dots", snapToGrid: true },
 ];
 
 /* ========================================================================== */
@@ -1752,6 +1755,13 @@ export default function WhiteboardPage() {
     openCreateCanvasModal();
   };
 
+  const handleSetBgGrid = (newTheme: "dots" | "lines" | "blank" | "dark" | "chalkboard") => {
+    setBgGrid(newTheme);
+    setTabs((prev) =>
+      prev.map((t) => (t.id === activeTabId ? { ...t, theme: newTheme } : t))
+    );
+  };
+
   const handleConfirmCreateCustomCanvas = () => {
     const finalName = newCanvasName.trim() || `Canvas ${tabs.length + 1}`;
     if (tabs.length >= 5 && !tabs.some((t) => t.name === finalName)) {
@@ -1761,12 +1771,6 @@ export default function WhiteboardPage() {
     }
 
     const newId = `canvas_${Date.now()}`;
-    setTabs((prev) => [...prev, { id: newId, name: finalName }]);
-    setActiveTabId(newId);
-
-    // Apply selected theme and grid settings
-    setBgGrid(newCanvasTheme);
-    setSnapToGrid(newCanvasSnapToGrid);
 
     // Generate template shapes
     let initialShapes: Shape[] = [];
@@ -1843,7 +1847,26 @@ export default function WhiteboardPage() {
       ];
     }
 
+    const newTab: DiagramTab = {
+      id: newId,
+      name: finalName,
+      shapes: initialShapes,
+      theme: newCanvasTheme,
+      snapToGrid: newCanvasSnapToGrid,
+    };
+
+    // Save active tab state and add new tab
+    setTabs((prev) => {
+      const updated = prev.map((t) =>
+        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
+      );
+      return [...updated, newTab];
+    });
+
+    setActiveTabId(newId);
     setShapes(initialShapes);
+    setBgGrid(newCanvasTheme);
+    setSnapToGrid(newCanvasSnapToGrid);
     setCreateCanvasModalOpen(false);
     setViewMode("canvas");
     showToast(`Created canvas: "${finalName}"!`);
@@ -1878,12 +1901,29 @@ export default function WhiteboardPage() {
     if (!sourceTab) return;
     const newId = `tab_${Date.now()}`;
     const newName = `${sourceTab.name} (Copy)`;
-    setTabs((prev) => [...prev, { id: newId, name: newName }]);
-    if (activeTabId === tabIdToDup) {
-      setActiveTabId(newId);
-    } else {
-      setActiveTabId(newId);
-    }
+    const newTabShapes = sourceTab.id === activeTabId ? shapes : (sourceTab.shapes || []);
+    const newTabTheme = sourceTab.id === activeTabId ? bgGrid : (sourceTab.theme || "dots");
+    const newTabSnap = sourceTab.id === activeTabId ? snapToGrid : (sourceTab.snapToGrid ?? true);
+
+    const duplicatedTab: DiagramTab = {
+      id: newId,
+      name: newName,
+      shapes: newTabShapes,
+      theme: newTabTheme,
+      snapToGrid: newTabSnap,
+    };
+
+    setTabs((prev) => {
+      const updated = prev.map((t) =>
+        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
+      );
+      return [...updated, duplicatedTab];
+    });
+
+    setActiveTabId(newId);
+    setShapes(newTabShapes);
+    setBgGrid(newTabTheme);
+    setSnapToGrid(newTabSnap);
     setTabContextMenu(null);
     showToast(`Duplicated tab: "${newName}"`);
   };
@@ -1899,7 +1939,7 @@ export default function WhiteboardPage() {
       const trashedItem: TrashedTab = {
         id: tabToRemove.id,
         name: tabToRemove.name,
-        shapes: tabToRemove.id === activeTabId ? shapes : [],
+        shapes: tabToRemove.id === activeTabId ? shapes : (tabToRemove.shapes || []),
         deletedAt: Date.now(),
       };
       setTrashedTabs((prev) => [trashedItem, ...prev]);
@@ -1908,8 +1948,11 @@ export default function WhiteboardPage() {
     const remaining = tabs.filter((t) => t.id !== tabIdToClose);
     setTabs(remaining);
     if (activeTabId === tabIdToClose) {
-      setActiveTabId(remaining[0].id);
-      setShapes([]);
+      const nextTab = remaining[0];
+      setActiveTabId(nextTab.id);
+      setShapes(nextTab.shapes || []);
+      setBgGrid(nextTab.theme || "dots");
+      if (typeof nextTab.snapToGrid === "boolean") setSnapToGrid(nextTab.snapToGrid);
     }
     showToast(`Tab moved to Trash (retained for 30 days)`);
   };
@@ -2080,55 +2123,28 @@ export default function WhiteboardPage() {
     }
 
     const newId = `guide_${resource.id}_${Date.now()}`;
-    if (!tabs.some((t) => t.name === finalName)) {
-      setTabs((prev) => [...prev, { id: newId, name: finalName }]);
-    }
+    const newTab: DiagramTab = {
+      id: newId,
+      name: finalName,
+      shapes: initialShapes,
+      theme: "dots",
+      snapToGrid: true,
+    };
+
+    setTabs((prev) => {
+      const updated = prev.map((t) =>
+        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
+      );
+      if (!updated.some((t) => t.name === finalName)) {
+        return [...updated, newTab];
+      }
+      return updated;
+    });
+
     setActiveTabId(newId);
-
-    let initialShapes: Shape[] = [];
-    if (resource.id === "patterns") {
-      initialShapes = [
-        { id: "p1", type: "path", color: "#3b82f6", strokeWidth: 3, points: [{ x: 100, y: 180 }, { x: 180, y: 320 }, { x: 260, y: 220 }, { x: 340, y: 320 }, { x: 420, y: 150 }] },
-        { id: "neckline", type: "line", color: "#ef4444", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 150, y: 220 }, { x: 500, y: 220 }] },
-        { id: "necktxt", type: "text", color: "#ef4444", strokeWidth: 2, points: [{ x: 280, y: 205 }], text: "Neckline Breakout Level" },
-        { id: "target", type: "arrow", color: "#10b981", strokeWidth: 3, points: [{ x: 420, y: 220 }, { x: 420, y: 100 }] },
-        { id: "tgttxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 435, y: 150 }], text: "Measured Target Projection" },
-        { id: "note_pat", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 560, y: 110 }], text: `📘 ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#fef08a" }
-      ];
-    } else if (resource.id === "smc_guide") {
-      initialShapes = [
-        { id: "ob", type: "rectangle", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 120, y: 260 }, { x: 320, y: 340 }] },
-        { id: "obtxt", type: "text", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 130, y: 295 }], text: "Bullish Order Block (OB Demand Zone)" },
-        { id: "fvg", type: "rectangle", color: "#f59e0b", strokeWidth: 2, points: [{ x: 260, y: 180 }, { x: 420, y: 240 }] },
-        { id: "fvgtxt", type: "text", color: "#f59e0b", strokeWidth: 2, points: [{ x: 270, y: 210 }], text: "Fair Value Gap (FVG Imbalance)" },
-        { id: "bos", type: "arrow", color: "#3b82f6", strokeWidth: 3, points: [{ x: 320, y: 300 }, { x: 550, y: 120 }] },
-        { id: "bostxt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 420, y: 190 }], text: "Break of Structure (BOS) ↗" },
-        { id: "note_smc", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 580, y: 120 }], text: `⚡ ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#bae6fd" }
-      ];
-    } else if (resource.id === "position_sizing") {
-      initialShapes = [
-        { id: "pos", type: "long", color: "#10b981", strokeWidth: 2, points: [{ x: 200, y: 280 }, { x: 460, y: 120 }] },
-        { id: "sl_line", type: "line", color: "#ef4444", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 160, y: 340 }, { x: 500, y: 340 }] },
-        { id: "sltxt", type: "text", color: "#ef4444", strokeWidth: 2, points: [{ x: 170, y: 360 }], text: "Invalidation Stop Loss: 20 Pips" },
-        { id: "tp_line", type: "line", color: "#10b981", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 160, y: 120 }, { x: 500, y: 120 }] },
-        { id: "tptxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 170, y: 100 }], text: "Take Profit Target (1:3 R:R): 60 Pips" },
-        { id: "note_risk", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 550, y: 110 }], text: `📊 ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#bbf7d0" }
-      ];
-    } else if (resource.id === "hotkeys") {
-      initialShapes = [
-        { id: "pencil_demo", type: "pencil", color: "#dc3545", strokeWidth: 3, points: [{ x: 140, y: 200 }, { x: 180, y: 160 }, { x: 220, y: 220 }, { x: 280, y: 140 }] },
-        { id: "pencil_txt", type: "text", color: "#dc3545", strokeWidth: 2, points: [{ x: 140, y: 240 }], text: "Draw Tool (Pencil: P)" },
-        { id: "rect_demo", type: "rectangle", color: "#3b82f6", strokeWidth: 2, points: [{ x: 340, y: 150 }, { x: 480, y: 250 }] },
-        { id: "rect_txt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 350, y: 270 }], text: "Rectangle Box (R)" },
-        { id: "note_keys", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 550, y: 110 }], text: `⌨️ ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#fef08a" }
-      ];
-    } else {
-      initialShapes = [
-        { id: "note_gen", type: "sticky", color: "#16181c", strokeWidth: 2, points: [{ x: 200, y: 160 }], text: `📝 ${resource.title.toUpperCase()}\n\n• ${resource.points.join("\n• ")}`, stickyColor: "#fef08a" }
-      ];
-    }
-
     setShapes(initialShapes);
+    setBgGrid("dots");
+    setSnapToGrid(true);
     setViewMode("canvas");
     showToast(`Loaded "${resource.title}" guide setup into whiteboard!`);
   };
@@ -2216,85 +2232,105 @@ export default function WhiteboardPage() {
   };
 
   const handleSelectTab = (tabId: string) => {
+    if (tabId === activeTabId) return;
+
+    // 1. Save current active tab state into tabs array
+    setTabs((prev) =>
+      prev.map((t) =>
+        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
+      )
+    );
+
+    // 2. Find target tab
+    const target = tabs.find((t) => t.id === tabId);
     setActiveTabId(tabId);
-    if (tabId === "blank") {
-      setShapes([]);
-      showToast("Opened Blank Canvas!");
-    } else if (tabId === "mindmap") {
-      setShapes([
-        {
-          id: "m1",
-          type: "sticky",
-          color: "#16181c",
-          strokeWidth: 2,
-          points: [{ x: 300, y: 150 }],
-          text: "📊 FOREX MASTERY\n1. Market Structure\n2. Risk Management\n3. Psychology",
-          stickyColor: "#fef08a",
-        },
-        {
-          id: "m2",
-          type: "sticky",
-          color: "#16181c",
-          strokeWidth: 2,
-          points: [{ x: 50, y: 350 }],
-          text: "📈 TECHNICAL ANALYSIS\n• Higher Highs / Higher Lows\n• Order Blocks (OB)\n• Fair Value Gaps (FVG)",
-          stickyColor: "#bae6fd",
-        },
-        {
-          id: "m3",
-          type: "sticky",
-          color: "#16181c",
-          strokeWidth: 2,
-          points: [{ x: 550, y: 350 }],
-          text: "🛡️ RISK MANAGEMENT\n• Max 1% Risk / Trade\n• Minimum 1:3 R:R\n• Strict Stop Loss",
-          stickyColor: "#fbcfe8",
-        },
-      ]);
-      showToast("Switched to Forex Basics Mind Map Tab!");
-    } else if (tabId === "smc_diag") {
-      setShapes([
-        {
-          id: "s1",
-          type: "rectangle",
-          color: "#10b981",
-          strokeWidth: 2,
-          points: [
-            { x: 150, y: 220 },
-            { x: 450, y: 320 },
-          ],
-        },
-        {
-          id: "s2",
-          type: "text",
-          color: "#10b981",
-          strokeWidth: 2,
-          points: [{ x: 160, y: 200 }],
-          text: "Institutional Bullish Order Block (OB Zone)",
-        },
-        {
-          id: "s3",
-          type: "sticky",
-          color: "#16181c",
-          strokeWidth: 2,
-          points: [{ x: 500, y: 200 }],
-          text: "💡 TEACHING TIP:\nWait for price to sweep Asian Liquidity & retest OB before entry!",
-          stickyColor: "#fef08a",
-        },
-      ]);
-      showToast("Switched to SMC Liquidity Diagram Tab!");
-    } else if (tabId === "risk_diag") {
-      setShapes([
-        {
-          id: "r1",
-          type: "sticky",
-          color: "#16181c",
-          strokeWidth: 2,
-          points: [{ x: 250, y: 180 }],
-          text: "🎯 RISK TO REWARD (1:3)\nRisk: $100 (Stop Loss)\nTarget: $300 (Take Profit)\nWinrate needed: only 30%!",
-          stickyColor: "#bbf7d0",
-        },
-      ]);
-      showToast("Switched to Risk Management Matrix Tab!");
+
+    if (target) {
+      let targetShapes = target.shapes || [];
+      // If sample tab with predefined shapes not yet populated
+      if (targetShapes.length === 0) {
+        if (tabId === "mindmap") {
+          targetShapes = [
+            {
+              id: "m1",
+              type: "sticky",
+              color: "#16181c",
+              strokeWidth: 2,
+              points: [{ x: 300, y: 150 }],
+              text: "📊 FOREX MASTERY\n1. Market Structure\n2. Risk Management\n3. Psychology",
+              stickyColor: "#fef08a",
+            },
+            {
+              id: "m2",
+              type: "sticky",
+              color: "#16181c",
+              strokeWidth: 2,
+              points: [{ x: 50, y: 350 }],
+              text: "📈 TECHNICAL ANALYSIS\n• Higher Highs / Higher Lows\n• Order Blocks (OB)\n• Fair Value Gaps (FVG)",
+              stickyColor: "#bae6fd",
+            },
+            {
+              id: "m3",
+              type: "sticky",
+              color: "#16181c",
+              strokeWidth: 2,
+              points: [{ x: 550, y: 350 }],
+              text: "🛡️ RISK MANAGEMENT\n• Max 1% Risk / Trade\n• Minimum 1:3 R:R\n• Strict Stop Loss",
+              stickyColor: "#fbcfe8",
+            },
+          ];
+        } else if (tabId === "smc_diag") {
+          targetShapes = [
+            {
+              id: "s1",
+              type: "rectangle",
+              color: "#10b981",
+              strokeWidth: 2,
+              points: [
+                { x: 150, y: 220 },
+                { x: 450, y: 320 },
+              ],
+            },
+            {
+              id: "s2",
+              type: "text",
+              color: "#10b981",
+              strokeWidth: 2,
+              points: [{ x: 160, y: 200 }],
+              text: "Institutional Bullish Order Block (OB Zone)",
+            },
+            {
+              id: "s3",
+              type: "sticky",
+              color: "#16181c",
+              strokeWidth: 2,
+              points: [{ x: 500, y: 200 }],
+              text: "💡 TEACHING TIP:\nWait for price to sweep Asian Liquidity & retest OB before entry!",
+              stickyColor: "#fef08a",
+            },
+          ];
+        } else if (tabId === "risk_diag") {
+          targetShapes = [
+            {
+              id: "r1",
+              type: "sticky",
+              color: "#16181c",
+              strokeWidth: 2,
+              points: [{ x: 250, y: 180 }],
+              text: "🎯 RISK TO REWARD (1:3)\nRisk: $100 (Stop Loss)\nTarget: $300 (Take Profit)\nWinrate needed: only 30%!",
+              stickyColor: "#bbf7d0",
+            },
+          ];
+        }
+      }
+
+      const targetTheme = target.theme || "dots";
+      const targetSnap = target.snapToGrid ?? true;
+
+      setShapes(targetShapes);
+      setBgGrid(targetTheme);
+      setSnapToGrid(targetSnap);
+      showToast(`Switched to "${target.name}"`);
     }
   };
 
@@ -3921,7 +3957,7 @@ export default function WhiteboardPage() {
                     <label className="font-bold text-ink block">Default Canvas Grid Theme</label>
                     <select
                       value={bgGrid}
-                      onChange={(e) => setBgGrid(e.target.value as any)}
+                      onChange={(e) => handleSetBgGrid(e.target.value as any)}
                       className="w-full rounded-xl border border-line bg-white p-2.5 font-bold text-ink outline-none focus:border-brand"
                     >
                       {CANVAS_THEMES.map((t) => (
@@ -4446,7 +4482,7 @@ export default function WhiteboardPage() {
                     key={theme.id}
                     type="button"
                     onClick={() => {
-                      setBgGrid(theme.id as any);
+                      handleSetBgGrid(theme.id as any);
                       setBgOpen(false);
                       showToast(`Switched canvas to ${theme.name}!`);
                     }}
@@ -5767,7 +5803,7 @@ export default function WhiteboardPage() {
                       <label className="font-bold text-ink block">Default Canvas Grid Theme</label>
                       <select
                         value={bgGrid}
-                        onChange={(e) => setBgGrid(e.target.value as any)}
+                        onChange={(e) => handleSetBgGrid(e.target.value as any)}
                         className="w-full rounded-xl border border-line bg-white p-2.5 font-bold text-ink outline-none focus:border-brand"
                       >
                         {CANVAS_THEMES.map((t) => (
