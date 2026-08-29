@@ -192,9 +192,9 @@ export default function WhiteboardPage() {
   const [activeLineTool, setActiveLineTool] = useState<"arrow" | "bezier">("arrow");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
 
-  // TradingView Style Floating Favorites Toolbar State
+  // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
   const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "rectangle", "bezier", "sticky"]);
-  const [favPos, setFavPos] = useState({ x: 100, y: 80 });
+  const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
 
@@ -218,7 +218,7 @@ export default function WhiteboardPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | null>(null);
+  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "single" | null>(null);
 
   // Context Menu State (Canvas or Object Context)
   const [contextMenu, setContextMenu] = useState<{
@@ -461,8 +461,8 @@ export default function WhiteboardPage() {
     const handleFavMouseMove = (ev: MouseEvent) => {
       if (!isDraggingFav.current) return;
       setFavPos({
-        x: Math.max(10, Math.min(window.innerWidth - 300, ev.clientX - dragFavStart.current.x)),
-        y: Math.max(10, Math.min(window.innerHeight - 80, ev.clientY - dragFavStart.current.y)),
+        x: Math.max(0, Math.min(window.innerWidth - 100, ev.clientX - dragFavStart.current.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 50, ev.clientY - dragFavStart.current.y)),
       });
     };
 
@@ -1005,6 +1005,38 @@ export default function WhiteboardPage() {
         </div>
       )}
 
+      {/* TradingView-Style Floating Draggable Favorites Toolbar (Floats anywhere on whole page!) */}
+      {favoritedTools.length > 0 && (
+        <div
+          className="fixed z-50 flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
+          style={{ left: favPos.x, top: favPos.y }}
+        >
+          <div
+            onMouseDown={handleFavDragStart}
+            className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center"
+            title="Drag TradingView Favorites Toolbar Anywhere on Page"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+          {favoritedTools.map((tKey) => {
+            const IconComponent = getToolIcon(tKey);
+            return (
+              <button
+                key={tKey}
+                type="button"
+                onClick={() => setActiveTool(tKey)}
+                className={`h-9 w-9 rounded-xl flex items-center justify-center transition ${
+                  activeTool === tKey ? "bg-brand text-white shadow-md" : "text-ink hover:bg-cream"
+                }`}
+                title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
+              >
+                <IconComponent className="h-4 w-4" />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Main Header Bar */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-30 shadow-sm">
         {/* Left Section: GAMAT Logo */}
@@ -1284,22 +1316,26 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
-              title="Select, Move, Resize & Alt+Drag Duplicate"
+              onContextMenu={(e) => {
+                e.preventDefault();
+                toggleFavoriteTool("select");
+              }}
+              title="Select, Move, Resize & Alt+Drag Duplicate (Right click to favorite)"
               toolKey="select"
               icon={MousePointer}
               showTooltips={showTooltips}
-              isFavorited={favoritedTools.includes("select")}
-              onToggleFavorite={() => toggleFavoriteTool("select")}
             />
             <MiroToolBtn
               active={activeTool === "hand"}
               onClick={() => setActiveTool("hand")}
-              title="Pan / Hand Tool (Drag background)"
+              onContextMenu={(e) => {
+                e.preventDefault();
+                toggleFavoriteTool("hand");
+              }}
+              title="Pan / Hand Tool (Right click to favorite)"
               toolKey="hand"
               icon={Hand}
               showTooltips={showTooltips}
-              isFavorited={favoritedTools.includes("hand")}
-              onToggleFavorite={() => toggleFavoriteTool("hand")}
             />
 
             {/* 1. FREEHAND GROUP */}
@@ -1311,16 +1347,14 @@ export default function WhiteboardPage() {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "pen" ? null : "pen");
                 }}
-                title="Freehand Pen (Right click to change tool)"
+                title="Freehand Pen (Right click to change tool or favorite)"
                 toolKey={activePenTool}
                 icon={activePenTool === "highlighter" ? Highlighter : Pencil}
                 hasFlyout
                 showTooltips={showTooltips}
-                isFavorited={favoritedTools.includes(activePenTool)}
-                onToggleFavorite={() => toggleFavoriteTool(activePenTool)}
               />
               {flyoutGroup === "pen" && (
-                <div className="absolute left-full top-0 ml-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Pen Tools</p>
                   <button
                     type="button"
@@ -1328,10 +1362,12 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "pencil" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Freehand Pen</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("pencil"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("pencil") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("pencil") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("pencil"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("pencil") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -1339,10 +1375,12 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "highlighter" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Highlighter className="h-4 w-4 text-amber-500" /> Highlighter</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("highlighter"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("highlighter") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("highlighter") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("highlighter"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("highlighter") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                 </div>
               )}
@@ -1357,16 +1395,14 @@ export default function WhiteboardPage() {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes");
                 }}
-                title="Geometric Shapes (Right click to change shape)"
+                title="Geometric Shapes (Right click to change shape or favorite)"
                 toolKey={activeShapeTool}
                 icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
                 hasFlyout
                 showTooltips={showTooltips}
-                isFavorited={favoritedTools.includes(activeShapeTool)}
-                onToggleFavorite={() => toggleFavoriteTool(activeShapeTool)}
               />
               {flyoutGroup === "shapes" && (
-                <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Shape Tools</p>
                   <button
                     type="button"
@@ -1374,10 +1410,12 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "rectangle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Square className="h-4 w-4" /> Rectangle Zone</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("rectangle"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("rectangle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("rectangle") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("rectangle"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("rectangle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -1385,10 +1423,12 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "circle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Circle className="h-4 w-4" /> Circle Node</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("circle"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("circle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("circle") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("circle"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("circle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -1396,10 +1436,12 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "diamond" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Diamond className="h-4 w-4" /> Decision Diamond</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("diamond"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("diamond") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("diamond") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("diamond"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("diamond") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                 </div>
               )}
@@ -1414,17 +1456,15 @@ export default function WhiteboardPage() {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "lines" ? null : "lines");
                 }}
-                title="Lines & Paths (Right click to change line type)"
+                title="Lines & Paths (Right click to change line type or favorite)"
                 toolKey={activeLineTool}
                 icon={activeLineTool === "bezier" ? Activity : ArrowRight}
                 badge={activeLineTool === "bezier" ? "PATH" : undefined}
                 hasFlyout
                 showTooltips={showTooltips}
-                isFavorited={favoritedTools.includes(activeLineTool)}
-                onToggleFavorite={() => toggleFavoriteTool(activeLineTool)}
               />
               {flyoutGroup === "lines" && (
-                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
                   <button
                     type="button"
@@ -1432,10 +1472,12 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "arrow" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /> Connector Arrow</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("arrow") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("arrow") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("arrow") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -1443,56 +1485,77 @@ export default function WhiteboardPage() {
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "bezier" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Activity className="h-4 w-4 text-brand" /> Chart Pattern Path</span>
-                    <Star
-                      onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bezier"); }}
-                      className={`h-3.5 w-3.5 cursor-pointer ${favoritedTools.includes("bezier") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                    />
+                    <span title={favoritedTools.includes("bezier") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bezier"); }}
+                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bezier") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
                   </button>
                 </div>
               )}
             </div>
 
-            <MiroToolBtn
-              active={activeTool === "sticky"}
-              onClick={() => setActiveTool("sticky")}
-              title="Sticky Note"
-              toolKey="sticky"
-              icon={StickyNote}
-              badge="NOTE"
-              showTooltips={showTooltips}
-              isFavorited={favoritedTools.includes("sticky")}
-              onToggleFavorite={() => toggleFavoriteTool("sticky")}
-            />
-            <MiroToolBtn
-              active={activeTool === "text"}
-              onClick={() => setActiveTool("text")}
-              title="Text Label"
-              toolKey="text"
-              icon={Type}
-              showTooltips={showTooltips}
-              isFavorited={favoritedTools.includes("text")}
-              onToggleFavorite={() => toggleFavoriteTool("text")}
-            />
-            <MiroToolBtn
-              active={activeTool === "eraser"}
-              onClick={() => setActiveTool("eraser")}
-              title="Precision Eraser Tool"
-              toolKey="eraser"
-              icon={Eraser}
-              showTooltips={showTooltips}
-              isFavorited={favoritedTools.includes("eraser")}
-              onToggleFavorite={() => toggleFavoriteTool("eraser")}
-            />
-            <MiroToolBtn
-              active={activeTool === "zoom"}
-              onClick={() => setActiveTool("zoom")}
-              title="Zoom Tool"
-              toolKey="zoom"
-              icon={Search}
-              showTooltips={showTooltips}
-              isFavorited={favoritedTools.includes("zoom")}
-              onToggleFavorite={() => toggleFavoriteTool("zoom")}
-            />
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "sticky"}
+                onClick={() => setActiveTool("sticky")}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  toggleFavoriteTool("sticky");
+                }}
+                title="Sticky Note (Right click to favorite)"
+                toolKey="sticky"
+                icon={StickyNote}
+                badge="NOTE"
+                showTooltips={showTooltips}
+              />
+            </div>
+
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "text"}
+                onClick={() => setActiveTool("text")}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  toggleFavoriteTool("text");
+                }}
+                title="Text Label (Right click to favorite)"
+                toolKey="text"
+                icon={Type}
+                showTooltips={showTooltips}
+              />
+            </div>
+
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "eraser"}
+                onClick={() => setActiveTool("eraser")}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  toggleFavoriteTool("eraser");
+                }}
+                title="Precision Eraser Tool (Right click to favorite)"
+                toolKey="eraser"
+                icon={Eraser}
+                showTooltips={showTooltips}
+              />
+            </div>
+
+            <div className="relative">
+              <MiroToolBtn
+                active={activeTool === "zoom"}
+                onClick={() => setActiveTool("zoom")}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  toggleFavoriteTool("zoom");
+                }}
+                title="Zoom Tool (Right click to favorite)"
+                toolKey="zoom"
+                icon={Search}
+                showTooltips={showTooltips}
+              />
+            </div>
           </div>
 
           {/* Bottom Actions */}
@@ -1531,38 +1594,6 @@ export default function WhiteboardPage() {
 
         {/* Central Miro Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
-          {/* TradingView-Style Floating Draggable Favorites Toolbar */}
-          {favoritedTools.length > 0 && (
-            <div
-              className="absolute z-30 flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in"
-              style={{ left: favPos.x, top: favPos.y }}
-            >
-              <div
-                onMouseDown={handleFavDragStart}
-                className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center"
-                title="Drag TradingView Favorites Toolbar"
-              >
-                <GripVertical className="h-4 w-4" />
-              </div>
-              {favoritedTools.map((tKey) => {
-                const IconComponent = getToolIcon(tKey);
-                return (
-                  <button
-                    key={tKey}
-                    type="button"
-                    onClick={() => setActiveTool(tKey)}
-                    className={`h-9 w-9 rounded-xl flex items-center justify-center transition ${
-                      activeTool === tKey ? "bg-brand text-white shadow-md" : "text-ink hover:bg-cream"
-                    }`}
-                    title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
-                  >
-                    <IconComponent className="h-4 w-4" />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
           {/* Bottom Zoom & Navigation Bar */}
           <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
             <button
@@ -1880,7 +1911,7 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Floating Overlay Right Inspector Panel (Does NOT shrink or skew canvas!) */}
+          {/* Floating Overlay Right Inspector Panel */}
           {isInspectorOpen ? (
             <aside className="absolute right-4 top-4 z-40 w-72 rounded-3xl border border-line bg-white/95 backdrop-blur-md p-4 flex flex-col justify-between shadow-2xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-right duration-200">
               <div className="space-y-4">
@@ -2102,8 +2133,6 @@ function MiroToolBtn({
   badge,
   hasFlyout,
   showTooltips,
-  isFavorited,
-  onToggleFavorite,
 }: {
   active: boolean;
   onClick: () => void;
@@ -2114,8 +2143,6 @@ function MiroToolBtn({
   badge?: string;
   hasFlyout?: boolean;
   showTooltips: boolean;
-  isFavorited?: boolean;
-  onToggleFavorite?: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const explanation = TOOL_EXPLANATIONS[toolKey];
@@ -2147,23 +2174,6 @@ function MiroToolBtn({
           <ChevronRight className="absolute right-0.5 bottom-0.5 h-2.5 w-2.5 opacity-60" />
         )}
       </button>
-
-      {/* Favorite Star Button (TradingView Style) */}
-      {onToggleFavorite && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite();
-          }}
-          className={`absolute -right-1 -top-1 z-10 p-0.5 rounded-full bg-white shadow-md border border-line transition opacity-0 group-hover:opacity-100 ${
-            isFavorited ? "opacity-100 text-amber-400" : "text-slate-300 hover:text-amber-400"
-          }`}
-          title={isFavorited ? "Remove from Favorites" : "Add to TradingView Favorites Bar"}
-        >
-          <Star className={`h-3 w-3 ${isFavorited ? "fill-amber-400" : ""}`} />
-        </button>
-      )}
 
       {/* Rich Interactive Tooltip Popover with Brief Explanation */}
       {showTooltips && isHovered && explanation && (
