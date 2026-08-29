@@ -841,6 +841,7 @@ export default function WhiteboardPage() {
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
       if (hitShape) {
+        setIsInspectorOpen(true);
         if (e.altKey && !hitShape.isLocked) {
           const duplicatedShape: Shape = {
             ...hitShape,
@@ -869,10 +870,15 @@ export default function WhiteboardPage() {
         }
       } else {
         setSelectedShapeIds([]);
+        setIsInspectorOpen(false);
         setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
       }
       return;
     }
+
+    // Deselect and collapse inspector panel when clicking empty canvas to draw
+    setSelectedShapeIds([]);
+    setIsInspectorOpen(false);
 
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
@@ -1018,6 +1024,7 @@ export default function WhiteboardPage() {
       });
 
       setSelectedShapeIds(selected.map((s) => s.id));
+      setIsInspectorOpen(selected.length > 0);
       setMarqueeBox(null);
       if (selected.length > 0) showToast(`Selected ${selected.length} object(s)!`);
       return;
