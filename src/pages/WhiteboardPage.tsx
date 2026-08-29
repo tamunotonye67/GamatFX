@@ -67,6 +67,15 @@ import {
   User,
   ShieldCheck,
   LogOut,
+  LayoutGrid,
+  List,
+  ArrowLeft,
+  FolderOpen,
+  FilePlus2,
+  Compass,
+  HelpCircle,
+  CheckCircle2,
+  Zap,
 } from "lucide-react";
 import { useStore } from "../lib/store";
 
@@ -302,6 +311,148 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
   },
 ];
 
+/* ========================================================================== */
+/*                      FIGMA-STYLE WHITEBOARD HUB TYPES & DATA               */
+/* ========================================================================== */
+
+interface HubSampleTemplate {
+  id: string;
+  name: string;
+  category: string;
+  tag: string;
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  desc: string;
+  shapesCount: number;
+  previewType: "mindmap" | "smc" | "risk" | "eurusd" | "london";
+}
+
+const HUB_SAMPLES: HubSampleTemplate[] = [
+  {
+    id: "mindmap",
+    name: "Forex Basics Mind Map",
+    category: "Concept Mind Map",
+    tag: "Fundamentals",
+    difficulty: "Beginner",
+    desc: "A structured conceptual diagram organizing Market Structure, 1% Risk Rules, and Trading Psychology.",
+    shapesCount: 3,
+    previewType: "mindmap",
+  },
+  {
+    id: "smc",
+    name: "SMC Order Block & Liquidity",
+    category: "Strategy Setup",
+    tag: "Smart Money",
+    difficulty: "Intermediate",
+    desc: "Institutional order flow model demonstrating Bullish Order Blocks, Liquidity Sweeps, and Entry Confirmation.",
+    shapesCount: 4,
+    previewType: "smc",
+  },
+  {
+    id: "risk",
+    name: "Risk Management Matrix",
+    category: "Framework",
+    tag: "Risk & Psychology",
+    difficulty: "Beginner",
+    desc: "Visual matrix detailing minimum 1:3 Risk-to-Reward ratio parameters, position sizing rules, and stop loss placement.",
+    shapesCount: 3,
+    previewType: "risk",
+  },
+  {
+    id: "class_chart_eurusd",
+    name: "EUR/USD H4 BOS & FVG Class Chart",
+    category: "Live Class Setup",
+    tag: "Technical Analysis",
+    difficulty: "Advanced",
+    desc: "Full multi-timeframe lesson chart with Candlesticks, H4 Break of Structure (BOS) line, Fair Value Gap (FVG) demand box, and Buy Limit position.",
+    shapesCount: 10,
+    previewType: "eurusd",
+  },
+  {
+    id: "sample_london_sweep",
+    name: "London Asian Sweep Class Setup",
+    category: "Live Class Setup",
+    tag: "Session Trading",
+    difficulty: "Advanced",
+    desc: "London open liquidity purge setup featuring Asian Session consolidation box, Judas Swing sweep arrow, and bullish expansion trend.",
+    shapesCount: 8,
+    previewType: "london",
+  },
+];
+
+interface HubResourceGuide {
+  id: string;
+  title: string;
+  category: string;
+  readTime: string;
+  desc: string;
+  iconName: "activity" | "sparkles" | "percent" | "keyboard";
+  color: string;
+  points: string[];
+}
+
+const HUB_RESOURCES: HubResourceGuide[] = [
+  {
+    id: "patterns",
+    title: "Price Action & Classical Chart Patterns",
+    category: "Technical Cheatsheet",
+    readTime: "3 min read",
+    desc: "Essential reversal and continuation patterns including Double Tops/Bottoms, Head & Shoulders, and Bull/Bear Flags.",
+    iconName: "activity",
+    color: "#3b82f6",
+    points: [
+      "Double Bottom (W-Pattern): Bullish reversal off key structural support.",
+      "Head & Shoulders: Exhaustion pattern marking reversal at high timeframes.",
+      "Bull Flag: High-probability continuation impulse following volume breakout.",
+      "Break of Structure (BOS): Validated by full candle close beyond previous swing high/low.",
+    ],
+  },
+  {
+    id: "smc_guide",
+    title: "Smart Money Concepts (SMC) Master Key",
+    category: "Strategy Guide",
+    readTime: "4 min read",
+    desc: "Institutional liquidity playbook explaining Order Blocks, Change of Character, and Imbalances.",
+    iconName: "sparkles",
+    color: "#8b5cf6",
+    points: [
+      "Order Block (OB): The last opposing candle before an aggressive displacement move.",
+      "Change of Character (CHoCH): Early warning signal of an impending trend shift.",
+      "Fair Value Gap (FVG): Three-candle price imbalance offering high-probability pullback entries.",
+      "Liquidity Pools: Clustered stop losses residing above swing highs (BSL) and below swing lows (SSL).",
+    ],
+  },
+  {
+    id: "position_sizing",
+    title: "Position Sizing & Risk Calculator Formula",
+    category: "Math & Risk Guide",
+    readTime: "2 min read",
+    desc: "Mathematical guide to calculating lot sizes and controlling account drawdown per trade.",
+    iconName: "percent",
+    color: "#10b981",
+    points: [
+      "Position Size = (Account Balance × Risk %) / (Stop Loss in Pips × Pip Value)",
+      "Standard 1% Rule: Never risk more than 1.0% of total capital on any single setup.",
+      "Asymmetric Risk: Minimum 1:3 Risk-to-Reward ratio ensures profitability even with 35% winrate.",
+      "Daily Max Drawdown: Cease live trading if daily loss reaches 3.0% to protect psychology.",
+    ],
+  },
+  {
+    id: "hotkeys",
+    title: "Master Whiteboard Keybindings & Shortcuts",
+    category: "Cheat Sheet",
+    readTime: "1 min read",
+    desc: "Full list of keyboard hotkeys and mouse actions for high-speed technical diagramming.",
+    iconName: "keyboard",
+    color: "#f59e0b",
+    points: [
+      "V / 1: Select & Transform | H / 2: Pan Canvas | P / 3: Pen | L / 4: Line | T / 5: Text",
+      "Ctrl + Z: Undo | Ctrl + Y: Redo | Ctrl + S: Save Draft | Ctrl + A: Select All",
+      "Ctrl + D: Duplicate Object | Alt + Drag: Quick Mouse Clone",
+      "Ctrl + L: Lock/Unlock Layer | Delete / Backspace: Remove Selected",
+    ],
+  },
+];
+
 const INITIAL_TABS: DiagramTab[] = [
   { id: "blank", name: "Blank Canvas" },
 ];
@@ -314,6 +465,12 @@ export default function WhiteboardPage() {
   const { user, isAuthed, logout, isAdmin } = useStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Figma-Style Whiteboard Hub Launcher State (Defaults to Hub on Login)
+  const [viewMode, setViewMode] = useState<"hub" | "canvas">("hub");
+  const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash">("drafts");
+  const [hubSearch, setHubSearch] = useState("");
+  const [hubLayout, setHubLayout] = useState<"grid" | "list">("grid");
 
   const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
   const [activeTabId, setActiveTabId] = useState("blank");
@@ -1539,6 +1696,65 @@ export default function WhiteboardPage() {
     setDiagramsMenuOpen(false);
   };
 
+  /* ----------------- FIGMA-STYLE HUB ACTION HANDLERS ------------------------ */
+  const handleCreateNewCanvasFromHub = (customName?: string) => {
+    const finalName = customName || `Untitled Canvas ${tabs.length + 1}`;
+    if (tabs.length >= 5) {
+      const blankTab = tabs.find((t) => t.id === "blank");
+      if (blankTab) {
+        setActiveTabId("blank");
+        setShapes([]);
+        setViewMode("canvas");
+        showToast("Created new blank canvas!");
+        return;
+      }
+      setMaxTabPromptOpen(true);
+      showToast("Maximum 5 tabs reached! Please close a tab first.");
+      return;
+    }
+
+    const newId = `canvas_${Date.now()}`;
+    setTabs((prev) => [...prev, { id: newId, name: finalName }]);
+    setActiveTabId(newId);
+    setShapes([]);
+    setViewMode("canvas");
+    showToast(`Created new canvas: "${finalName}"!`);
+  };
+
+  const handleOpenDraftFromHub = (draft: SavedDraft) => {
+    loadSavedDraft(draft);
+    setViewMode("canvas");
+  };
+
+  const handleOpenSampleFromHub = (sampleId: string) => {
+    loadSampleClassChart(sampleId);
+    setViewMode("canvas");
+  };
+
+  const handleOpenTabFromHub = (tabId: string) => {
+    handleSelectTab(tabId);
+    setViewMode("canvas");
+  };
+
+  const handleReturnToHub = () => {
+    if (shapes.length > 0) {
+      handleSaveCurrentDraft();
+    }
+    setViewMode("hub");
+    showToast("Returned to Workspace Hub");
+  };
+
+  const handleDuplicateDraft = (draft: SavedDraft) => {
+    const duplicate: SavedDraft = {
+      id: `draft_${Date.now()}`,
+      name: `${draft.name} (Copy)`,
+      shapes: [...draft.shapes],
+      savedAt: Date.now(),
+    };
+    setSavedDrafts((prev) => [duplicate, ...prev]);
+    showToast(`Duplicated "${draft.name}"!`);
+  };
+
   /* Toolbar Actions */
   const handleUndo = () => {
     if (shapes.length === 0) return;
@@ -1749,6 +1965,748 @@ export default function WhiteboardPage() {
     );
   }
 
+  // Filtered collections for Figma-Style Hub View
+  const allDraftsList = [
+    ...tabs.map((t) => ({ id: t.id, name: t.name, shapes: t.id === activeTabId ? shapes : [], isTab: true, savedAt: Date.now() })),
+    ...savedDrafts.map((d) => ({ ...d, isTab: false })),
+  ];
+
+  const filteredDrafts = allDraftsList.filter((d) =>
+    !hubSearch.trim() || d.name.toLowerCase().includes(hubSearch.toLowerCase())
+  );
+
+  const filteredSamples = HUB_SAMPLES.filter((s) =>
+    !hubSearch.trim() ||
+    s.name.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    s.tag.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    s.category.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    s.desc.toLowerCase().includes(hubSearch.toLowerCase())
+  );
+
+  const filteredResources = HUB_RESOURCES.filter((r) =>
+    !hubSearch.trim() ||
+    r.title.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    r.category.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    r.desc.toLowerCase().includes(hubSearch.toLowerCase()) ||
+    r.points.some((p) => p.toLowerCase().includes(hubSearch.toLowerCase()))
+  );
+
+  const filteredTrash = trashedTabs.filter((t) =>
+    !hubSearch.trim() || t.name.toLowerCase().includes(hubSearch.toLowerCase())
+  );
+
+  /* -------------------------------------------------------------------------- */
+  /*                        VIEW MODE 1: FIGMA-STYLE HUB                        */
+  /* -------------------------------------------------------------------------- */
+  if (viewMode === "hub") {
+    return (
+      <div className="fixed inset-0 h-screen w-screen bg-slate-50 text-ink font-sans flex overflow-hidden select-none">
+        {/* Toast Notification */}
+        {statusMsg && (
+          <div className="fixed top-6 right-6 z-[120] rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
+            <Check className="h-4 w-4" /> {statusMsg}
+          </div>
+        )}
+
+        {/* ======================= LEFT NAVIGATION PANEL ======================= */}
+        <aside className="w-72 border-r border-line bg-white p-5 flex flex-col justify-between shrink-0 z-20 shadow-xs">
+          <div className="space-y-4">
+            {/* GAMAT Brand Logo & Hub Header */}
+            <div className="flex items-center justify-between">
+              <Logo variant="dark" />
+              <span className="px-2 py-0.5 rounded-lg bg-brand-light text-brand text-[10px] font-black uppercase tracking-wider">
+                Whiteboard
+              </span>
+            </div>
+
+            {/* Real-time Search Box */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                value={hubSearch}
+                onChange={(e) => setHubSearch(e.target.value)}
+                placeholder="Search files, samples, guides..."
+                className="w-full pl-9 pr-7 py-2 bg-slate-100/90 focus:bg-white text-xs rounded-xl border border-transparent focus:border-brand focus:ring-2 focus:ring-brand/20 transition outline-none font-medium text-slate-800 placeholder-slate-400"
+              />
+              {hubSearch && (
+                <button
+                  type="button"
+                  onClick={() => setHubSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-700"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Primary Action Button: + Create New Canvas */}
+            <button
+              type="button"
+              onClick={() => handleCreateNewCanvasFromHub()}
+              className="w-full flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark text-white px-4 py-3 text-xs font-black shadow-lg shadow-brand/25 hover:shadow-xl hover:shadow-brand/35 transition transform active:scale-[0.98] group"
+            >
+              <span className="flex items-center gap-2">
+                <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
+                Create New Canvas
+              </span>
+              <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded text-white/90">Ctrl+N</span>
+            </button>
+
+            {/* Navigation Menu List */}
+            <div className="space-y-1 pt-1">
+              <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Workspace</p>
+
+              {/* 1. Drafts */}
+              <button
+                type="button"
+                onClick={() => { setHubTab("drafts"); setHubSearch(""); }}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                  hubTab === "drafts" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <FolderKanban className="h-4 w-4" /> Drafts & Files
+                </span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                  hubTab === "drafts" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
+                }`}>
+                  {allDraftsList.length}
+                </span>
+              </button>
+
+              {/* 2. Samples */}
+              <button
+                type="button"
+                onClick={() => { setHubTab("samples"); setHubSearch(""); }}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                  hubTab === "samples" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Sparkles className="h-4 w-4" /> Samples & Templates
+                </span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                  hubTab === "samples" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
+                }`}>
+                  {HUB_SAMPLES.length}
+                </span>
+              </button>
+
+              {/* 3. Resources */}
+              <button
+                type="button"
+                onClick={() => { setHubTab("resources"); setHubSearch(""); }}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                  hubTab === "resources" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <BookOpen className="h-4 w-4" /> Resources & Guides
+                </span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                  hubTab === "resources" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
+                }`}>
+                  {HUB_RESOURCES.length}
+                </span>
+              </button>
+
+              {/* 4. Trash */}
+              <button
+                type="button"
+                onClick={() => { setHubTab("trash"); setHubSearch(""); }}
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                  hubTab === "trash" ? "bg-rose-50 text-rose-700 shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Trash2 className="h-4 w-4" /> Trash
+                </span>
+                {trashedTabs.length > 0 && (
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
+                    {trashedTabs.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Sidebar Bottom Quick Utilities */}
+          <div className="space-y-1 border-t border-line pt-3 text-xs">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
+            >
+              <Settings className="h-4 w-4 text-slate-500" /> Preferences
+            </button>
+            <button
+              type="button"
+              onClick={() => setShortcutsOpen(true)}
+              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-ink font-bold transition"
+            >
+              <span className="flex items-center gap-2">
+                <Keyboard className="h-4 w-4 text-slate-500" /> Shortcuts
+              </span>
+              <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-muted">?</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* ===================== RIGHT MAIN PREVIEW AREA ===================== */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+          {/* Top Header Bar with Avatar at Top Right */}
+          <header className="h-16 border-b border-line bg-white px-8 flex items-center justify-between gap-4 shrink-0 z-20">
+            <div>
+              <h2 className="font-display font-black text-base text-ink flex items-center gap-2">
+                {hubTab === "drafts" && "📁 Drafts & Workspaces"}
+                {hubTab === "samples" && "🎨 Interactive Samples & Lesson Templates"}
+                {hubTab === "resources" && "📚 Trading Resources & Cheatsheets"}
+                {hubTab === "trash" && "🗑️ Trash Bin"}
+              </h2>
+              <p className="text-xs text-muted font-medium">
+                {hubTab === "drafts" && "Resume where you left off or start a fresh technical analysis canvas"}
+                {hubTab === "samples" && "Pre-built technical setups, Smart Money Concepts, and lesson chart models"}
+                {hubTab === "resources" && "Price action cheatsheets, risk calculation formulas, and quick references"}
+                {hubTab === "trash" && "Closed diagram tabs (automatically purged after 30 days)"}
+              </p>
+            </div>
+
+            {/* Header Right Actions & User Avatar */}
+            <div className="flex items-center gap-3">
+              {/* Layout Grid / List Switcher */}
+              <div className="flex items-center rounded-xl bg-slate-100 p-1 border border-line">
+                <button
+                  type="button"
+                  onClick={() => setHubLayout("grid")}
+                  className={`p-1.5 rounded-lg transition ${
+                    hubLayout === "grid" ? "bg-white text-brand shadow-xs" : "text-slate-500 hover:text-ink"
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHubLayout("list")}
+                  className={`p-1.5 rounded-lg transition ${
+                    hubLayout === "list" ? "bg-white text-brand shadow-xs" : "text-slate-500 hover:text-ink"
+                  }`}
+                  title="List View"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Vertical Separator */}
+              <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
+
+              {/* Top Right User Avatar & Profile Dropdown */}
+              <div ref={userMenuRef} className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group"
+                  title={`${user.firstName} ${user.lastName} (${user.email})`}
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.firstName}
+                      className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                      {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                    </span>
+                  )}
+                  <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* Profile Popover Dropdown */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
+                    <div className="border-b border-line bg-cream p-3.5">
+                      <div className="flex items-center gap-2.5">
+                        {user.avatar ? (
+                          <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
+                        ) : (
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
+                            {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-extrabold text-xs text-ink truncate">{user.firstName} {user.lastName}</p>
+                          <p className="text-[10px] text-muted truncate">{user.email}</p>
+                          <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
+                            {user.role}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-2 space-y-1 text-xs font-bold">
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <User className="h-4 w-4 text-slate-700" /> Student Dashboard
+                      </button>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                        >
+                          <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-cream transition text-left"
+                      >
+                        <Home className="h-4 w-4 text-slate-700" /> Platform Home
+                      </button>
+                      <div className="border-t border-line my-1" />
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
+                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
+                        </span>
+                        <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">?</span>
+                      </button>
+                      <div className="border-t border-line my-1" />
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); logout(); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 hover:bg-rose-50 transition text-left"
+                      >
+                        <LogOut className="h-4 w-4" /> Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Main Gallery Area */}
+          <main className="flex-1 overflow-y-auto p-8">
+            {/* ===================== TAB 1: DRAFTS & WORKSPACES ===================== */}
+            {hubTab === "drafts" && (
+              <div className="space-y-6">
+                {hubLayout === "grid" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {/* Quick Create Blank Canvas Card */}
+                    <div
+                      onClick={() => handleCreateNewCanvasFromHub()}
+                      className="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 hover:border-brand bg-white p-5 flex flex-col items-center justify-center text-center space-y-3 min-h-[220px] transition-all hover:shadow-lg hover:-translate-y-0.5"
+                    >
+                      <div className="h-12 w-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Plus className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-ink group-hover:text-brand transition-colors">
+                          New Blank Canvas
+                        </h3>
+                        <p className="text-[11px] text-muted mt-1">Start technical markup from scratch</p>
+                      </div>
+                    </div>
+
+                    {/* Active Tabs & Saved Drafts Preview Cards */}
+                    {filteredDrafts.map((draft) => (
+                      <div
+                        key={draft.id}
+                        onClick={() => {
+                          if (draft.isTab) handleOpenTabFromHub(draft.id);
+                          else handleOpenDraftFromHub(draft as SavedDraft);
+                        }}
+                        className="group cursor-pointer rounded-2xl border border-line bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
+                      >
+                        {/* Miniature Canvas Diagram Preview */}
+                        <div className="h-36 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
+                          <HubDiagramThumbnail shapes={draft.shapes} />
+                          {draft.isTab && (
+                            <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-brand text-white text-[9px] font-black uppercase tracking-wider shadow-xs">
+                              Active Tab
+                            </span>
+                          )}
+                          <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-xs shadow-md">
+                              Open Canvas →
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card Content & Action Bar */}
+                        <div className="p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-extrabold text-sm text-ink truncate group-hover:text-brand transition-colors" title={draft.name}>
+                              {draft.name}
+                            </h3>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-muted">
+                            <span>{draft.shapes?.length || 0} layers</span>
+                            <span>{new Date(draft.savedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                          {!draft.isTab && (
+                            <div className="pt-2 border-t border-line flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                onClick={() => handleDuplicateDraft(draft as SavedDraft)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-brand hover:bg-slate-100 transition"
+                                title="Duplicate Draft"
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteDraft(draft.id)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                                title="Delete Draft"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* LIST VIEW */
+                  <div className="rounded-2xl border border-line bg-white divide-y divide-line overflow-hidden shadow-xs">
+                    {filteredDrafts.map((draft) => (
+                      <div
+                        key={draft.id}
+                        onClick={() => {
+                          if (draft.isTab) handleOpenTabFromHub(draft.id);
+                          else handleOpenDraftFromHub(draft as SavedDraft);
+                        }}
+                        className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className="h-10 w-16 rounded-lg border border-line bg-slate-100 overflow-hidden shrink-0">
+                            <HubDiagramThumbnail shapes={draft.shapes} />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-extrabold text-sm text-ink truncate">{draft.name}</h4>
+                            <p className="text-xs text-muted">{draft.shapes?.length || 0} layers • Saved {new Date(draft.savedAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (draft.isTab) handleOpenTabFromHub(draft.id);
+                              else handleOpenDraftFromHub(draft as SavedDraft);
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs"
+                          >
+                            Open Canvas
+                          </button>
+                          {!draft.isTab && (
+                            <button
+                              type="button"
+                              onClick={() => deleteDraft(draft.id)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 transition"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ===================== TAB 2: SAMPLES & TEMPLATES ===================== */}
+            {hubTab === "samples" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredSamples.map((sample) => (
+                    <div
+                      key={sample.id}
+                      onClick={() => handleOpenSampleFromHub(sample.id)}
+                      className="group cursor-pointer rounded-2xl border border-line bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
+                    >
+                      {/* Interactive Diagram Preview Banner */}
+                      <div className="h-40 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
+                        <HubDiagramThumbnail type={sample.previewType} />
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-black uppercase tracking-wider">
+                            {sample.tag}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                            sample.difficulty === "Beginner" ? "bg-emerald-100 text-emerald-800" :
+                            sample.difficulty === "Intermediate" ? "bg-amber-100 text-amber-800" :
+                            "bg-purple-100 text-purple-800"
+                          }`}>
+                            {sample.difficulty}
+                          </span>
+                        </div>
+                        <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="px-3.5 py-2 rounded-xl bg-brand text-white font-black text-xs shadow-lg">
+                            Open Template in Whiteboard →
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Card Meta & Description */}
+                      <div className="p-5 space-y-2.5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-muted tracking-wider">{sample.category}</p>
+                          <h3 className="font-extrabold text-base text-ink group-hover:text-brand transition-colors mt-0.5">
+                            {sample.name}
+                          </h3>
+                          <p className="text-xs text-muted leading-relaxed mt-1 font-medium line-clamp-2">
+                            {sample.desc}
+                          </p>
+                        </div>
+                        <div className="pt-3 border-t border-line flex items-center justify-between text-xs">
+                          <span className="text-muted font-bold">{sample.shapesCount} pre-configured layers</span>
+                          <span className="font-extrabold text-brand flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                            Use Template <ChevronRight className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 3: RESOURCES & GUIDES ===================== */}
+            {hubTab === "resources" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredResources.map((res) => (
+                    <div
+                      key={res.id}
+                      className="rounded-2xl border border-line bg-white p-6 shadow-xs hover:shadow-lg transition space-y-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-700">
+                          {res.category}
+                        </span>
+                        <span className="text-xs text-muted font-bold">{res.readTime}</span>
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-base text-ink">{res.title}</h3>
+                        <p className="text-xs text-muted leading-relaxed mt-1 font-medium">{res.desc}</p>
+                      </div>
+                      <div className="space-y-2 rounded-xl bg-cream/70 p-3.5 border border-line text-xs font-medium text-slate-800">
+                        {res.points.map((pt, idx) => (
+                          <div key={idx} className="flex items-start gap-2">
+                            <span className="text-brand font-black">•</span>
+                            <span>{pt}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="pt-2 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => handleCreateNewCanvasFromHub(res.title)}
+                          className="px-3.5 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs flex items-center gap-1.5"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => showToast(`Opened full reference: ${res.title}`)}
+                          className="text-xs font-bold text-slate-600 hover:text-brand transition"
+                        >
+                          View Full Details →
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ===================== TAB 4: TRASH BIN ===================== */}
+            {hubTab === "trash" && (
+              <div className="space-y-6">
+                {trashedTabs.length === 0 ? (
+                  <div className="text-center py-16 space-y-3 rounded-2xl border border-line bg-white p-8">
+                    <Trash2 className="h-12 w-12 text-slate-300 mx-auto" />
+                    <h3 className="font-extrabold text-base text-ink">Trash is Empty</h3>
+                    <p className="text-xs text-muted max-w-sm mx-auto">
+                      Any closed or discarded whiteboard tabs will appear here and are automatically cleaned up after 30 days.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-line bg-white divide-y divide-line overflow-hidden shadow-xs">
+                    {filteredTrash.map((item) => {
+                      const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24)));
+                      return (
+                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                          <div className="space-y-1">
+                            <h4 className="font-extrabold text-sm text-ink">{item.name}</h4>
+                            <p className="text-xs text-amber-600 font-bold flex items-center gap-1">
+                              <Clock className="h-3 w-3" /> Auto-purges in {daysLeft} days • {item.shapes.length} layers
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { restoreTrashedTab(item); setViewMode("canvas"); }}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-xs flex items-center gap-1 transition"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" /> Restore to Canvas
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteTrashedTabPermanently(item.id)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 transition"
+                              title="Delete Permanently"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
+
+        {/* Global Settings Modal accessible in Hub */}
+        {settingsOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+            <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="font-display font-extrabold text-ink text-base flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-brand" /> Whiteboard Preferences
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(false)}
+                  className="text-slate-400 hover:text-ink p-1 rounded-lg hover:bg-slate-100"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-ink">Interactive Tooltips</span>
+                  <input
+                    type="checkbox"
+                    checked={showTooltips}
+                    onChange={(e) => setShowTooltips(e.target.checked)}
+                    className="h-4 w-4 rounded accent-brand"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-ink">Snap to Grid ($10\text{px}$)</span>
+                  <input
+                    type="checkbox"
+                    checked={snapToGrid}
+                    onChange={(e) => setSnapToGrid(e.target.checked)}
+                    className="h-4 w-4 rounded accent-brand"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-ink">Floating Favorites Toolbar</span>
+                  <input
+                    type="checkbox"
+                    checked={showFavoritesBar}
+                    onChange={(e) => setShowFavoritesBar(e.target.checked)}
+                    className="h-4 w-4 rounded accent-brand"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(false)}
+                  className="btn-primary !py-2 px-5 text-xs font-bold"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Global Keyboard Shortcuts Modal accessible in Hub */}
+        {shortcutsOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+            <div className="w-full max-w-2xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="font-display font-extrabold text-ink text-base flex items-center gap-2">
+                  <Keyboard className="h-5 w-5 text-brand" /> Complete Whiteboard Shortcuts Guide
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShortcutsOpen(false)}
+                  className="text-slate-400 hover:text-ink p-1 rounded-lg hover:bg-slate-100"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto pr-1 space-y-4 flex-1">
+                {SHORTCUT_CATEGORIES.map((cat, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <h4 className="text-xs font-black uppercase text-muted tracking-wider">{cat.category}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {cat.items.map((item, itemIdx) => (
+                        <div key={itemIdx} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line text-xs">
+                          <span className="text-slate-700 font-medium">{item.label}</span>
+                          <div className="flex items-center gap-1">
+                            {item.keys.map((k, kIdx) => (
+                              <kbd key={kIdx} className="px-1.5 py-0.5 rounded-md border border-line bg-white font-mono text-[10px] font-bold text-slate-800 shadow-2xs">
+                                {k}
+                              </kbd>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2 border-t border-line flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShortcutsOpen(false)}
+                  className="btn-primary !py-2 px-5 text-xs font-bold"
+                >
+                  Close Guide
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*                        VIEW MODE 2: LIVE CANVAS MODE                       */
+  /* -------------------------------------------------------------------------- */
   return (
     <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
       {/* Toast Notification */}
@@ -1854,10 +2812,19 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar */}
+      {/* Main Header Bar with Files Return Button */}
       <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-[60] relative shadow-sm">
-        {/* Left Section: GAMAT Logo & Board Title */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Left Section: Back to Hub + GAMAT Logo & Board Title */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleReturnToHub}
+            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition border border-line bg-cream/50"
+            title="Return to Whiteboard Hub (Auto-saves draft)"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Files</span>
+          </button>
           <Logo variant="dark" />
           <span className="h-6 w-[1.5px] bg-slate-300 shrink-0 hidden sm:inline" />
           <span className="hidden md:inline text-xs font-bold text-ink/70">
@@ -4008,6 +4975,143 @@ export default function WhiteboardPage() {
 /* ========================================================================== */
 /*                          WHITEBOARD DRAWING ENGINE                         */
 /* ========================================================================== */
+
+/** Visual SVG Preview for Templates and Saved Drafts */
+function HubDiagramThumbnail({
+  type,
+  shapes,
+}: {
+  type?: "mindmap" | "smc" | "risk" | "eurusd" | "london";
+  shapes?: Shape[];
+}) {
+  if (type === "mindmap") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 200 120">
+        <rect width="200" height="120" fill="#f8fafc" />
+        <line x1="100" y1="35" x2="45" y2="75" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="100" y1="35" x2="155" y2="75" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3 3" />
+        {/* Center Node */}
+        <rect x="55" y="14" width="90" height="34" rx="6" fill="#fef08a" stroke="#eab308" strokeWidth="1.5" />
+        <text x="100" y="28" textAnchor="middle" fill="#854d0e" fontSize="8.5" fontWeight="bold">FOREX MASTERY</text>
+        <text x="100" y="39" textAnchor="middle" fill="#a16207" fontSize="7">Mind Map Core</text>
+        {/* Left Node */}
+        <rect x="15" y="68" width="65" height="34" rx="6" fill="#bae6fd" stroke="#38bdf8" strokeWidth="1.5" />
+        <text x="47" y="82" textAnchor="middle" fill="#0369a1" fontSize="8" fontWeight="bold">Technical</text>
+        <text x="47" y="93" textAnchor="middle" fill="#0284c7" fontSize="7">BOS & FVG</text>
+        {/* Right Node */}
+        <rect x="120" y="68" width="65" height="34" rx="6" fill="#fbcfe8" stroke="#f472b6" strokeWidth="1.5" />
+        <text x="152" y="82" textAnchor="middle" fill="#9d174d" fontSize="8" fontWeight="bold">Risk Control</text>
+        <text x="152" y="93" textAnchor="middle" fill="#be185d" fontSize="7">1:3 Min R:R</text>
+      </svg>
+    );
+  }
+
+  if (type === "smc") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 200 120">
+        <rect width="200" height="120" fill="#f8fafc" />
+        {/* Price movement trend */}
+        <polyline points="20,40 50,70 80,30 110,80 140,45 180,20" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Institutional Order Block */}
+        <rect x="35" y="58" width="60" height="28" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="65" y="75" textAnchor="middle" fill="#047857" fontSize="8" fontWeight="bold">OB Demand</text>
+        {/* Liquidity Sweep Arrow */}
+        <line x1="110" y1="80" x2="110" y2="105" stroke="#ef4444" strokeWidth="2" strokeDasharray="2 2" />
+        <text x="110" y="114" textAnchor="middle" fill="#dc2626" fontSize="7" fontWeight="bold">Sweep ⚡</text>
+      </svg>
+    );
+  }
+
+  if (type === "risk") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 200 120">
+        <rect width="200" height="120" fill="#f8fafc" />
+        {/* Take profit green zone */}
+        <rect x="35" y="18" width="130" height="45" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="100" y="44" textAnchor="middle" fill="#047857" fontSize="9.5" fontWeight="bold">TP Target: +90 pips</text>
+        {/* Entry line */}
+        <line x1="25" y1="63" x2="175" y2="63" stroke="#3b82f6" strokeWidth="2.5" />
+        {/* Stop loss red zone */}
+        <rect x="35" y="63" width="130" height="38" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="100" y="86" textAnchor="middle" fill="#dc2626" fontSize="8.5" fontWeight="bold">SL Risk: -30 pips (1:3)</text>
+      </svg>
+    );
+  }
+
+  if (type === "eurusd") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 200 120">
+        <rect width="200" height="120" fill="#f8fafc" />
+        {/* Candlesticks */}
+        <line x1="35" y1="30" x2="35" y2="90" stroke="#ef4444" strokeWidth="1.5" />
+        <rect x="28" y="45" width="14" height="35" fill="#ef4444" rx="2" />
+        <line x1="60" y1="20" x2="60" y2="85" stroke="#10b981" strokeWidth="1.5" />
+        <rect x="53" y="28" width="14" height="42" fill="#10b981" rx="2" />
+        {/* BOS Line */}
+        <line x1="50" y1="28" x2="180" y2="28" stroke="#3b82f6" strokeWidth="2" strokeDasharray="3 3" />
+        <text x="120" y="22" textAnchor="middle" fill="#2563eb" fontSize="8" fontWeight="bold">H4 BOS ↗</text>
+        {/* FVG Box */}
+        <rect x="80" y="45" width="85" height="30" rx="4" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" strokeWidth="1.5" />
+        <text x="122" y="63" textAnchor="middle" fill="#b45309" fontSize="8" fontWeight="bold">FVG Demand</text>
+      </svg>
+    );
+  }
+
+  if (type === "london") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 200 120">
+        <rect width="200" height="120" fill="#f8fafc" />
+        {/* Asian Box */}
+        <rect x="25" y="35" width="70" height="45" rx="4" fill="rgba(139, 92, 246, 0.2)" stroke="#8b5cf6" strokeWidth="1.5" />
+        <text x="60" y="60" textAnchor="middle" fill="#6d28d9" fontSize="8" fontWeight="bold">Asian Range</text>
+        {/* Sweep */}
+        <path d="M 95 65 L 115 100" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        <text x="115" y="112" textAnchor="middle" fill="#dc2626" fontSize="7" fontWeight="bold">Judas Sweep</text>
+        {/* Surge Arrow */}
+        <path d="M 115 100 Q 140 40, 180 20" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+        <polygon points="185,18 175,22 178,28" fill="#10b981" />
+      </svg>
+    );
+  }
+
+  // Dynamic / Default Draft Preview
+  return (
+    <svg className="w-full h-full" viewBox="0 0 200 120">
+      <rect width="200" height="120" fill="#f8fafc" />
+      {/* Background blueprint grid dots */}
+      <circle cx="20" cy="20" r="1" fill="#cbd5e1" />
+      <circle cx="60" cy="20" r="1" fill="#cbd5e1" />
+      <circle cx="100" cy="20" r="1" fill="#cbd5e1" />
+      <circle cx="140" cy="20" r="1" fill="#cbd5e1" />
+      <circle cx="180" cy="20" r="1" fill="#cbd5e1" />
+      <circle cx="20" cy="60" r="1" fill="#cbd5e1" />
+      <circle cx="60" cy="60" r="1" fill="#cbd5e1" />
+      <circle cx="100" cy="60" r="1" fill="#cbd5e1" />
+      <circle cx="140" cy="60" r="1" fill="#cbd5e1" />
+      <circle cx="180" cy="60" r="1" fill="#cbd5e1" />
+      <circle cx="20" cy="100" r="1" fill="#cbd5e1" />
+      <circle cx="60" cy="100" r="1" fill="#cbd5e1" />
+      <circle cx="100" cy="100" r="1" fill="#cbd5e1" />
+      <circle cx="140" cy="100" r="1" fill="#cbd5e1" />
+      <circle cx="180" cy="100" r="1" fill="#cbd5e1" />
+
+      {shapes && shapes.length > 0 ? (
+        <g>
+          {/* Stylized representation of user diagram */}
+          <rect x="35" y="30" width="55" height="35" rx="4" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="1.5" />
+          <line x1="100" y1="45" x2="160" y2="45" stroke="#10b981" strokeWidth="2" strokeDasharray="3 3" />
+          <polyline points="40,85 80,70 120,90 165,65" fill="none" stroke="#f43f5e" strokeWidth="2" />
+          <rect x="130" y="70" width="45" height="28" rx="3" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+        </g>
+      ) : (
+        <g className="text-slate-400">
+          <rect x="40" y="30" width="120" height="60" rx="8" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" />
+          <text x="100" y="65" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold">Blank Canvas</text>
+        </g>
+      )}
+    </svg>
+  );
+}
 
 function WhiteboardToolBtn({
   active,
