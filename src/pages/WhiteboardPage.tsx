@@ -304,9 +304,6 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
 
 const INITIAL_TABS: DiagramTab[] = [
   { id: "blank", name: "Blank Canvas" },
-  { id: "mindmap", name: "Forex Basics Mind Map" },
-  { id: "smc_diag", name: "SMC Liquidity Diagram" },
-  { id: "risk_diag", name: "Risk Management Matrix" },
 ];
 
 /* ========================================================================== */
@@ -1455,10 +1452,34 @@ export default function WhiteboardPage() {
 
   const loadSampleClassChart = (sampleType: string) => {
     if (sampleType === "mindmap") {
+      if (tabs.length >= 5 && !tabs.some((t) => t.id === "mindmap")) {
+        setMaxTabPromptOpen(true);
+        showToast("Max 5 tabs reached! Close a tab to load sample chart.");
+        return;
+      }
+      if (!tabs.some((t) => t.id === "mindmap")) {
+        setTabs((prev) => [...prev, { id: "mindmap", name: "Forex Basics Mind Map" }]);
+      }
       handleSelectTab("mindmap");
     } else if (sampleType === "smc") {
+      if (tabs.length >= 5 && !tabs.some((t) => t.id === "smc_diag")) {
+        setMaxTabPromptOpen(true);
+        showToast("Max 5 tabs reached! Close a tab to load sample chart.");
+        return;
+      }
+      if (!tabs.some((t) => t.id === "smc_diag")) {
+        setTabs((prev) => [...prev, { id: "smc_diag", name: "SMC Liquidity Diagram" }]);
+      }
       handleSelectTab("smc_diag");
     } else if (sampleType === "risk") {
+      if (tabs.length >= 5 && !tabs.some((t) => t.id === "risk_diag")) {
+        setMaxTabPromptOpen(true);
+        showToast("Max 5 tabs reached! Close a tab to load sample chart.");
+        return;
+      }
+      if (!tabs.some((t) => t.id === "risk_diag")) {
+        setTabs((prev) => [...prev, { id: "risk_diag", name: "Risk Management Matrix" }]);
+      }
       handleSelectTab("risk_diag");
     } else if (sampleType === "class_chart_eurusd") {
       if (tabs.length >= 5 && !tabs.some((t) => t.id === "sample_eurusd")) {
@@ -2125,14 +2146,15 @@ export default function WhiteboardPage() {
               setSnapToGrid(!snapToGrid);
               showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
             }}
-            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
-              snapToGrid ? "bg-emerald-50 text-emerald-700 font-extrabold" : "hover:bg-slate-100 text-ink"
+            className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition-all ${
+              snapToGrid
+                ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 backdrop-blur-xs shadow-xs"
+                : "border border-transparent hover:bg-slate-100 text-ink"
             }`}
             title="Toggle Snap to Grid (Active by Default)"
           >
             <Magnet className={`h-4 w-4 ${snapToGrid ? "text-emerald-600" : "text-slate-700"}`} />
             <span>Snap</span>
-            {snapToGrid && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
           </button>
 
           {/* Vertical Divider */}
