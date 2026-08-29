@@ -6091,196 +6091,560 @@ export default function WhiteboardPage() {
                   </button>
                 </div>
 
-                {/* TAB 1: INSPECTOR TAB */}
-                {rightPanelTab === "inspector" && (
-                  <div className="space-y-4">
-                    {/* SELECTION TYPE & IDENTITY */}
-                    <div className="rounded-2xl border border-line bg-cream p-3 space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                        <span>Active Element</span>
-                        {selectedShape?.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
-                      </p>
-                      <p className="font-bold text-xs text-ink uppercase flex items-center justify-between">
-                        {selectedShape ? (
-                          <span className="text-brand flex items-center gap-1.5">
-                            {selectedShape.name || selectedShape.type}
-                            {selectedShape.isLocked && <Lock className="h-3.5 w-3.5 text-amber-600" />}
-                          </span>
-                        ) : selectedShapeIds.length > 1 ? (
-                          <span className="text-blue-600">{selectedShapeIds.length} Objects Selected</span>
-                        ) : (
-                          <span>Tool: {activeTool}</span>
-                        )}
-                      </p>
-                    </div>
+                {/* TAB 1: FIGMA-STANDARD CONTEXTUAL INSPECTOR TAB */}
+                {rightPanelTab === "inspector" && (() => {
+                  const targetTool: Tool = selectedShape ? selectedShape.type : activeTool;
+                  const pts = selectedShape?.points || [];
+                  const minX = pts.length > 0 ? Math.round(Math.min(...pts.map((p) => p.x))) : 0;
+                  const maxX = pts.length > 0 ? Math.round(Math.max(...pts.map((p) => p.x))) : 0;
+                  const minY = pts.length > 0 ? Math.round(Math.min(...pts.map((p) => p.y))) : 0;
+                  const maxY = pts.length > 0 ? Math.round(Math.max(...pts.map((p) => p.y))) : 0;
+                  const calcW = Math.max(maxX - minX, selectedShape?.type === "sticky" ? 180 : selectedShape?.type === "text" ? 140 : 0);
+                  const calcH = Math.max(maxY - minY, selectedShape?.type === "sticky" ? 140 : selectedShape?.type === "text" ? 24 : 0);
+                  const IconComp = getToolIcon(targetTool);
 
-                    {/* EDITABLE NOTE / TEXT CONTENT IN INSPECTOR */}
-                    {selectedShape && (selectedShape.type === "sticky" || selectedShape.type === "text") && (
-                      <div className="rounded-2xl border border-line bg-cream p-3 space-y-2">
-                        <label className="text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
-                          <span className="flex items-center gap-1.5 text-ink">
-                            <Edit3 className="h-3.5 w-3.5 text-brand" />
-                            {selectedShape.type === "sticky" ? "Sticky Note Text" : "Text Label"}
-                          </span>
-                          {selectedShape.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={selectedShape.text || ""}
-                          onChange={(e) => {
-                            const newTxt = e.target.value;
-                            setShapes((prev) =>
-                              prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
-                            );
-                          }}
-                          disabled={selectedShape.isLocked}
-                          placeholder={selectedShape.type === "sticky" ? "Type note content..." : "Type text content..."}
-                          className={`w-full rounded-xl border border-line bg-white p-2.5 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
-                            selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                        />
-                      </div>
-                    )}
-
-                    {/* COLOR & STROKE APPEARANCE */}
-                    <div className="space-y-3 border-b border-line pb-3">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
-
-                      {/* Stroke Palette */}
-                      <div>
-                        <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Color</label>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {PALETTE.map((c) => (
-                            <button
-                              key={c}
-                              type="button"
-                              onClick={() => applyColorToSelected(c)}
-                              disabled={selectedShape?.isLocked}
-                              className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                              style={{ background: c }}
-                            />
-                          ))}
+                  return (
+                    <div className="space-y-3.5 animate-in fade-in duration-150">
+                      {/* 1. SELECTION / TOOL IDENTITY HEADER */}
+                      <div className="rounded-2xl border border-line bg-cream/70 p-3 space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                          <span>{selectedShape ? "Selected Element" : "Active Tool Preset"}</span>
+                          {selectedShape?.isLocked && (
+                            <span className="text-amber-600 font-extrabold flex items-center gap-0.5">
+                              <Lock className="h-3 w-3" /> Locked
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 font-bold text-xs text-ink">
+                            <span className="p-1.5 rounded-lg bg-white border border-line text-brand shadow-xs">
+                              <IconComp className="h-3.5 w-3.5" />
+                            </span>
+                            <span className="truncate max-w-[150px]">
+                              {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : `Tool: ${activeTool.toUpperCase()}`}
+                            </span>
+                          </div>
+                          {selectedShape && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => toggleLockShape(selectedShape.id)}
+                                className={`p-1 rounded-lg border text-xs transition cursor-pointer ${
+                                  selectedShape.isLocked
+                                    ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
+                                    : "bg-white text-slate-400 hover:text-ink border-line"
+                                }`}
+                                title={selectedShape.isLocked ? "Unlock Element" : "Lock Element"}
+                              >
+                                {selectedShape.isLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Sticky Note Colors (when sticky) */}
-                      {(activeTool === "sticky" || selectedShape?.type === "sticky") && (
-                        <div>
-                          <label className="text-[11px] font-bold text-ink block mb-1.5">Sticky Note Color</label>
-                          <div className="flex items-center gap-1.5">
-                            {STICKY_COLORS.map((s) => (
-                              <button
-                                key={s.color}
-                                type="button"
-                                onClick={() => applyStickyColorToSelected(s.color)}
-                                disabled={selectedShape?.isLocked}
-                                className={`h-6 w-6 rounded-lg transition-transform border border-black/10 ${
-                                  stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                style={{ background: s.color }}
-                                title={s.name}
-                              />
-                            ))}
+                      {/* 2. FIGMA TRANSFORM / BOUNDS (Only shown when a shape on canvas is selected) */}
+                      {selectedShape && pts.length > 0 && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Dimensions & Position</p>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
+                              <span className="text-[10px] font-bold text-muted w-3">X</span>
+                              <span className="font-bold text-ink truncate">{minX}px</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
+                              <span className="text-[10px] font-bold text-muted w-3">Y</span>
+                              <span className="font-bold text-ink truncate">{minY}px</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
+                              <span className="text-[10px] font-bold text-muted w-3">W</span>
+                              <span className="font-bold text-ink truncate">{calcW}px</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
+                              <span className="text-[10px] font-bold text-muted w-3">H</span>
+                              <span className="font-bold text-ink truncate">{calcH}px</span>
+                            </div>
                           </div>
                         </div>
                       )}
 
-                      {/* Stroke Thickness */}
-                      <div>
-                        <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                          <span>Stroke Thickness</span>
-                          <strong className="text-brand">{strokeWidth}px</strong>
-                        </label>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {[1, 2, 4, 6].map((w) => (
-                            <button
-                              key={w}
-                              type="button"
-                              onClick={() => {
-                                setStrokeWidth(w);
-                                if (selectedShapeIds.length > 0) {
-                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                                }
-                              }}
-                              disabled={selectedShape?.isLocked}
-                              className={`py-1.5 rounded-lg text-xs font-extrabold transition ${
-                                strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
-                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                            >
-                              {w}px
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      {/* 3. CONTEXT-SPECIFIC PROPERTY CONTROLS (Figma Standard: Only relevant controls appear!) */}
 
-                      {/* Line Dash Style */}
-                      <div>
-                        <label className="text-[11px] font-bold text-ink block mb-1.5">Line Pattern</label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLineStyle("solid");
-                              if (selectedShapeIds.length > 0) {
-                                setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
-                              }
-                            }}
-                            disabled={selectedShape?.isLocked}
-                            className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                              lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                            } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                          >
-                            Solid
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLineStyle("dashed");
-                              if (selectedShapeIds.length > 0) {
-                                setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
-                              }
-                            }}
-                            disabled={selectedShape?.isLocked}
-                            className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                              lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                            } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                          >
-                            Dashed
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                      {/* (A) FREEHAND DRAWING TOOLS: Pencil & Highlighter */}
+                      {(targetTool === "pencil" || targetTool === "highlighter") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
+                            {targetTool === "highlighter" ? "Highlighter Style" : "Brush & Stroke"}
+                          </p>
 
-                    {/* LOCK, LAYERING & OBJECT ACTIONS */}
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
+                          {/* Stroke Palette */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
 
-                      {selectedShape ? (
-                        <div className="space-y-2">
-                          <button
-                            type="button"
-                            onClick={() => toggleLockShape(selectedShape.id)}
-                            className={`w-full flex items-center justify-center gap-1.5 rounded-xl border py-2 text-xs font-bold transition ${
-                              selectedShape.isLocked
-                                ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                : "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                            }`}
-                          >
-                            {selectedShape.isLocked ? (
-                              <><Unlock className="h-4 w-4" /> Unlock Object 🔓</>
+                          {/* Stroke Width */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                              <span>Stroke Width</span>
+                              <strong className="text-brand">{targetTool === "highlighter" ? "18px" : `${strokeWidth}px`}</strong>
+                            </label>
+                            {targetTool === "pencil" ? (
+                              <div className="grid grid-cols-4 gap-1.5">
+                                {[1, 2, 4, 6].map((w) => (
+                                  <button
+                                    key={w}
+                                    type="button"
+                                    onClick={() => {
+                                      setStrokeWidth(w);
+                                      if (selectedShapeIds.length > 0) {
+                                        setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
+                                      }
+                                    }}
+                                    disabled={selectedShape?.isLocked}
+                                    className={`py-1 rounded-lg text-xs font-extrabold transition ${
+                                      strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                    } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  >
+                                    {w}px
+                                  </button>
+                                ))}
+                              </div>
                             ) : (
-                              <><Lock className="h-4 w-4" /> Lock Object 🔒</>
+                              <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 font-medium">
+                                Soft 45% translucent neon highlight overlay with broad tip.
+                              </div>
                             )}
-                          </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (B) GEOMETRIC SHAPES: Rectangle, Circle, Diamond */}
+                      {(targetTool === "rectangle" || targetTool === "circle" || targetTool === "diamond") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Shape Border & Appearance</p>
+
+                          {/* Border Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Border Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Border Thickness */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                              <span>Border Thickness</span>
+                              <strong className="text-brand">{strokeWidth}px</strong>
+                            </label>
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {[1, 2, 4, 6].map((w) => (
+                                <button
+                                  key={w}
+                                  type="button"
+                                  onClick={() => {
+                                    setStrokeWidth(w);
+                                    if (selectedShapeIds.length > 0) {
+                                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
+                                    }
+                                  }}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
+                                    strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                >
+                                  {w}px
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Line Pattern */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Pattern</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLineStyle("solid");
+                                  if (selectedShapeIds.length > 0) {
+                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
+                                  }
+                                }}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                                  lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                Solid
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLineStyle("dashed");
+                                  if (selectedShapeIds.length > 0) {
+                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
+                                  }
+                                }}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                                  lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                Dashed
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (C) LINES & PATHS: Straight Line, Connector Arrow, Chart Pattern Path */}
+                      {(targetTool === "line" || targetTool === "arrow" || targetTool === "bezier") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
+                            {targetTool === "arrow" ? "Connector Arrow Properties" : targetTool === "bezier" ? "Chart Pattern Path" : "Line Properties"}
+                          </p>
+
+                          {/* Line Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Line Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Line Width */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                              <span>Line Thickness</span>
+                              <strong className="text-brand">{strokeWidth}px</strong>
+                            </label>
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {[1, 2, 3, 5].map((w) => (
+                                <button
+                                  key={w}
+                                  type="button"
+                                  onClick={() => {
+                                    setStrokeWidth(w);
+                                    if (selectedShapeIds.length > 0) {
+                                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
+                                    }
+                                  }}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
+                                    strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                >
+                                  {w}px
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Line Style */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Line Style</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLineStyle("solid");
+                                  if (selectedShapeIds.length > 0) {
+                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
+                                  }
+                                }}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                                  lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                Solid
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLineStyle("dashed");
+                                  if (selectedShapeIds.length > 0) {
+                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
+                                  }
+                                }}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
+                                  lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                Dashed
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (D) TEXT LABELS: Text editing & Typography */}
+                      {targetTool === "text" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Typography & Content</p>
+
+                          {/* Editable Text Content */}
+                          {selectedShape ? (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Text Label</label>
+                              <textarea
+                                rows={2}
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                placeholder="Type label text..."
+                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
+                              Click anywhere on the canvas to place and type a text label.
+                            </div>
+                          )}
+
+                          {/* Text Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Font Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (E) STICKY NOTES: Note Content & 5 Pastel Post-It Colors */}
+                      {targetTool === "sticky" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Sticky Note Setup</p>
+
+                          {/* Editable Note Content */}
+                          {selectedShape ? (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Note Content</label>
+                              <textarea
+                                rows={3}
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                placeholder="Type note content..."
+                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
+                              Click on canvas to drop a sticky note card.
+                            </div>
+                          )}
+
+                          {/* Sticky Paper Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Paper Color</label>
+                            <div className="flex items-center gap-2">
+                              {STICKY_COLORS.map((s) => (
+                                <button
+                                  key={s.color}
+                                  type="button"
+                                  onClick={() => applyStickyColorToSelected(s.color)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-7 w-7 rounded-xl transition-transform border border-black/10 shadow-2xs ${
+                                    stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: s.color }}
+                                  title={s.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (F) FIBONACCI RETRACEMENT: Ratios Breakdown & Golden Pocket */}
+                      {targetTool === "fibo" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Fibonacci Retracement Levels</p>
+                          <div className="space-y-1.5 text-xs font-mono">
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-red-50 text-red-700 font-bold">
+                              <span>0.0% (1.000)</span> <span>Invalidation</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-amber-50 text-amber-700 font-bold">
+                              <span>38.2% (0.382)</span> <span>Shallow Pullback</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-yellow-50 text-yellow-800 font-bold border border-yellow-300">
+                              <span>50.0% Equilibrium</span> <span>Fair Value</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-300">
+                              <span>61.8% Golden Pocket</span> <span>Prime Entry ★</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-blue-50 text-blue-700 font-bold">
+                              <span>78.6% (0.786)</span> <span>Deep Retracement</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-purple-50 text-purple-700 font-bold">
+                              <span>100.0% (0.000)</span> <span>Swing Anchor</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (G) FOREX POSITION: Long / Short Position Risk:Reward */}
+                      {(targetTool === "long" || targetTool === "short") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
+                            {targetTool === "long" ? "Long Position (Bullish)" : "Short Position (Bearish)"}
+                          </p>
+
+                          {/* Risk to Reward Preset Selectors */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                              <span>Risk : Reward Ratio</span>
+                              <strong className="text-emerald-600 font-black">1 : {defaultRiskReward}</strong>
+                            </label>
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {[1, 2, 3, 4].map((rr) => (
+                                <button
+                                  key={rr}
+                                  type="button"
+                                  onClick={() => setDefaultRiskReward(rr)}
+                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
+                                    defaultRiskReward === rr ? "bg-emerald-600 text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                  }`}
+                                >
+                                  1:{rr}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[11px] font-bold">
+                            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              <span className="block text-[9px] uppercase tracking-wider text-emerald-600">Take Profit</span>
+                              +60 Pips Target
+                            </div>
+                            <div className="p-2 rounded-xl bg-rose-50 text-rose-800 border border-rose-200">
+                              <span className="block text-[9px] uppercase tracking-wider text-rose-600">Stop Loss</span>
+                              -20 Pips Risk
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (H) CANVAS / ENVIRONMENT (When no shape is selected and navigation tool active) */}
+                      {!selectedShape && (targetTool === "select" || targetTool === "hand" || targetTool === "zoom" || targetTool === "eraser") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Environment</p>
+                          
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Grid Background</label>
+                            <select
+                              value={bgGrid}
+                              onChange={(e) => handleSetBgGrid(e.target.value as any)}
+                              className="w-full rounded-xl border border-line bg-white p-2 text-xs font-bold text-ink outline-none focus:border-brand"
+                            >
+                              {CANVAS_THEMES.map((t) => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs font-medium pt-1">
+                            <span className="text-muted">Snap to Grid</span>
+                            <button
+                              type="button"
+                              onClick={() => setSnapToGrid(!snapToGrid)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                snapToGrid ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {snapToGrid ? "Enabled" : "Disabled"}
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs font-medium pt-1">
+                            <span className="text-muted">Zoom: {Math.round(zoom * 100)}%</span>
+                            <button
+                              type="button"
+                              onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                              className="px-2 py-0.5 rounded-lg border border-line bg-cream text-xs font-bold text-ink hover:bg-white"
+                            >
+                              Reset 100%
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4. FIGMA OBJECT ACTIONS & LAYERING (Only when a shape is selected) */}
+                      {selectedShape && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Layer & Actions</p>
 
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
                               onClick={() => bringToFront(selectedShape.id)}
                               disabled={selectedShape.isLocked}
-                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40 cursor-pointer"
                             >
                               <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
                             </button>
@@ -6288,7 +6652,7 @@ export default function WhiteboardPage() {
                               type="button"
                               onClick={() => sendToBack(selectedShape.id)}
                               disabled={selectedShape.isLocked}
-                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40"
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40 cursor-pointer"
                             >
                               <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
                             </button>
@@ -6297,26 +6661,24 @@ export default function WhiteboardPage() {
                           <button
                             type="button"
                             onClick={() => duplicateSelectedObject(selectedShape)}
-                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-2 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                           >
-                            <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
+                            <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Ctrl + D)
                           </button>
 
                           <button
                             type="button"
                             onClick={() => deleteSelectedObject(selectedShape.id)}
                             disabled={selectedShape.isLocked}
-                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           >
-                            <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                            <Trash2 className="h-3.5 w-3.5" /> Delete (Backspace)
                           </button>
                         </div>
-                      ) : (
-                        <p className="text-xs text-muted italic">Click any shape on the canvas to inspect & manipulate its position, layer or lock state.</p>
                       )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* TAB 2: PHOTOSHOP-STYLE LAYERS PANEL WITH INLINE RENAMING */}
                 {rightPanelTab === "layers" && (
