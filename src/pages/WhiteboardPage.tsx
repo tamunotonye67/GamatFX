@@ -23,6 +23,7 @@ import {
   ZoomIn,
   ZoomOut,
   RefreshCw,
+  Activity,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -39,6 +40,7 @@ type Tool =
   | "circle"
   | "diamond"
   | "arrow"
+  | "bezier"
   | "text"
   | "eraser";
 
@@ -48,7 +50,6 @@ type Shape = {
   id: string;
   type: Tool;
   color: string;
-  fillColor?: string;
   strokeWidth: number;
   points: { x: number; y: number }[];
   text?: string;
@@ -87,8 +88,9 @@ export default function WhiteboardPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
-  // Drawing State
+  // Selection & Active Shapes
   const [shapes, setShapes] = useState<Shape[]>([]);
+  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
 
@@ -101,8 +103,25 @@ export default function WhiteboardPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
+  const isDraggingShape = useRef(false);
+  const dragStartPt = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isPanning = useRef(false);
   const startPan = useRef({ x: 0, y: 0 });
+
+  /* -------------------------- Keyboard Event Handlers ---------------------- */
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeId) {
+        if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+        setShapes((prev) => prev.filter((s) => s.id !== selectedShapeId));
+        setSelectedShapeId(null);
+        showToast("Selected item deleted!");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedShapeId]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
@@ -132,7 +151,7 @@ export default function WhiteboardPage() {
     ctx.translate(pan.x, pan.y);
     ctx.scale(zoom, zoom);
 
-    // Draw Miro Grid Background
+    // Draw Grid Background
     const isDarkBg = bgGrid === "dark" || bgGrid === "chalkboard";
     const gridColor = isDarkBg ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)";
 
@@ -166,10 +185,10 @@ export default function WhiteboardPage() {
 
     // Render Shapes & Miro Sticky Notes
     const allShapes = [...shapes, ...(currentShape ? [currentShape] : [])];
-    allShapes.forEach((s) => renderMiroShape(ctx, s));
+    allShapes.forEach((s) => renderMiroShape(ctx, s, s.id === selectedShapeId));
 
     ctx.restore();
-  }, [shapes, currentShape, bgGrid, pan, zoom]);
+  }, [shapes, currentShape, selectedShapeId, bgGrid, pan, zoom]);
 
   /* ------------------------- Coordinate Conversions ----------------------- */
 
@@ -180,14 +199,13 @@ export default function WhiteboardPage() {
     const screenX = e.clientX - rect.left;
     const screenY = e.clientY - rect.top;
 
-    // Convert Screen Space to Canvas World Space based on Pan & Zoom
     return {
       x: (screenX - pan.x) / zoom,
       y: (screenY - pan.y) / zoom,
     };
   };
 
-  /* ------------------------- Drawing Event Handlers ----------------------- */
+  /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
@@ -197,6 +215,40 @@ export default function WhiteboardPage() {
     }
 
     const pt = getCanvasCoords(e);
+
+    // 1. SELECT TOOL BEHAVIOR (Hit Test & Dragging)
+    if (activeTool === "select") {
+      const hitShape = [...shapes].reverse().find((s) => isPointInShape(pt, s));
+      if (hitShape) {
+        setSelectedShapeId(hitShape.id);
+        isDraggingShape.current = true;
+        dragStartPt.current = pt;
+      } else {
+        setSelectedShapeId(null);
+      }
+      return;
+    }
+
+    // 2. BEZIER / CHART PATTERN TOOL (Continuous Multi-Point Path)
+    if (activeTool === "bezier") {
+      if (currentShape && currentShape.type === "bezier") {
+        setCurrentShape({
+          ...currentShape,
+          points: [...currentShape.points, pt],
+        });
+      } else {
+        const newShape: Shape = {
+          id: `miro_${Date.now()}`,
+          type: "bezier",
+          color: strokeColor,
+          strokeWidth,
+          points: [pt, pt],
+        };
+        setCurrentShape(newShape);
+      }
+      return;
+    }
+
     isDrawing.current = true;
 
     if (activeTool === "text") {
@@ -232,13 +284,40 @@ export default function WhiteboardPage() {
       return;
     }
 
-    if (!isDrawing.current || !currentShape) return;
     const pt = getCanvasCoords(e);
+
+    // Handle Moving Selected Shape
+    if (isDraggingShape.current && selectedShapeId) {
+      const dx = pt.x - dragStartPt.current.x;
+      const dy = pt.y - dragStartPt.current.y;
+      dragStartPt.current = pt;
+
+      setShapes((prev) =>
+        prev.map((s) => {
+          if (s.id !== selectedShapeId) return s;
+          return {
+            ...s,
+            points: s.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
+          };
+        })
+      );
+      return;
+    }
+
+    if (!isDrawing.current || !currentShape) return;
 
     if (currentShape.type === "pencil" || currentShape.type === "highlighter") {
       setCurrentShape({
         ...currentShape,
         points: [...currentShape.points, pt],
+      });
+    } else if (currentShape.type === "bezier") {
+      // Update preview of current drawing point for Bezier / Chart Pattern
+      const updatedPts = [...currentShape.points];
+      updatedPts[updatedPts.length - 1] = pt;
+      setCurrentShape({
+        ...currentShape,
+        points: updatedPts,
       });
     } else {
       setCurrentShape({
@@ -250,6 +329,10 @@ export default function WhiteboardPage() {
 
   const handleMouseUp = () => {
     isPanning.current = false;
+    isDraggingShape.current = false;
+
+    if (activeTool === "bezier") return; // Bezier paths finish on double click
+
     if (!isDrawing.current) return;
     isDrawing.current = false;
 
@@ -257,6 +340,16 @@ export default function WhiteboardPage() {
       setShapes((prev) => [...prev, currentShape]);
       setCurrentShape(null);
       setRedoStack([]);
+    }
+  };
+
+  const handleDoubleClick = () => {
+    // Finish Bezier / Chart Pattern Path on Double Click
+    if (currentShape && currentShape.type === "bezier") {
+      setShapes((prev) => [...prev, currentShape]);
+      setCurrentShape(null);
+      setRedoStack([]);
+      showToast("Chart Pattern Path completed!");
     }
   };
 
@@ -297,6 +390,7 @@ export default function WhiteboardPage() {
   const handleClear = () => {
     setShapes([]);
     setRedoStack([]);
+    setSelectedShapeId(null);
   };
 
   const handleExportPNG = () => {
@@ -450,6 +544,20 @@ export default function WhiteboardPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          {selectedShapeId && (
+            <button
+              type="button"
+              onClick={() => {
+                setShapes((prev) => prev.filter((s) => s.id !== selectedShapeId));
+                setSelectedShapeId(null);
+                showToast("Item deleted!");
+              }}
+              className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition flex items-center gap-1"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+            </button>
+          )}
+
           <button
             type="button"
             onClick={handleExportPNG}
@@ -478,7 +586,7 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
-              title="Select Tool"
+              title="Select & Move Tool"
               icon={MousePointer}
             />
             <MiroToolBtn
@@ -502,9 +610,16 @@ export default function WhiteboardPage() {
             <MiroToolBtn
               active={activeTool === "sticky"}
               onClick={() => setActiveTool("sticky")}
-              title="Miro Sticky Note"
+              title="Sticky Note"
               icon={StickyNote}
               badge="NOTE"
+            />
+            <MiroToolBtn
+              active={activeTool === "bezier"}
+              onClick={() => setActiveTool("bezier")}
+              title="Continuous Path / Chart Pattern Tool (Double click to finish)"
+              icon={Activity}
+              badge="PATH"
             />
             <MiroToolBtn
               active={activeTool === "rectangle"}
@@ -703,7 +818,14 @@ export default function WhiteboardPage() {
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
-            className={`w-full h-full block ${activeTool === "hand" ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair"}`}
+            onDoubleClick={handleDoubleClick}
+            className={`w-full h-full block ${
+              activeTool === "hand"
+                ? "cursor-grab active:cursor-grabbing"
+                : activeTool === "select"
+                ? "cursor-default"
+                : "cursor-crosshair"
+            }`}
           />
 
           {/* Text / Sticky Note Input Modal */}
@@ -793,8 +915,27 @@ function MiroToolBtn({
   );
 }
 
+/** Hit test to check if point (x,y) lies inside or near a shape */
+function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
+  const pts = shape.points;
+  if (!pts.length) return false;
+
+  if (shape.type === "sticky") {
+    const p = pts[0];
+    return pt.x >= p.x && pt.x <= p.x + 180 && pt.y >= p.y && pt.y <= p.y + 140;
+  }
+
+  // Bounding box hit test for other shapes
+  const minX = Math.min(...pts.map((p) => p.x)) - 10;
+  const maxX = Math.max(...pts.map((p) => p.x)) + 10;
+  const minY = Math.min(...pts.map((p) => p.y)) - 10;
+  const maxY = Math.max(...pts.map((p) => p.y)) + 10;
+
+  return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+}
+
 /** Renders shapes and Miro sticky notes on canvas */
-function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape) {
+function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false) {
   const pts = shape.points;
   if (pts.length === 0) return;
 
@@ -848,6 +989,23 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape) {
         ctx.fillText(line, p.x + 12, p.y + 26 + idx * 18, w - 24);
       });
     }
+  } else if (shape.type === "bezier" && pts.length >= 2) {
+    // Continuous Path / Chart Pattern Tool
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+
+    // Draw pattern waypoints
+    pts.forEach((p) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = shape.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
   } else if (shape.type === "rectangle" && pts.length >= 2) {
     const w = pts[1].x - pts[0].x;
     const h = pts[1].y - pts[0].y;
@@ -902,5 +1060,42 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape) {
   } else if (shape.type === "text" && shape.text) {
     ctx.font = "bold 15px Inter, sans-serif";
     ctx.fillText(shape.text, pts[0].x, pts[0].y);
+  }
+
+  // Draw Selection Highlight Box if shape is selected
+  if (isSelected) {
+    let minX = Math.min(...pts.map((p) => p.x));
+    let maxX = Math.max(...pts.map((p) => p.x));
+    let minY = Math.min(...pts.map((p) => p.y));
+    let maxY = Math.max(...pts.map((p) => p.y));
+
+    if (shape.type === "sticky") {
+      minX = pts[0].x;
+      minY = pts[0].y;
+      maxX = pts[0].x + 180;
+      maxY = pts[0].y + 140;
+    }
+
+    const pad = 6;
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
+    ctx.setLineDash([]); // Reset line dash
+
+    // Control points
+    const corners = [
+      { x: minX - pad, y: minY - pad },
+      { x: maxX + pad, y: minY - pad },
+      { x: maxX + pad, y: maxY + pad },
+      { x: minX - pad, y: maxY + pad },
+    ];
+    corners.forEach((c) => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(c.x - 3, c.y - 3, 6, 6);
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(c.x - 3, c.y - 3, 6, 6);
+    });
   }
 }
