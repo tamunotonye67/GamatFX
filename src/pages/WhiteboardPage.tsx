@@ -79,6 +79,7 @@ import {
   HelpCircle,
   CheckCircle2,
   Zap,
+  Target,
   GraduationCap,
   PlayCircle,
   Lightbulb,
@@ -106,7 +107,11 @@ type Tool =
   | "zoom"
   | "fibo"
   | "long"
-  | "short";
+  | "short"
+  | "orderblock"
+  | "fvg"
+  | "bos"
+  | "liquidity";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -252,6 +257,26 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     desc: "TradingView-style Short Position tool showing Red Stop Loss zone, Green Take Profit target, and Risk-to-Reward ratio.",
     shortcut: "S",
   },
+  orderblock: {
+    title: "Order Block (OB / POI Zone)",
+    desc: "Draw institutional supply & demand Order Blocks with 50% Mean Threshold (MT) mitigation line.",
+    shortcut: "O",
+  },
+  fvg: {
+    title: "Fair Value Gap (FVG / Imbalance)",
+    desc: "Draw 3-candle price imbalance Fair Value Gaps with 50% Consequent Encroachment (C.E.) midline.",
+    shortcut: "G",
+  },
+  bos: {
+    title: "Break of Structure (BOS / CHoCH)",
+    desc: "Draw market structure shift trendlines labeled with BOS (Trend Continuation) or CHoCH (Trend Reversal).",
+    shortcut: "K",
+  },
+  liquidity: {
+    title: "Liquidity Pool ($$$ / BSL / SSL)",
+    desc: "Mark Buy-Side (BSL) and Sell-Side (SSL) liquidity sweep pools and equal highs/lows.",
+    shortcut: "Q",
+  },
 };
 
 interface ShortcutItem {
@@ -290,6 +315,10 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Fibonacci Retracement", keys: ["F"] },
       { label: "Long Position", keys: ["L"] },
       { label: "Short Position", keys: ["S"] },
+      { label: "Order Block (OB Zone)", keys: ["O"] },
+      { label: "Fair Value Gap (FVG)", keys: ["G"] },
+      { label: "Break of Structure (BOS)", keys: ["K"] },
+      { label: "Liquidity Pool ($$$)", keys: ["Q"] },
     ],
   },
   {
@@ -677,11 +706,11 @@ export default function WhiteboardPage() {
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
-  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short">("fibo");
+  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity">("fibo");
   const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky">("text");
 
   // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
-  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short"]);
+  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity"]);
   const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
@@ -1025,6 +1054,10 @@ export default function WhiteboardPage() {
         else if (key === "f") { setActiveForexTool("fibo"); setActiveTool("fibo"); showToast("Forex Tool: Fibonacci Retracement (F)"); }
         else if (key === "l" && !e.shiftKey) { setActiveForexTool("long"); setActiveTool("long"); showToast("Forex Tool: Long Position (L)"); }
         else if (key === "s") { setActiveForexTool("short"); setActiveTool("short"); showToast("Forex Tool: Short Position (S)"); }
+        else if (key === "o") { setActiveForexTool("orderblock"); setActiveTool("orderblock"); showToast("Forex Tool: Order Block Zone (O)"); }
+        else if (key === "g") { setActiveForexTool("fvg"); setActiveTool("fvg"); showToast("Forex Tool: Fair Value Gap / FVG (G)"); }
+        else if (key === "k") { setActiveForexTool("bos"); setActiveTool("bos"); showToast("Forex Tool: Break of Structure / BOS (K)"); }
+        else if (key === "q") { setActiveForexTool("liquidity"); setActiveTool("liquidity"); showToast("Forex Tool: Liquidity Pool / $$$ (Q)"); }
       }
     };
 
@@ -1123,8 +1156,8 @@ export default function WhiteboardPage() {
 
   const selectTool = (tool: ToolType) => {
     setActiveTool(tool);
-    if (tool === "fibo" || tool === "long" || tool === "short") {
-      setActiveForexTool(tool);
+    if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity"].includes(tool)) {
+      setActiveForexTool(tool as any);
     } else if (tool === "pencil" || tool === "highlighter") {
       setActivePenTool(tool);
     } else if (tool === "rectangle" || tool === "circle" || tool === "diamond") {
@@ -1421,7 +1454,19 @@ export default function WhiteboardPage() {
     }
 
     const defaultForexColor =
-      activeTool === "long" ? "#10b981" : activeTool === "short" ? "#dc3545" : strokeColor;
+      activeTool === "long"
+        ? "#10b981"
+        : activeTool === "short"
+        ? "#dc3545"
+        : activeTool === "orderblock"
+        ? "#8b5cf6"
+        : activeTool === "fvg"
+        ? "#f59e0b"
+        : activeTool === "bos"
+        ? "#3b82f6"
+        : activeTool === "liquidity"
+        ? "#e11d48"
+        : strokeColor;
 
     const newShape: Shape = {
       id: `shape_${Date.now()}`,
@@ -1546,7 +1591,11 @@ export default function WhiteboardPage() {
       currentShape.type === "line" ||
       currentShape.type === "long" ||
       currentShape.type === "short" ||
-      currentShape.type === "fibo"
+      currentShape.type === "fibo" ||
+      currentShape.type === "orderblock" ||
+      currentShape.type === "fvg" ||
+      currentShape.type === "bos" ||
+      currentShape.type === "liquidity"
     ) {
       setCurrentShape({
         ...currentShape,
@@ -4850,29 +4899,23 @@ export default function WhiteboardPage() {
             {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
             <div className="relative">
               <WhiteboardToolBtn
-                active={["fibo", "long", "short"].includes(activeTool)}
+                active={["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity"].includes(activeTool)}
                 onClick={() => selectTool(activeForexTool)}
                 onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "forex" ? null : "forex")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "forex" ? null : "forex");
                 }}
-                title="Forex Trading Tools (Click arrow or right-click to choose tool)"
+                title="Forex & SMC Tools (Click arrow or right-click to choose tool)"
                 toolKey={activeForexTool}
-                icon={
-                  activeForexTool === "long"
-                    ? TrendingUp
-                    : activeForexTool === "short"
-                    ? TrendingDown
-                    : Percent
-                }
+                icon={getToolIcon(activeForexTool)}
                 hasFlyout
                 showTooltips={showTooltips}
               />
 
               {flyoutGroup === "forex" && (
-                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
 
                   {/* 1. Fibonacci Retracement */}
                   <button
@@ -4936,6 +4979,94 @@ export default function WhiteboardPage() {
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("short"); }}
                         className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("short") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 4. Order Block Zone */}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("orderblock"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      activeForexTool === "orderblock" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <Boxes className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Order Block (OB Zone)</span>
+                    </span>
+                    <span title={favoritedTools.includes("orderblock") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("orderblock"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("orderblock") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 5. Fair Value Gap (FVG) */}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("fvg"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      activeForexTool === "fvg" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <Zap className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Fair Value Gap (FVG)</span>
+                    </span>
+                    <span title={favoritedTools.includes("fvg") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fvg"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fvg") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 6. Break of Structure (BOS / CHoCH) */}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("bos"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      activeForexTool === "bos" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <Activity className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Break of Structure (BOS)</span>
+                    </span>
+                    <span title={favoritedTools.includes("bos") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bos"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bos") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* 7. Liquidity Sweep Pool */}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("liquidity"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
+                      activeForexTool === "liquidity" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                        <Target className="h-3.5 w-3.5" />
+                      </span>
+                      <span>Liquidity Pool ($$$)</span>
+                    </span>
+                    <span title={favoritedTools.includes("liquidity") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("liquidity"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("liquidity") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -6590,6 +6721,144 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
+                      {/* (H) ORDER BLOCK / POI ZONE */}
+                      {targetTool === "orderblock" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Order Block (OB / POI Zone)</p>
+
+                          {/* Zone Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Zone Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Mitigation Line */}
+                          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-900 border border-purple-200 text-xs space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>50% Mean Threshold (MT)</span>
+                              <span className="text-[10px] bg-purple-200 px-1.5 py-0.5 rounded text-purple-800 font-mono">Mitigation Level</span>
+                            </div>
+                            <p className="text-[11px] text-purple-700 font-medium">Equilibrium midline highlights optimal institutional re-entry trigger.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (I) FAIR VALUE GAP (FVG / IMBALANCE) */}
+                      {targetTool === "fvg" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Fair Value Gap (FVG / Imbalance)</p>
+
+                          {/* Imbalance Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Imbalance Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Consequent Encroachment (50% C.E.) */}
+                          <div className="p-2.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-xs space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>50% Consequent Encroachment (C.E.)</span>
+                              <span className="text-[10px] bg-amber-200 px-1.5 py-0.5 rounded text-amber-800 font-mono">50% C.E.</span>
+                            </div>
+                            <p className="text-[11px] text-amber-700 font-medium">Marks midpoint of 3-candle inefficient delivery.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (J) BREAK OF STRUCTURE (BOS / CHoCH) */}
+                      {targetTool === "bos" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Break of Structure (BOS / CHoCH)</p>
+
+                          {/* Structure Line Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Structure Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-xs font-medium space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>Structure Type</span>
+                              <span className="text-[10px] bg-blue-200 px-1.5 py-0.5 rounded text-blue-800 font-mono">BOS / MSS</span>
+                            </div>
+                            <p className="text-[11px] text-blue-700">Market structure shift confirming swing continuation or character change.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (K) LIQUIDITY POOL ($$$ / SWEEP TARGET) */}
+                      {targetTool === "liquidity" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Liquidity Target ($$$ / Sweep Pool)</p>
+
+                          {/* Pool Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Pool Color</label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-200 text-xs font-medium space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>Liquidity Pool Target</span>
+                              <span className="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-800 font-mono">BSL / SSL</span>
+                            </div>
+                            <p className="text-[11px] text-rose-700">Equal highs (BSL) or equal lows (SSL) stop run magnet.</p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* (H) CANVAS / ENVIRONMENT (When no shape is selected and navigation tool active) */}
                       {!selectedShape && (targetTool === "select" || targetTool === "hand" || targetTool === "zoom" || targetTool === "eraser") && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
@@ -7131,6 +7400,48 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
     );
   }
 
+  if (toolKey === "orderblock") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="18" y="18" width="104" height="58" rx="4" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" strokeWidth="1.5" />
+        <line x1="18" y1="47" x2="122" y2="47" stroke="#8b5cf6" strokeWidth="1" strokeDasharray="3 3" />
+        <text x="70" y="36" textAnchor="middle" fill="#8b5cf6" fontSize="9" fontWeight="bold">ORDER BLOCK (OB)</text>
+        <text x="70" y="60" textAnchor="middle" fill="#a78bfa" fontSize="7.5" fontWeight="bold">50% Mean Threshold</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "fvg") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <rect x="18" y="20" width="104" height="54" rx="4" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" strokeWidth="1.5" />
+        <line x1="18" y1="47" x2="122" y2="47" stroke="#f59e0b" strokeWidth="1" strokeDasharray="4 4" />
+        <text x="70" y="36" textAnchor="middle" fill="#f59e0b" fontSize="9" fontWeight="bold">FAIR VALUE GAP (FVG)</text>
+        <text x="70" y="60" textAnchor="middle" fill="#fde68a" fontSize="7.5" fontWeight="bold">50% C.E. Midline</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "bos") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="20" y1="65" x2="115" y2="30" stroke="#3b82f6" strokeWidth="2" strokeDasharray="4 4" />
+        <circle cx="67.5" cy="47.5" r="11" fill="#3b82f6" />
+        <text x="67.5" y="50.5" textAnchor="middle" fill="#ffffff" fontSize="7.5" fontWeight="bold">BOS</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "liquidity") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        <line x1="20" y1="45" x2="120" y2="45" stroke="#e11d48" strokeWidth="2" strokeDasharray="3 3" />
+        <text x="70" y="36" textAnchor="middle" fill="#e11d48" fontSize="9" fontWeight="bold">$$$ LIQUIDITY POOL</text>
+        <text x="70" y="62" textAnchor="middle" fill="#fb7185" fontSize="7.5" fontWeight="bold">BSL / SSL Target</text>
+      </svg>
+    );
+  }
+
   if (toolKey === "select") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
@@ -7289,6 +7600,10 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "fibo": return Percent;
     case "long": return TrendingUp;
     case "short": return TrendingDown;
+    case "orderblock": return Boxes;
+    case "fvg": return Zap;
+    case "bos": return Activity;
+    case "liquidity": return Target;
     default: return Pencil;
   }
 }
@@ -7355,7 +7670,11 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
     shape.type === "arrow" ||
     shape.type === "fibo" ||
     shape.type === "long" ||
-    shape.type === "short"
+    shape.type === "short" ||
+    shape.type === "orderblock" ||
+    shape.type === "fvg" ||
+    shape.type === "bos" ||
+    shape.type === "liquidity"
   ) {
     let p0 = { ...pts[0] };
     let p1 = { ...pts[1] };
@@ -7576,6 +7895,112 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.fillText(`SHORT | Risk: ${Math.round(stopHeight)} pips | Target: +${Math.round(targetHeight)} pips | R:R 1:${defaultRiskReward.toFixed(1)}`, minX + boxW / 2, bannerY + 10);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
+  } else if (shape.type === "orderblock" && pts.length >= 2) {
+    /* 4. ORDER BLOCK / POI ZONE */
+    const minX = Math.min(pts[0].x, pts[1].x);
+    const minY = Math.min(pts[0].y, pts[1].y);
+    const boxW = Math.abs(pts[1].x - pts[0].x) || 160;
+    const boxH = Math.abs(pts[1].y - pts[0].y) || 60;
+    const midY = minY + boxH / 2;
+
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = shape.color || "#8b5cf6";
+    ctx.fillRect(minX, minY, boxW, boxH);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = shape.color || "#8b5cf6";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minX, minY, boxW, boxH);
+
+    // 50% Mean Threshold line
+    ctx.strokeStyle = shape.color || "#8b5cf6";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(minX, midY);
+    ctx.lineTo(minX + boxW, midY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Order Block Label
+    ctx.fillStyle = shape.color || "#8b5cf6";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillText("ORDER BLOCK (50% MT)", minX + 8, minY + 14);
+  } else if (shape.type === "fvg" && pts.length >= 2) {
+    /* 5. FAIR VALUE GAP (FVG / IMBALANCE) */
+    const minX = Math.min(pts[0].x, pts[1].x);
+    const minY = Math.min(pts[0].y, pts[1].y);
+    const boxW = Math.abs(pts[1].x - pts[0].x) || 160;
+    const boxH = Math.abs(pts[1].y - pts[0].y) || 50;
+    const ceY = minY + boxH / 2;
+
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = shape.color || "#f59e0b";
+    ctx.fillRect(minX, minY, boxW, boxH);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = shape.color || "#f59e0b";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(minX, minY, boxW, boxH);
+
+    // 50% Consequent Encroachment line
+    ctx.strokeStyle = shape.color || "#f59e0b";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(minX, ceY);
+    ctx.lineTo(minX + boxW, ceY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = shape.color || "#f59e0b";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillText("FVG (50% C.E.)", minX + 8, minY + 14);
+  } else if (shape.type === "bos" && pts.length >= 2) {
+    /* 6. BREAK OF STRUCTURE (BOS / CHoCH) */
+    const p1 = pts[0];
+    const p2 = pts[1];
+
+    ctx.strokeStyle = shape.color || "#3b82f6";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Structure Badge
+    const midX = (p1.x + p2.x) / 2;
+    const midY = (p1.y + p2.y) / 2;
+    ctx.fillStyle = shape.color || "#3b82f6";
+    ctx.beginPath();
+    ctx.arc(midX, midY, 11, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("BOS", midX, midY);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  } else if (shape.type === "liquidity" && pts.length >= 2) {
+    /* 7. LIQUIDITY POOL ($$$ / SWEEP TARGET) */
+    const p1 = pts[0];
+    const p2 = pts[1];
+
+    ctx.strokeStyle = shape.color || "#e11d48";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Liquidity $$$ Target Marker
+    const minX = Math.min(p1.x, p2.x);
+    ctx.fillStyle = shape.color || "#e11d48";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillText("$$$ LIQUIDITY POOL", minX + 8, Math.min(p1.y, p2.y) - 6);
   } else if (shape.type === "bezier" && pts.length >= 2) {
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
@@ -7915,6 +8340,61 @@ function getToolCursorStyle(tool: Tool): React.CSSProperties {
             <rect x="15" y="4" width="7" height="4" fill="#ffffff" stroke="#000000" stroke-width="1" rx="0.5"/>
             <rect x="15" y="8" width="7" height="6" fill="#000000" rx="0.5"/>
             <path d="M18.5 9.5V12.5M17 11L18.5 12.5L20 11" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
+    case "orderblock":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <rect x="14" y="4" width="8" height="6" fill="#000000" stroke="#ffffff" stroke-width="0.8" rx="0.5"/>
+            <line x1="14" y1="7" x2="22" y2="7" stroke="#ffffff" stroke-width="0.6" stroke-dasharray="1 1"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
+    case "fvg":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M18 4L15 8H18L16 11" stroke="#000000" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
+    case "bos":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="14" y1="9" x2="22" y2="4" stroke="#000000" stroke-width="1.2" stroke-dasharray="1.5 1.5"/>
+            <circle cx="18" cy="6.5" r="1.5" fill="#000000"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
+    case "liquidity":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="18" cy="7" r="3.5" stroke="#000000" stroke-width="1"/>
+            <circle cx="18" cy="7" r="1" fill="#000000"/>
           </svg>`,
           12,
           12,
