@@ -52,10 +52,8 @@ import {
   AlertTriangle,
   TrendingUp,
   TrendingDown,
-  DollarSign,
-  Zap,
-  Calculator,
   Percent,
+  Minus,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -71,6 +69,7 @@ type Tool =
   | "rectangle"
   | "circle"
   | "diamond"
+  | "line"
   | "arrow"
   | "bezier"
   | "text"
@@ -78,10 +77,7 @@ type Tool =
   | "zoom"
   | "fibo"
   | "long"
-  | "short"
-  | "fvg"
-  | "liquidity"
-  | "position_size";
+  | "short";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -159,6 +155,11 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     desc: "Draw decision tree diamonds for trading rules, entry triggers, and risk matrices.",
     shortcut: "D",
   },
+  line: {
+    title: "Straight Line",
+    desc: "Draw clean straight trendlines, support/resistance levels, or chart boundary lines.",
+    shortcut: "Shift+L",
+  },
   arrow: {
     title: "Connector Arrow",
     desc: "Draw directional trend arrows to show price movement and liquidity flow.",
@@ -204,21 +205,6 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     desc: "TradingView-style Short Position tool showing Red Stop Loss zone, Green Take Profit target, and Risk-to-Reward ratio.",
     shortcut: "S",
   },
-  fvg: {
-    title: "Fair Value Gap (FVG)",
-    desc: "Smart Money Concepts (SMC) Fair Value Gap tool. Highlights 3-candle price imbalance zones for institutional retests.",
-    shortcut: "G",
-  },
-  liquidity: {
-    title: "Liquidity Sweep ($$$)",
-    desc: "Draw Equal Highs (EQH) / Equal Lows (EQL) liquidity sweep lines annotated with $$$ indicators.",
-    shortcut: "Q",
-  },
-  position_size: {
-    title: "Position Size & Risk Box",
-    desc: "Calculate 1% Risk Amount, Target Profit (+3%), and Lot Size (Standard/Mini lots) for position management.",
-    shortcut: "M",
-  },
 };
 
 const INITIAL_TABS: DiagramTab[] = [
@@ -238,12 +224,12 @@ export default function WhiteboardPage() {
 
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
-  const [activeLineTool, setActiveLineTool] = useState<"arrow" | "bezier">("arrow");
+  const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("arrow");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
-  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "fvg" | "liquidity" | "position_size">("fibo");
+  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short">("fibo");
 
   // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
-  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "fibo", "long", "short", "fvg"]);
+  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short"]);
   const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
@@ -448,6 +434,7 @@ export default function WhiteboardPage() {
         else if (key === "r") { setActiveShapeTool("rectangle"); setActiveTool("rectangle"); showToast("Tool: Rectangle (R)"); }
         else if (key === "c") { setActiveShapeTool("circle"); setActiveTool("circle"); showToast("Tool: Circle Node (C)"); }
         else if (key === "d") { setActiveShapeTool("diamond"); setActiveTool("diamond"); showToast("Tool: Decision Diamond (D)"); }
+        else if (key === "l" && e.shiftKey) { setActiveLineTool("line"); setActiveTool("line"); showToast("Tool: Straight Line (Shift+L)"); }
         else if (key === "a") { setActiveLineTool("arrow"); setActiveTool("arrow"); showToast("Tool: Arrow (A)"); }
         else if (key === "b") { setActiveLineTool("bezier"); setActiveTool("bezier"); showToast("Tool: Chart Pattern Path (B)"); }
         else if (key === "n") { setActiveTool("sticky"); showToast("Tool: Sticky Note (N)"); }
@@ -455,11 +442,8 @@ export default function WhiteboardPage() {
         else if (key === "e") { setActiveTool("eraser"); showToast("Tool: Precision Eraser (E)"); }
         else if (key === "z") { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
         else if (key === "f") { setActiveForexTool("fibo"); setActiveTool("fibo"); showToast("Forex Tool: Fibonacci Retracement (F)"); }
-        else if (key === "l") { setActiveForexTool("long"); setActiveTool("long"); showToast("Forex Tool: Long Position (L)"); }
+        else if (key === "l" && !e.shiftKey) { setActiveForexTool("long"); setActiveTool("long"); showToast("Forex Tool: Long Position (L)"); }
         else if (key === "s") { setActiveForexTool("short"); setActiveTool("short"); showToast("Forex Tool: Short Position (S)"); }
-        else if (key === "g") { setActiveForexTool("fvg"); setActiveTool("fvg"); showToast("Forex Tool: Fair Value Gap (G)"); }
-        else if (key === "q") { setActiveForexTool("liquidity"); setActiveTool("liquidity"); showToast("Forex Tool: Liquidity Sweep (Q)"); }
-        else if (key === "m") { setActiveForexTool("position_size"); setActiveTool("position_size"); showToast("Forex Tool: Position Size Calculator (M)"); }
       }
     };
 
@@ -817,15 +801,7 @@ export default function WhiteboardPage() {
     }
 
     const defaultForexColor =
-      activeTool === "long"
-        ? "#10b981"
-        : activeTool === "short"
-        ? "#dc3545"
-        : activeTool === "fvg"
-        ? "#a855f7"
-        : activeTool === "liquidity"
-        ? "#f59e0b"
-        : strokeColor;
+      activeTool === "long" ? "#10b981" : activeTool === "short" ? "#dc3545" : strokeColor;
 
     const newShape: Shape = {
       id: `miro_${Date.now()}`,
@@ -1297,12 +1273,12 @@ export default function WhiteboardPage() {
                 key={tKey}
                 type="button"
                 onClick={() => setActiveTool(tKey)}
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition ${
-                  activeTool === tKey ? "bg-brand text-white shadow-md" : "text-ink hover:bg-cream"
+                className={`h-8 w-8 rounded-xl flex items-center justify-center transition ${
+                  activeTool === tKey ? "bg-brand text-white shadow-md" : "text-slate-700 hover:bg-cream"
                 }`}
                 title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
               >
-                <IconComponent className="h-4 w-4" />
+                <IconComponent className="h-3.5 w-3.5" />
               </button>
             );
           })}
@@ -1526,7 +1502,7 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Tabs Bar: Back to Site -> Vertical Line | -> Diagram Tabs (Clean without tab text/icon) */}
+      {/* Sub-Header Tabs Bar */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center gap-3 shrink-0 z-20 overflow-x-auto">
         <button
           type="button"
@@ -1584,9 +1560,9 @@ export default function WhiteboardPage() {
 
       {/* Main Miro Workspace */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Toolbar Dock */}
-        <aside className="w-16 border-r border-line bg-white p-2 flex flex-col items-center justify-between gap-3 shrink-0 z-20 shadow-md">
-          <div className="space-y-1.5 w-full">
+        {/* Left Toolbar Dock with Smaller Icons & Unified Color Scheme */}
+        <aside className="w-14 border-r border-line bg-white p-1.5 flex flex-col items-center justify-between gap-2 shrink-0 z-20 shadow-md">
+          <div className="space-y-1 w-full">
             <MiroToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
@@ -1612,28 +1588,22 @@ export default function WhiteboardPage() {
               showTooltips={showTooltips}
             />
 
-            {/* 1. FOREX & SMC TRADING TOOLS GROUP (NESTED GROUP) */}
+            {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
             <div className="relative">
               <MiroToolBtn
-                active={["fibo", "long", "short", "fvg", "liquidity", "position_size"].includes(activeTool)}
+                active={["fibo", "long", "short"].includes(activeTool)}
                 onClick={() => setActiveTool(activeForexTool)}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "forex" ? null : "forex");
                 }}
-                title="Forex & SMC Trading Tools (Right click to choose tool or favorite)"
+                title="Forex Trading Tools (Right click to choose tool or favorite)"
                 toolKey={activeForexTool}
                 icon={
                   activeForexTool === "long"
                     ? TrendingUp
                     : activeForexTool === "short"
                     ? TrendingDown
-                    : activeForexTool === "fvg"
-                    ? Zap
-                    : activeForexTool === "liquidity"
-                    ? DollarSign
-                    : activeForexTool === "position_size"
-                    ? Calculator
                     : Percent
                 }
                 badge="FX"
@@ -1642,20 +1612,22 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "forex" && (
-                <div className="absolute left-full top-0 ml-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex Tools</p>
 
                   {/* 1. Fibonacci Retracement */}
                   <button
                     type="button"
                     onClick={() => { setActiveForexTool("fibo"); setActiveTool("fibo"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "fibo" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${
+                      activeForexTool === "fibo" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
                   >
-                    <span className="flex items-center gap-2"><Percent className="h-4 w-4 text-amber-500" /> Fibonacci Retracement</span>
+                    <span className="flex items-center gap-2"><Percent className="h-3.5 w-3.5" /> Fibonacci Retracement</span>
                     <span title={favoritedTools.includes("fibo") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fibo"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fibo") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fibo") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -1664,13 +1636,15 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActiveForexTool("long"); setActiveTool("long"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "long" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${
+                      activeForexTool === "long" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
                   >
-                    <span className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-emerald-600" /> Long Position (Risk:Reward)</span>
+                    <span className="flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5" /> Long Position (Risk:Reward)</span>
                     <span title={favoritedTools.includes("long") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("long"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("long") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("long") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -1679,58 +1653,15 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActiveForexTool("short"); setActiveTool("short"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "short" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${
+                      activeForexTool === "short" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+                    }`}
                   >
-                    <span className="flex items-center gap-2"><TrendingDown className="h-4 w-4 text-rose-600" /> Short Position (Risk:Reward)</span>
+                    <span className="flex items-center gap-2"><TrendingDown className="h-3.5 w-3.5" /> Short Position (Risk:Reward)</span>
                     <span title={favoritedTools.includes("short") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("short"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("short") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 4. Fair Value Gap */}
-                  <button
-                    type="button"
-                    onClick={() => { setActiveForexTool("fvg"); setActiveTool("fvg"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "fvg" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Zap className="h-4 w-4 text-purple-600" /> Fair Value Gap (FVG Zone)</span>
-                    <span title={favoritedTools.includes("fvg") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("fvg"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("fvg") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 5. Liquidity Sweep */}
-                  <button
-                    type="button"
-                    onClick={() => { setActiveForexTool("liquidity"); setActiveTool("liquidity"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "liquidity" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><DollarSign className="h-4 w-4 text-amber-500" /> Liquidity Sweep ($$$)</span>
-                    <span title={favoritedTools.includes("liquidity") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("liquidity"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("liquidity") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
-                      />
-                    </span>
-                  </button>
-
-                  {/* 6. Position Size & Risk Box */}
-                  <button
-                    type="button"
-                    onClick={() => { setActiveForexTool("position_size"); setActiveTool("position_size"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeForexTool === "position_size" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
-                  >
-                    <span className="flex items-center gap-2"><Calculator className="h-4 w-4 text-blue-600" /> Position Size & Risk Box</span>
-                    <span title={favoritedTools.includes("position_size") ? "Remove from Favorites" : "Add to Favorites"}>
-                      <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("position_size"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("position_size") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("short") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -1759,26 +1690,26 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActivePenTool("pencil"); setActiveTool("pencil"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "pencil" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activePenTool === "pencil" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><Pencil className="h-4 w-4" /> Freehand Pen</span>
-                    <span title={favoritedTools.includes("pencil") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Pencil className="h-3.5 w-3.5" /> Freehand Pen</span>
+                    <span title={favoritedTools.includes("pencil") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("pencil"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("pencil") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("pencil") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActivePenTool("highlighter"); setActiveTool("highlighter"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activePenTool === "highlighter" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activePenTool === "highlighter" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><Highlighter className="h-4 w-4 text-amber-500" /> Highlighter</span>
-                    <span title={favoritedTools.includes("highlighter") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Highlighter className="h-3.5 w-3.5" /> Highlighter</span>
+                    <span title={favoritedTools.includes("highlighter") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("highlighter"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("highlighter") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("highlighter") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -1807,39 +1738,39 @@ export default function WhiteboardPage() {
                   <button
                     type="button"
                     onClick={() => { setActiveShapeTool("rectangle"); setActiveTool("rectangle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "rectangle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeShapeTool === "rectangle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><Square className="h-4 w-4" /> Rectangle Zone</span>
-                    <span title={favoritedTools.includes("rectangle") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Square className="h-3.5 w-3.5" /> Rectangle Zone</span>
+                    <span title={favoritedTools.includes("rectangle") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("rectangle"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("rectangle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("rectangle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActiveShapeTool("circle"); setActiveTool("circle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "circle" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeShapeTool === "circle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><Circle className="h-4 w-4" /> Circle Node</span>
-                    <span title={favoritedTools.includes("circle") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Circle className="h-3.5 w-3.5" /> Circle Node</span>
+                    <span title={favoritedTools.includes("circle") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("circle"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("circle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("circle") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => { setActiveShapeTool("diamond"); setActiveTool("diamond"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeShapeTool === "diamond" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeShapeTool === "diamond" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><Diamond className="h-4 w-4" /> Decision Diamond</span>
-                    <span title={favoritedTools.includes("diamond") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Diamond className="h-3.5 w-3.5" /> Decision Diamond</span>
+                    <span title={favoritedTools.includes("diamond") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("diamond"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("diamond") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("diamond") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -1847,10 +1778,10 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* 4. LINES GROUP */}
+            {/* 4. LINES & PATHS GROUP */}
             <div className="relative">
               <MiroToolBtn
-                active={activeTool === "arrow" || activeTool === "bezier"}
+                active={activeTool === "line" || activeTool === "arrow" || activeTool === "bezier"}
                 onClick={() => setActiveTool(activeLineTool)}
                 onContextMenu={(e) => {
                   e.preventDefault();
@@ -1858,37 +1789,56 @@ export default function WhiteboardPage() {
                 }}
                 title="Lines & Paths (Right click to change line type or favorite)"
                 toolKey={activeLineTool}
-                icon={activeLineTool === "bezier" ? Activity : ArrowRight}
+                icon={activeLineTool === "line" ? Minus : activeLineTool === "bezier" ? Activity : ArrowRight}
                 badge={activeLineTool === "bezier" ? "PATH" : undefined}
                 hasFlyout
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "lines" && (
-                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
+                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
+                  
+                  {/* Straight Line Tool */}
                   <button
                     type="button"
-                    onClick={() => { setActiveLineTool("arrow"); setActiveTool("arrow"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "arrow" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    onClick={() => { setActiveLineTool("line"); setActiveTool("line"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeLineTool === "line" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /> Connector Arrow</span>
-                    <span title={favoritedTools.includes("arrow") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Minus className="h-3.5 w-3.5" /> Straight Line</span>
+                    <span title={favoritedTools.includes("line") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
-                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("arrow") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("line"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("line") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
+
+                  {/* Connector Arrow */}
+                  <button
+                    type="button"
+                    onClick={() => { setActiveLineTool("arrow"); setActiveTool("arrow"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeLineTool === "arrow" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                  >
+                    <span className="flex items-center gap-2"><ArrowRight className="h-3.5 w-3.5" /> Connector Arrow</span>
+                    <span title={favoritedTools.includes("arrow") ? "Remove from Favorites" : "Add to Favorites"}>
+                      <Star
+                        onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("arrow"); }}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("arrow") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                      />
+                    </span>
+                  </button>
+
+                  {/* Chart Pattern Path */}
                   <button
                     type="button"
                     onClick={() => { setActiveLineTool("bezier"); setActiveTool("bezier"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold ${activeLineTool === "bezier" ? "bg-brand-light text-brand" : "hover:bg-cream"}`}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeLineTool === "bezier" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
-                    <span className="flex items-center gap-2"><Activity className="h-4 w-4 text-brand" /> Chart Pattern Path</span>
-                    <span title={favoritedTools.includes("bezier") ? "Remove from Favorites Toolbar" : "Add to Favorites Toolbar"}>
+                    <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5" /> Chart Pattern Path</span>
+                    <span title={favoritedTools.includes("bezier") ? "Remove from Favorites" : "Add to Favorites"}>
                       <Star
                         onClick={(e) => { e.stopPropagation(); toggleFavoriteTool("bezier"); }}
-                        className={`h-4 w-4 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bezier") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
+                        className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${favoritedTools.includes("bezier") ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"}`}
                       />
                     </span>
                   </button>
@@ -1959,35 +1909,35 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="space-y-1.5 w-full border-t border-line pt-2">
+          <div className="space-y-1 w-full border-t border-line pt-2">
             <div className="grid grid-cols-2 gap-1">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={shapes.length === 0}
-                className="h-9 rounded-xl flex items-center justify-center text-ink/70 hover:bg-cream disabled:opacity-30"
+                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30"
                 title="Undo (Ctrl + Z)"
               >
-                <RotateCcw className="h-4 w-4" />
+                <RotateCcw className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={handleRedo}
                 disabled={redoStack.length === 0}
-                className="h-9 rounded-xl flex items-center justify-center text-ink/70 hover:bg-cream disabled:opacity-30"
+                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30"
                 title="Redo (Ctrl + Y)"
               >
-                <RotateCw className="h-4 w-4" />
+                <RotateCw className="h-3.5 w-3.5" />
               </button>
             </div>
             <button
               type="button"
               onClick={handleClear}
               disabled={shapes.length === 0}
-              className="w-full h-9 rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30"
+              className="w-full h-8 rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30"
               title="Clear Whiteboard"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
         </aside>
@@ -2147,7 +2097,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <Percent className="h-3.5 w-3.5 text-amber-500" /> Fibonacci Retracement
+                    <Percent className="h-3.5 w-3.5 text-slate-700" /> Fibonacci Retracement
                   </button>
 
                   <button
@@ -2158,7 +2108,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <TrendingUp className="h-3.5 w-3.5 text-emerald-600" /> Long Position Box
+                    <TrendingUp className="h-3.5 w-3.5 text-slate-700" /> Long Position Box
                   </button>
 
                   <button
@@ -2169,7 +2119,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <TrendingDown className="h-3.5 w-3.5 text-rose-600" /> Short Position Box
+                    <TrendingDown className="h-3.5 w-3.5 text-slate-700" /> Short Position Box
                   </button>
 
                   <button
@@ -2182,7 +2132,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Add Sticky Note Here
+                    <StickyNote className="h-3.5 w-3.5 text-slate-700" /> Add Sticky Note Here
                   </button>
 
                   <button
@@ -2195,7 +2145,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <Type className="h-3.5 w-3.5 text-brand" /> Add Text Label Here
+                    <Type className="h-3.5 w-3.5 text-slate-700" /> Add Text Label Here
                   </button>
 
                   <div className="border-t border-line pt-1 mt-1">
@@ -2730,7 +2680,7 @@ function MiroToolBtn({
 
   return (
     <div
-      className="relative w-full group"
+      className="relative w-full group flex items-center justify-center"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -2739,15 +2689,15 @@ function MiroToolBtn({
         onClick={onClick}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative h-11 w-full rounded-xl flex items-center justify-center transition-all ${
+        className={`relative h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
           active
-            ? "bg-brand text-white shadow-lg shadow-brand/20 scale-105"
-            : "text-ink/65 hover:bg-cream hover:text-ink"
+            ? "bg-brand text-white shadow-md shadow-brand/20 scale-105"
+            : "text-slate-700 hover:bg-cream hover:text-ink"
         }`}
       >
-        <Icon className="h-4.5 w-4.5" />
+        <Icon className="h-4 w-4" />
         {badge && (
-          <span className="absolute -top-1 -right-1 text-[8px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-1 rounded">
+          <span className="absolute -top-1 -right-1 text-[7px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-0.5 rounded">
             {badge}
           </span>
         )}
@@ -2825,35 +2775,6 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
     );
   }
 
-  if (toolKey === "fvg") {
-    return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="25" y="25" width="110" height="40" rx="4" fill="rgba(168, 85, 247, 0.25)" stroke="#a855f7" strokeWidth="2" strokeDasharray="4 4" className="animate-pulse" />
-        <text x="80" y="48" textAnchor="middle" fill="#c084fc" fontSize="10" fontWeight="bold">FVG IMBALANCE</text>
-      </svg>
-    );
-  }
-
-  if (toolKey === "liquidity") {
-    return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <line x1="20" y1="45" x2="140" y2="45" stroke="#f59e0b" strokeWidth="2" strokeDasharray="5 3" />
-        <text x="80" y="38" textAnchor="middle" fill="#fbbf24" fontSize="11" fontWeight="bold">$$$ Asian Sweep (EQH)</text>
-      </svg>
-    );
-  }
-
-  if (toolKey === "position_size") {
-    return (
-      <svg className="w-full h-full" viewBox="0 0 160 90">
-        <rect x="25" y="15" width="110" height="60" rx="8" fill="#1e293b" stroke="#3b82f6" strokeWidth="2" />
-        <text x="80" y="33" textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="bold">RISK: $100 (1%)</text>
-        <text x="80" y="48" textAnchor="middle" fill="#34d399" fontSize="9" fontWeight="bold">LOTS: 0.50 Lots</text>
-        <text x="80" y="63" textAnchor="middle" fill="#f43f5e" fontSize="9" fontWeight="bold">TARGET: +$300 (+3%)</text>
-      </svg>
-    );
-  }
-
   if (toolKey === "select") {
     return (
       <svg className="w-full h-full" viewBox="0 0 160 90">
@@ -2911,6 +2832,14 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
       <svg className="w-full h-full" viewBox="0 0 160 90">
         <polygon points="80,15 130,45 80,75 30,45" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" strokeWidth="2.5" className="animate-pulse" />
         <text x="80" y="48" textAnchor="middle" fill="#fde68a" fontSize="9" fontWeight="bold">TRIGGER</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "line") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 160 90">
+        <line x1="25" y1="65" x2="135" y2="25" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
       </svg>
     );
   }
@@ -2994,6 +2923,7 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "rectangle": return Square;
     case "circle": return Circle;
     case "diamond": return Diamond;
+    case "line": return Minus;
     case "arrow": return ArrowRight;
     case "bezier": return Activity;
     case "sticky": return StickyNote;
@@ -3003,9 +2933,6 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "fibo": return Percent;
     case "long": return TrendingUp;
     case "short": return TrendingDown;
-    case "fvg": return Zap;
-    case "liquidity": return DollarSign;
-    case "position_size": return Calculator;
     default: return Pencil;
   }
 }
@@ -3068,12 +2995,11 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
     shape.type === "rectangle" ||
     shape.type === "circle" ||
     shape.type === "diamond" ||
+    shape.type === "line" ||
+    shape.type === "arrow" ||
     shape.type === "fibo" ||
     shape.type === "long" ||
-    shape.type === "short" ||
-    shape.type === "fvg" ||
-    shape.type === "liquidity" ||
-    shape.type === "position_size"
+    shape.type === "short"
   ) {
     let p0 = { ...pts[0] };
     let p1 = { ...pts[1] };
@@ -3096,7 +3022,7 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
   return { ...shape, points: newPts };
 }
 
-/** Renders shapes, Miro sticky notes, and Forex SMC Trading Tools on canvas */
+/** Renders shapes, Miro sticky notes, and Forex Trading Tools on canvas */
 function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false) {
   const pts = shape.points;
   if (pts.length === 0) return;
@@ -3124,6 +3050,12 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+  } else if (shape.type === "line" && pts.length >= 2) {
+    /* STRAIGHT LINE TOOL */
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    ctx.lineTo(pts[1].x, pts[1].y);
     ctx.stroke();
   } else if (shape.type === "sticky") {
     const p = pts[0];
@@ -3229,12 +3161,18 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // R:R Statistics Banner
+    // R:R Statistics Banner - Perfectly Aligned Text!
+    const bannerY = yEntry - targetHeight - 22;
     ctx.fillStyle = "#0f172a";
-    ctx.fillRect(minX, yEntry - targetHeight - 22, boxW, 20);
+    ctx.fillRect(minX, bannerY, boxW, 20);
+
     ctx.fillStyle = "#34d399";
     ctx.font = "bold 10px Inter, sans-serif";
-    ctx.fillText("LONG | Target: +300 pips | Risk: 100 pips | R:R 1:3.0", minX + 6, yEntry - targetHeight - 8);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("LONG | Target: +300 pips | Risk: 100 pips | R:R 1:3.0", minX + boxW / 2, bannerY + 10);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
   } else if (shape.type === "short" && pts.length >= 2) {
     /* 3. SHORT POSITION CALCULATOR TOOL */
     const x1 = pts[0].x;
@@ -3270,72 +3208,18 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // R:R Statistics Banner
+    // R:R Statistics Banner - Perfectly Aligned Text!
+    const bannerY = yEntry - stopHeight - 22;
     ctx.fillStyle = "#0f172a";
-    ctx.fillRect(minX, yEntry - stopHeight - 22, boxW, 20);
-    ctx.fillStyle = "#f43f5e";
-    ctx.font = "bold 10px Inter, sans-serif";
-    ctx.fillText("SHORT | Risk: 100 pips | Target: +300 pips | R:R 1:3.0", minX + 6, yEntry - stopHeight - 8);
-  } else if (shape.type === "fvg" && pts.length >= 2) {
-    /* 4. FAIR VALUE GAP (FVG ZONE) TOOL */
-    const minX = Math.min(pts[0].x, pts[1].x);
-    const minY = Math.min(pts[0].y, pts[1].y);
-    const w = Math.abs(pts[1].x - pts[0].x) || 180;
-    const h = Math.abs(pts[1].y - pts[0].y) || 50;
-
-    ctx.fillStyle = "rgba(168, 85, 247, 0.22)";
-    ctx.fillRect(minX, minY, w, h);
-    ctx.strokeStyle = "#a855f7";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([4, 4]);
-    ctx.strokeRect(minX, minY, w, h);
-
-    ctx.fillStyle = "#c084fc";
-    ctx.font = "bold 11px Inter, sans-serif";
-    ctx.fillText("⚡ FVG / Institutional Imbalance Retest Zone", minX + 8, minY + 20);
-  } else if (shape.type === "liquidity" && pts.length >= 2) {
-    /* 5. LIQUIDITY SWEEP ($$$) TOOL */
-    const minX = Math.min(pts[0].x, pts[1].x);
-    const maxX = Math.max(pts[0].x, pts[1].x) || minX + 200;
-    const y = pts[0].y;
-
-    ctx.strokeStyle = "#f59e0b";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.moveTo(minX, y);
-    ctx.lineTo(maxX, y);
-    ctx.stroke();
-
-    ctx.fillStyle = "#f59e0b";
-    ctx.font = "bold 12px Inter, sans-serif";
-    ctx.fillText("💸 EQH / EQL Liquidity Sweep Line ($$$)", minX + 10, y - 8);
-  } else if (shape.type === "position_size" && pts.length >= 2) {
-    /* 6. POSITION SIZE & RISK CALCULATOR BOX */
-    const minX = Math.min(pts[0].x, pts[1].x);
-    const minY = Math.min(pts[0].y, pts[1].y);
-    const w = Math.max(180, Math.abs(pts[1].x - pts[0].x));
-    const h = Math.max(90, Math.abs(pts[1].y - pts[0].y));
-
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(minX, minY, w, h);
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(minX, minY, w, h);
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 11px Inter, sans-serif";
-    ctx.fillText("📊 POSITION SIZE CALCULATOR", minX + 12, minY + 22);
+    ctx.fillRect(minX, bannerY, boxW, 20);
 
     ctx.fillStyle = "#f43f5e";
     ctx.font = "bold 10px Inter, sans-serif";
-    ctx.fillText("• Risk: $100.00 (1.0% Account)", minX + 12, minY + 40);
-
-    ctx.fillStyle = "#34d399";
-    ctx.fillText("• Target Profit: +$300.00 (+3.0%)", minX + 12, minY + 56);
-
-    ctx.fillStyle = "#fbbf24";
-    ctx.fillText("• Lot Size: 0.50 Standard Lots", minX + 12, minY + 72);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SHORT | Risk: 100 pips | Target: +300 pips | R:R 1:3.0", minX + boxW / 2, bannerY + 10);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
   } else if (shape.type === "bezier" && pts.length >= 2) {
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
