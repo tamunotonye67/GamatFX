@@ -1115,6 +1115,23 @@ export default function WhiteboardPage() {
     ctx.restore();
   }, [shapes, currentShape, selectedShapeIds, marqueeBox, bgGrid, pan, zoom, defaultRiskReward]);
 
+  /* ------------------------- Tool Selection & Synced Categories ------------- */
+
+  const selectTool = (tool: ToolType) => {
+    setActiveTool(tool);
+    if (tool === "fibo" || tool === "long" || tool === "short") {
+      setActiveForexTool(tool);
+    } else if (tool === "pencil" || tool === "highlighter") {
+      setActivePenTool(tool);
+    } else if (tool === "rectangle" || tool === "circle" || tool === "diamond") {
+      setActiveShapeTool(tool);
+    } else if (tool === "line" || tool === "arrow" || tool === "bezier") {
+      setActiveLineTool(tool);
+    } else if (tool === "text" || tool === "sticky") {
+      setActiveNoteTool(tool);
+    }
+  };
+
   /* ------------------------- Coordinate Conversions ----------------------- */
 
   const getCanvasCoords = (e: React.MouseEvent) => {
@@ -1129,7 +1146,7 @@ export default function WhiteboardPage() {
       y: (screenY - pan.y) / zoom,
     };
 
-    if (snapToGrid) {
+    if (snapToGrid && activeTool !== "pencil" && activeTool !== "highlighter" && activeTool !== "eraser") {
       return {
         x: Math.round(rawPt.x / gridSnapSize) * gridSnapSize,
         y: Math.round(rawPt.y / gridSnapSize) * gridSnapSize,
@@ -1508,7 +1525,11 @@ export default function WhiteboardPage() {
     if (!isDrawing.current || !currentShape) return;
 
     // 5. Draw / Expand active shape
-    if (currentShape.type === "pen" || currentShape.type === "highlighter") {
+    if (
+      currentShape.type === "pencil" ||
+      currentShape.type === "pen" ||
+      currentShape.type === "highlighter"
+    ) {
       setCurrentShape({
         ...currentShape,
         points: [...currentShape.points, pt],
@@ -4793,12 +4814,13 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={["fibo", "long", "short"].includes(activeTool)}
-                onClick={() => setActiveTool(activeForexTool)}
+                onClick={() => selectTool(activeForexTool)}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "forex" ? null : "forex")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "forex" ? null : "forex");
                 }}
-                title="Forex Trading Tools (Right click to choose tool or favorite)"
+                title="Forex Trading Tools (Click arrow or right-click to choose tool)"
                 toolKey={activeForexTool}
                 icon={
                   activeForexTool === "long"
@@ -4818,8 +4840,8 @@ export default function WhiteboardPage() {
                   {/* 1. Fibonacci Retracement */}
                   <button
                     type="button"
-                    onClick={() => { setActiveForexTool("fibo"); setActiveTool("fibo"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${
+                    onClick={() => { selectTool("fibo"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
                       activeForexTool === "fibo" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
                     }`}
                   >
@@ -4835,8 +4857,8 @@ export default function WhiteboardPage() {
                   {/* 2. Long Position */}
                   <button
                     type="button"
-                    onClick={() => { setActiveForexTool("long"); setActiveTool("long"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${
+                    onClick={() => { selectTool("long"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
                       activeForexTool === "long" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
                     }`}
                   >
@@ -4852,8 +4874,8 @@ export default function WhiteboardPage() {
                   {/* 3. Short Position */}
                   <button
                     type="button"
-                    onClick={() => { setActiveForexTool("short"); setActiveTool("short"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${
+                    onClick={() => { selectTool("short"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
                       activeForexTool === "short" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
                     }`}
                   >
@@ -4873,12 +4895,13 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={activeTool === "pencil" || activeTool === "highlighter"}
-                onClick={() => setActiveTool(activePenTool)}
+                onClick={() => selectTool(activePenTool)}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "pen" ? null : "pen")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "pen" ? null : "pen");
                 }}
-                title="Freehand Pen (Right click to change tool or favorite)"
+                title="Freehand Pen (Click arrow or right-click to change tool)"
                 toolKey={activePenTool}
                 icon={activePenTool === "highlighter" ? Highlighter : Pencil}
                 hasFlyout
@@ -4889,8 +4912,8 @@ export default function WhiteboardPage() {
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Pen Tools</p>
                   <button
                     type="button"
-                    onClick={() => { setActivePenTool("pencil"); setActiveTool("pencil"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activePenTool === "pencil" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("pencil"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activePenTool === "pencil" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Pencil className="h-3.5 w-3.5" /> Freehand Pen</span>
                     <span title={favoritedTools.includes("pencil") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -4902,8 +4925,8 @@ export default function WhiteboardPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setActivePenTool("highlighter"); setActiveTool("highlighter"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activePenTool === "highlighter" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("highlighter"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activePenTool === "highlighter" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Highlighter className="h-3.5 w-3.5" /> Highlighter</span>
                     <span title={favoritedTools.includes("highlighter") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -4921,12 +4944,13 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
-                onClick={() => setActiveTool(activeShapeTool)}
+                onClick={() => selectTool(activeShapeTool)}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes");
                 }}
-                title="Geometric Shapes (Right click to change shape or favorite)"
+                title="Geometric Shapes (Click arrow or right-click to change shape)"
                 toolKey={activeShapeTool}
                 icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
                 hasFlyout
@@ -4937,8 +4961,8 @@ export default function WhiteboardPage() {
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Shape Tools</p>
                   <button
                     type="button"
-                    onClick={() => { setActiveShapeTool("rectangle"); setActiveTool("rectangle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeShapeTool === "rectangle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("rectangle"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeShapeTool === "rectangle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Square className="h-3.5 w-3.5" /> Rectangle Zone</span>
                     <span title={favoritedTools.includes("rectangle") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -4950,8 +4974,8 @@ export default function WhiteboardPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setActiveShapeTool("circle"); setActiveTool("circle"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeShapeTool === "circle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("circle"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeShapeTool === "circle" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Circle className="h-3.5 w-3.5" /> Circle Node</span>
                     <span title={favoritedTools.includes("circle") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -4963,8 +4987,8 @@ export default function WhiteboardPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setActiveShapeTool("diamond"); setActiveTool("diamond"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeShapeTool === "diamond" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("diamond"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeShapeTool === "diamond" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Diamond className="h-3.5 w-3.5" /> Decision Diamond</span>
                     <span title={favoritedTools.includes("diamond") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -4982,12 +5006,13 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={activeTool === "line" || activeTool === "arrow" || activeTool === "bezier"}
-                onClick={() => setActiveTool(activeLineTool)}
+                onClick={() => selectTool(activeLineTool)}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "lines" ? null : "lines")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "lines" ? null : "lines");
                 }}
-                title="Lines & Paths (Right click to change line type or favorite)"
+                title="Lines & Paths (Click arrow or right-click to change line type)"
                 toolKey={activeLineTool}
                 icon={activeLineTool === "line" ? Minus : activeLineTool === "bezier" ? Activity : ArrowRight}
                 hasFlyout
@@ -5000,8 +5025,8 @@ export default function WhiteboardPage() {
                   {/* Straight Line Tool */}
                   <button
                     type="button"
-                    onClick={() => { setActiveLineTool("line"); setActiveTool("line"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeLineTool === "line" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("line"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "line" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Minus className="h-3.5 w-3.5" /> Straight Line</span>
                     <span title={favoritedTools.includes("line") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -5015,8 +5040,8 @@ export default function WhiteboardPage() {
                   {/* Connector Arrow */}
                   <button
                     type="button"
-                    onClick={() => { setActiveLineTool("arrow"); setActiveTool("arrow"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeLineTool === "arrow" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("arrow"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "arrow" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><ArrowRight className="h-3.5 w-3.5" /> Connector Arrow</span>
                     <span title={favoritedTools.includes("arrow") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -5030,8 +5055,8 @@ export default function WhiteboardPage() {
                   {/* Chart Pattern Path */}
                   <button
                     type="button"
-                    onClick={() => { setActiveLineTool("bezier"); setActiveTool("bezier"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeLineTool === "bezier" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("bezier"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeLineTool === "bezier" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5" /> Chart Pattern Path</span>
                     <span title={favoritedTools.includes("bezier") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -5049,12 +5074,13 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={activeTool === "text" || activeTool === "sticky"}
-                onClick={() => setActiveTool(activeNoteTool)}
+                onClick={() => selectTool(activeNoteTool)}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "notes" ? null : "notes")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "notes" ? null : "notes");
                 }}
-                title="Text & Sticky Notes (Right click to choose tool or favorite)"
+                title="Text & Sticky Notes (Click arrow or right-click to choose tool)"
                 toolKey={activeNoteTool}
                 icon={activeNoteTool === "sticky" ? StickyNote : Type}
                 hasFlyout
@@ -5067,8 +5093,8 @@ export default function WhiteboardPage() {
                   {/* Text Label */}
                   <button
                     type="button"
-                    onClick={() => { setActiveNoteTool("text"); setActiveTool("text"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeNoteTool === "text" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("text"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeNoteTool === "text" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><Type className="h-3.5 w-3.5" /> Text Label (T)</span>
                     <span title={favoritedTools.includes("text") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -5082,8 +5108,8 @@ export default function WhiteboardPage() {
                   {/* Sticky Note */}
                   <button
                     type="button"
-                    onClick={() => { setActiveNoteTool("sticky"); setActiveTool("sticky"); setFlyoutGroup(null); }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition ${activeNoteTool === "sticky" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
+                    onClick={() => { selectTool("sticky"); setFlyoutGroup(null); }}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${activeNoteTool === "sticky" ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"}`}
                   >
                     <span className="flex items-center gap-2"><StickyNote className="h-3.5 w-3.5" /> Sticky Note (N)</span>
                     <span title={favoritedTools.includes("sticky") ? "Remove from Favorites" : "Add to Favorites"}>
@@ -5100,7 +5126,7 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={activeTool === "eraser"}
-                onClick={() => setActiveTool("eraser")}
+                onClick={() => selectTool("eraser")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   toggleFavoriteTool("eraser");
@@ -5115,7 +5141,7 @@ export default function WhiteboardPage() {
             <div className="relative">
               <WhiteboardToolBtn
                 active={activeTool === "zoom"}
-                onClick={() => setActiveTool("zoom")}
+                onClick={() => selectTool("zoom")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   toggleFavoriteTool("zoom");
@@ -6565,6 +6591,7 @@ function WhiteboardToolBtn({
   active,
   onClick,
   onContextMenu,
+  onFlyoutToggle,
   title,
   toolKey,
   icon: Icon,
@@ -6574,6 +6601,7 @@ function WhiteboardToolBtn({
   active: boolean;
   onClick: () => void;
   onContextMenu?: (e: React.MouseEvent) => void;
+  onFlyoutToggle?: (e: React.MouseEvent) => void;
   title: string;
   toolKey: string;
   icon: React.ElementType;
@@ -6591,10 +6619,15 @@ function WhiteboardToolBtn({
     >
       <button
         type="button"
-        onClick={onClick}
+        onClick={(e) => {
+          onClick();
+          if (hasFlyout && onFlyoutToggle && active) {
+            onFlyoutToggle(e);
+          }
+        }}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative h-10 w-10 aspect-square rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+        className={`relative h-10 w-10 aspect-square rounded-xl flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
           active
             ? "bg-brand text-white shadow-md shadow-brand/20"
             : "text-slate-700 hover:bg-cream hover:text-ink"
@@ -6602,12 +6635,21 @@ function WhiteboardToolBtn({
       >
         <Icon className="h-4 w-4 shrink-0" />
         {hasFlyout && (
-          <ChevronRight className="absolute right-0.5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 opacity-60 pointer-events-none" />
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onFlyoutToggle) onFlyoutToggle(e);
+            }}
+            className="absolute -right-0.5 top-0 bottom-0 px-0.5 flex items-center justify-center text-slate-400 hover:text-ink hover:scale-125 transition cursor-pointer"
+            title="Expand tool options"
+          >
+            <ChevronRight className="h-2.5 w-2.5" />
+          </span>
         )}
       </button>
 
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
-      {showTooltips && isHovered && explanation && (
+      {showTooltips && isHovered && explanation && !hasFlyout && (
         <div className="absolute left-full top-0 ml-3 w-52 rounded-2xl border border-slate-700 bg-slate-900 text-white p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
           {/* Visual Illustration Container - Compact and Proportional */}
           <div className="w-full h-28 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
