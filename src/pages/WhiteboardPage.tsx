@@ -3816,7 +3816,7 @@ function MiroToolBtn({
           </span>
         )}
         {hasFlyout && (
-          <ChevronRight className="absolute right-0.5 bottom-0.5 h-2.5 w-2.5 opacity-60" />
+          <ChevronRight className="absolute right-0.5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 opacity-60 pointer-events-none" />
         )}
       </button>
 
