@@ -4284,16 +4284,15 @@ export default function WhiteboardPage() {
 
       {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
       <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-30 relative">
-        {/* Left Side: Back to Files & Active Tabs List */}
+        {/* Left Side: Home Icon Hub Link & Active Tabs List */}
         <div className="flex items-center gap-3 shrink-0 max-w-[85vw]">
           <button
             type="button"
             onClick={handleReturnToHub}
-            className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-brand-light hover:text-brand transition shrink-0 cursor-pointer shadow-xs"
-            title="Back to Files & Whiteboard Hub (Auto-saves current canvas)"
+            className="flex items-center justify-center p-1.5 rounded-xl border border-line bg-white text-slate-700 hover:bg-brand-light hover:text-brand hover:border-brand/40 transition shrink-0 cursor-pointer shadow-xs"
+            title="Return to Files Hub (Auto-saves current canvas)"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span className="text-[11px] font-extrabold">Back to Files</span>
+            <Home className="h-4 w-4" />
           </button>
 
           {/* Vertical Separator Line */}
