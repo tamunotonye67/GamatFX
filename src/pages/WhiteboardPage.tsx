@@ -32,6 +32,7 @@ import {
   X,
   Plus,
   Settings,
+  Keyboard,
   Check,
   Search,
   ChevronRight,
@@ -230,6 +231,72 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
   },
 };
 
+interface ShortcutItem {
+  label: string;
+  keys: string[];
+}
+
+interface ShortcutCategory {
+  category: string;
+  items: ShortcutItem[];
+}
+
+const SHORTCUT_GROUPS: ShortcutCategory[] = [
+  {
+    category: "Drawing & Diagram Tools",
+    items: [
+      { label: "Select & Move Object", keys: ["V"] },
+      { label: "Hand / Pan Canvas", keys: ["H"] },
+      { label: "Freehand Pen", keys: ["P"] },
+      { label: "Highlighter Pen", keys: ["Shift", "P"] },
+      { label: "Rectangle Zone Box", keys: ["R"] },
+      { label: "Circle Node", keys: ["C"] },
+      { label: "Decision Diamond", keys: ["D"] },
+      { label: "Straight Line", keys: ["Shift", "L"] },
+      { label: "Connector Arrow", keys: ["A"] },
+      { label: "Chart Pattern Path (Bezier)", keys: ["B"] },
+      { label: "Teaching Sticky Note", keys: ["N"] },
+      { label: "Text Label Tool", keys: ["T"] },
+      { label: "Precision Eraser", keys: ["E"] },
+      { label: "Zoom Tool", keys: ["Z"] },
+    ],
+  },
+  {
+    category: "Forex & Trading Setups",
+    items: [
+      { label: "Fibonacci Retracement", keys: ["F"] },
+      { label: "Long Position (Risk:Reward)", keys: ["L"] },
+      { label: "Short Position (Risk:Reward)", keys: ["S"] },
+    ],
+  },
+  {
+    category: "Canvas Navigation & Gestures",
+    items: [
+      { label: "Pan Across Canvas", keys: ["Space + Drag"] },
+      { label: "Zoom In (+15%)", keys: ["+"] },
+      { label: "Zoom Out (-15%)", keys: ["-"] },
+      { label: "Zoom with Mouse", keys: ["Ctrl", "Wheel"] },
+      { label: "Deselect All / Close Menus", keys: ["Esc"] },
+      { label: "Open Shortcuts Reference", keys: ["?"] },
+    ],
+  },
+  {
+    category: "Object Manipulation & Layers",
+    items: [
+      { label: "Undo Last Action", keys: ["Ctrl", "Z"] },
+      { label: "Redo Last Action", keys: ["Ctrl", "Y"] },
+      { label: "Save Diagram Draft", keys: ["Ctrl", "S"] },
+      { label: "Select All Objects", keys: ["Ctrl", "A"] },
+      { label: "Duplicate Object", keys: ["Ctrl", "D"] },
+      { label: "Duplicate with Mouse", keys: ["Alt + Drag"] },
+      { label: "Lock / Unlock Object", keys: ["Ctrl", "L"] },
+      { label: "Delete Selected", keys: ["Delete"] },
+      { label: "Bring Layer Up", keys: ["]"] },
+      { label: "Send Layer Down", keys: ["["] },
+    ],
+  },
+];
+
 const INITIAL_TABS: DiagramTab[] = [
   { id: "blank", name: "Blank Canvas" },
   { id: "mindmap", name: "Forex Basics Mind Map" },
@@ -302,6 +369,8 @@ export default function WhiteboardPage() {
   const [exportOpen, setExportOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [shortcutFilter, setShortcutFilter] = useState("");
   const [maxTabPromptOpen, setMaxTabPromptOpen] = useState(false);
 
   // Custom New Tab Naming Modal State
@@ -489,11 +558,19 @@ export default function WhiteboardPage() {
         return;
       }
 
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
+        return;
+      }
+
       if (e.key === "Escape") {
         setSelectedShapeIds([]);
         setActiveTool("select");
         setContextMenu(null);
         setDiagramsMenuOpen(false);
+        setShortcutsOpen(false);
+        setSettingsOpen(false);
         return;
       }
 
@@ -2011,6 +2088,17 @@ export default function WhiteboardPage() {
             <SlidersHorizontal className="h-4 w-4" />
           </button>
 
+          {/* Keyboard Shortcuts Reference Guide */}
+          <button
+            type="button"
+            onClick={() => setShortcutsOpen(true)}
+            className="rounded-xl border border-line bg-cream px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-white transition flex items-center gap-1.5 shadow-sm"
+            title="Keyboard Shortcuts & Controls (?)"
+          >
+            <Keyboard className="h-4 w-4 text-slate-700" />
+            <span className="hidden md:inline">Shortcuts</span>
+          </button>
+
           {/* Whiteboard Settings Preferences Button */}
           <button
             type="button"
@@ -2694,7 +2782,7 @@ export default function WhiteboardPage() {
                 className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30"
                 title="Undo (Ctrl + Z)"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-3.5 w-3.5 shrink-0" />
               </button>
               <button
                 type="button"
@@ -2703,7 +2791,7 @@ export default function WhiteboardPage() {
                 className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30"
                 title="Redo (Ctrl + Y)"
               >
-                <RotateCw className="h-3.5 w-3.5" />
+                <RotateCw className="h-3.5 w-3.5 shrink-0" />
               </button>
             </div>
             <button
@@ -2713,7 +2801,7 @@ export default function WhiteboardPage() {
               className="w-full h-8 rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30"
               title="Clear Whiteboard"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-3.5 w-3.5 shrink-0" />
             </button>
           </div>
         </aside>
@@ -2946,6 +3034,110 @@ export default function WhiteboardPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* EXPANDED KEYBOARD SHORTCUTS REFERENCE MODAL */}
+          {shortcutsOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in">
+              <div className="w-full max-w-2xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-4 max-h-[88vh] flex flex-col">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between border-b border-line pb-3 shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-2xl bg-brand-light text-brand flex items-center justify-center shrink-0">
+                      <Keyboard className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-extrabold text-ink text-base">Keyboard Shortcuts & Quick Controls</h3>
+                      <p className="text-[11px] text-muted font-medium">Quick reference cheat-sheet for fast technical analysis & charting</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShortcutsOpen(false)}
+                    className="rounded-xl p-1.5 text-muted hover:text-ink hover:bg-cream transition"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative shrink-0">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted pointer-events-none" />
+                  <input
+                    type="text"
+                    value={shortcutFilter}
+                    onChange={(e) => setShortcutFilter(e.target.value)}
+                    placeholder="Search shortcuts (e.g., select, fibo, undo, duplicate, path, eraser)..."
+                    className="w-full pl-10 pr-14 py-2 rounded-2xl border border-line bg-cream text-xs text-ink placeholder:text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white transition"
+                  />
+                  {shortcutFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setShortcutFilter("")}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted hover:text-ink"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {/* Shortcuts List by Categories */}
+                <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+                  {SHORTCUT_GROUPS.map((group) => {
+                    const filteredItems = group.items.filter((item) =>
+                      !shortcutFilter ||
+                      item.label.toLowerCase().includes(shortcutFilter.toLowerCase()) ||
+                      item.keys.some((k) => k.toLowerCase().includes(shortcutFilter.toLowerCase()))
+                    );
+
+                    if (filteredItems.length === 0) return null;
+
+                    return (
+                      <div key={group.category} className="space-y-2 rounded-2xl border border-line bg-cream/50 p-3.5">
+                        <div className="flex items-center justify-between text-ink font-extrabold text-xs">
+                          <h4>{group.category}</h4>
+                          <span className="text-[10px] text-muted font-normal">({filteredItems.length})</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {filteredItems.map((item) => (
+                            <div
+                              key={item.label}
+                              className="flex items-center justify-between p-2 rounded-xl bg-white border border-line shadow-xs"
+                            >
+                              <span className="font-semibold text-slate-800 text-[11px]">{item.label}</span>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {item.keys.map((key) => (
+                                  <kbd
+                                    key={key}
+                                    className="px-2 py-0.5 rounded-lg border border-slate-300 bg-slate-100 font-mono text-[10px] font-extrabold text-slate-800 shadow-xs"
+                                  >
+                                    {key}
+                                  </kbd>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Footer Note */}
+                <div className="flex items-center justify-between border-t border-line pt-3 text-[11px] text-muted shrink-0">
+                  <div className="flex items-center gap-1.5">
+                    <span>Press <kbd className="px-1.5 py-0.5 rounded border border-slate-300 bg-slate-100 font-mono text-[10px] font-bold text-ink">?</kbd> anywhere to toggle this cheat-sheet</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShortcutsOpen(false)}
+                    className="btn-primary !py-1.5 !px-4 text-xs font-bold"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -3803,15 +3995,15 @@ function MiroToolBtn({
         onClick={onClick}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
+        className={`relative h-10 w-10 aspect-square rounded-xl flex items-center justify-center shrink-0 transition-colors ${
           active
-            ? "bg-brand text-white shadow-md shadow-brand/20 scale-105"
+            ? "bg-brand text-white shadow-md shadow-brand/20"
             : "text-slate-700 hover:bg-cream hover:text-ink"
         }`}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="h-4 w-4 shrink-0" />
         {badge && (
-          <span className="absolute -top-1 -right-1 text-[7px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-0.5 rounded">
+          <span className="absolute -top-1 -right-1 text-[7px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-0.5 rounded pointer-events-none">
             {badge}
           </span>
         )}
