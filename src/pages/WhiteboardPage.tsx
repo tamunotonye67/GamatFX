@@ -42,6 +42,7 @@ import {
   SlidersHorizontal,
   PanelRightClose,
   PanelRightOpen,
+  Info,
 } from "lucide-react";
 
 /* ========================================================================== */
@@ -101,6 +102,74 @@ const CANVAS_THEMES = [
   { id: "chalkboard", name: "Chalkboard Green" },
 ];
 
+const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?: string }> = {
+  select: {
+    title: "Select & Move Tool",
+    desc: "Click to select, move or drag corner handles to resize. Hold Alt while dragging to duplicate objects.",
+    shortcut: "V / Alt+Drag",
+  },
+  hand: {
+    title: "Pan / Hand Tool",
+    desc: "Click and drag anywhere on the canvas background to move around your forex teaching diagram.",
+    shortcut: "H / Space",
+  },
+  pencil: {
+    title: "Freehand Pen",
+    desc: "Draw freehand diagrams, market trendlines, and handwritten teaching annotations.",
+    shortcut: "P",
+  },
+  highlighter: {
+    title: "Highlighter Pen",
+    desc: "Highlight key order block zones and price structures with translucent yellow ink.",
+    shortcut: "Shift+P",
+  },
+  rectangle: {
+    title: "Rectangle Zone Box",
+    desc: "Draw rectangular boxes for Support, Resistance, Supply & Demand, or Order Block zones.",
+    shortcut: "R",
+  },
+  circle: {
+    title: "Circle Node",
+    desc: "Draw circular target nodes, stop loss circles, or price liquidity levels.",
+    shortcut: "C",
+  },
+  diamond: {
+    title: "Decision Diamond",
+    desc: "Draw decision tree diamonds for trading rules, entry triggers, and risk matrices.",
+    shortcut: "D",
+  },
+  arrow: {
+    title: "Connector Arrow",
+    desc: "Draw directional trend arrows to show price movement and liquidity flow.",
+    shortcut: "A",
+  },
+  bezier: {
+    title: "Chart Pattern Path",
+    desc: "Draw continuous multi-point Forex chart patterns (Head & Shoulders, Flags, Triangles). Double-click to complete.",
+    shortcut: "B",
+  },
+  sticky: {
+    title: "Teaching Sticky Note",
+    desc: "Add colorful Miro-style sticky notes to write trading rules, teaching tips, or trade setups.",
+    shortcut: "N",
+  },
+  text: {
+    title: "Text Label Tool",
+    desc: "Click anywhere on the whiteboard to add clear text titles, price levels, or notes.",
+    shortcut: "T",
+  },
+  eraser: {
+    title: "Precision Eraser",
+    desc: "Erases only the exact line stroke segments touched by the eraser tip without deleting whole shapes.",
+    shortcut: "E",
+  },
+  zoom: {
+    title: "Zoom Tool",
+    desc: "Click to zoom into details or use your mouse scroll wheel to zoom in and out smoothly.",
+    shortcut: "Z / Scroll",
+  },
+};
+
 const INITIAL_TABS: DiagramTab[] = [
   { id: "blank", name: "Blank Canvas" },
   { id: "mindmap", name: "Forex Basics Mind Map" },
@@ -130,6 +199,9 @@ export default function WhiteboardPage() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  // Preference Setting: Show Tooltip Explanations
+  const [showTooltips, setShowTooltips] = useState(true);
 
   // Inspector Panel State (Expandable & Collapsible Figma/Photoshop Panel)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
@@ -1075,7 +1147,7 @@ export default function WhiteboardPage() {
             )}
           </div>
 
-          {/* Inspector Panel Toggle Button (Figma Style) */}
+          {/* Inspector Panel Toggle Button */}
           <button
             type="button"
             onClick={() => setIsInspectorOpen(!isInspectorOpen)}
@@ -1171,13 +1243,17 @@ export default function WhiteboardPage() {
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
               title="Select, Move, Resize & Alt+Drag Duplicate"
+              toolKey="select"
               icon={MousePointer}
+              showTooltips={showTooltips}
             />
             <MiroToolBtn
               active={activeTool === "hand"}
               onClick={() => setActiveTool("hand")}
               title="Pan / Hand Tool (Drag background)"
+              toolKey="hand"
               icon={Hand}
+              showTooltips={showTooltips}
             />
 
             {/* 1. FREEHAND GROUP */}
@@ -1190,8 +1266,10 @@ export default function WhiteboardPage() {
                   setFlyoutGroup(flyoutGroup === "pen" ? null : "pen");
                 }}
                 title="Freehand Pen (Right click to change tool)"
+                toolKey={activePenTool}
                 icon={activePenTool === "highlighter" ? Highlighter : Pencil}
                 hasFlyout
+                showTooltips={showTooltips}
               />
               {flyoutGroup === "pen" && (
                 <div className="absolute left-full top-0 ml-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
@@ -1224,8 +1302,10 @@ export default function WhiteboardPage() {
                   setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes");
                 }}
                 title="Geometric Shapes (Right click to change shape)"
+                toolKey={activeShapeTool}
                 icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
                 hasFlyout
+                showTooltips={showTooltips}
               />
               {flyoutGroup === "shapes" && (
                 <div className="absolute left-full top-0 ml-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
@@ -1265,9 +1345,11 @@ export default function WhiteboardPage() {
                   setFlyoutGroup(flyoutGroup === "lines" ? null : "lines");
                 }}
                 title="Lines & Paths (Right click to change line type)"
+                toolKey={activeLineTool}
                 icon={activeLineTool === "bezier" ? Activity : ArrowRight}
                 badge={activeLineTool === "bezier" ? "PATH" : undefined}
                 hasFlyout
+                showTooltips={showTooltips}
               />
               {flyoutGroup === "lines" && (
                 <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in">
@@ -1294,26 +1376,34 @@ export default function WhiteboardPage() {
               active={activeTool === "sticky"}
               onClick={() => setActiveTool("sticky")}
               title="Sticky Note"
+              toolKey="sticky"
               icon={StickyNote}
               badge="NOTE"
+              showTooltips={showTooltips}
             />
             <MiroToolBtn
               active={activeTool === "text"}
               onClick={() => setActiveTool("text")}
               title="Text Label"
+              toolKey="text"
               icon={Type}
+              showTooltips={showTooltips}
             />
             <MiroToolBtn
               active={activeTool === "eraser"}
               onClick={() => setActiveTool("eraser")}
               title="Precision Eraser Tool"
+              toolKey="eraser"
               icon={Eraser}
+              showTooltips={showTooltips}
             />
             <MiroToolBtn
               active={activeTool === "zoom"}
               onClick={() => setActiveTool("zoom")}
               title="Zoom Tool"
+              toolKey="zoom"
               icon={Search}
+              showTooltips={showTooltips}
             />
           </div>
 
@@ -1602,6 +1692,28 @@ export default function WhiteboardPage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Tooltip Explanation Preference Toggle */}
+                  <div className="flex items-center justify-between pt-2 border-t border-line">
+                    <div>
+                      <label className="font-bold text-ink flex items-center gap-1.5">
+                        <Info className="h-4 w-4 text-brand" /> Show Tooltip Explanations
+                      </label>
+                      <p className="text-[10px] text-muted">Displays helpful guide cards when hovering left dock tools</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTooltips(!showTooltips);
+                        showToast(showTooltips ? "Disabled tool explanations" : "Enabled tool explanations");
+                      }}
+                      className={`w-12 h-6 rounded-full transition-colors p-1 flex items-center ${
+                        showTooltips ? "bg-brand justify-end" : "bg-slate-300 justify-start"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex justify-end pt-2">
@@ -1658,7 +1770,7 @@ export default function WhiteboardPage() {
           )}
         </main>
 
-        {/* Right Collapsible & Expandable Inspector Panel (Figma / Photoshop Style) */}
+        {/* Right Collapsible & Expandable Inspector Panel */}
         {isInspectorOpen ? (
           <aside className="w-72 border-l border-line bg-white p-4 flex flex-col justify-between shrink-0 z-20 shadow-xl overflow-y-auto animate-in slide-in-from-right duration-200">
             <div className="space-y-5">
@@ -1798,7 +1910,7 @@ export default function WhiteboardPage() {
                 </div>
               </div>
 
-              {/* 3. LAYERING & OBJECT ACTIONS (Photoshop Style) */}
+              {/* 3. LAYERING & OBJECT ACTIONS */}
               <div className="space-y-3">
                 <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Actions</p>
 
@@ -1874,40 +1986,68 @@ function MiroToolBtn({
   onClick,
   onContextMenu,
   title,
+  toolKey,
   icon: Icon,
   badge,
   hasFlyout,
+  showTooltips,
 }: {
   active: boolean;
   onClick: () => void;
   onContextMenu?: (e: React.MouseEvent) => void;
   title: string;
+  toolKey: string;
   icon: React.ElementType;
   badge?: string;
   hasFlyout?: boolean;
+  showTooltips: boolean;
 }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const explanation = TOOL_EXPLANATIONS[toolKey];
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      onContextMenu={onContextMenu}
-      title={title}
-      className={`relative h-11 w-full rounded-xl flex items-center justify-center transition-all ${
-        active
-          ? "bg-brand text-white shadow-lg shadow-brand/20 scale-105"
-          : "text-ink/65 hover:bg-cream hover:text-ink"
-      }`}
+    <div
+      className="relative w-full"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <Icon className="h-4.5 w-4.5" />
-      {badge && (
-        <span className="absolute -top-1 -right-1 text-[8px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-1 rounded">
-          {badge}
-        </span>
+      <button
+        type="button"
+        onClick={onClick}
+        onContextMenu={onContextMenu}
+        title={explanation?.title || title}
+        className={`relative h-11 w-full rounded-xl flex items-center justify-center transition-all ${
+          active
+            ? "bg-brand text-white shadow-lg shadow-brand/20 scale-105"
+            : "text-ink/65 hover:bg-cream hover:text-ink"
+        }`}
+      >
+        <Icon className="h-4.5 w-4.5" />
+        {badge && (
+          <span className="absolute -top-1 -right-1 text-[8px] font-black uppercase tracking-tighter bg-amber-400 text-slate-950 px-1 rounded">
+            {badge}
+          </span>
+        )}
+        {hasFlyout && (
+          <ChevronRight className="absolute right-0.5 bottom-0.5 h-2.5 w-2.5 opacity-60" />
+        )}
+      </button>
+
+      {/* Rich Interactive Tooltip Popover with Brief Explanation */}
+      {showTooltips && isHovered && explanation && (
+        <div className="absolute left-full top-0 ml-3 w-60 rounded-2xl border border-line bg-slate-900 text-white p-3 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1.5">
+            <h4 className="font-extrabold text-xs text-amber-400">{explanation.title}</h4>
+            {explanation.shortcut && (
+              <span className="text-[9px] font-black uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
+                {explanation.shortcut}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
+        </div>
       )}
-      {hasFlyout && (
-        <ChevronRight className="absolute right-0.5 bottom-0.5 h-2.5 w-2.5 opacity-60" />
-      )}
-    </button>
+    </div>
   );
 }
 
