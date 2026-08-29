@@ -291,14 +291,31 @@ export default function WhiteboardPage() {
     };
   }, []);
 
-  /* -------------------------- Keyboard Handlers ---------------------------- */
+  /* -------------------------- FULL KEYBOARD SHORTCUTS ---------------------- */
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+      const targetTag = (e.target as HTMLElement).tagName;
+      if (targetTag === "INPUT" || targetTag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+
+      const key = e.key.toLowerCase();
+      const isCtrl = e.ctrlKey || e.metaKey;
+
+      // 1. Action Shortcuts
+      if (isCtrl && key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+
+      if (isCtrl && (key === "y" || (e.shiftKey && key === "z"))) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
 
       if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeIds.length > 0) {
-        // Only delete unlocked shapes!
+        e.preventDefault();
         const deletable = selectedShapeIds.filter((id) => {
           const target = shapes.find((s) => s.id === id);
           return target && !target.isLocked;
@@ -311,14 +328,89 @@ export default function WhiteboardPage() {
         } else {
           showToast("Locked object(s) cannot be deleted!");
         }
+        return;
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
-        handleUndo();
+      if (isCtrl && key === "a") {
+        e.preventDefault();
+        const allUnlockedOrVisible = shapes.filter((s) => !s.isHidden).map((s) => s.id);
+        setSelectedShapeIds(allUnlockedOrVisible);
+        if (allUnlockedOrVisible.length > 0) showToast(`Selected all ${allUnlockedOrVisible.length} objects! (Ctrl+A)`);
+        return;
       }
 
-      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) {
-        handleRedo();
+      if (isCtrl && key === "d" && selectedShapeIds.length > 0) {
+        e.preventDefault();
+        const toDup = shapes.filter((s) => selectedShapeIds.includes(s.id));
+        const dups: Shape[] = toDup.map((s) => ({
+          ...s,
+          id: `miro_dup_${Date.now()}_${Math.random()}`,
+          isLocked: false,
+          points: s.points.map((p) => ({ x: p.x + 25, y: p.y + 25 })),
+        }));
+        setShapes((prev) => [...prev, ...dups]);
+        setSelectedShapeIds(dups.map((d) => d.id));
+        showToast(`Duplicated ${dups.length} object(s)! (Ctrl+D)`);
+        return;
+      }
+
+      if (isCtrl && key === "l" && selectedShapeIds.length > 0) {
+        e.preventDefault();
+        setShapes((prev) =>
+          prev.map((s) => (selectedShapeIds.includes(s.id) ? { ...s, isLocked: !s.isLocked } : s))
+        );
+        showToast("Toggled lock state! (Ctrl+L)");
+        return;
+      }
+
+      if (e.key === "Escape") {
+        setSelectedShapeIds([]);
+        setActiveTool("select");
+        setContextMenu(null);
+        return;
+      }
+
+      if (e.key === "[" && selectedShapeIds.length > 0) {
+        selectedShapeIds.forEach((id) => {
+          const idx = shapes.findIndex((s) => s.id === id);
+          if (idx > 0) moveLayerDown(idx);
+        });
+        return;
+      }
+
+      if (e.key === "]" && selectedShapeIds.length > 0) {
+        selectedShapeIds.forEach((id) => {
+          const idx = shapes.findIndex((s) => s.id === id);
+          if (idx >= 0 && idx < shapes.length - 1) moveLayerUp(idx);
+        });
+        return;
+      }
+
+      if (e.key === "+" || e.key === "=") {
+        setZoom((z) => Math.min(3.0, z + 0.15));
+        return;
+      }
+
+      if (e.key === "-") {
+        setZoom((z) => Math.max(0.3, z - 0.15));
+        return;
+      }
+
+      // 2. Whiteboard Tool Switcher Shortcuts
+      if (!isCtrl && !e.altKey) {
+        if (key === "v") { setActiveTool("select"); showToast("Tool: Select (V)"); }
+        else if (key === "h") { setActiveTool("hand"); showToast("Tool: Hand / Pan (H)"); }
+        else if (key === "p" && !e.shiftKey) { setActivePenTool("pencil"); setActiveTool("pencil"); showToast("Tool: Freehand Pen (P)"); }
+        else if (key === "p" && e.shiftKey) { setActivePenTool("highlighter"); setActiveTool("highlighter"); showToast("Tool: Highlighter (Shift+P)"); }
+        else if (key === "r") { setActiveShapeTool("rectangle"); setActiveTool("rectangle"); showToast("Tool: Rectangle (R)"); }
+        else if (key === "c") { setActiveShapeTool("circle"); setActiveTool("circle"); showToast("Tool: Circle Node (C)"); }
+        else if (key === "d") { setActiveShapeTool("diamond"); setActiveTool("diamond"); showToast("Tool: Decision Diamond (D)"); }
+        else if (key === "a") { setActiveLineTool("arrow"); setActiveTool("arrow"); showToast("Tool: Arrow (A)"); }
+        else if (key === "b") { setActiveLineTool("bezier"); setActiveTool("bezier"); showToast("Tool: Chart Pattern Path (B)"); }
+        else if (key === "n") { setActiveTool("sticky"); showToast("Tool: Sticky Note (N)"); }
+        else if (key === "t") { setActiveTool("text"); showToast("Tool: Text Label (T)"); }
+        else if (key === "e") { setActiveTool("eraser"); showToast("Tool: Precision Eraser (E)"); }
+        else if (key === "z") { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
       }
     };
 
@@ -2335,7 +2427,7 @@ export default function WhiteboardPage() {
                                 </span>
                               </div>
 
-                              {/* Layer Actions: Reorder Up/Down, Visibility & Lock */}
+                              {/* Layer Actions: Reorder Up/Down, Visibility, Lock & Delete */}
                               <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                                 {/* Move Up in Z-stack */}
                                 <button
@@ -2377,6 +2469,16 @@ export default function WhiteboardPage() {
                                   title={shape.isLocked ? "Unlock Layer" : "Lock Layer"}
                                 >
                                   {shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}
+                                </button>
+
+                                {/* Delete Layer Trash Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => deleteSelectedObject(shape.id)}
+                                  className="p-1 rounded text-slate-400 hover:text-rose-600 transition"
+                                  title={shape.isLocked ? "Cannot delete locked layer" : "Delete Layer"}
+                                >
+                                  <Trash2 className={`h-3.5 w-3.5 ${shape.isLocked ? "text-slate-300" : "text-rose-500"}`} />
                                 </button>
                               </div>
                             </div>
@@ -2848,26 +2950,6 @@ function renderMiroShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected
   }
 
   ctx.setLineDash([]);
-
-  // Render Lock Indicator Badge on Canvas if Locked 🔒
-  if (shape.isLocked) {
-    let minX = Math.min(...pts.map((p) => p.x));
-    let minY = Math.min(...pts.map((p) => p.y));
-
-    if (shape.type === "sticky") {
-      minX = pts[0].x;
-      minY = pts[0].y;
-    }
-
-    ctx.fillStyle = "#d97706";
-    ctx.beginPath();
-    ctx.arc(minX - 10, minY - 10, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "10px sans-serif";
-    ctx.fillText("🔒", minX - 14, minY - 6);
-  }
 
   // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
   if (isSelected) {
