@@ -6764,77 +6764,106 @@ function makeSvgCursor(svg: string, x: number, y: number, fallback: string = "cr
   return `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${x} ${y}, ${fallback}`;
 }
 
-/** Generates dynamic contextual mouse cursors for active whiteboard tools */
+/** Generates dynamic contextual realistic minimalist Black & White mouse cursors for active whiteboard tools */
 function getToolCursorStyle(tool: Tool): React.CSSProperties {
   switch (tool) {
     case "hand":
-      return { cursor: "grab" };
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M10 12V4C10 3.45 10.45 3 11 3C11.55 3 12 3.45 12 4V11M12 5.5C12 4.95 12.45 4.5 13 4.5C13.55 4.5 14 4.95 14 5.5V11M14 7C14 6.45 14.45 6 15 6C15.55 6 16 6.45 16 7V12.5C16 16.5 13.5 20 9.5 20C6.5 20 4.5 18 3.5 15L2.5 12.5C2.2 11.8 2.5 11 3.2 10.8C3.9 10.5 4.7 10.8 5 11.5L6.5 14V4C6.5 3.45 6.95 3 7.5 3C8.05 3 8.5 3.45 8.5 4V12" fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>`,
+          10,
+          10,
+          "grab"
+        ),
+      };
     case "select":
-      return { cursor: "default" };
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M4.5 2.5V18.5L8.2 14.8L11.8 21.5L14.2 20.2L10.5 13.5L15.8 13.5L4.5 2.5Z" fill="#000000" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>`,
+          2,
+          2,
+          "default"
+        ),
+      };
     case "zoom":
-      return { cursor: "zoom-in" };
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="9.5" cy="9.5" r="6" fill="#ffffff" stroke="#000000" stroke-width="1.8"/>
+            <path d="M14 14L20.5 20.5" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M9.5 7V12M7 9.5H12" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>`,
+          9,
+          9,
+          "zoom-in"
+        ),
+      };
     case "text":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <line x1="8" y1="4" x2="20" y2="4" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="14" y1="4" x2="14" y2="24" stroke="#0f172a" stroke-width="2.5"/>
-            <line x1="8" y1="24" x2="20" y2="24" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M7 4H17M12 4V20M7 20H17" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+            <path d="M7 4H17M12 4V20M7 20H17" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "text"
         ),
       };
     case "eraser":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <path d="M7 23 L2.5 18.5 C1.8 17.8 1.8 16.7 2.5 16 L14 4.5 C14.7 3.8 15.8 3.8 16.5 4.5 L22.5 10.5 C23.2 11.2 23.2 12.3 22.5 13 L12 23.5 Z" fill="#fda4af" stroke="#e11d48" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M6 19.5 L17.5 8" stroke="#be123c" stroke-width="2"/>
-            <path d="M2 25 L16 25" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M7 21L2.5 16.5C1.8 15.8 1.8 14.7 2.5 14L13 3.5C13.7 2.8 14.8 2.8 15.5 3.5L20.5 8.5C21.2 9.2 21.2 10.3 20.5 11L11 21.5Z" fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M6 17.5L16 7.5" stroke="#000000" stroke-width="1.2"/>
+            <path d="M11 21.5L20.5 11" stroke="#000000" stroke-width="1.5"/>
+            <path d="M2 23H14" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
           </svg>`,
-          4,
-          22,
+          3,
+          21,
           "pointer"
         ),
       };
     case "pencil":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <path d="M19.5 3.5 L24.5 8.5 L9.5 23.5 L3.5 24.5 L4.5 18.5 Z" fill="#3b82f6" stroke="#1d4ed8" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M16 7 L21 12" stroke="#ffffff" stroke-width="1.5"/>
-            <polygon points="3.5,24.5 4.5,18.5 9.5,23.5" fill="#f59e0b"/>
-            <circle cx="3.5" cy="24.5" r="1.5" fill="#0f172a"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M19.5 2.5L21.5 4.5L8 18L3.5 19.5L5 15L18.5 1.5L19.5 2.5Z" fill="#000000" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>
+            <path d="M2 22L5 18L4 17L2 22Z" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+            <circle cx="2" cy="22" r="0.8" fill="#000000"/>
+            <path d="M15 3.5L18.5 7" stroke="#ffffff" stroke-width="1"/>
           </svg>`,
-          3,
-          25,
+          2,
+          22,
           "crosshair"
         ),
       };
     case "highlighter":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <path d="M11 13 L3 21 L3 25 L7 25 L15 17 Z" fill="#fde047" stroke="#ca8a04" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M11 13 L17 7 L23 13 L17 19 Z" fill="#eab308" stroke="#a16207" stroke-width="2"/>
-            <line x1="3" y1="25" x2="7" y2="25" stroke="#854d0e" stroke-width="3"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 13L3 19L2 22L5 21L11 15Z" fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M9 13L15 7L20 12L14 18Z" fill="#000000" stroke="#ffffff" stroke-width="1.2"/>
+            <line x1="2" y1="22" x2="5" y2="21" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
           </svg>`,
-          3,
-          25,
+          2,
+          22,
           "crosshair"
         ),
       };
     case "sticky":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <rect x="3" y="3" width="20" height="20" rx="3" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
-            <path d="M17 23 L23 17 L17 17 Z" fill="#eab308"/>
-            <line x1="7" y1="8" x2="15" y2="8" stroke="#854d0e" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="7" y1="12" x2="19" y2="12" stroke="#854d0e" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="7" y1="16" x2="13" y2="16" stroke="#854d0e" stroke-width="1.5" stroke-linecap="round"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+            <path d="M15 21L21 15H15V21Z" fill="#000000"/>
+            <line x1="7" y1="7" x2="13" y2="7" stroke="#000000" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="7" y1="10.5" x2="17" y2="10.5" stroke="#000000" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="7" y1="14" x2="13" y2="14" stroke="#000000" stroke-width="1.2" stroke-linecap="round"/>
           </svg>`,
           4,
           4,
@@ -6844,126 +6873,137 @@ function getToolCursorStyle(tool: Tool): React.CSSProperties {
     case "rectangle":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <line x1="14" y1="2" x2="14" y2="26" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
-            <line x1="2" y1="14" x2="26" y2="14" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
-            <rect x="14" y="14" width="10" height="8" fill="#3b82f6" fill-opacity="0.3" stroke="#2563eb" stroke-width="1.5"/>
-            <circle cx="14" cy="14" r="2" fill="#ef4444"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <rect x="15" y="15" width="7" height="6" fill="#ffffff" stroke="#000000" stroke-width="1.2" rx="0.5"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "circle":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <line x1="14" y1="2" x2="14" y2="26" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
-            <line x1="2" y1="14" x2="26" y2="14" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
-            <circle cx="19" cy="19" r="6" fill="#8b5cf6" fill-opacity="0.3" stroke="#7c3aed" stroke-width="1.5"/>
-            <circle cx="14" cy="14" r="2" fill="#ef4444"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="3.5" fill="#ffffff" stroke="#000000" stroke-width="1.2"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "diamond":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <line x1="14" y1="2" x2="14" y2="26" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
-            <line x1="2" y1="14" x2="26" y2="14" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2,2"/>
-            <polygon points="19,13 25,19 19,25 13,19" fill="#ec4899" fill-opacity="0.3" stroke="#db2777" stroke-width="1.5"/>
-            <circle cx="14" cy="14" r="2" fill="#ef4444"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <polygon points="18,14 22,18 18,22 14,18" fill="#ffffff" stroke="#000000" stroke-width="1.2"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "arrow":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <path d="M4 24 L22 6 M22 6 L12 6 M22 6 L22 16" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M15 9L21 3M21 3H16M21 3V8" stroke="#000000" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>`,
-          22,
-          6,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "line":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <line x1="4" y1="24" x2="24" y2="4" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="4" cy="24" r="2.5" fill="#2563eb"/>
-            <circle cx="24" cy="4" r="2.5" fill="#2563eb"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="16" y1="8" x2="21" y2="3" stroke="#000000" stroke-width="1.3" stroke-linecap="round"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "bezier":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <path d="M4 22 C10 6, 18 22, 24 6" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="4" cy="22" r="2.5" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
-            <circle cx="24" cy="6" r="2.5" fill="#ffffff" stroke="#4f46e5" stroke-width="1.5"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M14 6C17 6 18 10 21 10" stroke="#000000" stroke-width="1.3" stroke-linecap="round"/>
+            <circle cx="14" cy="6" r="1" fill="#000000"/>
+            <circle cx="21" cy="10" r="1" fill="#000000"/>
           </svg>`,
-          4,
-          22,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "fibo":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <line x1="2" y1="5" x2="26" y2="5" stroke="#ef4444" stroke-width="1.5"/>
-            <line x1="2" y1="11" x2="26" y2="11" stroke="#f59e0b" stroke-width="1.5"/>
-            <line x1="2" y1="17" x2="26" y2="17" stroke="#10b981" stroke-width="2"/>
-            <line x1="2" y1="23" x2="26" y2="23" stroke="#3b82f6" stroke-width="1.5"/>
-            <text x="2" y="15" font-size="8" font-family="sans-serif" font-weight="bold" fill="#0f172a">FIB</text>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M15 5H22M15 8H22M15 11H22" stroke="#000000" stroke-width="1" stroke-linecap="round"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "long":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <rect x="3" y="3" width="22" height="11" fill="#10b981" fill-opacity="0.3" stroke="#059669" stroke-width="1.5"/>
-            <rect x="3" y="14" width="22" height="11" fill="#ef4444" fill-opacity="0.3" stroke="#dc2626" stroke-width="1.5"/>
-            <line x1="3" y1="14" x2="25" y2="14" stroke="#2563eb" stroke-width="2"/>
-            <path d="M14 10 L14 4 M11 7 L14 4 L17 7" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <rect x="15" y="4" width="7" height="6" fill="#000000" rx="0.5"/>
+            <rect x="15" y="10" width="7" height="4" fill="#ffffff" stroke="#000000" stroke-width="1" rx="0.5"/>
+            <path d="M18.5 8.5V5.5M17 7L18.5 5.5L20 7" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     case "short":
       return {
         cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-            <rect x="3" y="3" width="22" height="11" fill="#ef4444" fill-opacity="0.3" stroke="#dc2626" stroke-width="1.5"/>
-            <rect x="3" y="14" width="22" height="11" fill="#10b981" fill-opacity="0.3" stroke="#059669" stroke-width="1.5"/>
-            <line x1="3" y1="14" x2="25" y2="14" stroke="#2563eb" stroke-width="2"/>
-            <path d="M14 18 L14 24 M11 21 L14 24 L17 21" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+            <rect x="15" y="4" width="7" height="4" fill="#ffffff" stroke="#000000" stroke-width="1" rx="0.5"/>
+            <rect x="15" y="8" width="7" height="6" fill="#000000" rx="0.5"/>
+            <path d="M18.5 9.5V12.5M17 11L18.5 12.5L20 11" stroke="#ffffff" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>`,
-          14,
-          14,
+          12,
+          12,
           "crosshair"
         ),
       };
     default:
-      return { cursor: "crosshair" };
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="1.5" fill="#000000" stroke="#ffffff" stroke-width="0.8"/>
+            <path d="M12 2V7M12 17V22M2 12H7M17 12H22" stroke="#000000" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>`,
+          12,
+          12,
+          "crosshair"
+        ),
+      };
   }
 }
