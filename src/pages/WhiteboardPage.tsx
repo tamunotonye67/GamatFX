@@ -1838,14 +1838,14 @@ export default function WhiteboardPage() {
         {/* Left Section: GAMAT Logo & Board Title */}
         <div className="flex items-center gap-3 shrink-0">
           <Logo variant="dark" />
-          <span className="h-5 w-px bg-line shrink-0 hidden sm:inline" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0 hidden sm:inline" />
           <span className="hidden md:inline text-xs font-bold text-ink/70">
             Technical Analysis Whiteboard
           </span>
         </div>
 
         {/* Right Section: Photoshop-Style Menu Bar with Vertical Dividers */}
-        <div className="flex items-center gap-1.5 shrink-0 text-xs font-bold text-ink">
+        <div className="flex items-center gap-2 shrink-0 text-xs font-bold text-ink">
           {/* Diagrams Workspace Options Dropdown */}
           <div className="relative">
             <button
@@ -2074,7 +2074,7 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Vertical Divider */}
-          <span className="h-4 w-px bg-line/80 shrink-0" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
           {/* Canvas Background Theme Dropdown */}
           <div className="relative">
@@ -2116,7 +2116,7 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Vertical Divider */}
-          <span className="h-4 w-px bg-line/80 shrink-0" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
           {/* Snap to Grid Button */}
           <button
@@ -2136,7 +2136,7 @@ export default function WhiteboardPage() {
           </button>
 
           {/* Vertical Divider */}
-          <span className="h-4 w-px bg-line/80 shrink-0" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
           {/* Export Dropdown */}
           <div className="relative">
@@ -2181,23 +2181,22 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Vertical Divider */}
-          <span className="h-4 w-px bg-line/80 shrink-0" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
-          {/* Inspector Panel Toggle Button */}
+          {/* Inspector Panel Toggle Button (Icon Only) */}
           <button
             type="button"
             onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-            className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+            className={`flex items-center justify-center rounded-xl p-1.5 transition ${
               isInspectorOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
             }`}
             title="Toggle Floating Inspector & Layers Panel"
           >
             <SlidersHorizontal className="h-4 w-4 text-slate-700" />
-            <span className="hidden md:inline">Inspector</span>
           </button>
 
           {/* Vertical Divider */}
-          <span className="h-4 w-px bg-line/80 shrink-0" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
           {/* Fullscreen Toggle Button */}
           <button
@@ -2210,7 +2209,7 @@ export default function WhiteboardPage() {
           </button>
 
           {/* Vertical Divider */}
-          <span className="h-4 w-px bg-line/80 shrink-0" />
+          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
           {/* User Account Avatar & Profile Menu (Avatar + Dropdown Only) */}
           <div ref={userMenuRef} className="relative shrink-0">
