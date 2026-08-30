@@ -63,6 +63,16 @@ import {
   Laptop,
   Scan,
   BoxSelect,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  CaseUpper,
+  CaseLower,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -325,6 +335,18 @@ type Shape = {
   stickyColor?: StickyColor;
   isLocked?: boolean;
   isHidden?: boolean;
+  // Character & Typography Properties
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: "normal" | "bold";
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  textAlign?: "left" | "center" | "right";
+  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
+  letterSpacing?: number;
+  lineHeight?: number;
+  textColor?: string;
+  textBgColor?: string;
 };
 
 type DiagramTab = {
@@ -746,9 +768,22 @@ export default function WhiteboardPage() {
   const [autoLockObjects, setAutoLockObjects] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
-  // Inspector & Photoshop Layers Panel State
+  // Inspector, Layers & Character Panel State
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers">("inspector");
+  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character">("inspector");
+
+  // Character & Typography Formatting State
+  const [activeFontFamily, setActiveFontFamily] = useState<string>("Inter, sans-serif");
+  const [activeFontSize, setActiveFontSize] = useState<number>(16);
+  const [activeFontWeight, setActiveFontWeight] = useState<"normal" | "bold">("normal");
+  const [activeFontStyle, setActiveFontStyle] = useState<"normal" | "italic">("normal");
+  const [activeTextDecoration, setActiveTextDecoration] = useState<"none" | "underline" | "line-through">("none");
+  const [activeTextAlign, setActiveTextAlign] = useState<"left" | "center" | "right">("left");
+  const [activeTextTransform, setActiveTextTransform] = useState<"none" | "uppercase" | "lowercase" | "capitalize">("none");
+  const [activeLetterSpacing, setActiveLetterSpacing] = useState<number>(0);
+  const [activeLineHeight, setActiveLineHeight] = useState<number>(1.4);
+  const [activeTextColor, setActiveTextColor] = useState<string>("#1e293b");
+  const [activeTextBgColor, setActiveTextBgColor] = useState<string>("transparent");
 
   // Layer Renaming State
   const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
@@ -1398,6 +1433,50 @@ export default function WhiteboardPage() {
         return { ...s, isHidden: nextHidden };
       })
     );
+  };
+
+  /* ------------------------- Character & Typography Updates ------------------ */
+
+  const updateActiveTypography = (updates: Partial<{
+    fontFamily: string;
+    fontSize: number;
+    fontWeight: "normal" | "bold";
+    fontStyle: "normal" | "italic";
+    textDecoration: "none" | "underline" | "line-through";
+    textAlign: "left" | "center" | "right";
+    textTransform: "none" | "uppercase" | "lowercase" | "capitalize";
+    letterSpacing: number;
+    lineHeight: number;
+    textColor: string;
+    textBgColor: string;
+    text: string;
+  }>) => {
+    if (updates.fontFamily !== undefined) setActiveFontFamily(updates.fontFamily);
+    if (updates.fontSize !== undefined) setActiveFontSize(updates.fontSize);
+    if (updates.fontWeight !== undefined) setActiveFontWeight(updates.fontWeight);
+    if (updates.fontStyle !== undefined) setActiveFontStyle(updates.fontStyle);
+    if (updates.textDecoration !== undefined) setActiveTextDecoration(updates.textDecoration);
+    if (updates.textAlign !== undefined) setActiveTextAlign(updates.textAlign);
+    if (updates.textTransform !== undefined) setActiveTextTransform(updates.textTransform);
+    if (updates.letterSpacing !== undefined) setActiveLetterSpacing(updates.letterSpacing);
+    if (updates.lineHeight !== undefined) setActiveLineHeight(updates.lineHeight);
+    if (updates.textColor !== undefined) setActiveTextColor(updates.textColor);
+    if (updates.textBgColor !== undefined) setActiveTextBgColor(updates.textBgColor);
+
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => {
+          if (selectedShapeIds.includes(s.id)) {
+            return {
+              ...s,
+              ...updates,
+              ...(updates.textColor && s.type === "text" ? { color: updates.textColor } : {}),
+            };
+          }
+          return s;
+        })
+      );
+    }
   };
 
   /* ------------------------- Layer Reordering Functions --------------------- */
@@ -6490,42 +6569,52 @@ export default function WhiteboardPage() {
               </div>
             </div>
           )}
+        </main>
 
-          {/* Right Inspector & Photoshop-Style Layers Panel (Spanning from Tab Area Top to Viewport Bottom, Flush Right) */}
-          {isInspectorOpen && (
-            <aside className="absolute right-0 top-[-2.5rem] bottom-0 z-40 w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
-              {/* FIXED UNMOVABLE Panel Header & Inspector / Layers Tab Switcher */}
-              <div className="flex items-center justify-between border-b border-line p-3.5 pb-2.5 bg-white/95 backdrop-blur-md shrink-0 z-10">
-                <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
-                  <button
-                    type="button"
-                    onClick={() => setRightPanelTab("inspector")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                      rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                    }`}
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRightPanelTab("layers")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                      rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                    }`}
-                  >
-                    <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
-                  </button>
-                </div>
-
+        {/* Right Inspector, Layers & Character Panel (when expanded) */}
+        {isInspectorOpen && (
+          <aside className="w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 shrink-0 z-20">
+            {/* Panel Header & Tab Switcher */}
+            <div className="flex items-center justify-between border-b border-line p-3 pb-2.5 bg-white/95 backdrop-blur-md shrink-0 z-10">
+              <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
                 <button
                   type="button"
-                  onClick={() => setIsInspectorOpen(false)}
-                  className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
-                  title="Collapse Panel"
+                  onClick={() => setRightPanelTab("inspector")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                  }`}
                 >
-                  <PanelRightClose className="h-4 w-4" />
+                  <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("layers")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                  }`}
+                >
+                  <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("character")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                    rightPanelTab === "character" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                  }`}
+                >
+                  <Type className="h-3.5 w-3.5" /> Character
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsInspectorOpen(false)}
+                className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
+                title="Collapse Panel"
+              >
+                <PanelRightClose className="h-4 w-4" />
+              </button>
+            </div>
 
               {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
@@ -7738,6 +7827,304 @@ export default function WhiteboardPage() {
                     )}
                   </div>
                 )}
+
+                {/* TAB 3: CHARACTER & TYPOGRAPHY FORMATTING TAB */}
+                {rightPanelTab === "character" && (
+                  <div className="space-y-3.5 animate-in fade-in duration-150">
+                    {/* Header */}
+                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
+                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                          <Type className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="font-extrabold text-xs text-ink truncate">
+                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Typography Settings"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 1. Live Text Content Editor (Direct Editing) */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                        <span>Text Content</span>
+                        <span className="text-[9px] text-brand font-medium">Live Canvas Sync</span>
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={
+                          selectedShape
+                            ? (selectedShape.text ?? "")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (selectedShape) {
+                            updateActiveTypography({ text: val });
+                          }
+                        }}
+                        placeholder={selectedShape ? "Type text or note..." : "Select text on canvas to edit content..."}
+                        disabled={!selectedShape}
+                        className="w-full rounded-xl border border-line bg-slate-50 p-2.5 text-xs text-ink outline-none focus:border-brand focus:bg-white resize-none transition disabled:opacity-50"
+                      />
+                    </div>
+
+                    {/* 2. Font Family Selection */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Family</label>
+                      <select
+                        value={activeFontFamily}
+                        onChange={(e) => updateActiveTypography({ fontFamily: e.target.value })}
+                        className="w-full rounded-xl border border-line bg-slate-50 p-2 text-xs font-bold text-ink outline-none focus:border-brand transition cursor-pointer"
+                      >
+                        <option value="Inter, sans-serif">Inter (Modern Sans)</option>
+                        <option value="Roboto, sans-serif">Roboto</option>
+                        <option value="Arial, sans-serif">Arial Standard</option>
+                        <option value="Georgia, serif">Georgia (Editorial Serif)</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="'Courier New', monospace">Courier Monospace</option>
+                        <option value="'Caveat', cursive, sans-serif">Caveat (Handwritten)</option>
+                        <option value="'Impact', sans-serif">Impact (Bold Display)</option>
+                      </select>
+                    </div>
+
+                    {/* 3. Font Size Stepper & Quick Presets */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Size</label>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ fontSize: Math.max(8, activeFontSize - 2) })}
+                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-bold text-ink w-9 text-center font-mono">{activeFontSize}px</span>
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ fontSize: Math.min(120, activeFontSize + 2) })}
+                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Size Pills */}
+                      <div className="flex flex-wrap gap-1">
+                        {[12, 14, 16, 20, 24, 32, 48, 64].map((sz) => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => updateActiveTypography({ fontSize: sz })}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                              activeFontSize === sz
+                                ? "bg-brand text-white shadow-xs"
+                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 4. Font Styles: Bold, Italic, Underline, Strikethrough */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Character Style</label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ fontWeight: activeFontWeight === "bold" ? "normal" : "bold" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeFontWeight === "bold"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Bold"
+                        >
+                          <Bold className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ fontStyle: activeFontStyle === "italic" ? "normal" : "italic" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeFontStyle === "italic"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Italic"
+                        >
+                          <Italic className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "underline" ? "none" : "underline" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextDecoration === "underline"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Underline"
+                        >
+                          <Underline className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "line-through" ? "none" : "line-through" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextDecoration === "line-through"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Strikethrough"
+                        >
+                          <Strikethrough className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 5. Text Alignment */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Alignment</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textAlign: "left" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextAlign === "left"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Align Left"
+                        >
+                          <AlignLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textAlign: "center" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextAlign === "center"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Align Center"
+                        >
+                          <AlignCenter className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textAlign: "right" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextAlign === "right"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Align Right"
+                        >
+                          <AlignRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 6. Text Transform */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Capitalization</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textTransform: "none" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
+                            activeTextTransform === "none"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Regular Case"
+                        >
+                          <Type className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textTransform: "uppercase" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
+                            activeTextTransform === "uppercase"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="UPPERCASE"
+                        >
+                          <CaseUpper className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textTransform: "lowercase" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
+                            activeTextTransform === "lowercase"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="lowercase"
+                        >
+                          <CaseLower className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 7. Text Color & Highlight Background */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Text Color</label>
+                        <div className="flex items-center gap-1.5">
+                          {["#1e293b", "#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => (
+                            <button
+                              key={col}
+                              type="button"
+                              onClick={() => updateActiveTypography({ textColor: col })}
+                              style={{ backgroundColor: col }}
+                              className={`h-6 w-6 rounded-full border border-slate-300 transition cursor-pointer ${
+                                activeTextColor === col ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
+                              }`}
+                            />
+                          ))}
+                          <input
+                            type="color"
+                            value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
+                            onChange={(e) => updateActiveTypography({ textColor: e.target.value })}
+                            className="h-6 w-6 rounded-full cursor-pointer border-0 p-0"
+                            title="Custom Color"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Highlight Background</label>
+                        <div className="flex items-center gap-1.5">
+                          {[
+                            { color: "transparent", label: "None" },
+                            { color: "#fef08a", label: "Yellow" },
+                            { color: "#bbf7d0", label: "Green" },
+                            { color: "#bae6fd", label: "Blue" },
+                            { color: "#fbcfe8", label: "Pink" },
+                            { color: "#fed7aa", label: "Orange" },
+                          ].map((bg) => (
+                            <button
+                              key={bg.color}
+                              type="button"
+                              onClick={() => updateActiveTypography({ textBgColor: bg.color })}
+                              style={{ backgroundColor: bg.color === "transparent" ? "#f1f5f9" : bg.color }}
+                              className={`h-6 w-6 rounded-full border border-slate-300 transition flex items-center justify-center text-[8px] font-bold cursor-pointer ${
+                                activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
+                              }`}
+                              title={bg.label}
+                            >
+                              {bg.color === "transparent" && "✕"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* FIXED Panel Footer Stats */}
@@ -7748,18 +8135,91 @@ export default function WhiteboardPage() {
             </aside>
           )}
 
-          {/* Floating Collapsed Toggle Icon (Only the collapse/expandable icon shows when collapsed) */}
-          {!isInspectorOpen && (
-            <button
-              type="button"
-              onClick={() => setIsInspectorOpen(true)}
-              className="absolute right-3 top-[-2.15rem] z-40 p-2 rounded-xl border border-line bg-white/95 text-slate-700 shadow-md hover:bg-brand-light hover:text-brand transition animate-in fade-in cursor-pointer"
-              title="Expand Inspector & Layers Panel"
-            >
-              <PanelRightOpen className="h-4 w-4" />
-            </button>
-          )}
-        </main>
+          {/* Right Vertical Tool Bar Dock holding Inspector, Layers, and Character Panel */}
+          <aside className="w-12 border-l border-line bg-white flex flex-col items-center justify-between py-2.5 shrink-0 z-30 shadow-xs">
+            {/* Top Tool Icons */}
+            <div className="space-y-2 flex flex-col items-center w-full">
+              {/* 1. Inspector Tool Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isInspectorOpen && rightPanelTab === "inspector") {
+                    setIsInspectorOpen(false);
+                  } else {
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                  }
+                }}
+                className={`relative h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                  isInspectorOpen && rightPanelTab === "inspector"
+                    ? "bg-brand text-white shadow-xs"
+                    : "text-slate-700 hover:bg-cream"
+                }`}
+                title="Inspector & Properties"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+
+              {/* 2. Layers Tool Button with Count Badge */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isInspectorOpen && rightPanelTab === "layers") {
+                    setIsInspectorOpen(false);
+                  } else {
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("layers");
+                  }
+                }}
+                className={`relative h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                  isInspectorOpen && rightPanelTab === "layers"
+                    ? "bg-brand text-white shadow-xs"
+                    : "text-slate-700 hover:bg-cream"
+                }`}
+                title={`Layers (${shapes.length})`}
+              >
+                <Layers className="h-4 w-4" />
+                {shapes.length > 0 && (
+                  <span className="absolute -top-1 -right-1 px-1 min-w-3.5 h-3.5 bg-brand text-white text-[8.5px] font-black rounded-full flex items-center justify-center leading-none">
+                    {shapes.length > 99 ? "99+" : shapes.length}
+                  </span>
+                )}
+              </button>
+
+              {/* 3. Character Typography Panel Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isInspectorOpen && rightPanelTab === "character") {
+                    setIsInspectorOpen(false);
+                  } else {
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("character");
+                  }
+                }}
+                className={`relative h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                  isInspectorOpen && rightPanelTab === "character"
+                    ? "bg-brand text-white shadow-xs"
+                    : "text-slate-700 hover:bg-cream"
+                }`}
+                title="Character & Typography"
+              >
+                <Type className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Bottom: Collapse / Expand Toggle Button */}
+            <div className="pt-2 border-t border-line/60 w-full flex justify-center">
+              <button
+                type="button"
+                onClick={() => setIsInspectorOpen(!isInspectorOpen)}
+                className="h-9 w-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-ink hover:bg-cream transition cursor-pointer"
+                title={isInspectorOpen ? "Collapse Panel" : "Expand Panel"}
+              >
+                {isInspectorOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+              </button>
+            </div>
+          </aside>
       </div>
     </div>
   );
@@ -8681,10 +9141,25 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     maxX = pts[0].x + 180;
     maxY = pts[0].y + 140;
   } else if (shape.type === "text") {
-    minX = pts[0].x - 4;
-    minY = pts[0].y - 18;
-    maxX = pts[0].x + Math.max(60, (shape.text?.length || 4) * 9);
-    maxY = pts[0].y + 6;
+    const fSize = shape.fontSize || 16;
+    const lHeight = shape.lineHeight ? shape.lineHeight * fSize : fSize * 1.35;
+    const lines = (shape.text || "Text").split("\n");
+    const maxLineLen = Math.max(...lines.map((l) => l.length), 1);
+    const estW = Math.max(40, maxLineLen * (fSize * 0.62));
+    const totalH = Math.max(fSize, lines.length * lHeight);
+
+    if (shape.textAlign === "center") {
+      minX = pts[0].x - estW / 2;
+      maxX = pts[0].x + estW / 2;
+    } else if (shape.textAlign === "right") {
+      minX = pts[0].x - estW;
+      maxX = pts[0].x;
+    } else {
+      minX = pts[0].x;
+      maxX = pts[0].x + estW;
+    }
+    minY = pts[0].y;
+    maxY = pts[0].y + totalH;
   } else if (shape.type === "bullish_candle" || shape.type === "bearish_candle") {
     const upperWick = shape.upperWickLength ?? 25;
     const lowerWick = shape.lowerWickLength ?? 25;
@@ -9533,8 +10008,65 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.closePath();
     ctx.fill();
   } else if (shape.type === "text" && shape.text) {
-    ctx.font = "bold 15px Inter, sans-serif";
-    ctx.fillText(shape.text, pts[0].x, pts[0].y);
+    const fFamily = shape.fontFamily || "Inter, sans-serif";
+    const fSize = shape.fontSize || 16;
+    const fWeight = shape.fontWeight || "normal";
+    const fStyle = shape.fontStyle || "normal";
+    const tColor = shape.textColor || shape.color || "#1e293b";
+    const tBg = shape.textBgColor;
+    const tAlign = shape.textAlign || "left";
+    const tTransform = shape.textTransform || "none";
+    const lHeight = shape.lineHeight ? shape.lineHeight * fSize : fSize * 1.35;
+
+    let txt = shape.text;
+    if (tTransform === "uppercase") txt = txt.toUpperCase();
+    else if (tTransform === "lowercase") txt = txt.toLowerCase();
+    else if (tTransform === "capitalize") txt = txt.replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const lines = txt.split("\n");
+    ctx.save();
+    ctx.font = `${fStyle === "italic" ? "italic " : ""}${fWeight === "bold" ? "bold " : ""}${fSize}px ${fFamily}`;
+    ctx.textAlign = tAlign as CanvasTextAlign;
+    ctx.textBaseline = "top";
+
+    lines.forEach((line, idx) => {
+      const lineY = pts[0].y + idx * lHeight;
+      if (tBg && tBg !== "transparent") {
+        const metrics = ctx.measureText(line);
+        let bgX = pts[0].x;
+        if (tAlign === "center") bgX = pts[0].x - metrics.width / 2;
+        else if (tAlign === "right") bgX = pts[0].x - metrics.width;
+        ctx.fillStyle = tBg;
+        ctx.fillRect(bgX - 3, lineY - 2, metrics.width + 6, fSize + 4);
+      }
+      ctx.fillStyle = tColor;
+      ctx.fillText(line, pts[0].x, lineY);
+
+      if (shape.textDecoration === "underline") {
+        const metrics = ctx.measureText(line);
+        let startX = pts[0].x;
+        if (tAlign === "center") startX = pts[0].x - metrics.width / 2;
+        else if (tAlign === "right") startX = pts[0].x - metrics.width;
+        ctx.strokeStyle = tColor;
+        ctx.lineWidth = Math.max(1, fSize / 14);
+        ctx.beginPath();
+        ctx.moveTo(startX, lineY + fSize + 1);
+        ctx.lineTo(startX + metrics.width, lineY + fSize + 1);
+        ctx.stroke();
+      } else if (shape.textDecoration === "line-through") {
+        const metrics = ctx.measureText(line);
+        let startX = pts[0].x;
+        if (tAlign === "center") startX = pts[0].x - metrics.width / 2;
+        else if (tAlign === "right") startX = pts[0].x - metrics.width;
+        ctx.strokeStyle = tColor;
+        ctx.lineWidth = Math.max(1, fSize / 14);
+        ctx.beginPath();
+        ctx.moveTo(startX, lineY + fSize / 2);
+        ctx.lineTo(startX + metrics.width, lineY + fSize / 2);
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
   } else if (shape.type === "annotation" && pts.length >= 2) {
     /* ANNOTATION / CALLOUT LEADER LINE TOOL */
     const p0 = pts[0]; // Target Anchor Point on object
