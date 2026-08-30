@@ -5203,122 +5203,126 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
-      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-30 relative">
-        {/* Left Side: Home Icon Hub Link & Active Tabs List */}
-        <div className="flex items-center gap-3 shrink-0 min-w-0 flex-1 overflow-hidden">
-          <button
-            type="button"
-            onClick={handleReturnToHub}
-            className="flex items-center justify-center p-1 text-slate-600 hover:text-brand transition shrink-0 cursor-pointer"
-            title="Return to Files Hub (Auto-saves current canvas)"
-          >
-            <Home className="h-4 w-4" />
-          </button>
-
-          {/* Vertical Separator Line */}
-          <span className="h-5 w-px bg-line/80 shrink-0" />
-
-          {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable - No Visible Scrollbar) */}
-          <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {tabs.map((tab, idx) => (
-              <div
-                key={tab.id}
-                draggable={editingTabId !== tab.id}
-                onDragStart={() => setDraggedTabIdx(idx)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => {
-                  if (draggedTabIdx !== null && draggedTabIdx !== idx) {
-                    setTabs((prev) => {
-                      const copy = [...prev];
-                      const [moved] = copy.splice(draggedTabIdx, 1);
-                      copy.splice(idx, 0, moved);
-                      return copy;
-                    });
-                    setDraggedTabIdx(null);
-                    showToast("Reordered diagram tab!");
-                  }
-                }}
-                onClick={() => handleSelectTab(tab.id)}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setTabContextMenu({
-                    x: Math.min(e.clientX, window.innerWidth - 220),
-                    y: Math.min(e.clientY, window.innerHeight - 260),
-                    tabId: tab.id,
-                    tabName: tab.name,
-                  });
-                }}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  handleStartRenameTab(tab.id, tab.name);
-                }}
-                className={`group flex items-center gap-1.5 rounded-t-xl px-2.5 py-1 text-[11px] font-semibold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
-                  activeTabId === tab.id
-                    ? "bg-white text-brand border-line shadow-xs font-bold"
-                    : "border-transparent text-muted hover:text-ink hover:bg-white/60"
-                }`}
-                title={`Right-click for options • Double-click to rename • Drag to reorder "${tab.name}"`}
+      {/* Main Body Area Directly Below Top Header & User Avatar */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Column: Sub-Header Tabs Bar on top + Workspace Canvas on bottom */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+          {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
+          <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-20 relative">
+            {/* Left Side: Home Icon Hub Link & Active Tabs List */}
+            <div className="flex items-center gap-3 shrink-0 min-w-0 flex-1 overflow-hidden">
+              <button
+                type="button"
+                onClick={handleReturnToHub}
+                className="flex items-center justify-center p-1 text-slate-600 hover:text-brand transition shrink-0 cursor-pointer"
+                title="Return to Files Hub (Auto-saves current canvas)"
               >
-                <GripVertical className="h-2.5 w-2.5 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
-                {/* Editable / Truncated Tab Name */}
-                {editingTabId === tab.id ? (
-                  <input
-                    autoFocus
-                    type="text"
-                    value={editingTabName}
-                    onChange={(e) => setEditingTabName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSaveRenameTab();
-                      else if (e.key === "Escape") setEditingTabId(null);
+                <Home className="h-4 w-4" />
+              </button>
+
+              {/* Vertical Separator Line */}
+              <span className="h-5 w-px bg-line/80 shrink-0" />
+
+              {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable - No Visible Scrollbar) */}
+              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                {tabs.map((tab, idx) => (
+                  <div
+                    key={tab.id}
+                    draggable={editingTabId !== tab.id}
+                    onDragStart={() => setDraggedTabIdx(idx)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                      if (draggedTabIdx !== null && draggedTabIdx !== idx) {
+                        setTabs((prev) => {
+                          const copy = [...prev];
+                          const [moved] = copy.splice(draggedTabIdx, 1);
+                          copy.splice(idx, 0, moved);
+                          return copy;
+                        });
+                        setDraggedTabIdx(null);
+                        showToast("Reordered diagram tab!");
+                      }
                     }}
-                    onBlur={handleSaveRenameTab}
-                    onClick={(e) => e.stopPropagation()}
-                    className="px-1 py-0.5 rounded border border-brand bg-white text-[11px] font-bold text-ink outline-none w-24 shadow-xs"
-                  />
-                ) : (
-                  <span
+                    onClick={() => handleSelectTab(tab.id)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setTabContextMenu({
+                        x: Math.min(e.clientX, window.innerWidth - 220),
+                        y: Math.min(e.clientY, window.innerHeight - 260),
+                        tabId: tab.id,
+                        tabName: tab.name,
+                      });
+                    }}
                     onDoubleClick={(e) => {
                       e.stopPropagation();
                       handleStartRenameTab(tab.id, tab.name);
                     }}
-                    className="truncate max-w-[130px] inline-block align-bottom text-[11px]"
+                    className={`group flex items-center gap-1.5 rounded-t-xl px-2.5 py-1 text-[11px] font-semibold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
+                      activeTabId === tab.id
+                        ? "bg-white text-brand border-line shadow-xs font-bold"
+                        : "border-transparent text-muted hover:text-ink hover:bg-white/60"
+                    }`}
+                    title={`Right-click for options • Double-click to rename • Drag to reorder "${tab.name}"`}
                   >
-                    {tab.name}
-                  </span>
-                )}
+                    <GripVertical className="h-2.5 w-2.5 text-slate-300 group-hover:text-slate-500 opacity-60 shrink-0" />
+                    {/* Editable / Truncated Tab Name */}
+                    {editingTabId === tab.id ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={editingTabName}
+                        onChange={(e) => setEditingTabName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleSaveRenameTab();
+                          else if (e.key === "Escape") setEditingTabId(null);
+                        }}
+                        onBlur={handleSaveRenameTab}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-1 py-0.5 rounded border border-brand bg-white text-[11px] font-bold text-ink outline-none w-24 shadow-xs"
+                      />
+                    ) : (
+                      <span
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          handleStartRenameTab(tab.id, tab.name);
+                        }}
+                        className="truncate max-w-[130px] inline-block align-bottom text-[11px]"
+                      >
+                        {tab.name}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCloseTab(tab.id);
+                      }}
+                      className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition cursor-pointer"
+                      title="Move to Trash"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+
+                {/* New Tab Plus Button */}
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCloseTab(tab.id);
-                  }}
-                  className="rounded-full p-0.5 opacity-60 hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 transition cursor-pointer"
-                  title="Move to Trash"
+                  onClick={handleAddNewTab}
+                  className="flex items-center justify-center h-6 w-6 rounded-lg border border-dashed border-slate-300 text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1 shrink-0 cursor-pointer"
+                  title="Create New Diagram Tab (Max 5)"
                 >
-                  <X className="h-2.5 w-2.5" />
+                  <Plus className="h-3.5 w-3.5" />
                 </button>
               </div>
-            ))}
-
-            {/* New Tab Plus Button */}
-            <button
-              type="button"
-              onClick={handleAddNewTab}
-              className="flex items-center justify-center h-6 w-6 rounded-lg border border-dashed border-slate-300 text-muted hover:border-brand hover:text-brand hover:bg-white transition ml-1 shrink-0 cursor-pointer"
-              title="Create New Diagram Tab (Max 5)"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </button>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Main Whiteboard Workspace */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Toolbar Dock */}
-        <aside className="w-14 border-r border-line bg-white p-1.5 flex flex-col items-center justify-between gap-2 shrink-0 z-20 shadow-md">
+          {/* Canvas & Left Toolbar Area */}
+          <div className="flex-1 flex overflow-hidden relative">
+            {/* Left Toolbar Dock */}
+            <aside className="w-14 border-r border-line bg-white p-1.5 flex flex-col items-center justify-between gap-2 shrink-0 z-20 shadow-md">
           <div className="space-y-1 w-full">
             <WhiteboardToolBtn
               active={activeTool === "select"}
@@ -6570,54 +6574,62 @@ export default function WhiteboardPage() {
             </div>
           )}
         </main>
+      </div>
+    </div>
 
-        {/* Right Inspector, Layers & Character Panel (when expanded) */}
-        {isInspectorOpen && (
-          <aside className="w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 shrink-0 z-20">
-            {/* Panel Header & Tab Switcher */}
-            <div className="flex items-center justify-between border-b border-line p-3 pb-2.5 bg-white/95 backdrop-blur-md shrink-0 z-10">
-              <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab("inspector")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                    rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                  }`}
-                >
-                  <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab("layers")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                    rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                  }`}
-                >
-                  <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRightPanelTab("character")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                    rightPanelTab === "character" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                  }`}
-                >
-                  <Type className="h-3.5 w-3.5" /> Character
-                </button>
-              </div>
+    {/* Right Inspector, Layers & Character Panel (when expanded - starts under header/avatar) */}
+    {isInspectorOpen && (
+      <aside className="w-72 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 shrink-0 z-30 select-none">
+        {/* Panel Header & Tab Switcher */}
+        <div className="flex items-center justify-between border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
+          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setRightPanelTab("inspector")}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+              }`}
+            >
+              <SlidersHorizontal className="h-3 w-3" /> Inspector
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightPanelTab("layers")}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+              }`}
+            >
+              <Layers className="h-3 w-3" />
+              <span>Layers</span>
+              <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-black leading-tight ${
+                rightPanelTab === "layers" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
+              }`}>
+                {shapes.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightPanelTab("character")}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+              }`}
+            >
+              <Type className="h-3 w-3" /> Character
+            </button>
+          </div>
 
-              <button
-                type="button"
-                onClick={() => setIsInspectorOpen(false)}
-                className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
-                title="Collapse Panel"
-              >
-                <PanelRightClose className="h-4 w-4" />
-              </button>
-            </div>
+          <button
+            type="button"
+            onClick={() => setIsInspectorOpen(false)}
+            className="rounded-md p-1 text-slate-400 hover:text-ink hover:bg-slate-100 transition cursor-pointer"
+            title="Collapse Panel"
+          >
+            <PanelRightClose className="h-3.5 w-3.5" />
+          </button>
+        </div>
 
-              {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
+        {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-3 [scrollbar-width:thin]">
                 {/* TAB 1: FIGMA-STANDARD CONTEXTUAL INSPECTOR TAB */}
                 {rightPanelTab === "inspector" && (() => {
                   const targetTool: Tool = selectedShape ? selectedShape.type : activeTool;
@@ -7076,9 +7088,9 @@ export default function WhiteboardPage() {
 
                         {/* Stroke Width Buttons */}
                         <div>
-                          <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                          <label className="text-[10px] font-bold text-slate-700 flex items-center justify-between mb-1">
                             <span>Stroke Width</span>
-                            <strong className="text-brand">{selectedShape?.strokeWidth || strokeWidth}px</strong>
+                            <strong className="text-brand font-mono text-[10px]">{selectedShape?.strokeWidth || strokeWidth}px</strong>
                           </label>
                           <div className="grid grid-cols-5 gap-1">
                             {[1, 2, 3, 4, 6].map((w) => (
@@ -7092,8 +7104,8 @@ export default function WhiteboardPage() {
                                   }
                                 }}
                                 disabled={selectedShape?.isLocked}
-                                className={`py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                                  (selectedShape?.strokeWidth || strokeWidth) === w ? "bg-brand text-white" : "bg-slate-100 text-ink hover:bg-slate-200"
+                                className={`py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                                  (selectedShape?.strokeWidth || strokeWidth) === w ? "bg-brand text-white shadow-2xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                 } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                               >
                                 {w}px
@@ -8128,17 +8140,17 @@ export default function WhiteboardPage() {
               </div>
 
               {/* FIXED Panel Footer Stats */}
-              <div className="border-t border-line px-4 py-2.5 bg-cream/60 text-[10px] text-muted flex items-center justify-between font-bold shrink-0">
-                <span>Total Layers: {shapes.length}</span>
+              <div className="border-t border-line px-3 py-2 bg-slate-50 text-[9.5px] text-muted flex items-center justify-between font-bold shrink-0">
+                <span>Layers: {shapes.length}</span>
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
               </div>
             </aside>
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, and Character Panel */}
-          <aside className="w-12 border-l border-line bg-white flex flex-col items-center justify-between py-2.5 shrink-0 z-30 shadow-xs">
+          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-2 shrink-0 z-30 shadow-xs select-none">
             {/* Top Tool Icons */}
-            <div className="space-y-2 flex flex-col items-center w-full">
+            <div className="space-y-1.5 flex flex-col items-center w-full">
               {/* 1. Inspector Tool Button */}
               <button
                 type="button"
@@ -8150,17 +8162,17 @@ export default function WhiteboardPage() {
                     setRightPanelTab("inspector");
                   }
                 }}
-                className={`relative h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                className={`relative h-7.5 w-7.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
                   isInspectorOpen && rightPanelTab === "inspector"
                     ? "bg-brand text-white shadow-xs"
-                    : "text-slate-700 hover:bg-cream"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
                 }`}
                 title="Inspector & Properties"
               >
-                <SlidersHorizontal className="h-4 w-4" />
+                <SlidersHorizontal className="h-3.5 w-3.5" />
               </button>
 
-              {/* 2. Layers Tool Button with Count Badge */}
+              {/* 2. Layers Tool Button with Non-Skewed Micro Count Badge */}
               <button
                 type="button"
                 onClick={() => {
@@ -8171,16 +8183,16 @@ export default function WhiteboardPage() {
                     setRightPanelTab("layers");
                   }
                 }}
-                className={`relative h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                className={`relative h-7.5 w-7.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
                   isInspectorOpen && rightPanelTab === "layers"
                     ? "bg-brand text-white shadow-xs"
-                    : "text-slate-700 hover:bg-cream"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
                 }`}
                 title={`Layers (${shapes.length})`}
               >
-                <Layers className="h-4 w-4" />
+                <Layers className="h-3.5 w-3.5" />
                 {shapes.length > 0 && (
-                  <span className="absolute -top-1 -right-1 px-1 min-w-3.5 h-3.5 bg-brand text-white text-[8.5px] font-black rounded-full flex items-center justify-center leading-none">
+                  <span className="absolute -top-1 -right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                     {shapes.length > 99 ? "99+" : shapes.length}
                   </span>
                 )}
@@ -8197,26 +8209,26 @@ export default function WhiteboardPage() {
                     setRightPanelTab("character");
                   }
                 }}
-                className={`relative h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer ${
+                className={`relative h-7.5 w-7.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
                   isInspectorOpen && rightPanelTab === "character"
                     ? "bg-brand text-white shadow-xs"
-                    : "text-slate-700 hover:bg-cream"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
                 }`}
                 title="Character & Typography"
               >
-                <Type className="h-4 w-4" />
+                <Type className="h-3.5 w-3.5" />
               </button>
             </div>
 
             {/* Bottom: Collapse / Expand Toggle Button */}
-            <div className="pt-2 border-t border-line/60 w-full flex justify-center">
+            <div className="pt-1.5 border-t border-line/60 w-full flex justify-center">
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-                className="h-9 w-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-ink hover:bg-cream transition cursor-pointer"
+                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-slate-400 hover:text-ink hover:bg-slate-100 transition cursor-pointer"
                 title={isInspectorOpen ? "Collapse Panel" : "Expand Panel"}
               >
-                {isInspectorOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+                {isInspectorOpen ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
               </button>
             </div>
           </aside>
