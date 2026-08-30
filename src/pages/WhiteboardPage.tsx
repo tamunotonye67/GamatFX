@@ -101,6 +101,7 @@ import {
   User,
   ShieldCheck,
   LogOut,
+  LogIn,
   LayoutGrid,
   List,
   ArrowLeft,
@@ -2884,67 +2885,6 @@ export default function WhiteboardPage() {
 
   const selectedShape = shapes.find((s) => s.id === selectedShapeIds[0]);
 
-  // Authentication Gate: Require user to have an active account & be logged in
-  if (!isAuthed || !user) {
-    return (
-      <div className="fixed inset-0 h-screen w-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden select-none">
-        {/* Ambient Gradient Glow */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand/20 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/5 rounded-full blur-[180px] pointer-events-none" />
-
-        <div className="relative z-10 w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl text-center space-y-6 animate-in fade-in zoom-in-95">
-          <div className="flex justify-center">
-            <div className="relative">
-              <div className="h-16 w-16 rounded-2xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand shadow-inner">
-                <Lock className="h-8 w-8" />
-              </div>
-              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-black text-white shadow-md">
-                FX
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h1 className="font-display text-2xl font-black text-white tracking-tight">
-              Member Account Required
-            </h1>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
-              Please sign in or create an account to access the GAMAT FX Technical Analysis Whiteboard, interactive Forex setups, Fibonacci tools, and cloud drafts.
-            </p>
-          </div>
-
-          <div className="space-y-3 pt-2">
-            <button
-              type="button"
-              onClick={() => navigate("/login")}
-              className="w-full py-3.5 rounded-2xl bg-brand text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-brand/30 hover:bg-brand-dark transition transform active:scale-[0.98]"
-            >
-              Sign In to Your Account
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/signup")}
-              className="w-full py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 hover:text-white transition transform active:scale-[0.98]"
-            >
-              Create a Free Account
-            </button>
-          </div>
-
-          <div className="border-t border-slate-800/80 pt-4">
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition font-medium"
-            >
-              <Home className="h-3.5 w-3.5" /> Back to GAMAT FX Platform
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Filtered collections for Figma-Style Hub View (Deduplicated so open tabs and saved drafts remain synchronized)
   const allDraftsList = [
     ...tabs.map((t) => ({
@@ -3585,28 +3525,38 @@ export default function WhiteboardPage() {
 
               {/* Top Right User Avatar & Profile Dropdown */}
               <div ref={userMenuRef} className="relative shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setUserMenuOpen((v) => !v)}
-                  className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
-                  title={`${user.firstName} ${user.lastName} (${user.email})`}
-                >
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.firstName}
-                      className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
-                    />
-                  ) : (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
-                      {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
-                    </span>
-                  )}
-                  <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
-                </button>
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                    className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
+                    title={`${user.firstName || "User"} ${user.lastName || ""} (${user.email || ""})`}
+                  >
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.firstName || "User"}
+                        className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                      />
+                    ) : (
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                        {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                      </span>
+                    )}
+                    <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/login")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold shadow-xs hover:bg-brand-dark transition cursor-pointer"
+                  >
+                    <LogIn className="h-3.5 w-3.5" /> Sign In
+                  </button>
+                )}
 
                 {/* Profile Popover Dropdown */}
-                {userMenuOpen && (
+                {userMenuOpen && user && (
                   <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                     <div className="border-b border-line bg-cream p-3.5">
                       <div className="flex items-center gap-2.5">
@@ -3614,7 +3564,7 @@ export default function WhiteboardPage() {
                           <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                         ) : (
                           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
-                            {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                            {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
@@ -5191,28 +5141,38 @@ export default function WhiteboardPage() {
 
           {/* User Account Avatar & Profile Menu (Avatar + Dropdown Only) */}
           <div ref={userMenuRef} className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setUserMenuOpen((v) => !v)}
-              className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group"
-              title={`${user.firstName} ${user.lastName} (${user.email})`}
-            >
-              {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.firstName}
-                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
-                />
-              ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
-                  {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
-                </span>
-              )}
-              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
-            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
+                title={`${user.firstName || "User"} ${user.lastName || ""} (${user.email || ""})`}
+              >
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.firstName || "User"}
+                    className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                  />
+                ) : (
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                    {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                  </span>
+                )}
+                <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold shadow-xs hover:bg-brand-dark transition cursor-pointer"
+              >
+                <LogIn className="h-3.5 w-3.5" /> Sign In
+              </button>
+            )}
 
             {/* Profile Popover Dropdown */}
-            {userMenuOpen && (
+            {userMenuOpen && user && (
               <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                 <div className="border-b border-line bg-cream p-3.5">
                   <div className="flex items-center gap-2.5">
@@ -5220,7 +5180,7 @@ export default function WhiteboardPage() {
                       <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                     ) : (
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
-                        {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                        {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
