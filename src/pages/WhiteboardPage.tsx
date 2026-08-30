@@ -915,9 +915,25 @@ export default function WhiteboardPage() {
 
     const handleNonPassiveWheel = (e: WheelEvent) => {
       e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
       if (mouseWheelMode === "zoom") {
-        const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-        setZoom((z) => Math.min(3.0, Math.max(0.3, z * zoomFactor)));
+        // Smooth cursor-anchored zoom without holding Shift or Ctrl
+        const zoomFactor = e.deltaY < 0 ? 1.09 : 0.91;
+        setZoom((prevZoom) => {
+          const newZoom = Math.min(3.0, Math.max(0.3, prevZoom * zoomFactor));
+          setPan((prevPan) => {
+            const canvasX = (mouseX - prevPan.x) / prevZoom;
+            const canvasY = (mouseY - prevPan.y) / prevZoom;
+            return {
+              x: mouseX - canvasX * newZoom,
+              y: mouseY - canvasY * newZoom,
+            };
+          });
+          return newZoom;
+        });
       } else {
         setPan((p) => ({
           x: p.x - e.deltaX * 0.8,
