@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect, Component, type ErrorInfo, type ReactNode } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -49,6 +49,65 @@ import { AdminInvoices, AdminCompanyAssets } from "./pages/admin/AdminInvoicesAn
 import { AdminWhiteboard } from "./pages/admin/AdminWhiteboard";
 import WhiteboardPage from "./pages/WhiteboardPage";
 import { useRoute, segments } from "./lib/router";
+
+class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
+  public state = {
+    hasError: false,
+    error: null as Error | null,
+  };
+
+  public static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("App ErrorBoundary caught:", error, errorInfo);
+  }
+
+  public render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center select-none">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-4">
+            <div className="h-12 w-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-xl font-bold">
+              ⚠️
+            </div>
+            <h2 className="text-lg font-bold text-white">Something went wrong</h2>
+            <p className="text-xs text-slate-400 bg-slate-950 p-3 rounded-xl font-mono text-left overflow-auto max-h-36">
+              {this.state.error?.message || "An unexpected error occurred while rendering this page."}
+            </p>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    localStorage.removeItem("gamat_fx_saved_drafts");
+                    localStorage.removeItem("gamat_fx_trashed_tabs");
+                  } catch {}
+                  window.location.reload();
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition cursor-pointer"
+              >
+                Reset & Reload
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.hash = "#/";
+                  window.location.reload();
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-white/20 bg-white/10 text-xs font-bold hover:bg-white/20 transition cursor-pointer"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const staticPages: Record<string, React.ComponentType> = {
   "/": Home,
@@ -150,7 +209,11 @@ export default function App() {
   }
 
   if (route === "/whiteboard") {
-    return <div className="min-h-screen bg-slate-900">{content}</div>;
+    return (
+      <ErrorBoundary>
+        <div className="min-h-screen bg-slate-900">{content}</div>
+      </ErrorBoundary>
+    );
   }
 
   const isAdminRoute = route === "/admin" || route.startsWith("/admin/");
@@ -159,27 +222,35 @@ export default function App() {
 
   if (bare) {
     if (isAdminRoute || isAuthRoute) {
-      return <div className="min-h-screen bg-cream">{content}</div>;
+      return (
+        <ErrorBoundary>
+          <div className="min-h-screen bg-cream">{content}</div>
+        </ErrorBoundary>
+      );
     }
 
     return (
-      <div className="flex min-h-screen flex-col bg-cream">
-        <div className="flex-1">{content}</div>
-        <div className="border-t border-line bg-ink px-6 py-5 text-center text-xs text-white/50">
-          Copyright © {new Date().getFullYear()}{" "}
-          <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
+      <ErrorBoundary>
+        <div className="flex min-h-screen flex-col bg-cream">
+          <div className="flex-1">{content}</div>
+          <div className="border-t border-line bg-ink px-6 py-5 text-center text-xs text-white/50">
+            Copyright © {new Date().getFullYear()}{" "}
+            <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
+          </div>
         </div>
-      </div>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream">
-      <Navbar />
-      <main key={route} className="animate-[fadeIn_.35s_ease]">
-        {content}
-      </main>
-      <Footer />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-cream">
+        <Navbar />
+        <main key={route} className="animate-[fadeIn_.35s_ease]">
+          {content}
+        </main>
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 }
