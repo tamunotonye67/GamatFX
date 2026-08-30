@@ -15,7 +15,7 @@ const extra = [
   { q: "Can I pay in instalments?", a: "Yes. Our mentorship programs can be split into two or three payments. Contact our team before enrolling and we'll set up a plan for you." },
   { q: "Do you offer refunds?", a: "Enrollments are generally non-refundable because content is digital and delivered immediately. There is no automatic refund button in your dashboard — any refund, if approved, is handled manually by our team. If you have not accessed any material within 7 days of purchase, contact us on WhatsApp or email and we will review your case." },
   { q: "Will I get a certificate?", a: "Yes. A GAMAT Fx Academy certificate is issued on completion of any full program, including our mentorship cohorts." },
-  { q: "What device do I need?", a: "Any laptop or smartphone with a stable internet connection. We teach on MT4/MT5 and TradingView, both of which are free and run on all major devices." },
+  { q: "What device do I need?", a: "Any laptop or smartphone with a stable internet connection. We teach on MT4/MT5 and professional charting platforms, both of which are free and run on all major devices." },
   { q: "Do you help with prop firm challenges?", a: "Yes — our Funded Trader Prep program is built specifically around evaluation rules, drawdown limits and payout discipline." },
   { q: "How do I contact a mentor directly?", a: "Enrolled students get mentor access inside the private community, plus scheduled review calls depending on their program tier." },
 ];

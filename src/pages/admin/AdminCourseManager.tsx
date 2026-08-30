@@ -369,7 +369,7 @@ export function AdminCourseManager() {
             <section className="space-y-3">
               <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">Requirements</h4>
               <textarea rows={3} value={edit.requirementsText ?? ""} onChange={(e) => setEdit({ ...edit, requirementsText: e.target.value })}
-                placeholder={"A laptop or smartphone\nFree TradingView or MT5 account"}
+                placeholder={"A laptop or smartphone\nFree charting or MT5 account"}
                 className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
             </section>
 

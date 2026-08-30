@@ -69,7 +69,7 @@ export const COURSES: Course[] = [
     poster: P1,
     video: V1,
     outcomes: ["Read and trade economic data releases", "Map institutional supply & demand zones", "Build a top-down fundamental bias", "Combine macro and technical confluence", "Manage news-event volatility safely"],
-    requirements: ["A laptop or smartphone with internet", "A free MT4/MT5 or TradingView account", "No prior experience required"],
+    requirements: ["A laptop or smartphone with internet", "A free MT4/MT5 or charting account", "No prior experience required"],
     modules: [
       mod("Getting Started", [["Welcome & how to use this course", "6:12", true], ["Setting up your charts", "11:40", true], ["The trader's mindset", "9:05"]]),
       mod("Market Fundamentals", [["What actually moves currency pairs", "14:22"], ["Reading the economic calendar", "18:35"], ["Interest rates & central banks", "21:10"], ["Inflation, CPI and NFP explained", "19:48"], ["Building a fundamental bias", "16:30"]]),
@@ -90,11 +90,11 @@ export const COURSES: Course[] = [
     price: 39999,
     poster: P2,
     video: V2,
-    outcomes: ["Navigate MT4, MT5 and TradingView", "Understand pips, lots and leverage", "Place, modify and close trades safely", "Read basic candlestick structure", "Build your first trading routine"],
+    outcomes: ["Navigate MT4, MT5 and charting platforms", "Understand pips, lots and leverage", "Place, modify and close trades safely", "Read basic candlestick structure", "Build your first trading routine"],
     requirements: ["No experience needed", "A device with internet access"],
     modules: [
       mod("Welcome", [["What is the forex market?", "10:05", true], ["Who moves the market", "12:18", true]]),
-      mod("Platforms & Orders", [["Setting up MT4 / MT5", "15:22"], ["TradingView essentials", "13:40"], ["Order types explained", "16:55"]]),
+      mod("Platforms & Orders", [["Setting up MT4 / MT5", "15:22"], ["Chart platform essentials", "13:40"], ["Order types explained", "16:55"]]),
       mod("Position Sizing", [["Pips, lots and contract size", "14:10"], ["Leverage and margin safely", "17:30"], ["Your first demo trade", "19:02"]]),
     ],
   },

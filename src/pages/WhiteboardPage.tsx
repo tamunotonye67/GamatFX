@@ -160,7 +160,7 @@ const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   </svg>
 );
 
-const TradingViewLongIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+const LongPositionIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
     viewBox="0 0 24 24"
@@ -177,7 +177,7 @@ const TradingViewLongIcon = ({ className = "h-3.5 w-3.5" }: { className?: string
   </svg>
 );
 
-const TradingViewShortIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+const ShortPositionIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
     viewBox="0 0 24 24"
@@ -474,12 +474,12 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
   },
   long: {
     title: "Long Position Calculator",
-    desc: "TradingView-style Long Position tool showing Green Take Profit target, Red Stop Loss zone, and Risk-to-Reward ratio.",
+    desc: "Long Position tool showing Green Take Profit target, Red Stop Loss zone, and Risk-to-Reward ratio.",
     shortcut: "L",
   },
   short: {
     title: "Short Position Calculator",
-    desc: "TradingView-style Short Position tool showing Red Stop Loss zone, Green Take Profit target, and Risk-to-Reward ratio.",
+    desc: "Short Position tool showing Red Stop Loss zone, Green Take Profit target, and Risk-to-Reward ratio.",
     shortcut: "S",
   },
   orderblock: {
@@ -504,12 +504,12 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
   },
   bullish_candle: {
     title: "Bullish Candlestick",
-    desc: "Draw an authentic TradingView-style green Bullish Candlestick with upper and lower wicks.",
+    desc: "Draw an authentic green Bullish Candlestick with upper and lower wicks.",
     shortcut: "U",
   },
   bearish_candle: {
     title: "Bearish Candlestick",
-    desc: "Draw an authentic TradingView-style red Bearish Candlestick with upper and lower wicks.",
+    desc: "Draw an authentic red Bearish Candlestick with upper and lower wicks.",
     shortcut: "J",
   },
 };
@@ -595,7 +595,7 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
 ];
 
 /* ========================================================================== */
-/*                      FIGMA-STYLE ALIGNMENT SVG ICONS                       */
+/*                           ALIGNMENT SVG ICONS                              */
 /* ========================================================================== */
 
 const AlignLeftIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
@@ -730,7 +730,7 @@ export default function WhiteboardPage() {
   const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "bullish_candle" | "bearish_candle">("fibo");
   const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky" | "annotation">("text");
 
-  // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
+  // Floating Favorites Toolbar State (Floats anywhere on canvas workspace)
   const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"]);
   const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
@@ -2119,7 +2119,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  /* Alignment Engine (Figma-Standard: Align to selection bounding box / distribute evenly) */
+  /* Alignment Engine (Align to selection bounding box / distribute evenly) */
   const handleAlignShapes = (alignType: "left" | "centerH" | "right" | "top" | "middleV" | "bottom" | "distributeH" | "distributeV") => {
     const targetIds = selectedShapeIds.length > 0 ? selectedShapeIds : selectedShapeId ? [selectedShapeId] : [];
     if (targetIds.length === 0) return;
@@ -2591,7 +2591,7 @@ export default function WhiteboardPage() {
     setDiagramsMenuOpen(false);
   };
 
-  /* ----------------- FIGMA-STYLE HUB ACTION HANDLERS ------------------------ */
+  /* ----------------- HUB ACTION HANDLERS ------------------------ */
   const handleCreateNewCanvasFromHub = (customName?: string) => {
     openCreateCanvasModal(customName);
   };
@@ -3058,7 +3058,7 @@ export default function WhiteboardPage() {
     );
   }
 
-  // Filtered collections for Figma-Style Hub View (Deduplicated so open tabs and saved drafts remain synchronized)
+  // Filtered collections for Hub View (Deduplicated so open tabs and saved drafts remain synchronized)
   const allDraftsList = [
     ...tabs.map((t) => ({
       id: t.id,
@@ -3202,7 +3202,7 @@ export default function WhiteboardPage() {
                 {
                   id: "dots" as const,
                   name: "Dots Grid",
-                  desc: "Figma style",
+                  desc: "Clean dot layout",
                   bgClass: "bg-white border-slate-300",
                   indicator: "radial-gradient(#94a3b8 1.5px, transparent 1.5px)",
                   indicatorSize: "8px 8px",
@@ -3375,7 +3375,7 @@ export default function WhiteboardPage() {
   };
 
   /* -------------------------------------------------------------------------- */
-  /*                        VIEW MODE 1: FIGMA-STYLE HUB                        */
+  /*                               VIEW MODE 1: HUB                             */
   /* -------------------------------------------------------------------------- */
   if (viewMode === "hub") {
     return (
@@ -4546,13 +4546,13 @@ export default function WhiteboardPage() {
                     </button>
                   </div>
 
-                  {/* Show TradingView Floating Favorites Bar Toggle */}
+                  {/* Show Floating Favorites Bar Toggle */}
                   <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
                     <div>
                       <label className="font-bold text-ink flex items-center gap-1.5">
                         <Star className="h-4 w-4 text-amber-500" /> Show Floating Favorites Toolbar
                       </label>
-                      <p className="text-[10px] text-muted">Displays the TradingView-style draggable floating favorites bar</p>
+                      <p className="text-[10px] text-muted">Displays the draggable floating favorites bar</p>
                     </div>
                     <button
                       type="button"
@@ -4854,7 +4854,7 @@ export default function WhiteboardPage() {
       {/* Interactive Create New Canvas & Environment Setup Modal */}
       {renderCreateCanvasModal()}
 
-      {/* TradingView-Style Floating Draggable Favorites Toolbar */}
+      {/* Floating Draggable Favorites Toolbar */}
       {favoritedTools.length > 0 && showFavoritesBar && (
         <div
           className="fixed z-[150] flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
@@ -4863,7 +4863,7 @@ export default function WhiteboardPage() {
           <div
             onMouseDown={handleFavDragStart}
             className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center"
-            title="Drag TradingView Favorites Toolbar Anywhere on Page"
+            title="Drag Favorites Toolbar Anywhere on Page"
           >
             <GripVertical className="h-4 w-4" />
           </div>
@@ -5528,7 +5528,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="long"
                     label="Long Position"
-                    icon={TradingViewLongIcon}
+                    icon={LongPositionIcon}
                     isActive={activeForexTool === "long"}
                     isFavorited={favoritedTools.includes("long")}
                     onSelect={() => { selectTool("long"); setFlyoutGroup(null); }}
@@ -5538,7 +5538,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="short"
                     label="Short Position"
-                    icon={TradingViewShortIcon}
+                    icon={ShortPositionIcon}
                     isActive={activeForexTool === "short"}
                     isFavorited={favoritedTools.includes("short")}
                     onSelect={() => { selectTool("short"); setFlyoutGroup(null); }}
@@ -6160,7 +6160,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <TradingViewLongIcon className="h-3.5 w-3.5" /> Long Position Box
+                    <LongPositionIcon className="h-3.5 w-3.5" /> Long Position Box
                   </button>
 
                   <button
@@ -6171,7 +6171,7 @@ export default function WhiteboardPage() {
                     }}
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
-                    <TradingViewShortIcon className="h-3.5 w-3.5" /> Short Position Box
+                    <ShortPositionIcon className="h-3.5 w-3.5" /> Short Position Box
                   </button>
 
                   <button
@@ -6463,13 +6463,13 @@ export default function WhiteboardPage() {
                       </button>
                     </div>
 
-                    {/* Show TradingView Floating Favorites Bar Toggle */}
+                    {/* Show Floating Favorites Bar Toggle */}
                     <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-cream/50">
                       <div>
                         <label className="font-bold text-ink flex items-center gap-1.5">
                           <Star className="h-4 w-4 text-amber-500" /> Show Floating Favorites Toolbar
                         </label>
-                        <p className="text-[10px] text-muted">Displays the TradingView-style draggable floating favorites bar</p>
+                        <p className="text-[10px] text-muted">Displays the draggable floating favorites bar</p>
                       </div>
                       <button
                         type="button"
@@ -6841,7 +6841,7 @@ export default function WhiteboardPage() {
 
         {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 [scrollbar-width:thin]">
-                {/* TAB 1: FIGMA-STANDARD CONTEXTUAL INSPECTOR TAB */}
+                {/* TAB 1: CONTEXTUAL INSPECTOR TAB */}
                 {rightPanelTab === "inspector" && (() => {
                   const targetTool: Tool = selectedShape ? selectedShape.type : activeTool;
                   const pts = selectedShape?.points || [];
@@ -6883,7 +6883,7 @@ export default function WhiteboardPage() {
                         )}
                       </div>
 
-                      {/* 1. FIGMA-STYLE ALIGNMENT TOOLBAR (USING CRISP ICONS) */}
+                      {/* 1. ALIGNMENT TOOLBAR */}
                       <div className="rounded-2xl border border-line bg-white p-2.5 shadow-2xs space-y-1.5">
                         <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted px-1">
                           <span>Alignment</span>
@@ -6965,7 +6965,7 @@ export default function WhiteboardPage() {
                         </div>
                       </div>
 
-                      {/* 2. FIGMA TRANSFORM / BOUNDS (Fully editable dimensions and position from inspection panel) */}
+                      {/* 2. TRANSFORM / BOUNDS (Fully editable dimensions and position from inspection panel) */}
                       {selectedShape && pts.length > 0 && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
                           <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
@@ -7762,7 +7762,7 @@ export default function WhiteboardPage() {
                             <div>
                               <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
                                 <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
+                                <span className="text-[9px] text-muted font-normal">Chart Tag</span>
                               </label>
                               <input
                                 type="text"
@@ -7786,7 +7786,7 @@ export default function WhiteboardPage() {
                       {(targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bos" || targetTool === "liquidity") && selectedShape && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
                           <label className="text-[11px] font-bold text-ink block flex items-center justify-between">
-                            <span>TradingView Micro Tag</span>
+                            <span>Chart Micro Tag</span>
                             <span className="text-[9px] text-muted font-mono">{targetTool.toUpperCase()}</span>
                           </label>
                           <input
@@ -7849,7 +7849,7 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
-                      {/* 4. FIGMA OBJECT ACTIONS & LAYERING (Only when a shape is selected) */}
+                      {/* 4. OBJECT ACTIONS & LAYERING (Only when a shape is selected) */}
                       {selectedShape && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
                           <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Layer & Actions</p>
@@ -7895,7 +7895,7 @@ export default function WhiteboardPage() {
                   );
                 })()}
 
-                {/* TAB 2: PHOTOSHOP-STYLE LAYERS PANEL WITH INLINE RENAMING */}
+                {/* TAB 2: LAYERS PANEL WITH INLINE RENAMING */}
                 {rightPanelTab === "layers" && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -7911,7 +7911,7 @@ export default function WhiteboardPage() {
                       </div>
                     ) : (
                       <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
-                        {/* Reverse to show Top Layer first (Photoshop style Z-order) */}
+                        {/* Reverse to show Top Layer first (Z-order) */}
                         {[...shapes].reverse().map((shape, revIdx) => {
                           const realIdx = shapes.length - 1 - revIdx;
                           const isSelected = selectedShapeIds.includes(shape.id);
@@ -9319,8 +9319,8 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "zoom": return Search;
     case "marquee_zoom": return Scan;
     case "fibo": return Percent;
-    case "long": return TradingViewLongIcon;
-    case "short": return TradingViewShortIcon;
+    case "long": return LongPositionIcon;
+    case "short": return ShortPositionIcon;
     case "orderblock": return OrderBlockIcon;
     case "fvg": return FvgCandlesIcon;
     case "bos": return BosIcon;
@@ -9726,7 +9726,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // TradingView Micro-Label
+    // Chart Micro-Label
     const labelText = shape.text !== undefined ? shape.text : `1:${defaultRiskReward.toFixed(1)}`;
     if (labelText) {
       ctx.fillStyle = "#10b981";
@@ -9768,7 +9768,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // TradingView Micro-Label
+    // Chart Micro-Label
     const labelText = shape.text !== undefined ? shape.text : `1:${defaultRiskReward.toFixed(1)}`;
     if (labelText) {
       ctx.fillStyle = "#ef4444";
@@ -9828,7 +9828,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // TradingView Micro-Label
+    // Chart Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "OB";
     if (labelText) {
       ctx.fillStyle = strokeCol;
@@ -9888,7 +9888,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // TradingView Micro-Label
+    // Chart Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "FVG";
     if (labelText) {
       ctx.fillStyle = strokeCol;
@@ -9909,7 +9909,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // TradingView Micro-Label
+    // Chart Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "BOS";
     if (labelText) {
       ctx.fillStyle = shape.strokeColor || shape.color || "#3b82f6";
@@ -9930,7 +9930,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // TradingView Micro-Label
+    // Chart Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "$$$";
     if (labelText) {
       const minX = Math.min(p1.x, p2.x);
@@ -10412,7 +10412,7 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isA
     }
   }
 
-  // When Alt is held in Select mode: Figma / Illustrator standard Double Pointer (Duplicate) cursor
+  // When Alt is held in Select mode: Double Pointer (Duplicate) cursor
   if (tool === "select" && isAltHeld) {
     return {
       cursor: makeSvgCursor(
