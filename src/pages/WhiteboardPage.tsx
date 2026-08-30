@@ -2372,11 +2372,130 @@ export default function WhiteboardPage() {
       return;
     }
 
+    let guideShapes: Shape[] = [];
+
+    if (resource.id === "patterns") {
+      guideShapes = [
+        { id: "p_sup", type: "line", color: "#3b82f6", strokeWidth: 2.5, lineStyle: "dashed", points: [{ x: 100, y: 360 }, { x: 550, y: 360 }] },
+        { id: "p_suptxt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 110, y: 385 }], text: "Key Structural Support Level" },
+        { id: "p_wpath", type: "bezier", color: "#10b981", strokeWidth: 3, points: [{ x: 120, y: 200 }, { x: 220, y: 360 }, { x: 320, y: 260 }, { x: 420, y: 360 }, { x: 540, y: 160 }] },
+        { id: "p_neck", type: "line", color: "#f59e0b", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 280, y: 260 }, { x: 580, y: 260 }] },
+        { id: "p_necktxt", type: "text", color: "#f59e0b", strokeWidth: 2, points: [{ x: 440, y: 245 }], text: "Neckline Breakout Level" },
+        { id: "p_bos", type: "bos", color: "#10b981", strokeWidth: 2, points: [{ x: 420, y: 260 }, { x: 540, y: 160 }], text: "BOS ↗" },
+        { id: "p_bull", type: "bullish_candle", color: "#10b981", strokeWidth: 2, points: [{ x: 480, y: 180 }, { x: 510, y: 260 }], text: "Impulse Candle" },
+        {
+          id: "p_guide_sticky",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 620, y: 140 }],
+          text: `📐 PRICE ACTION & PATTERNS GUIDE\n\n• Double Bottom (W): Price rejects support twice, signaling buyer accumulation.\n• Neckline Breakout: Validated by aggressive candle body close above swing high.\n• Execution: Enter on retest of neckline with Stop Loss below right bottom.`,
+          stickyColor: "#bae6fd",
+        },
+      ];
+    } else if (resource.id === "smc_guide") {
+      guideShapes = [
+        { id: "smc_ob", type: "orderblock", color: "#8b5cf6", strokeWidth: 2, points: [{ x: 100, y: 300 }, { x: 300, y: 390 }], text: "H4 Bullish Order Block" },
+        { id: "smc_fvg", type: "fvg", color: "#f59e0b", strokeWidth: 2, points: [{ x: 260, y: 210 }, { x: 460, y: 270 }], text: "Fair Value Gap (FVG)" },
+        { id: "smc_bos", type: "bos", color: "#3b82f6", strokeWidth: 2, points: [{ x: 280, y: 180 }, { x: 540, y: 180 }], text: "BOS ↗" },
+        { id: "smc_liq", type: "liquidity", color: "#e11d48", strokeWidth: 2, points: [{ x: 380, y: 120 }, { x: 640, y: 120 }], text: "Buy-Side Liquidity ($$$)" },
+        { id: "smc_c1", type: "bearish_candle", color: "#ef4444", strokeWidth: 2, points: [{ x: 140, y: 300 }, { x: 170, y: 390 }], text: "Last Down Candle (OB)" },
+        { id: "smc_c2", type: "bullish_candle", color: "#10b981", strokeWidth: 2, points: [{ x: 200, y: 180 }, { x: 230, y: 330 }], text: "Impulsive Expansion" },
+        { id: "smc_pos", type: "long", color: "#10b981", strokeWidth: 2, points: [{ x: 380, y: 300 }, { x: 560, y: 120 }], text: "1:3.5 R:R" },
+        {
+          id: "smc_sticky",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 700, y: 120 }],
+          text: `⚡ SMART MONEY CONCEPTS MASTER GUIDE\n\n1. Identify Market Structure & Trend Bias (HTF BOS)\n2. Locate Validated Order Block (Last opposing candle before displacement)\n3. Mark Fair Value Gap (FVG) Imbalance area\n4. Target External Liquidity Pool ($$$) with minimum 1:3 R:R`,
+          stickyColor: "#ddd6fe",
+        },
+      ];
+    } else if (resource.id === "position_sizing") {
+      guideShapes = [
+        { id: "ps_pos", type: "long", color: "#10b981", strokeWidth: 2, points: [{ x: 140, y: 280 }, { x: 420, y: 100 }], text: "1:3.0 Target" },
+        { id: "ps_tp", type: "line", color: "#10b981", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 100, y: 100 }, { x: 460, y: 100 }] },
+        { id: "ps_tptxt", type: "text", color: "#10b981", strokeWidth: 2, points: [{ x: 110, y: 80 }], text: "Take Profit Target: +60 Pips (+$300 on $10k)" },
+        { id: "ps_entry", type: "line", color: "#3b82f6", strokeWidth: 2, points: [{ x: 100, y: 280 }, { x: 460, y: 280 }] },
+        { id: "ps_entrytxt", type: "text", color: "#3b82f6", strokeWidth: 2, points: [{ x: 110, y: 265 }], text: "Entry Level @ 1.08500" },
+        { id: "ps_sl", type: "line", color: "#ef4444", strokeWidth: 2, lineStyle: "dashed", points: [{ x: 100, y: 340 }, { x: 460, y: 340 }] },
+        { id: "ps_sltxt", type: "text", color: "#ef4444", strokeWidth: 2, points: [{ x: 110, y: 360 }], text: "Stop Loss Invalidation: -20 Pips (-$100 Risk = 1.0%)" },
+        {
+          id: "ps_sticky1",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 500, y: 90 }],
+          text: `📊 POSITION SIZING FORMULA\n\nLot Size = (Account Balance × Risk %) / (Stop Loss Pips × Pip Value)\n\nExample for $10,000 Account:\n• 1% Risk = $100\n• Stop Loss = 20 Pips\n• Lot Size = $100 / (20 × $10) = 0.50 Lots`,
+          stickyColor: "#bbf7d0",
+        },
+        {
+          id: "ps_sticky2",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 500, y: 310 }],
+          text: `🛡️ CAPITAL PROTECTION RULES\n\n• Never exceed 1.0% risk on any single trade.\n• Maintain strict 1:3 minimum Risk-to-Reward ratio.\n• Stop trading for the day if daily drawdown hits 3.0%.`,
+          stickyColor: "#fef08a",
+        },
+      ];
+    } else if (resource.id === "hotkeys") {
+      guideShapes = [
+        {
+          id: "hk_tool_card",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 100, y: 120 }],
+          text: `⌨️ DRAWING & TOOL SHORTCUTS\n\n• V / 1: Select & Transform Tool\n• H / 2: Pan Canvas Tool\n• P / 3: Freehand Pen / Pencil\n• L / 4: Straight Line\n• A: Connector Arrow\n• B: Chart Pattern Path (Bezier)\n• R: Rectangle Zone / Order Block\n• C: Circle Node\n• D: Decision Diamond\n• T / 5: Text Label\n• N / S: Sticky Note\n• F: Fibonacci Retracement\n• G: Long Position Tool\n• K: Short Position Tool\n• U: Bullish Candlestick\n• J: Bearish Candlestick\n• E: Eraser Tool\n• Z: Zoom Tool`,
+          stickyColor: "#fef08a",
+        },
+        {
+          id: "hk_edit_card",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 420, y: 120 }],
+          text: `⚡ CANVAS & EDITING COMMANDS\n\n• Ctrl + Z: Undo action\n• Ctrl + Y / Ctrl + Shift + Z: Redo\n• Ctrl + S: Save Draft\n• Ctrl + A: Select All Objects\n• Ctrl + D: Duplicate Selected\n• Alt + Drag: Quick Clone on Canvas\n• Ctrl + L: Lock / Unlock Selected\n• Delete / Backspace: Delete Selected\n• Space + Drag: Pan Around Canvas\n• Mouse Wheel: Zoom In / Zoom Out\n• Shift + Drag: Constrain Proportions`,
+          stickyColor: "#bae6fd",
+        },
+        {
+          id: "hk_demo_candle",
+          type: "bullish_candle",
+          color: "#10b981",
+          strokeWidth: 2,
+          points: [{ x: 740, y: 140 }, { x: 780, y: 260 }],
+          text: "Hotkeys Active",
+        },
+        {
+          id: "hk_demo_box",
+          type: "orderblock",
+          color: "#8b5cf6",
+          strokeWidth: 2,
+          points: [{ x: 740, y: 290 }, { x: 880, y: 380 }],
+          text: "Try Pressing Hotkeys!",
+        },
+      ];
+    } else {
+      guideShapes = [
+        {
+          id: "guide_default",
+          type: "sticky",
+          color: "#16181c",
+          strokeWidth: 2,
+          points: [{ x: 150, y: 140 }],
+          text: `📘 ${resource.title.toUpperCase()}\n\n${resource.desc}\n\nKey Rules:\n${resource.points.map((p) => `• ${p}`).join("\n")}`,
+          stickyColor: "#bae6fd",
+        },
+      ];
+    }
+
     const newId = `guide_${resource.id}_${Date.now()}`;
     const newTab: DiagramTab = {
       id: newId,
       name: finalName,
-      shapes: initialShapes,
+      shapes: guideShapes,
       theme: "dots",
       snapToGrid: true,
     };
@@ -2388,11 +2507,11 @@ export default function WhiteboardPage() {
       if (!updated.some((t) => t.name === finalName)) {
         return [...updated, newTab];
       }
-      return updated;
+      return updated.map((t) => (t.name === finalName ? { ...t, shapes: guideShapes } : t));
     });
 
     setActiveTabId(newId);
-    setShapes(initialShapes);
+    setShapes(guideShapes);
     setBgGrid("dots");
     setSnapToGrid(true);
     setViewMode("canvas");
@@ -7558,7 +7677,7 @@ export default function WhiteboardPage() {
 /*                          WHITEBOARD DRAWING ENGINE                         */
 /* ========================================================================== */
 
-/** Visual SVG Preview for Templates and Saved Drafts */
+/** Visual SVG Preview for Templates and Saved Drafts (Renders actual contents dynamically) */
 function HubDiagramThumbnail({
   type,
   shapes,
@@ -7566,7 +7685,8 @@ function HubDiagramThumbnail({
   type?: "mindmap" | "smc" | "risk" | "eurusd" | "london";
   shapes?: Shape[];
 }) {
-  if (type === "mindmap") {
+  // If template type is given and no custom shapes, render the signature vector layout
+  if (type === "mindmap" && (!shapes || shapes.length === 0)) {
     return (
       <svg className="w-full h-full" viewBox="0 0 200 120">
         <rect width="200" height="120" fill="#f8fafc" />
@@ -7588,15 +7708,15 @@ function HubDiagramThumbnail({
     );
   }
 
-  if (type === "smc") {
+  if (type === "smc" && (!shapes || shapes.length === 0)) {
     return (
       <svg className="w-full h-full" viewBox="0 0 200 120">
         <rect width="200" height="120" fill="#f8fafc" />
         {/* Price movement trend */}
         <polyline points="20,40 50,70 80,30 110,80 140,45 180,20" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         {/* Institutional Order Block */}
-        <rect x="35" y="58" width="60" height="28" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
-        <text x="65" y="75" textAnchor="middle" fill="#047857" fontSize="8" fontWeight="bold">OB Demand</text>
+        <rect x="35" y="58" width="60" height="28" rx="4" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" strokeWidth="1.5" />
+        <text x="65" y="75" textAnchor="middle" fill="#7c3aed" fontSize="8" fontWeight="bold">OB Demand</text>
         {/* Liquidity Sweep Arrow */}
         <line x1="110" y1="80" x2="110" y2="105" stroke="#ef4444" strokeWidth="2" strokeDasharray="2 2" />
         <text x="110" y="114" textAnchor="middle" fill="#dc2626" fontSize="7" fontWeight="bold">Sweep ⚡</text>
@@ -7604,7 +7724,7 @@ function HubDiagramThumbnail({
     );
   }
 
-  if (type === "risk") {
+  if (type === "risk" && (!shapes || shapes.length === 0)) {
     return (
       <svg className="w-full h-full" viewBox="0 0 200 120">
         <rect width="200" height="120" fill="#f8fafc" />
@@ -7620,15 +7740,18 @@ function HubDiagramThumbnail({
     );
   }
 
-  if (type === "eurusd") {
+  if (type === "eurusd" && (!shapes || shapes.length === 0)) {
     return (
       <svg className="w-full h-full" viewBox="0 0 200 120">
         <rect width="200" height="120" fill="#f8fafc" />
-        {/* Candlesticks */}
-        <line x1="35" y1="30" x2="35" y2="90" stroke="#ef4444" strokeWidth="1.5" />
-        <rect x="28" y="45" width="14" height="35" fill="#ef4444" rx="2" />
-        <line x1="60" y1="20" x2="60" y2="85" stroke="#10b981" strokeWidth="1.5" />
-        <rect x="53" y="28" width="14" height="42" fill="#10b981" rx="2" />
+        {/* Red Candle */}
+        <line x1="35" y1="30" x2="35" y2="45" stroke="#ef4444" strokeWidth="1.5" />
+        <rect x="28" y="45" width="14" height="35" fill="rgba(239, 68, 68, 0.35)" stroke="#ef4444" strokeWidth="1.5" rx="2" />
+        <line x1="35" y1="80" x2="35" y2="95" stroke="#ef4444" strokeWidth="1.5" />
+        {/* Green Candle */}
+        <line x1="60" y1="18" x2="60" y2="28" stroke="#10b981" strokeWidth="1.5" />
+        <rect x="53" y="28" width="14" height="42" fill="rgba(16, 185, 129, 0.35)" stroke="#10b981" strokeWidth="1.5" rx="2" />
+        <line x1="60" y1="70" x2="60" y2="85" stroke="#10b981" strokeWidth="1.5" />
         {/* BOS Line */}
         <line x1="50" y1="28" x2="180" y2="28" stroke="#3b82f6" strokeWidth="2" strokeDasharray="3 3" />
         <text x="120" y="22" textAnchor="middle" fill="#2563eb" fontSize="8" fontWeight="bold">H4 BOS ↗</text>
@@ -7639,7 +7762,7 @@ function HubDiagramThumbnail({
     );
   }
 
-  if (type === "london") {
+  if (type === "london" && (!shapes || shapes.length === 0)) {
     return (
       <svg className="w-full h-full" viewBox="0 0 200 120">
         <rect width="200" height="120" fill="#f8fafc" />
@@ -7656,41 +7779,267 @@ function HubDiagramThumbnail({
     );
   }
 
-  // Dynamic / Default Draft Preview
+  // Dynamic Real Shapes Render Engine for Drafts and Files
+  if (shapes && shapes.length > 0) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    shapes.forEach((s) => {
+      s.points.forEach((p) => {
+        if (p.x < minX) minX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y > maxY) maxY = p.y;
+      });
+    });
+
+    if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) {
+      minX = 0; minY = 0; maxX = 800; maxY = 500;
+    }
+
+    const contentW = Math.max(60, maxX - minX);
+    const contentH = Math.max(40, maxY - minY);
+    const padding = 14;
+    const viewW = 200;
+    const viewH = 120;
+    const availW = viewW - padding * 2;
+    const availH = viewH - padding * 2;
+
+    const scale = Math.min(availW / contentW, availH / contentH, 1.2);
+    const offsetX = padding + (availW - contentW * scale) / 2 - minX * scale;
+    const offsetY = padding + (availH - contentH * scale) / 2 - minY * scale;
+
+    const tx = (x: number) => x * scale + offsetX;
+    const ty = (y: number) => y * scale + offsetY;
+
+    return (
+      <svg className="w-full h-full" viewBox="0 0 200 120">
+        <rect width="200" height="120" fill="#f8fafc" />
+        {/* Subtle grid background */}
+        <circle cx="20" cy="20" r="0.75" fill="#cbd5e1" />
+        <circle cx="60" cy="20" r="0.75" fill="#cbd5e1" />
+        <circle cx="100" cy="20" r="0.75" fill="#cbd5e1" />
+        <circle cx="140" cy="20" r="0.75" fill="#cbd5e1" />
+        <circle cx="180" cy="20" r="0.75" fill="#cbd5e1" />
+        <circle cx="20" cy="60" r="0.75" fill="#cbd5e1" />
+        <circle cx="60" cy="60" r="0.75" fill="#cbd5e1" />
+        <circle cx="100" cy="60" r="0.75" fill="#cbd5e1" />
+        <circle cx="140" cy="60" r="0.75" fill="#cbd5e1" />
+        <circle cx="180" cy="60" r="0.75" fill="#cbd5e1" />
+        <circle cx="20" cy="100" r="0.75" fill="#cbd5e1" />
+        <circle cx="60" cy="100" r="0.75" fill="#cbd5e1" />
+        <circle cx="100" cy="100" r="0.75" fill="#cbd5e1" />
+        <circle cx="140" cy="100" r="0.75" fill="#cbd5e1" />
+        <circle cx="180" cy="100" r="0.75" fill="#cbd5e1" />
+
+        {shapes.map((s, idx) => {
+          const color = s.color || "#3b82f6";
+          const pts = s.points;
+          if (!pts || pts.length === 0) return null;
+
+          if ((s.type === "rectangle" || s.type === "orderblock" || s.type === "fvg") && pts.length >= 2) {
+            const rx = Math.min(tx(pts[0].x), tx(pts[1].x));
+            const ry = Math.min(ty(pts[0].y), ty(pts[1].y));
+            const rw = Math.max(4, Math.abs(tx(pts[1].x) - tx(pts[0].x)));
+            const rh = Math.max(4, Math.abs(ty(pts[1].y) - ty(pts[0].y)));
+            return (
+              <g key={s.id || idx}>
+                <rect x={rx} y={ry} width={rw} height={rh} rx={3} fill={color} fillOpacity={0.2} stroke={color} strokeWidth={1.25} />
+                {s.type === "orderblock" && (
+                  <line x1={rx} y1={ry + rh / 2} x2={rx + rw} y2={ry + rh / 2} stroke={color} strokeWidth={0.75} strokeDasharray="2 2" />
+                )}
+                {s.text && rw > 25 && (
+                  <text x={rx + 3} y={ry + 8} fill={color} fontSize={5.5} fontWeight="bold">{s.text}</text>
+                )}
+              </g>
+            );
+          }
+
+          if (s.type === "circle" && pts.length >= 2) {
+            const cx = tx(pts[0].x);
+            const cy = ty(pts[0].y);
+            const r = Math.max(3, Math.hypot(tx(pts[1].x) - cx, ty(pts[1].y) - cy));
+            return (
+              <circle key={s.id || idx} cx={cx} cy={cy} r={r} fill={color} fillOpacity={0.2} stroke={color} strokeWidth={1.25} />
+            );
+          }
+
+          if (s.type === "diamond" && pts.length >= 2) {
+            const minPx = Math.min(tx(pts[0].x), tx(pts[1].x));
+            const minPy = Math.min(ty(pts[0].y), ty(pts[1].y));
+            const maxPx = Math.max(tx(pts[0].x), tx(pts[1].x));
+            const maxPy = Math.max(ty(pts[0].y), ty(pts[1].y));
+            const midPx = (minPx + maxPx) / 2;
+            const midPy = (minPy + maxPy) / 2;
+            const pointsStr = `${midPx},${minPy} ${maxPx},${midPy} ${midPx},${maxPy} ${minPx},${midPy}`;
+            return (
+              <polygon key={s.id || idx} points={pointsStr} fill={color} fillOpacity={0.2} stroke={color} strokeWidth={1.25} />
+            );
+          }
+
+          if ((s.type === "line" || s.type === "bos" || s.type === "liquidity") && pts.length >= 2) {
+            return (
+              <g key={s.id || idx}>
+                <line
+                  x1={tx(pts[0].x)}
+                  y1={ty(pts[0].y)}
+                  x2={tx(pts[1].x)}
+                  y2={ty(pts[1].y)}
+                  stroke={color}
+                  strokeWidth={s.type === "bos" ? 1.5 : 1.25}
+                  strokeDasharray={s.lineStyle === "dashed" || s.type === "bos" || s.type === "liquidity" ? "3 2" : undefined}
+                />
+                {s.text && (
+                  <text x={(tx(pts[0].x) + tx(pts[1].x)) / 2} y={(ty(pts[0].y) + ty(pts[1].y)) / 2 - 2} textAnchor="middle" fill={color} fontSize={5.5} fontWeight="bold">
+                    {s.text}
+                  </text>
+                )}
+              </g>
+            );
+          }
+
+          if (s.type === "arrow" && pts.length >= 2) {
+            const x1 = tx(pts[0].x);
+            const y1 = ty(pts[0].y);
+            const x2 = tx(pts[1].x);
+            const y2 = ty(pts[1].y);
+            return (
+              <g key={s.id || idx}>
+                <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+                <circle cx={x2} cy={y2} r={2} fill={color} />
+              </g>
+            );
+          }
+
+          if ((s.type === "pencil" || s.type === "highlighter" || s.type === "bezier") && pts.length >= 2) {
+            const polyPoints = pts.map((p) => `${tx(p.x)},${ty(p.y)}`).join(" ");
+            return (
+              <polyline
+                key={s.id || idx}
+                points={polyPoints}
+                fill="none"
+                stroke={color}
+                strokeWidth={s.type === "highlighter" ? 4 : 1.5}
+                strokeOpacity={s.type === "highlighter" ? 0.4 : 1}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            );
+          }
+
+          if (s.type === "bullish_candle" && pts.length >= 2) {
+            const y1 = ty(pts[0].y);
+            const y2 = ty(pts[1].y);
+            const yHigh = Math.min(y1, y2);
+            const yLow = Math.max(y1, y2);
+            const totalH = Math.max(8, yLow - yHigh);
+            const bodyW = Math.max(5, Math.abs(tx(pts[1].x) - tx(pts[0].x)) || 8);
+            const cx = tx(pts[0].x);
+            const bx = cx - bodyW / 2;
+            const bodyH = Math.max(4, totalH * 0.62);
+            const by = yHigh + (totalH - bodyH) / 2;
+            const candleColor = s.color || "#10b981";
+
+            return (
+              <g key={s.id || idx}>
+                <line x1={cx} y1={yHigh} x2={cx} y2={by} stroke={candleColor} strokeWidth={1} />
+                <rect x={bx} y={by} width={bodyW} height={bodyH} fill={candleColor} fillOpacity={0.35} stroke={candleColor} strokeWidth={1} rx={1} />
+                <line x1={cx} y1={by + bodyH} x2={cx} y2={yLow} stroke={candleColor} strokeWidth={1} />
+              </g>
+            );
+          }
+
+          if (s.type === "bearish_candle" && pts.length >= 2) {
+            const y1 = ty(pts[0].y);
+            const y2 = ty(pts[1].y);
+            const yHigh = Math.min(y1, y2);
+            const yLow = Math.max(y1, y2);
+            const totalH = Math.max(8, yLow - yHigh);
+            const bodyW = Math.max(5, Math.abs(tx(pts[1].x) - tx(pts[0].x)) || 8);
+            const cx = tx(pts[0].x);
+            const bx = cx - bodyW / 2;
+            const bodyH = Math.max(4, totalH * 0.62);
+            const by = yHigh + (totalH - bodyH) / 2;
+            const candleColor = s.color || "#ef4444";
+
+            return (
+              <g key={s.id || idx}>
+                <line x1={cx} y1={yHigh} x2={cx} y2={by} stroke={candleColor} strokeWidth={1} />
+                <rect x={bx} y={by} width={bodyW} height={bodyH} fill={candleColor} fillOpacity={0.35} stroke={candleColor} strokeWidth={1} rx={1} />
+                <line x1={cx} y1={by + bodyH} x2={cx} y2={yLow} stroke={candleColor} strokeWidth={1} />
+              </g>
+            );
+          }
+
+          if ((s.type === "long" || s.type === "short") && pts.length >= 2) {
+            const x1 = tx(pts[0].x);
+            const y1 = ty(pts[0].y);
+            const x2 = tx(pts[1].x);
+            const y2 = ty(pts[1].y);
+            const minXBox = Math.min(x1, x2);
+            const bw = Math.abs(x2 - x1) || 40;
+            const bh = Math.abs(y2 - y1) || 25;
+            const isLong = s.type === "long";
+
+            return (
+              <g key={s.id || idx}>
+                <rect x={minXBox} y={isLong ? y1 - bh : y1} width={bw} height={bh} fill={isLong ? "#10b981" : "#ef4444"} fillOpacity={0.25} stroke={isLong ? "#10b981" : "#ef4444"} strokeWidth={1} rx={2} />
+                <line x1={minXBox} y1={y1} x2={minXBox + bw} y2={y1} stroke="#3b82f6" strokeWidth={1.5} />
+                <rect x={minXBox} y={isLong ? y1 : y1 - bh / 3} width={bw} height={bh / 3} fill={isLong ? "#ef4444" : "#10b981"} fillOpacity={0.25} stroke={isLong ? "#ef4444" : "#10b981"} strokeWidth={1} rx={2} />
+              </g>
+            );
+          }
+
+          if (s.type === "sticky" && pts.length >= 1) {
+            const sx = tx(pts[0].x);
+            const sy = ty(pts[0].y);
+            return (
+              <g key={s.id || idx}>
+                <rect x={sx} y={sy} width={45} height={30} rx={3} fill={s.stickyColor || "#fef08a"} stroke="#ca8a04" strokeWidth={0.75} />
+                <line x1={sx + 4} y1={sy + 8} x2={sx + 38} y2={sy + 8} stroke="#854d0e" strokeWidth={1} strokeLinecap="round" />
+                <line x1={sx + 4} y1={sy + 15} x2={sx + 30} y2={sy + 15} stroke="#854d0e" strokeWidth={1} strokeLinecap="round" />
+                <line x1={sx + 4} y1={sy + 22} x2={sx + 34} y2={sy + 22} stroke="#854d0e" strokeWidth={1} strokeLinecap="round" />
+              </g>
+            );
+          }
+
+          if (s.type === "text" && pts.length >= 1) {
+            return (
+              <text key={s.id || idx} x={tx(pts[0].x)} y={ty(pts[0].y)} fill={color} fontSize={6} fontWeight="bold">
+                {s.text?.slice(0, 16) || "Text"}
+              </text>
+            );
+          }
+
+          return null;
+        })}
+      </svg>
+    );
+  }
+
+  // Blank Canvas Fallback
   return (
     <svg className="w-full h-full" viewBox="0 0 200 120">
       <rect width="200" height="120" fill="#f8fafc" />
-      {/* Background blueprint grid dots */}
-      <circle cx="20" cy="20" r="1" fill="#cbd5e1" />
-      <circle cx="60" cy="20" r="1" fill="#cbd5e1" />
-      <circle cx="100" cy="20" r="1" fill="#cbd5e1" />
-      <circle cx="140" cy="20" r="1" fill="#cbd5e1" />
-      <circle cx="180" cy="20" r="1" fill="#cbd5e1" />
-      <circle cx="20" cy="60" r="1" fill="#cbd5e1" />
-      <circle cx="60" cy="60" r="1" fill="#cbd5e1" />
-      <circle cx="100" cy="60" r="1" fill="#cbd5e1" />
-      <circle cx="140" cy="60" r="1" fill="#cbd5e1" />
-      <circle cx="180" cy="60" r="1" fill="#cbd5e1" />
-      <circle cx="20" cy="100" r="1" fill="#cbd5e1" />
-      <circle cx="60" cy="100" r="1" fill="#cbd5e1" />
-      <circle cx="100" cy="100" r="1" fill="#cbd5e1" />
-      <circle cx="140" cy="100" r="1" fill="#cbd5e1" />
-      <circle cx="180" cy="100" r="1" fill="#cbd5e1" />
-
-      {shapes && shapes.length > 0 ? (
-        <g>
-          {/* Stylized representation of user diagram */}
-          <rect x="35" y="30" width="55" height="35" rx="4" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="1.5" />
-          <line x1="100" y1="45" x2="160" y2="45" stroke="#10b981" strokeWidth="2" strokeDasharray="3 3" />
-          <polyline points="40,85 80,70 120,90 165,65" fill="none" stroke="#f43f5e" strokeWidth="2" />
-          <rect x="130" y="70" width="45" height="28" rx="3" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
-        </g>
-      ) : (
-        <g className="text-slate-400">
-          <rect x="40" y="30" width="120" height="60" rx="8" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" />
-          <text x="100" y="65" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold">Blank Canvas</text>
-        </g>
-      )}
+      <circle cx="20" cy="20" r="0.75" fill="#cbd5e1" />
+      <circle cx="60" cy="20" r="0.75" fill="#cbd5e1" />
+      <circle cx="100" cy="20" r="0.75" fill="#cbd5e1" />
+      <circle cx="140" cy="20" r="0.75" fill="#cbd5e1" />
+      <circle cx="180" cy="20" r="0.75" fill="#cbd5e1" />
+      <circle cx="20" cy="60" r="0.75" fill="#cbd5e1" />
+      <circle cx="60" cy="60" r="0.75" fill="#cbd5e1" />
+      <circle cx="100" cy="60" r="0.75" fill="#cbd5e1" />
+      <circle cx="140" cy="60" r="0.75" fill="#cbd5e1" />
+      <circle cx="180" cy="60" r="0.75" fill="#cbd5e1" />
+      <circle cx="20" cy="100" r="0.75" fill="#cbd5e1" />
+      <circle cx="60" cy="100" r="0.75" fill="#cbd5e1" />
+      <circle cx="100" cy="100" r="0.75" fill="#cbd5e1" />
+      <circle cx="140" cy="100" r="0.75" fill="#cbd5e1" />
+      <circle cx="180" cy="100" r="0.75" fill="#cbd5e1" />
+      <rect x="40" y="30" width="120" height="60" rx="8" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" />
+      <text x="100" y="65" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold">Blank Canvas</text>
     </svg>
   );
 }
