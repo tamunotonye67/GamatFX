@@ -5457,105 +5457,114 @@ export default function WhiteboardPage() {
                               { col: "#fed7aa", name: "Peach Coral", border: "#fb923c" },
                               { col: "#ffffff", name: "Clean White", border: "#cbd5e1" },
                               { col: "#1e293b", name: "Dark Slate", border: "#475569" },
-                            ].map((item) => (
-                              <button
-                                key={item.col}
-                                type="button"
-                                onClick={() => {
-                                  setStickyColor(item.col as any);
-                                  setShapes((prev) =>
-                                    prev.map((s) =>
-                                      s.id === selectedShape.id ? { ...s, stickyColor: item.col as any } : s
-                                    )
-                                  );
-                                  showToast(`Sticky Color: ${item.name}`);
-                                }}
-                                style={{ backgroundColor: item.col, borderColor: item.border }}
-                                className={`h-8 rounded-xl border-2 flex items-center justify-center transition shadow-xs cursor-pointer ${
-                                  (selectedShape.stickyColor || "#fef08a") === item.col
-                                    ? "ring-2 ring-brand scale-105"
-                                    : "hover:scale-105"
-                                }`}
-                                title={item.name}
-                              >
-                                {(selectedShape.stickyColor || "#fef08a") === item.col && (
-                                  <Check className={`h-3.5 w-3.5 ${item.col === "#1e293b" ? "text-white" : "text-slate-800"}`} />
-                                )}
-                              </button>
-                            ))}
+                            ].map((item) => {
+                              const isCurrentSelectedColor = (selectedShape?.stickyColor || stickyColor || "#fef08a") === item.col;
+                              return (
+                                <button
+                                  key={item.col}
+                                  type="button"
+                                  onClick={() => {
+                                    setStickyColor(item.col as any);
+                                    if (selectedShape) {
+                                      setShapes((prev) =>
+                                        prev.map((s) =>
+                                          s.id === selectedShape.id ? { ...s, stickyColor: item.col as any } : s
+                                        )
+                                      );
+                                    }
+                                    showToast(`Sticky Color: ${item.name}`);
+                                  }}
+                                  style={{ backgroundColor: item.col, borderColor: item.border }}
+                                  className={`h-8 rounded-xl border-2 flex items-center justify-center transition shadow-xs cursor-pointer ${
+                                    isCurrentSelectedColor
+                                      ? "ring-2 ring-brand scale-105"
+                                      : "hover:scale-105"
+                                  }`}
+                                  title={item.name}
+                                >
+                                  {isCurrentSelectedColor && (
+                                    <Check className={`h-3.5 w-3.5 ${item.col === "#1e293b" ? "text-white" : "text-slate-800"}`} />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
 
                           {/* Direct Note Content Textarea */}
-                          <div className="space-y-1 pt-1 border-t border-amber-200/60">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-amber-900">Note Content</label>
-                            <textarea
-                              rows={3}
-                              value={selectedShape.text || ""}
-                              onChange={(e) => {
-                                const newTxt = e.target.value;
-                                setShapes((prev) =>
-                                  prev.map((s) => (s.id === selectedShape.id ? { ...s, text: newTxt } : s))
-                                );
-                              }}
-                              placeholder="Type sticky note notes, rules, or strategy..."
-                              className="w-full rounded-xl border border-amber-300 bg-white p-2 text-xs font-bold text-ink placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                            />
-                          </div>
+                          {selectedShape && (
+                            <div className="space-y-1 pt-1 border-t border-amber-200/60">
+                              <label className="text-[10px] font-black uppercase tracking-wider text-amber-900">Note Content</label>
+                              <textarea
+                                rows={3}
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                placeholder="Type sticky note notes, rules, or strategy..."
+                                className="w-full rounded-xl border border-amber-300 bg-white p-2 text-xs font-bold text-ink placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              />
+                            </div>
+                          )}
 
                           {/* Typography Font Size & Alignment */}
-                          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/60">
-                            <div className="space-y-1">
-                              <span className="text-[9.5px] font-bold text-amber-900">Font Size ({selectedShape.fontSize || 14}px)</span>
-                              <div className="grid grid-cols-3 gap-1">
-                                {[12, 14, 18].map((sz) => (
-                                  <button
-                                    key={sz}
-                                    type="button"
-                                    onClick={() => {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, fontSize: sz } : s))
-                                      );
-                                    }}
-                                    className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
-                                      (selectedShape.fontSize || 14) === sz
-                                        ? "bg-amber-600 text-white border-amber-600"
-                                        : "bg-white border-amber-200 text-amber-900 hover:bg-amber-100"
-                                    }`}
-                                  >
-                                    {sz}px
-                                  </button>
-                                ))}
+                          {selectedShape && (
+                            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/60">
+                              <div className="space-y-1">
+                                <span className="text-[9.5px] font-bold text-amber-900">Font Size ({selectedShape.fontSize || 14}px)</span>
+                                <div className="grid grid-cols-3 gap-1">
+                                  {[12, 14, 18].map((sz) => (
+                                    <button
+                                      key={sz}
+                                      type="button"
+                                      onClick={() => {
+                                        setShapes((prev) =>
+                                          prev.map((s) => (s.id === selectedShape.id ? { ...s, fontSize: sz } : s))
+                                        );
+                                      }}
+                                      className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
+                                        (selectedShape.fontSize || 14) === sz
+                                          ? "bg-amber-600 text-white border-amber-600"
+                                          : "bg-white border-amber-200 text-amber-900 hover:bg-amber-100"
+                                      }`}
+                                    >
+                                      {sz}px
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
 
-                            <div className="space-y-1">
-                              <span className="text-[9.5px] font-bold text-amber-900">Text Align</span>
-                              <div className="grid grid-cols-3 gap-1">
-                                {[
-                                  { id: "left", label: "Left" },
-                                  { id: "center", label: "Mid" },
-                                  { id: "right", label: "Right" },
-                                ].map((al) => (
-                                  <button
-                                    key={al.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, textAlign: al.id as any } : s))
-                                      );
-                                    }}
-                                    className={`py-1 rounded-lg border text-[10px] font-bold cursor-pointer ${
-                                      (selectedShape.textAlign || "left") === al.id
-                                        ? "bg-amber-600 text-white border-amber-600"
-                                        : "bg-white border-amber-200 text-amber-900 hover:bg-amber-100"
-                                    }`}
-                                  >
-                                    {al.label}
-                                  </button>
-                                ))}
+                              <div className="space-y-1">
+                                <span className="text-[9.5px] font-bold text-amber-900">Text Align</span>
+                                <div className="grid grid-cols-3 gap-1">
+                                  {[
+                                    { id: "left", label: "Left" },
+                                    { id: "center", label: "Mid" },
+                                    { id: "right", label: "Right" },
+                                  ].map((al) => (
+                                    <button
+                                      key={al.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setShapes((prev) =>
+                                          prev.map((s) => (s.id === selectedShape.id ? { ...s, textAlign: al.id as any } : s))
+                                        );
+                                      }}
+                                      className={`py-1 rounded-lg border text-[10px] font-bold cursor-pointer ${
+                                        (selectedShape.textAlign || "left") === al.id
+                                          ? "bg-amber-600 text-white border-amber-600"
+                                          : "bg-white border-amber-200 text-amber-900 hover:bg-amber-100"
+                                      }`}
+                                    >
+                                      {al.label}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       )}
 
