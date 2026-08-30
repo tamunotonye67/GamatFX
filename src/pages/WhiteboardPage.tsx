@@ -5052,21 +5052,6 @@ export default function WhiteboardPage() {
           {/* Vertical Divider */}
           <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
 
-          {/* Inspector Panel Toggle Button (Icon Only) */}
-          <button
-            type="button"
-            onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-            className={`flex items-center justify-center rounded-xl p-1.5 transition ${
-              isInspectorOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
-            }`}
-            title="Toggle Floating Inspector & Layers Panel"
-          >
-            <SlidersHorizontal className="h-4 w-4 text-slate-700" />
-          </button>
-
-          {/* Vertical Divider */}
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
-
           {/* Fullscreen Toggle Button */}
           <button
             type="button"
@@ -5206,7 +5191,7 @@ export default function WhiteboardPage() {
           <span className="h-5 w-px bg-line/80 shrink-0" />
 
           {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable - No Visible Scrollbar) */}
-          <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-[calc(100%-3rem)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {tabs.map((tab, idx) => (
               <div
                 key={tab.id}
@@ -5298,74 +5283,6 @@ export default function WhiteboardPage() {
               <Plus className="h-3.5 w-3.5" />
             </button>
           </div>
-        </div>
-
-        {/* Right Side: Expandable Inspection and Layers Tab Switcher on the same tab bar */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <div className="flex items-center gap-1 rounded-xl bg-white p-0.5 border border-line shadow-2xs">
-            <button
-              type="button"
-              onClick={() => {
-                if (isInspectorOpen && rightPanelTab === "inspector") {
-                  setIsInspectorOpen(false);
-                } else {
-                  setRightPanelTab("inspector");
-                  setIsInspectorOpen(true);
-                }
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition cursor-pointer ${
-                isInspectorOpen && rightPanelTab === "inspector"
-                  ? "bg-brand text-white shadow-xs"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-brand"
-              }`}
-              title={isInspectorOpen && rightPanelTab === "inspector" ? "Collapse Inspector Panel" : "Expand Inspector Panel"}
-            >
-              <SlidersHorizontal className="h-3 w-3" />
-              <span>Inspector</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (isInspectorOpen && rightPanelTab === "layers") {
-                  setIsInspectorOpen(false);
-                } else {
-                  setRightPanelTab("layers");
-                  setIsInspectorOpen(true);
-                }
-              }}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition cursor-pointer ${
-                isInspectorOpen && rightPanelTab === "layers"
-                  ? "bg-brand text-white shadow-xs"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-brand"
-              }`}
-              title={isInspectorOpen && rightPanelTab === "layers" ? "Collapse Layers Panel" : "Expand Layers Panel"}
-            >
-              <Layers className="h-3 w-3" />
-              <span>Layers</span>
-              <span
-                className={`text-[9px] font-black px-1.5 py-0.2 rounded-full ${
-                  isInspectorOpen && rightPanelTab === "layers"
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-200 text-slate-700"
-                }`}
-              >
-                {shapes.length}
-              </span>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsInspectorOpen((prev) => !prev)}
-            className={`flex items-center justify-center p-1.5 rounded-xl border border-line transition cursor-pointer ${
-              isInspectorOpen
-                ? "bg-brand-light text-brand hover:bg-brand/20"
-                : "bg-white text-slate-600 hover:bg-slate-100 hover:text-brand"
-            }`}
-            title={isInspectorOpen ? "Collapse Right Panel" : "Expand Right Panel"}
-          >
-            {isInspectorOpen ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
-          </button>
         </div>
       </div>
 
@@ -6676,42 +6593,37 @@ export default function WhiteboardPage() {
 
                   return (
                     <div className="space-y-3.5 animate-in fade-in duration-150">
-                      {/* 1. SELECTION / TOOL IDENTITY HEADER */}
-                      <div className="rounded-2xl border border-line bg-cream/70 p-3 space-y-1.5 shadow-2xs">
-                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
-                          <span>{selectedShape ? "Selected Element" : "Active Tool Preset"}</span>
-                          {selectedShape?.isLocked && (
-                            <span className="text-amber-600 font-extrabold flex items-center gap-0.5">
-                              <Lock className="h-3 w-3" /> Locked
+                      {/* 1. SELECTION / TOOL IDENTITY HEADER - ALL ON ONE SINGLE ROW (FIGMA/PHOTOSHOP STYLE) */}
+                      <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                        <div className="flex items-center gap-2 font-bold text-xs text-ink min-w-0 flex-1">
+                          <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                            <IconComp className="h-3.5 w-3.5" />
+                          </span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
+                              {selectedShape ? "Selected:" : "Active Preset:"}
                             </span>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 font-bold text-xs text-ink">
-                            <span className="p-1.5 rounded-lg bg-white border border-line text-brand shadow-xs">
-                              <IconComp className="h-3.5 w-3.5" />
-                            </span>
-                            <span className="truncate max-w-[150px]">
-                              {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : `Tool: ${activeTool.toUpperCase()}`}
+                            <span className="font-extrabold text-xs text-ink truncate">
+                              {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : activeTool.toUpperCase()}
                             </span>
                           </div>
-                          {selectedShape && (
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => toggleLockShape(selectedShape.id)}
-                                className={`p-1 rounded-lg border text-xs transition cursor-pointer ${
-                                  selectedShape.isLocked
-                                    ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
-                                    : "bg-white text-slate-400 hover:text-ink border-line"
-                                }`}
-                                title={selectedShape.isLocked ? "Unlock Element" : "Lock Element"}
-                              >
-                                {selectedShape.isLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-                              </button>
-                            </div>
-                          )}
                         </div>
+                        {selectedShape && (
+                          <div className="flex items-center gap-1 shrink-0 ml-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleLockShape(selectedShape.id)}
+                              className={`p-1 rounded-lg border text-xs transition cursor-pointer ${
+                                selectedShape.isLocked
+                                  ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
+                                  : "bg-white text-slate-400 hover:text-ink border-line"
+                              }`}
+                              title={selectedShape.isLocked ? "Unlock Element" : "Lock Element"}
+                            >
+                              {selectedShape.isLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {/* 1. FIGMA-STYLE ALIGNMENT TOOLBAR (USING CRISP ICONS) */}
@@ -7889,6 +7801,39 @@ export default function WhiteboardPage() {
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
               </div>
             </aside>
+          )}
+
+          {/* Floating Collapsed Inspector & Layers Dock Button */}
+          {!isInspectorOpen && (
+            <div className="absolute right-4 top-4 z-30 flex items-center gap-1 rounded-2xl border border-line bg-white/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in">
+              <button
+                type="button"
+                onClick={() => {
+                  setRightPanelTab("inspector");
+                  setIsInspectorOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                title="Expand Inspector Panel"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>Inspector</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRightPanelTab("layers");
+                  setIsInspectorOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                title="Expand Layers Panel"
+              >
+                <Layers className="h-3.5 w-3.5" />
+                <span>Layers</span>
+                <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700">
+                  {shapes.length}
+                </span>
+              </button>
+            </div>
           )}
         </main>
       </div>
