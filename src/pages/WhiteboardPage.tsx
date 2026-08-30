@@ -57,6 +57,7 @@ import {
   TrendingDown,
   Percent,
   Minus,
+  Link2,
   LayoutTemplate,
   Palette,
   Boxes,
@@ -319,7 +320,7 @@ type SavedDraft = {
   savedAt: number;
 };
 
-type ResizeHandle = "tl" | "tr" | "bl" | "br";
+type ResizeHandle = "tl" | "tr" | "bl" | "br" | "tm" | "bm" | "ml" | "mr";
 
 const STICKY_COLORS: { color: StickyColor; name: string }[] = [
   { color: "#fef08a", name: "Yellow" },
@@ -979,6 +980,7 @@ export default function WhiteboardPage() {
   // Interactive Shape Resizing State
   const [activeResizeHandle, setActiveResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
   const [hoveredResizeHandle, setHoveredResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
+  const [isAspectLocked, setIsAspectLocked] = useState(false);
 
   // Undo/Redo & Active Drawing
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
@@ -1734,46 +1736,13 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // 2. Interactive Resize Handle Drag
+    // 2. Interactive Resize Handle Drag (Supports Shift-key proportional constraint)
     if (activeResizeHandle) {
       const targetShape = shapes.find((s) => s.id === activeResizeHandle.shapeId);
       if (targetShape && !targetShape.isLocked) {
-        const pts = targetShape.points;
-        let minX = Math.min(...pts.map((p) => p.x));
-        let maxX = Math.max(...pts.map((p) => p.x));
-        let minY = Math.min(...pts.map((p) => p.y));
-        let maxY = Math.max(...pts.map((p) => p.y));
-
-        if (activeResizeHandle.handle === "tl") {
-          minX = pt.x;
-          minY = pt.y;
-        } else if (activeResizeHandle.handle === "tr") {
-          maxX = pt.x;
-          minY = pt.y;
-        } else if (activeResizeHandle.handle === "br") {
-          maxX = pt.x;
-          maxY = pt.y;
-        } else if (activeResizeHandle.handle === "bl") {
-          minX = pt.x;
-          maxY = pt.y;
-        }
-
+        const resizedShape = resizeShapePoints(targetShape, activeResizeHandle.handle, pt, e.shiftKey || isAspectLocked);
         setShapes((prev) =>
-          prev.map((s) => {
-            if (s.id === targetShape.id) {
-              if (s.type === "sticky" || s.type === "text") {
-                return { ...s, points: [{ x: minX, y: minY }] };
-              }
-              return {
-                ...s,
-                points: [
-                  { x: minX, y: minY },
-                  { x: maxX, y: maxY },
-                ],
-              };
-            }
-            return s;
-          })
+          prev.map((s) => (s.id === targetShape.id ? resizedShape : s))
         );
       }
       return;
@@ -6540,27 +6509,184 @@ export default function WhiteboardPage() {
                         </div>
                       </div>
 
-                      {/* 2. FIGMA TRANSFORM / BOUNDS (Only shown when a shape on canvas is selected) */}
+                      {/* 2. FIGMA TRANSFORM / BOUNDS (Fully editable dimensions and position from inspection panel) */}
                       {selectedShape && pts.length > 0 && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Dimensions & Position</p>
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
+                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                            <span>Dimensions & Position</span>
+                            <button
+                              type="button"
+                              onClick={() => setIsAspectLocked(!isAspectLocked)}
+                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[9px] font-bold transition cursor-pointer ${
+                                isAspectLocked
+                                  ? "bg-brand text-white border-brand shadow-xs"
+                                  : "bg-slate-50 text-muted border-line hover:text-ink hover:bg-white"
+                              }`}
+                              title={isAspectLocked ? "Aspect Ratio Locked (Proportional)" : "Aspect Ratio Unlocked (Free)"}
+                            >
+                              <Link2 className="h-2.5 w-2.5" />
+                              <span>{isAspectLocked ? "Locked" : "Ratio"}</span>
+                            </button>
+                          </div>
+
                           <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
-                              <span className="text-[10px] font-bold text-muted w-3">X</span>
-                              <span className="font-bold text-ink truncate">{minX}px</span>
+                            {/* X Position */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">X</span>
+                              <input
+                                type="number"
+                                value={minX}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  if (isNaN(val)) return;
+                                  const dx = val - minX;
+                                  setShapes((prev) =>
+                                    prev.map((s) =>
+                                      s.id === selectedShape.id && !s.isLocked
+                                        ? { ...s, points: s.points.map((p) => ({ x: Math.round(p.x + dx), y: p.y })) }
+                                        : s
+                                    )
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
                             </div>
-                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
-                              <span className="text-[10px] font-bold text-muted w-3">Y</span>
-                              <span className="font-bold text-ink truncate">{minY}px</span>
+
+                            {/* Y Position */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">Y</span>
+                              <input
+                                type="number"
+                                value={minY}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  if (isNaN(val)) return;
+                                  const dy = val - minY;
+                                  setShapes((prev) =>
+                                    prev.map((s) =>
+                                      s.id === selectedShape.id && !s.isLocked
+                                        ? { ...s, points: s.points.map((p) => ({ x: p.x, y: Math.round(p.y + dy) })) }
+                                        : s
+                                    )
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
                             </div>
-                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
-                              <span className="text-[10px] font-bold text-muted w-3">W</span>
-                              <span className="font-bold text-ink truncate">{calcW}px</span>
+
+                            {/* W (Width) */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">W</span>
+                              <input
+                                type="number"
+                                min={5}
+                                value={calcW}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const targetW = Math.max(5, parseInt(e.target.value, 10) || 5);
+                                  const curW = Math.max(1, maxX - minX);
+                                  const curH = Math.max(1, maxY - minY);
+                                  const aspect = curW / curH;
+                                  const targetH = isAspectLocked ? Math.round(targetW / aspect) : curH;
+
+                                  setShapes((prev) =>
+                                    prev.map((s) => {
+                                      if (s.id !== selectedShape.id || s.isLocked) return s;
+                                      const sPts = s.points;
+                                      if (sPts.length === 2) {
+                                        const signX = sPts[1].x >= sPts[0].x ? 1 : -1;
+                                        const signY = sPts[1].y >= sPts[0].y ? 1 : -1;
+                                        return {
+                                          ...s,
+                                          points: [
+                                            sPts[0],
+                                            {
+                                              x: Math.round(sPts[0].x + signX * targetW),
+                                              y: isAspectLocked ? Math.round(sPts[0].y + signY * targetH) : sPts[1].y,
+                                            },
+                                          ],
+                                        };
+                                      }
+                                      if (sPts.length > 2) {
+                                        const scaleX = targetW / curW;
+                                        const scaleY = isAspectLocked ? targetH / curH : 1;
+                                        return {
+                                          ...s,
+                                          points: sPts.map((p) => ({
+                                            x: Math.round(minX + (p.x - minX) * scaleX),
+                                            y: isAspectLocked ? Math.round(minY + (p.y - minY) * scaleY) : p.y,
+                                          })),
+                                        };
+                                      }
+                                      return s;
+                                    })
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
                             </div>
-                            <div className="flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-2 py-1.5 font-mono">
-                              <span className="text-[10px] font-bold text-muted w-3">H</span>
-                              <span className="font-bold text-ink truncate">{calcH}px</span>
+
+                            {/* H (Height) */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">H</span>
+                              <input
+                                type="number"
+                                min={5}
+                                value={calcH}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const targetH = Math.max(5, parseInt(e.target.value, 10) || 5);
+                                  const curW = Math.max(1, maxX - minX);
+                                  const curH = Math.max(1, maxY - minY);
+                                  const aspect = curW / curH;
+                                  const targetW = isAspectLocked ? Math.round(targetH * aspect) : curW;
+
+                                  setShapes((prev) =>
+                                    prev.map((s) => {
+                                      if (s.id !== selectedShape.id || s.isLocked) return s;
+                                      const sPts = s.points;
+                                      if (sPts.length === 2) {
+                                        const signX = sPts[1].x >= sPts[0].x ? 1 : -1;
+                                        const signY = sPts[1].y >= sPts[0].y ? 1 : -1;
+                                        return {
+                                          ...s,
+                                          points: [
+                                            sPts[0],
+                                            {
+                                              x: isAspectLocked ? Math.round(sPts[0].x + signX * targetW) : sPts[1].x,
+                                              y: Math.round(sPts[0].y + signY * targetH),
+                                            },
+                                          ],
+                                        };
+                                      }
+                                      if (sPts.length > 2) {
+                                        const scaleY = targetH / curH;
+                                        const scaleX = isAspectLocked ? targetW / curW : 1;
+                                        return {
+                                          ...s,
+                                          points: sPts.map((p) => ({
+                                            x: isAspectLocked ? Math.round(minX + (p.x - minX) * scaleX) : p.x,
+                                            y: Math.round(minY + (p.y - minY) * scaleY),
+                                          })),
+                                        };
+                                      }
+                                      return s;
+                                    })
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
                             </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-muted px-1">
+                            <span>Hold <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold text-[9px] text-ink">Shift</kbd> on canvas to scale evenly</span>
                           </div>
                         </div>
                       )}
@@ -8738,7 +8864,7 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
 }
 
-/** Check hit test on 4 corner resize handle nodes */
+/** Check hit test on 8 resize handle nodes (4 corners + 4 center edges) */
 function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeHandle | null {
   const pts = shape.points;
   if (!pts.length) return null;
@@ -8753,63 +8879,173 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
     minY = pts[0].y;
     maxX = pts[0].x + 180;
     maxY = pts[0].y + 140;
+  } else if (shape.type === "text") {
+    minX = pts[0].x - 4;
+    minY = pts[0].y - 18;
+    maxX = pts[0].x + Math.max(60, (shape.text?.length || 4) * 9);
+    maxY = pts[0].y + 6;
   }
 
+  const midX = (minX + maxX) / 2;
+  const midY = (minY + maxY) / 2;
   const pad = 6;
-  const corners: { handle: ResizeHandle; x: number; y: number }[] = [
+
+  const handles: { handle: ResizeHandle; x: number; y: number }[] = [
     { handle: "tl", x: minX - pad, y: minY - pad },
+    { handle: "tm", x: midX, y: minY - pad },
     { handle: "tr", x: maxX + pad, y: minY - pad },
+    { handle: "mr", x: maxX + pad, y: midY },
     { handle: "br", x: maxX + pad, y: maxY + pad },
+    { handle: "bm", x: midX, y: maxY + pad },
     { handle: "bl", x: minX - pad, y: maxY + pad },
+    { handle: "ml", x: minX - pad, y: midY },
   ];
 
-  const hit = corners.find((c) => Math.hypot(pt.x - c.x, pt.y - c.y) <= 12);
+  const hit = handles.find((c) => Math.hypot(pt.x - c.x, pt.y - c.y) <= 10);
   return hit ? hit.handle : null;
 }
 
-/** Smoothly resizes shape points when user drags corner handle */
-function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; y: number }): Shape {
+/** Smoothly resizes shape points when user drags any corner or center edge handle, preserving aspect ratio when holding Shift */
+function resizeShapePoints(
+  shape: Shape,
+  handle: ResizeHandle,
+  pt: { x: number; y: number },
+  isShiftPressed: boolean = false
+): Shape {
   const pts = shape.points;
-  if (pts.length < 2) return shape;
+  if (!pts.length) return shape;
 
-  let newPts = [...pts];
+  let minX = Math.min(...pts.map((p) => p.x));
+  let maxX = Math.max(...pts.map((p) => p.x));
+  let minY = Math.min(...pts.map((p) => p.y));
+  let maxY = Math.max(...pts.map((p) => p.y));
 
-  if (
-    shape.type === "rectangle" ||
-    shape.type === "circle" ||
-    shape.type === "diamond" ||
-    shape.type === "line" ||
-    shape.type === "arrow" ||
-    shape.type === "annotation" ||
-    shape.type === "fibo" ||
-    shape.type === "long" ||
-    shape.type === "short" ||
-    shape.type === "orderblock" ||
-    shape.type === "fvg" ||
-    shape.type === "bos" ||
-    shape.type === "liquidity" ||
-    shape.type === "bullish_candle" ||
-    shape.type === "bearish_candle"
-  ) {
-    let p0 = { ...pts[0] };
-    let p1 = { ...pts[1] };
-
-    if (handle === "br") {
-      p1 = pt;
-    } else if (handle === "tl") {
-      p0 = pt;
-    } else if (handle === "tr") {
-      p1.x = pt.x;
-      p0.y = pt.y;
-    } else if (handle === "bl") {
-      p0.x = pt.x;
-      p1.y = pt.y;
-    }
-
-    newPts = [p0, p1];
+  if (shape.type === "sticky") {
+    minX = pts[0].x;
+    minY = pts[0].y;
+    maxX = pts[0].x + 180;
+    maxY = pts[0].y + 140;
   }
 
-  return { ...shape, points: newPts };
+  const origW = Math.max(1, maxX - minX);
+  const origH = Math.max(1, maxY - minY);
+  const origAspect = origW / origH;
+
+  let newMinX = minX;
+  let newMaxX = maxX;
+  let newMinY = minY;
+  let newMaxY = maxY;
+
+  if (handle === "br") {
+    newMaxX = pt.x;
+    newMaxY = pt.y;
+    if (isShiftPressed) {
+      const curW = Math.max(1, newMaxX - newMinX);
+      const curH = Math.max(1, newMaxY - newMinY);
+      const maxDim = Math.max(curW, curH * origAspect);
+      newMaxX = newMinX + maxDim;
+      newMaxY = newMinY + maxDim / origAspect;
+    }
+  } else if (handle === "tl") {
+    newMinX = pt.x;
+    newMinY = pt.y;
+    if (isShiftPressed) {
+      const curW = Math.max(1, newMaxX - newMinX);
+      const curH = Math.max(1, newMaxY - newMinY);
+      const maxDim = Math.max(curW, curH * origAspect);
+      newMinX = newMaxX - maxDim;
+      newMinY = newMaxY - maxDim / origAspect;
+    }
+  } else if (handle === "tr") {
+    newMaxX = pt.x;
+    newMinY = pt.y;
+    if (isShiftPressed) {
+      const curW = Math.max(1, newMaxX - newMinX);
+      const curH = Math.max(1, newMaxY - newMinY);
+      const maxDim = Math.max(curW, curH * origAspect);
+      newMaxX = newMinX + maxDim;
+      newMinY = newMaxY - maxDim / origAspect;
+    }
+  } else if (handle === "bl") {
+    newMinX = pt.x;
+    newMaxY = pt.y;
+    if (isShiftPressed) {
+      const curW = Math.max(1, newMaxX - newMinX);
+      const curH = Math.max(1, newMaxY - newMinY);
+      const maxDim = Math.max(curW, curH * origAspect);
+      newMinX = newMaxX - maxDim;
+      newMaxY = newMinY + maxDim / origAspect;
+    }
+  } else if (handle === "tm") {
+    newMinY = pt.y;
+    if (isShiftPressed) {
+      const curH = Math.max(1, newMaxY - newMinY);
+      const newW = curH * origAspect;
+      const midX = (newMinX + newMaxX) / 2;
+      newMinX = midX - newW / 2;
+      newMaxX = midX + newW / 2;
+    }
+  } else if (handle === "bm") {
+    newMaxY = pt.y;
+    if (isShiftPressed) {
+      const curH = Math.max(1, newMaxY - newMinY);
+      const newW = curH * origAspect;
+      const midX = (newMinX + newMaxX) / 2;
+      newMinX = midX - newW / 2;
+      newMaxX = midX + newW / 2;
+    }
+  } else if (handle === "ml") {
+    newMinX = pt.x;
+    if (isShiftPressed) {
+      const curW = Math.max(1, newMaxX - newMinX);
+      const newH = curW / origAspect;
+      const midY = (newMinY + newMaxY) / 2;
+      newMinY = midY - newH / 2;
+      newMaxY = midY + newH / 2;
+    }
+  } else if (handle === "mr") {
+    newMaxX = pt.x;
+    if (isShiftPressed) {
+      const curW = Math.max(1, newMaxX - newMinX);
+      const newH = curW / origAspect;
+      const midY = (newMinY + newMaxY) / 2;
+      newMinY = midY - newH / 2;
+      newMaxY = midY + newH / 2;
+    }
+  }
+
+  const finalMinX = Math.min(newMinX, newMaxX);
+  const finalMaxX = Math.max(newMinX, newMaxX);
+  const finalMinY = Math.min(newMinY, newMaxY);
+  const finalMaxY = Math.max(newMinY, newMaxY);
+
+  if (pts.length === 2) {
+    const p0 = {
+      x: pts[0].x <= pts[1].x ? finalMinX : finalMaxX,
+      y: pts[0].y <= pts[1].y ? finalMinY : finalMaxY,
+    };
+    const p1 = {
+      x: pts[1].x >= pts[0].x ? finalMaxX : finalMinX,
+      y: pts[1].y >= pts[0].y ? finalMaxY : finalMinY,
+    };
+    return { ...shape, points: [p0, p1] };
+  }
+
+  if (pts.length > 2) {
+    const scaleX = (finalMaxX - finalMinX) / origW;
+    const scaleY = (finalMaxY - finalMinY) / origH;
+    const newPts = pts.map((p) => ({
+      x: finalMinX + (p.x - minX) * scaleX,
+      y: finalMinY + (p.y - minY) * scaleY,
+    }));
+    return { ...shape, points: newPts };
+  }
+
+  if (pts.length === 1) {
+    return { ...shape, points: [{ x: finalMinX, y: finalMinY }] };
+  }
+
+  return shape;
 }
 
 /** Renders shapes, sticky notes, and Forex Trading Tools on canvas */
@@ -9357,20 +9593,26 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
     ctx.setLineDash([]);
 
-    // Corner Resize Handle Nodes (only if NOT locked)
+    // Resize Handle Nodes (4 corners + 4 center edge handles, only if NOT locked)
     if (!shape.isLocked) {
-      const corners = [
-        { x: minX - pad, y: minY - pad },
-        { x: maxX + pad, y: minY - pad },
-        { x: maxX + pad, y: maxY + pad },
-        { x: minX - pad, y: maxY + pad },
+      const midX = (minX + maxX) / 2;
+      const midY = (minY + maxY) / 2;
+      const handles = [
+        { x: minX - pad, y: minY - pad }, // Top-Left
+        { x: midX, y: minY - pad },        // Top-Center
+        { x: maxX + pad, y: minY - pad }, // Top-Right
+        { x: maxX + pad, y: midY },        // Right-Center
+        { x: maxX + pad, y: maxY + pad }, // Bottom-Right
+        { x: midX, y: maxY + pad },        // Bottom-Center
+        { x: minX - pad, y: maxY + pad }, // Bottom-Left
+        { x: minX - pad, y: midY },        // Left-Center
       ];
-      corners.forEach((c) => {
+      handles.forEach((c) => {
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(c.x - 5, c.y - 5, 10, 10);
+        ctx.fillRect(c.x - 4.5, c.y - 4.5, 9, 9);
         ctx.strokeStyle = "#3b82f6";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
+        ctx.lineWidth = 1.75;
+        ctx.strokeRect(c.x - 4.5, c.y - 4.5, 9, 9);
       });
     }
   }
@@ -9388,6 +9630,12 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null): Re
     }
     if (hoveredHandle === "tr" || hoveredHandle === "bl") {
       return { cursor: "nesw-resize" };
+    }
+    if (hoveredHandle === "tm" || hoveredHandle === "bm") {
+      return { cursor: "ns-resize" };
+    }
+    if (hoveredHandle === "ml" || hoveredHandle === "mr") {
+      return { cursor: "ew-resize" };
     }
   }
 
