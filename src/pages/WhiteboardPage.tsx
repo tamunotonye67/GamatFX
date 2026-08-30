@@ -1417,6 +1417,34 @@ export default function WhiteboardPage() {
         return;
       }
 
+      // Keyboard Navigation Keys: Move selected object(s) Up, Down, Left, Right
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        if (selectedShapeIds.length > 0) {
+          // Standard nudge: 1px (or snapSize if snapped); Shift+Arrow: 10px (or snapSize*5)
+          const step = e.shiftKey ? (snapToGrid ? Math.max(10, gridSnapSize * 5) : 10) : (snapToGrid ? gridSnapSize : 1);
+          const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0;
+          const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0;
+
+          setShapes((prev) =>
+            prev.map((s) => {
+              if (!selectedShapeIds.includes(s.id) || s.isLocked) return s;
+              return {
+                ...s,
+                points: s.points.map((p) => ({ x: p.x + dx, y: p.y + dy })),
+              };
+            })
+          );
+        } else {
+          // Pan canvas if no object is currently selected
+          const panStep = e.shiftKey ? 80 : 30;
+          const dx = e.key === "ArrowLeft" ? panStep : e.key === "ArrowRight" ? -panStep : 0;
+          const dy = e.key === "ArrowUp" ? panStep : e.key === "ArrowDown" ? -panStep : 0;
+          setPan((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+        }
+        return;
+      }
+
       if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShortcutsOpen((prev) => !prev);
@@ -1519,7 +1547,7 @@ export default function WhiteboardPage() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [selectedShapeIds, shapes, redoStack]);
+  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
