@@ -5481,23 +5481,26 @@ export default function WhiteboardPage() {
         {/* Left Column: Sub-Header Tabs Bar on top + Workspace Canvas on bottom */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
-          <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-20 relative">
+          <div className="h-10 border-b border-line bg-slate-100 flex items-center justify-between shrink-0 z-20 relative pr-4">
             {/* Left Side: Home Icon Hub Link & Active Tabs List */}
-            <div className="flex items-center gap-3 shrink-0 min-w-0 flex-1 overflow-hidden">
-              <button
-                type="button"
-                onClick={handleReturnToHub}
-                className="flex items-center justify-center p-1 text-slate-600 hover:text-brand transition shrink-0 cursor-pointer"
-                title="Return to Files Hub (Auto-saves current canvas)"
-              >
-                <Home className="h-4 w-4" />
-              </button>
+            <div className="flex items-center h-full shrink-0 min-w-0 flex-1 overflow-hidden">
+              {/* Home Icon Cell: Width matched to Left Toolbar (w-10 = 40px) */}
+              <div className="w-10 h-full flex items-center justify-center shrink-0">
+                <button
+                  type="button"
+                  onClick={handleReturnToHub}
+                  className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-600 hover:text-brand hover:bg-white/60 transition cursor-pointer"
+                  title="Return to Files Hub (Auto-saves current canvas)"
+                >
+                  <Home className="h-4 w-4" />
+                </button>
+              </div>
 
-              {/* Vertical Separator Line */}
-              <span className="h-5 w-px bg-line/80 shrink-0" />
+              {/* Edge-to-Edge Full-Height Vertical Separator Line (Aligned exactly with toolbar edge) */}
+              <span className="self-stretch w-px bg-line shrink-0" />
 
               {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable - No Visible Scrollbar) */}
-              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-center gap-1.5 px-3 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {tabs.map((tab, idx) => (
                   <div
                     key={tab.id}
