@@ -2137,9 +2137,8 @@ export default function WhiteboardPage() {
         commitInlineText(editingTextShapeId);
       }
 
-      // Create new text shape directly at cursor coordinates with initial placeholder
+      // Create new text shape directly at cursor coordinates with clean empty initial text
       const newId = `shape_txt_${Date.now()}`;
-      const initialText = "Type text here";
       const newTextShape: Shape = {
         id: newId,
         type: "text",
@@ -2149,7 +2148,7 @@ export default function WhiteboardPage() {
         fontFamily: "Inter, sans-serif",
         fontWeight: "normal",
         textAlign: "left",
-        text: initialText,
+        text: "",
         points: [pt],
         isLocked: false,
       };
@@ -2157,7 +2156,7 @@ export default function WhiteboardPage() {
       textCreatedTimeRef.current = Date.now();
       setShapes((prev) => [...prev, newTextShape]);
       setEditingTextShapeId(newId);
-      setInlineTextValue(initialText);
+      setInlineTextValue("");
       setSelectedShapeIds([newId]);
       setIsInspectorOpen(true);
       setRightPanelTab("character");
@@ -11019,7 +11018,7 @@ export default function WhiteboardPage() {
                     textAlign: (editingShape.textAlign as any) || "left",
                     textDecoration: editingShape.textDecoration || "none",
                   }}
-                  className="bg-white/95 border-2 border-slate-900 outline-none p-1.5 m-0 resize-none overflow-hidden min-w-[160px] max-w-[800px] rounded-none caret-slate-950 shadow-md font-sans"
+                  className="bg-transparent border-none outline-none p-0 m-0 resize-none overflow-hidden min-w-[160px] max-w-[800px] rounded-none caret-slate-950 shadow-none font-sans placeholder:text-slate-400/40 placeholder:font-normal"
                 />
               </div>
             );
@@ -12893,14 +12892,10 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const pts = shape.points;
   if (!pts.length) return false;
 
-  if (shape.type === "sticky") {
-    const p0 = pts[0];
-    const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
-    const minX = Math.min(p0.x, p1.x);
-    const maxX = Math.max(p0.x, p1.x);
-    const minY = Math.min(p0.y, p1.y);
-    const maxY = Math.max(p0.y, p1.y);
-    return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+  if (shape.type === "text" || shape.type === "sticky" || shape.type === "annotation") {
+    const b = getShapeBounds(shape);
+    const pad = 8;
+    return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
   }
 
   const minX = Math.min(...pts.map((p) => p.x)) - 10;
@@ -12972,24 +12967,11 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
   const pts = shape.points;
   if (!pts.length) return null;
 
-  let minX = Math.min(...pts.map((p) => p.x));
-  let maxX = Math.max(...pts.map((p) => p.x));
-  let minY = Math.min(...pts.map((p) => p.y));
-  let maxY = Math.max(...pts.map((p) => p.y));
-
-  if (shape.type === "sticky") {
-    const p0 = pts[0];
-    const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
-    minX = Math.min(p0.x, p1.x);
-    maxX = Math.max(p0.x, p1.x);
-    minY = Math.min(p0.y, p1.y);
-    maxY = Math.max(p0.y, p1.y);
-  } else if (shape.type === "text") {
-    minX = pts[0].x - 4;
-    minY = pts[0].y - 18;
-    maxX = pts[0].x + Math.max(60, (shape.text?.length || 4) * 9);
-    maxY = pts[0].y + 6;
-  }
+  const b = getShapeBounds(shape);
+  let minX = b.minX;
+  let maxX = b.maxX;
+  let minY = b.minY;
+  let maxY = b.maxY;
 
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
@@ -13019,6 +13001,27 @@ function resizeShapePoints(
 ): Shape {
   const pts = shape.points;
   if (!pts.length) return shape;
+
+  if (shape.type === "text") {
+    const b = getShapeBounds(shape);
+    const origH = Math.max(10, b.maxY - b.minY);
+    let newH = origH;
+    if (handle.includes("b")) newH = Math.max(8, pt.y - b.minY);
+    else if (handle.includes("t")) newH = Math.max(8, b.maxY - pt.y);
+    else if (handle.includes("r")) {
+      const origW = Math.max(10, b.maxX - b.minX);
+      newH = origH * (Math.max(10, pt.x - b.minX) / origW);
+    } else if (handle.includes("l")) {
+      const origW = Math.max(10, b.maxX - b.minX);
+      newH = origH * (Math.max(10, b.maxX - pt.x) / origW);
+    }
+    const curSize = shape.fontSize || 16;
+    const scaledSize = Math.max(8, Math.min(160, Math.round(curSize * (newH / origH))));
+    return {
+      ...shape,
+      fontSize: scaledSize,
+    };
+  }
 
   let minX = Math.min(...pts.map((p) => p.x));
   let maxX = Math.max(...pts.map((p) => p.x));
@@ -14001,17 +14004,11 @@ function renderWhiteboardShape(
 
     // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
   if (isSelected) {
-    let minX = Math.min(...pts.map((p) => p.x));
-    let maxX = Math.max(...pts.map((p) => p.x));
-    let minY = Math.min(...pts.map((p) => p.y));
-    let maxY = Math.max(...pts.map((p) => p.y));
-
-    if (shape.type === "sticky" && pts.length >= 2) {
-      minX = Math.min(pts[0].x, pts[1].x);
-      maxX = Math.max(pts[0].x, pts[1].x);
-      minY = Math.min(pts[0].y, pts[1].y);
-      maxY = Math.max(pts[0].y, pts[1].y);
-    }
+    const b = getShapeBounds(shape);
+    let minX = b.minX;
+    let maxX = b.maxX;
+    let minY = b.minY;
+    let maxY = b.maxY;
 
     const pad = 6;
     ctx.strokeStyle = shape.isLocked ? "#f59e0b" : "#3b82f6";
