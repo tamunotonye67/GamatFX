@@ -811,14 +811,21 @@ export default function WhiteboardPage() {
   const [autoLockObjects, setAutoLockObjects] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
-  // Inspector, Layers & Character Panel State (Supports Detached Floating & Magnetic Docking)
+  // Individual Detachable & Attachable Floating Panels System
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash">("inspector");
-  const [isPanelDetached, setIsPanelDetached] = useState(false);
+  const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
+    inspector: { isOpen: false, x: 80, y: 70, zIndex: 40 },
+    layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(80, window.innerWidth - 380) : 700, y: 70, zIndex: 40 },
+    character: { isOpen: false, x: 260, y: 120, zIndex: 40 },
+    drafts: { isOpen: false, x: 180, y: 90, zIndex: 40 },
+    samples: { isOpen: false, x: 300, y: 80, zIndex: 40 },
+    trash: { isOpen: false, x: 350, y: 110, zIndex: 40 },
+  });
+  const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
   const [isNearDockTarget, setIsNearDockTarget] = useState(false);
-  const [floatingPanelPos, setFloatingPanelPos] = useState<{ x: number; y: number }>({ x: typeof window !== "undefined" ? Math.max(80, window.innerWidth - 380) : 600, y: 80 });
-  const isDraggingPanel = useRef(false);
-  const panelDragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const draggingPanelKey = useRef<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | null>(null);
+  const panelDragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Character & Typography Formatting State
   const [activeFontFamily, setActiveFontFamily] = useState<string>("Inter, sans-serif");
@@ -940,45 +947,101 @@ export default function WhiteboardPage() {
     };
   }, []);
 
-  const handlePanelDragStart = (e: React.MouseEvent) => {
-    if (!isPanelDetached) {
-      // Detach directly by dragging the panel header!
-      setIsPanelDetached(true);
-      const initialX = Math.max(20, Math.min(window.innerWidth - 340, e.clientX - 160));
-      const initialY = Math.max(60, Math.min(window.innerHeight - 120, e.clientY - 20));
-      setFloatingPanelPos({ x: initialX, y: initialY });
-      isDraggingPanel.current = true;
-      panelDragStart.current = { x: 160, y: 20 };
-      return;
-    }
-    isDraggingPanel.current = true;
-    panelDragStart.current = {
-      x: e.clientX - floatingPanelPos.x,
-      y: e.clientY - floatingPanelPos.y,
+  const detachIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash", customX?: number, customY?: number) => {
+    const newZ = highestPanelZIndex + 1;
+    setHighestPanelZIndex(newZ);
+    setDetachedPanels((prev) => ({
+      ...prev,
+      [panelId]: {
+        isOpen: true,
+        x: customX ?? Math.max(20, Math.min(window.innerWidth - 350, prev[panelId].x)),
+        y: customY ?? Math.max(60, Math.min(window.innerHeight - 150, prev[panelId].y)),
+        zIndex: newZ,
+      },
+    }));
+    const panelName =
+      panelId === "inspector"
+        ? "Inspector"
+        : panelId === "layers"
+        ? "Layers"
+        : panelId === "character"
+        ? "Text & Style"
+        : panelId === "drafts"
+        ? "Drafts"
+        : panelId === "samples"
+        ? "Samples"
+        : "Trash";
+    showToast(`Detached "${panelName}" into floating panel!`);
+  };
+
+  const dockIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash") => {
+    setDetachedPanels((prev) => ({
+      ...prev,
+      [panelId]: { ...prev[panelId], isOpen: false },
+    }));
+    setRightPanelTab(panelId);
+    setIsInspectorOpen(true);
+    const panelName =
+      panelId === "inspector"
+        ? "Inspector"
+        : panelId === "layers"
+        ? "Layers"
+        : panelId === "character"
+        ? "Text & Style"
+        : panelId === "drafts"
+        ? "Drafts"
+        : panelId === "samples"
+        ? "Samples"
+        : "Trash";
+    showToast(`🧲 Attached "${panelName}" back to sidebar group!`);
+  };
+
+  const closeIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash") => {
+    setDetachedPanels((prev) => ({
+      ...prev,
+      [panelId]: { ...prev[panelId], isOpen: false },
+    }));
+  };
+
+  const handleFloatingPanelDragStart = (e: React.MouseEvent, panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash") => {
+    draggingPanelKey.current = panelId;
+    const current = detachedPanels[panelId];
+    panelDragOffset.current = {
+      x: e.clientX - current.x,
+      y: e.clientY - current.y,
     };
+    const newZ = highestPanelZIndex + 1;
+    setHighestPanelZIndex(newZ);
+    setDetachedPanels((prev) => ({
+      ...prev,
+      [panelId]: { ...prev[panelId], zIndex: newZ },
+    }));
   };
 
   useEffect(() => {
     const handleWindowMouseMove = (e: MouseEvent) => {
-      if (isDraggingPanel.current) {
-        const newX = Math.max(10, Math.min(window.innerWidth - 280, e.clientX - panelDragStart.current.x));
-        const newY = Math.max(50, Math.min(window.innerHeight - 120, e.clientY - panelDragStart.current.y));
-        setFloatingPanelPos({ x: newX, y: newY });
+      if (draggingPanelKey.current) {
+        const id = draggingPanelKey.current;
+        const newX = Math.max(10, Math.min(window.innerWidth - 280, e.clientX - panelDragOffset.current.x));
+        const newY = Math.max(50, Math.min(window.innerHeight - 100, e.clientY - panelDragOffset.current.y));
+        setDetachedPanels((prev) => ({
+          ...prev,
+          [id]: { ...prev[id], x: newX, y: newY },
+        }));
 
-        // Magnetic docking threshold: if within 140px of right sidebar edge
         const isNear = newX > window.innerWidth - 440 || e.clientX > window.innerWidth - 380;
         setIsNearDockTarget(isNear);
       }
     };
 
     const handleWindowMouseUp = (e: MouseEvent) => {
-      if (isDraggingPanel.current) {
-        isDraggingPanel.current = false;
+      if (draggingPanelKey.current) {
+        const id = draggingPanelKey.current;
+        draggingPanelKey.current = null;
         const isNear = e.clientX > window.innerWidth - 380;
         if (isNear) {
-          setIsPanelDetached(false);
+          dockIndividualPanel(id);
           setIsNearDockTarget(false);
-          showToast("🧲 Panel magnetically attached to sidebar dock!");
         } else {
           setIsNearDockTarget(false);
         }
@@ -991,7 +1054,7 @@ export default function WhiteboardPage() {
       window.removeEventListener("mousemove", handleWindowMouseMove);
       window.removeEventListener("mouseup", handleWindowMouseUp);
     };
-  }, []);
+  }, [highestPanelZIndex, detachedPanels]);
 
   // Close User Menu on Outside Click / Escape
   useEffect(() => {
@@ -5059,6 +5122,1796 @@ export default function WhiteboardPage() {
     );
   }
 
+  
+  const renderTabBody = (tabKey: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash") => {
+    return (
+      <div className="space-y-3">
+        {/* TAB 1: CONTEXTUAL INSPECTOR TAB */}
+                {tabKey === "inspector" && (() => {
+                  const targetTool: Tool = selectedShape ? selectedShape.type : activeTool;
+                  const pts = selectedShape?.points || [];
+                  const minX = pts.length > 0 ? Math.round(Math.min(...pts.map((p) => p.x))) : 0;
+                  const maxX = pts.length > 0 ? Math.round(Math.max(...pts.map((p) => p.x))) : 0;
+                  const minY = pts.length > 0 ? Math.round(Math.min(...pts.map((p) => p.y))) : 0;
+                  const maxY = pts.length > 0 ? Math.round(Math.max(...pts.map((p) => p.y))) : 0;
+                  const calcW = Math.max(maxX - minX, selectedShape?.type === "sticky" ? 180 : selectedShape?.type === "text" ? 140 : 0);
+                  const calcH = Math.max(maxY - minY, selectedShape?.type === "sticky" ? 140 : selectedShape?.type === "text" ? 24 : 0);
+                  const IconComp = getToolIcon(targetTool);
+
+                  return (
+                    <div className="space-y-3.5 animate-in fade-in duration-150">
+                      {/* 1. SELECTION / TOOL IDENTITY - JUST ICON AND TOOL NAME */}
+                      <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                        <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
+                          <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                            <IconComp className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="font-extrabold text-xs text-ink truncate">
+                            {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : targetTool.toUpperCase()}
+                          </span>
+                        </div>
+                        {selectedShape && (
+                          <div className="flex items-center gap-1 shrink-0 ml-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleLockShape(selectedShape.id)}
+                              className={`p-1 rounded-lg border text-xs transition cursor-pointer ${
+                                selectedShape.isLocked
+                                  ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
+                                  : "bg-white text-slate-400 hover:text-ink border-line"
+                              }`}
+                              title={selectedShape.isLocked ? "Unlock Element" : "Lock Element"}
+                            >
+                              {selectedShape.isLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 1. ALIGNMENT TOOLBAR */}
+                      <div className="rounded-2xl border border-line bg-white p-2.5 shadow-2xs space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted px-1">
+                          <span>Alignment</span>
+                          <span className="text-[9px] text-muted font-medium">Position & Distribute</span>
+                        </div>
+                        <div className="grid grid-cols-8 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("left")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Left"
+                          >
+                            <AlignLeftIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("centerH")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Horizontal Center"
+                          >
+                            <AlignCenterHIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("right")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Right"
+                          >
+                            <AlignRightIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("top")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Top"
+                          >
+                            <AlignTopIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("middleV")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Vertical Center"
+                          >
+                            <AlignMiddleVIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("bottom")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Bottom"
+                          >
+                            <AlignBottomIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("distributeH")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Distribute Horizontally"
+                          >
+                            <DistributeHIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("distributeV")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Distribute Vertically"
+                          >
+                            <DistributeVIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* 2. TRANSFORM / BOUNDS (Fully editable dimensions and position from inspection panel) */}
+                      {selectedShape && pts.length > 0 && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
+                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                            <span>Dimensions & Position</span>
+                            <button
+                              type="button"
+                              onClick={() => setIsAspectLocked(!isAspectLocked)}
+                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[9px] font-bold transition cursor-pointer ${
+                                isAspectLocked
+                                  ? "bg-brand text-white border-brand shadow-xs"
+                                  : "bg-slate-50 text-muted border-line hover:text-ink hover:bg-white"
+                              }`}
+                              title={isAspectLocked ? "Aspect Ratio Locked (Proportional)" : "Aspect Ratio Unlocked (Free)"}
+                            >
+                              <Link2 className="h-2.5 w-2.5" />
+                              <span>{isAspectLocked ? "Locked" : "Ratio"}</span>
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {/* X Position */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">X</span>
+                              <input
+                                type="number"
+                                value={minX}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  if (isNaN(val)) return;
+                                  const dx = val - minX;
+                                  setShapes((prev) =>
+                                    prev.map((s) =>
+                                      s.id === selectedShape.id && !s.isLocked
+                                        ? { ...s, points: s.points.map((p) => ({ x: Math.round(p.x + dx), y: p.y })) }
+                                        : s
+                                    )
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
+                            </div>
+
+                            {/* Y Position */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">Y</span>
+                              <input
+                                type="number"
+                                value={minY}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  if (isNaN(val)) return;
+                                  const dy = val - minY;
+                                  setShapes((prev) =>
+                                    prev.map((s) =>
+                                      s.id === selectedShape.id && !s.isLocked
+                                        ? { ...s, points: s.points.map((p) => ({ x: p.x, y: Math.round(p.y + dy) })) }
+                                        : s
+                                    )
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
+                            </div>
+
+                            {/* W (Width) */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">W</span>
+                              <input
+                                type="number"
+                                min={5}
+                                value={calcW}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const targetW = Math.max(5, parseInt(e.target.value, 10) || 5);
+                                  const curW = Math.max(1, maxX - minX);
+                                  const curH = Math.max(1, maxY - minY);
+                                  const aspect = curW / curH;
+                                  const targetH = isAspectLocked ? Math.round(targetW / aspect) : curH;
+
+                                  setShapes((prev) =>
+                                    prev.map((s) => {
+                                      if (s.id !== selectedShape.id || s.isLocked) return s;
+                                      const sPts = s.points;
+                                      if (sPts.length === 2) {
+                                        const signX = sPts[1].x >= sPts[0].x ? 1 : -1;
+                                        const signY = sPts[1].y >= sPts[0].y ? 1 : -1;
+                                        return {
+                                          ...s,
+                                          points: [
+                                            sPts[0],
+                                            {
+                                              x: Math.round(sPts[0].x + signX * targetW),
+                                              y: isAspectLocked ? Math.round(sPts[0].y + signY * targetH) : sPts[1].y,
+                                            },
+                                          ],
+                                        };
+                                      }
+                                      if (sPts.length > 2) {
+                                        const scaleX = targetW / curW;
+                                        const scaleY = isAspectLocked ? targetH / curH : 1;
+                                        return {
+                                          ...s,
+                                          points: sPts.map((p) => ({
+                                            x: Math.round(minX + (p.x - minX) * scaleX),
+                                            y: isAspectLocked ? Math.round(minY + (p.y - minY) * scaleY) : p.y,
+                                          })),
+                                        };
+                                      }
+                                      return s;
+                                    })
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
+                            </div>
+
+                            {/* H (Height) */}
+                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
+                              <span className="text-[10px] font-black text-muted w-3.5 select-none">H</span>
+                              <input
+                                type="number"
+                                min={5}
+                                value={calcH}
+                                disabled={selectedShape.isLocked}
+                                onChange={(e) => {
+                                  const targetH = Math.max(5, parseInt(e.target.value, 10) || 5);
+                                  const curW = Math.max(1, maxX - minX);
+                                  const curH = Math.max(1, maxY - minY);
+                                  const aspect = curW / curH;
+                                  const targetW = isAspectLocked ? Math.round(targetH * aspect) : curW;
+
+                                  setShapes((prev) =>
+                                    prev.map((s) => {
+                                      if (s.id !== selectedShape.id || s.isLocked) return s;
+                                      const sPts = s.points;
+                                      if (sPts.length === 2) {
+                                        const signX = sPts[1].x >= sPts[0].x ? 1 : -1;
+                                        const signY = sPts[1].y >= sPts[0].y ? 1 : -1;
+                                        return {
+                                          ...s,
+                                          points: [
+                                            sPts[0],
+                                            {
+                                              x: isAspectLocked ? Math.round(sPts[0].x + signX * targetW) : sPts[1].x,
+                                              y: Math.round(sPts[0].y + signY * targetH),
+                                            },
+                                          ],
+                                        };
+                                      }
+                                      if (sPts.length > 2) {
+                                        const scaleY = targetH / curH;
+                                        const scaleX = isAspectLocked ? targetW / curW : 1;
+                                        return {
+                                          ...s,
+                                          points: sPts.map((p) => ({
+                                            x: Math.round(minX + (p.x - minX) * scaleX),
+                                            y: isAspectLocked ? Math.round(minY + (p.y - minY) * scaleY) : p.y,
+                                          })),
+                                        };
+                                      }
+                                      return s;
+                                    })
+                                  );
+                                }}
+                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
+                              />
+                              <span className="text-[10px] text-muted font-medium select-none">px</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-muted px-1">
+                            <span>Hold <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold text-[9px] text-ink">Shift</kbd> on canvas to scale evenly</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. FILL & COLOR SYSTEM (SOLID / GRADIENT / TRANSLUCENT / NONE WITH COLOR PICKER) */}
+                      {(targetTool === "rectangle" || targetTool === "circle" || targetTool === "diamond" || targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bullish_candle" || targetTool === "bearish_candle" || targetTool === "sticky") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                            <span>Fill & Gradient</span>
+                            <span className="text-[9px] font-bold text-brand uppercase">{selectedShape?.fillStyle || fillStyle}</span>
+                          </div>
+
+                          {/* Mode Switch: Solid / Gradient / Soft / None */}
+                          <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-xl">
+                            {(["translucent", "solid", "gradient", "none"] as const).map((styleOpt) => (
+                              <button
+                                key={styleOpt}
+                                type="button"
+                                onClick={() => applyFillStyleToSelected(styleOpt)}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1 rounded-lg text-[10px] font-bold capitalize transition cursor-pointer ${
+                                  (selectedShape?.fillStyle || fillStyle) === styleOpt
+                                    ? "bg-white text-ink shadow-xs"
+                                    : "text-muted hover:text-ink"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                {styleOpt === "translucent" ? "Soft" : styleOpt}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Primary Fill Color */}
+                          {(selectedShape?.fillStyle || fillStyle) !== "none" && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>{(selectedShape?.fillStyle || fillStyle) === "gradient" ? "Start Fill Color" : "Fill Color"}</span>
+                                <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.fillColor || fillColor}</span>
+                              </label>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {PALETTE.map((c) => (
+                                  <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => applyFillColorToSelected(c)}
+                                    disabled={selectedShape?.isLocked}
+                                    className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                      (selectedShape?.fillColor || fillColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                    } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                    style={{ background: c }}
+                                  />
+                                ))}
+                                <label
+                                  className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                                  title="Custom Hex Fill Color Picker"
+                                >
+                                  <input
+                                    type="color"
+                                    value={selectedShape?.fillColor || fillColor}
+                                    onChange={(e) => applyFillColorToSelected(e.target.value)}
+                                    disabled={selectedShape?.isLocked}
+                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                  />
+                                  <span
+                                    className="w-full h-full rounded-full border"
+                                    style={{ background: selectedShape?.fillColor || fillColor }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Secondary Gradient End Color */}
+                          {(selectedShape?.fillStyle || fillStyle) === "gradient" && (
+                            <div className="pt-2 border-t border-line animate-in fade-in">
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Gradient End Color</span>
+                                <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.gradientEndColor || gradientEndColor}</span>
+                              </label>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {PALETTE.map((c) => (
+                                  <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => applyGradientEndColorToSelected(c)}
+                                    disabled={selectedShape?.isLocked}
+                                    className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                      (selectedShape?.gradientEndColor || gradientEndColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                    } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                    style={{ background: c }}
+                                  />
+                                ))}
+                                <label
+                                  className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                                  title="Custom Hex Gradient End Color Picker"
+                                >
+                                  <input
+                                    type="color"
+                                    value={selectedShape?.gradientEndColor || gradientEndColor}
+                                    onChange={(e) => applyGradientEndColorToSelected(e.target.value)}
+                                    disabled={selectedShape?.isLocked}
+                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                  />
+                                  <span
+                                    className="w-full h-full rounded-full border"
+                                    style={{ background: selectedShape?.gradientEndColor || gradientEndColor }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 4. STROKE COLOR & THICKNESS & PATTERN */}
+                      <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                          <span>Stroke & Outline</span>
+                          <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.strokeColor || selectedShape?.color || strokeColor}</span>
+                        </div>
+
+                        {/* Stroke Palette + HTML5 Color Picker */}
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {PALETTE.map((c) => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => applyColorToSelected(c)}
+                                disabled={selectedShape?.isLocked}
+                                className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                  (selectedShape?.strokeColor || selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                style={{ background: c }}
+                              />
+                            ))}
+                            <label
+                              className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                              title="Custom Hex Stroke Color Picker"
+                            >
+                              <input
+                                type="color"
+                                value={selectedShape?.strokeColor || selectedShape?.color || strokeColor}
+                                onChange={(e) => applyColorToSelected(e.target.value)}
+                                disabled={selectedShape?.isLocked}
+                                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                              />
+                              <span
+                                className="w-full h-full rounded-full border"
+                                style={{ background: selectedShape?.strokeColor || selectedShape?.color || strokeColor }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Stroke Width Buttons */}
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-700 flex items-center justify-between mb-1">
+                            <span>Stroke Width</span>
+                            <strong className="text-brand font-mono text-[10px]">{selectedShape?.strokeWidth || strokeWidth}px</strong>
+                          </label>
+                          <div className="grid grid-cols-5 gap-1">
+                            {[1, 2, 3, 4, 6].map((w) => (
+                              <button
+                                key={w}
+                                type="button"
+                                onClick={() => {
+                                  setStrokeWidth(w);
+                                  if (selectedShapeIds.length > 0) {
+                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
+                                  }
+                                }}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                                  (selectedShape?.strokeWidth || strokeWidth) === w ? "bg-brand text-white shadow-2xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                {w}px
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Stroke Pattern (Solid / Dashed) */}
+                        <div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLineStyle("solid");
+                                if (selectedShapeIds.length > 0) {
+                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
+                                }
+                              }}
+                              disabled={selectedShape?.isLocked}
+                              className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                (selectedShape?.lineStyle || lineStyle) === "solid" ? "bg-ink text-white border-ink shadow-xs" : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                            >
+                              Solid
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLineStyle("dashed");
+                                if (selectedShapeIds.length > 0) {
+                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
+                                }
+                              }}
+                              disabled={selectedShape?.isLocked}
+                              className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                (selectedShape?.lineStyle || lineStyle) === "dashed" ? "bg-ink text-white border-ink shadow-xs" : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                            >
+                              Dashed
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 5. APPEARANCE (OPACITY & CORNER RADIUS) */}
+                      <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
+
+                        {/* Opacity Slider */}
+                        <div>
+                          <div className="flex items-center justify-between text-[11px] font-bold text-ink mb-1.5">
+                            <span>Layer Opacity</span>
+                            <span className="font-mono text-brand">{Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100)}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={5}
+                            max={100}
+                            step={5}
+                            value={Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100)}
+                            onChange={(e) => applyOpacityToSelected(parseInt(e.target.value, 10) / 100)}
+                            disabled={selectedShape?.isLocked}
+                            className="w-full accent-brand cursor-pointer disabled:opacity-50"
+                          />
+                        </div>
+
+                        {/* Corner Radius (for shapes with corners) */}
+                        {(targetTool === "rectangle" || targetTool === "orderblock" || targetTool === "fvg" || targetTool === "sticky") && (
+                          <div className="pt-2 border-t border-line">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-ink mb-1.5">
+                              <span>Corner Radius</span>
+                              <span className="font-mono text-brand">{selectedShape?.cornerRadius ?? cornerRadius}px</span>
+                            </div>
+                            <div className="grid grid-cols-5 gap-1">
+                              {[0, 4, 8, 16, 24].map((rad) => (
+                                <button
+                                  key={rad}
+                                  type="button"
+                                  onClick={() => applyCornerRadiusToSelected(rad)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                                    (selectedShape?.cornerRadius ?? cornerRadius) === rad
+                                      ? "bg-brand text-white"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                >
+                                  {rad}px
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 6. BULLISH & BEARISH CANDLESTICK WICK ADJUSTMENT & STYLING */}
+                      {(targetTool === "bullish_candle" || targetTool === "bearish_candle") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted">
+                              {targetTool === "bullish_candle" ? "Bullish Candle Setup" : "Bearish Candle Setup"}
+                            </p>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                              targetTool === "bullish_candle" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                            }`}>
+                              {targetTool === "bullish_candle" ? "Bullish" : "Bearish"}
+                            </span>
+                          </div>
+
+                          {/* Upper Wick Length */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-ink">
+                              <span>Upper Wick Length</span>
+                              <span className="font-mono text-brand">{selectedShape?.upperWickLength ?? upperWickLength}px</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={80}
+                              step={2}
+                              value={selectedShape?.upperWickLength ?? upperWickLength}
+                              onChange={(e) => applyUpperWickLengthToSelected(parseInt(e.target.value, 10))}
+                              disabled={selectedShape?.isLocked}
+                              className="w-full accent-brand cursor-pointer disabled:opacity-50"
+                            />
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "None", val: 0 },
+                                { label: "Short", val: 12 },
+                                { label: "Normal", val: 25 },
+                                { label: "Rejection", val: 55 },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  onClick={() => applyUpperWickLengthToSelected(preset.val)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`py-1 rounded-lg text-[9px] font-bold transition cursor-pointer ${
+                                    (selectedShape?.upperWickLength ?? upperWickLength) === preset.val
+                                      ? "bg-brand text-white"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                >
+                                  {preset.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Lower Wick Length */}
+                          <div className="space-y-1.5 pt-2 border-t border-line">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-ink">
+                              <span>Lower Wick Length</span>
+                              <span className="font-mono text-brand">{selectedShape?.lowerWickLength ?? lowerWickLength}px</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={80}
+                              step={2}
+                              value={selectedShape?.lowerWickLength ?? lowerWickLength}
+                              onChange={(e) => applyLowerWickLengthToSelected(parseInt(e.target.value, 10))}
+                              disabled={selectedShape?.isLocked}
+                              className="w-full accent-brand cursor-pointer disabled:opacity-50"
+                            />
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "None", val: 0 },
+                                { label: "Short", val: 12 },
+                                { label: "Normal", val: 25 },
+                                { label: "Rejection", val: 55 },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  onClick={() => applyLowerWickLengthToSelected(preset.val)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`py-1 rounded-lg text-[9px] font-bold transition cursor-pointer ${
+                                    (selectedShape?.lowerWickLength ?? lowerWickLength) === preset.val
+                                      ? "bg-brand text-white"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                >
+                                  {preset.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Independent Wick Color */}
+                          <div className="pt-2 border-t border-line">
+                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                              <span>Wick Color</span>
+                              <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.wickColor || wickColor}</span>
+                            </label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyWickColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    (selectedShape?.wickColor || wickColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                              <label
+                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                                title="Custom Hex Wick Color"
+                              >
+                                <input
+                                  type="color"
+                                  value={selectedShape?.wickColor || wickColor}
+                                  onChange={(e) => applyWickColorToSelected(e.target.value)}
+                                  disabled={selectedShape?.isLocked}
+                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                />
+                                <span
+                                  className="w-full h-full rounded-full border"
+                                  style={{ background: selectedShape?.wickColor || wickColor }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Micro Label / Pattern Tag */}
+                          {selectedShape && (
+                            <div className="pt-2 border-t border-line">
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Pattern Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? ""}
+                                placeholder={targetTool === "bullish_candle" ? "e.g. Bullish Engulfing, Hammer..." : "e.g. Bearish Engulfing, Shooting Star..."}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
+                          <div className={`p-2.5 rounded-xl text-xs font-medium space-y-1 ${
+                            targetTool === "bullish_candle" ? "bg-emerald-50 text-emerald-900 border border-emerald-200" : "bg-rose-50 text-rose-900 border border-rose-200"
+                          }`}>
+                            <div className="flex items-center justify-between font-bold">
+                              <span>{targetTool === "bullish_candle" ? "Bullish Candlestick" : "Bearish Candlestick"}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                                targetTool === "bullish_candle" ? "bg-emerald-200 text-emerald-800" : "bg-rose-200 text-rose-800"
+                              }`}>
+                                {targetTool === "bullish_candle" ? "Close > Open" : "Close < Open"}
+                              </span>
+                            </div>
+                            <p className={`text-[11px] ${targetTool === "bullish_candle" ? "text-emerald-700" : "text-rose-700"}`}>
+                              Independent wick length adjusters with clean edge alignment.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 7. CONTEXT-SPECIFIC TECHNICAL FOREX TOOL CARDS */}
+
+                      {/* (A) TEXT LABELS */}
+                      {targetTool === "text" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Typography & Content</p>
+
+                          {selectedShape ? (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Text Content</label>
+                              <textarea
+                                rows={2}
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                placeholder="Type text..."
+                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
+                              Click anywhere on canvas to place text.
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* (B) ANNOTATION LEADER PIN */}
+                      {targetTool === "annotation" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Annotation Leader Pin</p>
+
+                          {selectedShape ? (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Callout Badge Label</label>
+                              <input
+                                type="text"
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                placeholder="e.g. Key POI, Rejection Wick..."
+                                className={`w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-muted">
+                              Drag on chart to point a leader line to an object.
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* (C) STICKY NOTES */}
+                      {targetTool === "sticky" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Sticky Note Content & Color</p>
+
+                          {selectedShape ? (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Note Content</label>
+                              <textarea
+                                rows={3}
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                placeholder="Type note content..."
+                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
+                              Click on canvas to drop a sticky note card.
+                            </div>
+                          )}
+
+                          {/* Sticky Paper Color Swatches */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Paper Color</label>
+                            <div className="flex items-center gap-2">
+                              {STICKY_COLORS.map((s) => (
+                                <button
+                                  key={s.color}
+                                  type="button"
+                                  onClick={() => applyStickyColorToSelected(s.color)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-7 w-7 rounded-xl transition-transform border border-black/10 shadow-2xs ${
+                                    stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: s.color }}
+                                  title={s.name}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (D) FIBONACCI RETRACEMENT */}
+                      {targetTool === "fibo" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Fibonacci Retracement Levels</p>
+                          <div className="space-y-1.5 text-xs font-mono">
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-red-50 text-red-700 font-bold">
+                              <span>0.0% (1.000)</span> <span>Invalidation</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-amber-50 text-amber-700 font-bold">
+                              <span>38.2% (0.382)</span> <span>Shallow Pullback</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-yellow-50 text-yellow-800 font-bold border border-yellow-300">
+                              <span>50.0% Equilibrium</span> <span>Fair Value</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-300">
+                              <span>61.8% Golden Pocket</span> <span>Prime Entry ★</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-blue-50 text-blue-700 font-bold">
+                              <span>78.6% (0.786)</span> <span>Deep Retracement</span>
+                            </div>
+                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-purple-50 text-purple-700 font-bold">
+                              <span>100.0% (0.000)</span> <span>Swing Anchor</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* (E) LONG / SHORT POSITION */}
+                      {(targetTool === "long" || targetTool === "short") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
+                            {targetTool === "long" ? "Long Position (Bullish)" : "Short Position (Bearish)"}
+                          </p>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                              <span>Risk : Reward Ratio</span>
+                              <strong className="text-emerald-600 font-black">1 : {defaultRiskReward}</strong>
+                            </label>
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {[1, 2, 3, 4].map((rr) => (
+                                <button
+                                  key={rr}
+                                  type="button"
+                                  onClick={() => setDefaultRiskReward(rr)}
+                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
+                                    defaultRiskReward === rr ? "bg-emerald-600 text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                  }`}
+                                >
+                                  1:{rr}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">Chart Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? `1:${defaultRiskReward.toFixed(1)}`}
+                                placeholder="e.g. 1:3.0, TP 1..."
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* (F) ORDER BLOCK & FVG MICRO LABELS */}
+                      {(targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bos" || targetTool === "liquidity") && selectedShape && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
+                          <label className="text-[11px] font-bold text-ink block flex items-center justify-between">
+                            <span>Chart Micro Tag</span>
+                            <span className="text-[9px] text-muted font-mono">{targetTool.toUpperCase()}</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={selectedShape.text ?? targetTool.toUpperCase()}
+                            placeholder="e.g. H4 OB, M15 FVG, BOS..."
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setShapes((prev) =>
+                                prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                              );
+                            }}
+                            disabled={selectedShape.isLocked}
+                            className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                          />
+                        </div>
+                      )}
+
+                      {/* (H) CANVAS / ENVIRONMENT (When no shape is selected and navigation tool active) */}
+                      {!selectedShape && (targetTool === "select" || targetTool === "hand" || targetTool === "zoom" || targetTool === "eraser") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Environment</p>
+                          
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5">Grid Background</label>
+                            <select
+                              value={bgGrid}
+                              onChange={(e) => handleSetBgGrid(e.target.value as any)}
+                              className="w-full rounded-xl border border-line bg-white p-2 text-xs font-bold text-ink outline-none focus:border-brand"
+                            >
+                              {CANVAS_THEMES.map((t) => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs font-medium pt-1">
+                            <span className="text-muted">Snap to Grid</span>
+                            <button
+                              type="button"
+                              onClick={() => setSnapToGrid(!snapToGrid)}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                snapToGrid ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {snapToGrid ? "Enabled" : "Disabled"}
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs font-medium pt-1">
+                            <span className="text-muted">Zoom: {Math.round(zoom * 100)}%</span>
+                            <button
+                              type="button"
+                              onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+                              className="px-2 py-0.5 rounded-lg border border-line bg-cream text-xs font-bold text-ink hover:bg-white"
+                            >
+                              Reset 100%
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 4. OBJECT ACTIONS & LAYERING (Only when a shape is selected) */}
+                      {selectedShape && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Layer & Actions</p>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => bringToFront(selectedShape.id)}
+                              disabled={selectedShape.isLocked}
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40 cursor-pointer"
+                            >
+                              <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => sendToBack(selectedShape.id)}
+                              disabled={selectedShape.isLocked}
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40 cursor-pointer"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => duplicateSelectedObject(selectedShape)}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Ctrl + D)
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => deleteSelectedObject(selectedShape.id)}
+                            disabled={selectedShape.isLocked}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete (Backspace)
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* TAB 2: LAYERS PANEL WITH INLINE RENAMING */}
+                {tabKey === "layers" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
+                      <span className="text-[10px] font-bold text-brand">{shapes.length} Layers</span>
+                    </div>
+
+                    {shapes.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-muted space-y-1">
+                        <Layers className="h-8 w-8 text-slate-300 mx-auto" />
+                        <p className="font-bold text-ink">No Layers Yet</p>
+                        <p className="text-[11px]">Draw shapes, notes or lines on the canvas to see them in this layers stack.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
+                        {/* Reverse to show Top Layer first (Z-order) */}
+                        {[...shapes].reverse().map((shape, revIdx) => {
+                          const realIdx = shapes.length - 1 - revIdx;
+                          const isSelected = selectedShapeIds.includes(shape.id);
+                          const IconComponent = getToolIcon(shape.type);
+
+                          return (
+                            <div
+                              key={shape.id}
+                              onClick={() => setSelectedShapeIds([shape.id])}
+                              className={`group flex items-center justify-between rounded-2xl border p-2 text-xs transition cursor-pointer ${
+                                isSelected
+                                  ? "border-brand bg-brand-light/40 font-bold"
+                                  : "border-line bg-cream hover:bg-white"
+                              } ${shape.isHidden ? "opacity-40" : ""}`}
+                            >
+                              <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                                {/* Color Swatch Badge */}
+                                <span
+                                  className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                                  style={{ background: shape.stickyColor || shape.color }}
+                                />
+                                <IconComponent className="h-4 w-4 text-brand shrink-0" />
+
+                                {editingLayerId === shape.id ? (
+                                  <input
+                                    autoFocus
+                                    type="text"
+                                    value={editingLayerName}
+                                    onChange={(e) => setEditingLayerName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        setShapes((prev) =>
+                                          prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
+                                        );
+                                        setEditingLayerId(null);
+                                        showToast("Renamed layer!");
+                                      } else if (e.key === "Escape") {
+                                        setEditingLayerId(null);
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      setShapes((prev) =>
+                                        prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
+                                      );
+                                      setEditingLayerId(null);
+                                    }}
+                                    className="w-28 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
+                                  />
+                                ) : (
+                                  <span
+                                    onDoubleClick={() => {
+                                      setEditingLayerId(shape.id);
+                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
+                                    }}
+                                    className="truncate text-ink font-bold capitalize flex-1 cursor-text"
+                                    title="Double-click to rename layer"
+                                  >
+                                    {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Layer Actions: Rename, Reorder Up/Down, Visibility, Lock & Delete */}
+                              <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
+                                {/* Inline Rename Edit Button */}
+                                {editingLayerId !== shape.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingLayerId(shape.id);
+                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
+                                    }}
+                                    className="p-1 rounded text-slate-400 hover:text-brand"
+                                    title="Rename Layer"
+                                  >
+                                    <Edit3 className="h-3.5 w-3.5" />
+                                  </button>
+                                )}
+
+                                {/* Move Up in Z-stack */}
+                                <button
+                                  type="button"
+                                  onClick={() => moveLayerUp(realIdx)}
+                                  disabled={realIdx >= shapes.length - 1}
+                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
+                                  title="Move Layer Up (Bring Forward)"
+                                >
+                                  <ArrowUp className="h-3.5 w-3.5" />
+                                </button>
+
+                                {/* Move Down in Z-stack */}
+                                <button
+                                  type="button"
+                                  onClick={() => moveLayerDown(realIdx)}
+                                  disabled={realIdx <= 0}
+                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
+                                  title="Move Layer Down (Send Backward)"
+                                >
+                                  <ArrowDown className="h-3.5 w-3.5" />
+                                </button>
+
+                                {/* Hide / Show Eye Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleHideShape(shape.id)}
+                                  className="p-1 rounded text-slate-400 hover:text-blue-600"
+                                  title={shape.isHidden ? "Unhide Layer" : "Hide Layer"}
+                                >
+                                  {shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}
+                                </button>
+
+                                {/* Lock / Unlock Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleLockShape(shape.id)}
+                                  className="p-1 rounded text-slate-400 hover:text-amber-600"
+                                  title={shape.isLocked ? "Unlock Layer" : "Lock Layer"}
+                                >
+                                  {shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}
+                                </button>
+
+                                {/* Delete Layer Trash Button */}
+                                <button
+                                  type="button"
+                                  onClick={() => deleteSelectedObject(shape.id)}
+                                  className="p-1 rounded text-slate-400 hover:text-rose-600 transition"
+                                  title={shape.isLocked ? "Cannot delete locked layer" : "Delete Layer"}
+                                >
+                                  <Trash2 className={`h-3.5 w-3.5 ${shape.isLocked ? "text-slate-300" : "text-rose-500"}`} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 3: CHARACTER & TYPOGRAPHY FORMATTING TAB */}
+                {tabKey === "character" && (
+                  <div className="space-y-3.5 animate-in fade-in duration-150">
+                    {/* Header */}
+                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
+                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                          <CharacterIcon className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="font-extrabold text-xs text-ink truncate">
+                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Typography Settings"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 1. Live Text Content Editor (Direct Editing) */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                        <span>Text Content</span>
+                        <span className="text-[9px] text-brand font-medium">Live Canvas Sync</span>
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={
+                          selectedShape
+                            ? (selectedShape.text ?? "")
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (selectedShape) {
+                            updateActiveTypography({ text: val });
+                          }
+                        }}
+                        placeholder={selectedShape ? "Type text or note..." : "Select text on canvas to edit content..."}
+                        disabled={!selectedShape}
+                        className="w-full rounded-xl border border-line bg-slate-50 p-2.5 text-xs text-ink outline-none focus:border-brand focus:bg-white resize-none transition disabled:opacity-50"
+                      />
+                    </div>
+
+                    {/* 2. Font Family Selection */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Family</label>
+                      <select
+                        value={activeFontFamily}
+                        onChange={(e) => updateActiveTypography({ fontFamily: e.target.value })}
+                        className="w-full rounded-xl border border-line bg-slate-50 p-2 text-xs font-bold text-ink outline-none focus:border-brand transition cursor-pointer"
+                      >
+                        <option value="Inter, sans-serif">Inter (Modern Sans)</option>
+                        <option value="Roboto, sans-serif">Roboto</option>
+                        <option value="Arial, sans-serif">Arial Standard</option>
+                        <option value="Georgia, serif">Georgia (Editorial Serif)</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="'Courier New', monospace">Courier Monospace</option>
+                        <option value="'Caveat', cursive, sans-serif">Caveat (Handwritten)</option>
+                        <option value="'Impact', sans-serif">Impact (Bold Display)</option>
+                      </select>
+                    </div>
+
+                    {/* 3. Font Size Stepper & Quick Presets */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Size</label>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ fontSize: Math.max(8, activeFontSize - 2) })}
+                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-bold text-ink w-9 text-center font-mono">{activeFontSize}px</span>
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ fontSize: Math.min(120, activeFontSize + 2) })}
+                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Size Pills */}
+                      <div className="flex flex-wrap gap-1">
+                        {[12, 14, 16, 20, 24, 32, 48, 64].map((sz) => (
+                          <button
+                            key={sz}
+                            type="button"
+                            onClick={() => updateActiveTypography({ fontSize: sz })}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                              activeFontSize === sz
+                                ? "bg-brand text-white shadow-xs"
+                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            }`}
+                          >
+                            {sz}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 4. Font Styles: Bold, Italic, Underline, Strikethrough */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Character Style</label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ fontWeight: activeFontWeight === "bold" ? "normal" : "bold" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeFontWeight === "bold"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Bold"
+                        >
+                          <Bold className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ fontStyle: activeFontStyle === "italic" ? "normal" : "italic" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeFontStyle === "italic"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Italic"
+                        >
+                          <Italic className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "underline" ? "none" : "underline" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextDecoration === "underline"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Underline"
+                        >
+                          <Underline className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "line-through" ? "none" : "line-through" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextDecoration === "line-through"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Strikethrough"
+                        >
+                          <Strikethrough className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 5. Text Alignment */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Alignment</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textAlign: "left" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextAlign === "left"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Align Left"
+                        >
+                          <AlignLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textAlign: "center" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextAlign === "center"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Align Center"
+                        >
+                          <AlignCenter className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textAlign: "right" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                            activeTextAlign === "right"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Align Right"
+                        >
+                          <AlignRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 6. Text Transform */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Capitalization</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textTransform: "none" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
+                            activeTextTransform === "none"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="Regular Case"
+                        >
+                          <Type className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textTransform: "uppercase" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
+                            activeTextTransform === "uppercase"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="UPPERCASE"
+                        >
+                          <CaseUpper className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveTypography({ textTransform: "lowercase" })}
+                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
+                            activeTextTransform === "lowercase"
+                              ? "bg-brand text-white border-brand shadow-xs"
+                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                          }`}
+                          title="lowercase"
+                        >
+                          <CaseLower className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 7. Text Color & Highlight Background */}
+                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Text Color</label>
+                        <div className="flex items-center gap-1.5">
+                          {["#1e293b", "#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => (
+                            <button
+                              key={col}
+                              type="button"
+                              onClick={() => updateActiveTypography({ textColor: col })}
+                              style={{ backgroundColor: col }}
+                              className={`h-6 w-6 rounded-full border border-slate-300 transition cursor-pointer ${
+                                activeTextColor === col ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
+                              }`}
+                            />
+                          ))}
+                          <input
+                            type="color"
+                            value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
+                            onChange={(e) => updateActiveTypography({ textColor: e.target.value })}
+                            className="h-6 w-6 rounded-full cursor-pointer border-0 p-0"
+                            title="Custom Color"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Highlight Background</label>
+                        <div className="flex items-center gap-1.5">
+                          {[
+                            { color: "transparent", label: "None" },
+                            { color: "#fef08a", label: "Yellow" },
+                            { color: "#bbf7d0", label: "Green" },
+                            { color: "#bae6fd", label: "Blue" },
+                            { color: "#fbcfe8", label: "Pink" },
+                            { color: "#fed7aa", label: "Orange" },
+                          ].map((bg) => (
+                            <button
+                              key={bg.color}
+                              type="button"
+                              onClick={() => updateActiveTypography({ textBgColor: bg.color })}
+                              style={{ backgroundColor: bg.color === "transparent" ? "#f1f5f9" : bg.color }}
+                              className={`h-6 w-6 rounded-full border border-slate-300 transition flex items-center justify-center text-[8px] font-bold cursor-pointer ${
+                                activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
+                              }`}
+                              title={bg.label}
+                            >
+                              {bg.color === "transparent" && "✕"}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 4: DRAFTS & CANVAS MANAGER TAB */}
+                {tabKey === "drafts" && (
+                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                    {/* Header Quick Actions */}
+                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                      <div>
+                        <h3 className="font-extrabold text-ink text-sm">Diagrams & Drafts</h3>
+                        <p className="text-[10px] text-muted">{tabs.length} open tab{tabs.length > 1 ? "s" : ""} • {savedDrafts.length} saved draft{savedDrafts.length > 1 ? "s" : ""}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveCurrentDraft}
+                        className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
+                        title="Save Current Diagram as Draft"
+                      >
+                        <Download className="h-3 w-3" /> Save Draft
+                      </button>
+                    </div>
+
+                    {/* Active Open Tabs Section */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
+                          <FileText className="h-3 w-3" /> Active Open Tabs ({tabs.length}/5)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (tabs.length >= 5) {
+                              setMaxTabPromptOpen(true);
+                              showToast("Tab limit reached! (Maximum 5 tabs)");
+                            } else {
+                              handleConfirmCreateCustomCanvas();
+                            }
+                          }}
+                          disabled={tabs.length >= 5}
+                          className="text-[10.5px] font-bold text-brand hover:underline disabled:opacity-40 flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <Plus className="h-3 w-3" /> New Tab
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {tabs.map((tab) => {
+                          const isActive = tab.id === activeTabId;
+                          return (
+                            <div
+                              key={tab.id}
+                              onClick={() => handleSelectTab(tab.id)}
+                              className={`p-2 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
+                                isActive
+                                  ? "border-brand bg-brand-light/40 shadow-xs"
+                                  : "border-line bg-slate-50 hover:bg-white hover:border-slate-300"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-brand animate-pulse" : "bg-slate-300"}`} />
+                                <div className="truncate flex-1">
+                                  <p className={`text-xs truncate font-bold ${isActive ? "text-brand" : "text-ink"}`}>{tab.name}</p>
+                                  <p className="text-[10px] text-muted">{tab.shapes.length} object{tab.shapes.length !== 1 ? "s" : ""}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartRenameTab(tab.id, tab.name)}
+                                  className="p-1 text-slate-400 hover:text-ink hover:bg-slate-200 rounded transition cursor-pointer"
+                                  title="Rename Diagram"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCloseTab(tab.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                  title="Move to Trash"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Saved Drafts Repository Section */}
+                    <div className="space-y-2 pt-2 border-t border-line">
+                      <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
+                        <FolderPlus className="h-3 w-3" /> Saved Drafts ({savedDrafts.length})
+                      </span>
+
+                      {savedDrafts.length === 0 ? (
+                        <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-muted">
+                          <p className="text-[11px] font-bold">No saved drafts yet</p>
+                          <p className="text-[10px] mt-0.5">Click "Save Draft" to store offline snapshots</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 max-h-60 overflow-y-auto [scrollbar-width:thin]">
+                          {savedDrafts.map((draft) => (
+                            <div
+                              key={draft.id}
+                              className="p-2.5 rounded-xl border border-line bg-slate-50/80 hover:bg-white transition flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-ink truncate">{draft.name}</p>
+                                <p className="text-[9.5px] text-muted">
+                                  {draft.shapes.length} objects • {new Date(draft.savedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => loadSavedDraft(draft)}
+                                  className="px-2 py-1 bg-brand-light text-brand rounded-lg text-[10.5px] font-bold hover:bg-brand hover:text-white transition cursor-pointer"
+                                  title="Open Draft in Canvas Tab"
+                                >
+                                  Open
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteDraft(draft.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                  title="Delete Draft"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 5: SAMPLES & TEMPLATES TAB */}
+                {tabKey === "samples" && (
+                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                    <div>
+                      <h3 className="font-extrabold text-ink text-sm">Samples & Templates</h3>
+                      <p className="text-[10px] text-muted">Pre-configured trading strategies and chart pattern guides</p>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        {
+                          id: "patterns",
+                          title: "Double Bottom & Breakout",
+                          desc: "Neckline breakout with structural BOS confirmation",
+                          shapes: [
+                            { id: "s1", type: "line" as Tool, color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: 50, y: 120 }, { x: 250, y: 120 }] },
+                            { id: "s2", type: "bezier" as Tool, color: "#10b981", strokeWidth: 2.5, points: [{ x: 60, y: 60 }, { x: 100, y: 120 }, { x: 140, y: 80 }, { x: 180, y: 120 }, { x: 230, y: 40 }] },
+                            { id: "s3", type: "text" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: 180, y: 40 }], text: "BOS ↗" },
+                          ],
+                        },
+                        {
+                          id: "smc_strategy",
+                          title: "SMC Strategy & Liquidity Sweep",
+                          desc: "Order Block zone, Fair Value Gap (FVG) and premium sweep",
+                          shapes: DEFAULT_SAMPLE_SMC_SHAPES,
+                        },
+                        {
+                          id: "risk_reward",
+                          title: "1:3 Risk to Reward Framework",
+                          desc: "Standard institutional positioning setup with stop loss and TP",
+                          shapes: DEFAULT_SAMPLE_RISK_SHAPES,
+                        },
+                        {
+                          id: "eurusd_breakdown",
+                          title: "EUR/USD Multi-Timeframe Map",
+                          desc: "High timeframe liquidity pool and London open session run",
+                          shapes: DEFAULT_SAMPLE_EURUSD_SHAPES,
+                        },
+                      ].map((sample) => (
+                        <div
+                          key={sample.id}
+                          className="rounded-xl border border-line bg-slate-50/80 p-3 hover:bg-white hover:border-brand/40 transition space-y-2"
+                        >
+                          <div>
+                            <p className="font-extrabold text-ink text-xs">{sample.title}</p>
+                            <p className="text-[10px] text-muted mt-0.5">{sample.desc}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (tabs.length >= 5 && !tabs.some((t) => t.name === sample.title)) {
+                                setMaxTabPromptOpen(true);
+                                showToast("Max 5 tabs reached! Close a tab to load template.");
+                                return;
+                              }
+                              const tabKey = `tab_${sample.id}_${Date.now()}`;
+                              setTabs((prev) => [...prev, { id: tabKey, name: sample.title, shapes: sample.shapes, theme: "dots", snapToGrid: true }]);
+                              setActiveTabId(tabKey);
+                              setShapes(sample.shapes);
+                              showToast(`Loaded "${sample.title}" Template!`);
+                            }}
+                            className="w-full py-1.5 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <LayoutTemplate className="h-3 w-3" /> Load Template in New Tab
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 6: TRASH MANAGEMENT TAB */}
+                {tabKey === "trash" && (
+                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                      <div>
+                        <h3 className="font-extrabold text-ink text-sm">Trash Bin</h3>
+                        <p className="text-[10px] text-muted">{trashedTabs.length} item{trashedTabs.length !== 1 ? "s" : ""} • Deleted items kept for 30 days</p>
+                      </div>
+                      {trashedTabs.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Empty trash permanently? This cannot be undone.")) {
+                              setTrashedTabs([]);
+                              showToast("Trash emptied");
+                            }
+                          }}
+                          className="px-2 py-1 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg text-[10.5px] font-bold transition cursor-pointer"
+                        >
+                          Empty Trash
+                        </button>
+                      )}
+                    </div>
+
+                    {trashedTabs.length === 0 ? (
+                      <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center text-muted">
+                        <Archive className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
+                        <p className="text-xs font-bold text-slate-500">Trash is empty</p>
+                        <p className="text-[10px] mt-0.5 text-muted">Deleted diagram tabs will appear here</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-80 overflow-y-auto [scrollbar-width:thin]">
+                        {trashedTabs.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-2.5 rounded-xl border border-line bg-slate-50/90 flex items-center justify-between gap-2"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-bold text-ink truncate">{item.name}</p>
+                              <p className="text-[9.5px] text-muted">
+                                {item.shapes.length} shapes • Deleted {new Date(item.deletedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => restoreTrashedTab(item)}
+                                className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[10.5px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                title="Restore diagram tab"
+                              >
+                                <RotateCcw className="h-3 w-3" /> Restore
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteTrashedTabPermanently(item.id)}
+                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                title="Delete Permanently"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+      </div>
+    );
+  };
+
   /* -------------------------------------------------------------------------- */
   /*                        VIEW MODE 2: LIVE CANVAS MODE                       */
   /* -------------------------------------------------------------------------- */
@@ -7054,26 +8907,132 @@ export default function WhiteboardPage() {
       </div>
     )}
 
-    {/* Right Inspector, Layers, Character, Drafts, Samples & Trash Panel (Docked or Detached Floating) */}
-    {isInspectorOpen && (
-      <aside
-        style={isPanelDetached ? { left: floatingPanelPos.x, top: floatingPanelPos.y } : undefined}
-        className={
-          isPanelDetached
-            ? `fixed w-80 max-h-[85vh] rounded-2xl border bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden z-50 select-none animate-in zoom-in-95 duration-150 transition-shadow ${
-                isNearDockTarget ? "border-brand ring-4 ring-brand/30 shadow-brand/20" : "border-line"
-              }`
-            : "absolute right-10 top-0 bottom-0 w-80 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none"
-        }
-      >
-        {/* Panel Draggable Titlebar / Header */}
-        <div
-          onMouseDown={handlePanelDragStart}
-          className={`border-b border-line p-2 px-2.5 bg-white shrink-0 z-10 ${
-            isPanelDetached ? "cursor-move" : "cursor-grab"
+    {/* INDEPENDENT DETACHED FLOATING PANELS (Any tool can float anywhere on the canvas) */}
+    {(Object.keys(detachedPanels) as Array<keyof typeof detachedPanels>).map((panelKey) => {
+      const p = detachedPanels[panelKey];
+      if (!p.isOpen) return null;
+
+      const pTitle =
+        panelKey === "inspector"
+          ? "Inspector & Properties"
+          : panelKey === "layers"
+          ? `Layers (${shapes.length})`
+          : panelKey === "character"
+          ? "Typography & Style"
+          : panelKey === "drafts"
+          ? `Diagrams & Drafts (${tabs.length + savedDrafts.length})`
+          : panelKey === "samples"
+          ? "Samples & Templates"
+          : `Trash (${trashedTabs.length})`;
+
+      const PIcon =
+        panelKey === "inspector"
+          ? SlidersHorizontal
+          : panelKey === "layers"
+          ? Layers
+          : panelKey === "character"
+          ? CharacterIcon
+          : panelKey === "drafts"
+          ? FileText
+          : panelKey === "samples"
+          ? LayoutTemplate
+          : Archive;
+
+      const isThisDragging = draggingPanelKey.current === panelKey;
+
+      return (
+        <aside
+          key={panelKey}
+          style={{ left: p.x, top: p.y, zIndex: p.zIndex }}
+          onMouseDown={() => {
+            const newZ = highestPanelZIndex + 1;
+            setHighestPanelZIndex(newZ);
+            setDetachedPanels((prev) => ({
+              ...prev,
+              [panelKey]: { ...prev[panelKey], zIndex: newZ },
+            }));
+          }}
+          className={`fixed w-80 max-h-[82vh] rounded-2xl border bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow ${
+            isNearDockTarget && isThisDragging
+              ? "border-brand ring-4 ring-brand/30 shadow-brand/20"
+              : "border-line shadow-slate-900/15"
           }`}
-          title={isPanelDetached ? "Drag to reposition (move near right edge to snap)" : "Drag outward to detach panel"}
         >
+          {/* Draggable Titlebar */}
+          <div
+            onMouseDown={(e) => handleFloatingPanelDragStart(e, panelKey)}
+            className="border-b border-line p-2 px-2.5 bg-slate-50/90 shrink-0 z-10 flex items-center justify-between cursor-move"
+            title="Drag anywhere on canvas (drag near right sidebar to magnetically attach)"
+          >
+            <div className="flex items-center gap-1.5 text-xs font-black text-ink min-w-0">
+              <GripHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+              <span className="p-0.5 rounded bg-white border border-line text-brand shrink-0">
+                <PIcon className="h-3 w-3" />
+              </span>
+              <span className="truncate">{pTitle}</span>
+              {isNearDockTarget && isThisDragging && (
+                <span className="px-1.5 py-0.2 rounded-full bg-brand text-white text-[8px] font-black animate-pulse flex items-center gap-0.5 shrink-0">
+                  <Magnet className="h-2.5 w-2.5" /> Snap
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => dockIndividualPanel(panelKey)}
+                className="p-1 rounded-md text-slate-500 hover:text-brand hover:bg-brand-light transition cursor-pointer flex items-center gap-0.5 text-[10px] font-bold"
+                title="Attach / Dock back to right sidebar group"
+              >
+                <Pin className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => closeIndividualPanel(panelKey)}
+                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                title="Close floating panel"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* Floating Panel Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 [scrollbar-width:thin]">
+            {renderTabBody(panelKey)}
+          </div>
+
+          {/* Footer with Magnetic Dock prompt */}
+          <div className="border-t border-line px-3 py-1.5 bg-slate-50/70 text-[9px] text-muted flex items-center justify-between font-bold shrink-0">
+            <span className="flex items-center gap-1 text-slate-500">
+              <Magnet className="h-2.5 w-2.5 text-brand" /> Drag to right edge to dock
+            </span>
+            <button
+              type="button"
+              onClick={() => dockIndividualPanel(panelKey)}
+              className="text-brand hover:underline cursor-pointer font-bold"
+            >
+              Dock to Group
+            </button>
+          </div>
+        </aside>
+      );
+    })}
+
+    {/* Magnetic Drop Target Preview (Visual glow when dragging floating panel near right dock) */}
+    {isNearDockTarget && (
+      <div className="absolute right-10 top-0 bottom-0 w-80 border-2 border-dashed border-brand bg-brand-light/30 backdrop-blur-xs flex flex-col items-center justify-center z-40 animate-pulse pointer-events-none rounded-l-2xl shadow-xl">
+        <div className="px-3.5 py-2 rounded-xl bg-brand text-white text-xs font-black shadow-lg flex items-center gap-2">
+          <Magnet className="h-4 w-4 animate-bounce" /> Release to Magnetically Snap & Dock
+        </div>
+      </div>
+    )}
+
+    {/* Docked Sidebar Panel */}
+    {isInspectorOpen && (
+      <aside className="absolute right-10 top-0 bottom-0 w-80 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none">
+        {/* Panel Header */}
+        <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           {/* Top Titlebar Controls */}
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100">
             <div className="flex items-center gap-1.5 text-xs font-black text-ink">
@@ -7091,27 +9050,15 @@ export default function WhiteboardPage() {
                   ? "Samples & Templates"
                   : "Trash Bin"}
               </span>
-              {isNearDockTarget && isPanelDetached && (
-                <span className="px-1.5 py-0.2 rounded-full bg-brand text-white text-[8px] font-black animate-pulse flex items-center gap-0.5">
-                  <Magnet className="h-2.5 w-2.5" /> Snap
-                </span>
-              )}
             </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => {
-                  setIsPanelDetached(!isPanelDetached);
-                  if (isPanelDetached) {
-                    showToast("🧲 Attached to sidebar dock!");
-                  }
-                }}
-                className={`p-1 rounded-md transition cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-ink ${
-                  isPanelDetached ? "text-brand bg-brand-light font-bold" : ""
-                }`}
-                title={isPanelDetached ? "Dock / Attach to Sidebar" : "Detach Floating Panel"}
+                onClick={() => detachIndividualPanel(rightPanelTab)}
+                className="p-1 rounded-md text-slate-500 hover:text-brand hover:bg-brand-light transition cursor-pointer flex items-center gap-1 text-[10px] font-bold"
+                title={`Detach "${rightPanelTab}" to float anywhere`}
               >
-                {isPanelDetached ? <Pin className="h-3 w-3" /> : <ExternalLink className="h-3 w-3" />}
+                <ExternalLink className="h-3 w-3" /> Detach
               </button>
               <button
                 type="button"
@@ -7200,1791 +9147,10 @@ export default function WhiteboardPage() {
 
         {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 [scrollbar-width:thin]">
-                {/* TAB 1: CONTEXTUAL INSPECTOR TAB */}
-                {rightPanelTab === "inspector" && (() => {
-                  const targetTool: Tool = selectedShape ? selectedShape.type : activeTool;
-                  const pts = selectedShape?.points || [];
-                  const minX = pts.length > 0 ? Math.round(Math.min(...pts.map((p) => p.x))) : 0;
-                  const maxX = pts.length > 0 ? Math.round(Math.max(...pts.map((p) => p.x))) : 0;
-                  const minY = pts.length > 0 ? Math.round(Math.min(...pts.map((p) => p.y))) : 0;
-                  const maxY = pts.length > 0 ? Math.round(Math.max(...pts.map((p) => p.y))) : 0;
-                  const calcW = Math.max(maxX - minX, selectedShape?.type === "sticky" ? 180 : selectedShape?.type === "text" ? 140 : 0);
-                  const calcH = Math.max(maxY - minY, selectedShape?.type === "sticky" ? 140 : selectedShape?.type === "text" ? 24 : 0);
-                  const IconComp = getToolIcon(targetTool);
+          {renderTabBody(rightPanelTab)}
+        </div>
 
-                  return (
-                    <div className="space-y-3.5 animate-in fade-in duration-150">
-                      {/* 1. SELECTION / TOOL IDENTITY - JUST ICON AND TOOL NAME */}
-                      <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-                        <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
-                          <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                            <IconComp className="h-3.5 w-3.5" />
-                          </span>
-                          <span className="font-extrabold text-xs text-ink truncate">
-                            {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : targetTool.toUpperCase()}
-                          </span>
-                        </div>
-                        {selectedShape && (
-                          <div className="flex items-center gap-1 shrink-0 ml-2">
-                            <button
-                              type="button"
-                              onClick={() => toggleLockShape(selectedShape.id)}
-                              className={`p-1 rounded-lg border text-xs transition cursor-pointer ${
-                                selectedShape.isLocked
-                                  ? "bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
-                                  : "bg-white text-slate-400 hover:text-ink border-line"
-                              }`}
-                              title={selectedShape.isLocked ? "Unlock Element" : "Lock Element"}
-                            >
-                              {selectedShape.isLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* 1. ALIGNMENT TOOLBAR */}
-                      <div className="rounded-2xl border border-line bg-white p-2.5 shadow-2xs space-y-1.5">
-                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted px-1">
-                          <span>Alignment</span>
-                          <span className="text-[9px] text-muted font-medium">Position & Distribute</span>
-                        </div>
-                        <div className="grid grid-cols-8 gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("left")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Align Left"
-                          >
-                            <AlignLeftIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("centerH")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Align Horizontal Center"
-                          >
-                            <AlignCenterHIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("right")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Align Right"
-                          >
-                            <AlignRightIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("top")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Align Top"
-                          >
-                            <AlignTopIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("middleV")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Align Vertical Center"
-                          >
-                            <AlignMiddleVIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("bottom")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Align Bottom"
-                          >
-                            <AlignBottomIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("distributeH")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Distribute Horizontally"
-                          >
-                            <DistributeHIcon className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAlignShapes("distributeV")}
-                            disabled={!selectedShape || selectedShape.isLocked}
-                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                            title="Distribute Vertically"
-                          >
-                            <DistributeVIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* 2. TRANSFORM / BOUNDS (Fully editable dimensions and position from inspection panel) */}
-                      {selectedShape && pts.length > 0 && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
-                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
-                            <span>Dimensions & Position</span>
-                            <button
-                              type="button"
-                              onClick={() => setIsAspectLocked(!isAspectLocked)}
-                              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[9px] font-bold transition cursor-pointer ${
-                                isAspectLocked
-                                  ? "bg-brand text-white border-brand shadow-xs"
-                                  : "bg-slate-50 text-muted border-line hover:text-ink hover:bg-white"
-                              }`}
-                              title={isAspectLocked ? "Aspect Ratio Locked (Proportional)" : "Aspect Ratio Unlocked (Free)"}
-                            >
-                              <Link2 className="h-2.5 w-2.5" />
-                              <span>{isAspectLocked ? "Locked" : "Ratio"}</span>
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {/* X Position */}
-                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
-                              <span className="text-[10px] font-black text-muted w-3.5 select-none">X</span>
-                              <input
-                                type="number"
-                                value={minX}
-                                disabled={selectedShape.isLocked}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value, 10);
-                                  if (isNaN(val)) return;
-                                  const dx = val - minX;
-                                  setShapes((prev) =>
-                                    prev.map((s) =>
-                                      s.id === selectedShape.id && !s.isLocked
-                                        ? { ...s, points: s.points.map((p) => ({ x: Math.round(p.x + dx), y: p.y })) }
-                                        : s
-                                    )
-                                  );
-                                }}
-                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
-                              />
-                              <span className="text-[10px] text-muted font-medium select-none">px</span>
-                            </div>
-
-                            {/* Y Position */}
-                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
-                              <span className="text-[10px] font-black text-muted w-3.5 select-none">Y</span>
-                              <input
-                                type="number"
-                                value={minY}
-                                disabled={selectedShape.isLocked}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value, 10);
-                                  if (isNaN(val)) return;
-                                  const dy = val - minY;
-                                  setShapes((prev) =>
-                                    prev.map((s) =>
-                                      s.id === selectedShape.id && !s.isLocked
-                                        ? { ...s, points: s.points.map((p) => ({ x: p.x, y: Math.round(p.y + dy) })) }
-                                        : s
-                                    )
-                                  );
-                                }}
-                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
-                              />
-                              <span className="text-[10px] text-muted font-medium select-none">px</span>
-                            </div>
-
-                            {/* W (Width) */}
-                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
-                              <span className="text-[10px] font-black text-muted w-3.5 select-none">W</span>
-                              <input
-                                type="number"
-                                min={5}
-                                value={calcW}
-                                disabled={selectedShape.isLocked}
-                                onChange={(e) => {
-                                  const targetW = Math.max(5, parseInt(e.target.value, 10) || 5);
-                                  const curW = Math.max(1, maxX - minX);
-                                  const curH = Math.max(1, maxY - minY);
-                                  const aspect = curW / curH;
-                                  const targetH = isAspectLocked ? Math.round(targetW / aspect) : curH;
-
-                                  setShapes((prev) =>
-                                    prev.map((s) => {
-                                      if (s.id !== selectedShape.id || s.isLocked) return s;
-                                      const sPts = s.points;
-                                      if (sPts.length === 2) {
-                                        const signX = sPts[1].x >= sPts[0].x ? 1 : -1;
-                                        const signY = sPts[1].y >= sPts[0].y ? 1 : -1;
-                                        return {
-                                          ...s,
-                                          points: [
-                                            sPts[0],
-                                            {
-                                              x: Math.round(sPts[0].x + signX * targetW),
-                                              y: isAspectLocked ? Math.round(sPts[0].y + signY * targetH) : sPts[1].y,
-                                            },
-                                          ],
-                                        };
-                                      }
-                                      if (sPts.length > 2) {
-                                        const scaleX = targetW / curW;
-                                        const scaleY = isAspectLocked ? targetH / curH : 1;
-                                        return {
-                                          ...s,
-                                          points: sPts.map((p) => ({
-                                            x: Math.round(minX + (p.x - minX) * scaleX),
-                                            y: isAspectLocked ? Math.round(minY + (p.y - minY) * scaleY) : p.y,
-                                          })),
-                                        };
-                                      }
-                                      return s;
-                                    })
-                                  );
-                                }}
-                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
-                              />
-                              <span className="text-[10px] text-muted font-medium select-none">px</span>
-                            </div>
-
-                            {/* H (Height) */}
-                            <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
-                              <span className="text-[10px] font-black text-muted w-3.5 select-none">H</span>
-                              <input
-                                type="number"
-                                min={5}
-                                value={calcH}
-                                disabled={selectedShape.isLocked}
-                                onChange={(e) => {
-                                  const targetH = Math.max(5, parseInt(e.target.value, 10) || 5);
-                                  const curW = Math.max(1, maxX - minX);
-                                  const curH = Math.max(1, maxY - minY);
-                                  const aspect = curW / curH;
-                                  const targetW = isAspectLocked ? Math.round(targetH * aspect) : curW;
-
-                                  setShapes((prev) =>
-                                    prev.map((s) => {
-                                      if (s.id !== selectedShape.id || s.isLocked) return s;
-                                      const sPts = s.points;
-                                      if (sPts.length === 2) {
-                                        const signX = sPts[1].x >= sPts[0].x ? 1 : -1;
-                                        const signY = sPts[1].y >= sPts[0].y ? 1 : -1;
-                                        return {
-                                          ...s,
-                                          points: [
-                                            sPts[0],
-                                            {
-                                              x: isAspectLocked ? Math.round(sPts[0].x + signX * targetW) : sPts[1].x,
-                                              y: Math.round(sPts[0].y + signY * targetH),
-                                            },
-                                          ],
-                                        };
-                                      }
-                                      if (sPts.length > 2) {
-                                        const scaleY = targetH / curH;
-                                        const scaleX = isAspectLocked ? targetW / curW : 1;
-                                        return {
-                                          ...s,
-                                          points: sPts.map((p) => ({
-                                            x: Math.round(minX + (p.x - minX) * scaleX),
-                                            y: isAspectLocked ? Math.round(minY + (p.y - minY) * scaleY) : p.y,
-                                          })),
-                                        };
-                                      }
-                                      return s;
-                                    })
-                                  );
-                                }}
-                                className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1 disabled:opacity-50"
-                              />
-                              <span className="text-[10px] text-muted font-medium select-none">px</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-[10px] text-muted px-1">
-                            <span>Hold <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded font-bold text-[9px] text-ink">Shift</kbd> on canvas to scale evenly</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 3. FILL & COLOR SYSTEM (SOLID / GRADIENT / TRANSLUCENT / NONE WITH COLOR PICKER) */}
-                      {(targetTool === "rectangle" || targetTool === "circle" || targetTool === "diamond" || targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bullish_candle" || targetTool === "bearish_candle" || targetTool === "sticky") && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
-                            <span>Fill & Gradient</span>
-                            <span className="text-[9px] font-bold text-brand uppercase">{selectedShape?.fillStyle || fillStyle}</span>
-                          </div>
-
-                          {/* Mode Switch: Solid / Gradient / Soft / None */}
-                          <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-xl">
-                            {(["translucent", "solid", "gradient", "none"] as const).map((styleOpt) => (
-                              <button
-                                key={styleOpt}
-                                type="button"
-                                onClick={() => applyFillStyleToSelected(styleOpt)}
-                                disabled={selectedShape?.isLocked}
-                                className={`py-1 rounded-lg text-[10px] font-bold capitalize transition cursor-pointer ${
-                                  (selectedShape?.fillStyle || fillStyle) === styleOpt
-                                    ? "bg-white text-ink shadow-xs"
-                                    : "text-muted hover:text-ink"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                              >
-                                {styleOpt === "translucent" ? "Soft" : styleOpt}
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Primary Fill Color */}
-                          {(selectedShape?.fillStyle || fillStyle) !== "none" && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>{(selectedShape?.fillStyle || fillStyle) === "gradient" ? "Start Fill Color" : "Fill Color"}</span>
-                                <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.fillColor || fillColor}</span>
-                              </label>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                {PALETTE.map((c) => (
-                                  <button
-                                    key={c}
-                                    type="button"
-                                    onClick={() => applyFillColorToSelected(c)}
-                                    disabled={selectedShape?.isLocked}
-                                    className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                      (selectedShape?.fillColor || fillColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                    } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                    style={{ background: c }}
-                                  />
-                                ))}
-                                <label
-                                  className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
-                                  title="Custom Hex Fill Color Picker"
-                                >
-                                  <input
-                                    type="color"
-                                    value={selectedShape?.fillColor || fillColor}
-                                    onChange={(e) => applyFillColorToSelected(e.target.value)}
-                                    disabled={selectedShape?.isLocked}
-                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                  />
-                                  <span
-                                    className="w-full h-full rounded-full border"
-                                    style={{ background: selectedShape?.fillColor || fillColor }}
-                                  />
-                                </label>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Secondary Gradient End Color */}
-                          {(selectedShape?.fillStyle || fillStyle) === "gradient" && (
-                            <div className="pt-2 border-t border-line animate-in fade-in">
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Gradient End Color</span>
-                                <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.gradientEndColor || gradientEndColor}</span>
-                              </label>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                {PALETTE.map((c) => (
-                                  <button
-                                    key={c}
-                                    type="button"
-                                    onClick={() => applyGradientEndColorToSelected(c)}
-                                    disabled={selectedShape?.isLocked}
-                                    className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                      (selectedShape?.gradientEndColor || gradientEndColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                    } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                    style={{ background: c }}
-                                  />
-                                ))}
-                                <label
-                                  className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
-                                  title="Custom Hex Gradient End Color Picker"
-                                >
-                                  <input
-                                    type="color"
-                                    value={selectedShape?.gradientEndColor || gradientEndColor}
-                                    onChange={(e) => applyGradientEndColorToSelected(e.target.value)}
-                                    disabled={selectedShape?.isLocked}
-                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                  />
-                                  <span
-                                    className="w-full h-full rounded-full border"
-                                    style={{ background: selectedShape?.gradientEndColor || gradientEndColor }}
-                                  />
-                                </label>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* 4. STROKE COLOR & THICKNESS & PATTERN */}
-                      <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
-                          <span>Stroke & Outline</span>
-                          <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.strokeColor || selectedShape?.color || strokeColor}</span>
-                        </div>
-
-                        {/* Stroke Palette + HTML5 Color Picker */}
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {PALETTE.map((c) => (
-                              <button
-                                key={c}
-                                type="button"
-                                onClick={() => applyColorToSelected(c)}
-                                disabled={selectedShape?.isLocked}
-                                className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                  (selectedShape?.strokeColor || selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                style={{ background: c }}
-                              />
-                            ))}
-                            <label
-                              className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
-                              title="Custom Hex Stroke Color Picker"
-                            >
-                              <input
-                                type="color"
-                                value={selectedShape?.strokeColor || selectedShape?.color || strokeColor}
-                                onChange={(e) => applyColorToSelected(e.target.value)}
-                                disabled={selectedShape?.isLocked}
-                                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                              />
-                              <span
-                                className="w-full h-full rounded-full border"
-                                style={{ background: selectedShape?.strokeColor || selectedShape?.color || strokeColor }}
-                              />
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Stroke Width Buttons */}
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-700 flex items-center justify-between mb-1">
-                            <span>Stroke Width</span>
-                            <strong className="text-brand font-mono text-[10px]">{selectedShape?.strokeWidth || strokeWidth}px</strong>
-                          </label>
-                          <div className="grid grid-cols-5 gap-1">
-                            {[1, 2, 3, 4, 6].map((w) => (
-                              <button
-                                key={w}
-                                type="button"
-                                onClick={() => {
-                                  setStrokeWidth(w);
-                                  if (selectedShapeIds.length > 0) {
-                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                                  (selectedShape?.strokeWidth || strokeWidth) === w ? "bg-brand text-white shadow-2xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                              >
-                                {w}px
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Stroke Pattern (Solid / Dashed) */}
-                        <div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLineStyle("solid");
-                                if (selectedShapeIds.length > 0) {
-                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
-                                }
-                              }}
-                              disabled={selectedShape?.isLocked}
-                              className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                                (selectedShape?.lineStyle || lineStyle) === "solid" ? "bg-ink text-white border-ink shadow-xs" : "bg-slate-50 text-slate-700 border-line hover:bg-white"
-                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                            >
-                              Solid
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLineStyle("dashed");
-                                if (selectedShapeIds.length > 0) {
-                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
-                                }
-                              }}
-                              disabled={selectedShape?.isLocked}
-                              className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                                (selectedShape?.lineStyle || lineStyle) === "dashed" ? "bg-ink text-white border-ink shadow-xs" : "bg-slate-50 text-slate-700 border-line hover:bg-white"
-                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                            >
-                              Dashed
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 5. APPEARANCE (OPACITY & CORNER RADIUS) */}
-                      <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                        <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
-
-                        {/* Opacity Slider */}
-                        <div>
-                          <div className="flex items-center justify-between text-[11px] font-bold text-ink mb-1.5">
-                            <span>Layer Opacity</span>
-                            <span className="font-mono text-brand">{Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100)}%</span>
-                          </div>
-                          <input
-                            type="range"
-                            min={5}
-                            max={100}
-                            step={5}
-                            value={Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100)}
-                            onChange={(e) => applyOpacityToSelected(parseInt(e.target.value, 10) / 100)}
-                            disabled={selectedShape?.isLocked}
-                            className="w-full accent-brand cursor-pointer disabled:opacity-50"
-                          />
-                        </div>
-
-                        {/* Corner Radius (for shapes with corners) */}
-                        {(targetTool === "rectangle" || targetTool === "orderblock" || targetTool === "fvg" || targetTool === "sticky") && (
-                          <div className="pt-2 border-t border-line">
-                            <div className="flex items-center justify-between text-[11px] font-bold text-ink mb-1.5">
-                              <span>Corner Radius</span>
-                              <span className="font-mono text-brand">{selectedShape?.cornerRadius ?? cornerRadius}px</span>
-                            </div>
-                            <div className="grid grid-cols-5 gap-1">
-                              {[0, 4, 8, 16, 24].map((rad) => (
-                                <button
-                                  key={rad}
-                                  type="button"
-                                  onClick={() => applyCornerRadiusToSelected(rad)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                                    (selectedShape?.cornerRadius ?? cornerRadius) === rad
-                                      ? "bg-brand text-white"
-                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                >
-                                  {rad}px
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* 6. BULLISH & BEARISH CANDLESTICK WICK ADJUSTMENT & STYLING */}
-                      {(targetTool === "bullish_candle" || targetTool === "bearish_candle") && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted">
-                              {targetTool === "bullish_candle" ? "Bullish Candle Setup" : "Bearish Candle Setup"}
-                            </p>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                              targetTool === "bullish_candle" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                            }`}>
-                              {targetTool === "bullish_candle" ? "Bullish" : "Bearish"}
-                            </span>
-                          </div>
-
-                          {/* Upper Wick Length */}
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[11px] font-bold text-ink">
-                              <span>Upper Wick Length</span>
-                              <span className="font-mono text-brand">{selectedShape?.upperWickLength ?? upperWickLength}px</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={0}
-                              max={80}
-                              step={2}
-                              value={selectedShape?.upperWickLength ?? upperWickLength}
-                              onChange={(e) => applyUpperWickLengthToSelected(parseInt(e.target.value, 10))}
-                              disabled={selectedShape?.isLocked}
-                              className="w-full accent-brand cursor-pointer disabled:opacity-50"
-                            />
-                            <div className="grid grid-cols-4 gap-1">
-                              {[
-                                { label: "None", val: 0 },
-                                { label: "Short", val: 12 },
-                                { label: "Normal", val: 25 },
-                                { label: "Rejection", val: 55 },
-                              ].map((preset) => (
-                                <button
-                                  key={preset.label}
-                                  type="button"
-                                  onClick={() => applyUpperWickLengthToSelected(preset.val)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`py-1 rounded-lg text-[9px] font-bold transition cursor-pointer ${
-                                    (selectedShape?.upperWickLength ?? upperWickLength) === preset.val
-                                      ? "bg-brand text-white"
-                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                >
-                                  {preset.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Lower Wick Length */}
-                          <div className="space-y-1.5 pt-2 border-t border-line">
-                            <div className="flex items-center justify-between text-[11px] font-bold text-ink">
-                              <span>Lower Wick Length</span>
-                              <span className="font-mono text-brand">{selectedShape?.lowerWickLength ?? lowerWickLength}px</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={0}
-                              max={80}
-                              step={2}
-                              value={selectedShape?.lowerWickLength ?? lowerWickLength}
-                              onChange={(e) => applyLowerWickLengthToSelected(parseInt(e.target.value, 10))}
-                              disabled={selectedShape?.isLocked}
-                              className="w-full accent-brand cursor-pointer disabled:opacity-50"
-                            />
-                            <div className="grid grid-cols-4 gap-1">
-                              {[
-                                { label: "None", val: 0 },
-                                { label: "Short", val: 12 },
-                                { label: "Normal", val: 25 },
-                                { label: "Rejection", val: 55 },
-                              ].map((preset) => (
-                                <button
-                                  key={preset.label}
-                                  type="button"
-                                  onClick={() => applyLowerWickLengthToSelected(preset.val)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`py-1 rounded-lg text-[9px] font-bold transition cursor-pointer ${
-                                    (selectedShape?.lowerWickLength ?? lowerWickLength) === preset.val
-                                      ? "bg-brand text-white"
-                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                >
-                                  {preset.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Independent Wick Color */}
-                          <div className="pt-2 border-t border-line">
-                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                              <span>Wick Color</span>
-                              <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.wickColor || wickColor}</span>
-                            </label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyWickColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    (selectedShape?.wickColor || wickColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                              <label
-                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
-                                title="Custom Hex Wick Color"
-                              >
-                                <input
-                                  type="color"
-                                  value={selectedShape?.wickColor || wickColor}
-                                  onChange={(e) => applyWickColorToSelected(e.target.value)}
-                                  disabled={selectedShape?.isLocked}
-                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                />
-                                <span
-                                  className="w-full h-full rounded-full border"
-                                  style={{ background: selectedShape?.wickColor || wickColor }}
-                                />
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Micro Label / Pattern Tag */}
-                          {selectedShape && (
-                            <div className="pt-2 border-t border-line">
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Pattern Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? ""}
-                                placeholder={targetTool === "bullish_candle" ? "e.g. Bullish Engulfing, Hammer..." : "e.g. Bearish Engulfing, Shooting Star..."}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          <div className={`p-2.5 rounded-xl text-xs font-medium space-y-1 ${
-                            targetTool === "bullish_candle" ? "bg-emerald-50 text-emerald-900 border border-emerald-200" : "bg-rose-50 text-rose-900 border border-rose-200"
-                          }`}>
-                            <div className="flex items-center justify-between font-bold">
-                              <span>{targetTool === "bullish_candle" ? "Bullish Candlestick" : "Bearish Candlestick"}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                                targetTool === "bullish_candle" ? "bg-emerald-200 text-emerald-800" : "bg-rose-200 text-rose-800"
-                              }`}>
-                                {targetTool === "bullish_candle" ? "Close > Open" : "Close < Open"}
-                              </span>
-                            </div>
-                            <p className={`text-[11px] ${targetTool === "bullish_candle" ? "text-emerald-700" : "text-rose-700"}`}>
-                              Independent wick length adjusters with clean edge alignment.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 7. CONTEXT-SPECIFIC TECHNICAL FOREX TOOL CARDS */}
-
-                      {/* (A) TEXT LABELS */}
-                      {targetTool === "text" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Typography & Content</p>
-
-                          {selectedShape ? (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Text Content</label>
-                              <textarea
-                                rows={2}
-                                value={selectedShape.text || ""}
-                                onChange={(e) => {
-                                  const newTxt = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                placeholder="Type text..."
-                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
-                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
-                                }`}
-                              />
-                            </div>
-                          ) : (
-                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
-                              Click anywhere on canvas to place text.
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* (B) ANNOTATION LEADER PIN */}
-                      {targetTool === "annotation" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Annotation Leader Pin</p>
-
-                          {selectedShape ? (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Callout Badge Label</label>
-                              <input
-                                type="text"
-                                value={selectedShape.text || ""}
-                                onChange={(e) => {
-                                  const newTxt = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                placeholder="e.g. Key POI, Rejection Wick..."
-                                className={`w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition ${
-                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
-                                }`}
-                              />
-                            </div>
-                          ) : (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-muted">
-                              Drag on chart to point a leader line to an object.
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* (C) STICKY NOTES */}
-                      {targetTool === "sticky" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Sticky Note Content & Color</p>
-
-                          {selectedShape ? (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Note Content</label>
-                              <textarea
-                                rows={3}
-                                value={selectedShape.text || ""}
-                                onChange={(e) => {
-                                  const newTxt = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                placeholder="Type note content..."
-                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
-                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
-                                }`}
-                              />
-                            </div>
-                          ) : (
-                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
-                              Click on canvas to drop a sticky note card.
-                            </div>
-                          )}
-
-                          {/* Sticky Paper Color Swatches */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Paper Color</label>
-                            <div className="flex items-center gap-2">
-                              {STICKY_COLORS.map((s) => (
-                                <button
-                                  key={s.color}
-                                  type="button"
-                                  onClick={() => applyStickyColorToSelected(s.color)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-7 w-7 rounded-xl transition-transform border border-black/10 shadow-2xs ${
-                                    stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: s.color }}
-                                  title={s.name}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (D) FIBONACCI RETRACEMENT */}
-                      {targetTool === "fibo" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Fibonacci Retracement Levels</p>
-                          <div className="space-y-1.5 text-xs font-mono">
-                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-red-50 text-red-700 font-bold">
-                              <span>0.0% (1.000)</span> <span>Invalidation</span>
-                            </div>
-                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-amber-50 text-amber-700 font-bold">
-                              <span>38.2% (0.382)</span> <span>Shallow Pullback</span>
-                            </div>
-                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-yellow-50 text-yellow-800 font-bold border border-yellow-300">
-                              <span>50.0% Equilibrium</span> <span>Fair Value</span>
-                            </div>
-                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-300">
-                              <span>61.8% Golden Pocket</span> <span>Prime Entry ★</span>
-                            </div>
-                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-blue-50 text-blue-700 font-bold">
-                              <span>78.6% (0.786)</span> <span>Deep Retracement</span>
-                            </div>
-                            <div className="flex items-center justify-between py-0.5 px-2 rounded-lg bg-purple-50 text-purple-700 font-bold">
-                              <span>100.0% (0.000)</span> <span>Swing Anchor</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (E) LONG / SHORT POSITION */}
-                      {(targetTool === "long" || targetTool === "short") && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
-                            {targetTool === "long" ? "Long Position (Bullish)" : "Short Position (Bearish)"}
-                          </p>
-
-                          <div>
-                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                              <span>Risk : Reward Ratio</span>
-                              <strong className="text-emerald-600 font-black">1 : {defaultRiskReward}</strong>
-                            </label>
-                            <div className="grid grid-cols-4 gap-1.5">
-                              {[1, 2, 3, 4].map((rr) => (
-                                <button
-                                  key={rr}
-                                  type="button"
-                                  onClick={() => setDefaultRiskReward(rr)}
-                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
-                                    defaultRiskReward === rr ? "bg-emerald-600 text-white" : "bg-cream text-ink hover:bg-slate-200"
-                                  }`}
-                                >
-                                  1:{rr}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">Chart Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? `1:${defaultRiskReward.toFixed(1)}`}
-                                placeholder="e.g. 1:3.0, TP 1..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* (F) ORDER BLOCK & FVG MICRO LABELS */}
-                      {(targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bos" || targetTool === "liquidity") && selectedShape && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
-                          <label className="text-[11px] font-bold text-ink block flex items-center justify-between">
-                            <span>Chart Micro Tag</span>
-                            <span className="text-[9px] text-muted font-mono">{targetTool.toUpperCase()}</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={selectedShape.text ?? targetTool.toUpperCase()}
-                            placeholder="e.g. H4 OB, M15 FVG, BOS..."
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setShapes((prev) =>
-                                prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                              );
-                            }}
-                            disabled={selectedShape.isLocked}
-                            className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                          />
-                        </div>
-                      )}
-
-                      {/* (H) CANVAS / ENVIRONMENT (When no shape is selected and navigation tool active) */}
-                      {!selectedShape && (targetTool === "select" || targetTool === "hand" || targetTool === "zoom" || targetTool === "eraser") && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Environment</p>
-                          
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Grid Background</label>
-                            <select
-                              value={bgGrid}
-                              onChange={(e) => handleSetBgGrid(e.target.value as any)}
-                              className="w-full rounded-xl border border-line bg-white p-2 text-xs font-bold text-ink outline-none focus:border-brand"
-                            >
-                              {CANVAS_THEMES.map((t) => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between text-xs font-medium pt-1">
-                            <span className="text-muted">Snap to Grid</span>
-                            <button
-                              type="button"
-                              onClick={() => setSnapToGrid(!snapToGrid)}
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                                snapToGrid ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
-                              {snapToGrid ? "Enabled" : "Disabled"}
-                            </button>
-                          </div>
-
-                          <div className="flex items-center justify-between text-xs font-medium pt-1">
-                            <span className="text-muted">Zoom: {Math.round(zoom * 100)}%</span>
-                            <button
-                              type="button"
-                              onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-                              className="px-2 py-0.5 rounded-lg border border-line bg-cream text-xs font-bold text-ink hover:bg-white"
-                            >
-                              Reset 100%
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 4. OBJECT ACTIONS & LAYERING (Only when a shape is selected) */}
-                      {selectedShape && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Object Layer & Actions</p>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => bringToFront(selectedShape.id)}
-                              disabled={selectedShape.isLocked}
-                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40 cursor-pointer"
-                            >
-                              <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring Front
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => sendToBack(selectedShape.id)}
-                              disabled={selectedShape.isLocked}
-                              className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-40 cursor-pointer"
-                            >
-                              <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send Back
-                            </button>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => duplicateSelectedObject(selectedShape)}
-                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                          >
-                            <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Ctrl + D)
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => deleteSelectedObject(selectedShape.id)}
-                            disabled={selectedShape.isLocked}
-                            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" /> Delete (Backspace)
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {/* TAB 2: LAYERS PANEL WITH INLINE RENAMING */}
-                {rightPanelTab === "layers" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
-                      <span className="text-[10px] font-bold text-brand">{shapes.length} Layers</span>
-                    </div>
-
-                    {shapes.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-muted space-y-1">
-                        <Layers className="h-8 w-8 text-slate-300 mx-auto" />
-                        <p className="font-bold text-ink">No Layers Yet</p>
-                        <p className="text-[11px]">Draw shapes, notes or lines on the canvas to see them in this layers stack.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
-                        {/* Reverse to show Top Layer first (Z-order) */}
-                        {[...shapes].reverse().map((shape, revIdx) => {
-                          const realIdx = shapes.length - 1 - revIdx;
-                          const isSelected = selectedShapeIds.includes(shape.id);
-                          const IconComponent = getToolIcon(shape.type);
-
-                          return (
-                            <div
-                              key={shape.id}
-                              onClick={() => setSelectedShapeIds([shape.id])}
-                              className={`group flex items-center justify-between rounded-2xl border p-2 text-xs transition cursor-pointer ${
-                                isSelected
-                                  ? "border-brand bg-brand-light/40 font-bold"
-                                  : "border-line bg-cream hover:bg-white"
-                              } ${shape.isHidden ? "opacity-40" : ""}`}
-                            >
-                              <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                                {/* Color Swatch Badge */}
-                                <span
-                                  className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
-                                  style={{ background: shape.stickyColor || shape.color }}
-                                />
-                                <IconComponent className="h-4 w-4 text-brand shrink-0" />
-
-                                {editingLayerId === shape.id ? (
-                                  <input
-                                    autoFocus
-                                    type="text"
-                                    value={editingLayerName}
-                                    onChange={(e) => setEditingLayerName(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        setShapes((prev) =>
-                                          prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
-                                        );
-                                        setEditingLayerId(null);
-                                        showToast("Renamed layer!");
-                                      } else if (e.key === "Escape") {
-                                        setEditingLayerId(null);
-                                      }
-                                    }}
-                                    onBlur={() => {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
-                                      );
-                                      setEditingLayerId(null);
-                                    }}
-                                    className="w-28 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
-                                  />
-                                ) : (
-                                  <span
-                                    onDoubleClick={() => {
-                                      setEditingLayerId(shape.id);
-                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
-                                    }}
-                                    className="truncate text-ink font-bold capitalize flex-1 cursor-text"
-                                    title="Double-click to rename layer"
-                                  >
-                                    {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Layer Actions: Rename, Reorder Up/Down, Visibility, Lock & Delete */}
-                              <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
-                                {/* Inline Rename Edit Button */}
-                                {editingLayerId !== shape.id && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditingLayerId(shape.id);
-                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
-                                    }}
-                                    className="p-1 rounded text-slate-400 hover:text-brand"
-                                    title="Rename Layer"
-                                  >
-                                    <Edit3 className="h-3.5 w-3.5" />
-                                  </button>
-                                )}
-
-                                {/* Move Up in Z-stack */}
-                                <button
-                                  type="button"
-                                  onClick={() => moveLayerUp(realIdx)}
-                                  disabled={realIdx >= shapes.length - 1}
-                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
-                                  title="Move Layer Up (Bring Forward)"
-                                >
-                                  <ArrowUp className="h-3.5 w-3.5" />
-                                </button>
-
-                                {/* Move Down in Z-stack */}
-                                <button
-                                  type="button"
-                                  onClick={() => moveLayerDown(realIdx)}
-                                  disabled={realIdx <= 0}
-                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
-                                  title="Move Layer Down (Send Backward)"
-                                >
-                                  <ArrowDown className="h-3.5 w-3.5" />
-                                </button>
-
-                                {/* Hide / Show Eye Toggle */}
-                                <button
-                                  type="button"
-                                  onClick={() => toggleHideShape(shape.id)}
-                                  className="p-1 rounded text-slate-400 hover:text-blue-600"
-                                  title={shape.isHidden ? "Unhide Layer" : "Hide Layer"}
-                                >
-                                  {shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}
-                                </button>
-
-                                {/* Lock / Unlock Toggle */}
-                                <button
-                                  type="button"
-                                  onClick={() => toggleLockShape(shape.id)}
-                                  className="p-1 rounded text-slate-400 hover:text-amber-600"
-                                  title={shape.isLocked ? "Unlock Layer" : "Lock Layer"}
-                                >
-                                  {shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}
-                                </button>
-
-                                {/* Delete Layer Trash Button */}
-                                <button
-                                  type="button"
-                                  onClick={() => deleteSelectedObject(shape.id)}
-                                  className="p-1 rounded text-slate-400 hover:text-rose-600 transition"
-                                  title={shape.isLocked ? "Cannot delete locked layer" : "Delete Layer"}
-                                >
-                                  <Trash2 className={`h-3.5 w-3.5 ${shape.isLocked ? "text-slate-300" : "text-rose-500"}`} />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 3: CHARACTER & TYPOGRAPHY FORMATTING TAB */}
-                {rightPanelTab === "character" && (
-                  <div className="space-y-3.5 animate-in fade-in duration-150">
-                    {/* Header */}
-                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-                      <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
-                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                          <CharacterIcon className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="font-extrabold text-xs text-ink truncate">
-                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Typography Settings"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 1. Live Text Content Editor (Direct Editing) */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                        <span>Text Content</span>
-                        <span className="text-[9px] text-brand font-medium">Live Canvas Sync</span>
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={
-                          selectedShape
-                            ? (selectedShape.text ?? "")
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (selectedShape) {
-                            updateActiveTypography({ text: val });
-                          }
-                        }}
-                        placeholder={selectedShape ? "Type text or note..." : "Select text on canvas to edit content..."}
-                        disabled={!selectedShape}
-                        className="w-full rounded-xl border border-line bg-slate-50 p-2.5 text-xs text-ink outline-none focus:border-brand focus:bg-white resize-none transition disabled:opacity-50"
-                      />
-                    </div>
-
-                    {/* 2. Font Family Selection */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Family</label>
-                      <select
-                        value={activeFontFamily}
-                        onChange={(e) => updateActiveTypography({ fontFamily: e.target.value })}
-                        className="w-full rounded-xl border border-line bg-slate-50 p-2 text-xs font-bold text-ink outline-none focus:border-brand transition cursor-pointer"
-                      >
-                        <option value="Inter, sans-serif">Inter (Modern Sans)</option>
-                        <option value="Roboto, sans-serif">Roboto</option>
-                        <option value="Arial, sans-serif">Arial Standard</option>
-                        <option value="Georgia, serif">Georgia (Editorial Serif)</option>
-                        <option value="'Times New Roman', serif">Times New Roman</option>
-                        <option value="'Courier New', monospace">Courier Monospace</option>
-                        <option value="'Caveat', cursive, sans-serif">Caveat (Handwritten)</option>
-                        <option value="'Impact', sans-serif">Impact (Bold Display)</option>
-                      </select>
-                    </div>
-
-                    {/* 3. Font Size Stepper & Quick Presets */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Size</label>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => updateActiveTypography({ fontSize: Math.max(8, activeFontSize - 2) })}
-                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                          >
-                            -
-                          </button>
-                          <span className="text-xs font-bold text-ink w-9 text-center font-mono">{activeFontSize}px</span>
-                          <button
-                            type="button"
-                            onClick={() => updateActiveTypography({ fontSize: Math.min(120, activeFontSize + 2) })}
-                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Quick Size Pills */}
-                      <div className="flex flex-wrap gap-1">
-                        {[12, 14, 16, 20, 24, 32, 48, 64].map((sz) => (
-                          <button
-                            key={sz}
-                            type="button"
-                            onClick={() => updateActiveTypography({ fontSize: sz })}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                              activeFontSize === sz
-                                ? "bg-brand text-white shadow-xs"
-                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                            }`}
-                          >
-                            {sz}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 4. Font Styles: Bold, Italic, Underline, Strikethrough */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Character Style</label>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ fontWeight: activeFontWeight === "bold" ? "normal" : "bold" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeFontWeight === "bold"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Bold"
-                        >
-                          <Bold className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ fontStyle: activeFontStyle === "italic" ? "normal" : "italic" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeFontStyle === "italic"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Italic"
-                        >
-                          <Italic className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "underline" ? "none" : "underline" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextDecoration === "underline"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Underline"
-                        >
-                          <Underline className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "line-through" ? "none" : "line-through" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextDecoration === "line-through"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Strikethrough"
-                        >
-                          <Strikethrough className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 5. Text Alignment */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Alignment</label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textAlign: "left" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextAlign === "left"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Align Left"
-                        >
-                          <AlignLeft className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textAlign: "center" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextAlign === "center"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Align Center"
-                        >
-                          <AlignCenter className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textAlign: "right" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextAlign === "right"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Align Right"
-                        >
-                          <AlignRight className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 6. Text Transform */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Capitalization</label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textTransform: "none" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
-                            activeTextTransform === "none"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Regular Case"
-                        >
-                          <Type className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textTransform: "uppercase" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
-                            activeTextTransform === "uppercase"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="UPPERCASE"
-                        >
-                          <CaseUpper className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textTransform: "lowercase" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
-                            activeTextTransform === "lowercase"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="lowercase"
-                        >
-                          <CaseLower className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 7. Text Color & Highlight Background */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                      <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Text Color</label>
-                        <div className="flex items-center gap-1.5">
-                          {["#1e293b", "#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => (
-                            <button
-                              key={col}
-                              type="button"
-                              onClick={() => updateActiveTypography({ textColor: col })}
-                              style={{ backgroundColor: col }}
-                              className={`h-6 w-6 rounded-full border border-slate-300 transition cursor-pointer ${
-                                activeTextColor === col ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
-                              }`}
-                            />
-                          ))}
-                          <input
-                            type="color"
-                            value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
-                            onChange={(e) => updateActiveTypography({ textColor: e.target.value })}
-                            className="h-6 w-6 rounded-full cursor-pointer border-0 p-0"
-                            title="Custom Color"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Highlight Background</label>
-                        <div className="flex items-center gap-1.5">
-                          {[
-                            { color: "transparent", label: "None" },
-                            { color: "#fef08a", label: "Yellow" },
-                            { color: "#bbf7d0", label: "Green" },
-                            { color: "#bae6fd", label: "Blue" },
-                            { color: "#fbcfe8", label: "Pink" },
-                            { color: "#fed7aa", label: "Orange" },
-                          ].map((bg) => (
-                            <button
-                              key={bg.color}
-                              type="button"
-                              onClick={() => updateActiveTypography({ textBgColor: bg.color })}
-                              style={{ backgroundColor: bg.color === "transparent" ? "#f1f5f9" : bg.color }}
-                              className={`h-6 w-6 rounded-full border border-slate-300 transition flex items-center justify-center text-[8px] font-bold cursor-pointer ${
-                                activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
-                              }`}
-                              title={bg.label}
-                            >
-                              {bg.color === "transparent" && "✕"}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 4: DRAFTS & CANVAS MANAGER TAB */}
-                {rightPanelTab === "drafts" && (
-                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
-                    {/* Header Quick Actions */}
-                    <div className="flex items-center justify-between pb-2 border-b border-line">
-                      <div>
-                        <h3 className="font-extrabold text-ink text-sm">Diagrams & Drafts</h3>
-                        <p className="text-[10px] text-muted">{tabs.length} open tab{tabs.length > 1 ? "s" : ""} • {savedDrafts.length} saved draft{savedDrafts.length > 1 ? "s" : ""}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleSaveCurrentDraft}
-                        className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
-                        title="Save Current Diagram as Draft"
-                      >
-                        <Download className="h-3 w-3" /> Save Draft
-                      </button>
-                    </div>
-
-                    {/* Active Open Tabs Section */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
-                          <FileText className="h-3 w-3" /> Active Open Tabs ({tabs.length}/5)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (tabs.length >= 5) {
-                              setMaxTabPromptOpen(true);
-                              showToast("Tab limit reached! (Maximum 5 tabs)");
-                            } else {
-                              handleConfirmCreateCustomCanvas();
-                            }
-                          }}
-                          disabled={tabs.length >= 5}
-                          className="text-[10.5px] font-bold text-brand hover:underline disabled:opacity-40 flex items-center gap-0.5 cursor-pointer"
-                        >
-                          <Plus className="h-3 w-3" /> New Tab
-                        </button>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        {tabs.map((tab) => {
-                          const isActive = tab.id === activeTabId;
-                          return (
-                            <div
-                              key={tab.id}
-                              onClick={() => handleSelectTab(tab.id)}
-                              className={`p-2 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
-                                isActive
-                                  ? "border-brand bg-brand-light/40 shadow-xs"
-                                  : "border-line bg-slate-50 hover:bg-white hover:border-slate-300"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <div className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-brand animate-pulse" : "bg-slate-300"}`} />
-                                <div className="truncate flex-1">
-                                  <p className={`text-xs truncate font-bold ${isActive ? "text-brand" : "text-ink"}`}>{tab.name}</p>
-                                  <p className="text-[10px] text-muted">{tab.shapes.length} object{tab.shapes.length !== 1 ? "s" : ""}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleStartRenameTab(tab.id, tab.name)}
-                                  className="p-1 text-slate-400 hover:text-ink hover:bg-slate-200 rounded transition cursor-pointer"
-                                  title="Rename Diagram"
-                                >
-                                  <Edit3 className="h-3 w-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleCloseTab(tab.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                  title="Move to Trash"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Saved Drafts Repository Section */}
-                    <div className="space-y-2 pt-2 border-t border-line">
-                      <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
-                        <FolderPlus className="h-3 w-3" /> Saved Drafts ({savedDrafts.length})
-                      </span>
-
-                      {savedDrafts.length === 0 ? (
-                        <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-muted">
-                          <p className="text-[11px] font-bold">No saved drafts yet</p>
-                          <p className="text-[10px] mt-0.5">Click "Save Draft" to store offline snapshots</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-1.5 max-h-60 overflow-y-auto [scrollbar-width:thin]">
-                          {savedDrafts.map((draft) => (
-                            <div
-                              key={draft.id}
-                              className="p-2.5 rounded-xl border border-line bg-slate-50/80 hover:bg-white transition flex items-center justify-between gap-2"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-ink truncate">{draft.name}</p>
-                                <p className="text-[9.5px] text-muted">
-                                  {draft.shapes.length} objects • {new Date(draft.savedAt).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => loadSavedDraft(draft)}
-                                  className="px-2 py-1 bg-brand-light text-brand rounded-lg text-[10.5px] font-bold hover:bg-brand hover:text-white transition cursor-pointer"
-                                  title="Open Draft in Canvas Tab"
-                                >
-                                  Open
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteDraft(draft.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                  title="Delete Draft"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 5: SAMPLES & TEMPLATES TAB */}
-                {rightPanelTab === "samples" && (
-                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
-                    <div>
-                      <h3 className="font-extrabold text-ink text-sm">Samples & Templates</h3>
-                      <p className="text-[10px] text-muted">Pre-configured trading strategies and chart pattern guides</p>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      {[
-                        {
-                          id: "patterns",
-                          title: "Double Bottom & Breakout",
-                          desc: "Neckline breakout with structural BOS confirmation",
-                          shapes: [
-                            { id: "s1", type: "line" as Tool, color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: 50, y: 120 }, { x: 250, y: 120 }] },
-                            { id: "s2", type: "bezier" as Tool, color: "#10b981", strokeWidth: 2.5, points: [{ x: 60, y: 60 }, { x: 100, y: 120 }, { x: 140, y: 80 }, { x: 180, y: 120 }, { x: 230, y: 40 }] },
-                            { id: "s3", type: "text" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: 180, y: 40 }], text: "BOS ↗" },
-                          ],
-                        },
-                        {
-                          id: "smc_strategy",
-                          title: "SMC Strategy & Liquidity Sweep",
-                          desc: "Order Block zone, Fair Value Gap (FVG) and premium sweep",
-                          shapes: DEFAULT_SAMPLE_SMC_SHAPES,
-                        },
-                        {
-                          id: "risk_reward",
-                          title: "1:3 Risk to Reward Framework",
-                          desc: "Standard institutional positioning setup with stop loss and TP",
-                          shapes: DEFAULT_SAMPLE_RISK_SHAPES,
-                        },
-                        {
-                          id: "eurusd_breakdown",
-                          title: "EUR/USD Multi-Timeframe Map",
-                          desc: "High timeframe liquidity pool and London open session run",
-                          shapes: DEFAULT_SAMPLE_EURUSD_SHAPES,
-                        },
-                      ].map((sample) => (
-                        <div
-                          key={sample.id}
-                          className="rounded-xl border border-line bg-slate-50/80 p-3 hover:bg-white hover:border-brand/40 transition space-y-2"
-                        >
-                          <div>
-                            <p className="font-extrabold text-ink text-xs">{sample.title}</p>
-                            <p className="text-[10px] text-muted mt-0.5">{sample.desc}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (tabs.length >= 5 && !tabs.some((t) => t.name === sample.title)) {
-                                setMaxTabPromptOpen(true);
-                                showToast("Max 5 tabs reached! Close a tab to load template.");
-                                return;
-                              }
-                              const tabKey = `tab_${sample.id}_${Date.now()}`;
-                              setTabs((prev) => [...prev, { id: tabKey, name: sample.title, shapes: sample.shapes, theme: "dots", snapToGrid: true }]);
-                              setActiveTabId(tabKey);
-                              setShapes(sample.shapes);
-                              showToast(`Loaded "${sample.title}" Template!`);
-                            }}
-                            className="w-full py-1.5 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <LayoutTemplate className="h-3 w-3" /> Load Template in New Tab
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 6: TRASH MANAGEMENT TAB */}
-                {rightPanelTab === "trash" && (
-                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
-                    <div className="flex items-center justify-between pb-2 border-b border-line">
-                      <div>
-                        <h3 className="font-extrabold text-ink text-sm">Trash Bin</h3>
-                        <p className="text-[10px] text-muted">{trashedTabs.length} item{trashedTabs.length !== 1 ? "s" : ""} • Deleted items kept for 30 days</p>
-                      </div>
-                      {trashedTabs.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm("Empty trash permanently? This cannot be undone.")) {
-                              setTrashedTabs([]);
-                              showToast("Trash emptied");
-                            }
-                          }}
-                          className="px-2 py-1 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg text-[10.5px] font-bold transition cursor-pointer"
-                        >
-                          Empty Trash
-                        </button>
-                      )}
-                    </div>
-
-                    {trashedTabs.length === 0 ? (
-                      <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center text-muted">
-                        <Archive className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
-                        <p className="text-xs font-bold text-slate-500">Trash is empty</p>
-                        <p className="text-[10px] mt-0.5 text-muted">Deleted diagram tabs will appear here</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-80 overflow-y-auto [scrollbar-width:thin]">
-                        {trashedTabs.map((item) => (
-                          <div
-                            key={item.id}
-                            className="p-2.5 rounded-xl border border-line bg-slate-50/90 flex items-center justify-between gap-2"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs font-bold text-ink truncate">{item.name}</p>
-                              <p className="text-[9.5px] text-muted">
-                                {item.shapes.length} shapes • Deleted {new Date(item.deletedAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => restoreTrashedTab(item)}
-                                className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[10.5px] font-bold transition flex items-center gap-1 cursor-pointer"
-                                title="Restore diagram tab"
-                              >
-                                <RotateCcw className="h-3 w-3" /> Restore
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => deleteTrashedTabPermanently(item.id)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                title="Delete Permanently"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* FIXED Panel Footer Stats */}
+        {/* FIXED Panel Footer Stats */}
               <div className="border-t border-line px-3 py-2 bg-slate-50 text-[9.5px] text-muted flex items-center justify-between font-bold shrink-0">
                 <span>Layers: {shapes.length}</span>
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
@@ -9002,25 +9168,41 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isInspectorOpen && rightPanelTab === "inspector") {
-                      setIsInspectorOpen(false);
+                    if (detachedPanels.inspector.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, inspector: { ...prev.inspector, zIndex: newZ } }));
+                      showToast("Focused Inspector floating window");
                     } else {
-                      setIsInspectorOpen(true);
-                      setRightPanelTab("inspector");
+                      if (isInspectorOpen && rightPanelTab === "inspector") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("inspector");
+                      }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    isInspectorOpen && rightPanelTab === "inspector"
+                    detachedPanels.inspector.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "inspector"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title="Inspector & Properties"
+                  title={detachedPanels.inspector.isOpen ? "Focus Floating Inspector (Detached)" : "Inspector & Properties"}
                 >
                   <SlidersHorizontal className="h-4 w-4" />
+                  {detachedPanels.inspector.isOpen && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
                 </button>
 
                 {/* Horizontal Detachable Indicator Dots */}
-                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Drag tab to float)"
+                  onClick={() => detachIndividualPanel("inspector")}
+                >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
@@ -9030,19 +9212,28 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isInspectorOpen && rightPanelTab === "layers") {
-                      setIsInspectorOpen(false);
+                    if (detachedPanels.layers.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, layers: { ...prev.layers, zIndex: newZ } }));
+                      showToast("Focused Layers floating window");
                     } else {
-                      setIsInspectorOpen(true);
-                      setRightPanelTab("layers");
+                      if (isInspectorOpen && rightPanelTab === "layers") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("layers");
+                      }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    isInspectorOpen && rightPanelTab === "layers"
+                    detachedPanels.layers.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "layers"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={`Layers (${shapes.length})`}
+                  title={detachedPanels.layers.isOpen ? `Focus Floating Layers (${shapes.length})` : `Layers (${shapes.length})`}
                 >
                   <Layers className="h-4 w-4" />
                   {shapes.length > 0 && (
@@ -9050,10 +9241,17 @@ export default function WhiteboardPage() {
                       {shapes.length > 99 ? "99+" : shapes.length}
                     </span>
                   )}
+                  {detachedPanels.layers.isOpen && (
+                    <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
                 </button>
 
                 {/* Horizontal Detachable Indicator Dots */}
-                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Drag tab to float)"
+                  onClick={() => detachIndividualPanel("layers")}
+                >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
@@ -9063,21 +9261,33 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isInspectorOpen && rightPanelTab === "character") {
-                      setIsInspectorOpen(false);
+                    if (detachedPanels.character.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, character: { ...prev.character, zIndex: newZ } }));
+                      showToast("Focused Text & Style floating window");
                     } else {
-                      setIsInspectorOpen(true);
-                      setRightPanelTab("character");
+                      if (isInspectorOpen && rightPanelTab === "character") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("character");
+                      }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    isInspectorOpen && rightPanelTab === "character"
+                    detachedPanels.character.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "character"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title="Character & Typography"
+                  title={detachedPanels.character.isOpen ? "Focus Floating Text & Typography" : "Character & Typography"}
                 >
                   <CharacterIcon className="h-4 w-4" />
+                  {detachedPanels.character.isOpen && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
                 </button>
               </div>
 
@@ -9090,19 +9300,28 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isInspectorOpen && rightPanelTab === "drafts") {
-                      setIsInspectorOpen(false);
+                    if (detachedPanels.drafts.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, drafts: { ...prev.drafts, zIndex: newZ } }));
+                      showToast("Focused Drafts floating window");
                     } else {
-                      setIsInspectorOpen(true);
-                      setRightPanelTab("drafts");
+                      if (isInspectorOpen && rightPanelTab === "drafts") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("drafts");
+                      }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    isInspectorOpen && rightPanelTab === "drafts"
+                    detachedPanels.drafts.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "drafts"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={`Drafts & Diagrams (${tabs.length + savedDrafts.length})`}
+                  title={detachedPanels.drafts.isOpen ? `Focus Floating Drafts (${tabs.length + savedDrafts.length})` : `Drafts & Diagrams (${tabs.length + savedDrafts.length})`}
                 >
                   <FileText className="h-4 w-4" />
                   {tabs.length + savedDrafts.length > 0 && (
@@ -9110,10 +9329,17 @@ export default function WhiteboardPage() {
                       {tabs.length + savedDrafts.length}
                     </span>
                   )}
+                  {detachedPanels.drafts.isOpen && (
+                    <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
                 </button>
 
                 {/* Horizontal Detachable Indicator Dots */}
-                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Drag tab to float)"
+                  onClick={() => detachIndividualPanel("drafts")}
+                >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
@@ -9123,25 +9349,41 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isInspectorOpen && rightPanelTab === "samples") {
-                      setIsInspectorOpen(false);
+                    if (detachedPanels.samples.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, samples: { ...prev.samples, zIndex: newZ } }));
+                      showToast("Focused Samples floating window");
                     } else {
-                      setIsInspectorOpen(true);
-                      setRightPanelTab("samples");
+                      if (isInspectorOpen && rightPanelTab === "samples") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("samples");
+                      }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    isInspectorOpen && rightPanelTab === "samples"
+                    detachedPanels.samples.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "samples"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title="Samples & Templates Gallery"
+                  title={detachedPanels.samples.isOpen ? "Focus Floating Samples Gallery" : "Samples & Templates Gallery"}
                 >
                   <LayoutTemplate className="h-4 w-4" />
+                  {detachedPanels.samples.isOpen && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
                 </button>
 
                 {/* Horizontal Detachable Indicator Dots */}
-                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Drag tab to float)"
+                  onClick={() => detachIndividualPanel("samples")}
+                >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
@@ -9151,25 +9393,37 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isInspectorOpen && rightPanelTab === "trash") {
-                      setIsInspectorOpen(false);
+                    if (detachedPanels.trash.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, trash: { ...prev.trash, zIndex: newZ } }));
+                      showToast("Focused Trash floating window");
                     } else {
-                      setIsInspectorOpen(true);
-                      setRightPanelTab("trash");
+                      if (isInspectorOpen && rightPanelTab === "trash") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("trash");
+                      }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    isInspectorOpen && rightPanelTab === "trash"
+                    detachedPanels.trash.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "trash"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={`Trash (${trashedTabs.length})`}
+                  title={detachedPanels.trash.isOpen ? `Focus Floating Trash (${trashedTabs.length})` : `Trash (${trashedTabs.length})`}
                 >
                   <Archive className="h-4 w-4" />
                   {trashedTabs.length > 0 && (
                     <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-rose-500 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                       {trashedTabs.length}
                     </span>
+                  )}
+                  {detachedPanels.trash.isOpen && (
+                    <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
               </div>
