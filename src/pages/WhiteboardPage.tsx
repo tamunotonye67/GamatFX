@@ -5647,8 +5647,8 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside className="w-10 border-r border-line bg-white p-1 flex flex-col items-center justify-between gap-1 shrink-0 z-20 shadow-xs select-none">
-          <div className="space-y-1 w-full flex flex-col items-center">
+            <aside className="w-10 border-r border-line bg-white py-1 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
+          <div className="w-full flex flex-col items-center">
             <WhiteboardToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
@@ -5675,7 +5675,7 @@ export default function WhiteboardPage() {
             />
 
             {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(activeTool)}
                 onClick={() => selectTool(activeForexTool)}
@@ -5708,8 +5708,8 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="long"
-                    label="Long Position"
-                    icon={LongPositionIcon}
+                    label="Long Position (R:R Tool)"
+                    icon={TrendingUp}
                     isActive={activeForexTool === "long"}
                     isFavorited={favoritedTools.includes("long")}
                     onSelect={() => { selectTool("long"); setFlyoutGroup(null); }}
@@ -5718,8 +5718,8 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="short"
-                    label="Short Position"
-                    icon={ShortPositionIcon}
+                    label="Short Position (R:R Tool)"
+                    icon={TrendingDown}
                     isActive={activeForexTool === "short"}
                     isFavorited={favoritedTools.includes("short")}
                     onSelect={() => { selectTool("short"); setFlyoutGroup(null); }}
@@ -5728,8 +5728,8 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="orderblock"
-                    label="Order Block (OB Zone)"
-                    icon={OrderBlockIcon}
+                    label="Order Block Zone"
+                    icon={BoxSelect}
                     isActive={activeForexTool === "orderblock"}
                     isFavorited={favoritedTools.includes("orderblock")}
                     onSelect={() => { selectTool("orderblock"); setFlyoutGroup(null); }}
@@ -5739,7 +5739,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="fvg"
                     label="Fair Value Gap (FVG)"
-                    icon={FvgCandlesIcon}
+                    icon={Sparkles}
                     isActive={activeForexTool === "fvg"}
                     isFavorited={favoritedTools.includes("fvg")}
                     onSelect={() => { selectTool("fvg"); setFlyoutGroup(null); }}
@@ -5749,7 +5749,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="bos"
                     label="Break of Structure (BOS)"
-                    icon={BosIcon}
+                    icon={Activity}
                     isActive={activeForexTool === "bos"}
                     isFavorited={favoritedTools.includes("bos")}
                     onSelect={() => { selectTool("bos"); setFlyoutGroup(null); }}
@@ -5758,8 +5758,8 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="liquidity"
-                    label="Liquidity Pool ($$$)"
-                    icon={LiquidityIcon}
+                    label="Liquidity Pool Line ($$$)"
+                    icon={CircleDollarSign}
                     isActive={activeForexTool === "liquidity"}
                     isFavorited={favoritedTools.includes("liquidity")}
                     onSelect={() => { selectTool("liquidity"); setFlyoutGroup(null); }}
@@ -5768,8 +5768,8 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="bullish_candle"
-                    label="Bullish Candlestick"
-                    icon={BullishCandleIcon}
+                    label="Bullish Candle Block"
+                    icon={BarChart2}
                     isActive={activeForexTool === "bullish_candle"}
                     isFavorited={favoritedTools.includes("bullish_candle")}
                     onSelect={() => { selectTool("bullish_candle"); setFlyoutGroup(null); }}
@@ -5778,8 +5778,8 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="bearish_candle"
-                    label="Bearish Candlestick"
-                    icon={BearishCandleIcon}
+                    label="Bearish Candle Block"
+                    icon={BarChart2}
                     isActive={activeForexTool === "bearish_candle"}
                     isFavorited={favoritedTools.includes("bearish_candle")}
                     onSelect={() => { selectTool("bearish_candle"); setFlyoutGroup(null); }}
@@ -5791,7 +5791,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 2. FREEHAND GROUP */}
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "pencil" || activeTool === "highlighter"}
                 onClick={() => selectTool(activePenTool)}
@@ -5835,7 +5835,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 3. SHAPES GROUP */}
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
                 onClick={() => selectTool(activeShapeTool)}
@@ -5889,7 +5889,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 4. LINES & PATHS GROUP */}
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "line" || activeTool === "arrow" || activeTool === "bezier"}
                 onClick={() => selectTool(activeLineTool)}
@@ -5943,7 +5943,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 5. TEXT & STICKY NOTES GROUP */}
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "text" || activeTool === "sticky" || activeTool === "annotation"}
                 onClick={() => selectTool(activeNoteTool)}
@@ -5996,7 +5996,7 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "eraser"}
                 onClick={() => selectTool("eraser")}
@@ -6011,7 +6011,7 @@ export default function WhiteboardPage() {
               />
             </div>
 
-            <div className="relative">
+            <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "zoom"}
                 onClick={() => selectTool("zoom")}
