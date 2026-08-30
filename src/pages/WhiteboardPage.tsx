@@ -69,10 +69,16 @@ import {
   Strikethrough,
   AlignLeft,
   AlignCenter,
-  AlignRight,
-  AlignJustify,
   CaseUpper,
   CaseLower,
+  Pin,
+  ExternalLink,
+  GripHorizontal,
+  FileText,
+  Sparkles,
+  FolderPlus,
+  Compass,
+  CheckCircle2,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -801,9 +807,13 @@ export default function WhiteboardPage() {
   const [autoLockObjects, setAutoLockObjects] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
-  // Inspector, Layers & Character Panel State
+  // Inspector, Layers & Character Panel State (Supports Detached Floating & Docked Panels)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character">("inspector");
+  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash">("inspector");
+  const [isPanelDetached, setIsPanelDetached] = useState(false);
+  const [floatingPanelPos, setFloatingPanelPos] = useState<{ x: number; y: number }>({ x: typeof window !== "undefined" ? Math.max(80, window.innerWidth - 380) : 600, y: 80 });
+  const isDraggingPanel = useRef(false);
+  const panelDragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Character & Typography Formatting State
   const [activeFontFamily, setActiveFontFamily] = useState<string>("Inter, sans-serif");
@@ -922,6 +932,35 @@ export default function WhiteboardPage() {
 
     return () => {
       document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
+  const handlePanelDragStart = (e: React.MouseEvent) => {
+    if (!isPanelDetached) return;
+    isDraggingPanel.current = true;
+    panelDragStart.current = {
+      x: e.clientX - floatingPanelPos.x,
+      y: e.clientY - floatingPanelPos.y,
+    };
+  };
+
+  useEffect(() => {
+    const handleWindowMouseMove = (e: MouseEvent) => {
+      if (isDraggingPanel.current) {
+        setFloatingPanelPos({
+          x: Math.max(10, Math.min(window.innerWidth - 300, e.clientX - panelDragStart.current.x)),
+          y: Math.max(50, Math.min(window.innerHeight - 120, e.clientY - panelDragStart.current.y)),
+        });
+      }
+    };
+    const handleWindowMouseUp = () => {
+      isDraggingPanel.current = false;
+    };
+    window.addEventListener("mousemove", handleWindowMouseMove);
+    window.addEventListener("mouseup", handleWindowMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleWindowMouseMove);
+      window.removeEventListener("mouseup", handleWindowMouseUp);
     };
   }, []);
 
@@ -6977,45 +7016,132 @@ export default function WhiteboardPage() {
       </div>
     </div>
 
-    {/* Right Inspector, Layers & Character Panel (when expanded - overlays directly next to right dock without moving canvas) */}
+    {/* Right Inspector, Layers, Character, Drafts, Samples & Trash Panel (Docked or Detached Floating) */}
     {isInspectorOpen && (
-      <aside className="absolute right-10 top-0 bottom-0 w-72 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none">
-        {/* Panel Header & Tab Switcher */}
-        <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
-          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
-            <button
-              type="button"
-              onClick={() => setRightPanelTab("inspector")}
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
-                rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-              }`}
-            >
-              <SlidersHorizontal className="h-3 w-3" /> Inspector
-            </button>
-            <button
-              type="button"
-              onClick={() => setRightPanelTab("layers")}
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
-                rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-              }`}
-            >
-              <Layers className="h-3 w-3" />
-              <span>Layers</span>
-              <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-black leading-tight ${
-                rightPanelTab === "layers" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
-              }`}>
-                {shapes.length}
+      <aside
+        style={isPanelDetached ? { left: floatingPanelPos.x, top: floatingPanelPos.y } : undefined}
+        className={
+          isPanelDetached
+            ? "fixed w-80 max-h-[85vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden z-50 select-none animate-in zoom-in-95 duration-150"
+            : "absolute right-10 top-0 bottom-0 w-80 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none"
+        }
+      >
+        {/* Panel Draggable Titlebar / Header */}
+        <div
+          onMouseDown={handlePanelDragStart}
+          className={`border-b border-line p-2 px-2.5 bg-white shrink-0 z-10 ${
+            isPanelDetached ? "cursor-move" : ""
+          }`}
+        >
+          {/* Top Titlebar Controls */}
+          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs font-black text-ink">
+              <GripHorizontal className="h-3.5 w-3.5 text-slate-400" />
+              <span>
+                {rightPanelTab === "inspector"
+                  ? "Inspector & Properties"
+                  : rightPanelTab === "layers"
+                  ? "Layers Manager"
+                  : rightPanelTab === "character"
+                  ? "Typography & Style"
+                  : rightPanelTab === "drafts"
+                  ? "Diagrams & Drafts"
+                  : rightPanelTab === "samples"
+                  ? "Samples & Templates"
+                  : "Trash Bin"}
               </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setRightPanelTab("character")}
-              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
-                rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-              }`}
-            >
-              <CharacterIcon className="h-3 w-3" /> Character
-            </button>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setIsPanelDetached(!isPanelDetached)}
+                className={`p-1 rounded-md transition cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-ink ${
+                  isPanelDetached ? "text-brand bg-brand-light font-bold" : ""
+                }`}
+                title={isPanelDetached ? "Dock / Attach to Sidebar" : "Detach Floating Panel"}
+              >
+                {isPanelDetached ? <Pin className="h-3 w-3" /> : <ExternalLink className="h-3 w-3" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsInspectorOpen(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                title="Close Panel"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* 2 Nested Tab Switchers */}
+          <div className="space-y-1">
+            {/* Group 1: Workspace Tabs */}
+            <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("inspector")}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                  rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                <SlidersHorizontal className="h-2.5 w-2.5" /> Inspector
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("layers")}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                  rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                <Layers className="h-2.5 w-2.5" />
+                <span>Layers</span>
+                <span className={`px-1 py-0.2 rounded-full text-[8px] font-black leading-tight ${
+                  rightPanelTab === "layers" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
+                }`}>
+                  {shapes.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("character")}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                  rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                <CharacterIcon className="h-2.5 w-2.5" /> Text
+              </button>
+            </div>
+
+            {/* Group 2: File & Management Tabs */}
+            <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("drafts")}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                  rightPanelTab === "drafts" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                <FileText className="h-2.5 w-2.5" /> Drafts ({tabs.length + savedDrafts.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("samples")}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                  rightPanelTab === "samples" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                <Sparkles className="h-2.5 w-2.5" /> Samples
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("trash")}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                  rightPanelTab === "trash" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                }`}
+              >
+                <Trash2 className="h-2.5 w-2.5" /> Trash ({trashedTabs.length})
+              </button>
+            </div>
           </div>
         </div>
 
@@ -8528,6 +8654,273 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
                 )}
+
+                {/* TAB 4: DRAFTS & CANVAS MANAGER TAB */}
+                {rightPanelTab === "drafts" && (
+                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                    {/* Header Quick Actions */}
+                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                      <div>
+                        <h3 className="font-extrabold text-ink text-sm">Diagrams & Drafts</h3>
+                        <p className="text-[10px] text-muted">{tabs.length} open tab{tabs.length > 1 ? "s" : ""} • {savedDrafts.length} saved draft{savedDrafts.length > 1 ? "s" : ""}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveCanvasDraft}
+                        className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
+                        title="Save Current Diagram as Draft"
+                      >
+                        <Download className="h-3 w-3" /> Save Draft
+                      </button>
+                    </div>
+
+                    {/* Active Open Tabs Section */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
+                          <FileText className="h-3 w-3" /> Active Open Tabs ({tabs.length}/5)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleAddNewTab}
+                          disabled={tabs.length >= 5}
+                          className="text-[10.5px] font-bold text-brand hover:underline disabled:opacity-40 flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <Plus className="h-3 w-3" /> New Tab
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {tabs.map((tab) => {
+                          const isActive = tab.id === activeTabId;
+                          return (
+                            <div
+                              key={tab.id}
+                              onClick={() => handleSwitchTab(tab.id)}
+                              className={`p-2 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
+                                isActive
+                                  ? "border-brand bg-brand-light/40 shadow-xs"
+                                  : "border-line bg-slate-50 hover:bg-white hover:border-slate-300"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-brand animate-pulse" : "bg-slate-300"}`} />
+                                <div className="truncate flex-1">
+                                  <p className={`text-xs truncate font-bold ${isActive ? "text-brand" : "text-ink"}`}>{tab.name}</p>
+                                  <p className="text-[10px] text-muted">{tab.shapes.length} object{tab.shapes.length !== 1 ? "s" : ""}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartRenameTab(tab.id, tab.name)}
+                                  className="p-1 text-slate-400 hover:text-ink hover:bg-slate-200 rounded transition cursor-pointer"
+                                  title="Rename Diagram"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCloseTab(tab.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                  title="Move to Trash"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Saved Drafts Repository Section */}
+                    <div className="space-y-2 pt-2 border-t border-line">
+                      <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
+                        <FolderPlus className="h-3 w-3" /> Saved Drafts ({savedDrafts.length})
+                      </span>
+
+                      {savedDrafts.length === 0 ? (
+                        <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-muted">
+                          <p className="text-[11px] font-bold">No saved drafts yet</p>
+                          <p className="text-[10px] mt-0.5">Click "Save Draft" to store offline snapshots</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5 max-h-60 overflow-y-auto [scrollbar-width:thin]">
+                          {savedDrafts.map((draft) => (
+                            <div
+                              key={draft.id}
+                              className="p-2.5 rounded-xl border border-line bg-slate-50/80 hover:bg-white transition flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-ink truncate">{draft.name}</p>
+                                <p className="text-[9.5px] text-muted">
+                                  {draft.shapes.length} objects • {new Date(draft.savedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleLoadDraft(draft)}
+                                  className="px-2 py-1 bg-brand-light text-brand rounded-lg text-[10.5px] font-bold hover:bg-brand hover:text-white transition cursor-pointer"
+                                  title="Open Draft in Canvas Tab"
+                                >
+                                  Open
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteDraft(draft.id)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                  title="Delete Draft"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 5: SAMPLES & TEMPLATES TAB */}
+                {rightPanelTab === "samples" && (
+                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                    <div>
+                      <h3 className="font-extrabold text-ink text-sm">Samples & Templates</h3>
+                      <p className="text-[10px] text-muted">Pre-configured trading strategies and chart pattern guides</p>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        {
+                          id: "patterns",
+                          title: "Double Bottom & Breakout",
+                          desc: "Neckline breakout with structural BOS confirmation",
+                          shapes: [
+                            { id: "s1", type: "line" as Tool, color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: 50, y: 120 }, { x: 250, y: 120 }] },
+                            { id: "s2", type: "bezier" as Tool, color: "#10b981", strokeWidth: 2.5, points: [{ x: 60, y: 60 }, { x: 100, y: 120 }, { x: 140, y: 80 }, { x: 180, y: 120 }, { x: 230, y: 40 }] },
+                            { id: "s3", type: "text" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: 180, y: 40 }], text: "BOS ↗" },
+                          ],
+                        },
+                        {
+                          id: "smc_strategy",
+                          title: "SMC Strategy & Liquidity Sweep",
+                          desc: "Order Block zone, Fair Value Gap (FVG) and premium sweep",
+                          shapes: DEFAULT_SAMPLE_SMC_SHAPES,
+                        },
+                        {
+                          id: "risk_reward",
+                          title: "1:3 Risk to Reward Framework",
+                          desc: "Standard institutional positioning setup with stop loss and TP",
+                          shapes: DEFAULT_SAMPLE_RISK_SHAPES,
+                        },
+                        {
+                          id: "eurusd_breakdown",
+                          title: "EUR/USD Multi-Timeframe Map",
+                          desc: "High timeframe liquidity pool and London open session run",
+                          shapes: DEFAULT_SAMPLE_EURUSD_SHAPES,
+                        },
+                      ].map((sample) => (
+                        <div
+                          key={sample.id}
+                          className="rounded-xl border border-line bg-slate-50/80 p-3 hover:bg-white hover:border-brand/40 transition space-y-2"
+                        >
+                          <div>
+                            <p className="font-extrabold text-ink text-xs">{sample.title}</p>
+                            <p className="text-[10px] text-muted mt-0.5">{sample.desc}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (tabs.length >= 5 && !tabs.some((t) => t.name === sample.title)) {
+                                showToast("Max 5 tabs reached! Close a tab to load template.");
+                                return;
+                              }
+                              const tabKey = `tab_${sample.id}_${Date.now()}`;
+                              setTabs((prev) => [...prev, { id: tabKey, name: sample.title, shapes: sample.shapes, theme: "dots", snapToGrid: true }]);
+                              setActiveTabId(tabKey);
+                              setShapes(sample.shapes);
+                              showToast(`Loaded "${sample.title}" Template!`);
+                            }}
+                            className="w-full py-1.5 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Sparkles className="h-3 w-3" /> Load Template in New Tab
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 6: TRASH MANAGEMENT TAB */}
+                {rightPanelTab === "trash" && (
+                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                      <div>
+                        <h3 className="font-extrabold text-ink text-sm">Trash Bin</h3>
+                        <p className="text-[10px] text-muted">{trashedTabs.length} item{trashedTabs.length !== 1 ? "s" : ""} • Deleted items kept for 30 days</p>
+                      </div>
+                      {trashedTabs.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm("Empty trash permanently? This cannot be undone.")) {
+                              setTrashedTabs([]);
+                              showToast("Trash emptied");
+                            }
+                          }}
+                          className="px-2 py-1 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg text-[10.5px] font-bold transition cursor-pointer"
+                        >
+                          Empty Trash
+                        </button>
+                      )}
+                    </div>
+
+                    {trashedTabs.length === 0 ? (
+                      <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center text-muted">
+                        <Trash2 className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
+                        <p className="text-xs font-bold text-slate-500">Trash is empty</p>
+                        <p className="text-[10px] mt-0.5 text-muted">Deleted diagram tabs will appear here</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-80 overflow-y-auto [scrollbar-width:thin]">
+                        {trashedTabs.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-2.5 rounded-xl border border-line bg-slate-50/90 flex items-center justify-between gap-2"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-bold text-ink truncate">{item.name}</p>
+                              <p className="text-[9.5px] text-muted">
+                                {item.shapes.length} shapes • Deleted {new Date(item.deletedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleRestoreTab(item.id)}
+                                className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[10.5px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                title="Restore diagram tab"
+                              >
+                                <RotateCcw className="h-3 w-3" /> Restore
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handlePermanentDeleteTab(item.id)}
+                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                                title="Delete Permanently"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* FIXED Panel Footer Stats */}
@@ -8538,81 +8931,201 @@ export default function WhiteboardPage() {
             </aside>
           )}
 
-          {/* Right Vertical Tool Bar Dock holding Inspector, Layers, and Character Panel */}
-          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-0 shrink-0 z-30 shadow-xs select-none">
-            {/* Top Tool Icons */}
-            <div className="flex flex-col items-center w-full divide-y divide-line">
-              {/* 1. Inspector Tool Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isInspectorOpen && rightPanelTab === "inspector") {
-                    setIsInspectorOpen(false);
-                  } else {
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                  }
-                }}
-                className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                  isInspectorOpen && rightPanelTab === "inspector"
-                    ? "bg-brand-light text-brand border-brand font-bold"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
-                }`}
-                title="Inspector & Properties"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </button>
+          {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, and Management Panels */}
+          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-1 shrink-0 z-30 shadow-xs select-none">
+            {/* Top Tool Icons Container */}
+            <div className="flex flex-col items-center w-full">
+              {/* === GROUP 1: WORKSPACE & CANVAS TOOLS === */}
+              <div className="flex flex-col items-center w-full">
+                {/* 1. Inspector Tool Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isInspectorOpen && rightPanelTab === "inspector") {
+                      setIsInspectorOpen(false);
+                    } else {
+                      setIsInspectorOpen(true);
+                      setRightPanelTab("inspector");
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    isInspectorOpen && rightPanelTab === "inspector"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title="Inspector & Properties"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </button>
 
-              {/* 2. Layers Tool Button with Micro Count Badge */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isInspectorOpen && rightPanelTab === "layers") {
-                    setIsInspectorOpen(false);
-                  } else {
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("layers");
-                  }
-                }}
-                className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                  isInspectorOpen && rightPanelTab === "layers"
-                    ? "bg-brand-light text-brand border-brand font-bold"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
-                }`}
-                title={`Layers (${shapes.length})`}
-              >
-                <Layers className="h-4 w-4" />
-                {shapes.length > 0 && (
-                  <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
-                    {shapes.length > 99 ? "99+" : shapes.length}
-                  </span>
-                )}
-              </button>
+                {/* Horizontal Detachable Indicator Dots */}
+                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
 
-              {/* 3. Character Typography Panel Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isInspectorOpen && rightPanelTab === "character") {
-                    setIsInspectorOpen(false);
-                  } else {
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("character");
-                  }
-                }}
-                className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                  isInspectorOpen && rightPanelTab === "character"
-                    ? "bg-brand-light text-brand border-brand font-bold"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
-                }`}
-                title="Character & Typography"
-              >
-                <CharacterIcon className="h-4 w-4" />
-              </button>
+                {/* 2. Layers Tool Button with Micro Count Badge */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isInspectorOpen && rightPanelTab === "layers") {
+                      setIsInspectorOpen(false);
+                    } else {
+                      setIsInspectorOpen(true);
+                      setRightPanelTab("layers");
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    isInspectorOpen && rightPanelTab === "layers"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title={`Layers (${shapes.length})`}
+                >
+                  <Layers className="h-4 w-4" />
+                  {shapes.length > 0 && (
+                    <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                      {shapes.length > 99 ? "99+" : shapes.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
+
+                {/* 3. Character Typography Panel Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isInspectorOpen && rightPanelTab === "character") {
+                      setIsInspectorOpen(false);
+                    } else {
+                      setIsInspectorOpen(true);
+                      setRightPanelTab("character");
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    isInspectorOpen && rightPanelTab === "character"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title="Character & Typography"
+                >
+                  <CharacterIcon className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Edge-to-Edge Separator Line separating the two nested groups */}
+              <div className="w-full h-px bg-line shrink-0 my-1" />
+
+              {/* === GROUP 2: DRAFTS, SAMPLES & TRASH === */}
+              <div className="flex flex-col items-center w-full">
+                {/* 4. Drafts Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isInspectorOpen && rightPanelTab === "drafts") {
+                      setIsInspectorOpen(false);
+                    } else {
+                      setIsInspectorOpen(true);
+                      setRightPanelTab("drafts");
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    isInspectorOpen && rightPanelTab === "drafts"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title={`Drafts & Diagrams (${tabs.length + savedDrafts.length})`}
+                >
+                  <FileText className="h-4 w-4" />
+                  {tabs.length + savedDrafts.length > 0 && (
+                    <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-slate-700 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                      {tabs.length + savedDrafts.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
+
+                {/* 5. Samples & Templates Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isInspectorOpen && rightPanelTab === "samples") {
+                      setIsInspectorOpen(false);
+                    } else {
+                      setIsInspectorOpen(true);
+                      setRightPanelTab("samples");
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    isInspectorOpen && rightPanelTab === "samples"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title="Samples & Templates Gallery"
+                >
+                  <Sparkles className="h-4 w-4" />
+                </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none" title="Detachable Panel Group">
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
+
+                {/* 6. Trash Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isInspectorOpen && rightPanelTab === "trash") {
+                      setIsInspectorOpen(false);
+                    } else {
+                      setIsInspectorOpen(true);
+                      setRightPanelTab("trash");
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    isInspectorOpen && rightPanelTab === "trash"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title={`Trash (${trashedTabs.length})`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {trashedTabs.length > 0 && (
+                    <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-rose-500 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                      {trashedTabs.length}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Bottom: Collapse / Expand Toggle Button */}
-            <div className="border-t border-line w-full flex justify-center">
+            {/* Bottom: Collapse / Expand & Detach Trigger */}
+            <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line">
+              <button
+                type="button"
+                onClick={() => setIsPanelDetached(!isPanelDetached)}
+                className={`w-full h-8 flex items-center justify-center transition cursor-pointer ${
+                  isPanelDetached ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
+                }`}
+                title={isPanelDetached ? "Dock / Attach Panel (Snap to Sidebar)" : "Detach Panel (Floating Window)"}
+              >
+                {isPanelDetached ? <Pin className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+              </button>
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
