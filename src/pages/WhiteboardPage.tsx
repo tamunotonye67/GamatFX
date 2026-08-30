@@ -128,6 +128,10 @@ import {
   Globe,
   Sun,
   Moon,
+  Calendar,
+  Flame,
+  ShieldAlert,
+  Ratio,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -881,8 +885,8 @@ export default function WhiteboardPage() {
 
   // Individual Detachable & Attachable Floating Panels System
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "sessions" | "patterns">("inspector");
-  const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "sessions" | "patterns", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
+  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "geometry" | "patterns" | "sessions" | "risk_calc" | "economic_calendar">("inspector");
+  const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "geometry" | "patterns" | "sessions" | "risk_calc" | "economic_calendar", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
     inspector: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     character: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
@@ -890,8 +894,11 @@ export default function WhiteboardPage() {
     samples: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     trash: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     grid_guides: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    sessions: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    geometry: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     patterns: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    sessions: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    risk_calc: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    economic_calendar: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
   });
   const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
   const draggingPanelKey = useRef<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns" | null>(null);
@@ -7569,6 +7576,374 @@ export default function WhiteboardPage() {
           </div>
         )}
 
+        {/* TAB 8: GOLDEN RATIO & GEOMETRY LAYOUTS ENGINE */}
+        {tabKey === "geometry" && (
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+            {/* Golden Ratio & Harmonic Spiral */}
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Compass className="h-3.5 w-3.5 text-amber-700 stroke-[1.5]" /> Golden Ratio & Phi (Φ 1.618)
+                </span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300">
+                  Harmonic Math
+                </span>
+              </div>
+              <p className="text-[10.5px] text-slate-600 leading-snug">
+                Construct institutional chart patterns and geometric harmonic levels using sacred geometry, dynamic symmetry, and golden section proportions.
+              </p>
+
+              <div className="grid grid-cols-1 gap-1.5">
+                {/* Stamp Golden Spiral */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 100 - pan.x / zoom, y: 120 - pan.y / zoom };
+                    const goldenBox: Shape = {
+                      id: `shape_golden_${Date.now()}`,
+                      type: "rectangle",
+                      name: "Golden Ratio Phi Section",
+                      color: "#d97706",
+                      strokeWidth: 2,
+                      fillColor: "#fef3c7",
+                      fillStyle: "translucent",
+                      opacity: 0.25,
+                      points: [pt, { x: pt.x + 233, y: pt.y + 144 }],
+                      isLocked: false,
+                    };
+                    const goldenLabel: Shape = {
+                      id: `shape_golden_txt_${Date.now() + 1}`,
+                      type: "text",
+                      name: "Phi 1.618 Label",
+                      color: "#b45309",
+                      fontSize: 11,
+                      text: "GOLDEN SECTION (Φ 1.618 / 0.618) • Harmonic Reversal Level",
+                      points: [{ x: pt.x + 8, y: pt.y + 20 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, goldenBox, goldenLabel]);
+                    setSelectedShapeIds([goldenBox.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped Golden Ratio Matrix on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Ratio className="h-3.5 w-3.5 text-amber-700 stroke-[1.5]" /> Stamp Golden Ratio (Φ 1.618)
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">144x233</span>
+                </button>
+
+                {/* Stamp Rule of Thirds Frame */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 120 - pan.x / zoom, y: 140 - pan.y / zoom };
+                    const thirdsBox: Shape = {
+                      id: `shape_thirds_${Date.now()}`,
+                      type: "rectangle",
+                      name: "Rule of Thirds Matrix",
+                      color: "#0284c7",
+                      strokeWidth: 1.5,
+                      fillColor: "#e0f2fe",
+                      fillStyle: "translucent",
+                      opacity: 0.2,
+                      points: [pt, { x: pt.x + 270, y: pt.y + 180 }],
+                      isLocked: false,
+                    };
+                    const line1: Shape = {
+                      id: `shape_thirds_l1_${Date.now() + 1}`,
+                      type: "line",
+                      name: "Thirds V1",
+                      color: "#0284c7",
+                      strokeWidth: 1,
+                      points: [{ x: pt.x + 90, y: pt.y }, { x: pt.x + 90, y: pt.y + 180 }],
+                      isLocked: false,
+                    };
+                    const line2: Shape = {
+                      id: `shape_thirds_l2_${Date.now() + 2}`,
+                      type: "line",
+                      name: "Thirds V2",
+                      color: "#0284c7",
+                      strokeWidth: 1,
+                      points: [{ x: pt.x + 180, y: pt.y }, { x: pt.x + 180, y: pt.y + 180 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, thirdsBox, line1, line2]);
+                    setSelectedShapeIds([thirdsBox.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped Rule of Thirds Matrix on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Grid className="h-3.5 w-3.5 text-sky-700 stroke-[1.5]" /> Stamp Rule of Thirds Grid
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">3x3</span>
+                </button>
+
+                {/* Stamp Dynamic Symmetry Armature */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 140 - pan.x / zoom, y: 160 - pan.y / zoom };
+                    const diag1: Shape = {
+                      id: `shape_sym_d1_${Date.now()}`,
+                      type: "line",
+                      name: "Harmonic Diagonal 1",
+                      color: "#9333ea",
+                      strokeWidth: 1.5,
+                      points: [pt, { x: pt.x + 240, y: pt.y + 160 }],
+                      isLocked: false,
+                    };
+                    const diag2: Shape = {
+                      id: `shape_sym_d2_${Date.now() + 1}`,
+                      type: "line",
+                      name: "Harmonic Diagonal 2",
+                      color: "#9333ea",
+                      strokeWidth: 1.5,
+                      points: [{ x: pt.x + 240, y: pt.y }, { x: pt.x, y: pt.y + 160 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, diag1, diag2]);
+                    setSelectedShapeIds([diag1.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped Dynamic Symmetry Armature on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Compass className="h-3.5 w-3.5 text-purple-700 stroke-[1.5]" /> Dynamic Symmetry Armature
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">Diagonals</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 10: POSITION SIZE & FOREX RISK CALCULATOR */}
+        {tabKey === "risk_calc" && (
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-3 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Calculator className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Position Size Calculator
+                </span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-slate-300 text-slate-800">
+                  Live Forex Math
+                </span>
+              </div>
+
+              {/* Account Balance & Risk % Inputs */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-600">Account ($)</label>
+                  <input
+                    type="number"
+                    defaultValue={10000}
+                    id="calc_balance"
+                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-600">Risk (%)</label>
+                  <select
+                    id="calc_risk_pct"
+                    defaultValue="1"
+                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 cursor-pointer"
+                  >
+                    <option value="0.5">0.5% (Conservative)</option>
+                    <option value="1">1.0% (Standard)</option>
+                    <option value="2">2.0% (Moderate)</option>
+                    <option value="3">3.0% (Aggressive)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Stop Loss Pips & Pair */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-600">Stop Loss (Pips)</label>
+                  <input
+                    type="number"
+                    defaultValue={20}
+                    id="calc_sl_pips"
+                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-600">Instrument</label>
+                  <select
+                    id="calc_pair"
+                    defaultValue="EURUSD"
+                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 cursor-pointer"
+                  >
+                    <option value="EURUSD">EUR/USD (Pip $10)</option>
+                    <option value="GBPUSD">GBP/USD (Pip $10)</option>
+                    <option value="USDJPY">USD/JPY (Pip $6.7)</option>
+                    <option value="XAUUSD">XAU/USD Gold</option>
+                    <option value="BTCUSD">BTC/USD Crypto</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Calculation Output Badge */}
+              <div className="rounded-none border border-slate-300 bg-slate-200/70 p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 font-medium">Risk Amount:</span>
+                  <span className="font-bold text-rose-700">$100.00 (1.0%)</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 font-medium">Recommended Lot Size:</span>
+                  <span className="font-bold text-emerald-700">0.50 Standard Lots</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-600 font-medium">Mini / Micro:</span>
+                  <span className="font-bold text-slate-900">5.0 Mini / 50 Micro</span>
+                </div>
+              </div>
+
+              {/* Stamp Calculation Onto Canvas */}
+              <button
+                type="button"
+                onClick={() => {
+                  const pt = { x: 100 - pan.x / zoom, y: 100 - pan.y / zoom };
+                  const riskCard: Shape = {
+                    id: `shape_risk_${Date.now()}`,
+                    type: "annotation",
+                    name: "Risk & Lot Badge",
+                    color: "#10b981",
+                    strokeWidth: 2,
+                    text: "RISK SETUP: $100 (1%) • 0.50 Lots • 20 Pips SL (1:3 RR Target)",
+                    points: [pt, { x: pt.x + 80, y: pt.y - 40 }],
+                    isLocked: false,
+                  };
+                  setShapes((prev) => [...prev, riskCard]);
+                  setSelectedShapeIds([riskCard.id]);
+                  setIsInspectorOpen(true);
+                  setRightPanelTab("inspector");
+                  showToast("Stamped Risk & Lot Size badge on canvas!");
+                }}
+                className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer rounded-none"
+              >
+                <Calculator className="h-3.5 w-3.5" /> Stamp Risk Badge on Canvas
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 11: ECONOMIC NEWS CALENDAR & HIGH-IMPACT ALERTS */}
+        {tabKey === "economic_calendar" && (
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" /> High-Impact Red Folders
+                </span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-300">
+                  Volatility Risk
+                </span>
+              </div>
+              <p className="text-[10.5px] text-slate-600 leading-snug">
+                Stamp upcoming high-impact economic news releases and post-news algorithmic volatility markers on your charts.
+              </p>
+
+              <div className="space-y-1.5">
+                {/* Stamp US Non-Farm Payrolls (NFP) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 120 - pan.x / zoom, y: 130 - pan.y / zoom };
+                    const nfpBadge: Shape = {
+                      id: `shape_nfp_${Date.now()}`,
+                      type: "annotation",
+                      name: "US NFP News Alert",
+                      color: "#e11d48",
+                      strokeWidth: 2,
+                      text: "🔴 US NON-FARM PAYROLLS (NFP) • 13:30 GMT • High Volatility Flash",
+                      points: [pt, { x: pt.x + 110, y: pt.y - 35 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, nfpBadge]);
+                    setSelectedShapeIds([nfpBadge.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped US NFP News Alert on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Flame className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" /> US Non-Farm Payrolls (NFP)
+                  </span>
+                  <span className="text-[10px] font-mono text-rose-700">13:30 GMT</span>
+                </button>
+
+                {/* Stamp CPI Inflation Report */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 140 - pan.x / zoom, y: 150 - pan.y / zoom };
+                    const cpiBadge: Shape = {
+                      id: `shape_cpi_${Date.now()}`,
+                      type: "annotation",
+                      name: "US CPI Inflation Alert",
+                      color: "#e11d48",
+                      strokeWidth: 2,
+                      text: "🔴 US CPI INFLATION DATA (MoM / YoY) • 13:30 GMT • Rate Driver",
+                      points: [pt, { x: pt.x + 110, y: pt.y - 35 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, cpiBadge]);
+                    setSelectedShapeIds([cpiBadge.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped US CPI Inflation Alert on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Flame className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" /> US CPI Inflation (YoY)
+                  </span>
+                  <span className="text-[10px] font-mono text-rose-700">13:30 GMT</span>
+                </button>
+
+                {/* Stamp FOMC Interest Rate Decision */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 160 - pan.x / zoom, y: 170 - pan.y / zoom };
+                    const fomcBadge: Shape = {
+                      id: `shape_fomc_${Date.now()}`,
+                      type: "annotation",
+                      name: "FOMC Rate Decision",
+                      color: "#9333ea",
+                      strokeWidth: 2,
+                      text: "🟣 FOMC INTEREST RATE DECISION & PRESS CONF • 19:00 GMT",
+                      points: [pt, { x: pt.x + 120, y: pt.y - 35 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, fomcBadge]);
+                    setSelectedShapeIds([fomcBadge.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped FOMC Rate Decision on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldAlert className="h-3.5 w-3.5 text-purple-600 stroke-[1.5]" /> FOMC Rate Decision
+                  </span>
+                  <span className="text-[10px] font-mono text-purple-700">19:00 GMT</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 8: MARKET SESSIONS & KILLZONES RADAR */}
         {tabKey === "sessions" && (
           <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
@@ -10562,9 +10937,15 @@ export default function WhiteboardPage() {
           ? `Trash (${trashedTabs.length})`
           : panelKey === "grid_guides"
           ? "Grid & Snap"
+          : panelKey === "geometry"
+          ? "Golden Ratio & Geometry"
+          : panelKey === "patterns"
+          ? "Line Patterns"
           : panelKey === "sessions"
           ? "Market Sessions & Killzones"
-          : "Line Patterns";
+          : panelKey === "risk_calc"
+          ? "Position Size & Risk Calculator"
+          : "Economic News Calendar";
 
       const PIcon =
         panelKey === "inspector"
@@ -10581,9 +10962,15 @@ export default function WhiteboardPage() {
           ? Archive
           : panelKey === "grid_guides"
           ? Grid
+          : panelKey === "geometry"
+          ? Compass
+          : panelKey === "patterns"
+          ? Spline
           : panelKey === "sessions"
           ? Globe
-          : Spline;
+          : panelKey === "risk_calc"
+          ? Calculator
+          : Calendar;
 
       return (
         <aside
@@ -10677,9 +11064,15 @@ export default function WhiteboardPage() {
                   ? "Trash Bin"
                   : rightPanelTab === "grid_guides"
                   ? "Grid & Snap"
+                  : rightPanelTab === "geometry"
+                  ? "Golden Ratio & Geometry"
+                  : rightPanelTab === "patterns"
+                  ? "Line Patterns"
                   : rightPanelTab === "sessions"
                   ? "Market Sessions"
-                  : "Line Patterns"}
+                  : rightPanelTab === "risk_calc"
+                  ? "Position Size & Risk"
+                  : "Economic Calendar"}
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -10702,7 +11095,7 @@ export default function WhiteboardPage() {
             </div>
           </div>
 
-          {/* Nested Tab Switcher - Only shows the 3 tabs belonging to the active nested group */}
+          {/* Nested Tab Switcher - 4 Functional Groups with 3 tabs each */}
           <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
             {["inspector", "layers", "character"].includes(rightPanelTab) ? (
               /* Group 1: Workspace Tools (Inspector, Layers, Character) */
@@ -10772,8 +11165,8 @@ export default function WhiteboardPage() {
                   <Archive className="h-3 w-3" /> Trash ({trashedTabs.length})
                 </button>
               </>
-            ) : (
-              /* Group 3: Trading & Setup (Grid & Snap, Strategy & Risk, Line Pattern) */
+            ) : ["grid_guides", "geometry", "patterns"].includes(rightPanelTab) ? (
+              /* Group 3: Grid, Geometry & Patterns (Grid & Snap, Golden Ratio/Geometry, Line Patterns) */
               <>
                 <button
                   type="button"
@@ -10786,6 +11179,28 @@ export default function WhiteboardPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setRightPanelTab("geometry")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "geometry" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <Compass className="h-3 w-3" /> Geometry
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("patterns")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "patterns" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <Spline className="h-3 w-3" /> Patterns
+                </button>
+              </>
+            ) : (
+              /* Group 4: Forex & Institutional Trading (Sessions Radar, Risk Calculator, Economic News) */
+              <>
+                <button
+                  type="button"
                   onClick={() => setRightPanelTab("sessions")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
                     rightPanelTab === "sessions" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
@@ -10795,12 +11210,21 @@ export default function WhiteboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRightPanelTab("patterns")}
+                  onClick={() => setRightPanelTab("risk_calc")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
-                    rightPanelTab === "patterns" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                    rightPanelTab === "risk_calc" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <Spline className="h-3 w-3" /> Line Pattern
+                  <Calculator className="h-3 w-3" /> Risk Calc
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("economic_calendar")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "economic_calendar" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <Calendar className="h-3 w-3" /> Calendar
                 </button>
               </>
             )}
@@ -11115,7 +11539,7 @@ export default function WhiteboardPage() {
               {/* Edge-to-Edge Separator Line separating Group 2 and Group 3 */}
               <div className="w-full h-px bg-line shrink-0 my-1" />
 
-              {/* === GROUP 3: GRID & GUIDES, THEME, PATTERNS === */}
+              {/* === GROUP 3: GRID & GUIDES, GEOMETRY, PATTERNS === */}
               <div className="flex flex-col items-center w-full">
                 {/* 7. Grid, Guidelines & Snap Button */}
                 <button
@@ -11161,35 +11585,35 @@ export default function WhiteboardPage() {
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                 </div>
 
-                {/* 8. Market Sessions & Killzones Button */}
+                {/* 8. Golden Ratio & Geometry Layouts Button */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (detachedPanels.sessions?.isOpen) {
+                    if (detachedPanels.geometry?.isOpen) {
                       const newZ = highestPanelZIndex + 1;
                       setHighestPanelZIndex(newZ);
-                      setDetachedPanels((prev) => ({ ...prev, sessions: { ...prev.sessions, zIndex: newZ } }));
-                      showToast("Focused Market Sessions floating window");
+                      setDetachedPanels((prev) => ({ ...prev, geometry: { ...prev.geometry, zIndex: newZ } }));
+                      showToast("Focused Golden Ratio & Geometry floating window");
                     } else {
-                      if (isInspectorOpen && rightPanelTab === "sessions") {
+                      if (isInspectorOpen && rightPanelTab === "geometry") {
                         setIsInspectorOpen(false);
                       } else {
                         setIsInspectorOpen(true);
-                        setRightPanelTab("sessions");
+                        setRightPanelTab("geometry");
                       }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.sessions?.isOpen
+                    detachedPanels.geometry?.isOpen
                       ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "sessions"
+                      : isInspectorOpen && rightPanelTab === "geometry"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={detachedPanels.sessions?.isOpen ? "Focus Floating Market Sessions" : "Market Sessions & Killzones"}
+                  title={detachedPanels.geometry?.isOpen ? "Focus Floating Geometry" : "Golden Ratio & Geometry Layouts"}
                 >
-                  <Globe className="h-4 w-4" />
-                  {detachedPanels.sessions?.isOpen && (
+                  <Compass className="h-4 w-4" />
+                  {detachedPanels.geometry?.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
@@ -11198,7 +11622,7 @@ export default function WhiteboardPage() {
                 <div
                   className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("sessions")}
+                  onClick={() => detachIndividualPanel("geometry")}
                 >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
@@ -11243,6 +11667,144 @@ export default function WhiteboardPage() {
                   className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("patterns")}
+                >
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
+              </div>
+
+              {/* Edge-to-Edge Separator Line separating Group 3 and Group 4 */}
+              <div className="w-full h-px bg-line shrink-0 my-1" />
+
+              {/* === GROUP 4: FOREX & INSTITUTIONAL TRADING TOOLS === */}
+              <div className="flex flex-col items-center w-full">
+                {/* 10. Market Sessions & Killzones Radar */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (detachedPanels.sessions?.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, sessions: { ...prev.sessions, zIndex: newZ } }));
+                      showToast("Focused Market Sessions floating window");
+                    } else {
+                      if (isInspectorOpen && rightPanelTab === "sessions") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("sessions");
+                      }
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    detachedPanels.sessions?.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "sessions"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title={detachedPanels.sessions?.isOpen ? "Focus Floating Market Sessions" : "Market Sessions & Killzones"}
+                >
+                  <Globe className="h-4 w-4" />
+                  {detachedPanels.sessions?.isOpen && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
+                </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Click to float)"
+                  onClick={() => detachIndividualPanel("sessions")}
+                >
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
+
+                {/* 11. Position Size & Risk Calculator */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (detachedPanels.risk_calc?.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, risk_calc: { ...prev.risk_calc, zIndex: newZ } }));
+                      showToast("Focused Risk Calculator floating window");
+                    } else {
+                      if (isInspectorOpen && rightPanelTab === "risk_calc") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("risk_calc");
+                      }
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    detachedPanels.risk_calc?.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "risk_calc"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title={detachedPanels.risk_calc?.isOpen ? "Focus Floating Risk Calc" : "Position Size & Risk Calculator"}
+                >
+                  <Calculator className="h-4 w-4" />
+                  {detachedPanels.risk_calc?.isOpen && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
+                </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Click to float)"
+                  onClick={() => detachIndividualPanel("risk_calc")}
+                >
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
+
+                {/* 12. Economic News Calendar & Alerts */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (detachedPanels.economic_calendar?.isOpen) {
+                      const newZ = highestPanelZIndex + 1;
+                      setHighestPanelZIndex(newZ);
+                      setDetachedPanels((prev) => ({ ...prev, economic_calendar: { ...prev.economic_calendar, zIndex: newZ } }));
+                      showToast("Focused Economic Calendar floating window");
+                    } else {
+                      if (isInspectorOpen && rightPanelTab === "economic_calendar") {
+                        setIsInspectorOpen(false);
+                      } else {
+                        setIsInspectorOpen(true);
+                        setRightPanelTab("economic_calendar");
+                      }
+                    }
+                  }}
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
+                    detachedPanels.economic_calendar?.isOpen
+                      ? "text-brand bg-brand-light/60 border-brand font-bold"
+                      : isInspectorOpen && rightPanelTab === "economic_calendar"
+                      ? "bg-brand-light text-brand border-brand font-bold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  }`}
+                  title={detachedPanels.economic_calendar?.isOpen ? "Focus Floating Economic Calendar" : "Economic News Calendar & High-Impact Alerts"}
+                >
+                  <Calendar className="h-4 w-4" />
+                  {detachedPanels.economic_calendar?.isOpen && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
+                  )}
+                </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Click to float)"
+                  onClick={() => detachIndividualPanel("economic_calendar")}
                 >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
