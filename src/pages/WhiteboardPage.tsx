@@ -783,24 +783,7 @@ export default function WhiteboardPage() {
   });
   const [draggedTabIdx, setDraggedTabIdx] = useState<number | null>(null);
 
-  // Continuous Auto-Save of Active Canvases and Open Tabs to LocalStorage
-  useEffect(() => {
-    setTabs((prevTabs) => {
-      const updated = prevTabs.map((t) =>
-        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
-      );
-      try {
-        localStorage.setItem("gamat_whiteboard_active_tabs", JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
-  }, [shapes, bgGrid, snapToGrid, activeTabId]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("gamat_whiteboard_active_tab_id", activeTabId);
-    } catch (e) {}
-  }, [activeTabId]);
 
   // Saved Drafts & Trashed Tabs State (Persistent LocalStorage)
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>([]);
@@ -1042,6 +1025,25 @@ export default function WhiteboardPage() {
   const altDuplicated = useRef(false);
   const dragStartOriginalPt = useRef<{ x: number; y: number } | null>(null);
   const lastEraserPt = useRef<{ x: number; y: number } | null>(null);
+
+  // Continuous Auto-Save of Active Canvases and Open Tabs to LocalStorage (Safely placed after all state hooks)
+  useEffect(() => {
+    setTabs((prevTabs) => {
+      const updated = prevTabs.map((t) =>
+        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
+      );
+      try {
+        localStorage.setItem("gamat_whiteboard_active_tabs", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  }, [shapes, bgGrid, snapToGrid, activeTabId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("gamat_whiteboard_active_tab_id", activeTabId);
+    } catch (e) {}
+  }, [activeTabId]);
 
   /* -------------------------- Page Scroll Lock & LocalStorage Initializer --- */
 
