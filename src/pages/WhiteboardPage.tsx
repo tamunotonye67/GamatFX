@@ -14,6 +14,7 @@ import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
 import {
   MousePointer,
+  Waypoints,
   Hand,
   Pencil,
   Highlighter,
@@ -322,6 +323,7 @@ const CharacterIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) =>
 
 type Tool =
   | "select"
+  | "node"
   | "hand"
   | "pencil"
   | "highlighter"
@@ -780,6 +782,9 @@ export default function WhiteboardPage() {
   const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
 
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
+  const [activeSelectTool, setActiveSelectTool] = useState<"select" | "node" | "hand">("select");
+  const [activeNodeIndex, setActiveNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
+  const [hoveredNodeIndex, setHoveredNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
@@ -1964,10 +1969,23 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "sticky") {
-      setEditingShapeId(null);
-      setTextValue("");
-      setIsStickyMode(true);
-      setTextModalPos(pt);
+      const newSticky: Shape = {
+        id: `shape_${Date.now()}`,
+        type: "sticky",
+        name: "Sticky Note",
+        color: "#1e293b",
+        strokeColor: "#e2e8f0",
+        strokeWidth: 1,
+        stickyColor: stickyColor || "#fef08a",
+        text: "New Sticky Note",
+        fontSize: 14,
+        textAlign: "left",
+        points: [pt, { x: pt.x + 200, y: pt.y + 160 }],
+        isLocked: autoLockObjects,
+      };
+      setShapes((prev) => [...prev, newSticky]);
+      setSelectedShapeIds([newSticky.id]);
+      showToast("Created Sticky Note! Select Inspector to customize.");
       return;
     }
 
@@ -2093,6 +2111,28 @@ export default function WhiteboardPage() {
       return;
     }
 
+    // Node Tool Dragging
+    if (activeNodeIndex) {
+      const targetShape = shapes.find((s) => s.id === activeNodeIndex.shapeId);
+      if (targetShape && !targetShape.isLocked) {
+        const newPts = [...targetShape.points];
+        newPts[activeNodeIndex.index] = pt;
+        setShapes((prev) => prev.map((s) => (s.id === targetShape.id ? { ...s, points: newPts } : s)));
+      }
+      return;
+    }
+
+    // Node Tool Dragging
+    if (activeNodeIndex) {
+      const targetShape = shapes.find((s) => s.id === activeNodeIndex.shapeId);
+      if (targetShape && !targetShape.isLocked) {
+        const newPts = [...targetShape.points];
+        newPts[activeNodeIndex.index] = pt;
+        setShapes((prev) => prev.map((s) => (s.id === targetShape.id ? { ...s, points: newPts } : s)));
+      }
+      return;
+    }
+
     // 2. Interactive Resize Handle Drag (Supports Shift-key proportional constraint)
     if (activeResizeHandle) {
       const targetShape = shapes.find((s) => s.id === activeResizeHandle.shapeId);
@@ -2166,6 +2206,8 @@ export default function WhiteboardPage() {
     dragStartOriginalPt.current = null;
     altDuplicated.current = false;
     setActiveResizeHandle(null);
+    setActiveNodeIndex(null);
+    setActiveNodeIndex(null);
 
     // Finalize Multi-Select or Marquee Zoom
     if (marqueeBox) {
@@ -5326,6 +5368,132 @@ export default function WhiteboardPage() {
                           </div>
                         )}
                       </div>
+
+                      
+                      {/* DEDICATED STICKY NOTE CUSTOMIZER */}
+                      {selectedShape?.type === "sticky" && (
+                        <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-3 shadow-2xs space-y-3 animate-in fade-in">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                              <StickyNote className="h-3.5 w-3.5 text-amber-600" /> Sticky Note Color Palette
+                            </label>
+                            <span className="text-[9px] font-bold text-amber-700 uppercase">
+                              Post-It
+                            </span>
+                          </div>
+
+                          {/* 8 Pastel & Dark Color Swatches */}
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                              { col: "#fef08a", name: "Classic Yellow", border: "#fde047" },
+                              { col: "#fbcfe8", name: "Soft Pink", border: "#f472b6" },
+                              { col: "#bae6fd", name: "Sky Blue", border: "#38bdf8" },
+                              { col: "#bbf7d0", name: "Mint Green", border: "#4ade80" },
+                              { col: "#ddd6fe", name: "Lavender", border: "#a78bfa" },
+                              { col: "#fed7aa", name: "Peach Coral", border: "#fb923c" },
+                              { col: "#ffffff", name: "Clean White", border: "#cbd5e1" },
+                              { col: "#1e293b", name: "Dark Slate", border: "#475569" },
+                            ].map((item) => (
+                              <button
+                                key={item.col}
+                                type="button"
+                                onClick={() => {
+                                  setStickyColor(item.col as any);
+                                  setShapes((prev) =>
+                                    prev.map((s) =>
+                                      s.id === selectedShape.id ? { ...s, stickyColor: item.col as any } : s
+                                    )
+                                  );
+                                  showToast(`Sticky Color: ${item.name}`);
+                                }}
+                                style={{ backgroundColor: item.col, borderColor: item.border }}
+                                className={`h-8 rounded-xl border-2 flex items-center justify-center transition shadow-xs cursor-pointer ${
+                                  (selectedShape.stickyColor || "#fef08a") === item.col
+                                    ? "ring-2 ring-brand scale-105"
+                                    : "hover:scale-105"
+                                }`}
+                                title={item.name}
+                              >
+                                {(selectedShape.stickyColor || "#fef08a") === item.col && (
+                                  <Check className={`h-3.5 w-3.5 ${item.col === "#1e293b" ? "text-white" : "text-slate-800"}`} />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Direct Note Content Textarea */}
+                          <div className="space-y-1 pt-1 border-t border-amber-200/60">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-amber-900">Note Content</label>
+                            <textarea
+                              rows={3}
+                              value={selectedShape.text || ""}
+                              onChange={(e) => {
+                                const newTxt = e.target.value;
+                                setShapes((prev) =>
+                                  prev.map((s) => (s.id === selectedShape.id ? { ...s, text: newTxt } : s))
+                                );
+                              }}
+                              placeholder="Type sticky note notes, rules, or strategy..."
+                              className="w-full rounded-xl border border-amber-300 bg-white p-2 text-xs font-bold text-ink placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                          </div>
+
+                          {/* Typography Font Size & Alignment */}
+                          <div className="grid grid-cols-2 gap-2 pt-1 border-t border-amber-200/60">
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-amber-900">Font Size ({selectedShape.fontSize || 14}px)</span>
+                              <div className="grid grid-cols-3 gap-1">
+                                {[12, 14, 18].map((sz) => (
+                                  <button
+                                    key={sz}
+                                    type="button"
+                                    onClick={() => {
+                                      setShapes((prev) =>
+                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, fontSize: sz } : s))
+                                      );
+                                    }}
+                                    className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
+                                      (selectedShape.fontSize || 14) === sz
+                                        ? "bg-amber-600 text-white border-amber-600"
+                                        : "bg-white border-amber-200 text-amber-900 hover:bg-amber-100"
+                                    }`}
+                                  >
+                                    {sz}px
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <span className="text-[9.5px] font-bold text-amber-900">Text Align</span>
+                              <div className="grid grid-cols-3 gap-1">
+                                {[
+                                  { id: "left", label: "Left" },
+                                  { id: "center", label: "Mid" },
+                                  { id: "right", label: "Right" },
+                                ].map((al) => (
+                                  <button
+                                    key={al.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setShapes((prev) =>
+                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, textAlign: al.id as any } : s))
+                                      );
+                                    }}
+                                    className={`py-1 rounded-lg border text-[10px] font-bold cursor-pointer ${
+                                      (selectedShape.textAlign || "left") === al.id
+                                        ? "bg-amber-600 text-white border-amber-600"
+                                        : "bg-white border-amber-200 text-amber-900 hover:bg-amber-100"
+                                    }`}
+                                  >
+                                    {al.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* 1. ALIGNMENT TOOLBAR */}
                       <div className="rounded-2xl border border-line bg-white p-2.5 shadow-2xs space-y-1.5">
@@ -8793,30 +8961,63 @@ export default function WhiteboardPage() {
             {/* Left Toolbar Dock */}
             <aside className="w-10 border-r border-line bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
           <div className="w-full flex flex-col items-center divide-y divide-line">
-            <WhiteboardToolBtn
-              active={activeTool === "select"}
-              onClick={() => selectTool("select")}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                toggleFavoriteTool("select");
-              }}
-              title="Select, Move, Resize & Alt+Drag Duplicate (Right click to favorite)"
-              toolKey="select"
-              icon={MousePointer}
-              showTooltips={showTooltips}
-            />
-            <WhiteboardToolBtn
-              active={activeTool === "hand"}
-              onClick={() => selectTool("hand")}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                toggleFavoriteTool("hand");
-              }}
-              title="Pan / Hand Tool (Right click to favorite)"
-              toolKey="hand"
-              icon={Hand}
-              showTooltips={showTooltips}
-            />
+            {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
+            <div className="relative w-full">
+              <WhiteboardToolBtn
+                active={["select", "node", "hand"].includes(activeTool)}
+                onClick={() => selectTool(activeSelectTool)}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "selection" ? null : "selection")}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFlyoutGroup(flyoutGroup === "selection" ? null : "selection");
+                }}
+                title="Select, Node & Hand Tools (Click arrow or right-click to choose tool)"
+                toolKey={activeSelectTool}
+                icon={activeSelectTool === "node" ? Waypoints : activeSelectTool === "hand" ? Hand : MousePointer}
+                hasFlyout
+                isFlyoutOpen={flyoutGroup === "selection"}
+                showTooltips={showTooltips}
+              />
+
+              {flyoutGroup === "selection" && (
+                <div className="absolute left-full top-0 ml-2 w-64 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Select & Transform Tools</p>
+
+                  <FlyoutToolItem
+                    toolKey="select"
+                    label="Select & Move Tool"
+                    icon={MousePointer}
+                    isActive={activeSelectTool === "select" && activeTool === "select"}
+                    isFavorited={favoritedTools.includes("select")}
+                    onSelect={() => { setActiveSelectTool("select"); selectTool("select"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("select")}
+                    shortcut="V"
+                  />
+
+                  <FlyoutToolItem
+                    toolKey="node"
+                    label="Node / Anchor Point Tool"
+                    icon={Waypoints}
+                    isActive={activeSelectTool === "node" && activeTool === "node"}
+                    isFavorited={favoritedTools.includes("node")}
+                    onSelect={() => { setActiveSelectTool("node"); selectTool("node"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("node")}
+                    shortcut="A"
+                  />
+
+                  <FlyoutToolItem
+                    toolKey="hand"
+                    label="Pan / Hand Tool"
+                    icon={Hand}
+                    isActive={activeSelectTool === "hand" && activeTool === "hand"}
+                    isFavorited={favoritedTools.includes("hand")}
+                    onSelect={() => { setActiveSelectTool("hand"); selectTool("hand"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("hand")}
+                    shortcut="H"
+                  />
+                </div>
+              )}
+            </div>
 
             {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
@@ -11751,8 +11952,13 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   if (!pts.length) return false;
 
   if (shape.type === "sticky") {
-    const p = pts[0];
-    return pt.x >= p.x && pt.x <= p.x + 180 && pt.y >= p.y && pt.y <= p.y + 140;
+    const p0 = pts[0];
+    const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
+    const minX = Math.min(p0.x, p1.x);
+    const maxX = Math.max(p0.x, p1.x);
+    const minY = Math.min(p0.y, p1.y);
+    const maxY = Math.max(p0.y, p1.y);
+    return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
   }
 
   const minX = Math.min(...pts.map((p) => p.x)) - 10;
@@ -11773,10 +11979,12 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
   let maxY = Math.max(...pts.map((p) => p.y));
 
   if (shape.type === "sticky") {
-    minX = pts[0].x;
-    minY = pts[0].y;
-    maxX = pts[0].x + 180;
-    maxY = pts[0].y + 140;
+    const p0 = pts[0];
+    const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
+    minX = Math.min(p0.x, p1.x);
+    maxX = Math.max(p0.x, p1.x);
+    minY = Math.min(p0.y, p1.y);
+    maxY = Math.max(p0.y, p1.y);
   } else if (shape.type === "text") {
     const fSize = shape.fontSize || 16;
     const lHeight = shape.lineHeight ? shape.lineHeight * fSize : fSize * 1.35;
@@ -11828,10 +12036,12 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
   let maxY = Math.max(...pts.map((p) => p.y));
 
   if (shape.type === "sticky") {
-    minX = pts[0].x;
-    minY = pts[0].y;
-    maxX = pts[0].x + 180;
-    maxY = pts[0].y + 140;
+    const p0 = pts[0];
+    const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
+    minX = Math.min(p0.x, p1.x);
+    maxX = Math.max(p0.x, p1.x);
+    minY = Math.min(p0.y, p1.y);
+    maxY = Math.max(p0.y, p1.y);
   } else if (shape.type === "text") {
     minX = pts[0].x - 4;
     minY = pts[0].y - 18;
@@ -12053,31 +12263,81 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(pts[1].x, pts[1].y);
     ctx.stroke();
   } else if (shape.type === "sticky") {
-    const p = pts[0];
-    const w = 180;
-    const h = 140;
+    const p0 = pts[0];
+    const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
+    const x = Math.min(p0.x, p1.x);
+    const y = Math.min(p0.y, p1.y);
+    const w = Math.max(80, Math.abs(p1.x - p0.x));
+    const h = Math.max(60, Math.abs(p1.y - p0.y));
+    const foldSize = 20;
 
-    ctx.fillStyle = "rgba(0,0,0,0.08)";
-    ctx.fillRect(p.x + 4, p.y + 4, w, h);
+    // Drop Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.07)";
+    ctx.fillRect(x + 5, y + 5, w, h);
 
-    ctx.fillStyle = shape.stickyColor || "#fef08a";
-    ctx.fillRect(p.x, p.y, w, h);
-    ctx.strokeStyle = "rgba(0,0,0,0.12)";
-    ctx.strokeRect(p.x, p.y, w, h);
-
-    ctx.fillStyle = "rgba(0,0,0,0.10)";
+    // Main Note Body
+    const bgColor = shape.stickyColor || "#fef08a";
+    ctx.fillStyle = bgColor;
     ctx.beginPath();
-    ctx.moveTo(p.x + w - 16, p.y + h);
-    ctx.lineTo(p.x + w, p.y + h - 16);
-    ctx.lineTo(p.x + w - 16, p.y + h - 16);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x + w, y + h - foldSize);
+    ctx.lineTo(x + w - foldSize, y + h);
+    ctx.lineTo(x, y + h);
+    ctx.closePath();
     ctx.fill();
 
-    if (shape.text) {
-      ctx.fillStyle = "#1e293b";
-      ctx.font = "bold 12px Inter, sans-serif";
-      const lines = shape.text.split("\n");
-      lines.forEach((line, idx) => {
-        ctx.fillText(line, p.x + 12, p.y + 26 + idx * 18, w - 24);
+    // Top Adhesive Strip
+    ctx.fillStyle = "rgba(0,0,0,0.04)";
+    ctx.fillRect(x, y, w, 22);
+
+    // Folded Corner Dog-Ear
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.beginPath();
+    ctx.moveTo(x + w - foldSize, y + h);
+    ctx.lineTo(x + w, y + h - foldSize);
+    ctx.lineTo(x + w - foldSize, y + h - foldSize);
+    ctx.closePath();
+    ctx.fill();
+
+    // Note Border
+    ctx.strokeStyle = "rgba(0,0,0,0.09)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Multiline Text with auto-wrapping
+    const noteText = shape.text || "";
+    if (noteText) {
+      const fSize = shape.fontSize || 14;
+      const isDarkBg = bgColor === "#1e293b" || bgColor === "#0f172a";
+      ctx.fillStyle = shape.textColor || (isDarkBg ? "#f8fafc" : "#1e293b");
+      ctx.font = `${shape.fontWeight === "bold" ? "bold " : ""}${fSize}px Inter, -apple-system, sans-serif`;
+      ctx.textAlign = (shape.textAlign as CanvasTextAlign) || "left";
+
+      const padding = 16;
+      const maxTextWidth = w - padding * 2;
+      const textX = shape.textAlign === "center" ? x + w / 2 : shape.textAlign === "right" ? x + w - padding : x + padding;
+
+      const rawLines = noteText.split("\n");
+      let lineY = y + 36;
+
+      rawLines.forEach((rawLine) => {
+        const words = rawLine.split(" ");
+        let currentLine = "";
+        words.forEach((word) => {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          if (ctx.measureText(testLine).width > maxTextWidth && currentLine) {
+            ctx.fillText(currentLine, textX, lineY);
+            currentLine = word;
+            lineY += fSize * 1.35;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        if (currentLine) {
+          ctx.fillText(currentLine, textX, lineY);
+          lineY += fSize * 1.35;
+        }
       });
     }
   } else if (shape.type === "fibo" && pts.length >= 2) {
@@ -12775,7 +13035,23 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
 
   ctx.setLineDash([]);
 
-  // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
+
+  // Render Vector Anchor Nodes when Node Tool is active
+  if (isSelected && (activeTool === "node" || activeTool === "select")) {
+    pts.forEach((p, idx) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, activeTool === "node" ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = activeTool === "node" ? 2 : 1.5;
+      ctx.strokeStyle = activeTool === "node" ? "#3b82f6" : "#64748b";
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+    // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
   if (isSelected) {
     let minX = Math.min(...pts.map((p) => p.x));
     let maxX = Math.max(...pts.map((p) => p.x));
