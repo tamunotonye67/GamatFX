@@ -888,6 +888,7 @@ export default function WhiteboardPage() {
   const isDraggingShape = useRef(false);
   const dragStartPt = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isPanning = useRef(false);
+  const startPan = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isSpacePressed = useRef(false);
   const [isSpaceHeld, setIsSpaceHeld] = useState(false);
   const [isAltHeld, setIsAltHeld] = useState(false);
