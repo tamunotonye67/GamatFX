@@ -811,10 +811,11 @@ export default function WhiteboardPage() {
   const [autoLockObjects, setAutoLockObjects] = useState(false);
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
-  // Inspector, Layers & Character Panel State (Supports Detached Floating & Docked Panels)
+  // Inspector, Layers & Character Panel State (Supports Detached Floating & Magnetic Docking)
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash">("inspector");
   const [isPanelDetached, setIsPanelDetached] = useState(false);
+  const [isNearDockTarget, setIsNearDockTarget] = useState(false);
   const [floatingPanelPos, setFloatingPanelPos] = useState<{ x: number; y: number }>({ x: typeof window !== "undefined" ? Math.max(80, window.innerWidth - 380) : 600, y: 80 });
   const isDraggingPanel = useRef(false);
   const panelDragStart = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -940,7 +941,16 @@ export default function WhiteboardPage() {
   }, []);
 
   const handlePanelDragStart = (e: React.MouseEvent) => {
-    if (!isPanelDetached) return;
+    if (!isPanelDetached) {
+      // Detach directly by dragging the panel header!
+      setIsPanelDetached(true);
+      const initialX = Math.max(20, Math.min(window.innerWidth - 340, e.clientX - 160));
+      const initialY = Math.max(60, Math.min(window.innerHeight - 120, e.clientY - 20));
+      setFloatingPanelPos({ x: initialX, y: initialY });
+      isDraggingPanel.current = true;
+      panelDragStart.current = { x: 160, y: 20 };
+      return;
+    }
     isDraggingPanel.current = true;
     panelDragStart.current = {
       x: e.clientX - floatingPanelPos.x,
@@ -951,15 +961,30 @@ export default function WhiteboardPage() {
   useEffect(() => {
     const handleWindowMouseMove = (e: MouseEvent) => {
       if (isDraggingPanel.current) {
-        setFloatingPanelPos({
-          x: Math.max(10, Math.min(window.innerWidth - 300, e.clientX - panelDragStart.current.x)),
-          y: Math.max(50, Math.min(window.innerHeight - 120, e.clientY - panelDragStart.current.y)),
-        });
+        const newX = Math.max(10, Math.min(window.innerWidth - 280, e.clientX - panelDragStart.current.x));
+        const newY = Math.max(50, Math.min(window.innerHeight - 120, e.clientY - panelDragStart.current.y));
+        setFloatingPanelPos({ x: newX, y: newY });
+
+        // Magnetic docking threshold: if within 140px of right sidebar edge
+        const isNear = newX > window.innerWidth - 440 || e.clientX > window.innerWidth - 380;
+        setIsNearDockTarget(isNear);
       }
     };
-    const handleWindowMouseUp = () => {
-      isDraggingPanel.current = false;
+
+    const handleWindowMouseUp = (e: MouseEvent) => {
+      if (isDraggingPanel.current) {
+        isDraggingPanel.current = false;
+        const isNear = e.clientX > window.innerWidth - 380;
+        if (isNear) {
+          setIsPanelDetached(false);
+          setIsNearDockTarget(false);
+          showToast("🧲 Panel magnetically attached to sidebar dock!");
+        } else {
+          setIsNearDockTarget(false);
+        }
+      }
     };
+
     window.addEventListener("mousemove", handleWindowMouseMove);
     window.addEventListener("mouseup", handleWindowMouseUp);
     return () => {
@@ -7020,13 +7045,24 @@ export default function WhiteboardPage() {
       </div>
     </div>
 
+    {/* Magnetic Drop Target Preview (Visual glow when dragging floating panel near right dock) */}
+    {isNearDockTarget && isPanelDetached && (
+      <div className="absolute right-10 top-0 bottom-0 w-80 border-2 border-dashed border-brand bg-brand-light/30 backdrop-blur-xs flex flex-col items-center justify-center z-40 animate-pulse pointer-events-none rounded-l-2xl shadow-xl">
+        <div className="px-3.5 py-2 rounded-xl bg-brand text-white text-xs font-black shadow-lg flex items-center gap-2">
+          <Magnet className="h-4 w-4 animate-bounce" /> Release to Magnetically Snap & Dock
+        </div>
+      </div>
+    )}
+
     {/* Right Inspector, Layers, Character, Drafts, Samples & Trash Panel (Docked or Detached Floating) */}
     {isInspectorOpen && (
       <aside
         style={isPanelDetached ? { left: floatingPanelPos.x, top: floatingPanelPos.y } : undefined}
         className={
           isPanelDetached
-            ? "fixed w-80 max-h-[85vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden z-50 select-none animate-in zoom-in-95 duration-150"
+            ? `fixed w-80 max-h-[85vh] rounded-2xl border bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden z-50 select-none animate-in zoom-in-95 duration-150 transition-shadow ${
+                isNearDockTarget ? "border-brand ring-4 ring-brand/30 shadow-brand/20" : "border-line"
+              }`
             : "absolute right-10 top-0 bottom-0 w-80 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none"
         }
       >
@@ -7034,8 +7070,9 @@ export default function WhiteboardPage() {
         <div
           onMouseDown={handlePanelDragStart}
           className={`border-b border-line p-2 px-2.5 bg-white shrink-0 z-10 ${
-            isPanelDetached ? "cursor-move" : ""
+            isPanelDetached ? "cursor-move" : "cursor-grab"
           }`}
+          title={isPanelDetached ? "Drag to reposition (move near right edge to snap)" : "Drag outward to detach panel"}
         >
           {/* Top Titlebar Controls */}
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100">
@@ -7054,11 +7091,21 @@ export default function WhiteboardPage() {
                   ? "Samples & Templates"
                   : "Trash Bin"}
               </span>
+              {isNearDockTarget && isPanelDetached && (
+                <span className="px-1.5 py-0.2 rounded-full bg-brand text-white text-[8px] font-black animate-pulse flex items-center gap-0.5">
+                  <Magnet className="h-2.5 w-2.5" /> Snap
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setIsPanelDetached(!isPanelDetached)}
+                onClick={() => {
+                  setIsPanelDetached(!isPanelDetached);
+                  if (isPanelDetached) {
+                    showToast("🧲 Attached to sidebar dock!");
+                  }
+                }}
                 className={`p-1 rounded-md transition cursor-pointer text-slate-500 hover:bg-slate-100 hover:text-ink ${
                   isPanelDetached ? "text-brand bg-brand-light font-bold" : ""
                 }`}
