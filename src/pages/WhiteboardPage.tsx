@@ -5334,6 +5334,18 @@ export default function WhiteboardPage() {
             </button>
           </div>
         </div>
+
+        {/* Right Side: Collapsed Inspector & Layers Expand Icon directly on the tab bar */}
+        {!isInspectorOpen && (
+          <button
+            type="button"
+            onClick={() => setIsInspectorOpen(true)}
+            className="flex items-center justify-center p-1.5 rounded-lg border border-line bg-white text-slate-700 shadow-xs hover:bg-brand-light hover:text-brand transition cursor-pointer shrink-0"
+            title="Expand Inspector & Layers Panel"
+          >
+            <PanelRightOpen className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Main Whiteboard Workspace */}
@@ -7846,18 +7858,6 @@ export default function WhiteboardPage() {
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
               </div>
             </aside>
-          )}
-
-          {/* Floating Collapsed Toggle Icon (Only the collapse/expandable icon shows when collapsed) */}
-          {!isInspectorOpen && (
-            <button
-              type="button"
-              onClick={() => setIsInspectorOpen(true)}
-              className="absolute right-3 top-[-2.15rem] z-40 p-2 rounded-xl border border-line bg-white/95 text-slate-700 shadow-md hover:bg-brand-light hover:text-brand transition animate-in fade-in cursor-pointer"
-              title="Expand Inspector & Layers Panel"
-            >
-              <PanelRightOpen className="h-4 w-4" />
-            </button>
           )}
         </main>
       </div>
