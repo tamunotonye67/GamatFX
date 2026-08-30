@@ -229,6 +229,26 @@ const LiquidityIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) =>
   </svg>
 );
 
+const AnnotationIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Target Pin Circle */}
+    <circle cx="5" cy="19" r="2" />
+    {/* Leader Line to text box */}
+    <path d="M7 17L12 12H19" />
+    {/* Annotation Text Badge */}
+    <rect x="12" y="5" width="9" height="7" rx="1.5" />
+    <line x1="14.5" y1="8.5" x2="18.5" y2="8.5" />
+  </svg>
+);
+
 /* ========================================================================== */
 /*                               TYPES & DATA                                 */
 /* ========================================================================== */
@@ -246,6 +266,7 @@ type Tool =
   | "arrow"
   | "bezier"
   | "text"
+  | "annotation"
   | "eraser"
   | "zoom"
   | "fibo"
@@ -378,6 +399,11 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     title: "Text Label Tool",
     desc: "Click anywhere on the whiteboard to add clear text titles, price levels, or notes.",
     shortcut: "T",
+  },
+  annotation: {
+    title: "Annotation Leader Line",
+    desc: "Draw a leader line from any object with an attached callout annotation label badge.",
+    shortcut: "W",
   },
   eraser: {
     title: "Precision Eraser",
@@ -866,7 +892,7 @@ export default function WhiteboardPage() {
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
   const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "bullish_candle" | "bearish_candle">("fibo");
-  const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky">("text");
+  const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky" | "annotation">("text");
 
   // TradingView Style Floating Favorites Toolbar State (Floats anywhere on whole page!)
   const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"]);
@@ -1209,6 +1235,7 @@ export default function WhiteboardPage() {
         else if (key === "b") { setActiveLineTool("bezier"); setActiveTool("bezier"); showToast("Tool: Chart Pattern Path (B)"); }
         else if (key === "n") { setActiveNoteTool("sticky"); setActiveTool("sticky"); showToast("Tool: Sticky Note (N)"); }
         else if (key === "t") { setActiveNoteTool("text"); setActiveTool("text"); showToast("Tool: Text Label (T)"); }
+        else if (key === "w") { setActiveNoteTool("annotation"); setActiveTool("annotation"); showToast("Tool: Annotation Leader Line (W)"); }
         else if (key === "e") { setActiveTool("eraser"); showToast("Tool: Precision Eraser (E)"); }
         else if (key === "z") { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
         else if (key === "f") { setActiveForexTool("fibo"); setActiveTool("fibo"); showToast("Forex Tool: Fibonacci Retracement (F)"); }
@@ -1339,7 +1366,7 @@ export default function WhiteboardPage() {
       setActiveShapeTool(tool);
     } else if (tool === "line" || tool === "arrow" || tool === "bezier") {
       setActiveLineTool(tool);
-    } else if (tool === "text" || tool === "sticky") {
+    } else if (tool === "text" || tool === "sticky" || tool === "annotation") {
       setActiveNoteTool(tool);
     }
   };
@@ -1787,6 +1814,7 @@ export default function WhiteboardPage() {
       currentShape.type === "diamond" ||
       currentShape.type === "arrow" ||
       currentShape.type === "line" ||
+      currentShape.type === "annotation" ||
       currentShape.type === "long" ||
       currentShape.type === "short" ||
       currentShape.type === "fibo" ||
@@ -1829,7 +1857,15 @@ export default function WhiteboardPage() {
     isDrawing.current = false;
 
     if (currentShape) {
-      setShapes((prev) => [...prev, currentShape]);
+      const finalShape = {
+        ...currentShape,
+        text: currentShape.type === "annotation" && !currentShape.text ? "Annotation" : currentShape.text,
+      };
+      setShapes((prev) => [...prev, finalShape]);
+      if (finalShape.type === "annotation") {
+        setSelectedShapeIds([finalShape.id]);
+        setIsInspectorOpen(true);
+      }
       setCurrentShape(null);
       setRedoStack([]);
     }
@@ -1846,16 +1882,15 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
     const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
-    if (hitShape && (hitShape.type === "sticky" || hitShape.type === "text")) {
+    if (hitShape && (hitShape.type === "sticky" || hitShape.type === "text" || hitShape.type === "annotation")) {
       if (hitShape.isLocked) {
-        showToast("Locked note! Unlock it first to edit 🔓");
+        showToast("Locked item! Unlock it first to edit 🔓");
         return;
       }
       setEditingShapeId(hitShape.id);
       setTextValue(hitShape.text || "");
       setIsStickyMode(hitShape.type === "sticky");
       if (hitShape.stickyColor) setStickyColor(hitShape.stickyColor);
-      setTextModalPos(hitShape.points[0] || pt);
       setSelectedShapeIds([hitShape.id]);
     }
   };
@@ -5486,23 +5521,23 @@ export default function WhiteboardPage() {
             {/* 5. TEXT & STICKY NOTES GROUP */}
             <div className="relative">
               <WhiteboardToolBtn
-                active={activeTool === "text" || activeTool === "sticky"}
+                active={activeTool === "text" || activeTool === "sticky" || activeTool === "annotation"}
                 onClick={() => selectTool(activeNoteTool)}
                 onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "notes" ? null : "notes")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "notes" ? null : "notes");
                 }}
-                title="Text & Sticky Notes (Click arrow or right-click to choose tool)"
+                title="Text, Notes & Annotations (Click arrow or right-click to choose tool)"
                 toolKey={activeNoteTool}
-                icon={activeNoteTool === "sticky" ? StickyNote : Type}
+                icon={activeNoteTool === "sticky" ? StickyNote : activeNoteTool === "annotation" ? AnnotationIcon : Type}
                 hasFlyout
                 isFlyoutOpen={flyoutGroup === "notes"}
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "notes" && (
-                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Text & Note Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Text & Annotation Tools</p>
                   <FlyoutToolItem
                     toolKey="text"
                     label="Text Label (T)"
@@ -5511,6 +5546,16 @@ export default function WhiteboardPage() {
                     isFavorited={favoritedTools.includes("text")}
                     onSelect={() => { selectTool("text"); setFlyoutGroup(null); }}
                     onToggleFavorite={() => toggleFavoriteTool("text")}
+                    showTooltips={showTooltips}
+                  />
+                  <FlyoutToolItem
+                    toolKey="annotation"
+                    label="Annotation Leader (W)"
+                    icon={AnnotationIcon}
+                    isActive={activeNoteTool === "annotation"}
+                    isFavorited={favoritedTools.includes("annotation")}
+                    onSelect={() => { selectTool("annotation"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("annotation")}
                     showTooltips={showTooltips}
                   />
                   <FlyoutToolItem
@@ -6820,6 +6865,126 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
+                      {/* (D2) ANNOTATIONS: Callout Leader Lines & Object Labels */}
+                      {targetTool === "annotation" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Annotation & Callout</p>
+
+                          {/* Editable Label Text */}
+                          {selectedShape ? (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Annotation Label</label>
+                              <input
+                                type="text"
+                                value={selectedShape.text || ""}
+                                onChange={(e) => {
+                                  const newTxt = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                placeholder="e.g. Key POI, Equal Highs, Rejection Wick..."
+                                className={`w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-muted">
+                              Drag from any chart element to point a leader line and callout label.
+                            </div>
+                          )}
+
+                          {/* Leader Line & Badge Color */}
+                          <div>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                              <span>Annotation Color</span>
+                              <span className="text-[9px] text-muted font-normal">Line & Badge</span>
+                            </label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    (selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                              <label
+                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden"
+                                title="Custom Hex Color"
+                              >
+                                <input
+                                  type="color"
+                                  value={selectedShape?.color || strokeColor}
+                                  onChange={(e) => applyColorToSelected(e.target.value)}
+                                  disabled={selectedShape?.isLocked}
+                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                />
+                                <span
+                                  className="w-full h-full rounded-full border"
+                                  style={{ background: selectedShape?.color || strokeColor }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Line Style (Solid / Dashed) */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Leader Line Style</label>
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setShapes((prev) =>
+                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, lineStyle: "solid" } : s))
+                                    );
+                                  }}
+                                  disabled={selectedShape.isLocked}
+                                  className={`py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                    selectedShape.lineStyle !== "dashed"
+                                      ? "bg-brand text-white border-brand shadow-2xs"
+                                      : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                                  }`}
+                                >
+                                  Solid Line
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setShapes((prev) =>
+                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, lineStyle: "dashed" } : s))
+                                    );
+                                  }}
+                                  disabled={selectedShape.isLocked}
+                                  className={`py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                    selectedShape.lineStyle === "dashed"
+                                      ? "bg-brand text-white border-brand shadow-2xs"
+                                      : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                                  }`}
+                                >
+                                  Dashed Line
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-xs font-medium space-y-1">
+                            <div className="flex items-center justify-between font-bold">
+                              <span>Annotation Callout</span>
+                              <span className="text-[10px] bg-blue-200 px-1.5 py-0.5 rounded text-blue-800 font-mono">Leader Pin</span>
+                            </div>
+                            <p className="text-[11px] text-blue-700">Anchor point pins the chart object with an attached callout label badge.</p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* (E) STICKY NOTES: Note Content & 5 Pastel Post-It Colors */}
                       {targetTool === "sticky" && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
@@ -8013,6 +8178,24 @@ function HubDiagramThumbnail({
             );
           }
 
+          if (s.type === "annotation" && pts.length >= 2) {
+            const x0 = tx(pts[0].x);
+            const y0 = ty(pts[0].y);
+            const x1 = tx(pts[1].x);
+            const y1 = ty(pts[1].y);
+            const labelStr = s.text?.slice(0, 12) || "Note";
+            return (
+              <g key={s.id || idx}>
+                <circle cx={x0} cy={y0} r={2} fill={color} />
+                <line x1={x0} y1={y0} x2={x1} y2={y1} stroke={color} strokeWidth={1} strokeDasharray={s.lineStyle === "dashed" ? "2 1" : undefined} />
+                <rect x={x1 >= x0 ? x1 : x1 - 32} y={y1 - 7} width={32} height={14} rx={2} fill="#ffffff" stroke={color} strokeWidth={0.75} />
+                <text x={(x1 >= x0 ? x1 : x1 - 32) + 3} y={y1 + 3} fill={color} fontSize={5} fontWeight="bold">
+                  {labelStr}
+                </text>
+              </g>
+            );
+          }
+
           return null;
         })}
       </svg>
@@ -8464,6 +8647,21 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
     );
   }
 
+  if (toolKey === "annotation") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 140 95">
+        {/* Anchor Pin on Object */}
+        <circle cx="28" cy="65" r="4" fill="#3b82f6" className="animate-ping" />
+        <circle cx="28" cy="65" r="4" fill="#3b82f6" />
+        {/* Leader line to callout box */}
+        <path d="M 31 62 L 58 36 H 115" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        {/* Callout Badge */}
+        <rect x="58" y="24" width="62" height="24" rx="4" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="1.5" />
+        <text x="89" y="39" textAnchor="middle" fill="#38bdf8" fontSize="8" fontWeight="bold">Key POI Level</text>
+      </svg>
+    );
+  }
+
   if (toolKey === "eraser") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
@@ -8506,6 +8704,7 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "bezier": return Activity;
     case "sticky": return StickyNote;
     case "text": return Type;
+    case "annotation": return AnnotationIcon;
     case "eraser": return Eraser;
     case "zoom": return Search;
     case "fibo": return Percent;
@@ -8581,6 +8780,7 @@ function resizeShapePoints(shape: Shape, handle: ResizeHandle, pt: { x: number; 
     shape.type === "diamond" ||
     shape.type === "line" ||
     shape.type === "arrow" ||
+    shape.type === "annotation" ||
     shape.type === "fibo" ||
     shape.type === "long" ||
     shape.type === "short" ||
@@ -9081,6 +9281,57 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
   } else if (shape.type === "text" && shape.text) {
     ctx.font = "bold 15px Inter, sans-serif";
     ctx.fillText(shape.text, pts[0].x, pts[0].y);
+  } else if (shape.type === "annotation" && pts.length >= 2) {
+    /* ANNOTATION / CALLOUT LEADER LINE TOOL */
+    const p0 = pts[0]; // Target Anchor Point on object
+    const p1 = pts[1]; // Annotation Callout Badge Position
+
+    const strokeCol = shape.color || "#3b82f6";
+    const strokeW = shape.strokeWidth || 2;
+
+    // 1. Target Pin Anchor (Circle dot on the annotated chart element)
+    ctx.fillStyle = strokeCol;
+    ctx.beginPath();
+    ctx.arc(p0.x, p0.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Leader Line connecting object to callout label
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = strokeW;
+    if (shape.lineStyle === "dashed") {
+      ctx.setLineDash([5, 4]);
+    } else {
+      ctx.setLineDash([]);
+    }
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 3. Callout Text Badge / Pill
+    const textStr = shape.text || "Annotation";
+    ctx.font = "bold 11px Inter, -apple-system, sans-serif";
+    const textMetrics = ctx.measureText(textStr);
+    const badgePadX = 9;
+    const badgeW = Math.max(50, textMetrics.width + badgePadX * 2);
+    const badgeH = 22;
+
+    const isRight = p1.x >= p0.x;
+    const badgeX = isRight ? p1.x : p1.x - badgeW;
+    const badgeY = p1.y - badgeH / 2;
+
+    // Callout Box (Clean White Pill Badge with colored border)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+
+    // Callout Label Text
+    ctx.fillStyle = strokeCol;
+    ctx.fillText(textStr, badgeX + badgePadX, badgeY + 15);
   }
 
   ctx.setLineDash([]);
