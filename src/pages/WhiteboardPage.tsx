@@ -5322,8 +5322,8 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside className="w-14 border-r border-line bg-white p-1.5 flex flex-col items-center justify-between gap-2 shrink-0 z-20 shadow-md">
-          <div className="space-y-1 w-full">
+            <aside className="w-10 border-r border-line bg-white p-1 flex flex-col items-center justify-between gap-1 shrink-0 z-20 shadow-xs select-none">
+          <div className="space-y-1 w-full flex flex-col items-center">
             <WhiteboardToolBtn
               active={activeTool === "select"}
               onClick={() => setActiveTool("select")}
@@ -5703,13 +5703,13 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="space-y-1 w-full border-t border-line pt-2">
-            <div className="flex flex-col gap-1">
+          <div className="space-y-1 w-full border-t border-line pt-1.5 flex flex-col items-center">
+            <div className="flex flex-col gap-1 items-center">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={shapes.length === 0}
-                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30 cursor-pointer"
+                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-ink disabled:opacity-30 transition cursor-pointer"
                 title="Undo (Ctrl + Z)"
               >
                 <RotateCcw className="h-3.5 w-3.5 shrink-0" />
@@ -5718,7 +5718,7 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={handleRedo}
                 disabled={redoStack.length === 0}
-                className="h-8 rounded-xl flex items-center justify-center text-slate-700 hover:bg-cream disabled:opacity-30 cursor-pointer"
+                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-ink disabled:opacity-30 transition cursor-pointer"
                 title="Redo (Ctrl + Y)"
               >
                 <RotateCw className="h-3.5 w-3.5 shrink-0" />
@@ -5728,7 +5728,7 @@ export default function WhiteboardPage() {
               type="button"
               onClick={handleClear}
               disabled={shapes.length === 0}
-              className="w-full h-8 rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 cursor-pointer"
+              className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition cursor-pointer"
               title="Clear Whiteboard"
             >
               <Trash2 className="h-3.5 w-3.5 shrink-0" />
@@ -8748,13 +8748,13 @@ function WhiteboardToolBtn({
         }}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative h-10 w-10 aspect-square rounded-xl flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+        className={`relative h-7.5 w-7.5 aspect-square rounded-lg flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
           active
-            ? "bg-brand text-white shadow-md shadow-brand/20"
-            : "text-slate-700 hover:bg-cream hover:text-ink"
+            ? "bg-brand text-white shadow-xs"
+            : "text-slate-700 hover:bg-slate-100 hover:text-ink"
         }`}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className="h-3.5 w-3.5 shrink-0" />
         {hasFlyout && (
           <span
             onClick={(e) => {
