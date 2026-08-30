@@ -676,23 +676,6 @@ export default function WhiteboardPage() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // Responsive Screen Guard with Bypass
-  const [bypassMobileGuard, setBypassMobileGuard] = useState(false);
-  const [isMobileScreen, setIsMobileScreen] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth < 640;
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobileScreen(window.innerWidth < 640);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   // Whiteboard View Mode (Defaults to Canvas)
   const [viewMode, setViewMode] = useState<"hub" | "canvas">("canvas");
   const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash" | "guide">("drafts");
@@ -3200,74 +3183,6 @@ export default function WhiteboardPage() {
       </div>
     );
   };
-
-  /* -------------------------------------------------------------------------- */
-  /*               MOBILE RESTRICTION GUARD (< 1024px VIEWPORT)                 */
-  /* -------------------------------------------------------------------------- */
-  if (isMobileScreen && !bypassMobileGuard) {
-    return (
-      <div className="fixed inset-0 z-[99999] h-screen w-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 overflow-y-auto select-none">
-        {/* Background Radial Glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.18)_0%,transparent_70%)] pointer-events-none" />
-
-        <div className="relative z-10 max-w-md w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-          {/* Logo Header */}
-          <div className="flex justify-center">
-            <Logo variant="light" />
-          </div>
-
-          {/* Desktop Graphic Visual */}
-          <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-3xl bg-brand/20 animate-pulse" />
-            <div className="relative z-10 h-16 w-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-md">
-              <Monitor className="h-8 w-8 text-brand" />
-            </div>
-          </div>
-
-          {/* Badge & Headings */}
-          <div className="space-y-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/30 text-[10.5px] font-black uppercase tracking-wider">
-              <AlertTriangle className="h-3.5 w-3.5" /> Desktop Optimized
-            </span>
-            <h1 className="text-xl sm:text-2xl font-extrabold font-display text-white tracking-tight">
-              Best Viewed on Desktop
-            </h1>
-            <p className="text-xs text-slate-300 leading-relaxed max-w-sm mx-auto">
-              The Whiteboard is optimized for desktop and larger screens. You can continue to the whiteboard or files menu below.
-            </p>
-          </div>
-
-          {/* Direct Action Buttons */}
-          <div className="space-y-2 pt-1">
-            <button
-              type="button"
-              onClick={() => setBypassMobileGuard(true)}
-              className="w-full btn-primary !py-2.5 text-xs font-bold shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <LayoutTemplate className="h-4 w-4" /> Continue to Whiteboard Workspace
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode("hub");
-                setBypassMobileGuard(true);
-              }}
-              className="w-full py-2.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <FileImage className="h-4 w-4" /> Open Files & Diagrams Hub
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="w-full py-2 rounded-xl text-[11px] font-bold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Home className="h-3.5 w-3.5" /> Return to Platform
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   /* -------------------------------------------------------------------------- */
   /*                        VIEW MODE 1: FIGMA-STYLE HUB                        */
