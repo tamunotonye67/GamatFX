@@ -361,7 +361,16 @@ type Shape = {
   opacity?: number;
   cornerRadius?: number;
   strokeWidth: number;
-  lineStyle?: "solid" | "dashed";
+  lineStyle?: "solid" | "dashed" | "dotted" | "dash-dot" | "long-dash";
+  lineCap?: "round" | "butt" | "square";
+  lineJoin?: "round" | "miter" | "bevel";
+  arrowStart?: "none" | "arrow" | "circle" | "diamond" | "bar";
+  arrowEnd?: "none" | "arrow" | "circle" | "diamond" | "bar";
+  curvature?: number;
+  isGlowing?: boolean;
+  glowColor?: string;
+  isRay?: boolean;
+  dashLength?: number;
   candleStyle?: "solid" | "translucent" | "hollow";
   upperWickLength?: number;
   lowerWickLength?: number;
@@ -849,6 +858,18 @@ export default function WhiteboardPage() {
   const [snapToObjects, setSnapToObjects] = useState(true);
   const [snapToAngles, setSnapToAngles] = useState(true);
   const [canvasAspectRatio, setCanvasAspectRatio] = useState<"infinite" | "16:9" | "4:3" | "1:1" | "9:16" | "21:9">("infinite");
+  
+  // Line Patterns & Vector Stroke Modifiers State
+  const [activeLinePattern, setActiveLinePattern] = useState<"solid" | "dashed" | "dotted" | "dash-dot" | "long-dash">("solid");
+  const [activeDashLength, setActiveDashLength] = useState<number>(8);
+  const [activeLineCap, setActiveLineCap] = useState<"round" | "butt" | "square">("round");
+  const [activeLineJoin, setActiveLineJoin] = useState<"round" | "miter" | "bevel">("round");
+  const [activeArrowStart, setActiveArrowStart] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("none");
+  const [activeArrowEnd, setActiveArrowEnd] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("arrow");
+  const [activeLineGlow, setActiveLineGlow] = useState<boolean>(false);
+  const [activeLineCurvature, setActiveLineCurvature] = useState<number>(0);
+  const [activeIsRay, setActiveIsRay] = useState<boolean>(false);
+
   const [patternSearch, setPatternSearch] = useState("");
   const [patternCategory, setPatternCategory] = useState<"all" | "reversal" | "wedges" | "harmonic" | "smc" | "candles">("all");
 
@@ -7393,148 +7414,309 @@ export default function WhiteboardPage() {
           </div>
         )}
 
-        {/* TAB 9: TECHNICAL PATTERNS & FORMATIONS LIBRARY */}
-        {tabKey === "patterns" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
-            {/* Header */}
-            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
-                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </span>
-                <span className="truncate">Patterns & Strategy Formations</span>
-              </div>
-            </div>
+                {/* TAB 9: LINE PATTERNS & VECTOR PATH MODIFIERS */}
+        {tabKey === "patterns" && (() => {
+          const selectedLines = shapes.filter((s) => selectedShapeIds.includes(s.id));
+          const hasSelection = selectedLines.length > 0;
+          const targetShape = selectedLines[0] || selectedShape;
 
-            {/* Search and Category Filter */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted pointer-events-none" />
-                <input
-                  type="text"
-                  value={patternSearch}
-                  onChange={(e) => setPatternSearch(e.target.value)}
-                  placeholder="Search patterns (e.g. double bottom, head & shoulders, wave, flag)..."
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-line bg-white text-[11px] text-ink placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-brand"
-                />
-              </div>
+          const currentStyle = targetShape?.lineStyle || activeLinePattern;
+          const currentStrokeWidth = targetShape?.strokeWidth || strokeWidth;
+          const currentColor = targetShape?.color || strokeColor;
+          const currentCap = targetShape?.lineCap || activeLineCap;
+          const currentStartArrow = targetShape?.arrowStart || activeArrowStart;
+          const currentEndArrow = targetShape?.arrowEnd || activeArrowEnd;
+          const currentGlow = targetShape?.isGlowing ?? activeLineGlow;
+          const currentRay = targetShape?.isRay ?? activeIsRay;
 
-              {/* Category Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">
-                {[
-                  { id: "all", label: "All" },
-                  { id: "reversal", label: "Reversal" },
-                  { id: "wedges", label: "Flags & Wedges" },
-                  { id: "harmonic", label: "Waves & Harmonic" },
-                  { id: "smc", label: "SMC & Liquidity" },
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setPatternCategory(c.id as any)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 transition cursor-pointer ${
-                      patternCategory === c.id
-                        ? "bg-brand text-white shadow-2xs"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Patterns Grid */}
-            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1 [scrollbar-width:thin]">
-              {[
-                {
-                  id: "double_bottom",
-                  title: "Double Bottom (W-Pattern)",
-                  category: "reversal",
-                  type: "Bullish Reversal",
-                  desc: "Twin troughs with BOS neckline breakout confirmation",
-                  color: "#10b981",
-                },
-                {
-                  id: "double_top",
-                  title: "Double Top (M-Pattern)",
-                  category: "reversal",
-                  type: "Bearish Reversal",
-                  desc: "Twin peaks with neckline breakdown confirmation",
-                  color: "#ef4444",
-                },
-                {
-                  id: "head_and_shoulders",
-                  title: "Head & Shoulders",
-                  category: "reversal",
-                  type: "Bearish Reversal",
-                  desc: "Left shoulder, Head, Right shoulder with neckline break",
-                  color: "#ef4444",
-                },
-                {
-                  id: "bull_flag",
-                  title: "Bullish Flag & Pole",
-                  category: "wedges",
-                  type: "Continuation",
-                  desc: "Strong impulsive surge followed by tight consolidation flag",
-                  color: "#10b981",
-                },
-                {
-                  id: "elliott_wave",
-                  title: "Elliott Wave (1-2-3-4-5)",
-                  category: "harmonic",
-                  type: "Trend Structure",
-                  desc: "Five-wave directional impulse cycle structure",
-                  color: "#0284c7",
-                },
-                {
-                  id: "smc_liquidity",
-                  title: "SMC Liquidity Sweep & BOS",
-                  category: "smc",
-                  type: "Institutional",
-                  desc: "Buy-side liquidity grab with rapid displacement breakdown",
-                  color: "#f59e0b",
-                },
-              ]
-                .filter(
-                  (p) =>
-                    (patternCategory === "all" || p.category === patternCategory) &&
-                    (!patternSearch ||
-                      p.title.toLowerCase().includes(patternSearch.toLowerCase()) ||
-                      p.desc.toLowerCase().includes(patternSearch.toLowerCase()))
+          const applyToTargetOrSelection = (updates: Partial<Shape>) => {
+            if (hasSelection) {
+              setShapes((prev) =>
+                prev.map((s) =>
+                  selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, ...updates } : s
                 )
-                .map((pat) => (
-                  <div
-                    key={pat.id}
-                    className="p-3 rounded-2xl border border-line bg-slate-50/70 hover:bg-white hover:border-brand/40 transition shadow-2xs space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="h-2 w-2 rounded-full shrink-0"
-                          style={{ backgroundColor: pat.color }}
-                        />
-                        <span className="font-extrabold text-xs text-ink">{pat.title}</span>
-                      </div>
-                      <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[8.5px] font-black uppercase">
-                        {pat.type}
-                      </span>
-                    </div>
+              );
+            }
+          };
 
-                    <p className="text-[10px] text-muted leading-relaxed">{pat.desc}</p>
+          return (
+            <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
+              {/* Header */}
+              <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                  <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                    <Spline className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate">Line Patterns & Stroke Styling</span>
+                </div>
+                {hasSelection && (
+                  <span className="px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9.5px] font-black uppercase tracking-wider shrink-0">
+                    {selectedLines.length} Selected
+                  </span>
+                )}
+              </div>
 
+              {/* 1. Line Patterns & Dash Presets */}
+              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                  <span>Line Pattern Style</span>
+                  <span className="text-[9px] text-brand font-black capitalize">{currentStyle}</span>
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: "solid", label: "Solid", desc: "━━━━" },
+                    { id: "dashed", label: "Dashed", desc: "╍ ╍ ╍" },
+                    { id: "dotted", label: "Dotted", desc: "• • • •" },
+                    { id: "dash-dot", label: "Dash-Dot", desc: "╍ • ╍ •" },
+                    { id: "long-dash", label: "Long Dash", desc: "━━  ━━" },
+                  ].map((pat) => (
                     <button
+                      key={pat.id}
                       type="button"
-                      onClick={() => handleInsertPattern(pat.id, pat.title)}
-                      className="w-full py-1.5 rounded-xl bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                      onClick={() => {
+                        setActiveLinePattern(pat.id as any);
+                        applyToTargetOrSelection({ lineStyle: pat.id as any });
+                        showToast(`Line Pattern: ${pat.label}`);
+                      }}
+                      className={`p-2 rounded-xl border text-center font-bold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                        currentStyle === pat.id
+                          ? "bg-brand text-white border-brand shadow-xs"
+                          : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                      }`}
                     >
-                      <Plus className="h-3 w-3" /> Insert onto Canvas
+                      <span className="text-[11px] font-bold">{pat.label}</span>
+                      <span className="text-[9px] tracking-widest opacity-80 font-mono">{pat.desc}</span>
                     </button>
+                  ))}
+                </div>
+
+                {/* Custom Dash Length if Dashed */}
+                {(currentStyle === "dashed" || currentStyle === "long-dash") && (
+                  <div className="space-y-1 pt-1 border-t border-line">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-muted">
+                      <span>Dash Segment Length</span>
+                      <span className="text-brand font-black">{targetShape?.dashLength || activeDashLength}px</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[4, 8, 12, 18].map((dLen) => (
+                        <button
+                          key={dLen}
+                          type="button"
+                          onClick={() => {
+                            setActiveDashLength(dLen);
+                            applyToTargetOrSelection({ dashLength: dLen });
+                            showToast(`Dash length: ${dLen}px`);
+                          }}
+                          className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
+                            (targetShape?.dashLength || activeDashLength) === dLen
+                              ? "bg-brand text-white border-brand"
+                              : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                          }`}
+                        >
+                          {dLen}px
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
+              </div>
+
+              {/* 2. Line Thickness & Color */}
+              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-muted">Line Thickness</label>
+                  <span className="text-[10px] font-black text-brand">{currentStrokeWidth}px</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1">
+                  {[1, 2, 3, 5, 8].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => {
+                        setStrokeWidth(w);
+                        applyToTargetOrSelection({ strokeWidth: w });
+                        showToast(`Thickness: ${w}px`);
+                      }}
+                      className={`py-1.5 rounded-xl border text-[10.5px] font-black cursor-pointer ${
+                        currentStrokeWidth === w
+                          ? "bg-brand text-white border-brand shadow-2xs"
+                          : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {w}px
+                    </button>
+                  ))}
+                </div>
+
+                {/* Color Swatches */}
+                <div className="space-y-1.5 pt-1 border-t border-line">
+                  <label className="text-[10px] font-black uppercase tracking-wider text-muted">Line Color</label>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      "#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b",
+                      "#8b5cf6", "#06b6d4", "#ec4899", "#64748b", "#ffffff"
+                    ].map((col) => (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => {
+                          setStrokeColor(col);
+                          applyToTargetOrSelection({ color: col, strokeColor: col });
+                          showToast(`Line Color updated`);
+                        }}
+                        style={{ backgroundColor: col }}
+                        className={`h-6 w-6 rounded-full border shadow-2xs transition-transform cursor-pointer ${
+                          currentColor === col ? "scale-125 ring-2 ring-brand ring-offset-1" : "hover:scale-110 border-slate-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Terminal Endpoints & Arrowheads */}
+              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+                <label className="text-[10px] font-black uppercase tracking-wider text-muted">Endpoint Terminals</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Start Point */}
+                  <div className="space-y-1">
+                    <span className="text-[9.5px] font-bold text-slate-500">Start Terminal</span>
+                    <select
+                      value={currentStartArrow}
+                      onChange={(e) => {
+                        setActiveArrowStart(e.target.value as any);
+                        applyToTargetOrSelection({ arrowStart: e.target.value as any });
+                        showToast(`Start Terminal: ${e.target.value}`);
+                      }}
+                      className="w-full rounded-xl border border-line bg-slate-50 p-1.5 text-[10.5px] font-bold text-ink outline-none focus:border-brand cursor-pointer"
+                    >
+                      <option value="none">None (Plain)</option>
+                      <option value="arrow">Arrow Head ◀</option>
+                      <option value="circle">Circle Dot ●</option>
+                      <option value="diamond">Diamond ◆</option>
+                      <option value="bar">Flat Bar ▎</option>
+                    </select>
+                  </div>
+
+                  {/* End Point */}
+                  <div className="space-y-1">
+                    <span className="text-[9.5px] font-bold text-slate-500">End Terminal</span>
+                    <select
+                      value={currentEndArrow}
+                      onChange={(e) => {
+                        setActiveArrowEnd(e.target.value as any);
+                        applyToTargetOrSelection({ arrowEnd: e.target.value as any });
+                        showToast(`End Terminal: ${e.target.value}`);
+                      }}
+                      className="w-full rounded-xl border border-line bg-slate-50 p-1.5 text-[10.5px] font-bold text-ink outline-none focus:border-brand cursor-pointer"
+                    >
+                      <option value="none">None (Plain)</option>
+                      <option value="arrow">Arrow Head ▶</option>
+                      <option value="circle">Circle Dot ●</option>
+                      <option value="diamond">Diamond ◆</option>
+                      <option value="bar">Flat Bar ▎</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Line Caps */}
+                <div className="space-y-1 pt-1 border-t border-line">
+                  <span className="text-[9.5px] font-bold text-slate-500">Line Cap & Join Style</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {[
+                      { id: "round", label: "Round" },
+                      { id: "butt", label: "Flat (Butt)" },
+                      { id: "square", label: "Square" },
+                    ].map((cap) => (
+                      <button
+                        key={cap.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveLineCap(cap.id as any);
+                          applyToTargetOrSelection({ lineCap: cap.id as any });
+                          showToast(`Line Cap: ${cap.label}`);
+                        }}
+                        className={`py-1 rounded-lg border text-[10px] font-bold cursor-pointer ${
+                          currentCap === cap.id
+                            ? "bg-brand text-white border-brand"
+                            : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        {cap.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Effects: Glow & Infinite Ray Projection */}
+              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-muted">Effects & Projections</label>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <div>
+                    <span className="font-bold text-[11px] text-ink block">Neon Stroke Glow</span>
+                    <span className="text-[9px] text-muted">Adds luminous neon outer glow</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={currentGlow}
+                    onChange={(e) => {
+                      setActiveLineGlow(e.target.checked);
+                      applyToTargetOrSelection({ isGlowing: e.target.checked });
+                      showToast(e.target.checked ? "Neon Glow Enabled" : "Neon Glow Disabled");
+                    }}
+                    className="accent-brand cursor-pointer h-4 w-4"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <div>
+                    <span className="font-bold text-[11px] text-ink block">Infinite Ray Mode</span>
+                    <span className="text-[9px] text-muted">Extends line infinitely across chart bounds</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={currentRay}
+                    onChange={(e) => {
+                      setActiveIsRay(e.target.checked);
+                      applyToTargetOrSelection({ isRay: e.target.checked });
+                      showToast(e.target.checked ? "Ray Projection Enabled" : "Ray Projection Disabled");
+                    }}
+                    className="accent-brand cursor-pointer h-4 w-4"
+                  />
+                </div>
+              </div>
+
+              {/* Batch Actions */}
+              <div className="space-y-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const lineShapeTypes: Tool[] = ["line", "arrow", "bezier", "fibo", "orderblock", "fvg", "bos", "liquidity", "pencil", "rectangle", "circle", "diamond"];
+                    setShapes((prev) =>
+                      prev.map((s) =>
+                        lineShapeTypes.includes(s.type) && !s.isLocked
+                          ? {
+                              ...s,
+                              lineStyle: currentStyle,
+                              strokeWidth: currentStrokeWidth,
+                              lineCap: currentCap,
+                              isGlowing: currentGlow,
+                            }
+                          : s
+                      )
+                    );
+                    showToast(`Applied line pattern "${currentStyle}" to all lines on canvas!`);
+                  }}
+                  className="w-full py-2 rounded-xl border border-brand bg-brand-light text-brand text-[11px] font-extrabold hover:bg-brand hover:text-white transition shadow-2xs cursor-pointer"
+                >
+                  Apply Pattern to All Lines on Canvas
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     );
   };
@@ -9960,7 +10142,7 @@ export default function WhiteboardPage() {
           ? "Grid, Guidelines & Snap"
           : panelKey === "theme"
           ? "Theme & Canvas Framing"
-          : "Pattern Formations Library";
+          : "Line Patterns & Stroke Modifier";
 
       const PIcon =
         panelKey === "inspector"
@@ -10190,7 +10372,7 @@ export default function WhiteboardPage() {
                     rightPanelTab === "patterns" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <Sparkles className="h-3 w-3" /> Patterns
+                  <Spline className="h-3 w-3" /> Line Pattern
                 </button>
               </>
             )}
@@ -10620,7 +10802,7 @@ export default function WhiteboardPage() {
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={detachedPanels.patterns.isOpen ? "Focus Floating Patterns" : "Pattern Formations Library"}
+                  title={detachedPanels.patterns.isOpen ? "Focus Floating Line Patterns" : "Line Patterns & Stroke Modifier"}
                 >
                   <Sparkles className="h-4 w-4" />
                   {detachedPanels.patterns.isOpen && (
@@ -11830,10 +12012,26 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
+  ctx.lineCap = (shape.lineCap as CanvasLineCap) || "round";
+  ctx.lineJoin = (shape.lineJoin as CanvasLineJoin) || "round";
+
   if (shape.lineStyle === "dashed") {
-    ctx.setLineDash([8, 6]);
+    ctx.setLineDash([shape.dashLength || 8, 6]);
+  } else if (shape.lineStyle === "dotted") {
+    ctx.setLineDash([3, 4]);
+  } else if (shape.lineStyle === "dash-dot") {
+    ctx.setLineDash([10, 4, 3, 4]);
+  } else if (shape.lineStyle === "long-dash") {
+    ctx.setLineDash([20, 8]);
   } else {
     ctx.setLineDash([]);
+  }
+
+  if (shape.isGlowing) {
+    ctx.shadowBlur = (shape.strokeWidth || 2) * 3.5;
+    ctx.shadowColor = shape.glowColor || shape.color;
+  } else {
+    ctx.shadowBlur = 0;
   }
 
   if (shape.type === "pencil") {
