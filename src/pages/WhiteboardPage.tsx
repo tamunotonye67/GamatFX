@@ -58,6 +58,9 @@ import {
   Percent,
   Minus,
   Link2,
+  Monitor,
+  Smartphone,
+  Laptop,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -638,6 +641,22 @@ export default function WhiteboardPage() {
   const { user, isAuthed, logout, isAdmin } = useStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // Screen Size Detection for Mobile Restriction Guard
+  const [isMobileScreen, setIsMobileScreen] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth < 1024;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileScreen(window.innerWidth < 1024);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Figma-Style Whiteboard Hub Launcher State (Defaults to Hub on Login)
   const [viewMode, setViewMode] = useState<"hub" | "canvas">("hub");
@@ -3022,6 +3041,90 @@ export default function WhiteboardPage() {
       </div>
     );
   };
+
+  /* -------------------------------------------------------------------------- */
+  /*               MOBILE RESTRICTION GUARD (< 1024px VIEWPORT)                 */
+  /* -------------------------------------------------------------------------- */
+  if (isMobileScreen) {
+    return (
+      <div className="fixed inset-0 z-[99999] h-screen w-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 overflow-y-auto select-none">
+        {/* Background Radial Glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.18)_0%,transparent_70%)] pointer-events-none" />
+
+        <div className="relative z-10 max-w-md w-full text-center space-y-6 animate-in fade-in zoom-in-95 duration-200">
+          {/* Logo Header */}
+          <div className="flex justify-center">
+            <Logo variant="light" />
+          </div>
+
+          {/* Desktop & Restricted Phone Graphic Visual */}
+          <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-3xl bg-brand/20 animate-pulse" />
+            <div className="relative z-10 h-20 w-20 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-md">
+              <Monitor className="h-10 w-10 text-brand" />
+              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-lg border-2 border-slate-950">
+                <Smartphone className="h-3.5 w-3.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Badge & Headings */}
+          <div className="space-y-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/30 text-[10.5px] font-black uppercase tracking-wider">
+              <AlertTriangle className="h-3.5 w-3.5" /> Desktop Experience Only
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-white tracking-tight">
+              Desktop Screen Required
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm mx-auto">
+              The GAMAT FX Institutional Whiteboard is designed exclusively for desktop and laptop displays with precision keyboard and mouse markup controls.
+            </p>
+          </div>
+
+          {/* Features Included on Desktop */}
+          <div className="p-4.5 rounded-2xl bg-white/[0.04] border border-white/10 text-left space-y-3 text-xs text-slate-200">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Desktop-Optimized Workspace:</p>
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-medium">
+              <div className="flex items-center gap-2">
+                <span className="text-brand font-black">✓</span>
+                <span>Infinite 4K Canvas</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-brand font-black">✓</span>
+                <span>SMC Order Block Tools</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-brand font-black">✓</span>
+                <span>Multi-Tab Syncing</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-brand font-black">✓</span>
+                <span>Candlestick Wick Adjusters</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Action Buttons */}
+          <div className="space-y-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="w-full btn-primary !py-3 text-xs font-bold shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Home className="h-4 w-4" /> Return to Platform
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/courses")}
+              className="w-full py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-bold text-white transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <BookOpen className="h-4 w-4" /> Explore Academy Courses
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* -------------------------------------------------------------------------- */
   /*                        VIEW MODE 1: FIGMA-STYLE HUB                        */
