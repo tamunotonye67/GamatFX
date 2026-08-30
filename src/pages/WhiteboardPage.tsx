@@ -811,12 +811,12 @@ export default function WhiteboardPage() {
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash">("inspector");
   const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
-    inspector: { isOpen: false, x: 80, y: 70, zIndex: 40 },
-    layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(80, window.innerWidth - 380) : 700, y: 70, zIndex: 40 },
-    character: { isOpen: false, x: 260, y: 120, zIndex: 40 },
-    drafts: { isOpen: false, x: 180, y: 90, zIndex: 40 },
-    samples: { isOpen: false, x: 300, y: 80, zIndex: 40 },
-    trash: { isOpen: false, x: 350, y: 110, zIndex: 40 },
+    inspector: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    character: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    drafts: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    samples: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    trash: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
   });
   const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
   const draggingPanelKey = useRef<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | null>(null);
@@ -945,15 +945,19 @@ export default function WhiteboardPage() {
   const detachIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash", customX?: number, customY?: number) => {
     const newZ = highestPanelZIndex + 1;
     setHighestPanelZIndex(newZ);
+    const defaultX = typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700;
+    const defaultY = 55;
     setDetachedPanels((prev) => ({
       ...prev,
       [panelId]: {
         isOpen: true,
-        x: customX ?? Math.max(20, Math.min(window.innerWidth - 350, prev[panelId].x)),
-        y: customY ?? Math.max(60, Math.min(window.innerHeight - 150, prev[panelId].y)),
+        x: customX ?? (prev[panelId].isOpen ? prev[panelId].x : defaultX),
+        y: customY ?? (prev[panelId].isOpen ? prev[panelId].y : defaultY),
         zIndex: newZ,
       },
     }));
+    // Once detached, automatically close the nested group / docked sidebar so the panel stays right at that area!
+    setIsInspectorOpen(false);
     const panelName =
       panelId === "inspector"
         ? "Inspector"
@@ -9242,6 +9246,17 @@ export default function WhiteboardPage() {
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Click to float)"
+                  onClick={() => detachIndividualPanel("character")}
+                >
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
               </div>
 
               {/* Edge-to-Edge Separator Line separating the two nested groups */}
@@ -9379,6 +9394,17 @@ export default function WhiteboardPage() {
                     <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
+
+                {/* Horizontal Detachable Indicator Dots */}
+                <div
+                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  title="Detachable Panel Group (Click to float)"
+                  onClick={() => detachIndividualPanel("trash")}
+                >
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
+                </div>
               </div>
             </div>
 
