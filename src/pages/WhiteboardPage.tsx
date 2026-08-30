@@ -5224,8 +5224,10 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
-      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-30 relative">
+      {/* Outer Viewport Container: Sub-Header Tabs + Canvas Workspace + Full-Height Floating Inspector */}
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
+        <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-20 relative">
         {/* Left Side: Home Icon Hub Link & Active Tabs List */}
         <div className="flex items-center gap-3 shrink-0 min-w-0 flex-1 overflow-hidden">
           <button
@@ -6603,41 +6605,44 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Right Inspector & Photoshop-Style Layers Panel (Spanning from Tab Area Top to Viewport Bottom, Flush Right) */}
-          {isInspectorOpen && (
-            <aside className="absolute right-0 top-[-2.5rem] bottom-0 z-40 w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
-              {/* FIXED UNMOVABLE Panel Header & Inspector / Layers Tab Switcher */}
-              <div className="flex items-center justify-between border-b border-line p-3.5 pb-2.5 bg-white/95 backdrop-blur-md shrink-0 z-10">
-                <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
-                  <button
-                    type="button"
-                    onClick={() => setRightPanelTab("inspector")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                      rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                    }`}
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRightPanelTab("layers")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                      rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                    }`}
-                  >
-                    <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
-                  </button>
-                </div>
+        </main>
+      </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsInspectorOpen(false)}
-                  className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
-                  title="Collapse Panel"
-                >
-                  <PanelRightClose className="h-4 w-4" />
-                </button>
-              </div>
+      {/* Right Inspector & Photoshop-Style Layers Panel (Spanning from Tab Area Top to Viewport Bottom, Flush Right) */}
+      {isInspectorOpen && (
+        <aside className="absolute right-0 top-0 bottom-0 z-40 w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
+          {/* FIXED UNMOVABLE Panel Header & Inspector / Layers Tab Switcher (h-10 matches Sub-Header Tabs Bar height) */}
+          <div className="h-10 border-b border-line px-3.5 bg-white/95 backdrop-blur-md flex items-center justify-between shrink-0 z-10">
+            <div className="flex items-center gap-1 rounded-xl bg-cream p-0.5 border border-line">
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("inspector")}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                  rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                }`}
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightPanelTab("layers")}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                  rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsInspectorOpen(false)}
+              className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
+              title="Collapse Panel"
+            >
+              <PanelRightClose className="h-4 w-4" />
+            </button>
+          </div>
 
               {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
@@ -7853,15 +7858,14 @@ export default function WhiteboardPage() {
               </div>
 
               {/* FIXED Panel Footer Stats */}
-              <div className="border-t border-line px-4 py-2.5 bg-cream/60 text-[10px] text-muted flex items-center justify-between font-bold shrink-0">
+              <div className="border-t border-line px-4 py-2 bg-cream/60 text-[10px] text-muted flex items-center justify-between font-bold shrink-0">
                 <span>Total Layers: {shapes.length}</span>
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
               </div>
             </aside>
           )}
-        </main>
+        </div>
       </div>
-    </div>
   );
 }
 
