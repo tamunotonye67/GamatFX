@@ -1869,13 +1869,17 @@ export default function WhiteboardPage() {
   /* ------------------------- Drawing & Selection Handlers ------------------- */
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setExportOpen(false);
+    setFileMenuOpen(false);
+    setEditMenuOpen(false);
+    setViewMenuOpen(false);
+    setInsertMenuOpen(false);
     setBgOpen(false);
+    setExportOpen(false);
+    setUserMenuOpen(false);
     setSettingsOpen(false);
     setFlyoutGroup(null);
     setContextMenu(null);
     setTabContextMenu(null);
-    setInsertMenuOpen(false);
 
     if (activeTool === "hand" || isSpaceHeld || isSpacePressed.current || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -8031,7 +8035,7 @@ export default function WhiteboardPage() {
         {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
         <div className="flex items-center gap-2.5 h-full shrink-0">
           {/* Compact Ash Grey Overlay Menu Bar */}
-          <div className="flex items-center h-8 shrink-0 text-[11.5px] font-semibold text-slate-700 bg-slate-100 rounded-lg px-1 border border-slate-300 shadow-2xs">
+          <div className="ash-menubar-container flex items-center h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none px-0.5 border border-slate-300 shadow-xs divide-x divide-slate-300">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -8045,8 +8049,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  fileMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                  fileMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="File Operations"
               >
@@ -8054,19 +8058,19 @@ export default function WhiteboardPage() {
               </button>
 
               {fileMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1">
+                <div className="absolute left-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
                   <button
                     type="button"
                     onClick={() => {
                       setFileMenuOpen(false);
                       handleAddNewTab();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Plus className="h-3.5 w-3.5 text-brand" /> New Diagram
+                    <span className="flex items-center gap-2.5">
+                      <Plus className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> New Diagram
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+N</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+N</span>
                   </button>
 
                   <button
@@ -8075,10 +8079,10 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       setCreateCanvasModalOpen(true);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5 text-amber-500" /> New Canvas Setup...
+                    <span className="flex items-center gap-2.5">
+                      <Sparkles className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Setup Canvas...
                     </span>
                   </button>
 
@@ -8088,28 +8092,15 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleSaveCurrentDraft();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Save className="h-3.5 w-3.5 text-emerald-600" /> Save as Draft
+                    <span className="flex items-center gap-2.5">
+                      <Save className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Save as Draft
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+S</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+S</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFileMenuOpen(false);
-                      setInsertMenuOpen(true);
-                    }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <FolderKanban className="h-3.5 w-3.5 text-sky-600" /> Open Drafts & Samples...
-                    </span>
-                  </button>
-
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
                   <button
                     type="button"
@@ -8117,11 +8108,26 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleExport("png");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <FileImage className="h-3.5 w-3.5 text-slate-500" /> Quick Export PNG
+                    <span className="flex items-center gap-2.5">
+                      <FileImage className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Export PNG
                     </span>
+                    <span className="text-[9px] px-1 bg-slate-200 text-slate-700 font-mono">PNG</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleExport("jpeg");
+                    }}
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <FileImage className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Export JPEG
+                    </span>
+                    <span className="text-[9px] px-1 bg-slate-200 text-slate-700 font-mono">JPG</span>
                   </button>
 
                   <button
@@ -8130,14 +8136,15 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleExport("svg");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <FileCode className="h-3.5 w-3.5 text-slate-500" /> Quick Export SVG
+                    <span className="flex items-center gap-2.5">
+                      <FileCode className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Export SVG Vector
                     </span>
+                    <span className="text-[9px] px-1 bg-slate-200 text-slate-700 font-mono">SVG</span>
                   </button>
 
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
                   <button
                     type="button"
@@ -8149,9 +8156,9 @@ export default function WhiteboardPage() {
                         showToast("Cleared canvas");
                       }
                     }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                    className="flex w-full items-center gap-2.5 rounded-none px-3 py-1.5 text-left text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
                   >
-                    <Trash2 className="h-3.5 w-3.5" /> Clear Canvas
+                    <Trash2 className="h-3.5 w-3.5 stroke-[1.5]" /> Clear All Canvas Shapes
                   </button>
 
                   <button
@@ -8160,19 +8167,16 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleCloseTab(activeTabId);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <X className="h-3.5 w-3.5" /> Close Tab
+                    <span className="flex items-center gap-2.5">
+                      <X className="h-3.5 w-3.5 stroke-[1.5]" /> Close Active Tab
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+W</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+W</span>
                   </button>
                 </div>
               )}
             </div>
-
-            {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 2. EDIT MENU */}
             <div className="relative h-full flex items-center">
@@ -8187,8 +8191,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  editMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                  editMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Edit Operations"
               >
@@ -8196,19 +8200,19 @@ export default function WhiteboardPage() {
               </button>
 
               {editMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1">
+                <div className="absolute left-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
                   <button
                     type="button"
                     onClick={() => {
                       setEditMenuOpen(false);
                       undo();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Undo className="h-3.5 w-3.5 text-slate-500" /> Undo
+                    <span className="flex items-center gap-2.5">
+                      <Undo className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Undo
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+Z</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Z</span>
                   </button>
 
                   <button
@@ -8217,15 +8221,15 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       redo();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Redo className="h-3.5 w-3.5 text-slate-500" /> Redo
+                    <span className="flex items-center gap-2.5">
+                      <Redo className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Redo
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+Y</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Y</span>
                   </button>
 
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
                   <button
                     type="button"
@@ -8233,12 +8237,12 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       copySelectedShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Copy className="h-3.5 w-3.5 text-slate-500" /> Copy
+                    <span className="flex items-center gap-2.5">
+                      <Copy className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Copy
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+C</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+C</span>
                   </button>
 
                   <button
@@ -8247,12 +8251,12 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       pasteShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Clipboard className="h-3.5 w-3.5 text-slate-500" /> Paste
+                    <span className="flex items-center gap-2.5">
+                      <Clipboard className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Paste
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+V</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+V</span>
                   </button>
 
                   <button
@@ -8261,12 +8265,12 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       duplicateSelectedShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Layers className="h-3.5 w-3.5 text-slate-500" /> Duplicate
+                    <span className="flex items-center gap-2.5">
+                      <Layers className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Duplicate
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+D</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+D</span>
                   </button>
 
                   <button
@@ -8275,15 +8279,15 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       deleteSelectedShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                    <span className="flex items-center gap-2.5">
+                      <Trash2 className="h-3.5 w-3.5 stroke-[1.5]" /> Delete Selected
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Del</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Del</span>
                   </button>
 
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
                   <button
                     type="button"
@@ -8292,12 +8296,12 @@ export default function WhiteboardPage() {
                       setSelectedShapeIds(shapes.map((s) => s.id));
                       showToast("Selected all shapes");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <CheckSquare className="h-3.5 w-3.5 text-slate-500" /> Select All
+                    <span className="flex items-center gap-2.5">
+                      <CheckSquare className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Select All
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+A</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+A</span>
                   </button>
 
                   <button
@@ -8307,19 +8311,16 @@ export default function WhiteboardPage() {
                       setSelectedShapeIds([]);
                       showToast("Deselected all");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Square className="h-3.5 w-3.5 text-slate-500" /> Deselect All
+                    <span className="flex items-center gap-2.5">
+                      <Square className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Deselect All
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Esc</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Esc</span>
                   </button>
                 </div>
               )}
             </div>
-
-            {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 3. VIEW MENU */}
             <div className="relative h-full flex items-center">
@@ -8334,8 +8335,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  viewMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                  viewMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="View Operations"
               >
@@ -8343,19 +8344,19 @@ export default function WhiteboardPage() {
               </button>
 
               {viewMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1">
+                <div className="absolute left-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
                   <button
                     type="button"
                     onClick={() => {
                       setZoom((z) => Math.min(z * 1.2, 5));
                       showToast(`Zoom: ${Math.round(zoom * 120)}%`);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <ZoomIn className="h-3.5 w-3.5 text-slate-500" /> Zoom In (+20%)
+                    <span className="flex items-center gap-2.5">
+                      <ZoomIn className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Zoom In (+20%)
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl++</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl++</span>
                   </button>
 
                   <button
@@ -8364,12 +8365,12 @@ export default function WhiteboardPage() {
                       setZoom((z) => Math.max(z / 1.2, 0.2));
                       showToast(`Zoom: ${Math.round(zoom * 80)}%`);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <ZoomOut className="h-3.5 w-3.5 text-slate-500" /> Zoom Out (-20%)
+                    <span className="flex items-center gap-2.5">
+                      <ZoomOut className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Zoom Out (-20%)
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+-</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+-</span>
                   </button>
 
                   <button
@@ -8377,17 +8378,17 @@ export default function WhiteboardPage() {
                     onClick={() => {
                       setZoom(1);
                       setPan({ x: 0, y: 0 });
-                      showToast("Reset Zoom to 100%");
+                      showToast("Reset View to 100%");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <RefreshCw className="h-3.5 w-3.5 text-slate-500" /> Reset View (100%)
+                    <span className="flex items-center gap-2.5">
+                      <RefreshCw className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Reset View (100%)
                     </span>
-                    <span className="text-[10px] text-muted font-mono">Ctrl+0</span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+0</span>
                   </button>
 
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
                   <button
                     type="button"
@@ -8395,13 +8396,13 @@ export default function WhiteboardPage() {
                       setShowGuidelines(!showGuidelines);
                       showToast(showGuidelines ? "Hidden guidelines" : "Shown guidelines");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <RulerIcon className="h-3.5 w-3.5 text-brand" /> Smart Guidelines
+                    <span className="flex items-center gap-2.5">
+                      <RulerIcon className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Smart Guidelines
                     </span>
-                    <span className={`text-[10px] font-black ${showGuidelines ? "text-emerald-600" : "text-slate-400"}`}>
-                      {showGuidelines ? "On" : "Off"}
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showGuidelines ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                      {showGuidelines ? "ON" : "OFF"}
                     </span>
                   </button>
 
@@ -8411,13 +8412,13 @@ export default function WhiteboardPage() {
                       setShowFavoritesBar(!showFavoritesBar);
                       showToast(showFavoritesBar ? "Hidden favorites toolbar" : "Shown favorites toolbar");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Star className="h-3.5 w-3.5 text-amber-500" /> Favorites Toolbar
+                    <span className="flex items-center gap-2.5">
+                      <Star className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Favorites Toolbar
                     </span>
-                    <span className={`text-[10px] font-black ${showFavoritesBar ? "text-emerald-600" : "text-slate-400"}`}>
-                      {showFavoritesBar ? "On" : "Off"}
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showFavoritesBar ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                      {showFavoritesBar ? "ON" : "OFF"}
                     </span>
                   </button>
 
@@ -8427,21 +8428,18 @@ export default function WhiteboardPage() {
                       setShowCursorCoords(!showCursorCoords);
                       showToast(showCursorCoords ? "Disabled coordinates" : "Enabled coordinates");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Crosshair className="h-3.5 w-3.5 text-blue-500" /> Cursor Coordinates
+                    <span className="flex items-center gap-2.5">
+                      <Crosshair className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Coordinates
                     </span>
-                    <span className={`text-[10px] font-black ${showCursorCoords ? "text-emerald-600" : "text-slate-400"}`}>
-                      {showCursorCoords ? "On" : "Off"}
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showCursorCoords ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                      {showCursorCoords ? "ON" : "OFF"}
                     </span>
                   </button>
                 </div>
               )}
             </div>
-
-            {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 4. INSERT MENU */}
             <div className="relative h-full flex items-center">
@@ -8456,8 +8454,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  insertMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                  insertMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Insert Tools, Shapes & Strategy"
               >
@@ -8466,168 +8464,162 @@ export default function WhiteboardPage() {
 
               {/* Insert Popover */}
               {insertMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1 max-h-[75vh] overflow-y-auto [scrollbar-width:thin]">
-                  {/* Section 1: Forex & SMC Setups */}
-                  <p className="px-2.5 pt-1 text-[9.5px] font-black uppercase text-muted tracking-wider">Trading & SMC Setups</p>
+                <div className="absolute left-0 top-full mt-1 w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80vh] overflow-y-auto [scrollbar-width:thin]">
+                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Trading & SMC Setups</p>
                   
                   <button
                     type="button"
                     onClick={() => { selectTool("long"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <TrendingUp className="h-3.5 w-3.5 text-emerald-600" /> Long Position
+                    <span className="flex items-center gap-2.5">
+                      <TrendingUp className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Long Position (R:R)
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">L</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">L</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("short"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <TrendingDown className="h-3.5 w-3.5 text-rose-600" /> Short Position
+                    <span className="flex items-center gap-2.5">
+                      <TrendingDown className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Short Position (R:R)
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">S</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">S</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("fibo"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Percent className="h-3.5 w-3.5 text-amber-500" /> Fibonacci Retracement
+                    <span className="flex items-center gap-2.5">
+                      <Percent className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Fibonacci Retracement
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">F</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">F</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("orderblock"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Square className="h-3.5 w-3.5 text-purple-600" /> Order Block Zone (OB)
+                    <span className="flex items-center gap-2.5">
+                      <Square className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Order Block Zone (OB)
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">O</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">O</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("fvg"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Boxes className="h-3.5 w-3.5 text-amber-600" /> Fair Value Gap (FVG)
+                    <span className="flex items-center gap-2.5">
+                      <Boxes className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Fair Value Gap (FVG)
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">G</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">G</span>
                   </button>
 
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
-                  {/* Section 2: Shapes & Vectors */}
-                  <p className="px-2.5 pt-1 text-[9.5px] font-black uppercase text-muted tracking-wider">Shapes & Lines</p>
+                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Shapes & Lines</p>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("line"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Minus className="h-3.5 w-3.5 text-slate-500" /> Trendline
+                    <span className="flex items-center gap-2.5">
+                      <Minus className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Straight Trendline
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">Shift+L</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">Shift+L</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("arrow"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <ArrowRight className="h-3.5 w-3.5 text-blue-500" /> Directional Arrow
+                    <span className="flex items-center gap-2.5">
+                      <ArrowRight className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Directional Arrow
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">A</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">A</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("rectangle"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Square className="h-3.5 w-3.5 text-slate-500" /> Rectangle Zone
+                    <span className="flex items-center gap-2.5">
+                      <Square className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Rectangle Zone Box
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">R</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">R</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("circle"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Circle className="h-3.5 w-3.5 text-slate-500" /> Circle Node
+                    <span className="flex items-center gap-2.5">
+                      <Circle className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Circle / Node Marker
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">C</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">C</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("diamond"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Diamond className="h-3.5 w-3.5 text-slate-500" /> Decision Diamond
+                    <span className="flex items-center gap-2.5">
+                      <Diamond className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Decision Diamond
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">D</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">D</span>
                   </button>
 
-                  <div className="w-full h-px bg-line my-1" />
+                  <div className="w-full h-px bg-slate-300 my-1" />
 
-                  {/* Section 3: Notes & Text */}
-                  <p className="px-2.5 pt-1 text-[9.5px] font-black uppercase text-muted tracking-wider">Teaching & Notes</p>
+                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Teaching & Annotations</p>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("text"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Type className="h-3.5 w-3.5 text-brand" /> Text Label
+                    <span className="flex items-center gap-2.5">
+                      <Type className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Text Label
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">T</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">T</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("sticky"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Sticky Note
+                    <span className="flex items-center gap-2.5">
+                      <StickyNote className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Sticky Note Post-It
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">N</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">N</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { selectTool("annotation"); setInsertMenuOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
-                    <span className="flex items-center gap-2">
-                      <Info className="h-3.5 w-3.5 text-sky-500" /> Callout Annotation
+                    <span className="flex items-center gap-2.5">
+                      <Info className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Callout Leader Line
                     </span>
-                    <span className="text-[9.5px] text-muted font-mono">W</span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">W</span>
                   </button>
                 </div>
               )}
             </div>
-
-            {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 5. THEME DROPDOWN */}
             <div className="relative h-full flex items-center">
@@ -8642,8 +8634,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  bgOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                  bgOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Canvas Background Theme"
               >
@@ -8651,8 +8643,8 @@ export default function WhiteboardPage() {
               </button>
 
               {bgOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Background Theme</p>
+                <div className="absolute right-0 top-full mt-1 w-56 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5">
+                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Background Grid Theme</p>
                   {CANVAS_THEMES.map((theme) => (
                     <button
                       key={theme.id}
@@ -8662,20 +8654,17 @@ export default function WhiteboardPage() {
                         setBgOpen(false);
                         showToast(`Switched canvas to ${theme.name}!`);
                       }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${
-                        bgGrid === theme.id ? "bg-brand-light text-brand" : "text-ink hover:bg-slate-100"
+                      className={`flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-left text-xs font-medium transition cursor-pointer ${
+                        bgGrid === theme.id ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                       }`}
                     >
-                      {theme.name}
-                      {bgGrid === theme.id && <span className="h-2 w-2 rounded-full bg-brand" />}
+                      <span>{theme.name}</span>
+                      {bgGrid === theme.id && <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />}
                     </button>
                   ))}
                 </div>
               )}
             </div>
-
-            {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 6. SNAP BUTTON */}
             <div className="h-full flex items-center">
@@ -8685,22 +8674,19 @@ export default function WhiteboardPage() {
                   setSnapToGrid(!snapToGrid);
                   showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
                 }}
-                className={`h-full flex items-center justify-center gap-1 px-2 rounded-md transition cursor-pointer ${
+                className={`h-full flex items-center justify-center gap-1 px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
                   snapToGrid
-                    ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-bold"
-                    : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                    ? "bg-slate-300 text-slate-950 font-bold"
+                    : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Toggle Snap to Grid"
               >
-                <Magnet className={`h-3.5 w-3.5 ${snapToGrid ? "text-emerald-700" : "text-slate-500"}`} />
+                <Magnet className={`h-3.5 w-3.5 stroke-[1.5] ${snapToGrid ? "text-slate-900" : "text-slate-600"}`} />
                 <span>Snap</span>
               </button>
             </div>
 
-            {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
-
-            {/* 7. EXPORT DROPDOWN (FULL-HEIGHT FLUSH RED OVERLAY) */}
+            {/* 7. EXPORT DROPDOWN (FULL-HEIGHT FLUSH BRAND RED) */}
             <div className="relative h-full flex items-center">
               <button
                 type="button"
@@ -8713,75 +8699,69 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center gap-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11.5px] transition cursor-pointer shadow-xs ${
-                  exportOpen ? "bg-rose-700" : ""
+                className={`h-full flex items-center gap-1.5 px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-xs transition cursor-pointer shadow-xs rounded-none ${
+                  exportOpen ? "bg-brand-dark" : ""
                 }`}
                 title="Export Diagram (PNG, JPEG, SVG)"
               >
-                <Download className="h-3.5 w-3.5 text-white shrink-0" />
+                <Download className="h-3.5 w-3.5 text-white shrink-0 stroke-[1.75]" />
                 <span>Export</span>
               </button>
 
               {exportOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-line bg-white p-2.5 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1.5">
-                  <p className="px-2.5 pt-1 text-[10px] font-black uppercase text-muted tracking-wider">Export Format</p>
+                <div className="absolute right-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
+                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Export Format</p>
 
-                  {/* PNG Option with dedicated icon */}
+                  {/* PNG Option */}
                   <button
                     type="button"
-                    onClick={() => handleExport("png")}
-                    className="flex w-full items-center justify-between rounded-xl p-2 text-left hover:bg-sky-50 transition cursor-pointer group"
+                    onClick={() => { handleExport("png"); setExportOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-none p-2 text-left hover:bg-slate-200 transition cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="h-7 w-7 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0 group-hover:scale-105 transition">
-                        <FileImage className="h-4 w-4" />
-                      </div>
+                      <FileImage className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
                       <div>
-                        <p className="text-xs font-bold text-ink group-hover:text-sky-700">PNG Image</p>
-                        <p className="text-[9.5px] text-muted">Lossless & Transparent</p>
+                        <p className="text-xs font-semibold text-slate-900">PNG Image</p>
+                        <p className="text-[9.5px] text-slate-500">Lossless & Transparent</p>
                       </div>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[9px] font-black uppercase">
+                    <span className="px-1.5 py-0.5 rounded-none bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
                       .PNG
                     </span>
                   </button>
 
-                  {/* JPEG Option with dedicated icon */}
+                  {/* JPEG Option */}
                   <button
                     type="button"
-                    onClick={() => handleExport("jpeg")}
-                    className="flex w-full items-center justify-between rounded-xl p-2 text-left hover:bg-amber-50 transition cursor-pointer group"
+                    onClick={() => { handleExport("jpeg"); setExportOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-none p-2 text-left hover:bg-slate-200 transition cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="h-7 w-7 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0 group-hover:scale-105 transition">
-                        <FileImage className="h-4 w-4" />
-                      </div>
+                      <FileImage className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
                       <div>
-                        <p className="text-xs font-bold text-ink group-hover:text-amber-700">JPEG Photo</p>
-                        <p className="text-[9.5px] text-muted">Standard Solid Background</p>
+                        <p className="text-xs font-semibold text-slate-900">JPEG Photo</p>
+                        <p className="text-[9.5px] text-slate-500">High-Resolution Studio</p>
                       </div>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-black uppercase">
+                    <span className="px-1.5 py-0.5 rounded-none bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
                       .JPG
                     </span>
                   </button>
 
-                  {/* SVG Option with dedicated icon */}
+                  {/* SVG Option */}
                   <button
                     type="button"
-                    onClick={() => handleExport("svg")}
-                    className="flex w-full items-center justify-between rounded-xl p-2 text-left hover:bg-emerald-50 transition cursor-pointer group"
+                    onClick={() => { handleExport("svg"); setExportOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-none p-2 text-left hover:bg-slate-200 transition cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="h-7 w-7 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-105 transition">
-                        <FileCode className="h-4 w-4" />
-                      </div>
+                      <FileCode className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
                       <div>
-                        <p className="text-xs font-bold text-ink group-hover:text-emerald-700">SVG Vector</p>
-                        <p className="text-[9.5px] text-muted">Infinite Scalable Vector</p>
+                        <p className="text-xs font-semibold text-slate-900">SVG Scalable Vector</p>
+                        <p className="text-[9.5px] text-slate-500">Infinite Resolution XML</p>
                       </div>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase">
+                    <span className="px-1.5 py-0.5 rounded-none bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
                       .SVG
                     </span>
                   </button>
@@ -9060,7 +9040,7 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside className="w-10 border-r border-line bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
+            <aside className="left-dock-container w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
           <div className="w-full flex flex-col items-center divide-y divide-line">
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
@@ -9081,7 +9061,7 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "selection" && (
-                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Selection Tools</p>
 
                   <FlyoutToolItem
@@ -9142,7 +9122,7 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "forex" && (
-                <div className="absolute left-full top-0 ml-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                <div className="absolute left-full top-0 ml-1.5 w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800 max-h-[85vh] overflow-y-auto [scrollbar-width:thin]">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
 
                   <FlyoutToolItem
@@ -9355,7 +9335,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "lines" && (
-                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
                   <FlyoutToolItem
                     toolKey="line"
@@ -9409,7 +9389,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "notes" && (
-                <div className="absolute left-full top-0 ml-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Text & Annotation Tools</p>
                   <FlyoutToolItem
                     toolKey="text"
@@ -11590,27 +11570,20 @@ function FlyoutToolItem({
   onToggleFavorite,
   showTooltips = true,
 }: FlyoutToolItemProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const explanation = TOOL_EXPLANATIONS[toolKey];
-
   return (
-    <div
-      className="relative w-full"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative w-full">
       <button
         type="button"
         onClick={onSelect}
-        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer ${
-          isActive ? "bg-brand text-white" : "text-slate-700 hover:bg-cream"
+        className={`flex w-full items-center justify-between rounded-none px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
+          isActive ? "bg-slate-300 text-slate-950 font-bold border-l-2 border-slate-700" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
         }`}
       >
         <span className="flex items-center gap-2.5">
           <span className="w-4 h-4 flex items-center justify-center shrink-0">
-            <Icon className="h-3.5 w-3.5" />
+            <Icon className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" />
           </span>
-          <span>{label}</span>
+          <span className="truncate">{label}</span>
         </span>
         <span title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}>
           <Star
@@ -11618,14 +11591,12 @@ function FlyoutToolItem({
               e.stopPropagation();
               onToggleFavorite();
             }}
-            className={`h-3.5 w-3.5 cursor-pointer p-0.5 rounded ${
-              isFavorited ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-400"
+            className={`h-3.5 w-3.5 cursor-pointer p-0.5 ${
+              isFavorited ? "fill-amber-500 text-amber-500" : "text-slate-400 hover:text-amber-500"
             }`}
           />
         </span>
       </button>
-
-      
     </div>
   );
 }
