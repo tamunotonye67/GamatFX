@@ -861,9 +861,11 @@ export default function WhiteboardPage() {
   const isDraggingShape = useRef(false);
   const dragStartPt = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isPanning = useRef(false);
-  const startPan = useRef({ x: 0, y: 0 });
   const isSpacePressed = useRef(false);
   const [isSpaceHeld, setIsSpaceHeld] = useState(false);
+  const [isAltHeld, setIsAltHeld] = useState(false);
+  const altDuplicated = useRef(false);
+  const dragStartOriginalPt = useRef<{ x: number; y: number } | null>(null);
 
   /* -------------------------- Page Scroll Lock & LocalStorage Initializer --- */
 
@@ -981,6 +983,11 @@ export default function WhiteboardPage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const targetTag = (e.target as HTMLElement).tagName;
       if (targetTag === "INPUT" || targetTag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+
+      // Track Alt / Option key for Duplicate cursor and drag duplicate
+      if (e.key === "Alt" || e.altKey) {
+        setIsAltHeld(true);
+      }
 
       // Spacebar temporary Hand / Pan tool toggle
       if (e.code === "Space" || e.key === " ") {
@@ -1144,6 +1151,9 @@ export default function WhiteboardPage() {
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Alt") {
+        setIsAltHeld(false);
+      }
       if (e.code === "Space" || e.key === " ") {
         if (isSpacePressed.current) {
           isSpacePressed.current = false;
@@ -1153,6 +1163,7 @@ export default function WhiteboardPage() {
     };
 
     const handleBlur = () => {
+      setIsAltHeld(false);
       if (isSpacePressed.current) {
         isSpacePressed.current = false;
         setIsSpaceHeld(false);
@@ -1557,19 +1568,6 @@ export default function WhiteboardPage() {
 
       if (hitShape) {
         setIsInspectorOpen(true);
-        if (e.altKey && !hitShape.isLocked) {
-          const duplicatedShape: Shape = {
-            ...hitShape,
-            id: `shape_dup_${Date.now()}`,
-            points: hitShape.points.map((p) => ({ x: p.x + 20, y: p.y + 20 })),
-          };
-          setShapes((prev) => [...prev, duplicatedShape]);
-          setSelectedShapeIds([duplicatedShape.id]);
-          isDraggingShape.current = true;
-          dragStartPt.current = pt;
-          showToast("Duplicated object! (Alt + Drag)");
-          return;
-        }
 
         if (e.shiftKey) {
           setSelectedShapeIds((prev) => (prev.includes(hitShape.id) ? prev.filter((id) => id !== hitShape.id) : [...prev, hitShape.id]));
@@ -1580,6 +1578,8 @@ export default function WhiteboardPage() {
         if (!hitShape.isLocked) {
           isDraggingShape.current = true;
           dragStartPt.current = pt;
+          dragStartOriginalPt.current = pt;
+          altDuplicated.current = false;
         } else {
           showToast("Object is locked 🔒");
         }
@@ -1697,8 +1697,34 @@ export default function WhiteboardPage() {
       setHoveredResizeHandle(foundHandle);
     }
 
-    // 1. Move/Drag existing selected shape
+    if (e.altKey !== isAltHeld) {
+      setIsAltHeld(e.altKey);
+    }
+
+    // 1. Move/Drag existing selected shape (Supports Alt + Drag Duplication)
     if (isDraggingShape.current && selectedShapeIds.length > 0) {
+      // Check if user is holding Alt, has not duplicated during this drag session, and dragged past threshold
+      if ((e.altKey || isAltHeld) && !altDuplicated.current && dragStartOriginalPt.current) {
+        const totalDist = Math.hypot(pt.x - dragStartOriginalPt.current.x, pt.y - dragStartOriginalPt.current.y);
+        if (totalDist >= 3) {
+          // Perform duplicate on actual drag movement!
+          const activeShapes = shapes.filter((s) => selectedShapeIds.includes(s.id) && !s.isLocked);
+          if (activeShapes.length > 0) {
+            const duplicatedShapes: Shape[] = activeShapes.map((s) => ({
+              ...s,
+              id: `shape_dup_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+              points: s.points.map((p) => ({ ...p })),
+            }));
+
+            // Keep original shapes stationary, and assign selection to newly created duplicate copies
+            setShapes((prev) => [...prev, ...duplicatedShapes]);
+            setSelectedShapeIds(duplicatedShapes.map((d) => d.id));
+            altDuplicated.current = true;
+            showToast("Duplicated object! (Alt + Drag)");
+          }
+        }
+      }
+
       const dx = pt.x - dragStartPt.current.x;
       const dy = pt.y - dragStartPt.current.y;
       dragStartPt.current = pt;
@@ -1787,6 +1813,8 @@ export default function WhiteboardPage() {
   const handleMouseUp = () => {
     isPanning.current = false;
     isDraggingShape.current = false;
+    dragStartOriginalPt.current = null;
+    altDuplicated.current = false;
     setActiveResizeHandle(null);
 
     // Finalize Multi-Select or Marquee Zoom
@@ -6001,7 +6029,7 @@ export default function WhiteboardPage() {
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
-            style={getToolCursorStyle(isSpaceHeld || isSpacePressed.current ? "hand" : activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle)}
+            style={getToolCursorStyle(isSpaceHeld || isSpacePressed.current ? "hand" : activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle, isAltHeld)}
             className="w-full h-full block"
           />
 
@@ -10364,7 +10392,7 @@ function makeSvgCursor(svg: string, x: number, y: number, fallback: string = "cr
 }
 
 /** Generates dynamic contextual realistic minimalist Black & White mouse cursors for active whiteboard tools */
-function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null): React.CSSProperties {
+function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isAltHeld?: boolean): React.CSSProperties {
   if (hoveredHandle) {
     if (hoveredHandle === "tl" || hoveredHandle === "br") {
       return { cursor: "nwse-resize" };
@@ -10378,6 +10406,21 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null): Re
     if (hoveredHandle === "ml" || hoveredHandle === "mr") {
       return { cursor: "ew-resize" };
     }
+  }
+
+  // When Alt is held in Select mode: Figma / Illustrator standard Double Pointer (Duplicate) cursor
+  if (tool === "select" && isAltHeld) {
+    return {
+      cursor: makeSvgCursor(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M10 8V24L13.7 20.3L17.3 27L19.7 25.7L16 19L21.3 19L10 8Z" fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M4 2V18L7.7 14.3L11.3 21L13.7 19.7L10 13L15.3 13L4 2Z" fill="#000000" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>`,
+        2,
+        2,
+        "copy"
+      ),
+    };
   }
 
   switch (tool) {
