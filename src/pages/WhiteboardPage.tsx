@@ -11114,7 +11114,7 @@ export default function WhiteboardPage() {
                   }`}
                   title={detachedPanels.patterns.isOpen ? "Focus Floating Line Patterns" : "Line Patterns & Stroke Modifier"}
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <Spline className="h-4 w-4" />
                   {detachedPanels.patterns.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
