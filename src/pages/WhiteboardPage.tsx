@@ -7956,763 +7956,755 @@ export default function WhiteboardPage() {
           </span>
         </div>
 
-        {/* Right Section: Dark Overlay Menu Bar with Vertical Dividers */}
-        <div className="flex items-center h-11 shrink-0 text-xs font-bold text-slate-200 bg-slate-900 rounded-xl px-1.5 border border-slate-800 shadow-md">
-          {/* 1. FILE MENU */}
-          <div className="relative h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setFileMenuOpen(!fileMenuOpen);
-                setEditMenuOpen(false);
-                setViewMenuOpen(false);
-                setDiagramsMenuOpen(false);
-                setBgOpen(false);
-                setExportOpen(false);
-                setUserMenuOpen(false);
-              }}
-              className={`h-full flex items-center gap-1.5 px-3 rounded-lg transition cursor-pointer ${
-                fileMenuOpen ? "bg-slate-800 text-white shadow-xs" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
-              title="File Operations (New, Open, Save, Export)"
-            >
-              <FileText className="h-3.5 w-3.5 text-slate-400" />
-              <span>File</span>
-              <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${fileMenuOpen ? "rotate-180" : ""}`} />
-            </button>
+        {/* Right Section: Compact Dark Overlay Menu Bar + Light User Avatar Profile */}
+        <div className="flex items-center gap-2.5 h-full shrink-0">
+          {/* Compact Dark Overlay Menu Bar */}
+          <div className="flex items-center h-8 shrink-0 text-[11.5px] font-semibold text-slate-300 bg-slate-900 rounded-lg px-1 border border-slate-800 shadow-sm">
+            {/* 1. FILE MENU */}
+            <div className="relative h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setFileMenuOpen(!fileMenuOpen);
+                  setEditMenuOpen(false);
+                  setViewMenuOpen(false);
+                  setDiagramsMenuOpen(false);
+                  setBgOpen(false);
+                  setExportOpen(false);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
+                  fileMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+                title="File Operations"
+              >
+                <span>File</span>
+              </button>
 
-            {fileMenuOpen && (
-              <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    handleAddNewTab();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Plus className="h-3.5 w-3.5 text-brand" /> New Diagram
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+N</span>
-                </button>
+              {fileMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleAddNewTab();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Plus className="h-3.5 w-3.5 text-brand" /> New Diagram
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+N</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    setCreateCanvasModalOpen(true);
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 text-amber-400" /> New Canvas Setup...
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      setCreateCanvasModalOpen(true);
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-400" /> New Canvas Setup...
+                    </span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    handleSaveCurrentDraft();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Save className="h-3.5 w-3.5 text-emerald-400" /> Save as Draft
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+S</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleSaveCurrentDraft();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Save className="h-3.5 w-3.5 text-emerald-400" /> Save as Draft
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+S</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    setDiagramsMenuOpen(true);
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <FolderKanban className="h-3.5 w-3.5 text-sky-400" /> Open Drafts & Samples...
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      setDiagramsMenuOpen(true);
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <FolderKanban className="h-3.5 w-3.5 text-sky-400" /> Open Drafts & Samples...
+                    </span>
+                  </button>
 
-                <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-slate-800 my-1" />
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    handleExport("png");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <FileImage className="h-3.5 w-3.5 text-slate-400" /> Quick Export PNG
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleExport("png");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <FileImage className="h-3.5 w-3.5 text-slate-400" /> Quick Export PNG
+                    </span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    handleExport("svg");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <FileCode className="h-3.5 w-3.5 text-slate-400" /> Quick Export SVG
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleExport("svg");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <FileCode className="h-3.5 w-3.5 text-slate-400" /> Quick Export SVG
+                    </span>
+                  </button>
 
-                <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-slate-800 my-1" />
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    if (window.confirm("Clear all shapes from active diagram?")) {
-                      setShapes([]);
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      if (window.confirm("Clear all shapes from active diagram?")) {
+                        setShapes([]);
+                        setSelectedShapeIds([]);
+                        showToast("Cleared canvas");
+                      }
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Clear Canvas
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleCloseTab(activeTabId);
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <X className="h-3.5 w-3.5" /> Close Tab
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+W</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+
+            {/* 2. EDIT MENU */}
+            <div className="relative h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditMenuOpen(!editMenuOpen);
+                  setFileMenuOpen(false);
+                  setViewMenuOpen(false);
+                  setDiagramsMenuOpen(false);
+                  setBgOpen(false);
+                  setExportOpen(false);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
+                  editMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+                title="Edit Operations"
+              >
+                <span>Edit</span>
+              </button>
+
+              {editMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      undo();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Undo className="h-3.5 w-3.5 text-slate-400" /> Undo
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Z</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      redo();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Redo className="h-3.5 w-3.5 text-slate-400" /> Redo
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Y</span>
+                  </button>
+
+                  <div className="w-full h-px bg-slate-800 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      copySelectedShapes();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Copy className="h-3.5 w-3.5 text-slate-400" /> Copy
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+C</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      pasteShapes();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Clipboard className="h-3.5 w-3.5 text-slate-400" /> Paste
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+V</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      duplicateSelectedShapes();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Layers className="h-3.5 w-3.5 text-slate-400" /> Duplicate
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+D</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      deleteSelectedShapes();
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Del</span>
+                  </button>
+
+                  <div className="w-full h-px bg-slate-800 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      setSelectedShapeIds(shapes.map((s) => s.id));
+                      showToast("Selected all shapes");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <CheckSquare className="h-3.5 w-3.5 text-slate-400" /> Select All
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+A</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
                       setSelectedShapeIds([]);
-                      showToast("Cleared canvas");
-                    }
-                  }}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Clear Canvas
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileMenuOpen(false);
-                    handleCloseTab(activeTabId);
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <X className="h-3.5 w-3.5" /> Close Tab
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+W</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
-
-          {/* 2. EDIT MENU */}
-          <div className="relative h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setEditMenuOpen(!editMenuOpen);
-                setFileMenuOpen(false);
-                setViewMenuOpen(false);
-                setDiagramsMenuOpen(false);
-                setBgOpen(false);
-                setExportOpen(false);
-                setUserMenuOpen(false);
-              }}
-              className={`h-full flex items-center gap-1.5 px-3 rounded-lg transition cursor-pointer ${
-                editMenuOpen ? "bg-slate-800 text-white shadow-xs" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
-              title="Edit Operations (Undo, Redo, Copy, Delete, Select)"
-            >
-              <Edit3 className="h-3.5 w-3.5 text-slate-400" />
-              <span>Edit</span>
-              <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${editMenuOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            {editMenuOpen && (
-              <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    undo();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Undo className="h-3.5 w-3.5 text-slate-400" /> Undo
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+Z</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    redo();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Redo className="h-3.5 w-3.5 text-slate-400" /> Redo
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+Y</span>
-                </button>
-
-                <div className="w-full h-px bg-slate-800 my-1" />
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    copySelectedShapes();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Copy className="h-3.5 w-3.5 text-slate-400" /> Copy
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+C</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    pasteShapes();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Clipboard className="h-3.5 w-3.5 text-slate-400" /> Paste
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+V</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    duplicateSelectedShapes();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Layers className="h-3.5 w-3.5 text-slate-400" /> Duplicate
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+D</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    deleteSelectedShapes();
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Trash2 className="h-3.5 w-3.5" /> Delete Selected
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Del</span>
-                </button>
-
-                <div className="w-full h-px bg-slate-800 my-1" />
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    setSelectedShapeIds(shapes.map((s) => s.id));
-                    showToast("Selected all shapes");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <CheckSquare className="h-3.5 w-3.5 text-slate-400" /> Select All
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+A</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditMenuOpen(false);
-                    setSelectedShapeIds([]);
-                    showToast("Deselected all");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Square className="h-3.5 w-3.5 text-slate-400" /> Deselect All
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Esc</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
-
-          {/* 3. VIEW MENU */}
-          <div className="relative h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setViewMenuOpen(!viewMenuOpen);
-                setFileMenuOpen(false);
-                setEditMenuOpen(false);
-                setDiagramsMenuOpen(false);
-                setBgOpen(false);
-                setExportOpen(false);
-                setUserMenuOpen(false);
-              }}
-              className={`h-full flex items-center gap-1.5 px-3 rounded-lg transition cursor-pointer ${
-                viewMenuOpen ? "bg-slate-800 text-white shadow-xs" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
-              title="View Operations (Zoom, Guidelines, Aspect Ratio, Toolbars)"
-            >
-              <Eye className="h-3.5 w-3.5 text-slate-400" />
-              <span>View</span>
-              <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${viewMenuOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            {viewMenuOpen && (
-              <div className="absolute left-0 top-full mt-2 w-60 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setZoom((z) => Math.min(z * 1.2, 5));
-                    showToast(`Zoom: ${Math.round(zoom * 120)}%`);
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <ZoomIn className="h-3.5 w-3.5 text-slate-400" /> Zoom In (+20%)
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl++</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setZoom((z) => Math.max(z / 1.2, 0.2));
-                    showToast(`Zoom: ${Math.round(zoom * 80)}%`);
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <ZoomOut className="h-3.5 w-3.5 text-slate-400" /> Zoom Out (-20%)
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+-</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setZoom(1);
-                    setPan({ x: 0, y: 0 });
-                    showToast("Reset Zoom to 100%");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <RefreshCw className="h-3.5 w-3.5 text-slate-400" /> Reset View (100%)
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">Ctrl+0</span>
-                </button>
-
-                <div className="w-full h-px bg-slate-800 my-1" />
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowGuidelines(!showGuidelines);
-                    showToast(showGuidelines ? "Hidden guidelines" : "Shown guidelines");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <RulerIcon className="h-3.5 w-3.5 text-brand" /> Smart Guidelines
-                  </span>
-                  <span className={`text-[10px] font-black ${showGuidelines ? "text-emerald-400" : "text-slate-500"}`}>
-                    {showGuidelines ? "On" : "Off"}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowFavoritesBar(!showFavoritesBar);
-                    showToast(showFavoritesBar ? "Hidden favorites toolbar" : "Shown favorites toolbar");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Star className="h-3.5 w-3.5 text-amber-400" /> Favorites Toolbar
-                  </span>
-                  <span className={`text-[10px] font-black ${showFavoritesBar ? "text-emerald-400" : "text-slate-500"}`}>
-                    {showFavoritesBar ? "On" : "Off"}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCursorCoords(!showCursorCoords);
-                    showToast(showCursorCoords ? "Disabled coordinates" : "Enabled coordinates");
-                  }}
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Crosshair className="h-3.5 w-3.5 text-blue-400" /> Cursor Coordinates
-                  </span>
-                  <span className={`text-[10px] font-black ${showCursorCoords ? "text-emerald-400" : "text-slate-500"}`}>
-                    {showCursorCoords ? "On" : "Off"}
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
-
-          {/* 4. DIAGRAMS MENU */}
-          <div className="relative h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setDiagramsMenuOpen(!diagramsMenuOpen);
-                setFileMenuOpen(false);
-                setEditMenuOpen(false);
-                setViewMenuOpen(false);
-                setBgOpen(false);
-                setExportOpen(false);
-                setUserMenuOpen(false);
-              }}
-              className={`h-full flex items-center gap-1.5 px-3 rounded-lg transition cursor-pointer ${
-                diagramsMenuOpen ? "bg-slate-800 text-white shadow-xs" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
-              title="Click to view Drafts, Samples & Trash"
-            >
-              <FolderKanban className="h-3.5 w-3.5 text-slate-400" />
-              <span>Diagrams</span>
-              <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${diagramsMenuOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            {/* Diagrams Popover */}
-            {diagramsMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-84 rounded-2xl border border-slate-800 bg-slate-900 p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3 text-slate-200">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                  <span className="font-extrabold text-xs text-white flex items-center gap-1.5">
-                    <FolderKanban className="h-4 w-4 text-brand" /> Diagram Workspace Manager
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setDiagramsMenuOpen(false)}
-                    className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                      showToast("Deselected all");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
                   >
-                    <X className="h-4 w-4" />
+                    <span className="flex items-center gap-2">
+                      <Square className="h-3.5 w-3.5 text-slate-400" /> Deselect All
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Esc</span>
                   </button>
                 </div>
+              )}
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleSaveCurrentDraft();
-                    setActiveMenuTab("drafts");
-                  }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-white py-2 text-xs font-extrabold hover:bg-brand-dark transition shadow-md cursor-pointer"
-                >
-                  <Save className="h-4 w-4" /> Save Current Canvas as Draft
-                </button>
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
 
-                <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-slate-800">
+            {/* 3. VIEW MENU */}
+            <div className="relative h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMenuOpen(!viewMenuOpen);
+                  setFileMenuOpen(false);
+                  setEditMenuOpen(false);
+                  setDiagramsMenuOpen(false);
+                  setBgOpen(false);
+                  setExportOpen(false);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
+                  viewMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+                title="View Operations"
+              >
+                <span>View</span>
+              </button>
+
+              {viewMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-60 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
                   <button
                     type="button"
-                    onClick={() => setActiveMenuTab("drafts")}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                      activeMenuTab === "drafts" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-                    }`}
+                    onClick={() => {
+                      setZoom((z) => Math.min(z * 1.2, 5));
+                      showToast(`Zoom: ${Math.round(zoom * 120)}%`);
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
                   >
-                    <FileText className="h-3.5 w-3.5 text-slate-400" /> Drafts ({tabs.length + savedDrafts.length})
+                    <span className="flex items-center gap-2">
+                      <ZoomIn className="h-3.5 w-3.5 text-slate-400" /> Zoom In (+20%)
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl++</span>
                   </button>
+
                   <button
                     type="button"
-                    onClick={() => setActiveMenuTab("samples")}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                      activeMenuTab === "samples" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-                    }`}
+                    onClick={() => {
+                      setZoom((z) => Math.max(z / 1.2, 0.2));
+                      showToast(`Zoom: ${Math.round(zoom * 80)}%`);
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
                   >
-                    <BookOpen className="h-3.5 w-3.5 text-slate-400" /> Samples
+                    <span className="flex items-center gap-2">
+                      <ZoomOut className="h-3.5 w-3.5 text-slate-400" /> Zoom Out (-20%)
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+-</span>
                   </button>
+
                   <button
                     type="button"
-                    onClick={() => setActiveMenuTab("trash")}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                      activeMenuTab === "trash" ? "bg-slate-800 text-rose-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
-                    }`}
+                    onClick={() => {
+                      setZoom(1);
+                      setPan({ x: 0, y: 0 });
+                      showToast("Reset Zoom to 100%");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
                   >
-                    <Trash2 className="h-3.5 w-3.5 text-slate-400" /> Trash ({trashedTabs.length})
+                    <span className="flex items-center gap-2">
+                      <RefreshCw className="h-3.5 w-3.5 text-slate-400" /> Reset View (100%)
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+0</span>
+                  </button>
+
+                  <div className="w-full h-px bg-slate-800 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowGuidelines(!showGuidelines);
+                      showToast(showGuidelines ? "Hidden guidelines" : "Shown guidelines");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <RulerIcon className="h-3.5 w-3.5 text-brand" /> Smart Guidelines
+                    </span>
+                    <span className={`text-[10px] font-black ${showGuidelines ? "text-emerald-400" : "text-slate-500"}`}>
+                      {showGuidelines ? "On" : "Off"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowFavoritesBar(!showFavoritesBar);
+                      showToast(showFavoritesBar ? "Hidden favorites toolbar" : "Shown favorites toolbar");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Star className="h-3.5 w-3.5 text-amber-400" /> Favorites Toolbar
+                    </span>
+                    <span className={`text-[10px] font-black ${showFavoritesBar ? "text-emerald-400" : "text-slate-500"}`}>
+                      {showFavoritesBar ? "On" : "Off"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCursorCoords(!showCursorCoords);
+                      showToast(showCursorCoords ? "Disabled coordinates" : "Enabled coordinates");
+                    }}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Crosshair className="h-3.5 w-3.5 text-blue-400" /> Cursor Coordinates
+                    </span>
+                    <span className={`text-[10px] font-black ${showCursorCoords ? "text-emerald-400" : "text-slate-500"}`}>
+                      {showCursorCoords ? "On" : "Off"}
+                    </span>
                   </button>
                 </div>
+              )}
+            </div>
 
-                {activeMenuTab === "drafts" && (
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Open Tabs</p>
-                    {tabs.map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() => { handleSelectTab(t.id); setDiagramsMenuOpen(false); }}
-                        className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition ${
-                          activeTabId === t.id ? "border-brand bg-slate-800/80 text-white font-bold" : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-slate-300"
-                        }`}
-                      >
-                        <span className="truncate flex items-center gap-1.5">
-                          <FileText className="h-3.5 w-3.5 text-slate-400" /> {t.name}
-                        </span>
-                        {activeTabId === t.id && <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold">Active</span>}
-                      </div>
-                    ))}
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
 
-                    {savedDrafts.length > 0 && (
-                      <>
-                        <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider pt-2">Saved Draft Presets</p>
-                        {savedDrafts.map((d) => (
+            {/* 4. DIAGRAMS MENU */}
+            <div className="relative h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setDiagramsMenuOpen(!diagramsMenuOpen);
+                  setFileMenuOpen(false);
+                  setEditMenuOpen(false);
+                  setViewMenuOpen(false);
+                  setBgOpen(false);
+                  setExportOpen(false);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
+                  diagramsMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+                title="Diagrams Workspace Manager"
+              >
+                <span>Diagrams</span>
+              </button>
+
+              {/* Diagrams Popover */}
+              {diagramsMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-84 rounded-2xl border border-slate-800 bg-slate-900 p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3 text-slate-200">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <span className="font-extrabold text-xs text-white flex items-center gap-1.5">
+                      <FolderKanban className="h-4 w-4 text-brand" /> Diagram Workspace Manager
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDiagramsMenuOpen(false)}
+                      className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSaveCurrentDraft();
+                      setActiveMenuTab("drafts");
+                    }}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-white py-2 text-xs font-extrabold hover:bg-brand-dark transition shadow-md cursor-pointer"
+                  >
+                    <Save className="h-4 w-4" /> Save Current Canvas as Draft
+                  </button>
+
+                  <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setActiveMenuTab("drafts")}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
+                        activeMenuTab === "drafts" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      <FileText className="h-3.5 w-3.5 text-slate-400" /> Drafts ({tabs.length + savedDrafts.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveMenuTab("samples")}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
+                        activeMenuTab === "samples" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      <BookOpen className="h-3.5 w-3.5 text-slate-400" /> Samples
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveMenuTab("trash")}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
+                        activeMenuTab === "trash" ? "bg-slate-800 text-rose-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
+                      }`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-slate-400" /> Trash ({trashedTabs.length})
+                    </button>
+                  </div>
+
+                  {activeMenuTab === "drafts" && (
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Open Tabs</p>
+                      {tabs.map((t) => (
+                        <div
+                          key={t.id}
+                          onClick={() => { handleSelectTab(t.id); setDiagramsMenuOpen(false); }}
+                          className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition ${
+                            activeTabId === t.id ? "border-brand bg-slate-800/80 text-white font-bold" : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-slate-300"
+                          }`}
+                        >
+                          <span className="truncate flex items-center gap-1.5">
+                            <FileText className="h-3.5 w-3.5 text-slate-400" /> {t.name}
+                          </span>
+                          {activeTabId === t.id && <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold">Active</span>}
+                        </div>
+                      ))}
+
+                      {savedDrafts.length > 0 && (
+                        <>
+                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider pt-2">Saved Draft Presets</p>
+                          {savedDrafts.map((d) => (
+                            <div
+                              key={d.id}
+                              className="flex items-center justify-between p-2 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-xs transition"
+                            >
+                              <div className="truncate flex-1 cursor-pointer" onClick={() => { loadSavedDraft(d); setDiagramsMenuOpen(false); }}>
+                                <p className="font-bold text-white truncate">{d.name}</p>
+                                <p className="text-[9px] text-slate-400">{d.shapes.length} layers • Saved {new Date(d.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => deleteDraft(d.id)}
+                                className="p-1 text-slate-500 hover:text-rose-400 transition"
+                                title="Delete Draft"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {activeMenuTab === "samples" && (
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {hubSamples.map((sample) => (
+                        <button
+                          key={sample.id}
+                          type="button"
+                          onClick={() => { loadSampleClassChart(sample.id); setDiagramsMenuOpen(false); }}
+                          className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-2.5 text-left text-xs font-bold text-slate-200 hover:border-brand/40 hover:bg-slate-800 transition cursor-pointer"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[9px] font-black uppercase text-brand bg-slate-800 px-1.5 py-0.5 rounded">
+                                {sample.category}
+                              </span>
+                              <span className="font-extrabold text-white truncate">{sample.name}</span>
+                            </div>
+                            <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{sample.desc}</p>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-500 shrink-0 ml-2">
+                            {sample.shapes?.length || 0} layers
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {activeMenuTab === "trash" && (
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                      {trashedTabs.length === 0 ? (
+                        <div className="text-center py-6 space-y-1">
+                          <Trash2 className="h-8 w-8 text-slate-600 mx-auto" />
+                          <p className="font-bold text-xs text-slate-300">Trash is Empty</p>
+                          <p className="text-[10px] text-slate-500">Deleted tabs disappear after 30 days.</p>
+                        </div>
+                      ) : (
+                        trashedTabs.map((item) => (
                           <div
-                            key={d.id}
-                            className="flex items-center justify-between p-2 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-xs transition"
+                            key={item.id}
+                            className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs space-x-2"
                           >
-                            <div className="truncate flex-1 cursor-pointer" onClick={() => { loadSavedDraft(d); setDiagramsMenuOpen(false); }}>
-                              <p className="font-bold text-white truncate">{d.name}</p>
-                              <p className="text-[9px] text-slate-400">{d.shapes.length} layers • Saved {new Date(d.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            <div className="truncate flex-1">
+                              <p className="font-bold text-white truncate">{item.name}</p>
                             </div>
                             <button
                               type="button"
-                              onClick={() => deleteDraft(d.id)}
-                              className="p-1 text-slate-500 hover:text-rose-400 transition"
-                              title="Delete Draft"
+                              onClick={() => { restoreTrashedTab(item); setDiagramsMenuOpen(false); }}
+                              className="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-400 hover:bg-emerald-900 font-bold text-[10px] transition"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              Restore
                             </button>
                           </div>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
-                {activeMenuTab === "samples" && (
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    {hubSamples.map((sample) => (
-                      <button
-                        key={sample.id}
-                        type="button"
-                        onClick={() => { loadSampleClassChart(sample.id); setDiagramsMenuOpen(false); }}
-                        className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-2.5 text-left text-xs font-bold text-slate-200 hover:border-brand/40 hover:bg-slate-800 transition cursor-pointer"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] font-black uppercase text-brand bg-slate-800 px-1.5 py-0.5 rounded">
-                              {sample.category}
-                            </span>
-                            <span className="font-extrabold text-white truncate">{sample.name}</span>
-                          </div>
-                          <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{sample.desc}</p>
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-500 shrink-0 ml-2">
-                          {sample.shapes?.length || 0} layers
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
 
-                {activeMenuTab === "trash" && (
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    {trashedTabs.length === 0 ? (
-                      <div className="text-center py-6 space-y-1">
-                        <Trash2 className="h-8 w-8 text-slate-600 mx-auto" />
-                        <p className="font-bold text-xs text-slate-300">Trash is Empty</p>
-                        <p className="text-[10px] text-slate-500">Deleted tabs disappear after 30 days.</p>
-                      </div>
-                    ) : (
-                      trashedTabs.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs space-x-2"
-                        >
-                          <div className="truncate flex-1">
-                            <p className="font-bold text-white truncate">{item.name}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => { restoreTrashedTab(item); setDiagramsMenuOpen(false); }}
-                            className="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-400 hover:bg-emerald-900 font-bold text-[10px] transition"
-                          >
-                            Restore
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+            {/* 5. THEME DROPDOWN */}
+            <div className="relative h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setBgOpen(!bgOpen);
+                  setFileMenuOpen(false);
+                  setEditMenuOpen(false);
+                  setViewMenuOpen(false);
+                  setDiagramsMenuOpen(false);
+                  setExportOpen(false);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
+                  bgOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+                title="Canvas Background Theme"
+              >
+                <span>Theme</span>
+              </button>
 
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+              {bgOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-400 tracking-wider">Background Theme</p>
+                  {CANVAS_THEMES.map((theme) => (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      onClick={() => {
+                        handleSetBgGrid(theme.id as any);
+                        setBgOpen(false);
+                        showToast(`Switched canvas to ${theme.name}!`);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${
+                        bgGrid === theme.id ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      }`}
+                    >
+                      {theme.name}
+                      {bgGrid === theme.id && <span className="h-2 w-2 rounded-full bg-brand" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* 5. THEME DROPDOWN */}
-          <div className="relative h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setBgOpen(!bgOpen);
-                setFileMenuOpen(false);
-                setEditMenuOpen(false);
-                setViewMenuOpen(false);
-                setDiagramsMenuOpen(false);
-                setExportOpen(false);
-                setUserMenuOpen(false);
-              }}
-              className={`h-full flex items-center gap-1.5 px-3 rounded-lg transition cursor-pointer ${
-                bgOpen ? "bg-slate-800 text-white shadow-xs" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
-              title="Canvas Background Theme"
-            >
-              <Palette className="h-3.5 w-3.5 text-slate-400" />
-              <span>Theme</span>
-              <ChevronDown className="h-3 w-3 text-slate-500" />
-            </button>
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
 
-            {bgOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200">
-                <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-400 tracking-wider">Background Theme</p>
-                {CANVAS_THEMES.map((theme) => (
+            {/* 6. SNAP BUTTON */}
+            <div className="h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setSnapToGrid(!snapToGrid);
+                  showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
+                }}
+                className={`h-full flex items-center justify-center gap-1 px-2 rounded-md transition cursor-pointer ${
+                  snapToGrid
+                    ? "bg-emerald-950 text-emerald-400 hover:bg-emerald-900"
+                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                }`}
+                title="Toggle Snap to Grid"
+              >
+                <Magnet className={`h-3 w-3 ${snapToGrid ? "text-emerald-400" : "text-slate-400"}`} />
+                <span>Snap</span>
+              </button>
+            </div>
+
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+
+            {/* 7. EXPORT DROPDOWN */}
+            <div className="relative h-full flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setExportOpen(!exportOpen);
+                  setFileMenuOpen(false);
+                  setEditMenuOpen(false);
+                  setViewMenuOpen(false);
+                  setDiagramsMenuOpen(false);
+                  setBgOpen(false);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-full flex items-center gap-1 px-2 rounded-md transition cursor-pointer ${
+                  exportOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                }`}
+                title="Export Canvas"
+              >
+                <Download className="h-3 w-3 text-slate-400" />
+                <span>Export</span>
+              </button>
+
+              {exportOpen && (
+                <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200">
                   <button
-                    key={theme.id}
                     type="button"
                     onClick={() => {
-                      handleSetBgGrid(theme.id as any);
-                      setBgOpen(false);
-                      showToast(`Switched canvas to ${theme.name}!`);
+                      handleExport("png");
+                      setExportOpen(false);
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${
-                      bgGrid === theme.id ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                    }`}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
                   >
-                    {theme.name}
-                    {bgGrid === theme.id && <span className="h-2 w-2 rounded-full bg-brand" />}
+                    <FileImage className="h-4 w-4 text-slate-400" /> Export PNG
                   </button>
-                ))}
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExport("jpeg");
+                      setExportOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <FileImage className="h-4 w-4 text-slate-400" /> Export JPEG
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExport("svg");
+                      setExportOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                  >
+                    <FileCode className="h-4 w-4 text-slate-400" /> Export SVG
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Vertical Divider */}
+            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+
+            {/* 8. FULLSCREEN TOGGLE */}
+            <div className="h-full flex items-center">
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="h-full flex items-center justify-center px-1.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-md transition shrink-0 cursor-pointer"
+                title="Toggle Fullscreen"
+              >
+                {isFullscreen ? <Minimize2 className="h-3 w-3 text-slate-400" /> : <Maximize2 className="h-3 w-3 text-slate-400" />}
+              </button>
+            </div>
           </div>
 
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+          {/* Light Header Divider */}
+          <span className="self-stretch w-px bg-slate-200 shrink-0 my-3 hidden sm:inline" />
 
-          {/* 6. SNAP BUTTON */}
-          <div className="h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setSnapToGrid(!snapToGrid);
-                showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
-              }}
-              className={`h-full flex items-center justify-center gap-1.5 px-3 rounded-lg font-bold transition cursor-pointer ${
-                snapToGrid
-                  ? "bg-emerald-950 text-emerald-400 hover:bg-emerald-900"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
-              }`}
-              title="Toggle Snap to Grid"
-            >
-              <Magnet className={`h-3.5 w-3.5 ${snapToGrid ? "text-emerald-400" : "text-slate-400"}`} />
-              <span>Snap</span>
-            </button>
-          </div>
-
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
-
-          {/* 7. EXPORT DROPDOWN */}
-          <div className="relative h-full flex items-center">
-            <button
-              type="button"
-              onClick={() => {
-                setExportOpen(!exportOpen);
-                setFileMenuOpen(false);
-                setEditMenuOpen(false);
-                setViewMenuOpen(false);
-                setDiagramsMenuOpen(false);
-                setBgOpen(false);
-                setUserMenuOpen(false);
-              }}
-              className={`h-full flex items-center gap-1.5 px-3 rounded-lg transition cursor-pointer ${
-                exportOpen ? "bg-slate-800 text-white shadow-xs" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-              }`}
-              title="Export Canvas"
-            >
-              <Download className="h-3.5 w-3.5 text-slate-400" />
-              <span>Export</span>
-              <ChevronDown className="h-3 w-3 text-slate-500" />
-            </button>
-
-            {exportOpen && (
-              <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleExport("png");
-                    setExportOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <FileImage className="h-4 w-4 text-slate-400" /> Export PNG
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleExport("jpeg");
-                    setExportOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <FileImage className="h-4 w-4 text-slate-400" /> Export JPEG
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleExport("svg");
-                    setExportOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
-                >
-                  <FileCode className="h-4 w-4 text-slate-400" /> Export SVG
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
-
-          {/* 8. FULLSCREEN TOGGLE */}
-          <div className="h-full flex items-center">
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="h-full flex items-center justify-center px-2.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition shrink-0 cursor-pointer"
-              title="Toggle Fullscreen"
-            >
-              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5 text-slate-400" /> : <Maximize2 className="h-3.5 w-3.5 text-slate-400" />}
-            </button>
-          </div>
-
-          {/* Vertical Divider */}
-          <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
-
-          {/* 9. USER AVATAR & PROFILE MENU */}
+          {/* 9. LIGHT USER AVATAR & PROFILE MENU */}
           <div ref={userMenuRef} className="relative shrink-0 h-full flex items-center">
             <button
               type="button"
@@ -8725,41 +8717,41 @@ export default function WhiteboardPage() {
                 setBgOpen(false);
                 setExportOpen(false);
               }}
-              className={`h-full flex items-center gap-2 px-2 rounded-lg transition group cursor-pointer ${
-                userMenuOpen ? "bg-slate-800" : "hover:bg-slate-800/80"
+              className={`h-full flex items-center gap-1.5 px-2 transition group cursor-pointer ${
+                userMenuOpen ? "bg-slate-100" : "hover:bg-slate-50"
               }`}
-              title={`${currentUser.firstName || "Guest"} ${currentUser.lastName || "Trader"}`}
+              title={`${currentUser.firstName || "Guest"} ${currentUser.lastName || "Trader"} (${currentUser.email || ""})`}
             >
               {currentUser.avatar ? (
                 <img
                   src={currentUser.avatar}
                   alt={currentUser.firstName || "User"}
-                  className="h-7 w-7 rounded-full object-cover border border-slate-700 shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
                 />
               ) : (
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-[11px] font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
                   {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
               )}
-              <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
-            {/* Profile Popover */}
+            {/* Profile Popover (Clean Light Theme) */}
             {userMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl z-[100] animate-in fade-in overflow-hidden text-slate-200">
-                <div className="border-b border-slate-800 bg-slate-950 p-3.5">
+              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
+                <div className="border-b border-line bg-cream p-3.5">
                   <div className="flex items-center gap-2.5">
                     {currentUser.avatar ? (
-                      <img src={currentUser.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-slate-700" />
+                      <img src={currentUser.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                     ) : (
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
                         {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-xs text-white truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{currentUser.email || "guest@gamatfx.com"}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light/20 text-brand text-[9px] font-black uppercase tracking-wider">
+                      <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
+                      <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfx.com"}</p>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
                         {currentUser.role || "student"}
                       </span>
                     </div>
@@ -8771,56 +8763,56 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-slate-200 font-bold hover:bg-slate-800 hover:text-white transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
                       >
-                        <User className="h-4 w-4 text-slate-400" /> Student Dashboard
+                        <User className="h-4 w-4 text-slate-700" /> Student Dashboard
                       </button>
                       {isAdmin && (
                         <button
                           type="button"
                           onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-slate-200 font-bold hover:bg-slate-800 hover:text-white transition text-left"
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
                         >
-                          <ShieldCheck className="h-4 w-4 text-slate-400" /> Admin Console
+                          <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); navigate("/"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-slate-200 font-bold hover:bg-slate-800 hover:text-white transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-cream transition text-left"
                       >
-                        <Home className="h-4 w-4 text-slate-400" /> Platform Home
+                        <Home className="h-4 w-4 text-slate-700" /> Platform Home
                       </button>
 
-                      <div className="border-t border-slate-800 my-1" />
+                      <div className="border-t border-line my-1" />
 
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-slate-200 font-bold hover:bg-slate-800 hover:text-white transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
                       >
-                        <Settings className="h-4 w-4 text-slate-400" /> Whiteboard Settings
+                        <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
                       </button>
 
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
-                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-slate-200 font-bold hover:bg-slate-800 hover:text-white transition text-left"
+                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
                       >
                         <span className="flex items-center gap-2.5">
-                          <Keyboard className="h-4 w-4 text-slate-400" /> Keyboard Shortcuts
+                          <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
                         </span>
-                        <span className="rounded-md border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">
+                        <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">
                           ?
                         </span>
                       </button>
 
-                      <div className="border-t border-slate-800 my-1" />
+                      <div className="border-t border-line my-1" />
 
                       <button
                         type="button"
                         onClick={() => { setUserMenuOpen(false); logout(); showToast("Signed out successfully"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-400 font-bold hover:bg-rose-950/40 transition text-left"
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 font-bold hover:bg-rose-50 transition text-left"
                       >
                         <LogOut className="h-4 w-4" /> Sign Out
                       </button>
@@ -8829,7 +8821,7 @@ export default function WhiteboardPage() {
                     <button
                       type="button"
                       onClick={() => { setUserMenuOpen(false); navigate("/login"); }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-brand font-bold hover:bg-slate-800 transition text-left"
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-brand font-bold hover:bg-slate-50 transition text-left"
                     >
                       <User className="h-4 w-4" /> Sign In / Register
                     </button>
