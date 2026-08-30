@@ -63,16 +63,6 @@ import {
   Laptop,
   Scan,
   BoxSelect,
-  Bold,
-  Italic,
-  Underline,
-  Strikethrough,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  CaseUpper,
-  CaseLower,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -101,7 +91,6 @@ import {
   User,
   ShieldCheck,
   LogOut,
-  LogIn,
   LayoutGrid,
   List,
   ArrowLeft,
@@ -336,18 +325,6 @@ type Shape = {
   stickyColor?: StickyColor;
   isLocked?: boolean;
   isHidden?: boolean;
-  // Typography & Character Features
-  fontFamily?: string;
-  fontSize?: number;
-  fontWeight?: "normal" | "bold";
-  fontStyle?: "normal" | "italic";
-  textDecoration?: "none" | "underline" | "line-through";
-  textAlign?: "left" | "center" | "right";
-  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
-  letterSpacing?: number;
-  lineHeight?: number;
-  textColor?: string;
-  textBgColor?: string;
 };
 
 type DiagramTab = {
@@ -676,7 +653,7 @@ export default function WhiteboardPage() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // Whiteboard View Mode (Defaults to Canvas)
+  // Whiteboard Mode (Defaults to Canvas)
   const [viewMode, setViewMode] = useState<"hub" | "canvas">("canvas");
   const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash" | "guide">("drafts");
   const [hubSearch, setHubSearch] = useState("");
@@ -830,35 +807,11 @@ export default function WhiteboardPage() {
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
 
-  // Typography & Character Formatting Presets
-  const [fontFamily, setFontFamily] = useState<string>("Inter, -apple-system, sans-serif");
-  const [fontSize, setFontSize] = useState<number>(18);
-  const [fontWeight, setFontWeight] = useState<"normal" | "bold">("bold");
-  const [fontStyle, setFontStyle] = useState<"normal" | "italic">("normal");
-  const [textDecoration, setTextDecoration] = useState<"none" | "underline" | "line-through">("none");
-  const [textAlign, setTextAlign] = useState<"left" | "center" | "right">("left");
-  const [textTransform, setTextTransform] = useState<"none" | "uppercase" | "lowercase" | "capitalize">("none");
-  const [letterSpacing, setLetterSpacing] = useState<number>(0);
-  const [lineHeight, setLineHeight] = useState<number>(1.3);
-
-  // In-Place / Inline Canvas Text Editor (Photoshop / MS Word / Figma Style with Flashing Beeper)
-  const [inlineEditor, setInlineEditor] = useState<{
-    x: number;
-    y: number;
-    text: string;
-    shapeId: string | null;
-    isSticky?: boolean;
-    fontSize?: number;
-    fontFamily?: string;
-    fontWeight?: "normal" | "bold";
-    fontStyle?: "normal" | "italic";
-    textDecoration?: "none" | "underline" | "line-through";
-    textAlign?: "left" | "center" | "right";
-    textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
-    letterSpacing?: number;
-    lineHeight?: number;
-    color?: string;
-  } | null>(null);
+  // Text Modal Input & Note Editing State
+  const [textModalPos, setTextModalPos] = useState<{ x: number; y: number } | null>(null);
+  const [textValue, setTextValue] = useState("");
+  const [isStickyMode, setIsStickyMode] = useState(false);
+  const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
 
   // References
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1585,46 +1538,18 @@ export default function WhiteboardPage() {
     isDrawing.current = true;
 
     if (activeTool === "text") {
-      if (inlineEditor) handleCommitInlineText();
-      setInlineEditor({
-        x: pt.x,
-        y: pt.y,
-        text: "",
-        shapeId: null,
-        isSticky: false,
-        fontSize,
-        fontFamily,
-        fontWeight,
-        fontStyle,
-        textDecoration,
-        textAlign,
-        textTransform,
-        letterSpacing,
-        lineHeight,
-        color: strokeColor,
-      });
+      setEditingShapeId(null);
+      setTextValue("");
+      setIsStickyMode(false);
+      setTextModalPos(pt);
       return;
     }
 
     if (activeTool === "sticky") {
-      if (inlineEditor) handleCommitInlineText();
-      setInlineEditor({
-        x: pt.x,
-        y: pt.y,
-        text: "",
-        shapeId: null,
-        isSticky: true,
-        fontSize,
-        fontFamily,
-        fontWeight,
-        fontStyle,
-        textDecoration,
-        textAlign,
-        textTransform,
-        letterSpacing,
-        lineHeight,
-        color: "#1e293b",
-      });
+      setEditingShapeId(null);
+      setTextValue("");
+      setIsStickyMode(true);
+      setTextModalPos(pt);
       return;
     }
 
@@ -1863,91 +1788,76 @@ export default function WhiteboardPage() {
         showToast("Locked item! Unlock it first to edit 🔓");
         return;
       }
+      setEditingShapeId(hitShape.id);
+      setTextValue(hitShape.text || "");
+      setIsStickyMode(hitShape.type === "sticky");
+      if (hitShape.stickyColor) setStickyColor(hitShape.stickyColor);
       setSelectedShapeIds([hitShape.id]);
-      setInlineEditor({
-        x: hitShape.points[0].x,
-        y: hitShape.points[0].y,
-        text: hitShape.text || "",
-        shapeId: hitShape.id,
-        isSticky: hitShape.type === "sticky",
-        fontSize: hitShape.fontSize || fontSize,
-        fontFamily: hitShape.fontFamily || fontFamily,
-        fontWeight: hitShape.fontWeight || fontWeight,
-        fontStyle: hitShape.fontStyle || fontStyle,
-        textDecoration: hitShape.textDecoration || textDecoration,
-        textAlign: hitShape.textAlign || textAlign,
-        textTransform: hitShape.textTransform || textTransform,
-        letterSpacing: hitShape.letterSpacing ?? letterSpacing,
-        lineHeight: hitShape.lineHeight || lineHeight,
-        color: hitShape.textColor || hitShape.color || strokeColor,
-      });
-      return;
     }
   };
 
-  /* Commit in-place inline text editor changes (Photoshop / Word / Figma live typing) */
-  const handleCommitInlineText = () => {
-    if (!inlineEditor) return;
-    const txt = inlineEditor.text.trim();
-    if (!txt) {
-      if (inlineEditor.shapeId) {
-        setShapes((prev) => prev.filter((s) => s.id !== inlineEditor.shapeId));
-        setSelectedShapeIds([]);
-      }
-      setInlineEditor(null);
-      return;
-    }
+  /* Contextual Right-Click Handler */
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const pt = getCanvasCoords(e);
+    const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
-    if (inlineEditor.shapeId) {
+    if (hitShape) {
+      setSelectedShapeIds([hitShape.id]);
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        canvasPt: pt,
+        targetShape: hitShape,
+      });
+    } else {
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        canvasPt: pt,
+        targetShape: null,
+      });
+    }
+  };
+
+  const handleAddTextOrSticky = () => {
+    if (!textValue.trim() || !textModalPos) return;
+
+    if (editingShapeId) {
       setShapes((prev) =>
         prev.map((s) =>
-          s.id === inlineEditor.shapeId
+          s.id === editingShapeId
             ? {
                 ...s,
-                text: inlineEditor.text,
-                fontSize: inlineEditor.fontSize || fontSize,
-                fontFamily: inlineEditor.fontFamily || fontFamily,
-                fontWeight: inlineEditor.fontWeight || fontWeight,
-                fontStyle: inlineEditor.fontStyle || fontStyle,
-                textDecoration: inlineEditor.textDecoration || textDecoration,
-                textAlign: inlineEditor.textAlign || textAlign,
-                textTransform: inlineEditor.textTransform || textTransform,
-                letterSpacing: inlineEditor.letterSpacing ?? letterSpacing,
-                lineHeight: inlineEditor.lineHeight || lineHeight,
+                text: textValue.trim(),
+                stickyColor: isStickyMode ? stickyColor : s.stickyColor,
               }
             : s
         )
       );
-      setSelectedShapeIds([inlineEditor.shapeId]);
-      showToast("Updated text!");
-    } else {
-      const newShape: Shape = {
-        id: `shape_${Date.now()}`,
-        type: inlineEditor.isSticky ? "sticky" : "text",
-        color: inlineEditor.color || strokeColor,
-        strokeWidth,
-        lineStyle,
-        isLocked: autoLockObjects,
-        points: [{ x: inlineEditor.x, y: inlineEditor.y }],
-        text: inlineEditor.text,
-        stickyColor: inlineEditor.isSticky ? stickyColor : undefined,
-        fontSize: inlineEditor.fontSize || fontSize,
-        fontFamily: inlineEditor.fontFamily || fontFamily,
-        fontWeight: inlineEditor.fontWeight || fontWeight,
-        fontStyle: inlineEditor.fontStyle || fontStyle,
-        textDecoration: inlineEditor.textDecoration || textDecoration,
-        textAlign: inlineEditor.textAlign || textAlign,
-        textTransform: inlineEditor.textTransform || textTransform,
-        letterSpacing: inlineEditor.letterSpacing ?? letterSpacing,
-        lineHeight: inlineEditor.lineHeight || lineHeight,
-      };
-      setShapes((prev) => [...prev, newShape]);
-      setSelectedShapeIds([newShape.id]);
-      setActiveTool("select");
-      showToast(inlineEditor.isSticky ? "Created sticky note!" : "Created text label!");
+      setEditingShapeId(null);
+      setTextValue("");
+      setTextModalPos(null);
+      showToast(isStickyMode ? "Updated Sticky Note!" : "Updated Text Label!");
+      return;
     }
 
-    setInlineEditor(null);
+    const newShape: Shape = {
+      id: `shape_${Date.now()}`,
+      type: isStickyMode ? "sticky" : "text",
+      color: strokeColor,
+      strokeWidth,
+      lineStyle,
+      isLocked: autoLockObjects,
+      points: [textModalPos],
+      text: textValue.trim(),
+      stickyColor: isStickyMode ? stickyColor : undefined,
+    };
+
+    setShapes((prev) => [...prev, newShape]);
+    setTextValue("");
+    setTextModalPos(null);
+    showToast(isStickyMode ? "Added Sticky Note!" : "Added Text Label!");
   };
 
   /* Context Menu Object Layering & Duplicate Actions */
@@ -2868,6 +2778,67 @@ export default function WhiteboardPage() {
 
   const selectedShape = shapes.find((s) => s.id === selectedShapeIds[0]);
 
+  // Authentication Gate: Require user to have an active account & be logged in
+  if (!isAuthed || !user) {
+    return (
+      <div className="fixed inset-0 h-screen w-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-white relative overflow-hidden select-none">
+        {/* Ambient Gradient Glow */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-brand/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand/5 rounded-full blur-[180px] pointer-events-none" />
+
+        <div className="relative z-10 w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl text-center space-y-6 animate-in fade-in zoom-in-95">
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="h-16 w-16 rounded-2xl bg-brand/20 border border-brand/40 flex items-center justify-center text-brand shadow-inner">
+                <Lock className="h-8 w-8" />
+              </div>
+              <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[10px] font-black text-white shadow-md">
+                FX
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h1 className="font-display text-2xl font-black text-white tracking-tight">
+              Member Account Required
+            </h1>
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+              Please sign in or create an account to access the GAMAT FX Technical Analysis Whiteboard, interactive Forex setups, Fibonacci tools, and cloud drafts.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="w-full py-3.5 rounded-2xl bg-brand text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-brand/30 hover:bg-brand-dark transition transform active:scale-[0.98]"
+            >
+              Sign In to Your Account
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="w-full py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider hover:bg-slate-700 hover:text-white transition transform active:scale-[0.98]"
+            >
+              Create a Free Account
+            </button>
+          </div>
+
+          <div className="border-t border-slate-800/80 pt-4">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition font-medium"
+            >
+              <Home className="h-3.5 w-3.5" /> Back to GAMAT FX Platform
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Filtered collections for Figma-Style Hub View (Deduplicated so open tabs and saved drafts remain synchronized)
   const allDraftsList = [
     ...tabs.map((t) => ({
@@ -3440,38 +3411,28 @@ export default function WhiteboardPage() {
 
               {/* Top Right User Avatar & Profile Dropdown */}
               <div ref={userMenuRef} className="relative shrink-0">
-                {user ? (
-                  <button
-                    type="button"
-                    onClick={() => setUserMenuOpen((v) => !v)}
-                    className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
-                    title={`${user.firstName || "User"} ${user.lastName || ""} (${user.email || ""})`}
-                  >
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.firstName || "User"}
-                        className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
-                      />
-                    ) : (
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
-                        {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
-                      </span>
-                    )}
-                    <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => navigate("/login")}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold shadow-xs hover:bg-brand-dark transition cursor-pointer"
-                  >
-                    <LogIn className="h-3.5 w-3.5" /> Sign In
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
+                  title={`${user.firstName} ${user.lastName} (${user.email})`}
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.firstName}
+                      className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                      {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                    </span>
+                  )}
+                  <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+                </button>
 
                 {/* Profile Popover Dropdown */}
-                {userMenuOpen && user && (
+                {userMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                     <div className="border-b border-line bg-cream p-3.5">
                       <div className="flex items-center gap-2.5">
@@ -3479,7 +3440,7 @@ export default function WhiteboardPage() {
                           <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                         ) : (
                           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
-                            {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                            {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
@@ -5056,38 +5017,28 @@ export default function WhiteboardPage() {
 
           {/* User Account Avatar & Profile Menu (Avatar + Dropdown Only) */}
           <div ref={userMenuRef} className="relative shrink-0">
-            {user ? (
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
-                title={`${user.firstName || "User"} ${user.lastName || ""} (${user.email || ""})`}
-              >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.firstName || "User"}
-                    className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
-                  />
-                ) : (
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
-                    {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
-                  </span>
-                )}
-                <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => navigate("/login")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand text-white text-xs font-bold shadow-xs hover:bg-brand-dark transition cursor-pointer"
-              >
-                <LogIn className="h-3.5 w-3.5" /> Sign In
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setUserMenuOpen((v) => !v)}
+              className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group"
+              title={`${user.firstName} ${user.lastName} (${user.email})`}
+            >
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.firstName}
+                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                />
+              ) : (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                  {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                </span>
+              )}
+              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+            </button>
 
             {/* Profile Popover Dropdown */}
-            {userMenuOpen && user && (
+            {userMenuOpen && (
               <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                 <div className="border-b border-line bg-cream p-3.5">
                   <div className="flex items-center gap-2.5">
@@ -5095,7 +5046,7 @@ export default function WhiteboardPage() {
                       <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                     ) : (
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
-                        {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                        {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
@@ -5173,10 +5124,8 @@ export default function WhiteboardPage() {
         </div>
       </header>
 
-      {/* Outer Viewport Container: Sub-Header Tabs + Canvas Workspace + Full-Height Floating Inspector */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
-        <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-20 relative">
+      {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
+      <div className="h-10 border-b border-line bg-slate-100 px-4 flex items-center justify-between gap-3 shrink-0 z-30 relative">
         {/* Left Side: Home Icon Hub Link & Active Tabs List */}
         <div className="flex items-center gap-3 shrink-0 min-w-0 flex-1 overflow-hidden">
           <button
@@ -5831,25 +5780,12 @@ export default function WhiteboardPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const target = contextMenu.targetShape!;
-                        setSelectedShapeIds([target.id]);
-                        setInlineEditor({
-                          x: target.points[0].x,
-                          y: target.points[0].y,
-                          text: target.text || "",
-                          shapeId: target.id,
-                          isSticky: target.type === "sticky",
-                          fontSize: target.fontSize || fontSize,
-                          fontFamily: target.fontFamily || fontFamily,
-                          fontWeight: target.fontWeight || fontWeight,
-                          fontStyle: target.fontStyle || fontStyle,
-                          textDecoration: target.textDecoration || textDecoration,
-                          textAlign: target.textAlign || textAlign,
-                          textTransform: target.textTransform || textTransform,
-                          letterSpacing: target.letterSpacing ?? letterSpacing,
-                          lineHeight: target.lineHeight || lineHeight,
-                          color: target.textColor || target.color || strokeColor,
-                        });
+                        setEditingShapeId(contextMenu.targetShape!.id);
+                        setIsStickyMode(contextMenu.targetShape!.type === "sticky");
+                        setTextValue(contextMenu.targetShape!.text || "");
+                        if (contextMenu.targetShape!.stickyColor) setStickyColor(contextMenu.targetShape!.stickyColor);
+                        setTextModalPos(contextMenu.targetShape!.points[0] || contextMenu.canvasPt);
+                        setSelectedShapeIds([contextMenu.targetShape!.id]);
                         setContextMenu(null);
                       }}
                       className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
@@ -6508,101 +6444,88 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Flexible In-Place / Inline Canvas Text Editor (Photoshop / Word / Figma Style with Flashing Beeper) */}
-          {inlineEditor && (
+          {/* Text / Sticky Note Input Modal */}
+          {textModalPos && (
             <div
-              className="absolute z-50 pointer-events-auto"
+              className="absolute z-40 rounded-2xl border border-line bg-white p-4 shadow-2xl space-y-3 animate-in fade-in"
               style={{
-                left: inlineEditor.x * zoom + pan.x,
-                top: inlineEditor.y * zoom + pan.y,
+                left: Math.min(textModalPos.x * zoom + pan.x, (canvasRef.current?.width || 800) - 280),
+                top: Math.min(textModalPos.y * zoom + pan.y, (canvasRef.current?.height || 600) - 200),
               }}
             >
-              <div
-                className={`relative rounded-lg p-1.5 transition-all ${
-                  inlineEditor.isSticky
-                    ? "shadow-xl border border-black/15"
-                    : "border-2 border-dashed border-brand bg-white/95 shadow-2xl backdrop-blur-xs"
-                }`}
-                style={{
-                  backgroundColor: inlineEditor.isSticky ? (stickyColor || "#fef08a") : undefined,
-                  minWidth: inlineEditor.isSticky ? `${180 * zoom}px` : `${140 * zoom}px`,
-                  minHeight: inlineEditor.isSticky ? `${120 * zoom}px` : `${38 * zoom}px`,
-                }}
-              >
-                <textarea
-                  autoFocus
-                  value={inlineEditor.text}
-                  onChange={(e) => setInlineEditor((prev) => (prev ? { ...prev, text: e.target.value } : null))}
-                  onBlur={() => handleCommitInlineText()}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      setInlineEditor(null);
-                    } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault();
-                      handleCommitInlineText();
-                    }
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-ink flex items-center gap-1.5">
+                  {isStickyMode ? <StickyNote className="h-4 w-4 text-amber-500" /> : <Type className="h-4 w-4 text-brand" />}
+                  {editingShapeId ? (isStickyMode ? "Edit Sticky Note" : "Edit Text Label") : (isStickyMode ? "Add Sticky Note" : "Add Teaching Text")}
+                </p>
+              </div>
+
+              <textarea
+                autoFocus
+                rows={3}
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+                placeholder={isStickyMode ? "Type teaching note or rule..." : "Type diagram label..."}
+                className="w-64 rounded-xl border border-line bg-cream p-2.5 text-xs text-ink outline-none focus:border-brand resize-none"
+              />
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTextModalPos(null);
+                    setEditingShapeId(null);
                   }}
-                  placeholder={inlineEditor.isSticky ? "Type note here..." : "Type text here..."}
-                  style={{
-                    fontSize: `${(inlineEditor.fontSize || fontSize) * zoom}px`,
-                    fontFamily: inlineEditor.fontFamily || fontFamily,
-                    fontWeight: inlineEditor.fontWeight || fontWeight,
-                    fontStyle: inlineEditor.fontStyle || fontStyle,
-                    textDecoration: inlineEditor.textDecoration || textDecoration,
-                    textAlign: inlineEditor.textAlign || textAlign,
-                    textTransform: (inlineEditor.textTransform || textTransform) as any,
-                    lineHeight: inlineEditor.lineHeight || lineHeight,
-                    color: inlineEditor.color || strokeColor,
-                  }}
-                  className="w-full h-full bg-transparent outline-none resize-none border-none p-0 overflow-hidden font-sans caret-brand"
-                  rows={Math.max(1, (inlineEditor.text.match(/\n/g) || []).length + 1)}
-                />
-                {/* Visual Beeper / Caret Status Helper */}
-                <div className="absolute -top-6 left-0 flex items-center gap-1 bg-slate-900 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-md pointer-events-none select-none whitespace-nowrap animate-in fade-in">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Esc to cancel • Click outside or Ctrl+Enter to save</span>
-                </div>
+                  className="rounded-lg bg-cream px-3 py-1.5 text-xs font-bold text-muted hover:text-ink"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddTextOrSticky}
+                  className="btn-primary !py-1.5 !px-3 text-xs font-bold"
+                >
+                  {editingShapeId ? "Update Note" : "Save Note"}
+                </button>
               </div>
             </div>
           )}
 
-        </main>
+          {/* Right Inspector & Photoshop-Style Layers Panel (Spanning from Tab Area Top to Viewport Bottom, Flush Right) */}
+          {isInspectorOpen && (
+            <aside className="absolute right-0 top-[-2.5rem] bottom-0 z-40 w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
+              {/* FIXED UNMOVABLE Panel Header & Inspector / Layers Tab Switcher */}
+              <div className="flex items-center justify-between border-b border-line p-3.5 pb-2.5 bg-white/95 backdrop-blur-md shrink-0 z-10">
+                <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelTab("inspector")}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                      rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                    }`}
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRightPanelTab("layers")}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                      rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
+                    }`}
+                  >
+                    <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
+                  </button>
+                </div>
 
-        {/* Right Inspector & Photoshop-Style Layers Panel (Spanning from Tab Area Top to Viewport Bottom) */}
-        {isInspectorOpen && (
-          <aside className="w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-xl overflow-hidden animate-in slide-in-from-right duration-200 shrink-0 z-20">
-          {/* FIXED UNMOVABLE Panel Header & Inspector / Layers Tab Switcher (h-10 matches Sub-Header Tabs Bar height) */}
-          <div className="h-10 border-b border-line px-3.5 bg-white/95 backdrop-blur-md flex items-center justify-between shrink-0 z-10">
-            <div className="flex items-center gap-1 rounded-xl bg-cream p-0.5 border border-line">
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("inspector")}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                  rightPanelTab === "inspector" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                }`}
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" /> Inspector
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("layers")}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
-                  rightPanelTab === "layers" ? "bg-brand text-white shadow-xs" : "text-ink hover:text-brand"
-                }`}
-              >
-                <Layers className="h-3.5 w-3.5" /> Layers ({shapes.length})
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsInspectorOpen(false)}
-              className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
-              title="Collapse Panel"
-            >
-              <PanelRightClose className="h-4 w-4" />
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={() => setIsInspectorOpen(false)}
+                  className="rounded-lg p-1 text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
+                  title="Collapse Panel"
+                >
+                  <PanelRightClose className="h-4 w-4" />
+                </button>
+              </div>
 
               {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 [scrollbar-width:thin]">
@@ -7352,314 +7275,33 @@ export default function WhiteboardPage() {
 
                       {/* 7. CONTEXT-SPECIFIC TECHNICAL FOREX TOOL CARDS */}
 
-                      {/* (A) CHARACTER & TYPOGRAPHY PANEL (PHOTOSHOP / FIGMA / WORD STYLE) */}
-                      {(targetTool === "text" || (selectedShape && (selectedShape.type === "text" || selectedShape.type === "sticky" || selectedShape.type === "annotation"))) && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs animate-in fade-in">
-                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
-                            <span className="flex items-center gap-1.5">
-                              <Type className="h-3.5 w-3.5 text-brand" /> Character & Typography
-                            </span>
-                            <span className="text-[9px] font-mono text-muted uppercase">
-                              {(selectedShape?.fontFamily || fontFamily).split(",")[0].replace(/'/g, "")}
-                            </span>
-                          </div>
+                      {/* (A) TEXT LABELS */}
+                      {targetTool === "text" && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Typography & Content</p>
 
-                          {/* Font Family Selector */}
-                          <div>
-                            <label className="text-[10.5px] font-bold text-ink block mb-1">Font Family</label>
-                            <select
-                              value={selectedShape?.fontFamily || fontFamily}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setFontFamily(val);
-                                if (selectedShape && !selectedShape.isLocked) {
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, fontFamily: val } : s))
-                                  );
-                                }
-                              }}
-                              disabled={selectedShape?.isLocked}
-                              className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition cursor-pointer"
-                            >
-                              <option value="Inter, -apple-system, sans-serif">Inter (Modern Sans)</option>
-                              <option value="'Roboto', sans-serif">Roboto (Clean Sans)</option>
-                              <option value="'Playfair Display', Georgia, serif">Playfair Display (Editorial Serif)</option>
-                              <option value="'Merriweather', Georgia, serif">Merriweather (Classic Serif)</option>
-                              <option value="'JetBrains Mono', 'Courier New', monospace">JetBrains Mono (Technical / Code)</option>
-                              <option value="'Caveat', cursive, sans-serif">Caveat (Handwriting / Sketch)</option>
-                              <option value="'Impact', 'Oswald', sans-serif">Impact / Oswald (Display Bold)</option>
-                            </select>
-                          </div>
-
-                          {/* Font Size & Line Height Stepper Grid */}
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {/* Font Size */}
-                            <div>
-                              <label className="text-[10.5px] font-bold text-ink block mb-1">Size (px)</label>
-                              <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
-                                <span className="text-[10px] font-black text-muted w-3.5 select-none">T</span>
-                                <input
-                                  type="number"
-                                  min={8}
-                                  max={120}
-                                  value={selectedShape?.fontSize || fontSize}
-                                  disabled={selectedShape?.isLocked}
-                                  onChange={(e) => {
-                                    const val = parseInt(e.target.value, 10) || 16;
-                                    setFontSize(val);
-                                    if (selectedShape && !selectedShape.isLocked) {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, fontSize: val } : s))
-                                      );
-                                    }
-                                  }}
-                                  className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1"
-                                />
-                                <span className="text-[10px] text-muted font-medium select-none">px</span>
-                              </div>
-                            </div>
-
-                            {/* Line Height / Leading */}
-                            <div>
-                              <label className="text-[10.5px] font-bold text-ink block mb-1">Line Height</label>
-                              <div className="flex items-center rounded-xl border border-line bg-slate-50 focus-within:border-brand focus-within:bg-white px-2 py-1 transition">
-                                <span className="text-[10px] font-black text-muted w-3.5 select-none">↕</span>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  min={0.8}
-                                  max={3.0}
-                                  value={selectedShape?.lineHeight || lineHeight}
-                                  disabled={selectedShape?.isLocked}
-                                  onChange={(e) => {
-                                    const val = parseFloat(e.target.value) || 1.3;
-                                    setLineHeight(val);
-                                    if (selectedShape && !selectedShape.isLocked) {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, lineHeight: val } : s))
-                                      );
-                                    }
-                                  }}
-                                  className="w-full bg-transparent font-mono font-bold text-xs text-ink outline-none text-right pr-1"
-                                />
-                                <span className="text-[10px] text-muted font-medium select-none">em</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Quick Size Presets */}
-                          <div className="flex items-center gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none]">
-                            {[12, 14, 16, 18, 24, 32, 48].map((sz) => (
-                              <button
-                                key={sz}
-                                type="button"
-                                onClick={() => {
-                                  setFontSize(sz);
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, fontSize: sz } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition cursor-pointer shrink-0 ${
-                                  (selectedShape?.fontSize || fontSize) === sz
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                                }`}
-                              >
-                                {sz}
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Character Styles Toolbar (Bold, Italic, Underline, Strike, Alignments, Transforms) */}
-                          <div className="pt-2 border-t border-line space-y-2">
-                            <label className="text-[10.5px] font-bold text-ink block">Formatting & Alignment</label>
-                            <div className="grid grid-cols-7 gap-1">
-                              {/* Bold */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nextWeight = (selectedShape?.fontWeight || fontWeight) === "bold" ? "normal" : "bold";
-                                  setFontWeight(nextWeight);
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, fontWeight: nextWeight } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.fontWeight || fontWeight) === "bold"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Bold (B)"
-                              >
-                                <Bold className="h-3.5 w-3.5" />
-                              </button>
-
-                              {/* Italic */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nextStyle = (selectedShape?.fontStyle || fontStyle) === "italic" ? "normal" : "italic";
-                                  setFontStyle(nextStyle);
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, fontStyle: nextStyle } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.fontStyle || fontStyle) === "italic"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Italic (I)"
-                              >
-                                <Italic className="h-3.5 w-3.5" />
-                              </button>
-
-                              {/* Underline */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nextDec = (selectedShape?.textDecoration || textDecoration) === "underline" ? "none" : "underline";
-                                  setTextDecoration(nextDec);
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, textDecoration: nextDec } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.textDecoration || textDecoration) === "underline"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Underline (U)"
-                              >
-                                <Underline className="h-3.5 w-3.5" />
-                              </button>
-
-                              {/* Strikethrough */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const nextDec = (selectedShape?.textDecoration || textDecoration) === "line-through" ? "none" : "line-through";
-                                  setTextDecoration(nextDec);
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, textDecoration: nextDec } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.textDecoration || textDecoration) === "line-through"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Strikethrough"
-                              >
-                                <Strikethrough className="h-3.5 w-3.5" />
-                              </button>
-
-                              {/* Align Left */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setTextAlign("left");
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, textAlign: "left" } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.textAlign || textAlign) === "left"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Align Left"
-                              >
-                                <AlignLeft className="h-3.5 w-3.5" />
-                              </button>
-
-                              {/* Align Center */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setTextAlign("center");
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, textAlign: "center" } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.textAlign || textAlign) === "center"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Align Center"
-                              >
-                                <AlignCenter className="h-3.5 w-3.5" />
-                              </button>
-
-                              {/* Align Right */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setTextAlign("right");
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, textAlign: "right" } : s))
-                                    );
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`p-1.5 rounded-xl border transition flex items-center justify-center cursor-pointer ${
-                                  (selectedShape?.textAlign || textAlign) === "right"
-                                    ? "bg-brand text-white border-brand shadow-xs"
-                                    : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                                }`}
-                                title="Align Right"
-                              >
-                                <AlignRight className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Direct Content Input & Instructions */}
                           {selectedShape ? (
-                            <div className="pt-2 border-t border-line">
-                              <label className="text-[10.5px] font-bold text-ink block mb-1">Live Text Content</label>
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Text Content</label>
                               <textarea
                                 rows={2}
-                                value={selectedShape.text ?? ""}
+                                value={selectedShape.text || ""}
                                 onChange={(e) => {
                                   const newTxt = e.target.value;
-                                  if (selectedShape && !selectedShape.isLocked) {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, text: newTxt } : s))
-                                    );
-                                  }
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
+                                  );
                                 }}
                                 disabled={selectedShape.isLocked}
-                                placeholder="Type text or double click on canvas..."
-                                className="w-full rounded-xl border border-line bg-slate-50 p-2 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white resize-none transition"
+                                placeholder="Type text..."
+                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
+                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
+                                }`}
                               />
                             </div>
                           ) : (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-muted">
-                              💡 Click on canvas with the Text tool or double click any existing text to type live with the beeper!
+                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
+                              Click anywhere on canvas to place text.
                             </div>
                           )}
                         </div>
@@ -8099,85 +7741,25 @@ export default function WhiteboardPage() {
               </div>
 
               {/* FIXED Panel Footer Stats */}
-              <div className="border-t border-line px-4 py-2 bg-cream/60 text-[10px] text-muted flex items-center justify-between font-bold shrink-0">
+              <div className="border-t border-line px-4 py-2.5 bg-cream/60 text-[10px] text-muted flex items-center justify-between font-bold shrink-0">
                 <span>Total Layers: {shapes.length}</span>
                 <span>Zoom: {Math.round(zoom * 100)}%</span>
               </div>
             </aside>
           )}
 
-          {/* Right Vertical Tool Bar Dock holding Inspector and Layers (Photoshop / Illustrator / Figma Style) */}
-          <aside className="w-12 border-l border-line bg-white flex flex-col items-center justify-between py-2.5 shrink-0 z-30 shadow-xs">
-            <div className="flex flex-col items-center gap-2 w-full">
-              {/* Inspector Tab Toggle Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isInspectorOpen && rightPanelTab === "inspector") {
-                    setIsInspectorOpen(false);
-                  } else {
-                    setRightPanelTab("inspector");
-                    setIsInspectorOpen(true);
-                  }
-                }}
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer relative group ${
-                  isInspectorOpen && rightPanelTab === "inspector"
-                    ? "bg-brand text-white shadow-md"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
-                }`}
-                title="Inspector & Character Typography"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="absolute right-full mr-2 hidden group-hover:block bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg whitespace-nowrap z-50 pointer-events-none">
-                  Inspector
-                </span>
-              </button>
-
-              {/* Layers Tab Toggle Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (isInspectorOpen && rightPanelTab === "layers") {
-                    setIsInspectorOpen(false);
-                  } else {
-                    setRightPanelTab("layers");
-                    setIsInspectorOpen(true);
-                  }
-                }}
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition cursor-pointer relative group ${
-                  isInspectorOpen && rightPanelTab === "layers"
-                    ? "bg-brand text-white shadow-md"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
-                }`}
-                title="Layers Panel"
-              >
-                <Layers className="h-4 w-4" />
-                {shapes.length > 0 && (
-                  <span className={`absolute -top-1 -right-1 text-[8.5px] font-black px-1.5 py-0.2 rounded-full shadow-2xs ${
-                    isInspectorOpen && rightPanelTab === "layers" ? "bg-amber-400 text-slate-900" : "bg-brand text-white"
-                  }`}>
-                    {shapes.length}
-                  </span>
-                )}
-                <span className="absolute right-full mr-2 hidden group-hover:block bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md shadow-lg whitespace-nowrap z-50 pointer-events-none">
-                  Layers ({shapes.length})
-                </span>
-              </button>
-            </div>
-
-            {/* Bottom Panel Collapse / Expand Button */}
-            <div className="flex flex-col items-center gap-2 w-full pt-2 border-t border-line">
-              <button
-                type="button"
-                onClick={() => setIsInspectorOpen((prev) => !prev)}
-                className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-ink transition cursor-pointer"
-                title={isInspectorOpen ? "Collapse Panel" : "Expand Panel"}
-              >
-                {isInspectorOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
-              </button>
-            </div>
-          </aside>
-        </div>
+          {/* Floating Collapsed Toggle Icon (Only the collapse/expandable icon shows when collapsed) */}
+          {!isInspectorOpen && (
+            <button
+              type="button"
+              onClick={() => setIsInspectorOpen(true)}
+              className="absolute right-3 top-[-2.15rem] z-40 p-2 rounded-xl border border-line bg-white/95 text-slate-700 shadow-md hover:bg-brand-light hover:text-brand transition animate-in fade-in cursor-pointer"
+              title="Expand Inspector & Layers Panel"
+            >
+              <PanelRightOpen className="h-4 w-4" />
+            </button>
+          )}
+        </main>
       </div>
     </div>
   );
@@ -9099,18 +8681,10 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     maxX = pts[0].x + 180;
     maxY = pts[0].y + 140;
   } else if (shape.type === "text") {
-    const fSize = shape.fontSize || 16;
-    const lHeight = (shape.lineHeight || 1.3) * fSize;
-    const lines = (shape.text || "Text").split("\n");
-    const maxLen = Math.max(...lines.map((l) => l.length), 4);
-    const approxW = maxLen * (fSize * 0.65);
-    const totalH = lines.length * lHeight;
-    const tAlign = shape.textAlign || "left";
-
-    minX = tAlign === "center" ? pts[0].x - approxW / 2 - 4 : tAlign === "right" ? pts[0].x - approxW - 4 : pts[0].x - 4;
-    minY = pts[0].y - 4;
-    maxX = minX + approxW + 8;
-    maxY = minY + totalH + 8;
+    minX = pts[0].x - 4;
+    minY = pts[0].y - 18;
+    maxX = pts[0].x + Math.max(60, (shape.text?.length || 4) * 9);
+    maxY = pts[0].y + 6;
   } else if (shape.type === "bullish_candle" || shape.type === "bearish_candle") {
     const upperWick = shape.upperWickLength ?? 25;
     const lowerWick = shape.lowerWickLength ?? 25;
@@ -9371,25 +8945,12 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.fill();
 
     if (shape.text) {
-      const fSize = shape.fontSize || 12;
-      const fFamily = shape.fontFamily || "Inter, -apple-system, sans-serif";
-      const fWeight = shape.fontWeight || "bold";
-      const fStyle = shape.fontStyle || "normal";
-      const tAlign = shape.textAlign || "left";
-      const lHeight = (shape.lineHeight || 1.3) * fSize;
-
-      ctx.save();
-      ctx.fillStyle = shape.textColor || "#1e293b";
-      ctx.font = `${fStyle} ${fWeight} ${fSize}px ${fFamily}`;
-      ctx.textAlign = tAlign;
-      ctx.textBaseline = "top";
-
+      ctx.fillStyle = "#1e293b";
+      ctx.font = "bold 12px Inter, sans-serif";
       const lines = shape.text.split("\n");
-      const textX = tAlign === "center" ? p.x + w / 2 : tAlign === "right" ? p.x + w - 14 : p.x + 14;
       lines.forEach((line, idx) => {
-        ctx.fillText(line, textX, p.y + 20 + idx * lHeight, w - 28);
+        ctx.fillText(line, p.x + 12, p.y + 26 + idx * 18, w - 24);
       });
-      ctx.restore();
     }
   } else if (shape.type === "fibo" && pts.length >= 2) {
     /* 1. FIBONACCI RETRACEMENT TOOL */
@@ -9972,56 +9533,8 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.closePath();
     ctx.fill();
   } else if (shape.type === "text" && shape.text) {
-    const fSize = shape.fontSize || 16;
-    const fFamily = shape.fontFamily || "Inter, -apple-system, sans-serif";
-    const fWeight = shape.fontWeight || "bold";
-    const fStyle = shape.fontStyle || "normal";
-    const tAlign = shape.textAlign || "left";
-    const tTransform = shape.textTransform || "none";
-    const lHeight = (shape.lineHeight || 1.3) * fSize;
-
-    ctx.save();
-    ctx.font = `${fStyle} ${fWeight} ${fSize}px ${fFamily}`;
-    ctx.textAlign = tAlign;
-    ctx.textBaseline = "top";
-    ctx.fillStyle = shape.textColor || shape.color || "#1e293b";
-
-    let rawText = shape.text;
-    if (tTransform === "uppercase") rawText = rawText.toUpperCase();
-    else if (tTransform === "lowercase") rawText = rawText.toLowerCase();
-    else if (tTransform === "capitalize") {
-      rawText = rawText.replace(/\b\w/g, (c) => c.toUpperCase());
-    }
-
-    const lines = rawText.split("\n");
-    const startX = pts[0].x;
-    const startY = pts[0].y;
-
-    lines.forEach((line, idx) => {
-      const lineY = startY + idx * lHeight;
-      ctx.fillText(line, startX, lineY);
-
-      if (shape.textDecoration === "underline") {
-        const met = ctx.measureText(line);
-        const uX = tAlign === "center" ? startX - met.width / 2 : tAlign === "right" ? startX - met.width : startX;
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.lineWidth = Math.max(1, fSize / 14);
-        ctx.beginPath();
-        ctx.moveTo(uX, lineY + fSize + 2);
-        ctx.lineTo(uX + met.width, lineY + fSize + 2);
-        ctx.stroke();
-      } else if (shape.textDecoration === "line-through") {
-        const met = ctx.measureText(line);
-        const uX = tAlign === "center" ? startX - met.width / 2 : tAlign === "right" ? startX - met.width : startX;
-        ctx.strokeStyle = ctx.fillStyle;
-        ctx.lineWidth = Math.max(1, fSize / 14);
-        ctx.beginPath();
-        ctx.moveTo(uX, lineY + fSize / 2 + 1);
-        ctx.lineTo(uX + met.width, lineY + fSize / 2 + 1);
-        ctx.stroke();
-      }
-    });
-    ctx.restore();
+    ctx.font = "bold 15px Inter, sans-serif";
+    ctx.fillText(shape.text, pts[0].x, pts[0].y);
   } else if (shape.type === "annotation" && pts.length >= 2) {
     /* ANNOTATION / CALLOUT LEADER LINE TOOL */
     const p0 = pts[0]; // Target Anchor Point on object
