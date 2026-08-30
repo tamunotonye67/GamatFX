@@ -69,6 +69,8 @@ import {
   Strikethrough,
   AlignLeft,
   AlignCenter,
+  AlignRight,
+  AlignJustify,
   CaseUpper,
   CaseLower,
   Pin,
@@ -8668,7 +8670,7 @@ export default function WhiteboardPage() {
                       </div>
                       <button
                         type="button"
-                        onClick={handleSaveCanvasDraft}
+                        onClick={handleSaveCurrentDraft}
                         className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
                         title="Save Current Diagram as Draft"
                       >
@@ -8684,7 +8686,14 @@ export default function WhiteboardPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={handleAddNewTab}
+                          onClick={() => {
+                            if (tabs.length >= 5) {
+                              setMaxTabPromptOpen(true);
+                              showToast("Tab limit reached! (Maximum 5 tabs)");
+                            } else {
+                              handleConfirmCreateCustomCanvas();
+                            }
+                          }}
                           disabled={tabs.length >= 5}
                           className="text-[10.5px] font-bold text-brand hover:underline disabled:opacity-40 flex items-center gap-0.5 cursor-pointer"
                         >
@@ -8698,7 +8707,7 @@ export default function WhiteboardPage() {
                           return (
                             <div
                               key={tab.id}
-                              onClick={() => handleSwitchTab(tab.id)}
+                              onClick={() => handleSelectTab(tab.id)}
                               className={`p-2 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
                                 isActive
                                   ? "border-brand bg-brand-light/40 shadow-xs"
@@ -8763,7 +8772,7 @@ export default function WhiteboardPage() {
                               <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   type="button"
-                                  onClick={() => handleLoadDraft(draft)}
+                                  onClick={() => loadSavedDraft(draft)}
                                   className="px-2 py-1 bg-brand-light text-brand rounded-lg text-[10.5px] font-bold hover:bg-brand hover:text-white transition cursor-pointer"
                                   title="Open Draft in Canvas Tab"
                                 >
@@ -8771,7 +8780,7 @@ export default function WhiteboardPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => handleDeleteDraft(draft.id)}
+                                  onClick={() => deleteDraft(draft.id)}
                                   className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
                                   title="Delete Draft"
                                 >
@@ -8837,6 +8846,7 @@ export default function WhiteboardPage() {
                             type="button"
                             onClick={() => {
                               if (tabs.length >= 5 && !tabs.some((t) => t.name === sample.title)) {
+                                setMaxTabPromptOpen(true);
                                 showToast("Max 5 tabs reached! Close a tab to load template.");
                                 return;
                               }
@@ -8902,7 +8912,7 @@ export default function WhiteboardPage() {
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
-                                onClick={() => handleRestoreTab(item.id)}
+                                onClick={() => restoreTrashedTab(item)}
                                 className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[10.5px] font-bold transition flex items-center gap-1 cursor-pointer"
                                 title="Restore diagram tab"
                               >
@@ -8910,7 +8920,7 @@ export default function WhiteboardPage() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handlePermanentDeleteTab(item.id)}
+                                onClick={() => deleteTrashedTabPermanently(item.id)}
                                 className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
                                 title="Delete Permanently"
                               >
