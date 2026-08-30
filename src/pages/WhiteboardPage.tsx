@@ -965,6 +965,32 @@ export default function WhiteboardPage() {
     } catch (e) {}
   }, [trashedTabs]);
 
+  /* -------------------------- Strict Viewport & Top-Boundary Guard ---------- */
+
+  const clampPan = (targetPan: { x: number; y: number }, targetZoom: number = zoom, shapesList: Shape[] = shapes) => {
+    let newPanY = targetPan.y;
+    if (shapesList.length > 0) {
+      let minY = Infinity;
+      shapesList.forEach((s) => {
+        if (!s.isHidden) {
+          const b = getShapeBounds(s);
+          if (b.minY < minY) minY = b.minY;
+        }
+      });
+      if (isFinite(minY)) {
+        const topScreenPos = minY * targetZoom + newPanY;
+        // Strict Rule: Top-most object boundary must always remain >= 24px below the tab bar
+        if (topScreenPos < 24) {
+          newPanY = 24 - minY * targetZoom;
+        }
+      }
+    }
+    return {
+      x: targetPan.x,
+      y: newPanY,
+    };
+  };
+
   /* -------------------------- Non-Passive Canvas Wheel Event --------------- */
 
   useEffect(() => {
@@ -981,43 +1007,26 @@ export default function WhiteboardPage() {
         // Smooth cursor-anchored zoom without holding Shift or Ctrl
         const zoomFactor = e.deltaY < 0 ? 1.09 : 0.91;
         setZoom((prevZoom) => {
-          const newZoom = Math.min(3.0, Math.max(0.3, prevZoom * zoomFactor));
+          const newZoom = Math.min(4.0, Math.max(0.2, prevZoom * zoomFactor));
           setPan((prevPan) => {
             const canvasX = (mouseX - prevPan.x) / prevZoom;
             const canvasY = (mouseY - prevPan.y) / prevZoom;
-            let nextPanX = mouseX - canvasX * newZoom;
-            let nextPanY = mouseY - canvasY * newZoom;
-
-            // Prevent objects from drifting under the top tabs bar when zooming out
-            if (shapes.length > 0) {
-              let minY = Infinity;
-              shapes.forEach((s) => {
-                if (!s.isHidden) {
-                  const b = getShapeBounds(s);
-                  if (b.minY < minY) minY = b.minY;
-                }
-              });
-              if (isFinite(minY)) {
-                const topScreenPos = minY * newZoom + nextPanY;
-                // If the top-most shape would be pushed under the tab bar (less than 20px from top)
-                if (topScreenPos < 20 && e.deltaY > 0) {
-                  nextPanY = 20 - minY * newZoom;
-                }
-              }
-            }
-
-            return {
-              x: nextPanX,
-              y: nextPanY,
+            const rawPan = {
+              x: mouseX - canvasX * newZoom,
+              y: mouseY - canvasY * newZoom,
             };
+            return clampPan(rawPan, newZoom, shapes);
           });
           return newZoom;
         });
       } else {
-        setPan((p) => ({
-          x: p.x - e.deltaX * 0.8,
-          y: p.y - e.deltaY * 0.8,
-        }));
+        setPan((p) => {
+          const rawPan = {
+            x: p.x - e.deltaX * 0.8,
+            y: p.y - e.deltaY * 0.8,
+          };
+          return clampPan(rawPan, zoom, shapes);
+        });
       }
     };
 
@@ -1390,7 +1399,7 @@ export default function WhiteboardPage() {
 
     const rawPt = {
       x: (screenX - pan.x) / zoom,
-      y: (screenY - pan.y) / zoom,
+      y: (Math.max(20, screenY) - pan.y) / zoom,
     };
 
     if (snapToGrid && activeTool !== "pencil" && activeTool !== "highlighter" && activeTool !== "eraser") {
@@ -1774,10 +1783,11 @@ export default function WhiteboardPage() {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isPanning.current) {
-      setPan({
+      const rawPan = {
         x: e.clientX - startPan.current.x,
         y: e.clientY - startPan.current.y,
-      });
+      };
+      setPan(clampPan(rawPan, zoom, shapes));
       return;
     }
 
@@ -1831,8 +1841,24 @@ export default function WhiteboardPage() {
       }
 
       const dx = pt.x - dragStartPt.current.x;
-      const dy = pt.y - dragStartPt.current.y;
+      let dy = pt.y - dragStartPt.current.y;
       dragStartPt.current = pt;
+
+      // Strict Rule: Shapes being moved must never be pushed above the top boundary (< 24px from tab bar)
+      const activeShapes = shapes.filter((s) => selectedShapeIds.includes(s.id) && !s.isLocked);
+      if (activeShapes.length > 0) {
+        let minShapeY = Infinity;
+        activeShapes.forEach((s) => {
+          const b = getShapeBounds(s);
+          if (b.minY < minShapeY) minShapeY = b.minY;
+        });
+        if (isFinite(minShapeY)) {
+          const nextScreenY = (minShapeY + dy) * zoom + pan.y;
+          if (nextScreenY < 24) {
+            dy = (24 - pan.y) / zoom - minShapeY;
+          }
+        }
+      }
 
       setShapes((prev) =>
         prev.map((s) => {
@@ -2953,10 +2979,10 @@ export default function WhiteboardPage() {
     const centerY = (minY + maxY) / 2;
 
     setZoom(fitZoom);
-    setPan({
+    setPan(clampPan({
       x: viewW / 2 - centerX * fitZoom,
       y: viewH / 2 - centerY * fitZoom,
-    });
+    }, fitZoom, shapes));
     setZoomMenuOpen(false);
     showToast(`Fit to Screen (${Math.round(fitZoom * 100)}%)`);
   };
@@ -2990,10 +3016,10 @@ export default function WhiteboardPage() {
     const centerY = (minY + maxY) / 2;
 
     setZoom(fitZoom);
-    setPan({
+    setPan(clampPan({
       x: viewW / 2 - centerX * fitZoom,
       y: viewH / 2 - centerY * fitZoom,
-    });
+    }, fitZoom, selectedShapes));
     setZoomMenuOpen(false);
     showToast(`Zoomed to selection (${Math.round(fitZoom * 100)}%)`);
   };
@@ -3001,6 +3027,7 @@ export default function WhiteboardPage() {
   const handleSetZoomPercent = (percent: number) => {
     const nextZoom = Math.max(0.1, Math.min(5.0, percent / 100));
     setZoom(nextZoom);
+    setPan((prevPan) => clampPan(prevPan, nextZoom, shapes));
     setZoomInputValue(String(Math.round(nextZoom * 100)));
     setZoomMenuOpen(false);
   };
