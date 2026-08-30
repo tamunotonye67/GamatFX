@@ -2894,9 +2894,52 @@ export default function WhiteboardPage() {
     showToast(`Loaded draft "${draft.name}"!`);
   };
 
+  const handleDeleteCanvas = (canvasId: string, isTab?: boolean) => {
+    // 1. Find if it matches a draft in savedDrafts
+    const targetDraft = savedDrafts.find((d) => d.id === canvasId);
+    if (targetDraft || !isTab) {
+      setSavedDrafts((prev) => prev.filter((d) => d.id !== canvasId));
+    }
+
+    // 2. Find any open tab matching this tab/draft (by id or by name)
+    const matchingTab = tabs.find((t) => t.id === canvasId || (targetDraft && t.name === targetDraft.name));
+
+    if (matchingTab) {
+      // Add to trashed tabs so user can restore if needed
+      setTrashedTabs((prev) => [
+        {
+          id: matchingTab.id,
+          name: matchingTab.name,
+          shapes: matchingTab.id === activeTabId ? shapes : (matchingTab.shapes || []),
+          deletedAt: Date.now(),
+        },
+        ...prev.filter((t) => t.id !== matchingTab.id),
+      ]);
+
+      if (tabs.length > 1) {
+        const remaining = tabs.filter((t) => t.id !== matchingTab.id);
+        setTabs(remaining);
+        if (activeTabId === matchingTab.id) {
+          const nextTab = remaining[0];
+          setActiveTabId(nextTab.id);
+          setShapes(nextTab.shapes || []);
+          setBgGrid(nextTab.theme || "dots");
+          if (typeof nextTab.snapToGrid === "boolean") setSnapToGrid(nextTab.snapToGrid);
+        }
+      } else {
+        // If it was the only open tab, reset to a fresh default Canvas 1 with empty shapes
+        const defaultTabId = `tab_${Date.now()}`;
+        setTabs([{ id: defaultTabId, name: "Canvas 1" }]);
+        setActiveTabId(defaultTabId);
+        setShapes([]);
+      }
+    }
+
+    showToast("Canvas deleted successfully!");
+  };
+
   const deleteDraft = (draftId: string) => {
-    setSavedDrafts((prev) => prev.filter((d) => d.id !== draftId));
-    showToast("Deleted draft!");
+    handleDeleteCanvas(draftId);
   };
 
   const restoreTrashedTab = (item: TrashedTab) => {
@@ -3327,10 +3370,18 @@ export default function WhiteboardPage() {
     );
   }
 
-  // Filtered collections for Figma-Style Hub View
+  // Filtered collections for Figma-Style Hub View (Deduplicated so open tabs and saved drafts remain synchronized)
   const allDraftsList = [
-    ...tabs.map((t) => ({ id: t.id, name: t.name, shapes: t.id === activeTabId ? shapes : [], isTab: true, savedAt: Date.now() })),
-    ...savedDrafts.map((d) => ({ ...d, isTab: false })),
+    ...tabs.map((t) => ({
+      id: t.id,
+      name: t.name,
+      shapes: t.id === activeTabId ? shapes : (t.shapes || []),
+      isTab: true,
+      savedAt: Date.now(),
+    })),
+    ...savedDrafts
+      .filter((d) => !tabs.some((t) => t.name === d.name || t.id === d.id))
+      .map((d) => ({ ...d, isTab: false })),
   ];
 
   const filteredDrafts = allDraftsList.filter((d) =>
@@ -4095,8 +4146,8 @@ export default function WhiteboardPage() {
                             <span>{draft.shapes?.length || 0} layers</span>
                             <span>{new Date(draft.savedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                           </div>
-                          {!draft.isTab && (
-                            <div className="pt-2 border-t border-line flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                          <div className="pt-2 border-t border-line flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            {!draft.isTab && (
                               <button
                                 type="button"
                                 onClick={() => handleDuplicateDraft(draft as SavedDraft)}
@@ -4105,16 +4156,16 @@ export default function WhiteboardPage() {
                               >
                                 <Copy className="h-3.5 w-3.5" />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => deleteDraft(draft.id)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                title="Delete Draft"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          )}
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCanvas(draft.id, draft.isTab)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                              title={draft.isTab ? "Close & Delete Canvas" : "Delete Draft"}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -4152,16 +4203,14 @@ export default function WhiteboardPage() {
                           >
                             Open Canvas
                           </button>
-                          {!draft.isTab && (
-                            <button
-                              type="button"
-                              onClick={() => deleteDraft(draft.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
-                              title="Delete"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCanvas(draft.id, draft.isTab)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                            title={draft.isTab ? "Close & Delete Canvas" : "Delete Draft"}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                     ))}
