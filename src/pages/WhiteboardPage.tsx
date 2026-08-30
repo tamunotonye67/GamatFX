@@ -3455,496 +3455,6 @@ export default function WhiteboardPage() {
             Got it, thanks!
           </button>
         </div>
-
-        {/* TAB 7: GRID, GUIDELINES & SNAP SETTINGS */}
-        {tabKey === "grid_guides" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
-            {/* Header */}
-            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
-                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                  <Grid className="h-3.5 w-3.5" />
-                </span>
-                <span className="truncate">Grid, Guidelines & Snap Engine</span>
-              </div>
-            </div>
-
-            {/* 1. Grid Style Selector */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                <span>Grid Style</span>
-                <span className="text-[9px] text-brand font-medium capitalize">{bgGrid}</span>
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { id: "dots", label: "Dots Matrix", icon: Grid },
-                  { id: "lines", label: "Graph Lines", icon: Grid },
-                  { id: "blank", label: "Blank Clean", icon: Square },
-                  { id: "dark", label: "Dark Grid", icon: Monitor },
-                  { id: "chalkboard", label: "Chalkboard", icon: ShieldCheck },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      setBgGrid(item.id as any);
-                      showToast(`Switched grid to ${item.label}`);
-                    }}
-                    className={`py-1.5 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
-                      bgGrid === item.id
-                        ? "bg-brand text-white border-brand shadow-xs"
-                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. Snap to Grid & Tolerance */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1">
-                  <Magnet className="h-3 w-3 text-brand" /> Snap Engine Controls
-                </label>
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${snapToGrid ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                  {snapToGrid ? "Active" : "Disabled"}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Snap to Grid</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToGrid}
-                    onChange={(e) => {
-                      setSnapToGrid(e.target.checked);
-                      showToast(e.target.checked ? "Snap to Grid Enabled" : "Snap to Grid Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Snap to Objects & Vertices</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToObjects}
-                    onChange={(e) => {
-                      setSnapToObjects(e.target.checked);
-                      showToast(e.target.checked ? "Snap to Objects Enabled" : "Snap to Objects Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Snap to Guidelines</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToGuides}
-                    onChange={(e) => {
-                      setSnapToGuides(e.target.checked);
-                      showToast(e.target.checked ? "Snap to Guidelines Enabled" : "Snap to Guidelines Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Constrain Angles (15° / 45° / 90°)</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToAngles}
-                    onChange={(e) => {
-                      setSnapToAngles(e.target.checked);
-                      showToast(e.target.checked ? "Angle Snapping Enabled" : "Angle Snapping Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-              </div>
-
-              {/* Grid Snap Size */}
-              <div className="space-y-1 pt-1">
-                <div className="flex items-center justify-between text-[10px] font-bold text-muted">
-                  <span>Grid Step Size</span>
-                  <span className="text-brand font-black">{gridSnapSize}px</span>
-                </div>
-                <div className="grid grid-cols-4 gap-1">
-                  {[5, 10, 20, 40].map((sz) => (
-                    <button
-                      key={sz}
-                      type="button"
-                      onClick={() => {
-                        setGridSnapSize(sz);
-                        showToast(`Grid Step: ${sz}px`);
-                      }}
-                      className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
-                        gridSnapSize === sz ? "bg-brand text-white border-brand" : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
-                      }`}
-                    >
-                      {sz}px
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Guidelines Management */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1">
-                  <RulerIcon className="h-3 w-3 text-brand" /> Smart Guidelines ({guidelines.length})
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowGuidelines(!showGuidelines)}
-                    className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
-                      showGuidelines ? "bg-brand-light text-brand" : "bg-slate-100 text-slate-400"
-                    }`}
-                  >
-                    {showGuidelines ? "Visible" : "Hidden"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const cy = Math.round((-pan.y + window.innerHeight / 2) / zoom);
-                    setGuidelines((prev) => [
-                      ...prev,
-                      { id: `g_${Date.now()}`, orientation: "horizontal", position: cy, color: "#3b82f6" },
-                    ]);
-                    showToast(`Added Horizontal Guide at Y: ${cy}px`);
-                  }}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <Plus className="h-3 w-3" /> + Horizontal
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const cx = Math.round((-pan.x + window.innerWidth / 2) / zoom);
-                    setGuidelines((prev) => [
-                      ...prev,
-                      { id: `g_${Date.now()}`, orientation: "vertical", position: cx, color: "#3b82f6" },
-                    ]);
-                    showToast(`Added Vertical Guide at X: ${cx}px`);
-                  }}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <Plus className="h-3 w-3" /> + Vertical
-                </button>
-              </div>
-
-              {/* Guidelines List */}
-              {guidelines.length > 0 && (
-                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                  {guidelines.map((g, idx) => (
-                    <div
-                      key={g.id}
-                      className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-line text-[10.5px]"
-                    >
-                      <div className="flex items-center gap-1.5 font-bold text-ink">
-                        <span
-                          className="h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: g.color }}
-                        />
-                        <span className="capitalize">{g.orientation}</span>
-                        <span className="text-muted font-normal">({g.position}px)</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setGuidelines((prev) => prev.filter((item) => item.id !== g.id));
-                          showToast("Removed guide");
-                        }}
-                        className="p-0.5 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {guidelines.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGuidelines([]);
-                    showToast("Cleared all guidelines");
-                  }}
-                  className="w-full py-1 text-center text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
-                >
-                  Clear All Guidelines
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 8: THEME & CANVAS STYLING */}
-        {tabKey === "theme" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
-            {/* Header */}
-            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
-                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                  <Palette className="h-3.5 w-3.5" />
-                </span>
-                <span className="truncate">Theme & Canvas Framing</span>
-              </div>
-            </div>
-
-            {/* 1. Theme Presets */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Themes</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: "dots", name: "Light Clean", bg: "#f8fafc", text: "#0f172a", border: "#e2e8f0" },
-                  { id: "dark", name: "OLED Dark Slate", bg: "#0f172a", text: "#f8fafc", border: "#334155" },
-                  { id: "chalkboard", name: "Emerald Chalkboard", bg: "#064e3b", text: "#ecfdf5", border: "#047857" },
-                  { id: "lines", name: "Blueprint Grid", bg: "#1e293b", text: "#38bdf8", border: "#0284c7" },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => {
-                      setBgGrid(t.id as any);
-                      showToast(`Applied "${t.name}" Canvas Theme!`);
-                    }}
-                    style={{ backgroundColor: t.bg, color: t.text, borderColor: t.border }}
-                    className={`p-3 rounded-2xl border text-left font-bold transition flex flex-col justify-between h-20 shadow-xs cursor-pointer ${
-                      bgGrid === t.id ? "ring-2 ring-brand ring-offset-2" : "hover:scale-[1.02]"
-                    }`}
-                  >
-                    <span className="text-[11px] font-black">{t.name}</span>
-                    <span className="text-[9px] opacity-70">
-                      {bgGrid === t.id ? "● Active Theme" : "Click to apply"}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. Canvas Aspect Ratio Framed Bounds */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                <span>Aspect Ratio Framing</span>
-                <span className="text-[9px] text-brand font-black">{canvasAspectRatio.toUpperCase()}</span>
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { id: "infinite", label: "Infinite" },
-                  { id: "16:9", label: "16:9 (1080p)" },
-                  { id: "4:3", label: "4:3 (Chart)" },
-                  { id: "1:1", label: "1:1 (Square)" },
-                  { id: "9:16", label: "9:16 (Story)" },
-                  { id: "21:9", label: "21:9 (Wide)" },
-                ].map((ar) => (
-                  <button
-                    key={ar.id}
-                    type="button"
-                    onClick={() => {
-                      setCanvasAspectRatio(ar.id as any);
-                      showToast(`Aspect Ratio: ${ar.label}`);
-                    }}
-                    className={`py-1.5 px-1 rounded-xl border text-[10.5px] font-bold text-center transition cursor-pointer ${
-                      canvasAspectRatio === ar.id
-                        ? "bg-brand text-white border-brand shadow-xs"
-                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {ar.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 3. Canvas Zoom & Position Reset */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted">Viewport Controls</label>
-              <div className="grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.min(z * 1.2, 5))}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-[11px] font-bold text-ink transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <ZoomIn className="h-3.5 w-3.5" /> +20%
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.max(z / 1.2, 0.2))}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-[11px] font-bold text-ink transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <ZoomOut className="h-3.5 w-3.5" /> -20%
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setZoom(1);
-                    setPan({ x: 0, y: 0 });
-                    showToast("Reset Canvas View (100%)");
-                  }}
-                  className="py-1.5 rounded-xl border border-brand bg-brand-light text-[11px] font-bold text-brand hover:bg-brand hover:text-white transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" /> 100%
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 9: TECHNICAL PATTERNS & FORMATIONS LIBRARY */}
-        {tabKey === "patterns" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
-            {/* Header */}
-            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
-                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </span>
-                <span className="truncate">Patterns & Strategy Formations</span>
-              </div>
-            </div>
-
-            {/* Search and Category Filter */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted pointer-events-none" />
-                <input
-                  type="text"
-                  value={patternSearch}
-                  onChange={(e) => setPatternSearch(e.target.value)}
-                  placeholder="Search patterns (e.g. double bottom, head & shoulders, wave, flag)..."
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-line bg-white text-[11px] text-ink placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-brand"
-                />
-              </div>
-
-              {/* Category Pills */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">
-                {[
-                  { id: "all", label: "All" },
-                  { id: "reversal", label: "Reversal" },
-                  { id: "wedges", label: "Flags & Wedges" },
-                  { id: "harmonic", label: "Waves & Harmonic" },
-                  { id: "smc", label: "SMC & Liquidity" },
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setPatternCategory(c.id as any)}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 transition cursor-pointer ${
-                      patternCategory === c.id
-                        ? "bg-brand text-white shadow-2xs"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Patterns Grid */}
-            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1 [scrollbar-width:thin]">
-              {[
-                {
-                  id: "double_bottom",
-                  title: "Double Bottom (W-Pattern)",
-                  category: "reversal",
-                  type: "Bullish Reversal",
-                  desc: "Twin troughs with BOS neckline breakout confirmation",
-                  color: "#10b981",
-                },
-                {
-                  id: "double_top",
-                  title: "Double Top (M-Pattern)",
-                  category: "reversal",
-                  type: "Bearish Reversal",
-                  desc: "Twin peaks with neckline breakdown confirmation",
-                  color: "#ef4444",
-                },
-                {
-                  id: "head_and_shoulders",
-                  title: "Head & Shoulders",
-                  category: "reversal",
-                  type: "Bearish Reversal",
-                  desc: "Left shoulder, Head, Right shoulder with neckline break",
-                  color: "#ef4444",
-                },
-                {
-                  id: "bull_flag",
-                  title: "Bullish Flag & Pole",
-                  category: "wedges",
-                  type: "Continuation",
-                  desc: "Strong impulsive surge followed by tight consolidation flag",
-                  color: "#10b981",
-                },
-                {
-                  id: "elliott_wave",
-                  title: "Elliott Wave (1-2-3-4-5)",
-                  category: "harmonic",
-                  type: "Trend Structure",
-                  desc: "Five-wave directional impulse cycle structure",
-                  color: "#0284c7",
-                },
-                {
-                  id: "smc_liquidity",
-                  title: "SMC Liquidity Sweep & BOS",
-                  category: "smc",
-                  type: "Institutional",
-                  desc: "Buy-side liquidity grab with rapid displacement breakdown",
-                  color: "#f59e0b",
-                },
-              ]
-                .filter(
-                  (p) =>
-                    (patternCategory === "all" || p.category === patternCategory) &&
-                    (!patternSearch ||
-                      p.title.toLowerCase().includes(patternSearch.toLowerCase()) ||
-                      p.desc.toLowerCase().includes(patternSearch.toLowerCase()))
-                )
-                .map((pat) => (
-                  <div
-                    key={pat.id}
-                    className="p-3 rounded-2xl border border-line bg-slate-50/70 hover:bg-white hover:border-brand/40 transition shadow-2xs space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="h-2 w-2 rounded-full shrink-0"
-                          style={{ backgroundColor: pat.color }}
-                        />
-                        <span className="font-extrabold text-xs text-ink">{pat.title}</span>
-                      </div>
-                      <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[8.5px] font-black uppercase">
-                        {pat.type}
-                      </span>
-                    </div>
-
-                    <p className="text-[10px] text-muted leading-relaxed">{pat.desc}</p>
-
-                    <button
-                      type="button"
-                      onClick={() => handleInsertPattern(pat.id, pat.title)}
-                      className="w-full py-1.5 rounded-xl bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <Plus className="h-3 w-3" /> Insert onto Canvas
-                    </button>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
-
       </div>
     );
   };
@@ -7533,6 +7043,495 @@ export default function WhiteboardPage() {
                     )}
                   </div>
                 )}
+
+        {/* TAB 7: GRID, GUIDELINES & SNAP SETTINGS */}
+        {tabKey === "grid_guides" && (
+          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
+            {/* Header */}
+            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                  <Grid className="h-3.5 w-3.5" />
+                </span>
+                <span className="truncate">Grid, Guidelines & Snap Engine</span>
+              </div>
+            </div>
+
+            {/* 1. Grid Style Selector */}
+            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                <span>Grid Style</span>
+                <span className="text-[9px] text-brand font-medium capitalize">{bgGrid}</span>
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: "dots", label: "Dots Matrix" },
+                  { id: "lines", label: "Graph Lines" },
+                  { id: "blank", label: "Blank Clean" },
+                  { id: "dark", label: "Dark Grid" },
+                  { id: "chalkboard", label: "Chalkboard" },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setBgGrid(item.id as any);
+                      showToast(`Switched grid to ${item.label}`);
+                    }}
+                    className={`py-1.5 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                      bgGrid === item.id
+                        ? "bg-brand text-white border-brand shadow-xs"
+                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Snap to Grid & Tolerance */}
+            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1">
+                  <Magnet className="h-3 w-3 text-brand" /> Snap Engine Controls
+                </label>
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${snapToGrid ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                  {snapToGrid ? "Active" : "Disabled"}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-[11px] text-ink">Snap to Grid</span>
+                  <input
+                    type="checkbox"
+                    checked={snapToGrid}
+                    onChange={(e) => {
+                      setSnapToGrid(e.target.checked);
+                      showToast(e.target.checked ? "Snap to Grid Enabled" : "Snap to Grid Disabled");
+                    }}
+                    className="accent-brand cursor-pointer h-4 w-4"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-[11px] text-ink">Snap to Objects & Vertices</span>
+                  <input
+                    type="checkbox"
+                    checked={snapToObjects}
+                    onChange={(e) => {
+                      setSnapToObjects(e.target.checked);
+                      showToast(e.target.checked ? "Snap to Objects Enabled" : "Snap to Objects Disabled");
+                    }}
+                    className="accent-brand cursor-pointer h-4 w-4"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-[11px] text-ink">Snap to Guidelines</span>
+                  <input
+                    type="checkbox"
+                    checked={snapToGuides}
+                    onChange={(e) => {
+                      setSnapToGuides(e.target.checked);
+                      showToast(e.target.checked ? "Snap to Guidelines Enabled" : "Snap to Guidelines Disabled");
+                    }}
+                    className="accent-brand cursor-pointer h-4 w-4"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
+                  <span className="font-bold text-[11px] text-ink">Constrain Angles (15° / 45° / 90°)</span>
+                  <input
+                    type="checkbox"
+                    checked={snapToAngles}
+                    onChange={(e) => {
+                      setSnapToAngles(e.target.checked);
+                      showToast(e.target.checked ? "Angle Snapping Enabled" : "Angle Snapping Disabled");
+                    }}
+                    className="accent-brand cursor-pointer h-4 w-4"
+                  />
+                </div>
+              </div>
+
+              {/* Grid Snap Size */}
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between text-[10px] font-bold text-muted">
+                  <span>Grid Step Size</span>
+                  <span className="text-brand font-black">{gridSnapSize}px</span>
+                </div>
+                <div className="grid grid-cols-4 gap-1">
+                  {[5, 10, 20, 40].map((sz) => (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => {
+                        setGridSnapSize(sz);
+                        showToast(`Grid Step: ${sz}px`);
+                      }}
+                      className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
+                        gridSnapSize === sz ? "bg-brand text-white border-brand" : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      {sz}px
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Guidelines Management */}
+            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1">
+                  <RulerIcon className="h-3 w-3 text-brand" /> Smart Guidelines ({guidelines.length})
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowGuidelines(!showGuidelines)}
+                    className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                      showGuidelines ? "bg-brand-light text-brand" : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    {showGuidelines ? "Visible" : "Hidden"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cy = Math.round((-pan.y + window.innerHeight / 2) / zoom);
+                    setGuidelines((prev) => [
+                      ...prev,
+                      { id: `g_${Date.now()}`, orientation: "horizontal", position: cy, color: "#3b82f6" },
+                    ]);
+                    showToast(`Added Horizontal Guide at Y: ${cy}px`);
+                  }}
+                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <Plus className="h-3 w-3" /> + Horizontal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cx = Math.round((-pan.x + window.innerWidth / 2) / zoom);
+                    setGuidelines((prev) => [
+                      ...prev,
+                      { id: `g_${Date.now()}`, orientation: "vertical", position: cx, color: "#3b82f6" },
+                    ]);
+                    showToast(`Added Vertical Guide at X: ${cx}px`);
+                  }}
+                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <Plus className="h-3 w-3" /> + Vertical
+                </button>
+              </div>
+
+              {/* Guidelines List */}
+              {guidelines.length > 0 && (
+                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                  {guidelines.map((g) => (
+                    <div
+                      key={g.id}
+                      className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-line text-[10.5px]"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-ink">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: g.color }}
+                        />
+                        <span className="capitalize">{g.orientation}</span>
+                        <span className="text-muted font-normal">({g.position}px)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setGuidelines((prev) => prev.filter((item) => item.id !== g.id));
+                          showToast("Removed guide");
+                        }}
+                        className="p-0.5 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {guidelines.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGuidelines([]);
+                    showToast("Cleared all guidelines");
+                  }}
+                  className="w-full py-1 text-center text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                >
+                  Clear All Guidelines
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 8: THEME & CANVAS STYLING */}
+        {tabKey === "theme" && (
+          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
+            {/* Header */}
+            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                  <Palette className="h-3.5 w-3.5" />
+                </span>
+                <span className="truncate">Theme & Canvas Framing</span>
+              </div>
+            </div>
+
+            {/* 1. Theme Presets */}
+            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Themes</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: "dots", name: "Light Clean", bg: "#f8fafc", text: "#0f172a", border: "#e2e8f0" },
+                  { id: "dark", name: "OLED Dark Slate", bg: "#0f172a", text: "#f8fafc", border: "#334155" },
+                  { id: "chalkboard", name: "Emerald Chalkboard", bg: "#064e3b", text: "#ecfdf5", border: "#047857" },
+                  { id: "lines", name: "Blueprint Grid", bg: "#1e293b", text: "#38bdf8", border: "#0284c7" },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      setBgGrid(t.id as any);
+                      showToast(`Applied "${t.name}" Canvas Theme!`);
+                    }}
+                    style={{ backgroundColor: t.bg, color: t.text, borderColor: t.border }}
+                    className={`p-3 rounded-2xl border text-left font-bold transition flex flex-col justify-between h-20 shadow-xs cursor-pointer ${
+                      bgGrid === t.id ? "ring-2 ring-brand ring-offset-2" : "hover:scale-[1.02]"
+                    }`}
+                  >
+                    <span className="text-[11px] font-black">{t.name}</span>
+                    <span className="text-[9px] opacity-70">
+                      {bgGrid === t.id ? "● Active Theme" : "Click to apply"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Canvas Aspect Ratio Framed Bounds */}
+            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
+                <span>Aspect Ratio Framing</span>
+                <span className="text-[9px] text-brand font-black">{canvasAspectRatio.toUpperCase()}</span>
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: "infinite", label: "Infinite" },
+                  { id: "16:9", label: "16:9 (1080p)" },
+                  { id: "4:3", label: "4:3 (Chart)" },
+                  { id: "1:1", label: "1:1 (Square)" },
+                  { id: "9:16", label: "9:16 (Story)" },
+                  { id: "21:9", label: "21:9 (Wide)" },
+                ].map((ar) => (
+                  <button
+                    key={ar.id}
+                    type="button"
+                    onClick={() => {
+                      setCanvasAspectRatio(ar.id as any);
+                      showToast(`Aspect Ratio: ${ar.label}`);
+                    }}
+                    className={`py-1.5 px-1 rounded-xl border text-[10.5px] font-bold text-center transition cursor-pointer ${
+                      canvasAspectRatio === ar.id
+                        ? "bg-brand text-white border-brand shadow-xs"
+                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {ar.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Canvas Zoom & Position Reset */}
+            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-wider text-muted">Viewport Controls</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.min(z * 1.2, 5))}
+                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-[11px] font-bold text-ink transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <ZoomIn className="h-3.5 w-3.5" /> +20%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.max(z / 1.2, 0.2))}
+                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-[11px] font-bold text-ink transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <ZoomOut className="h-3.5 w-3.5" /> -20%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setZoom(1);
+                    setPan({ x: 0, y: 0 });
+                    showToast("Reset Canvas View (100%)");
+                  }}
+                  className="py-1.5 rounded-xl border border-brand bg-brand-light text-[11px] font-bold text-brand hover:bg-brand hover:text-white transition flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" /> 100%
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 9: TECHNICAL PATTERNS & FORMATIONS LIBRARY */}
+        {tabKey === "patterns" && (
+          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
+            {/* Header */}
+            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </span>
+                <span className="truncate">Patterns & Strategy Formations</span>
+              </div>
+            </div>
+
+            {/* Search and Category Filter */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted pointer-events-none" />
+                <input
+                  type="text"
+                  value={patternSearch}
+                  onChange={(e) => setPatternSearch(e.target.value)}
+                  placeholder="Search patterns (e.g. double bottom, head & shoulders, wave, flag)..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-line bg-white text-[11px] text-ink placeholder:text-muted/60 focus:outline-none focus:ring-1 focus:ring-brand"
+                />
+              </div>
+
+              {/* Category Pills */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 [scrollbar-width:none]">
+                {[
+                  { id: "all", label: "All" },
+                  { id: "reversal", label: "Reversal" },
+                  { id: "wedges", label: "Flags & Wedges" },
+                  { id: "harmonic", label: "Waves & Harmonic" },
+                  { id: "smc", label: "SMC & Liquidity" },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setPatternCategory(c.id as any)}
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 transition cursor-pointer ${
+                      patternCategory === c.id
+                        ? "bg-brand text-white shadow-2xs"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Patterns Grid */}
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1 [scrollbar-width:thin]">
+              {[
+                {
+                  id: "double_bottom",
+                  title: "Double Bottom (W-Pattern)",
+                  category: "reversal",
+                  type: "Bullish Reversal",
+                  desc: "Twin troughs with BOS neckline breakout confirmation",
+                  color: "#10b981",
+                },
+                {
+                  id: "double_top",
+                  title: "Double Top (M-Pattern)",
+                  category: "reversal",
+                  type: "Bearish Reversal",
+                  desc: "Twin peaks with neckline breakdown confirmation",
+                  color: "#ef4444",
+                },
+                {
+                  id: "head_and_shoulders",
+                  title: "Head & Shoulders",
+                  category: "reversal",
+                  type: "Bearish Reversal",
+                  desc: "Left shoulder, Head, Right shoulder with neckline break",
+                  color: "#ef4444",
+                },
+                {
+                  id: "bull_flag",
+                  title: "Bullish Flag & Pole",
+                  category: "wedges",
+                  type: "Continuation",
+                  desc: "Strong impulsive surge followed by tight consolidation flag",
+                  color: "#10b981",
+                },
+                {
+                  id: "elliott_wave",
+                  title: "Elliott Wave (1-2-3-4-5)",
+                  category: "harmonic",
+                  type: "Trend Structure",
+                  desc: "Five-wave directional impulse cycle structure",
+                  color: "#0284c7",
+                },
+                {
+                  id: "smc_liquidity",
+                  title: "SMC Liquidity Sweep & BOS",
+                  category: "smc",
+                  type: "Institutional",
+                  desc: "Buy-side liquidity grab with rapid displacement breakdown",
+                  color: "#f59e0b",
+                },
+              ]
+                .filter(
+                  (p) =>
+                    (patternCategory === "all" || p.category === patternCategory) &&
+                    (!patternSearch ||
+                      p.title.toLowerCase().includes(patternSearch.toLowerCase()) ||
+                      p.desc.toLowerCase().includes(patternSearch.toLowerCase()))
+                )
+                .map((pat) => (
+                  <div
+                    key={pat.id}
+                    className="p-3 rounded-2xl border border-line bg-slate-50/70 hover:bg-white hover:border-brand/40 transition shadow-2xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: pat.color }}
+                        />
+                        <span className="font-extrabold text-xs text-ink">{pat.title}</span>
+                      </div>
+                      <span className="px-1.5 py-0.2 rounded-full bg-slate-200 text-slate-700 text-[8.5px] font-black uppercase">
+                        {pat.type}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-muted leading-relaxed">{pat.desc}</p>
+
+                    <button
+                      type="button"
+                      onClick={() => handleInsertPattern(pat.id, pat.title)}
+                      className="w-full py-1.5 rounded-xl bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" /> Insert onto Canvas
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -9795,9 +9794,9 @@ export default function WhiteboardPage() {
             </aside>
           )}
 
-          {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, and Management Panels */}
+          {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, Management, and Setup Panels */}
           <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-1 shrink-0 z-30 shadow-xs select-none">
-            {/* Top Tool Icons Container */}
+            {/* Top Tool Icons Container: Contains ALL 3 Groups Compactly */}
             <div className="flex flex-col items-center w-full">
               {/* === GROUP 1: WORKSPACE & CANVAS TOOLS === */}
               <div className="flex flex-col items-center w-full">
@@ -9939,7 +9938,7 @@ export default function WhiteboardPage() {
                 </div>
               </div>
 
-              {/* Edge-to-Edge Separator Line separating the two nested groups */}
+              {/* Edge-to-Edge Separator Line separating Group 1 and Group 2 */}
               <div className="w-full h-px bg-line shrink-0 my-1" />
 
               {/* === GROUP 2: DRAFTS, SAMPLES & TRASH === */}
@@ -10086,9 +10085,7 @@ export default function WhiteboardPage() {
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                 </div>
               </div>
-            </div>
 
-              
               {/* Edge-to-Edge Separator Line separating Group 2 and Group 3 */}
               <div className="w-full h-px bg-line shrink-0 my-1" />
 
@@ -10226,35 +10223,39 @@ export default function WhiteboardPage() {
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                 </div>
               </div>
+            </div>
 
             {/* Bottom: Collapse / Expand & Detach Trigger */}
-              <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const anyDetached = Object.values(detachedPanels).some((p) => p.isOpen);
-                    if (anyDetached) {
-                      setDetachedPanels((prev) => ({
-                        inspector: { ...prev.inspector, isOpen: false },
-                        layers: { ...prev.layers, isOpen: false },
-                        character: { ...prev.character, isOpen: false },
-                        drafts: { ...prev.drafts, isOpen: false },
-                        samples: { ...prev.samples, isOpen: false },
-                        trash: { ...prev.trash, isOpen: false },
-                      }));
-                      setIsInspectorOpen(true);
-                      showToast("Attached all floating panels back to sidebar dock!");
-                    } else {
-                      detachIndividualPanel(rightPanelTab);
-                    }
-                  }}
-                  className={`w-full h-8 flex items-center justify-center transition cursor-pointer ${
-                    Object.values(detachedPanels).some((p) => p.isOpen) ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
-                  }`}
-                  title={Object.values(detachedPanels).some((p) => p.isOpen) ? "Attach all floating panels back to sidebar dock" : "Detach active panel"}
-                >
-                  {Object.values(detachedPanels).some((p) => p.isOpen) ? <Pin className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
-                </button>
+            <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line">
+              <button
+                type="button"
+                onClick={() => {
+                  const anyDetached = Object.values(detachedPanels).some((p) => p.isOpen);
+                  if (anyDetached) {
+                    setDetachedPanels((prev) => ({
+                      inspector: { ...prev.inspector, isOpen: false },
+                      layers: { ...prev.layers, isOpen: false },
+                      character: { ...prev.character, isOpen: false },
+                      drafts: { ...prev.drafts, isOpen: false },
+                      samples: { ...prev.samples, isOpen: false },
+                      trash: { ...prev.trash, isOpen: false },
+                      grid_guides: { ...prev.grid_guides, isOpen: false },
+                      theme: { ...prev.theme, isOpen: false },
+                      patterns: { ...prev.patterns, isOpen: false },
+                    }));
+                    setIsInspectorOpen(true);
+                    showToast("Attached all floating panels back to sidebar dock!");
+                  } else {
+                    detachIndividualPanel(rightPanelTab);
+                  }
+                }}
+                className={`w-full h-8 flex items-center justify-center transition cursor-pointer ${
+                  Object.values(detachedPanels).some((p) => p.isOpen) ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
+                }`}
+                title={Object.values(detachedPanels).some((p) => p.isOpen) ? "Attach all floating panels back to sidebar dock" : "Detach active panel"}
+              >
+                {Object.values(detachedPanels).some((p) => p.isOpen) ? <Pin className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+              </button>
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
