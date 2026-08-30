@@ -691,8 +691,8 @@ export default function WhiteboardPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Figma-Style Whiteboard Hub Launcher State (Defaults to Hub on Login)
-  const [viewMode, setViewMode] = useState<"hub" | "canvas">("hub");
+  // Whiteboard View Mode (Defaults to Canvas)
+  const [viewMode, setViewMode] = useState<"hub" | "canvas">("canvas");
   const [hubTab, setHubTab] = useState<"drafts" | "samples" | "resources" | "trash" | "guide">("drafts");
   const [hubSearch, setHubSearch] = useState("");
   const [selectedResource, setSelectedResource] = useState<HubResourceGuide | null>(null);
