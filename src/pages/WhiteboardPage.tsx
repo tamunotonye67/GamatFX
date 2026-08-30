@@ -762,9 +762,45 @@ export default function WhiteboardPage() {
     } catch {}
   };
 
-  const [tabs, setTabs] = useState<DiagramTab[]>(INITIAL_TABS);
-  const [activeTabId, setActiveTabId] = useState("canvas_1");
+  const [tabs, setTabs] = useState<DiagramTab[]>(() => {
+    try {
+      const saved = localStorage.getItem("gamat_whiteboard_active_tabs");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed loading saved tabs", e);
+    }
+    return INITIAL_TABS;
+  });
+  const [activeTabId, setActiveTabId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem("gamat_whiteboard_active_tab_id");
+      if (saved) return saved;
+    } catch {}
+    return "canvas_1";
+  });
   const [draggedTabIdx, setDraggedTabIdx] = useState<number | null>(null);
+
+  // Continuous Auto-Save of Active Canvases and Open Tabs to LocalStorage
+  useEffect(() => {
+    setTabs((prevTabs) => {
+      const updated = prevTabs.map((t) =>
+        t.id === activeTabId ? { ...t, shapes, theme: bgGrid, snapToGrid } : t
+      );
+      try {
+        localStorage.setItem("gamat_whiteboard_active_tabs", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  }, [shapes, bgGrid, snapToGrid, activeTabId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("gamat_whiteboard_active_tab_id", activeTabId);
+    } catch (e) {}
+  }, [activeTabId]);
 
   // Saved Drafts & Trashed Tabs State (Persistent LocalStorage)
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>([]);
@@ -792,7 +828,7 @@ export default function WhiteboardPage() {
   const [insertMenuOpen, setInsertMenuOpen] = useState(false);
   const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
 
-  const [activeTool, setActiveTool] = useState<Tool>("pencil");
+  const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeSelectTool, setActiveSelectTool] = useState<"select" | "node" | "hand">("select");
   const [activeNodeIndex, setActiveNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
   const [hoveredNodeIndex, setHoveredNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
@@ -819,7 +855,18 @@ export default function WhiteboardPage() {
   const [upperWickLength, setUpperWickLength] = useState<number>(25);
   const [lowerWickLength, setLowerWickLength] = useState<number>(25);
   const [wickColor, setWickColor] = useState<string>("#10b981");
-  const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
+  const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">(() => {
+    try {
+      const savedTabsStr = localStorage.getItem("gamat_whiteboard_active_tabs");
+      const savedActiveId = localStorage.getItem("gamat_whiteboard_active_tab_id") || "canvas_1";
+      if (savedTabsStr) {
+        const parsedTabs: DiagramTab[] = JSON.parse(savedTabsStr);
+        const activeTab = parsedTabs.find((t) => t.id === savedActiveId) || parsedTabs[0];
+        if (activeTab && activeTab.theme) return activeTab.theme as any;
+      }
+    } catch {}
+    return "dots";
+  });
   const [stickyColor, setStickyColor] = useState<StickyColor>("#fef08a");
   const [zoom, setZoom] = useState(1);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
@@ -947,7 +994,22 @@ export default function WhiteboardPage() {
   } | null>(null);
 
   // Selection & Multi-Select Marquee State
-  const [shapes, setShapes] = useState<Shape[]>([]);
+  const [shapes, setShapes] = useState<Shape[]>(() => {
+    try {
+      const savedTabsStr = localStorage.getItem("gamat_whiteboard_active_tabs");
+      const savedActiveId = localStorage.getItem("gamat_whiteboard_active_tab_id") || "canvas_1";
+      if (savedTabsStr) {
+        const parsedTabs: DiagramTab[] = JSON.parse(savedTabsStr);
+        const activeTab = parsedTabs.find((t) => t.id === savedActiveId) || parsedTabs[0];
+        if (activeTab && Array.isArray(activeTab.shapes)) {
+          return activeTab.shapes;
+        }
+      }
+    } catch (e) {
+      console.error("Failed loading initial shapes", e);
+    }
+    return [];
+  });
   const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
   const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number; mode?: "select" | "zoom" } | null>(null);
 
