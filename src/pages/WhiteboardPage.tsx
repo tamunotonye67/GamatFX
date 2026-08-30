@@ -1017,6 +1017,23 @@ export default function WhiteboardPage() {
 
   // Text Modal Input & Note Editing State
   const [textModalPos, setTextModalPos] = useState<{ x: number; y: number } | null>(null);
+  const [editingTextShapeId, setEditingTextShapeId] = useState<string | null>(null);
+  const [inlineTextValue, setInlineTextValue] = useState<string>("");
+  const inlineTextRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const commitInlineText = (targetId?: string) => {
+    const idToCommit = targetId || editingTextShapeId;
+    if (!idToCommit) return;
+    setEditingTextShapeId(null);
+    setShapes((prev) => {
+      const target = prev.find((s) => s.id === idToCommit);
+      if (!target) return prev;
+      if (!target.text || !target.text.trim()) {
+        return prev.filter((s) => s.id !== idToCommit);
+      }
+      return prev;
+    });
+  };
   const [textValue, setTextValue] = useState("");
   const [isStickyMode, setIsStickyMode] = useState(false);
   const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
@@ -1322,6 +1339,7 @@ export default function WhiteboardPage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (editingTextShapeId) return;
       const targetTag = (e.target as HTMLElement).tagName;
       if (targetTag === "INPUT" || targetTag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
 
@@ -2091,11 +2109,62 @@ export default function WhiteboardPage() {
     isDrawing.current = true;
 
     if (activeTool === "text") {
-      setEditingShapeId(null);
-      setTextValue("");
-      setIsStickyMode(false);
-      setTextModalPos(pt);
+      // Check if clicking on an existing text shape
+      const hitShape = [...shapes].reverse().find((s) => !s.isHidden && s.type === "text" && isPointInShape(pt, s));
+      if (hitShape) {
+        if (!hitShape.isLocked) {
+          setEditingTextShapeId(hitShape.id);
+          setInlineTextValue(hitShape.text || "");
+          setSelectedShapeIds([hitShape.id]);
+          setTimeout(() => {
+            if (inlineTextRef.current) {
+              inlineTextRef.current.focus();
+              inlineTextRef.current.setSelectionRange(inlineTextRef.current.value.length, inlineTextRef.current.value.length);
+            }
+          }, 20);
+        }
+        return;
+      }
+
+      // If already editing another text, commit it first
+      if (editingTextShapeId) {
+        commitInlineText(editingTextShapeId);
+      }
+
+      // Create new text shape directly at cursor coordinates
+      const newId = `shape_txt_${Date.now()}`;
+      const newTextShape: Shape = {
+        id: newId,
+        type: "text",
+        name: "Text Label",
+        color: strokeColor || "#0f172a",
+        fontSize: 16,
+        fontFamily: "Inter, sans-serif",
+        fontWeight: "normal",
+        textAlign: "left",
+        text: "",
+        points: [pt],
+        isLocked: false,
+      };
+
+      setShapes((prev) => [...prev, newTextShape]);
+      setEditingTextShapeId(newId);
+      setInlineTextValue("");
+      setSelectedShapeIds([newId]);
+      setIsInspectorOpen(true);
+      setRightPanelTab("character");
+
+      setTimeout(() => {
+        if (inlineTextRef.current) {
+          inlineTextRef.current.focus();
+        }
+      }, 20);
       return;
+    }
+
+    // If clicking with any other tool while inline text editing, commit text
+    if (editingTextShapeId) {
+      commitInlineText(editingTextShapeId);
     }
 
     if (activeTool === "sticky") {
@@ -2439,17 +2508,33 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
     const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
-    if (hitShape && (hitShape.type === "sticky" || hitShape.type === "text" || hitShape.type === "annotation")) {
+    if (hitShape) {
       if (hitShape.isLocked) {
         showToast("Locked item! Unlock it first to edit 🔓");
         return;
       }
-      setEditingShapeId(hitShape.id);
-      setTextValue(hitShape.text || "");
-      setIsStickyMode(hitShape.type === "sticky");
-      if (hitShape.stickyColor) setStickyColor(hitShape.stickyColor);
-      setTextModalPos(pt);
-      setSelectedShapeIds([hitShape.id]);
+      if (hitShape.type === "text") {
+        setEditingTextShapeId(hitShape.id);
+        setInlineTextValue(hitShape.text || "");
+        setSelectedShapeIds([hitShape.id]);
+        setIsInspectorOpen(true);
+        setRightPanelTab("character");
+        setTimeout(() => {
+          if (inlineTextRef.current) {
+            inlineTextRef.current.focus();
+            inlineTextRef.current.setSelectionRange(inlineTextRef.current.value.length, inlineTextRef.current.value.length);
+          }
+        }, 20);
+        return;
+      }
+      if (hitShape.type === "sticky" || hitShape.type === "annotation") {
+        setEditingShapeId(hitShape.id);
+        setTextValue(hitShape.text || "");
+        setIsStickyMode(hitShape.type === "sticky");
+        if (hitShape.stickyColor) setStickyColor(hitShape.stickyColor);
+        setTextModalPos(pt);
+        setSelectedShapeIds([hitShape.id]);
+      }
     }
   };
 
@@ -10874,8 +10959,66 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Text / Sticky Note Input Modal */}
-          {textModalPos && (
+          {/* DIRECT INLINE CANVAS TEXT EDITOR (BEEPER / TYPING AREA LIKE WORD & GRAPHICS SUITES) */}
+          {editingTextShapeId && (() => {
+            const editingShape = shapes.find((s) => s.id === editingTextShapeId);
+            if (!editingShape || !editingShape.points[0]) return null;
+            const p0 = editingShape.points[0];
+            const screenX = p0.x * zoom + pan.x;
+            const screenY = p0.y * zoom + pan.y;
+            const fSize = (editingShape.fontSize || 16) * zoom;
+            const lHeight = (editingShape.lineHeight || 1.35) * fSize;
+
+            return (
+              <div
+                className="absolute z-50 pointer-events-auto"
+                style={{
+                  left: screenX,
+                  top: screenY,
+                  transformOrigin: "top left",
+                }}
+              >
+                <textarea
+                  ref={inlineTextRef}
+                  autoFocus
+                  value={inlineTextValue}
+                  placeholder="Type text here..."
+                  rows={Math.max(1, inlineTextValue.split("\n").length)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setInlineTextValue(val);
+                    setShapes((prev) =>
+                      prev.map((s) => (s.id === editingTextShapeId ? { ...s, text: val } : s))
+                    );
+                  }}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      commitInlineText(editingTextShapeId);
+                    }
+                  }}
+                  onBlur={() => {
+                    commitInlineText(editingTextShapeId);
+                  }}
+                  style={{
+                    fontSize: `${Math.max(10, fSize)}px`,
+                    lineHeight: `${Math.max(14, lHeight)}px`,
+                    color: editingShape.color || strokeColor || "#0f172a",
+                    fontFamily: editingShape.fontFamily || "Inter, sans-serif",
+                    fontWeight: editingShape.fontWeight || "normal",
+                    fontStyle: editingShape.fontStyle || "normal",
+                    textAlign: (editingShape.textAlign as any) || "left",
+                    textDecoration: editingShape.textDecoration || "none",
+                  }}
+                  className="bg-transparent border border-dashed border-slate-700/80 outline-none p-1 m-0 resize-none overflow-hidden min-w-[140px] max-w-[800px] rounded-none caret-slate-900 shadow-sm"
+                />
+              </div>
+            );
+          })()}
+
+          {/* Sticky Note Input Modal for Sticky Notes Only */}
+          {textModalPos && isStickyMode && (
             <div
               className="absolute z-40 rounded-2xl border border-line bg-white p-4 shadow-2xl space-y-3 animate-in fade-in"
               style={{
@@ -10885,8 +11028,8 @@ export default function WhiteboardPage() {
             >
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-ink flex items-center gap-1.5">
-                  {isStickyMode ? <StickyNote className="h-4 w-4 text-amber-500" /> : <Type className="h-4 w-4 text-brand" />}
-                  {editingShapeId ? (isStickyMode ? "Edit Sticky Note" : "Edit Text Label") : (isStickyMode ? "Add Sticky Note" : "Add Teaching Text")}
+                  <StickyNote className="h-4 w-4 text-amber-500" />
+                  {editingShapeId ? "Edit Sticky Note" : "Add Sticky Note"}
                 </p>
               </div>
 
@@ -10895,7 +11038,7 @@ export default function WhiteboardPage() {
                 rows={3}
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
-                placeholder={isStickyMode ? "Type teaching note or rule..." : "Type diagram label..."}
+                placeholder="Type teaching note or rule..."
                 className="w-64 rounded-xl border border-line bg-cream p-2.5 text-xs text-ink outline-none focus:border-brand resize-none"
               />
 
