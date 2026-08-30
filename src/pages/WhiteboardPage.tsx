@@ -83,6 +83,30 @@ import {
   CheckCircle2,
   LayoutTemplate,
   Archive,
+  Palette,
+  Boxes,
+  MousePointerClick,
+  Crosshair,
+  Save,
+  FolderKanban,
+  BookOpen,
+  Clock,
+  User,
+  ShieldCheck,
+  LogOut,
+  LayoutGrid,
+  List,
+  ArrowLeft,
+  FolderOpen,
+  FilePlus2,
+  HelpCircle,
+  Zap,
+  Target,
+  GraduationCap,
+  PlayCircle,
+  Lightbulb,
+  CircleDollarSign,
+  BarChart2,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -97,34 +121,6 @@ import {
   type HubResourceCard as HubResourceGuide,
   type HubLessonItem,
 } from "../lib/whiteboardHubData";
-import {
-  LayoutTemplate,
-  Palette,
-  Boxes,
-  MousePointerClick,
-  Crosshair,
-  Save,
-  FolderKanban,
-  BookOpen,
-  Clock,
-  FileText,
-  User,
-  ShieldCheck,
-  LogOut,
-  LayoutGrid,
-  List,
-  ArrowLeft,
-  FolderOpen,
-  FilePlus2,
-  Compass,
-  HelpCircle,
-  CheckCircle2,
-  Zap,
-  Target,
-  GraduationCap,
-  PlayCircle,
-  Lightbulb,
-} from "lucide-react";
 import { useStore } from "../lib/store";
 
 /* Custom Forex SVG Icons (Ultra-Minimalist Lucide-Style Line Art) */
@@ -1504,7 +1500,7 @@ export default function WhiteboardPage() {
 
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
-  const selectTool = (tool: ToolType) => {
+  const selectTool = (tool: Tool) => {
     setActiveTool(tool);
     setFlyoutGroup(null);
     if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(tool)) {
@@ -2385,7 +2381,7 @@ export default function WhiteboardPage() {
 
   /* Alignment Engine (Align to selection bounding box / distribute evenly) */
   const handleAlignShapes = (alignType: "left" | "centerH" | "right" | "top" | "middleV" | "bottom" | "distributeH" | "distributeV") => {
-    const targetIds = selectedShapeIds.length > 0 ? selectedShapeIds : selectedShapeId ? [selectedShapeId] : [];
+    const targetIds = selectedShapeIds;
     if (targetIds.length === 0) return;
 
     setShapes((prev) => {
@@ -3222,15 +3218,15 @@ export default function WhiteboardPage() {
       // If sample tab with predefined shapes not yet populated
       if (targetShapes.length === 0) {
         if (tabId === "mindmap") {
-          targetShapes = SAMPLE_MINDMAP_SHAPES;
+          targetShapes = DEFAULT_SAMPLE_MINDMAP_SHAPES as Shape[];
         } else if (tabId === "smc_diag" || tabId === "smc") {
-          targetShapes = SAMPLE_SMC_SHAPES;
+          targetShapes = DEFAULT_SAMPLE_SMC_SHAPES as Shape[];
         } else if (tabId === "risk_diag" || tabId === "risk") {
-          targetShapes = SAMPLE_RISK_SHAPES;
+          targetShapes = DEFAULT_SAMPLE_RISK_SHAPES as Shape[];
         } else if (tabId === "sample_eurusd" || tabId === "class_chart_eurusd") {
-          targetShapes = SAMPLE_EURUSD_SHAPES;
+          targetShapes = DEFAULT_SAMPLE_EURUSD_SHAPES as Shape[];
         } else if (tabId === "sample_london" || tabId === "sample_london_sweep") {
-          targetShapes = SAMPLE_LONDON_SHAPES;
+          targetShapes = DEFAULT_SAMPLE_LONDON_SHAPES as Shape[];
         }
       }
 
@@ -8899,7 +8895,7 @@ export default function WhiteboardPage() {
     </div>
 
     {/* Magnetic Drop Target Preview (Visual glow when dragging floating panel near right dock) */}
-    {isNearDockTarget && isPanelDetached && (
+    {isNearDockTarget && Object.values(detachedPanels).some((p) => p.isOpen) && (
       <div className="absolute right-10 top-0 bottom-0 w-80 border-2 border-dashed border-brand bg-brand-light/30 backdrop-blur-xs flex flex-col items-center justify-center z-40 animate-pulse pointer-events-none rounded-l-2xl shadow-xl">
         <div className="px-3.5 py-2 rounded-xl bg-brand text-white text-xs font-black shadow-lg flex items-center gap-2">
           <Magnet className="h-4 w-4 animate-bounce" /> Release to Magnetically Snap & Dock
@@ -9429,18 +9425,34 @@ export default function WhiteboardPage() {
               </div>
             </div>
 
-            {/* Bottom: Collapse / Expand & Detach Trigger */}
-            <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line">
-              <button
-                type="button"
-                onClick={() => setIsPanelDetached(!isPanelDetached)}
-                className={`w-full h-8 flex items-center justify-center transition cursor-pointer ${
-                  isPanelDetached ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
-                }`}
-                title={isPanelDetached ? "Dock / Attach Panel (Snap to Sidebar)" : "Detach Panel (Floating Window)"}
-              >
-                {isPanelDetached ? <Pin className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
-              </button>
+              {/* Bottom: Collapse / Expand & Detach Trigger */}
+              <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const anyDetached = Object.values(detachedPanels).some((p) => p.isOpen);
+                    if (anyDetached) {
+                      setDetachedPanels((prev) => ({
+                        inspector: { ...prev.inspector, isOpen: false },
+                        layers: { ...prev.layers, isOpen: false },
+                        character: { ...prev.character, isOpen: false },
+                        drafts: { ...prev.drafts, isOpen: false },
+                        samples: { ...prev.samples, isOpen: false },
+                        trash: { ...prev.trash, isOpen: false },
+                      }));
+                      setIsInspectorOpen(true);
+                      showToast("🧲 Attached all floating panels back to sidebar dock!");
+                    } else {
+                      detachIndividualPanel(rightPanelTab);
+                    }
+                  }}
+                  className={`w-full h-8 flex items-center justify-center transition cursor-pointer ${
+                    Object.values(detachedPanels).some((p) => p.isOpen) ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
+                  }`}
+                  title={Object.values(detachedPanels).some((p) => p.isOpen) ? "Attach all floating panels back to sidebar dock" : "Detach active panel"}
+                >
+                  {Object.values(detachedPanels).some((p) => p.isOpen) ? <Pin className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                </button>
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
