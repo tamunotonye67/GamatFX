@@ -691,6 +691,14 @@ const INITIAL_TABS: DiagramTab[] = [
 
 export default function WhiteboardPage() {
   const { user, isAuthed, logout, isAdmin } = useStore();
+  const currentUser = user || {
+    id: "guest",
+    firstName: "Guest",
+    lastName: "Trader",
+    email: "guest@gamatfx.com",
+    role: "student" as const,
+    avatar: "",
+  };
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -3653,17 +3661,17 @@ export default function WhiteboardPage() {
                   type="button"
                   onClick={() => setUserMenuOpen((v) => !v)}
                   className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
-                  title={`${user.firstName} ${user.lastName} (${user.email})`}
+                  title={`${currentUser.firstName || "Guest"} ${currentUser.lastName || "Trader"} (${currentUser.email || ""})`}
                 >
-                  {user.avatar ? (
+                  {currentUser.avatar ? (
                     <img
-                      src={user.avatar}
-                      alt={user.firstName}
+                      src={currentUser.avatar}
+                      alt={currentUser.firstName || "User"}
                       className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
                     />
                   ) : (
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
-                      {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                      {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                     </span>
                   )}
                   <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
@@ -3674,72 +3682,93 @@ export default function WhiteboardPage() {
                   <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                     <div className="border-b border-line bg-cream p-3.5">
                       <div className="flex items-center gap-2.5">
-                        {user.avatar ? (
-                          <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
+                        {currentUser.avatar ? (
+                          <img src={currentUser.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                         ) : (
                           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
-                            {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                            {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="font-extrabold text-xs text-ink truncate">{user.firstName} {user.lastName}</p>
-                          <p className="text-[10px] text-muted truncate">{user.email}</p>
+                          <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
+                          <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfx.com"}</p>
                           <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
-                            {user.role}
+                            {currentUser.role || "student"}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="p-2 space-y-1 text-xs font-bold">
-                      <button
-                        type="button"
-                        onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
-                      >
-                        <User className="h-4 w-4 text-slate-700" /> Student Dashboard
-                      </button>
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
-                        >
-                          <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
-                        </button>
+                      {isAuthed ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
+                          >
+                            <User className="h-4 w-4 text-slate-700" /> Student Dashboard
+                          </button>
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
+                            >
+                              <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); navigate("/"); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-cream transition text-left cursor-pointer"
+                          >
+                            <Home className="h-4 w-4 text-slate-700" /> Platform Home
+                          </button>
+                          <div className="border-t border-line my-1" />
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
+                          >
+                            <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
+                            className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
+                          >
+                            <span className="flex items-center gap-2.5">
+                              <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
+                            </span>
+                            <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">?</span>
+                          </button>
+                          <div className="border-t border-line my-1" />
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); logout(); showToast("Signed out successfully"); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
+                          >
+                            <LogOut className="h-4 w-4" /> Sign Out
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); navigate("/login"); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-brand hover:bg-brand-light transition text-left cursor-pointer"
+                          >
+                            <User className="h-4 w-4 text-brand" /> Sign In / Create Account
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setUserMenuOpen(false); navigate("/"); }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-cream transition text-left cursor-pointer"
+                          >
+                            <Home className="h-4 w-4 text-slate-700" /> Platform Home
+                          </button>
+                        </>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => { setUserMenuOpen(false); navigate("/"); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-cream transition text-left cursor-pointer"
-                      >
-                        <Home className="h-4 w-4 text-slate-700" /> Platform Home
-                      </button>
-                      <div className="border-t border-line my-1" />
-                      <button
-                        type="button"
-                        onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
-                      >
-                        <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
-                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink hover:bg-brand-light hover:text-brand transition text-left cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2.5">
-                          <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
-                        </span>
-                        <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">?</span>
-                      </button>
-                      <div className="border-t border-line my-1" />
-                      <button
-                        type="button"
-                        onClick={() => { setUserMenuOpen(false); logout(); }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
-                      >
-                        <LogOut className="h-4 w-4" /> Sign Out
-                      </button>
                     </div>
                   </div>
                 )}
@@ -5263,17 +5292,17 @@ export default function WhiteboardPage() {
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
               className="flex items-center gap-1 rounded-full p-0.5 hover:bg-slate-100 transition group cursor-pointer"
-              title={`${user.firstName} ${user.lastName} (${user.email})`}
+              title={`${currentUser.firstName || "Guest"} ${currentUser.lastName || "Trader"} (${currentUser.email || ""})`}
             >
-              {user.avatar ? (
+              {currentUser.avatar ? (
                 <img
-                  src={user.avatar}
-                  alt={user.firstName}
+                  src={currentUser.avatar}
+                  alt={currentUser.firstName || "User"}
                   className="h-6.5 w-6.5 rounded-full object-cover border border-line shadow-2xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
                 />
               ) : (
                 <span className="flex h-6.5 w-6.5 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-[9.5px] font-extrabold text-white shadow-2xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
-                  {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
+                  {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
               )}
               <ChevronDown className={`h-3 w-3 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
@@ -5284,81 +5313,102 @@ export default function WhiteboardPage() {
               <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                 <div className="border-b border-line bg-cream p-3.5">
                   <div className="flex items-center gap-2.5">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
+                    {currentUser.avatar ? (
+                      <img src={currentUser.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                     ) : (
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
-                        {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                        {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-xs text-ink truncate">{user.firstName} {user.lastName}</p>
-                      <p className="text-[10px] text-muted truncate">{user.email}</p>
+                      <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
+                      <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfx.com"}</p>
                       <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
-                        {user.role}
+                        {currentUser.role || "student"}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="p-2 space-y-1 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
-                  >
-                    <User className="h-4 w-4 text-slate-700" /> Student Dashboard
-                  </button>
-                  {isAdmin && (
-                    <button
-                      type="button"
-                      onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
-                    >
-                      <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
-                    </button>
+                  {isAuthed ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/dashboard"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <User className="h-4 w-4 text-slate-700" /> Student Dashboard
+                      </button>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                        >
+                          <ShieldCheck className="h-4 w-4 text-slate-700" /> Admin Console
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-cream transition text-left"
+                      >
+                        <Home className="h-4 w-4 text-slate-700" /> Platform Home
+                      </button>
+
+                      <div className="border-t border-line my-1" />
+
+                      {/* Whiteboard Preferences Settings */}
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
+                      </button>
+
+                      {/* Keyboard Shortcuts right under Settings */}
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
+                        className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
+                        </span>
+                        <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">
+                          ?
+                        </span>
+                      </button>
+
+                      <div className="border-t border-line my-1" />
+
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); logout(); showToast("Signed out successfully"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 font-bold hover:bg-rose-50 transition text-left"
+                      >
+                        <LogOut className="h-4 w-4" /> Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/login"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-brand font-bold hover:bg-brand-light transition text-left"
+                      >
+                        <User className="h-4 w-4 text-brand" /> Sign In / Create Account
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-cream transition text-left"
+                      >
+                        <Home className="h-4 w-4 text-slate-700" /> Platform Home
+                      </button>
+                    </>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => { setUserMenuOpen(false); navigate("/"); }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-cream transition text-left"
-                  >
-                    <Home className="h-4 w-4 text-slate-700" /> Platform Home
-                  </button>
-
-                  <div className="border-t border-line my-1" />
-
-                  {/* Whiteboard Preferences Settings */}
-                  <button
-                    type="button"
-                    onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
-                  >
-                    <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
-                  </button>
-
-                  {/* Keyboard Shortcuts right under Settings */}
-                  <button
-                    type="button"
-                    onClick={() => { setUserMenuOpen(false); setShortcutsOpen(true); }}
-                    className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <Keyboard className="h-4 w-4 text-slate-700" /> Keyboard Shortcuts
-                    </span>
-                    <span className="rounded-md border border-line bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-muted">
-                      ?
-                    </span>
-                  </button>
-
-                  <div className="border-t border-line my-1" />
-
-                  <button
-                    type="button"
-                    onClick={() => { setUserMenuOpen(false); logout(); }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-rose-600 font-bold hover:bg-rose-50 transition text-left"
-                  >
-                    <LogOut className="h-4 w-4" /> Sign Out
-                  </button>
                 </div>
               </div>
             )}
