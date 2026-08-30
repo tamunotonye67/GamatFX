@@ -3320,26 +3320,59 @@ export default function WhiteboardPage() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    if (format === "jpeg") {
+      // Solid background rendering for JPEG to prevent black transparent artifacts
+      const offscreen = document.createElement("canvas");
+      offscreen.width = canvas.width;
+      offscreen.height = canvas.height;
+      const oCtx = offscreen.getContext("2d");
+      if (oCtx) {
+        oCtx.fillStyle = bgGrid === "dark" ? "#0f172a" : bgGrid === "chalkboard" ? "#064e3b" : "#ffffff";
+        oCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+        oCtx.drawImage(canvas, 0, 0);
+        const url = offscreen.toDataURL("image/jpeg", 0.95);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `GAMAT_FX_Whiteboard_${Date.now()}.jpg`;
+        a.click();
+        showToast("Exported diagram as high-quality JPEG!");
+      }
+      return;
+    }
+
+    if (format === "png") {
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `GAMAT_FX_Whiteboard_${Date.now()}.png`;
+      a.click();
+      showToast("Exported diagram as lossless PNG!");
+      return;
+    }
+
     if (format === "svg") {
-      const svgHeader = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}">`;
-      const svgFooter = `</svg>`;
-      const blob = new Blob([svgHeader + `<rect width="100%" height="100%" fill="#ffffff"/>` + svgFooter], { type: "image/svg+xml" });
+      const dataUrl = canvas.toDataURL("image/png");
+      const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}">
+  <defs>
+    <style>
+      .bg { fill: ${bgGrid === "dark" ? "#0f172a" : bgGrid === "chalkboard" ? "#064e3b" : "#ffffff"}; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" class="bg"/>
+  <image width="${canvas.width}" height="${canvas.height}" xlink:href="${dataUrl}"/>
+</svg>`;
+
+      const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `GAMAT_FX_Whiteboard_${Date.now()}.svg`;
       a.click();
-      showToast("Exported as SVG Vector File!");
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast("Exported diagram as Scalable Vector Graphics (SVG)!");
       return;
     }
-
-    const mime = format === "jpeg" ? "image/jpeg" : "image/png";
-    const url = canvas.toDataURL(mime, highDpiExport ? 1.0 : 0.8);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `GAMAT_FX_Whiteboard_${Date.now()}.${format}`;
-    a.click();
-    showToast(`Exported diagram as ${format.toUpperCase()} ${highDpiExport ? "(High DPI)" : ""}!`);
   };
 
   const handleSelectTab = (tabId: string) => {
@@ -8632,7 +8665,7 @@ export default function WhiteboardPage() {
             {/* Vertical Divider */}
             <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
-            {/* 7. EXPORT DROPDOWN (ALWAYS PROMINENT RED BUTTON) */}
+            {/* 7. EXPORT DROPDOWN (FULL-HEIGHT FLUSH RED OVERLAY) */}
             <div className="relative h-full flex items-center">
               <button
                 type="button"
@@ -8645,44 +8678,77 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className="h-[26px] flex items-center gap-1 px-2.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition shadow-xs cursor-pointer"
-                title="Export Canvas"
+                className={`h-full flex items-center gap-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11.5px] transition cursor-pointer shadow-xs ${
+                  exportOpen ? "bg-rose-700" : ""
+                }`}
+                title="Export Diagram (PNG, JPEG, SVG)"
               >
-                <Download className="h-3 w-3 text-white shrink-0" />
+                <Download className="h-3.5 w-3.5 text-white shrink-0" />
                 <span>Export</span>
               </button>
 
               {exportOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink">
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-line bg-white p-2.5 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1.5">
+                  <p className="px-2.5 pt-1 text-[10px] font-black uppercase text-muted tracking-wider">Export Format</p>
+
+                  {/* PNG Option with dedicated icon */}
                   <button
                     type="button"
-                    onClick={() => {
-                      handleExport("png");
-                      setExportOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                    onClick={() => handleExport("png")}
+                    className="flex w-full items-center justify-between rounded-xl p-2 text-left hover:bg-sky-50 transition cursor-pointer group"
                   >
-                    <FileImage className="h-4 w-4 text-slate-500" /> Export PNG
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-7 w-7 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600 shrink-0 group-hover:scale-105 transition">
+                        <FileImage className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-ink group-hover:text-sky-700">PNG Image</p>
+                        <p className="text-[9.5px] text-muted">Lossless & Transparent</p>
+                      </div>
+                    </div>
+                    <span className="px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 text-[9px] font-black uppercase">
+                      .PNG
+                    </span>
                   </button>
+
+                  {/* JPEG Option with dedicated icon */}
                   <button
                     type="button"
-                    onClick={() => {
-                      handleExport("jpeg");
-                      setExportOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                    onClick={() => handleExport("jpeg")}
+                    className="flex w-full items-center justify-between rounded-xl p-2 text-left hover:bg-amber-50 transition cursor-pointer group"
                   >
-                    <FileImage className="h-4 w-4 text-slate-500" /> Export JPEG
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-7 w-7 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0 group-hover:scale-105 transition">
+                        <FileImage className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-ink group-hover:text-amber-700">JPEG Photo</p>
+                        <p className="text-[9.5px] text-muted">Standard Solid Background</p>
+                      </div>
+                    </div>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-black uppercase">
+                      .JPG
+                    </span>
                   </button>
+
+                  {/* SVG Option with dedicated icon */}
                   <button
                     type="button"
-                    onClick={() => {
-                      handleExport("svg");
-                      setExportOpen(false);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                    onClick={() => handleExport("svg")}
+                    className="flex w-full items-center justify-between rounded-xl p-2 text-left hover:bg-emerald-50 transition cursor-pointer group"
                   >
-                    <FileCode className="h-4 w-4 text-slate-500" /> Export SVG
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-7 w-7 rounded-lg bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-105 transition">
+                        <FileCode className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-ink group-hover:text-emerald-700">SVG Vector</p>
+                        <p className="text-[9.5px] text-muted">Infinite Scalable Vector</p>
+                      </div>
+                    </div>
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase">
+                      .SVG
+                    </span>
                   </button>
                 </div>
               )}
