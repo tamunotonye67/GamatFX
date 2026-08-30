@@ -819,7 +819,6 @@ export default function WhiteboardPage() {
     trash: { isOpen: false, x: 350, y: 110, zIndex: 40 },
   });
   const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
-  const [isNearDockTarget, setIsNearDockTarget] = useState(false);
   const draggingPanelKey = useRef<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | null>(null);
   const panelDragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -989,7 +988,7 @@ export default function WhiteboardPage() {
         : panelId === "samples"
         ? "Samples"
         : "Trash";
-    showToast(`🧲 Attached "${panelName}" back to sidebar group!`);
+    showToast(`Attached "${panelName}" back to sidebar group!`);
   };
 
   const closeIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash") => {
@@ -1018,29 +1017,18 @@ export default function WhiteboardPage() {
     const handleWindowMouseMove = (e: MouseEvent) => {
       if (draggingPanelKey.current) {
         const id = draggingPanelKey.current;
-        const newX = Math.max(10, Math.min(window.innerWidth - 280, e.clientX - panelDragOffset.current.x));
+        const newX = Math.max(10, Math.min(window.innerWidth - 340, e.clientX - panelDragOffset.current.x));
         const newY = Math.max(50, Math.min(window.innerHeight - 100, e.clientY - panelDragOffset.current.y));
         setDetachedPanels((prev) => ({
           ...prev,
           [id]: { ...prev[id], x: newX, y: newY },
         }));
-
-        const isNear = newX > window.innerWidth - 440 || e.clientX > window.innerWidth - 380;
-        setIsNearDockTarget(isNear);
       }
     };
 
-    const handleWindowMouseUp = (e: MouseEvent) => {
+    const handleWindowMouseUp = () => {
       if (draggingPanelKey.current) {
-        const id = draggingPanelKey.current;
         draggingPanelKey.current = null;
-        const isNear = e.clientX > window.innerWidth - 380;
-        if (isNear) {
-          dockIndividualPanel(id);
-          setIsNearDockTarget(false);
-        } else {
-          setIsNearDockTarget(false);
-        }
       }
     };
 
@@ -8894,15 +8882,6 @@ export default function WhiteboardPage() {
       </div>
     </div>
 
-    {/* Magnetic Drop Target Preview (Visual glow when dragging floating panel near right dock) */}
-    {isNearDockTarget && Object.values(detachedPanels).some((p) => p.isOpen) && (
-      <div className="absolute right-10 top-0 bottom-0 w-80 border-2 border-dashed border-brand bg-brand-light/30 backdrop-blur-xs flex flex-col items-center justify-center z-40 animate-pulse pointer-events-none rounded-l-2xl shadow-xl">
-        <div className="px-3.5 py-2 rounded-xl bg-brand text-white text-xs font-black shadow-lg flex items-center gap-2">
-          <Magnet className="h-4 w-4 animate-bounce" /> Release to Magnetically Snap & Dock
-        </div>
-      </div>
-    )}
-
     {/* INDEPENDENT DETACHED FLOATING PANELS (Any tool can float anywhere on the canvas) */}
     {(Object.keys(detachedPanels) as Array<keyof typeof detachedPanels>).map((panelKey) => {
       const p = detachedPanels[panelKey];
@@ -8934,8 +8913,6 @@ export default function WhiteboardPage() {
           ? LayoutTemplate
           : Archive;
 
-      const isThisDragging = draggingPanelKey.current === panelKey;
-
       return (
         <aside
           key={panelKey}
@@ -8948,17 +8925,13 @@ export default function WhiteboardPage() {
               [panelKey]: { ...prev[panelKey], zIndex: newZ },
             }));
           }}
-          className={`fixed w-80 max-h-[82vh] rounded-2xl border bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow ${
-            isNearDockTarget && isThisDragging
-              ? "border-brand ring-4 ring-brand/30 shadow-brand/20"
-              : "border-line shadow-slate-900/15"
-          }`}
+          className="fixed w-80 max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
         >
           {/* Draggable Titlebar */}
           <div
             onMouseDown={(e) => handleFloatingPanelDragStart(e, panelKey)}
             className="border-b border-line p-2 px-2.5 bg-slate-50/90 shrink-0 z-10 flex items-center justify-between cursor-move"
-            title="Drag anywhere on canvas (drag near right sidebar to magnetically attach)"
+            title="Drag anywhere on canvas"
           >
             <div className="flex items-center gap-1.5 text-xs font-black text-ink min-w-0">
               <GripHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
@@ -8966,11 +8939,6 @@ export default function WhiteboardPage() {
                 <PIcon className="h-3 w-3" />
               </span>
               <span className="truncate">{pTitle}</span>
-              {isNearDockTarget && isThisDragging && (
-                <span className="px-1.5 py-0.2 rounded-full bg-brand text-white text-[8px] font-black animate-pulse flex items-center gap-0.5 shrink-0">
-                  <Magnet className="h-2.5 w-2.5" /> Snap
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -8998,31 +8966,20 @@ export default function WhiteboardPage() {
             {renderTabBody(panelKey)}
           </div>
 
-          {/* Footer with Magnetic Dock prompt */}
+          {/* Footer with Dock button */}
           <div className="border-t border-line px-3 py-1.5 bg-slate-50/70 text-[9px] text-muted flex items-center justify-between font-bold shrink-0">
-            <span className="flex items-center gap-1 text-slate-500">
-              <Magnet className="h-2.5 w-2.5 text-brand" /> Drag to right edge to dock
-            </span>
+            <span className="text-slate-400">Floating Window</span>
             <button
               type="button"
               onClick={() => dockIndividualPanel(panelKey)}
-              className="text-brand hover:underline cursor-pointer font-bold"
+              className="text-brand hover:underline cursor-pointer font-bold flex items-center gap-1"
             >
-              Dock to Group
+              <Pin className="h-2.5 w-2.5" /> Dock to Sidebar
             </button>
           </div>
         </aside>
       );
     })}
-
-    {/* Magnetic Drop Target Preview (Visual glow when dragging floating panel near right dock) */}
-    {isNearDockTarget && (
-      <div className="absolute right-10 top-0 bottom-0 w-80 border-2 border-dashed border-brand bg-brand-light/30 backdrop-blur-xs flex flex-col items-center justify-center z-40 animate-pulse pointer-events-none rounded-l-2xl shadow-xl">
-        <div className="px-3.5 py-2 rounded-xl bg-brand text-white text-xs font-black shadow-lg flex items-center gap-2">
-          <Magnet className="h-4 w-4 animate-bounce" /> Release to Magnetically Snap & Dock
-        </div>
-      </div>
-    )}
 
     {/* Docked Sidebar Panel */}
     {isInspectorOpen && (
@@ -9441,7 +9398,7 @@ export default function WhiteboardPage() {
                         trash: { ...prev.trash, isOpen: false },
                       }));
                       setIsInspectorOpen(true);
-                      showToast("🧲 Attached all floating panels back to sidebar dock!");
+                      showToast("Attached all floating panels back to sidebar dock!");
                     } else {
                       detachIndividualPanel(rightPanelTab);
                     }
