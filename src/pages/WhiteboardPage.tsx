@@ -7073,75 +7073,77 @@ export default function WhiteboardPage() {
             </div>
           </div>
 
-          {/* 2 Nested Tab Switchers */}
-          <div className="space-y-1">
-            {/* Group 1: Workspace Tabs */}
-            <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("inspector")}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                  rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-                }`}
-              >
-                <SlidersHorizontal className="h-2.5 w-2.5" /> Inspector
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("layers")}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                  rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-                }`}
-              >
-                <Layers className="h-2.5 w-2.5" />
-                <span>Layers</span>
-                <span className={`px-1 py-0.2 rounded-full text-[8px] font-black leading-tight ${
-                  rightPanelTab === "layers" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
-                }`}>
-                  {shapes.length}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("character")}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                  rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-                }`}
-              >
-                <CharacterIcon className="h-2.5 w-2.5" /> Text
-              </button>
-            </div>
-
-            {/* Group 2: File & Management Tabs */}
-            <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("drafts")}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                  rightPanelTab === "drafts" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-                }`}
-              >
-                <FileText className="h-2.5 w-2.5" /> Drafts ({tabs.length + savedDrafts.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("samples")}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                  rightPanelTab === "samples" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-                }`}
-              >
-                <Sparkles className="h-2.5 w-2.5" /> Samples
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightPanelTab("trash")}
-                className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
-                  rightPanelTab === "trash" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
-                }`}
-              >
-                <Trash2 className="h-2.5 w-2.5" /> Trash ({trashedTabs.length})
-              </button>
-            </div>
+          {/* Nested Tab Switcher - Only shows the 3 tabs belonging to the active nested group */}
+          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
+            {["inspector", "layers", "character"].includes(rightPanelTab) ? (
+              /* Group 1: Workspace Tools (Inspector, Layers, Character) */
+              <>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("inspector")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <SlidersHorizontal className="h-3 w-3" /> Inspector
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("layers")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <Layers className="h-3 w-3" />
+                  <span>Layers</span>
+                  <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-black leading-tight ${
+                    rightPanelTab === "layers" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
+                  }`}>
+                    {shapes.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("character")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <CharacterIcon className="h-3 w-3" /> Text
+                </button>
+              </>
+            ) : (
+              /* Group 2: File & Management (Drafts, Samples, Trash) */
+              <>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("drafts")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "drafts" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <FileText className="h-3 w-3" /> Drafts ({tabs.length + savedDrafts.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("samples")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "samples" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <Sparkles className="h-3 w-3" /> Samples
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRightPanelTab("trash")}
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                    rightPanelTab === "trash" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  }`}
+                >
+                  <Trash2 className="h-3 w-3" /> Trash ({trashedTabs.length})
+                </button>
+              </>
+            )}
           </div>
         </div>
 
