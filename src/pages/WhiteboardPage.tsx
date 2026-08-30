@@ -6557,9 +6557,9 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Floating Overlay Right Inspector & Photoshop-Style Layers Panel */}
+          {/* Right Inspector & Photoshop-Style Layers Panel (Spanning from Tab Area Top to Viewport Bottom, Flush Right) */}
           {isInspectorOpen && (
-            <aside className="absolute right-4 top-4 z-40 w-80 rounded-3xl border border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl max-h-[calc(100vh-8.5rem)] overflow-hidden animate-in slide-in-from-right duration-200">
+            <aside className="absolute right-0 top-[-2.5rem] bottom-0 z-40 w-80 border-l border-line bg-white/95 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200">
               {/* FIXED UNMOVABLE Panel Header & Inspector / Layers Tab Switcher */}
               <div className="flex items-center justify-between border-b border-line p-3.5 pb-2.5 bg-white/95 backdrop-blur-md shrink-0 z-10">
                 <div className="flex items-center gap-1 rounded-xl bg-cream p-1 border border-line">
@@ -6609,20 +6609,15 @@ export default function WhiteboardPage() {
 
                   return (
                     <div className="space-y-3.5 animate-in fade-in duration-150">
-                      {/* 1. SELECTION / TOOL IDENTITY HEADER - ALL ON ONE SINGLE ROW (FIGMA/PHOTOSHOP STYLE) */}
+                      {/* 1. SELECTION / TOOL IDENTITY - JUST ICON AND TOOL NAME */}
                       <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-                        <div className="flex items-center gap-2 font-bold text-xs text-ink min-w-0 flex-1">
+                        <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
                           <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
                             <IconComp className="h-3.5 w-3.5" />
                           </span>
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-muted shrink-0">
-                              {selectedShape ? "Selected:" : "Active Preset:"}
-                            </span>
-                            <span className="font-extrabold text-xs text-ink truncate">
-                              {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : activeTool.toUpperCase()}
-                            </span>
-                          </div>
+                          <span className="font-extrabold text-xs text-ink truncate">
+                            {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : targetTool.toUpperCase()}
+                          </span>
                         </div>
                         {selectedShape && (
                           <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -7819,37 +7814,16 @@ export default function WhiteboardPage() {
             </aside>
           )}
 
-          {/* Floating Collapsed Inspector & Layers Dock Button */}
+          {/* Floating Collapsed Toggle Icon (Only the collapse/expandable icon shows when collapsed) */}
           {!isInspectorOpen && (
-            <div className="absolute right-4 top-4 z-30 flex items-center gap-1 rounded-2xl border border-line bg-white/95 p-1 shadow-2xl backdrop-blur-md animate-in fade-in">
-              <button
-                type="button"
-                onClick={() => {
-                  setRightPanelTab("inspector");
-                  setIsInspectorOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                title="Expand Inspector Panel"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                <span>Inspector</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRightPanelTab("layers");
-                  setIsInspectorOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                title="Expand Layers Panel"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span>Layers</span>
-                <span className="text-[10px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700">
-                  {shapes.length}
-                </span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsInspectorOpen(true)}
+              className="absolute right-3 top-[-2.15rem] z-40 p-2 rounded-xl border border-line bg-white/95 text-slate-700 shadow-md hover:bg-brand-light hover:text-brand transition animate-in fade-in cursor-pointer"
+              title="Expand Inspector & Layers Panel"
+            >
+              <PanelRightOpen className="h-4 w-4" />
+            </button>
           )}
         </main>
       </div>
