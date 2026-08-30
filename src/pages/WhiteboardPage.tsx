@@ -7593,7 +7593,7 @@ export default function WhiteboardPage() {
         <div className="flex items-center gap-3.5 shrink-0 h-full">
           <Logo variant="dark" asDiv />
           <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
-          <span className="hidden md:inline text-xs font-bold text-ink/70">
+          <span className="hidden md:inline text-sm font-bold text-slate-800 tracking-tight">
             Technical Analysis Whiteboard
           </span>
         </div>
