@@ -119,6 +119,11 @@ import {
   Lightbulb,
   CircleDollarSign,
   BarChart2,
+  Spline,
+  Undo,
+  Redo,
+  Clipboard,
+  CheckSquare,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -7971,7 +7976,7 @@ export default function WhiteboardPage() {
               }`}
               title="File Operations (New, Open, Save, Export)"
             >
-              <File className="h-3.5 w-3.5 text-slate-400" />
+              <FileText className="h-3.5 w-3.5 text-slate-400" />
               <span>File</span>
               <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${fileMenuOpen ? "rotate-180" : ""}`} />
             </button>
