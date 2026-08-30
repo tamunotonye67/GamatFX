@@ -750,10 +750,16 @@ export default function WhiteboardPage() {
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
   const [stickyColor, setStickyColor] = useState<StickyColor>("#fef08a");
   const [zoom, setZoom] = useState(1);
+  const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
+  const [zoomInputValue, setZoomInputValue] = useState("100");
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [cursorCoords, setCursorCoords] = useState<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    setZoomInputValue(String(Math.round(zoom * 100)));
+  }, [zoom]);
 
   /* ---------------------- WHITEBOARD SETTINGS PREFERENCES ------------------- */
   const [showTooltips, setShowTooltips] = useState(true);
@@ -2769,6 +2775,112 @@ export default function WhiteboardPage() {
     setShapes([]);
     setRedoStack([]);
     setSelectedShapeIds([]);
+  };
+
+  /* -------------------------- SCREEN VIEWS & FIT HANDLERS ------------------- */
+
+  const handleZoomToFit = () => {
+    if (shapes.length === 0) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+      setZoomMenuOpen(false);
+      showToast("Canvas is empty - Reset to center");
+      return;
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    shapes.forEach((s) => {
+      if (!s.isHidden) {
+        const b = getShapeBounds(s);
+        if (b.minX < minX) minX = b.minX;
+        if (b.minY < minY) minY = b.minY;
+        if (b.maxX > maxX) maxX = b.maxX;
+        if (b.maxY > maxY) maxY = b.maxY;
+      }
+    });
+
+    if (!isFinite(minX)) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+      setZoomMenuOpen(false);
+      return;
+    }
+
+    const padding = 60;
+    const contentW = (maxX - minX) + padding * 2;
+    const contentH = (maxY - minY) + padding * 2;
+    const viewW = canvas.clientWidth || window.innerWidth;
+    const viewH = canvas.clientHeight || window.innerHeight;
+
+    const fitZoom = Math.min(3.0, Math.max(0.2, Math.min(viewW / contentW, viewH / contentH)));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    setZoom(fitZoom);
+    setPan({
+      x: viewW / 2 - centerX * fitZoom,
+      y: viewH / 2 - centerY * fitZoom,
+    });
+    setZoomMenuOpen(false);
+    showToast(`Fit to Screen (${Math.round(fitZoom * 100)}%)`);
+  };
+
+  const handleZoomToSelection = () => {
+    const selectedShapes = shapes.filter((s) => selectedShapeIds.includes(s.id));
+    if (selectedShapes.length === 0) {
+      showToast("No shapes selected to zoom to");
+      return;
+    }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    selectedShapes.forEach((s) => {
+      const b = getShapeBounds(s);
+      if (b.minX < minX) minX = b.minX;
+      if (b.minY < minY) minY = b.minY;
+      if (b.maxX > maxX) maxX = b.maxX;
+      if (b.maxY > maxY) maxY = b.maxY;
+    });
+
+    const padding = 80;
+    const contentW = (maxX - minX) + padding * 2;
+    const contentH = (maxY - minY) + padding * 2;
+    const viewW = canvas.clientWidth || window.innerWidth;
+    const viewH = canvas.clientHeight || window.innerHeight;
+
+    const fitZoom = Math.min(3.0, Math.max(0.2, Math.min(viewW / contentW, viewH / contentH)));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    setZoom(fitZoom);
+    setPan({
+      x: viewW / 2 - centerX * fitZoom,
+      y: viewH / 2 - centerY * fitZoom,
+    });
+    setZoomMenuOpen(false);
+    showToast(`Zoomed to selection (${Math.round(fitZoom * 100)}%)`);
+  };
+
+  const handleSetZoomPercent = (percent: number) => {
+    const nextZoom = Math.max(0.1, Math.min(5.0, percent / 100));
+    setZoom(nextZoom);
+    setZoomInputValue(String(Math.round(nextZoom * 100)));
+    setZoomMenuOpen(false);
+  };
+
+  const handleZoomInputCommit = () => {
+    const cleanStr = zoomInputValue.replace(/[^0-9.]/g, "");
+    const parsed = parseFloat(cleanStr);
+    if (!isNaN(parsed) && parsed > 0) {
+      const nextZoom = Math.max(0.1, Math.min(5.0, parsed / 100));
+      setZoom(nextZoom);
+      setZoomInputValue(String(Math.round(nextZoom * 100)));
+    } else {
+      setZoomInputValue(String(Math.round(zoom * 100)));
+    }
   };
 
   const handleExport = (format: "png" | "jpeg" | "svg") => {
@@ -5739,67 +5851,143 @@ export default function WhiteboardPage() {
         {/* Central Whiteboard Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
           {/* Bottom Zoom & Navigation Bar */}
-          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl border border-line bg-white/95 p-2 backdrop-blur shadow-lg text-xs font-bold">
+          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-1.5 rounded-xl border border-line bg-white/95 p-1.5 backdrop-blur shadow-lg text-xs font-bold select-none">
+            {/* Zoom Out Button */}
             <button
               type="button"
-              onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
-              className="p-1.5 text-ink hover:bg-cream rounded-lg"
-              title="Zoom Out (or scroll wheel)"
+              onClick={() => setZoom((z) => Math.max(0.2, z - 0.15))}
+              className="p-1 text-slate-700 hover:bg-slate-100 hover:text-ink rounded-lg transition cursor-pointer"
+              title="Zoom Out (Ctrl + - or scroll wheel)"
             >
-              <ZoomOut className="h-4 w-4" />
-            </button>
-            <span className="w-12 text-center text-ink">{Math.round(zoom * 100)}%</span>
-            <button
-              type="button"
-              onClick={() => setZoom((z) => Math.min(3.0, z + 0.15))}
-              className="p-1.5 text-ink hover:bg-cream rounded-lg"
-              title="Zoom In (or scroll wheel)"
-            >
-              <ZoomIn className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setZoom(1);
-                setPan({ x: 0, y: 0 });
-              }}
-              className="p-1.5 text-brand hover:bg-brand-light rounded-lg ml-1"
-              title="Reset View"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <ZoomOut className="h-3.5 w-3.5" />
             </button>
 
-            {/* Marquee Zoom Tool Button */}
-            <span className="h-4 w-px bg-line/80 mx-0.5" />
+            {/* Editable Zoom Text Field & Popover Dropdown Trigger */}
+            <div className="relative">
+              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 hover:bg-white focus-within:border-brand focus-within:bg-white px-1.5 py-0.5 transition">
+                <input
+                  type="text"
+                  value={zoomInputValue}
+                  onChange={(e) => setZoomInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleZoomInputCommit();
+                      (e.target as HTMLInputElement).blur();
+                    } else if (e.key === "Escape") {
+                      setZoomInputValue(String(Math.round(zoom * 100)));
+                      (e.target as HTMLInputElement).blur();
+                    }
+                  }}
+                  onBlur={handleZoomInputCommit}
+                  className="w-8 bg-transparent text-center font-mono text-[11px] font-bold text-ink outline-none"
+                  title="Type custom zoom percentage and press Enter"
+                />
+                <span className="text-[10px] text-muted font-bold select-none">%</span>
+                <button
+                  type="button"
+                  onClick={() => setZoomMenuOpen((v) => !v)}
+                  className="ml-1 p-0.5 text-slate-400 hover:text-ink rounded transition cursor-pointer"
+                  title="Zoom options & Screen views"
+                >
+                  <ChevronDown className={`h-3 w-3 transition-transform ${zoomMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+              </div>
+
+              {/* Zoom & View Options Dropdown Popover */}
+              {zoomMenuOpen && (
+                <div className="absolute bottom-full left-0 mb-2 w-48 rounded-xl border border-line bg-white p-1.5 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  {/* Screen Views / Fit Options */}
+                  <div className="space-y-0.5 pb-1 border-b border-slate-100">
+                    <button
+                      type="button"
+                      onClick={handleZoomToFit}
+                      className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 hover:text-brand rounded-lg transition text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Scan className="h-3.5 w-3.5 text-brand" />
+                        <span>Fit to Screen</span>
+                      </span>
+                      <span className="text-[9px] text-muted font-mono">Fit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleZoomToSelection}
+                      className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 hover:text-brand rounded-lg transition text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <MousePointer className="h-3.5 w-3.5 text-brand" />
+                        <span>Zoom to Selection</span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetZoomPercent(100)}
+                      className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 hover:text-brand rounded-lg transition text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <RefreshCw className="h-3.5 w-3.5 text-slate-500" />
+                        <span>Zoom to 100%</span>
+                      </span>
+                      <span className="text-[9px] text-muted font-mono">100%</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setZoom(1);
+                        setPan({ x: 0, y: 0 });
+                        setZoomMenuOpen(false);
+                        showToast("Reset to Center (0, 0)");
+                      }}
+                      className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 hover:text-brand rounded-lg transition text-left cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Maximize2 className="h-3.5 w-3.5 text-slate-500" />
+                        <span>Center Canvas (0, 0)</span>
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Percentage Presets Grid */}
+                  <div className="pt-1">
+                    <p className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-muted">Presets</p>
+                    <div className="grid grid-cols-3 gap-1 px-1 pt-1">
+                      {[25, 50, 75, 100, 125, 150, 200, 300, 400].map((pct) => (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => handleSetZoomPercent(pct)}
+                          className={`py-1 rounded-md text-[10px] font-bold transition cursor-pointer ${
+                            Math.round(zoom * 100) === pct
+                              ? "bg-brand text-white shadow-xs"
+                              : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                          }`}
+                        >
+                          {pct}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Zoom In Button */}
             <button
               type="button"
-              onClick={() => {
-                if (activeTool === "marquee_zoom") {
-                  setActiveTool("select");
-                  showToast("Switched back to Select Tool");
-                } else {
-                  setActiveTool("marquee_zoom");
-                  showToast("Marquee Zoom active: Drag a rectangle over any area to zoom in!");
-                }
-              }}
-              className={`px-2 py-1 rounded-lg flex items-center gap-1.5 transition cursor-pointer text-xs font-bold ${
-                activeTool === "marquee_zoom"
-                  ? "bg-amber-500 text-white shadow-xs"
-                  : "text-slate-700 hover:bg-slate-100 hover:text-amber-600"
-              }`}
-              title="Marquee Zoom: Drag a rectangle over any chart area to zoom into that exact area"
+              onClick={() => setZoom((z) => Math.min(4.0, z + 0.15))}
+              className="p-1 text-slate-700 hover:bg-slate-100 hover:text-ink rounded-lg transition cursor-pointer"
+              title="Zoom In (Ctrl + + or scroll wheel)"
             >
-              <Scan className="h-3.5 w-3.5 shrink-0" />
-              <span>Marquee Zoom</span>
+              <ZoomIn className="h-3.5 w-3.5" />
             </button>
 
             {/* Optional Cursor Coordinates Indicator */}
             {showCursorCoords && cursorCoords && (
               <>
-                <span className="h-4 w-px bg-line/80 mx-1" />
-                <span className="text-[10px] text-muted flex items-center gap-1 font-mono">
+                <span className="h-3.5 w-px bg-line/80 mx-0.5" />
+                <span className="text-[9.5px] text-muted flex items-center gap-1 font-mono">
                   <Crosshair className="h-3 w-3 text-brand" />
-                  X: {Math.round(cursorCoords.x)} Y: {Math.round(cursorCoords.y)}
+                  {Math.round(cursorCoords.x)}, {Math.round(cursorCoords.y)}
                 </span>
               </>
             )}
