@@ -6581,12 +6581,12 @@ export default function WhiteboardPage() {
     {isInspectorOpen && (
       <aside className="absolute right-10 top-0 bottom-0 w-72 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none">
         {/* Panel Header & Tab Switcher */}
-        <div className="flex items-center justify-between border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
-          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+        <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
+          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
             <button
               type="button"
               onClick={() => setRightPanelTab("inspector")}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
                 rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
               }`}
             >
@@ -6595,7 +6595,7 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => setRightPanelTab("layers")}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
                 rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
               }`}
             >
@@ -6610,22 +6610,13 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => setRightPanelTab("character")}
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
                 rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
               }`}
             >
               <Type className="h-3 w-3" /> Character
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsInspectorOpen(false)}
-            className="rounded-md p-1 text-slate-400 hover:text-ink hover:bg-slate-100 transition cursor-pointer"
-            title="Collapse Panel"
-          >
-            <PanelRightClose className="h-3.5 w-3.5" />
-          </button>
         </div>
 
         {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
