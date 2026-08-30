@@ -2,6 +2,7 @@ import { navigate } from "../lib/router";
 
 type LogoProps = {
   variant?: "light" | "dark";
+  size?: "sm" | "md" | "lg";
   className?: string;
   asDiv?: boolean;
 };
@@ -10,16 +11,19 @@ type LogoProps = {
  * Minimal GAMAT mark: a rounded tile containing a 3-candle pattern
  * that also reads as the letter "G" via a subtle arc on the right.
  */
-export default function Logo({ variant = "dark", className = "", asDiv = false }: LogoProps) {
+export default function Logo({ variant = "dark", size = "md", className = "", asDiv = false }: LogoProps) {
   const isLight = variant === "light";
   const wordColor = isLight ? "text-white" : "text-ink";
   const subColor = isLight ? "text-white/70" : "text-muted";
+  const isSm = size === "sm";
 
   const content = (
     <>
       {/* Mark */}
-      <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#dc3545] shadow-sm transition group-hover:shadow-md group-hover:shadow-brand/30 print:[color-adjust:exact] print:[-webkit-print-color-adjust:exact]">
-        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <span className={`relative flex shrink-0 items-center justify-center overflow-hidden bg-[#dc3545] shadow-xs transition group-hover:shadow-md group-hover:shadow-brand/30 print:[color-adjust:exact] print:[-webkit-print-color-adjust:exact] ${
+        isSm ? "h-7 w-7 rounded-lg" : "h-10 w-10 rounded-xl"
+      }`}>
+        <svg width={isSm ? "18" : "26"} height={isSm ? "18" : "26"} viewBox="0 0 32 32" fill="none" aria-hidden="true">
           {/* Soft chart floor */}
           <line x1="4" y1="26" x2="28" y2="26" stroke="white" strokeOpacity="0.3" strokeWidth="1" />
 
@@ -49,12 +53,16 @@ export default function Logo({ variant = "dark", className = "", asDiv = false }
 
       {/* Wordmark */}
       <span className="flex flex-col items-start justify-center leading-none">
-        <span className={`block font-display text-lg font-extrabold leading-none tracking-tight ${wordColor}`}>
+        <span className={`block font-display font-extrabold leading-none tracking-tight ${
+          isSm ? "text-sm" : "text-lg"
+        } ${wordColor}`}>
           GAMAT<span className="text-[#dc3545]">&nbsp;Fx</span>
         </span>
         <span
-          className={`mt-[3px] block text-[10px] font-semibold uppercase leading-none tracking-[0.22em] ${subColor}`}
-          style={{ marginRight: "-0.22em" }}
+          className={`block font-semibold uppercase leading-none ${
+            isSm ? "text-[8px] mt-[2px] tracking-[0.2em]" : "text-[10px] mt-[3px] tracking-[0.22em]"
+          } ${subColor}`}
+          style={{ marginRight: isSm ? "-0.2em" : "-0.22em" }}
         >
           Academy
         </span>

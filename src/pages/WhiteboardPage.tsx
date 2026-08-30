@@ -4886,37 +4886,37 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar */}
-      <header className="h-16 border-b border-line bg-white px-5 flex items-center justify-between gap-4 shrink-0 z-[60] relative shadow-sm">
+      {/* Main Header Bar - Slim h-11 with Edge-to-Edge Full-Height Dividers */}
+      <header className="h-11 border-b border-line bg-white px-3 flex items-center justify-between gap-2 shrink-0 z-[60] relative shadow-2xs">
         {/* Left Section: GAMAT Logo & Board Title */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Logo variant="dark" asDiv />
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0 hidden sm:inline" />
-          <span className="hidden md:inline text-xs font-bold text-ink/70">
+        <div className="flex items-center gap-2.5 shrink-0 h-full">
+          <Logo variant="dark" size="sm" asDiv />
+          <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
+          <span className="hidden md:inline text-[11px] font-bold text-ink/70">
             Technical Analysis Whiteboard
           </span>
         </div>
 
-        {/* Right Section: Photoshop-Style Menu Bar with Vertical Dividers */}
-        <div className="flex items-center gap-2 shrink-0 text-xs font-bold text-ink">
+        {/* Right Section: Menu Bar with Full-Height Edge-to-Edge Dividers */}
+        <div className="flex items-center h-full shrink-0 text-xs font-bold text-ink">
           {/* Diagrams Workspace Options Dropdown */}
-          <div className="relative">
+          <div className="relative h-full flex items-center px-0.5">
             <button
               type="button"
               onClick={() => setDiagramsMenuOpen(!diagramsMenuOpen)}
-              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] transition cursor-pointer ${
                 diagramsMenuOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
               }`}
               title="Click to view Drafts, Samples & Trash"
             >
-              <FolderKanban className="h-4 w-4 text-slate-700" />
+              <FolderKanban className="h-3.5 w-3.5 text-slate-700" />
               <span>Diagrams</span>
-              <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${diagramsMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform ${diagramsMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {/* Unified Popover Dropdown Menu */}
             {diagramsMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-84 rounded-2xl border border-line bg-white p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3">
+              <div className="absolute right-0 top-full mt-1.5 w-84 rounded-2xl border border-line bg-white p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3">
                 {/* Header & Close Button */}
                 <div className="flex items-center justify-between border-b border-line pb-2.5">
                   <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
@@ -5110,26 +5110,26 @@ export default function WhiteboardPage() {
             )}
           </div>
 
-          {/* Vertical Divider */}
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
+          {/* Edge-to-Edge Full-Height Vertical Divider */}
+          <span className="self-stretch w-px bg-slate-200 shrink-0" />
 
           {/* Canvas Background Theme Dropdown */}
-          <div className="relative">
+          <div className="relative h-full flex items-center px-0.5">
             <button
               type="button"
               onClick={() => setBgOpen(!bgOpen)}
-              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] transition cursor-pointer ${
                 bgOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
               }`}
               title="Canvas Background Theme"
             >
-              <Grid className="h-4 w-4 text-slate-700" />
+              <Grid className="h-3.5 w-3.5 text-slate-700" />
               <span>Theme</span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted" />
+              <ChevronDown className="h-3 w-3 text-muted" />
             </button>
 
             {bgOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
                 <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Background Theme</p>
                 {CANVAS_THEMES.map((theme) => (
                   <button
@@ -5140,7 +5140,7 @@ export default function WhiteboardPage() {
                       setBgOpen(false);
                       showToast(`Switched canvas to ${theme.name}!`);
                     }}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition ${
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${
                       bgGrid === theme.id ? "bg-brand-light text-brand" : "text-ink hover:bg-cream"
                     }`}
                   >
@@ -5152,65 +5152,67 @@ export default function WhiteboardPage() {
             )}
           </div>
 
-          {/* Vertical Divider */}
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
+          {/* Edge-to-Edge Full-Height Vertical Divider */}
+          <span className="self-stretch w-px bg-slate-200 shrink-0" />
 
           {/* Snap to Grid Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setSnapToGrid(!snapToGrid);
-              showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
-            }}
-            className={`flex items-center justify-center gap-1.5 rounded-xl px-2.5 py-1.5 font-bold transition-all ${
-              snapToGrid
-                ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 backdrop-blur-xs shadow-xs"
-                : "border border-transparent hover:bg-slate-100 text-ink"
-            }`}
-            title="Toggle Snap to Grid (Active by Default)"
-          >
-            <Magnet className={`h-4 w-4 ${snapToGrid ? "text-emerald-600" : "text-slate-700"}`} />
-            <span>Snap</span>
-          </button>
+          <div className="h-full flex items-center px-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                setSnapToGrid(!snapToGrid);
+                showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
+              }}
+              className={`flex items-center justify-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold transition-all cursor-pointer ${
+                snapToGrid
+                  ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 backdrop-blur-xs shadow-2xs"
+                  : "border border-transparent hover:bg-slate-100 text-ink"
+              }`}
+              title="Toggle Snap to Grid"
+            >
+              <Magnet className={`h-3.5 w-3.5 ${snapToGrid ? "text-emerald-600" : "text-slate-700"}`} />
+              <span>Snap</span>
+            </button>
+          </div>
 
-          {/* Vertical Divider */}
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
+          {/* Edge-to-Edge Full-Height Vertical Divider */}
+          <span className="self-stretch w-px bg-slate-200 shrink-0" />
 
           {/* Export Dropdown */}
-          <div className="relative">
+          <div className="relative h-full flex items-center px-0.5">
             <button
               type="button"
               onClick={() => setExportOpen(!exportOpen)}
-              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition ${
+              className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] transition cursor-pointer ${
                 exportOpen ? "bg-brand-light text-brand" : "hover:bg-slate-100 text-ink"
               }`}
               title="Export Canvas"
             >
-              <Download className="h-4 w-4 text-slate-700" />
+              <Download className="h-3.5 w-3.5 text-slate-700" />
               <span>Export</span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted" />
+              <ChevronDown className="h-3 w-3 text-muted" />
             </button>
 
             {exportOpen && (
-              <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2">
                 <button
                   type="button"
                   onClick={() => handleExport("png")}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                 >
                   <FileImage className="h-4 w-4 text-slate-700" /> Export PNG
                 </button>
                 <button
                   type="button"
                   onClick={() => handleExport("jpeg")}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                 >
                   <FileImage className="h-4 w-4 text-slate-700" /> Export JPEG
                 </button>
                 <button
                   type="button"
                   onClick={() => handleExport("svg")}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                 >
                   <FileCode className="h-4 w-4 text-slate-700" /> Export SVG
                 </button>
@@ -5218,42 +5220,44 @@ export default function WhiteboardPage() {
             )}
           </div>
 
-          {/* Vertical Divider */}
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
+          {/* Edge-to-Edge Full-Height Vertical Divider */}
+          <span className="self-stretch w-px bg-slate-200 shrink-0" />
 
           {/* Fullscreen Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="flex items-center justify-center rounded-xl p-1.5 text-ink hover:bg-slate-100 transition shrink-0"
-            title="Toggle Fullscreen"
-          >
-            {isFullscreen ? <Minimize2 className="h-4 w-4 text-slate-700" /> : <Maximize2 className="h-4 w-4 text-slate-700" />}
-          </button>
+          <div className="h-full flex items-center px-0.5">
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="flex items-center justify-center rounded-lg p-1 text-ink hover:bg-slate-100 transition shrink-0 cursor-pointer"
+              title="Toggle Fullscreen"
+            >
+              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5 text-slate-700" /> : <Maximize2 className="h-3.5 w-3.5 text-slate-700" />}
+            </button>
+          </div>
 
-          {/* Vertical Divider */}
-          <span className="h-6 w-[1.5px] bg-slate-300 shrink-0" />
+          {/* Edge-to-Edge Full-Height Vertical Divider */}
+          <span className="self-stretch w-px bg-slate-200 shrink-0" />
 
-          {/* User Account Avatar & Profile Menu (Avatar + Dropdown Only) */}
-          <div ref={userMenuRef} className="relative shrink-0">
+          {/* User Account Avatar & Profile Menu */}
+          <div ref={userMenuRef} className="relative shrink-0 h-full flex items-center pl-1">
             <button
               type="button"
               onClick={() => setUserMenuOpen((v) => !v)}
-              className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group"
+              className="flex items-center gap-1 rounded-full p-0.5 hover:bg-slate-100 transition group cursor-pointer"
               title={`${user.firstName} ${user.lastName} (${user.email})`}
             >
               {user.avatar ? (
                 <img
                   src={user.avatar}
                   alt={user.firstName}
-                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                  className="h-6.5 w-6.5 rounded-full object-cover border border-line shadow-2xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
                 />
               ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                <span className="flex h-6.5 w-6.5 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-[9.5px] font-extrabold text-white shadow-2xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
                   {`${user.firstName?.[0] ?? "U"}${user.lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
               )}
-              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-3 w-3 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {/* Profile Popover Dropdown */}
