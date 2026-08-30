@@ -837,6 +837,8 @@ export default function WhiteboardPage() {
   const dragStartPt = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isPanning = useRef(false);
   const startPan = useRef({ x: 0, y: 0 });
+  const isSpacePressed = useRef(false);
+  const [isSpaceHeld, setIsSpaceHeld] = useState(false);
 
   /* -------------------------- Page Scroll Lock & LocalStorage Initializer --- */
 
@@ -954,6 +956,16 @@ export default function WhiteboardPage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const targetTag = (e.target as HTMLElement).tagName;
       if (targetTag === "INPUT" || targetTag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+
+      // Spacebar temporary Hand / Pan tool toggle
+      if (e.code === "Space" || e.key === " ") {
+        if (!isSpacePressed.current) {
+          isSpacePressed.current = true;
+          setIsSpaceHeld(true);
+        }
+        e.preventDefault();
+        return;
+      }
 
       const key = e.key.toLowerCase();
       const isCtrl = e.ctrlKey || e.metaKey;
@@ -1106,8 +1118,30 @@ export default function WhiteboardPage() {
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.key === " ") {
+        if (isSpacePressed.current) {
+          isSpacePressed.current = false;
+          setIsSpaceHeld(false);
+        }
+      }
+    };
+
+    const handleBlur = () => {
+      if (isSpacePressed.current) {
+        isSpacePressed.current = false;
+        setIsSpaceHeld(false);
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
   }, [selectedShapeIds, shapes, redoStack]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
@@ -1417,7 +1451,7 @@ export default function WhiteboardPage() {
     setTabContextMenu(null);
     setDiagramsMenuOpen(false);
 
-    if (activeTool === "hand" || e.button === 1 || e.buttons === 4) {
+    if (activeTool === "hand" || isSpaceHeld || isSpacePressed.current || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
       startPan.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
       return;
@@ -5796,7 +5830,7 @@ export default function WhiteboardPage() {
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
-            style={getToolCursorStyle(activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle)}
+            style={getToolCursorStyle(isSpaceHeld || isSpacePressed.current ? "hand" : activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle)}
             className="w-full h-full block"
           />
 
