@@ -81,6 +81,8 @@ import {
   FolderPlus,
   Compass,
   CheckCircle2,
+  LayoutTemplate,
+  Archive,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -7133,7 +7135,7 @@ export default function WhiteboardPage() {
                     rightPanelTab === "samples" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <Sparkles className="h-3 w-3" /> Samples
+                  <LayoutTemplate className="h-3 w-3" /> Samples
                 </button>
                 <button
                   type="button"
@@ -7142,7 +7144,7 @@ export default function WhiteboardPage() {
                     rightPanelTab === "trash" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <Trash2 className="h-3 w-3" /> Trash ({trashedTabs.length})
+                  <Archive className="h-3 w-3" /> Trash ({trashedTabs.length})
                 </button>
               </>
             )}
@@ -8858,7 +8860,7 @@ export default function WhiteboardPage() {
                             }}
                             className="w-full py-1.5 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            <Sparkles className="h-3 w-3" /> Load Template in New Tab
+                            <LayoutTemplate className="h-3 w-3" /> Load Template in New Tab
                           </button>
                         </div>
                       ))}
@@ -8892,7 +8894,7 @@ export default function WhiteboardPage() {
 
                     {trashedTabs.length === 0 ? (
                       <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center text-muted">
-                        <Trash2 className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
+                        <Archive className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
                         <p className="text-xs font-bold text-slate-500">Trash is empty</p>
                         <p className="text-[10px] mt-0.5 text-muted">Deleted diagram tabs will appear here</p>
                       </div>
@@ -9088,7 +9090,7 @@ export default function WhiteboardPage() {
                   }`}
                   title="Samples & Templates Gallery"
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <LayoutTemplate className="h-4 w-4" />
                 </button>
 
                 {/* Horizontal Detachable Indicator Dots */}
@@ -9116,7 +9118,7 @@ export default function WhiteboardPage() {
                   }`}
                   title={`Trash (${trashedTabs.length})`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Archive className="h-4 w-4" />
                   {trashedTabs.length > 0 && (
                     <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-rose-500 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                       {trashedTabs.length}
