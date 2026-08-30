@@ -280,6 +280,25 @@ const AnnotationIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) =
   </svg>
 );
 
+const CharacterIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Capital A */}
+    <path d="M3.5 19L8.5 5l5 14" />
+    <path d="M5.5 14h6" />
+    {/* Lowercase a */}
+    <path d="M16.5 13a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" />
+    <path d="M19 11v8" />
+  </svg>
+);
+
 /* ========================================================================== */
 /*                               TYPES & DATA                                 */
 /* ========================================================================== */
@@ -6834,7 +6853,7 @@ export default function WhiteboardPage() {
                 rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
               }`}
             >
-              <Type className="h-3 w-3" /> Character
+              <CharacterIcon className="h-3 w-3" /> Character
             </button>
           </div>
         </div>
@@ -8058,7 +8077,7 @@ export default function WhiteboardPage() {
                     <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
                       <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
                         <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                          <Type className="h-3.5 w-3.5" />
+                          <CharacterIcon className="h-3.5 w-3.5" />
                         </span>
                         <span className="font-extrabold text-xs text-ink truncate">
                           {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Typography Settings"}
@@ -8427,7 +8446,7 @@ export default function WhiteboardPage() {
                 }`}
                 title="Character & Typography"
               >
-                <Type className="h-3.5 w-3.5" />
+                <CharacterIcon className="h-3.5 w-3.5" />
               </button>
             </div>
 
