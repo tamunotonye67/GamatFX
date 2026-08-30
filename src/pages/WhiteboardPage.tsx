@@ -7956,10 +7956,10 @@ export default function WhiteboardPage() {
           </span>
         </div>
 
-        {/* Right Section: Compact Dark Overlay Menu Bar + Light User Avatar Profile */}
+        {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
         <div className="flex items-center gap-2.5 h-full shrink-0">
-          {/* Compact Dark Overlay Menu Bar */}
-          <div className="flex items-center h-8 shrink-0 text-[11.5px] font-semibold text-slate-300 bg-slate-900 rounded-lg px-1 border border-slate-800 shadow-sm">
+          {/* Compact Ash Grey Overlay Menu Bar */}
+          <div className="flex items-center h-8 shrink-0 text-[11.5px] font-semibold text-slate-700 bg-slate-100 rounded-lg px-1 border border-slate-300 shadow-2xs">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -7974,7 +7974,7 @@ export default function WhiteboardPage() {
                   setUserMenuOpen(false);
                 }}
                 className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  fileMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                  fileMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
                 title="File Operations"
               >
@@ -7982,19 +7982,19 @@ export default function WhiteboardPage() {
               </button>
 
               {fileMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
+                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1">
                   <button
                     type="button"
                     onClick={() => {
                       setFileMenuOpen(false);
                       handleAddNewTab();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <Plus className="h-3.5 w-3.5 text-brand" /> New Diagram
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+N</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+N</span>
                   </button>
 
                   <button
@@ -8003,10 +8003,10 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       setCreateCanvasModalOpen(true);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Sparkles className="h-3.5 w-3.5 text-amber-400" /> New Canvas Setup...
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" /> New Canvas Setup...
                     </span>
                   </button>
 
@@ -8016,12 +8016,12 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleSaveCurrentDraft();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Save className="h-3.5 w-3.5 text-emerald-400" /> Save as Draft
+                      <Save className="h-3.5 w-3.5 text-emerald-600" /> Save as Draft
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+S</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+S</span>
                   </button>
 
                   <button
@@ -8030,14 +8030,14 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       setDiagramsMenuOpen(true);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <FolderKanban className="h-3.5 w-3.5 text-sky-400" /> Open Drafts & Samples...
+                      <FolderKanban className="h-3.5 w-3.5 text-sky-600" /> Open Drafts & Samples...
                     </span>
                   </button>
 
-                  <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-line my-1" />
 
                   <button
                     type="button"
@@ -8045,10 +8045,10 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleExport("png");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <FileImage className="h-3.5 w-3.5 text-slate-400" /> Quick Export PNG
+                      <FileImage className="h-3.5 w-3.5 text-slate-500" /> Quick Export PNG
                     </span>
                   </button>
 
@@ -8058,14 +8058,14 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleExport("svg");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <FileCode className="h-3.5 w-3.5 text-slate-400" /> Quick Export SVG
+                      <FileCode className="h-3.5 w-3.5 text-slate-500" /> Quick Export SVG
                     </span>
                   </button>
 
-                  <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-line my-1" />
 
                   <button
                     type="button"
@@ -8077,7 +8077,7 @@ export default function WhiteboardPage() {
                         showToast("Cleared canvas");
                       }
                     }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition cursor-pointer"
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Clear Canvas
                   </button>
@@ -8088,19 +8088,19 @@ export default function WhiteboardPage() {
                       setFileMenuOpen(false);
                       handleCloseTab(activeTabId);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <X className="h-3.5 w-3.5" /> Close Tab
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+W</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+W</span>
                   </button>
                 </div>
               )}
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 2. EDIT MENU */}
             <div className="relative h-full flex items-center">
@@ -8116,7 +8116,7 @@ export default function WhiteboardPage() {
                   setUserMenuOpen(false);
                 }}
                 className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  editMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                  editMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
                 title="Edit Operations"
               >
@@ -8124,19 +8124,19 @@ export default function WhiteboardPage() {
               </button>
 
               {editMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
+                <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1">
                   <button
                     type="button"
                     onClick={() => {
                       setEditMenuOpen(false);
                       undo();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Undo className="h-3.5 w-3.5 text-slate-400" /> Undo
+                      <Undo className="h-3.5 w-3.5 text-slate-500" /> Undo
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Z</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+Z</span>
                   </button>
 
                   <button
@@ -8145,15 +8145,15 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       redo();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Redo className="h-3.5 w-3.5 text-slate-400" /> Redo
+                      <Redo className="h-3.5 w-3.5 text-slate-500" /> Redo
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Y</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+Y</span>
                   </button>
 
-                  <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-line my-1" />
 
                   <button
                     type="button"
@@ -8161,12 +8161,12 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       copySelectedShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Copy className="h-3.5 w-3.5 text-slate-400" /> Copy
+                      <Copy className="h-3.5 w-3.5 text-slate-500" /> Copy
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+C</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+C</span>
                   </button>
 
                   <button
@@ -8175,12 +8175,12 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       pasteShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Clipboard className="h-3.5 w-3.5 text-slate-400" /> Paste
+                      <Clipboard className="h-3.5 w-3.5 text-slate-500" /> Paste
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+V</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+V</span>
                   </button>
 
                   <button
@@ -8189,12 +8189,12 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       duplicateSelectedShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Layers className="h-3.5 w-3.5 text-slate-400" /> Duplicate
+                      <Layers className="h-3.5 w-3.5 text-slate-500" /> Duplicate
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+D</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+D</span>
                   </button>
 
                   <button
@@ -8203,15 +8203,15 @@ export default function WhiteboardPage() {
                       setEditMenuOpen(false);
                       deleteSelectedShapes();
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <Trash2 className="h-3.5 w-3.5" /> Delete Selected
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Del</span>
+                    <span className="text-[10px] text-muted font-mono">Del</span>
                   </button>
 
-                  <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-line my-1" />
 
                   <button
                     type="button"
@@ -8220,12 +8220,12 @@ export default function WhiteboardPage() {
                       setSelectedShapeIds(shapes.map((s) => s.id));
                       showToast("Selected all shapes");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <CheckSquare className="h-3.5 w-3.5 text-slate-400" /> Select All
+                      <CheckSquare className="h-3.5 w-3.5 text-slate-500" /> Select All
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+A</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+A</span>
                   </button>
 
                   <button
@@ -8235,19 +8235,19 @@ export default function WhiteboardPage() {
                       setSelectedShapeIds([]);
                       showToast("Deselected all");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Square className="h-3.5 w-3.5 text-slate-400" /> Deselect All
+                      <Square className="h-3.5 w-3.5 text-slate-500" /> Deselect All
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Esc</span>
+                    <span className="text-[10px] text-muted font-mono">Esc</span>
                   </button>
                 </div>
               )}
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 3. VIEW MENU */}
             <div className="relative h-full flex items-center">
@@ -8263,7 +8263,7 @@ export default function WhiteboardPage() {
                   setUserMenuOpen(false);
                 }}
                 className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  viewMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                  viewMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
                 title="View Operations"
               >
@@ -8271,19 +8271,19 @@ export default function WhiteboardPage() {
               </button>
 
               {viewMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-60 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200 space-y-1">
+                <div className="absolute left-0 top-full mt-2 w-60 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1">
                   <button
                     type="button"
                     onClick={() => {
                       setZoom((z) => Math.min(z * 1.2, 5));
                       showToast(`Zoom: ${Math.round(zoom * 120)}%`);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <ZoomIn className="h-3.5 w-3.5 text-slate-400" /> Zoom In (+20%)
+                      <ZoomIn className="h-3.5 w-3.5 text-slate-500" /> Zoom In (+20%)
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl++</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl++</span>
                   </button>
 
                   <button
@@ -8292,12 +8292,12 @@ export default function WhiteboardPage() {
                       setZoom((z) => Math.max(z / 1.2, 0.2));
                       showToast(`Zoom: ${Math.round(zoom * 80)}%`);
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <ZoomOut className="h-3.5 w-3.5 text-slate-400" /> Zoom Out (-20%)
+                      <ZoomOut className="h-3.5 w-3.5 text-slate-500" /> Zoom Out (-20%)
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+-</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+-</span>
                   </button>
 
                   <button
@@ -8307,15 +8307,15 @@ export default function WhiteboardPage() {
                       setPan({ x: 0, y: 0 });
                       showToast("Reset Zoom to 100%");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <RefreshCw className="h-3.5 w-3.5 text-slate-400" /> Reset View (100%)
+                      <RefreshCw className="h-3.5 w-3.5 text-slate-500" /> Reset View (100%)
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+0</span>
+                    <span className="text-[10px] text-muted font-mono">Ctrl+0</span>
                   </button>
 
-                  <div className="w-full h-px bg-slate-800 my-1" />
+                  <div className="w-full h-px bg-line my-1" />
 
                   <button
                     type="button"
@@ -8323,12 +8323,12 @@ export default function WhiteboardPage() {
                       setShowGuidelines(!showGuidelines);
                       showToast(showGuidelines ? "Hidden guidelines" : "Shown guidelines");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
                       <RulerIcon className="h-3.5 w-3.5 text-brand" /> Smart Guidelines
                     </span>
-                    <span className={`text-[10px] font-black ${showGuidelines ? "text-emerald-400" : "text-slate-500"}`}>
+                    <span className={`text-[10px] font-black ${showGuidelines ? "text-emerald-600" : "text-slate-400"}`}>
                       {showGuidelines ? "On" : "Off"}
                     </span>
                   </button>
@@ -8339,12 +8339,12 @@ export default function WhiteboardPage() {
                       setShowFavoritesBar(!showFavoritesBar);
                       showToast(showFavoritesBar ? "Hidden favorites toolbar" : "Shown favorites toolbar");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Star className="h-3.5 w-3.5 text-amber-400" /> Favorites Toolbar
+                      <Star className="h-3.5 w-3.5 text-amber-500" /> Favorites Toolbar
                     </span>
-                    <span className={`text-[10px] font-black ${showFavoritesBar ? "text-emerald-400" : "text-slate-500"}`}>
+                    <span className={`text-[10px] font-black ${showFavoritesBar ? "text-emerald-600" : "text-slate-400"}`}>
                       {showFavoritesBar ? "On" : "Off"}
                     </span>
                   </button>
@@ -8355,12 +8355,12 @@ export default function WhiteboardPage() {
                       setShowCursorCoords(!showCursorCoords);
                       showToast(showCursorCoords ? "Disabled coordinates" : "Enabled coordinates");
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
-                      <Crosshair className="h-3.5 w-3.5 text-blue-400" /> Cursor Coordinates
+                      <Crosshair className="h-3.5 w-3.5 text-blue-500" /> Cursor Coordinates
                     </span>
-                    <span className={`text-[10px] font-black ${showCursorCoords ? "text-emerald-400" : "text-slate-500"}`}>
+                    <span className={`text-[10px] font-black ${showCursorCoords ? "text-emerald-600" : "text-slate-400"}`}>
                       {showCursorCoords ? "On" : "Off"}
                     </span>
                   </button>
@@ -8369,7 +8369,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 4. DIAGRAMS MENU */}
             <div className="relative h-full flex items-center">
@@ -8385,7 +8385,7 @@ export default function WhiteboardPage() {
                   setUserMenuOpen(false);
                 }}
                 className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  diagramsMenuOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                  diagramsMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
                 title="Diagrams Workspace Manager"
               >
@@ -8394,15 +8394,15 @@ export default function WhiteboardPage() {
 
               {/* Diagrams Popover */}
               {diagramsMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-84 rounded-2xl border border-slate-800 bg-slate-900 p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3 text-slate-200">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                    <span className="font-extrabold text-xs text-white flex items-center gap-1.5">
+                <div className="absolute right-0 top-full mt-2 w-84 rounded-2xl border border-line bg-white p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3 text-ink">
+                  <div className="flex items-center justify-between border-b border-line pb-2.5">
+                    <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
                       <FolderKanban className="h-4 w-4 text-brand" /> Diagram Workspace Manager
                     </span>
                     <button
                       type="button"
                       onClick={() => setDiagramsMenuOpen(false)}
-                      className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+                      className="text-slate-400 hover:text-ink p-1 rounded-lg hover:bg-slate-100"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -8419,49 +8419,49 @@ export default function WhiteboardPage() {
                     <Save className="h-4 w-4" /> Save Current Canvas as Draft
                   </button>
 
-                  <div className="flex items-center gap-1 rounded-xl bg-slate-950 p-1 border border-slate-800">
+                  <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-line">
                     <button
                       type="button"
                       onClick={() => setActiveMenuTab("drafts")}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                        activeMenuTab === "drafts" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                        activeMenuTab === "drafts" ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:text-ink"
                       }`}
                     >
-                      <FileText className="h-3.5 w-3.5 text-slate-400" /> Drafts ({tabs.length + savedDrafts.length})
+                      <FileText className="h-3.5 w-3.5 text-slate-600" /> Drafts ({tabs.length + savedDrafts.length})
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveMenuTab("samples")}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                        activeMenuTab === "samples" ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                        activeMenuTab === "samples" ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:text-ink"
                       }`}
                     >
-                      <BookOpen className="h-3.5 w-3.5 text-slate-400" /> Samples
+                      <BookOpen className="h-3.5 w-3.5 text-slate-600" /> Samples
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveMenuTab("trash")}
                       className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                        activeMenuTab === "trash" ? "bg-slate-800 text-rose-400 shadow-sm" : "text-slate-400 hover:text-slate-200"
+                        activeMenuTab === "trash" ? "bg-white text-rose-600 shadow-sm" : "text-slate-600 hover:text-ink"
                       }`}
                     >
-                      <Trash2 className="h-3.5 w-3.5 text-slate-400" /> Trash ({trashedTabs.length})
+                      <Trash2 className="h-3.5 w-3.5 text-slate-600" /> Trash ({trashedTabs.length})
                     </button>
                   </div>
 
                   {activeMenuTab === "drafts" && (
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Active Open Tabs</p>
+                      <p className="text-[10px] font-black uppercase text-muted tracking-wider">Active Open Tabs</p>
                       {tabs.map((t) => (
                         <div
                           key={t.id}
                           onClick={() => { handleSelectTab(t.id); setDiagramsMenuOpen(false); }}
                           className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition ${
-                            activeTabId === t.id ? "border-brand bg-slate-800/80 text-white font-bold" : "border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-slate-300"
+                            activeTabId === t.id ? "border-brand bg-brand-light/30 text-ink font-bold" : "border-line bg-cream hover:bg-white text-slate-700"
                           }`}
                         >
                           <span className="truncate flex items-center gap-1.5">
-                            <FileText className="h-3.5 w-3.5 text-slate-400" /> {t.name}
+                            <FileText className="h-3.5 w-3.5 text-slate-500" /> {t.name}
                           </span>
                           {activeTabId === t.id && <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold">Active</span>}
                         </div>
@@ -8469,20 +8469,20 @@ export default function WhiteboardPage() {
 
                       {savedDrafts.length > 0 && (
                         <>
-                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider pt-2">Saved Draft Presets</p>
+                          <p className="text-[10px] font-black uppercase text-muted tracking-wider pt-2">Saved Draft Presets</p>
                           {savedDrafts.map((d) => (
                             <div
                               key={d.id}
-                              className="flex items-center justify-between p-2 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800 text-xs transition"
+                              className="flex items-center justify-between p-2 rounded-xl border border-line bg-cream hover:bg-white text-xs transition"
                             >
                               <div className="truncate flex-1 cursor-pointer" onClick={() => { loadSavedDraft(d); setDiagramsMenuOpen(false); }}>
-                                <p className="font-bold text-white truncate">{d.name}</p>
-                                <p className="text-[9px] text-slate-400">{d.shapes.length} layers • Saved {new Date(d.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                <p className="font-bold text-ink truncate">{d.name}</p>
+                                <p className="text-[9px] text-muted">{d.shapes.length} layers • Saved {new Date(d.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => deleteDraft(d.id)}
-                                className="p-1 text-slate-500 hover:text-rose-400 transition"
+                                className="p-1 text-slate-400 hover:text-rose-600 transition"
                                 title="Delete Draft"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -8501,18 +8501,18 @@ export default function WhiteboardPage() {
                           key={sample.id}
                           type="button"
                           onClick={() => { loadSampleClassChart(sample.id); setDiagramsMenuOpen(false); }}
-                          className="flex w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-2.5 text-left text-xs font-bold text-slate-200 hover:border-brand/40 hover:bg-slate-800 transition cursor-pointer"
+                          className="flex w-full items-center justify-between rounded-xl border border-line bg-white p-2.5 text-left text-xs font-bold text-ink hover:border-brand/40 hover:bg-brand-light/20 transition cursor-pointer"
                         >
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[9px] font-black uppercase text-brand bg-slate-800 px-1.5 py-0.5 rounded">
+                              <span className="text-[9px] font-black uppercase text-brand bg-brand-light px-1.5 py-0.5 rounded">
                                 {sample.category}
                               </span>
-                              <span className="font-extrabold text-white truncate">{sample.name}</span>
+                              <span className="font-extrabold text-ink truncate">{sample.name}</span>
                             </div>
-                            <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">{sample.desc}</p>
+                            <p className="text-[10px] text-muted line-clamp-1 mt-0.5">{sample.desc}</p>
                           </div>
-                          <span className="text-[10px] font-bold text-slate-500 shrink-0 ml-2">
+                          <span className="text-[10px] font-bold text-slate-400 shrink-0 ml-2">
                             {sample.shapes?.length || 0} layers
                           </span>
                         </button>
@@ -8524,23 +8524,23 @@ export default function WhiteboardPage() {
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                       {trashedTabs.length === 0 ? (
                         <div className="text-center py-6 space-y-1">
-                          <Trash2 className="h-8 w-8 text-slate-600 mx-auto" />
-                          <p className="font-bold text-xs text-slate-300">Trash is Empty</p>
-                          <p className="text-[10px] text-slate-500">Deleted tabs disappear after 30 days.</p>
+                          <Trash2 className="h-8 w-8 text-slate-300 mx-auto" />
+                          <p className="font-bold text-xs text-ink">Trash is Empty</p>
+                          <p className="text-[10px] text-muted">Deleted tabs disappear after 30 days.</p>
                         </div>
                       ) : (
                         trashedTabs.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-xs space-x-2"
+                            className="flex items-center justify-between p-2.5 rounded-xl border border-line bg-cream text-xs space-x-2"
                           >
                             <div className="truncate flex-1">
-                              <p className="font-bold text-white truncate">{item.name}</p>
+                              <p className="font-bold text-ink truncate">{item.name}</p>
                             </div>
                             <button
                               type="button"
                               onClick={() => { restoreTrashedTab(item); setDiagramsMenuOpen(false); }}
-                              className="px-2 py-1 rounded-lg bg-emerald-950 text-emerald-400 hover:bg-emerald-900 font-bold text-[10px] transition"
+                              className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] transition"
                             >
                               Restore
                             </button>
@@ -8554,7 +8554,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 5. THEME DROPDOWN */}
             <div className="relative h-full flex items-center">
@@ -8570,7 +8570,7 @@ export default function WhiteboardPage() {
                   setUserMenuOpen(false);
                 }}
                 className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  bgOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
+                  bgOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
                 title="Canvas Background Theme"
               >
@@ -8578,8 +8578,8 @@ export default function WhiteboardPage() {
               </button>
 
               {bgOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-400 tracking-wider">Background Theme</p>
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Background Theme</p>
                   {CANVAS_THEMES.map((theme) => (
                     <button
                       key={theme.id}
@@ -8590,7 +8590,7 @@ export default function WhiteboardPage() {
                         showToast(`Switched canvas to ${theme.name}!`);
                       }}
                       className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition cursor-pointer ${
-                        bgGrid === theme.id ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                        bgGrid === theme.id ? "bg-brand-light text-brand" : "text-ink hover:bg-slate-100"
                       }`}
                     >
                       {theme.name}
@@ -8602,7 +8602,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 6. SNAP BUTTON */}
             <div className="h-full flex items-center">
@@ -8614,20 +8614,20 @@ export default function WhiteboardPage() {
                 }}
                 className={`h-full flex items-center justify-center gap-1 px-2 rounded-md transition cursor-pointer ${
                   snapToGrid
-                    ? "bg-emerald-950 text-emerald-400 hover:bg-emerald-900"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-bold"
+                    : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
                 title="Toggle Snap to Grid"
               >
-                <Magnet className={`h-3 w-3 ${snapToGrid ? "text-emerald-400" : "text-slate-400"}`} />
+                <Magnet className={`h-3.5 w-3.5 ${snapToGrid ? "text-emerald-700" : "text-slate-500"}`} />
                 <span>Snap</span>
               </button>
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
-            {/* 7. EXPORT DROPDOWN */}
+            {/* 7. EXPORT DROPDOWN (ALWAYS PROMINENT RED BUTTON) */}
             <div className="relative h-full flex items-center">
               <button
                 type="button"
@@ -8640,26 +8640,24 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center gap-1 px-2 rounded-md transition cursor-pointer ${
-                  exportOpen ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800/80 hover:text-white"
-                }`}
+                className="h-[26px] flex items-center gap-1 px-2.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] transition shadow-xs cursor-pointer"
                 title="Export Canvas"
               >
-                <Download className="h-3 w-3 text-slate-400" />
+                <Download className="h-3 w-3 text-white shrink-0" />
                 <span>Export</span>
               </button>
 
               {exportOpen && (
-                <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-slate-200">
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink">
                   <button
                     type="button"
                     onClick={() => {
                       handleExport("png");
                       setExportOpen(false);
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
                   >
-                    <FileImage className="h-4 w-4 text-slate-400" /> Export PNG
+                    <FileImage className="h-4 w-4 text-slate-500" /> Export PNG
                   </button>
                   <button
                     type="button"
@@ -8667,9 +8665,9 @@ export default function WhiteboardPage() {
                       handleExport("jpeg");
                       setExportOpen(false);
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
                   >
-                    <FileImage className="h-4 w-4 text-slate-400" /> Export JPEG
+                    <FileImage className="h-4 w-4 text-slate-500" /> Export JPEG
                   </button>
                   <button
                     type="button"
@@ -8677,26 +8675,26 @@ export default function WhiteboardPage() {
                       handleExport("svg");
                       setExportOpen(false);
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-xs font-bold text-ink hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
                   >
-                    <FileCode className="h-4 w-4 text-slate-400" /> Export SVG
+                    <FileCode className="h-4 w-4 text-slate-500" /> Export SVG
                   </button>
                 </div>
               )}
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-800 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
             {/* 8. FULLSCREEN TOGGLE */}
             <div className="h-full flex items-center">
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="h-full flex items-center justify-center px-1.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-md transition shrink-0 cursor-pointer"
+                className="h-full flex items-center justify-center px-1.5 text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 rounded-md transition shrink-0 cursor-pointer"
                 title="Toggle Fullscreen"
               >
-                {isFullscreen ? <Minimize2 className="h-3 w-3 text-slate-400" /> : <Maximize2 className="h-3 w-3 text-slate-400" />}
+                {isFullscreen ? <Minimize2 className="h-3.5 w-3.5 text-slate-600" /> : <Maximize2 className="h-3.5 w-3.5 text-slate-600" />}
               </button>
             </div>
           </div>
