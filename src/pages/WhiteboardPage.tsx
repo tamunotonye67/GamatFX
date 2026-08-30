@@ -507,6 +507,8 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
     category: "Drawing & Diagram Tools",
     items: [
       { label: "Select & Move Object", keys: ["V"] },
+      { label: "Marquee Multi-Select", keys: ["Drag Canvas"] },
+      { label: "Add/Remove Selection", keys: ["Shift + Click"] },
       { label: "Hand / Pan Canvas", keys: ["H"] },
       { label: "Freehand Pen", keys: ["P"] },
       { label: "Highlighter Pen", keys: ["Shift", "P"] },
@@ -518,16 +520,18 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Chart Pattern Path (Bezier)", keys: ["B"] },
       { label: "Teaching Sticky Note", keys: ["N"] },
       { label: "Text Label Tool", keys: ["T"] },
+      { label: "Annotation Leader Line", keys: ["W"] },
       { label: "Precision Eraser", keys: ["E"] },
-      { label: "Zoom Tool", keys: ["Z"] },
+      { label: "Click Zoom Tool", keys: ["Z"] },
+      { label: "Marquee Zoom Box", keys: ["Shift", "Z"] },
     ],
   },
   {
     category: "Forex & Trading Setups",
     items: [
       { label: "Fibonacci Retracement", keys: ["F"] },
-      { label: "Long Position", keys: ["L"] },
-      { label: "Short Position", keys: ["S"] },
+      { label: "Long Position Setup", keys: ["L"] },
+      { label: "Short Position Setup", keys: ["S"] },
       { label: "Order Block (OB Zone)", keys: ["O"] },
       { label: "Fair Value Gap (FVG)", keys: ["G"] },
       { label: "Break of Structure (BOS)", keys: ["K"] },
@@ -540,15 +544,17 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
     category: "Canvas Navigation & Gestures",
     items: [
       { label: "Pan Across Canvas", keys: ["Space + Drag"] },
+      { label: "Marquee Zoom into Region", keys: ["Shift + Z", "Drag Box"] },
       { label: "Zoom In (+15%)", keys: ["+"] },
       { label: "Zoom Out (-15%)", keys: ["-"] },
-      { label: "Zoom with Mouse", keys: ["Ctrl", "Wheel"] },
+      { label: "Zoom with Mouse Wheel", keys: ["Ctrl", "Wheel"] },
+      { label: "Reset View to 100%", keys: ["Reset Button"] },
       { label: "Deselect All / Close Menus", keys: ["Esc"] },
       { label: "Open Shortcuts Reference", keys: ["?"] },
     ],
   },
   {
-    category: "Object Manipulation & Layers",
+    category: "Object Manipulation, Layers & Tabs",
     items: [
       { label: "Undo Last Action", keys: ["Ctrl", "Z"] },
       { label: "Redo Last Action", keys: ["Ctrl", "Y"] },
@@ -556,10 +562,12 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Select All Objects", keys: ["Ctrl", "A"] },
       { label: "Duplicate Object", keys: ["Ctrl", "D"] },
       { label: "Duplicate with Mouse", keys: ["Alt + Drag"] },
+      { label: "Proportional Resizing", keys: ["Shift + Resize"] },
       { label: "Lock / Unlock Object", keys: ["Ctrl", "L"] },
       { label: "Delete Selected", keys: ["Delete"] },
       { label: "Bring Layer Up", keys: ["]"] },
       { label: "Send Layer Down", keys: ["["] },
+      { label: "Close Tab & Return to Hub", keys: ["X on Tab"] },
     ],
   },
 ];
@@ -1068,7 +1076,8 @@ export default function WhiteboardPage() {
         else if (key === "t") { setActiveNoteTool("text"); setActiveTool("text"); showToast("Tool: Text Label (T)"); }
         else if (key === "w") { setActiveNoteTool("annotation"); setActiveTool("annotation"); showToast("Tool: Annotation Leader Line (W)"); }
         else if (key === "e") { setActiveTool("eraser"); showToast("Tool: Precision Eraser (E)"); }
-        else if (key === "z") { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
+        else if (key === "z" && !e.shiftKey) { setActiveTool("zoom"); showToast("Tool: Zoom (Z)"); }
+        else if (key === "z" && e.shiftKey) { setActiveTool("marquee_zoom"); showToast("Tool: Marquee Zoom (Shift+Z)"); }
         else if (key === "f") { setActiveForexTool("fibo"); setActiveTool("fibo"); showToast("Forex Tool: Fibonacci Retracement (F)"); }
         else if (key === "l" && !e.shiftKey) { setActiveForexTool("long"); setActiveTool("long"); showToast("Forex Tool: Long Position (L)"); }
         else if (key === "s") { setActiveForexTool("short"); setActiveTool("short"); showToast("Forex Tool: Short Position (S)"); }
