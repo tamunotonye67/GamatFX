@@ -9102,7 +9102,6 @@ function WhiteboardToolBtn({
   active,
   onClick,
   onContextMenu,
-  onFlyoutToggle,
   title,
   toolKey,
   icon: Icon,
@@ -9132,11 +9131,9 @@ function WhiteboardToolBtn({
     >
       <button
         type="button"
-        onClick={(e) => {
+        onClick={() => {
+          // Strict Rule: Left click only selects the tool directly
           onClick();
-          if (hasFlyout && onFlyoutToggle && active) {
-            onFlyoutToggle(e);
-          }
         }}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
@@ -9149,14 +9146,10 @@ function WhiteboardToolBtn({
         <Icon className="h-4 w-4 shrink-0" />
         {hasFlyout && (
           <span
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onFlyoutToggle) onFlyoutToggle(e);
-            }}
-            className="absolute right-0.5 top-0 bottom-0 px-0.5 flex items-center justify-center text-slate-400 hover:text-brand hover:scale-110 transition cursor-pointer"
-            title="Expand tool options"
+            className="absolute right-1 bottom-1 pointer-events-none text-slate-400 group-hover:text-slate-600 transition"
+            title="Right-click to view group tools"
           >
-            <ChevronRight className="h-2.5 w-2.5" />
+            <span className="block w-1.5 h-1.5 border-r border-b border-current" />
           </span>
         )}
       </button>
