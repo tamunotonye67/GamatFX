@@ -8526,7 +8526,7 @@ export default function WhiteboardPage() {
         {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
         <div className="flex items-center gap-2.5 h-full shrink-0">
           {/* Compact Ash Grey Overlay Menu Bar */}
-          <div className="ash-menubar-container flex items-center h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none px-0.5 border border-slate-300 shadow-xs divide-x divide-slate-300">
+          <div className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -9177,8 +9177,8 @@ export default function WhiteboardPage() {
               </button>
             </div>
 
-            {/* 7. EXPORT DROPDOWN (FULL-HEIGHT FLUSH BRAND RED) */}
-            <div className="relative h-full flex items-center">
+            {/* 7. EXPORT DROPDOWN (FULL-HEIGHT FLUSH BRAND RED TO VERTICAL EXTREMES) */}
+            <div className="relative h-full flex items-stretch">
               <button
                 type="button"
                 onClick={() => {
@@ -9190,7 +9190,7 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center gap-1.5 px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-xs transition cursor-pointer shadow-xs rounded-none ${
+                className={`h-full self-stretch flex items-center gap-1.5 px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-xs transition cursor-pointer shadow-xs rounded-none ${
                   exportOpen ? "bg-brand-dark" : ""
                 }`}
                 title="Export Diagram (PNG, JPEG, SVG)"
