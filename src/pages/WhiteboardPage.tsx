@@ -125,6 +125,9 @@ import {
   Redo,
   Clipboard,
   CheckSquare,
+  Globe,
+  Sun,
+  Moon,
 } from "lucide-react";
 import {
   getStoredSamples,
