@@ -10563,7 +10563,7 @@ export default function WhiteboardPage() {
           : panelKey === "grid_guides"
           ? "Grid & Snap"
           : panelKey === "sessions"
-          ? "Strategy & Risk"
+          ? "Market Sessions & Killzones"
           : "Line Patterns";
 
       const PIcon =
@@ -10582,7 +10582,7 @@ export default function WhiteboardPage() {
           : panelKey === "grid_guides"
           ? Grid
           : panelKey === "sessions"
-          ? Calculator
+          ? Globe
           : Spline;
 
       return (
@@ -10678,7 +10678,7 @@ export default function WhiteboardPage() {
                   : rightPanelTab === "grid_guides"
                   ? "Grid & Snap"
                   : rightPanelTab === "sessions"
-                  ? "Strategy & Risk"
+                  ? "Market Sessions"
                   : "Line Patterns"}
               </span>
             </div>
@@ -10791,7 +10791,7 @@ export default function WhiteboardPage() {
                     rightPanelTab === "sessions" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <Calculator className="h-3 w-3" /> Strategy
+                  <Globe className="h-3 w-3" /> Sessions
                 </button>
                 <button
                   type="button"
