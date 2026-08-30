@@ -1979,6 +1979,7 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "sticky") {
+      isDrawing.current = true;
       const newSticky: Shape = {
         id: `shape_${Date.now()}`,
         type: "sticky",
@@ -1987,15 +1988,13 @@ export default function WhiteboardPage() {
         strokeColor: "#e2e8f0",
         strokeWidth: 1,
         stickyColor: stickyColor || "#fef08a",
-        text: "New Sticky Note",
+        text: "Double-click to edit note",
         fontSize: 14,
         textAlign: "left",
         points: [pt, { x: pt.x + 200, y: pt.y + 160 }],
         isLocked: autoLockObjects,
       };
-      setShapes((prev) => [...prev, newSticky]);
-      setSelectedShapeIds([newSticky.id]);
-      showToast("Created Sticky Note! Select Inspector to customize.");
+      setCurrentShape(newSticky);
       return;
     }
 
@@ -2187,6 +2186,7 @@ export default function WhiteboardPage() {
         points: [...currentShape.points, pt],
       });
     } else if (
+      currentShape.type === "sticky" ||
       currentShape.type === "rectangle" ||
       currentShape.type === "circle" ||
       currentShape.type === "diamond" ||
@@ -2274,17 +2274,35 @@ export default function WhiteboardPage() {
     lastEraserPt.current = null;
 
     if (currentShape) {
-      const finalShape = {
+      let finalPoints = currentShape.points;
+      if (currentShape.type === "sticky") {
+        const p0 = currentShape.points[0];
+        const p1 = currentShape.points.length >= 2 ? currentShape.points[1] : { x: p0.x + 200, y: p0.y + 160 };
+        const w = Math.abs(p1.x - p0.x);
+        const h = Math.abs(p1.y - p0.y);
+        if (w < 25 && h < 25) {
+          finalPoints = [p0, { x: p0.x + 200, y: p0.y + 160 }];
+        } else {
+          finalPoints = [
+            { x: Math.min(p0.x, p1.x), y: Math.min(p0.y, p1.y) },
+            { x: Math.max(p0.x, p1.x), y: Math.max(p0.y, p1.y) },
+          ];
+        }
+      }
+
+      const finalShape: Shape = {
         ...currentShape,
-        text: currentShape.type === "annotation" && !currentShape.text ? "Annotation" : currentShape.text,
+        points: finalPoints,
+        text: currentShape.type === "sticky" && !currentShape.text ? "Double-click to edit note" : currentShape.type === "annotation" && !currentShape.text ? "Annotation" : currentShape.text,
       };
       setShapes((prev) => [...prev, finalShape]);
-      if (finalShape.type === "annotation") {
-        setSelectedShapeIds([finalShape.id]);
-        setIsInspectorOpen(true);
-      }
+      setSelectedShapeIds([finalShape.id]);
+      setIsInspectorOpen(true);
       setCurrentShape(null);
       setRedoStack([]);
+      if (finalShape.type === "sticky") {
+        showToast("Created Sticky Note! Edit text in Inspector or double-click note.");
+      }
     }
   };
 
@@ -2308,6 +2326,7 @@ export default function WhiteboardPage() {
       setTextValue(hitShape.text || "");
       setIsStickyMode(hitShape.type === "sticky");
       if (hitShape.stickyColor) setStickyColor(hitShape.stickyColor);
+      setTextModalPos(pt);
       setSelectedShapeIds([hitShape.id]);
     }
   };
@@ -2365,7 +2384,7 @@ export default function WhiteboardPage() {
       strokeWidth,
       lineStyle,
       isLocked: autoLockObjects,
-      points: [textModalPos],
+      points: isStickyMode ? [textModalPos, { x: textModalPos.x + 200, y: textModalPos.y + 160 }] : [textModalPos],
       text: textValue.trim(),
       stickyColor: isStickyMode ? stickyColor : undefined,
     };
@@ -5414,7 +5433,7 @@ export default function WhiteboardPage() {
 
                       
                       {/* DEDICATED STICKY NOTE CUSTOMIZER */}
-                      {selectedShape?.type === "sticky" && (
+                      {(selectedShape?.type === "sticky" || targetTool === "sticky") && (
                         <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-3 shadow-2xs space-y-3 animate-in fade-in">
                           <div className="flex items-center justify-between">
                             <label className="text-[10px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
@@ -6306,57 +6325,7 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
-                      {/* (C) STICKY NOTES */}
-                      {targetTool === "sticky" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Sticky Note Content & Color</p>
 
-                          {selectedShape ? (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Note Content</label>
-                              <textarea
-                                rows={3}
-                                value={selectedShape.text || ""}
-                                onChange={(e) => {
-                                  const newTxt = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, text: newTxt } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                placeholder="Type note content..."
-                                className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
-                                  selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
-                                }`}
-                              />
-                            </div>
-                          ) : (
-                            <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
-                              Click on canvas to drop a sticky note card.
-                            </div>
-                          )}
-
-                          {/* Sticky Paper Color Swatches */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Paper Color</label>
-                            <div className="flex items-center gap-2">
-                              {STICKY_COLORS.map((s) => (
-                                <button
-                                  key={s.color}
-                                  type="button"
-                                  onClick={() => applyStickyColorToSelected(s.color)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-7 w-7 rounded-xl transition-transform border border-black/10 shadow-2xs ${
-                                    stickyColor === s.color ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: s.color }}
-                                  title={s.name}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
 
                       {/* (D) FIBONACCI RETRACEMENT */}
                       {targetTool === "fibo" && (
