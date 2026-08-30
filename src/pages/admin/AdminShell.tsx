@@ -295,20 +295,23 @@ export function SearchBar({ value, onChange, placeholder }: {
   );
 }
 
-export function Modal({ open, onClose, title, children, wide }: {
-  open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean;
+export function Modal({ open = true, onClose, title, subtitle, children, wide }: {
+  open?: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; wide?: boolean;
 }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center">
       <div className={`w-full ${wide ? "max-w-3xl" : "max-w-lg"} rounded-3xl border border-line bg-white shadow-2xl`}>
-        <div className="flex items-center justify-between border-b border-line px-6 py-4">
-          <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted transition hover:bg-cream hover:text-brand" aria-label="Close">
+        <div className="flex items-start justify-between border-b border-line px-6 py-4">
+          <div>
+            <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
+            {subtitle && <p className="text-xs text-muted mt-0.5">{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-muted transition hover:bg-cream hover:text-brand cursor-pointer" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto p-6">{children}</div>
+        <div className="max-h-[75vh] overflow-y-auto p-6">{children}</div>
       </div>
     </div>
   );

@@ -13,6 +13,26 @@ import {
   FileSpreadsheet, ShieldAlert, SlidersHorizontal
 } from "lucide-react";
 
+function FormItem({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+        {label}
+      </label>
+      {hint && <p className="text-[10px] text-muted leading-tight">{hint}</p>}
+      {children}
+    </div>
+  );
+}
+
 export function AdminWhiteboard() {
   const [activeTab, setActiveTab] = useState<"samples" | "resources" | "lessons">("samples");
   const [q, setQ] = useState("");
@@ -101,6 +121,81 @@ export function AdminWhiteboard() {
       shapesJson: JSON.stringify(sample.shapes, null, 2),
     });
     setSampleModalOpen(true);
+  };
+
+  const handleFormatJson = () => {
+    try {
+      const parsed = JSON.parse(sampleForm.shapesJson || "[]");
+      setSampleForm((prev) => ({ ...prev, shapesJson: JSON.stringify(parsed, null, 2) }));
+      showToast("JSON formatted & validated successfully!");
+    } catch {
+      alert("Invalid JSON format. Please fix syntax errors before formatting.");
+    }
+  };
+
+  const handleAddShapeSnippet = (type: "orderblock" | "fvg" | "candle" | "long" | "note") => {
+    let current: any[] = [];
+    try {
+      current = JSON.parse(sampleForm.shapesJson || "[]");
+      if (!Array.isArray(current)) current = [];
+    } catch {
+      current = [];
+    }
+
+    let newShape: any;
+    const uid = `shape_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+    if (type === "orderblock") {
+      newShape = {
+        id: uid,
+        type: "orderblock",
+        color: "#8b5cf6",
+        strokeWidth: 2,
+        points: [{ x: 150, y: 250 }, { x: 450, y: 340 }],
+        text: "Demand Order Block",
+      };
+    } else if (type === "fvg") {
+      newShape = {
+        id: uid,
+        type: "fvg",
+        color: "#f59e0b",
+        strokeWidth: 2,
+        points: [{ x: 200, y: 180 }, { x: 400, y: 240 }],
+        text: "Fair Value Gap (FVG)",
+      };
+    } else if (type === "candle") {
+      newShape = {
+        id: uid,
+        type: "bullish_candle",
+        color: "#10b981",
+        strokeWidth: 2,
+        points: [{ x: 180, y: 120 }, { x: 220, y: 260 }],
+        text: "Impulse Candle",
+      };
+    } else if (type === "long") {
+      newShape = {
+        id: uid,
+        type: "long",
+        color: "#10b981",
+        strokeWidth: 2,
+        points: [{ x: 300, y: 240 }, { x: 500, y: 80 }],
+        text: "1:3.0 Long Position",
+      };
+    } else if (type === "note") {
+      newShape = {
+        id: uid,
+        type: "sticky",
+        color: "#0f172a",
+        strokeWidth: 2,
+        points: [{ x: 520, y: 120 }],
+        text: "📝 INSTITUTIONAL NOTE:\n\n• Entry Rule 1\n• Entry Rule 2\n• Risk: 1% per trade",
+        stickyColor: "#fef08a",
+      };
+    }
+
+    current.push(newShape);
+    setSampleForm((prev) => ({ ...prev, shapesJson: JSON.stringify(current, null, 2) }));
+    showToast(`Added ${type} shape layer snippet!`);
   };
 
   const handleSaveSample = () => {
@@ -818,89 +913,140 @@ export function AdminWhiteboard() {
       {/* ======================= MODAL: ADD / EDIT SAMPLE TEMPLATE ======================= */}
       {sampleModalOpen && (
         <Modal
+          open={sampleModalOpen}
+          wide
           title={editingSample ? "Edit Whiteboard Template" : "Add New Whiteboard Template"}
           subtitle="Configure template meta information and pre-drawn candlestick/zone shapes."
           onClose={() => setSampleModalOpen(false)}
         >
           <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-            <Field label="Template Name">
+            <FormItem label="Template Name" hint="Display title shown in the Whiteboard Hub template card">
               <input
                 type="text"
                 value={sampleForm.name}
                 onChange={(e) => setSampleForm({ ...sampleForm, name: e.target.value })}
                 placeholder="e.g. Asia High Liquidity Sweep & Judas Entry"
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
-            </Field>
+            </FormItem>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Category">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormItem label="Category" hint="Grouping in the whiteboard filter list">
                 <input
                   type="text"
                   value={sampleForm.category}
                   onChange={(e) => setSampleForm({ ...sampleForm, category: e.target.value })}
                   placeholder="e.g. Smart Money Concepts, Mind Maps, Risk..."
-                  className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                 />
-              </Field>
+              </FormItem>
 
-              <Field label="Difficulty Level">
+              <FormItem label="Difficulty Level" hint="Experience level for this diagram">
                 <select
                   value={sampleForm.difficulty}
                   onChange={(e) => setSampleForm({ ...sampleForm, difficulty: e.target.value as any })}
-                  className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand cursor-pointer"
                 >
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Advanced">Advanced</option>
                 </select>
-              </Field>
+              </FormItem>
             </div>
 
-            <Field label="Tag / Sub-Header">
+            <FormItem label="Tag / Sub-Header" hint="Short badge or strategy summary">
               <input
                 type="text"
                 value={sampleForm.tag}
                 onChange={(e) => setSampleForm({ ...sampleForm, tag: e.target.value })}
                 placeholder="e.g. Order Blocks & FVG, H4 Liquidity Sweep..."
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
-            </Field>
+            </FormItem>
 
-            <Field label="Description">
+            <FormItem label="Description" hint="Technical breakdown for students">
               <textarea
                 rows={3}
                 value={sampleForm.desc}
                 onChange={(e) => setSampleForm({ ...sampleForm, desc: e.target.value })}
                 placeholder="Detailed explanation of the technical concept illustrated by this diagram template..."
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-medium text-ink outline-none focus:border-brand resize-none"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
               />
-            </Field>
+            </FormItem>
 
-            <Field label="Shapes Data (JSON Configuration)">
-              <p className="text-[10px] text-muted mb-1.5">
-                Array of canvas shapes (Order Blocks, Candlesticks, Positions, Arrows, Text, Fibonacci).
-              </p>
+            <FormItem
+              label="Pre-Drawn Shapes (JSON Configuration)"
+              hint="Array of canvas shapes (Order Blocks, Candlesticks, Positions, Arrows, Text, Sticky Notes, Fibonacci)"
+            >
+              {/* Quick Snippet Injector Toolbar */}
+              <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-slate-100 border border-line mb-2">
+                <span className="text-[10px] font-black uppercase text-slate-500 mr-1">Quick Add:</span>
+                <button
+                  type="button"
+                  onClick={() => handleAddShapeSnippet("orderblock")}
+                  className="px-2 py-1 rounded-lg bg-white border border-line text-[11px] font-bold text-purple-700 hover:bg-purple-50 transition cursor-pointer shadow-2xs"
+                >
+                  + Order Block
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddShapeSnippet("fvg")}
+                  className="px-2 py-1 rounded-lg bg-white border border-line text-[11px] font-bold text-amber-700 hover:bg-amber-50 transition cursor-pointer shadow-2xs"
+                >
+                  + FVG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddShapeSnippet("candle")}
+                  className="px-2 py-1 rounded-lg bg-white border border-line text-[11px] font-bold text-emerald-700 hover:bg-emerald-50 transition cursor-pointer shadow-2xs"
+                >
+                  + Candle
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddShapeSnippet("long")}
+                  className="px-2 py-1 rounded-lg bg-white border border-line text-[11px] font-bold text-blue-700 hover:bg-blue-50 transition cursor-pointer shadow-2xs"
+                >
+                  + Long Setup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddShapeSnippet("note")}
+                  className="px-2 py-1 rounded-lg bg-white border border-line text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-2xs"
+                >
+                  + Sticky Note
+                </button>
+                <div className="flex-1" />
+                <button
+                  type="button"
+                  onClick={handleFormatJson}
+                  className="px-2.5 py-1 rounded-lg bg-slate-800 text-white text-[11px] font-bold hover:bg-slate-700 transition cursor-pointer"
+                >
+                  Format JSON
+                </button>
+              </div>
+
               <textarea
-                rows={8}
+                rows={9}
                 value={sampleForm.shapesJson}
                 onChange={(e) => setSampleForm({ ...sampleForm, shapesJson: e.target.value })}
-                className="w-full rounded-xl border border-line bg-slate-900 text-emerald-400 font-mono p-3 text-xs outline-none focus:border-brand resize-y"
+                className="w-full rounded-xl border border-line bg-slate-950 text-emerald-400 font-mono p-3 text-xs outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-y leading-relaxed"
+                placeholder="[ { ...shape_layers } ]"
               />
-            </Field>
+            </FormItem>
 
             <div className="pt-3 border-t border-line flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setSampleModalOpen(false)}
-                className="btn-outline-dark !py-2 !px-4 text-xs"
+                className="btn-outline-dark !py-2.5 !px-4 text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveSample}
-                className="btn-primary !py-2 !px-5 text-xs font-bold"
+                className="btn-primary !py-2.5 !px-6 text-xs font-bold cursor-pointer"
               >
                 {editingSample ? "Save Changes" : "Create Template"}
               </button>
@@ -912,85 +1058,87 @@ export function AdminWhiteboard() {
       {/* ======================= MODAL: ADD / EDIT RESOURCE & GUIDE ======================= */}
       {resourceModalOpen && (
         <Modal
+          open={resourceModalOpen}
+          wide
           title={editingResource ? "Edit Resource Blueprint" : "Add New Resource Blueprint"}
           subtitle="Publish step-by-step institutional playbooks and technical guides for students."
           onClose={() => setResourceModalOpen(false)}
         >
           <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-            <Field label="Resource Title">
+            <FormItem label="Resource Title" hint="Display title on the Whiteboard resources card">
               <input
                 type="text"
                 value={resourceForm.title}
                 onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })}
                 placeholder="e.g. SMC Institutional POI Playbook"
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
-            </Field>
+            </FormItem>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Category">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormItem label="Category" hint="Topic / Concept Classification">
                 <input
                   type="text"
                   value={resourceForm.category}
                   onChange={(e) => setResourceForm({ ...resourceForm, category: e.target.value })}
                   placeholder="e.g. Smart Money Concepts, Market Timing..."
-                  className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                 />
-              </Field>
+              </FormItem>
 
-              <Field label="Badge Text">
+              <FormItem label="Badge Text" hint="Highlight label (e.g. Most Popular, Essential, Session Timing)">
                 <input
                   type="text"
                   value={resourceForm.badge}
                   onChange={(e) => setResourceForm({ ...resourceForm, badge: e.target.value })}
                   placeholder="e.g. Most Popular, Essential, Session Timing..."
-                  className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                 />
-              </Field>
+              </FormItem>
             </div>
 
-            <Field label="Description">
+            <FormItem label="Description" hint="Summary overview of the technical guide">
               <textarea
                 rows={3}
                 value={resourceForm.desc}
                 onChange={(e) => setResourceForm({ ...resourceForm, desc: e.target.value })}
                 placeholder="Summary of the guide and what the student will learn..."
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-medium text-ink outline-none focus:border-brand resize-none"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
               />
-            </Field>
+            </FormItem>
 
-            <Field label="Key Learning Points (One per line)">
+            <FormItem label="Key Learning Points (One per line)" hint="Enter bullet items. Each new line becomes a checklist item.">
               <textarea
                 rows={5}
                 value={resourceForm.pointsText}
                 onChange={(e) => setResourceForm({ ...resourceForm, pointsText: e.target.value })}
                 placeholder="• Point 1&#10;• Point 2&#10;• Point 3"
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-medium text-ink outline-none focus:border-brand resize-none"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
               />
-            </Field>
+            </FormItem>
 
-            <Field label="Whiteboard Action Button Label">
+            <FormItem label="Whiteboard Action Button Label" hint="Text on the button that loads this resource">
               <input
                 type="text"
                 value={resourceForm.actionLabel}
                 onChange={(e) => setResourceForm({ ...resourceForm, actionLabel: e.target.value })}
                 placeholder="e.g. Create Canvas with Guide, Open Risk Template..."
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
-            </Field>
+            </FormItem>
 
             <div className="pt-3 border-t border-line flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setResourceModalOpen(false)}
-                className="btn-outline-dark !py-2 !px-4 text-xs"
+                className="btn-outline-dark !py-2.5 !px-4 text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveResource}
-                className="btn-primary !py-2 !px-5 text-xs font-bold"
+                className="btn-primary !py-2.5 !px-6 text-xs font-bold cursor-pointer"
               >
                 {editingResource ? "Save Changes" : "Create Resource"}
               </button>
@@ -1002,76 +1150,81 @@ export function AdminWhiteboard() {
       {/* ======================= MODAL: ADD / EDIT PLAYBOOK LESSON ======================= */}
       {lessonModalOpen && (
         <Modal
+          open={lessonModalOpen}
+          wide
           title={editingLesson ? "Edit Playbook Lesson" : "Add Playbook Lesson"}
           subtitle="Add step-by-step hotkeys and feature walkthrough tips."
           onClose={() => setLessonModalOpen(false)}
         >
           <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-            <div className="grid grid-cols-4 gap-3">
-              <Field label="Lesson Number">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <FormItem label="Lesson Number" hint="e.g. 01, 02">
                 <input
                   type="text"
                   value={lessonForm.num}
                   onChange={(e) => setLessonForm({ ...lessonForm, num: e.target.value })}
                   placeholder="01"
-                  className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-mono font-bold text-ink outline-none focus:border-brand text-center"
+                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-mono font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand text-center"
                 />
-              </Field>
-              <div className="col-span-3">
-                <Field label="Lesson Title">
+              </FormItem>
+              <div className="sm:col-span-3">
+                <FormItem label="Lesson Title" hint="Main title for this lesson guide">
                   <input
                     type="text"
                     value={lessonForm.title}
                     onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
                     placeholder="e.g. Smart Money Concepts (SMC) Markup"
-                    className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                   />
-                </Field>
+                </FormItem>
               </div>
             </div>
 
-            <Field label="Subtitle">
+            <FormItem label="Subtitle" hint="Short tagline explaining this lesson's objective">
               <input
                 type="text"
                 value={lessonForm.subtitle}
                 onChange={(e) => setLessonForm({ ...lessonForm, subtitle: e.target.value })}
                 placeholder="e.g. Institutional supply/demand zones"
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
               />
-            </Field>
+            </FormItem>
 
-            <Field label="Detailed Explanation">
+            <FormItem label="Detailed Explanation" hint="Step-by-step instructions and best practices">
               <textarea
                 rows={3}
                 value={lessonForm.desc}
                 onChange={(e) => setLessonForm({ ...lessonForm, desc: e.target.value })}
                 placeholder="Provide instructions on hotkeys and techniques..."
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-medium text-ink outline-none focus:border-brand resize-none"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
               />
-            </Field>
+            </FormItem>
 
-            <Field label="Features & Hotkeys (Format: Label | Value per line)">
+            <FormItem
+              label="Features & Hotkeys (Format: Label | Value per line)"
+              hint="Enter features or keyboard shortcuts. Separate label and key with a pipe '|' on each line."
+            >
               <textarea
                 rows={5}
                 value={lessonForm.itemsText}
                 onChange={(e) => setLessonForm({ ...lessonForm, itemsText: e.target.value })}
-                placeholder="Order Blocks (OB) | Translucent Demand Zones&#10;Fib Tool Hotkey | Press F"
-                className="w-full rounded-xl border border-line bg-white p-2.5 text-xs font-medium text-ink outline-none focus:border-brand resize-none font-mono"
+                placeholder="Order Blocks (OB) | Translucent Demand Zones&#10;Fib Tool Hotkey | Press F&#10;Delete Shape | Del / Backspace"
+                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none font-mono"
               />
-            </Field>
+            </FormItem>
 
             <div className="pt-3 border-t border-line flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setLessonModalOpen(false)}
-                className="btn-outline-dark !py-2 !px-4 text-xs"
+                className="btn-outline-dark !py-2.5 !px-4 text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveLesson}
-                className="btn-primary !py-2 !px-5 text-xs font-bold"
+                className="btn-primary !py-2.5 !px-6 text-xs font-bold cursor-pointer"
               >
                 {editingLesson ? "Save Changes" : "Create Lesson"}
               </button>
