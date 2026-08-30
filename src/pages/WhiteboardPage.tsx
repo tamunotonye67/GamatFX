@@ -789,7 +789,7 @@ export default function WhiteboardPage() {
   const [fileMenuOpen, setFileMenuOpen] = useState(false);
   const [editMenuOpen, setEditMenuOpen] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
-  const [diagramsMenuOpen, setDiagramsMenuOpen] = useState(false);
+  const [insertMenuOpen, setInsertMenuOpen] = useState(false);
   const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
 
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
@@ -1346,7 +1346,7 @@ export default function WhiteboardPage() {
         setContextMenu(null);
         setTabContextMenu(null);
         setEditingTabId(null);
-        setDiagramsMenuOpen(false);
+        setInsertMenuOpen(false);
         setShortcutsOpen(false);
         setSettingsOpen(false);
         return;
@@ -1875,7 +1875,7 @@ export default function WhiteboardPage() {
     setFlyoutGroup(null);
     setContextMenu(null);
     setTabContextMenu(null);
-    setDiagramsMenuOpen(false);
+    setInsertMenuOpen(false);
 
     if (activeTool === "hand" || isSpaceHeld || isSpacePressed.current || e.button === 1 || e.buttons === 4) {
       isPanning.current = true;
@@ -2891,7 +2891,7 @@ export default function WhiteboardPage() {
     }
 
     setShapes(draft.shapes);
-    setDiagramsMenuOpen(false);
+    setInsertMenuOpen(false);
     showToast(`Loaded draft "${draft.name}"!`);
   };
 
@@ -2954,7 +2954,7 @@ export default function WhiteboardPage() {
     setTrashedTabs((prev) => prev.filter((t) => t.id !== item.id));
     setActiveTabId(item.id);
     setShapes(item.shapes);
-    setDiagramsMenuOpen(false);
+    setInsertMenuOpen(false);
     showToast(`Restored "${item.name}" from Trash!`);
   };
 
@@ -3012,7 +3012,7 @@ export default function WhiteboardPage() {
     setBgGrid("dots");
     setSnapToGrid(true);
     showToast(`Loaded "${tabName}" Template!`);
-    setDiagramsMenuOpen(false);
+    setInsertMenuOpen(false);
   };
 
   /* ----------------- HUB ACTION HANDLERS ------------------------ */
@@ -8040,7 +8040,7 @@ export default function WhiteboardPage() {
                   setFileMenuOpen(!fileMenuOpen);
                   setEditMenuOpen(false);
                   setViewMenuOpen(false);
-                  setDiagramsMenuOpen(false);
+                  setInsertMenuOpen(false);
                   setBgOpen(false);
                   setExportOpen(false);
                   setUserMenuOpen(false);
@@ -8100,7 +8100,7 @@ export default function WhiteboardPage() {
                     type="button"
                     onClick={() => {
                       setFileMenuOpen(false);
-                      setDiagramsMenuOpen(true);
+                      setInsertMenuOpen(true);
                     }}
                     className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
@@ -8182,7 +8182,7 @@ export default function WhiteboardPage() {
                   setEditMenuOpen(!editMenuOpen);
                   setFileMenuOpen(false);
                   setViewMenuOpen(false);
-                  setDiagramsMenuOpen(false);
+                  setInsertMenuOpen(false);
                   setBgOpen(false);
                   setExportOpen(false);
                   setUserMenuOpen(false);
@@ -8329,7 +8329,7 @@ export default function WhiteboardPage() {
                   setViewMenuOpen(!viewMenuOpen);
                   setFileMenuOpen(false);
                   setEditMenuOpen(false);
-                  setDiagramsMenuOpen(false);
+                  setInsertMenuOpen(false);
                   setBgOpen(false);
                   setExportOpen(false);
                   setUserMenuOpen(false);
@@ -8443,12 +8443,12 @@ export default function WhiteboardPage() {
             {/* Vertical Divider */}
             <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
 
-            {/* 4. DIAGRAMS MENU */}
+            {/* 4. INSERT MENU */}
             <div className="relative h-full flex items-center">
               <button
                 type="button"
                 onClick={() => {
-                  setDiagramsMenuOpen(!diagramsMenuOpen);
+                  setInsertMenuOpen(!insertMenuOpen);
                   setFileMenuOpen(false);
                   setEditMenuOpen(false);
                   setViewMenuOpen(false);
@@ -8457,170 +8457,171 @@ export default function WhiteboardPage() {
                   setUserMenuOpen(false);
                 }}
                 className={`h-full flex items-center px-2 rounded-md transition cursor-pointer ${
-                  diagramsMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
+                  insertMenuOpen ? "bg-slate-200 text-slate-900 font-bold" : "text-slate-700 hover:bg-slate-200/70 hover:text-slate-950"
                 }`}
-                title="Diagrams Workspace Manager"
+                title="Insert Tools, Shapes & Strategy"
               >
-                <span>Diagrams</span>
+                <span>Insert</span>
               </button>
 
-              {/* Diagrams Popover */}
-              {diagramsMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-84 rounded-2xl border border-line bg-white p-3.5 shadow-2xl z-[100] animate-in fade-in space-y-3 text-ink">
-                  <div className="flex items-center justify-between border-b border-line pb-2.5">
-                    <span className="font-extrabold text-xs text-ink flex items-center gap-1.5">
-                      <FolderKanban className="h-4 w-4 text-brand" /> Diagram Workspace Manager
+              {/* Insert Popover */}
+              {insertMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white p-2 shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 text-ink space-y-1 max-h-[75vh] overflow-y-auto [scrollbar-width:thin]">
+                  {/* Section 1: Forex & SMC Setups */}
+                  <p className="px-2.5 pt-1 text-[9.5px] font-black uppercase text-muted tracking-wider">Trading & SMC Setups</p>
+                  
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("long"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <TrendingUp className="h-3.5 w-3.5 text-emerald-600" /> Long Position
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setDiagramsMenuOpen(false)}
-                      className="text-slate-400 hover:text-ink p-1 rounded-lg hover:bg-slate-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
+                    <span className="text-[9.5px] text-muted font-mono">L</span>
+                  </button>
 
                   <button
                     type="button"
-                    onClick={() => {
-                      handleSaveCurrentDraft();
-                      setActiveMenuTab("drafts");
-                    }}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand text-white py-2 text-xs font-extrabold hover:bg-brand-dark transition shadow-md cursor-pointer"
+                    onClick={() => { selectTool("short"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
                   >
-                    <Save className="h-4 w-4" /> Save Current Canvas as Draft
+                    <span className="flex items-center gap-2">
+                      <TrendingDown className="h-3.5 w-3.5 text-rose-600" /> Short Position
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">S</span>
                   </button>
 
-                  <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-line">
-                    <button
-                      type="button"
-                      onClick={() => setActiveMenuTab("drafts")}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                        activeMenuTab === "drafts" ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:text-ink"
-                      }`}
-                    >
-                      <FileText className="h-3.5 w-3.5 text-slate-600" /> Drafts ({tabs.length + savedDrafts.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveMenuTab("samples")}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                        activeMenuTab === "samples" ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:text-ink"
-                      }`}
-                    >
-                      <BookOpen className="h-3.5 w-3.5 text-slate-600" /> Samples
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveMenuTab("trash")}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center justify-center gap-1 ${
-                        activeMenuTab === "trash" ? "bg-white text-rose-600 shadow-sm" : "text-slate-600 hover:text-ink"
-                      }`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-slate-600" /> Trash ({trashedTabs.length})
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("fibo"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Percent className="h-3.5 w-3.5 text-amber-500" /> Fibonacci Retracement
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">F</span>
+                  </button>
 
-                  {activeMenuTab === "drafts" && (
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                      <p className="text-[10px] font-black uppercase text-muted tracking-wider">Active Open Tabs</p>
-                      {tabs.map((t) => (
-                        <div
-                          key={t.id}
-                          onClick={() => { handleSelectTab(t.id); setDiagramsMenuOpen(false); }}
-                          className={`flex items-center justify-between p-2 rounded-xl border text-xs cursor-pointer transition ${
-                            activeTabId === t.id ? "border-brand bg-brand-light/30 text-ink font-bold" : "border-line bg-cream hover:bg-white text-slate-700"
-                          }`}
-                        >
-                          <span className="truncate flex items-center gap-1.5">
-                            <FileText className="h-3.5 w-3.5 text-slate-500" /> {t.name}
-                          </span>
-                          {activeTabId === t.id && <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded font-bold">Active</span>}
-                        </div>
-                      ))}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("orderblock"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Square className="h-3.5 w-3.5 text-purple-600" /> Order Block Zone (OB)
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">O</span>
+                  </button>
 
-                      {savedDrafts.length > 0 && (
-                        <>
-                          <p className="text-[10px] font-black uppercase text-muted tracking-wider pt-2">Saved Draft Presets</p>
-                          {savedDrafts.map((d) => (
-                            <div
-                              key={d.id}
-                              className="flex items-center justify-between p-2 rounded-xl border border-line bg-cream hover:bg-white text-xs transition"
-                            >
-                              <div className="truncate flex-1 cursor-pointer" onClick={() => { loadSavedDraft(d); setDiagramsMenuOpen(false); }}>
-                                <p className="font-bold text-ink truncate">{d.name}</p>
-                                <p className="text-[9px] text-muted">{d.shapes.length} layers • Saved {new Date(d.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => deleteDraft(d.id)}
-                                className="p-1 text-slate-400 hover:text-rose-600 transition"
-                                title="Delete Draft"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          ))}
-                        </>
-                      )}
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("fvg"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Boxes className="h-3.5 w-3.5 text-amber-600" /> Fair Value Gap (FVG)
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">G</span>
+                  </button>
 
-                  {activeMenuTab === "samples" && (
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                      {hubSamples.map((sample) => (
-                        <button
-                          key={sample.id}
-                          type="button"
-                          onClick={() => { loadSampleClassChart(sample.id); setDiagramsMenuOpen(false); }}
-                          className="flex w-full items-center justify-between rounded-xl border border-line bg-white p-2.5 text-left text-xs font-bold text-ink hover:border-brand/40 hover:bg-brand-light/20 transition cursor-pointer"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[9px] font-black uppercase text-brand bg-brand-light px-1.5 py-0.5 rounded">
-                                {sample.category}
-                              </span>
-                              <span className="font-extrabold text-ink truncate">{sample.name}</span>
-                            </div>
-                            <p className="text-[10px] text-muted line-clamp-1 mt-0.5">{sample.desc}</p>
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400 shrink-0 ml-2">
-                            {sample.shapes?.length || 0} layers
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <div className="w-full h-px bg-line my-1" />
 
-                  {activeMenuTab === "trash" && (
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                      {trashedTabs.length === 0 ? (
-                        <div className="text-center py-6 space-y-1">
-                          <Trash2 className="h-8 w-8 text-slate-300 mx-auto" />
-                          <p className="font-bold text-xs text-ink">Trash is Empty</p>
-                          <p className="text-[10px] text-muted">Deleted tabs disappear after 30 days.</p>
-                        </div>
-                      ) : (
-                        trashedTabs.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-2.5 rounded-xl border border-line bg-cream text-xs space-x-2"
-                          >
-                            <div className="truncate flex-1">
-                              <p className="font-bold text-ink truncate">{item.name}</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => { restoreTrashedTab(item); setDiagramsMenuOpen(false); }}
-                              className="px-2 py-1 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold text-[10px] transition"
-                            >
-                              Restore
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  )}
+                  {/* Section 2: Shapes & Vectors */}
+                  <p className="px-2.5 pt-1 text-[9.5px] font-black uppercase text-muted tracking-wider">Shapes & Lines</p>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("line"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Minus className="h-3.5 w-3.5 text-slate-500" /> Trendline
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">Shift+L</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("arrow"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ArrowRight className="h-3.5 w-3.5 text-blue-500" /> Directional Arrow
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">A</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("rectangle"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Square className="h-3.5 w-3.5 text-slate-500" /> Rectangle Zone
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">R</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("circle"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Circle className="h-3.5 w-3.5 text-slate-500" /> Circle Node
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">C</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("diamond"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Diamond className="h-3.5 w-3.5 text-slate-500" /> Decision Diamond
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">D</span>
+                  </button>
+
+                  <div className="w-full h-px bg-line my-1" />
+
+                  {/* Section 3: Notes & Text */}
+                  <p className="px-2.5 pt-1 text-[9.5px] font-black uppercase text-muted tracking-wider">Teaching & Notes</p>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("text"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Type className="h-3.5 w-3.5 text-brand" /> Text Label
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">T</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("sticky"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Sticky Note
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">N</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("annotation"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Info className="h-3.5 w-3.5 text-sky-500" /> Callout Annotation
+                    </span>
+                    <span className="text-[9.5px] text-muted font-mono">W</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -8637,7 +8638,7 @@ export default function WhiteboardPage() {
                   setFileMenuOpen(false);
                   setEditMenuOpen(false);
                   setViewMenuOpen(false);
-                  setDiagramsMenuOpen(false);
+                  setInsertMenuOpen(false);
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
@@ -8708,7 +8709,7 @@ export default function WhiteboardPage() {
                   setFileMenuOpen(false);
                   setEditMenuOpen(false);
                   setViewMenuOpen(false);
-                  setDiagramsMenuOpen(false);
+                  setInsertMenuOpen(false);
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
@@ -8816,7 +8817,7 @@ export default function WhiteboardPage() {
                 setFileMenuOpen(false);
                 setEditMenuOpen(false);
                 setViewMenuOpen(false);
-                setDiagramsMenuOpen(false);
+                setInsertMenuOpen(false);
                 setBgOpen(false);
                 setExportOpen(false);
               }}
