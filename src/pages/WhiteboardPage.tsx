@@ -445,13 +445,18 @@ const CANVAS_THEMES = [
 
 const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?: string }> = {
   select: {
-    title: "Select & Move Tool",
+    title: "Select Tool",
     desc: "Click to select, move or drag corner handles to resize. Hold Alt while dragging to duplicate objects.",
     shortcut: "V / Alt+Drag",
   },
+  node: {
+    title: "Node",
+    desc: "Click and drag individual anchor nodes to reshape paths, or click along path lines to add new nodes.",
+    shortcut: "A",
+  },
   hand: {
-    title: "Pan / Hand Tool",
-    desc: "Click and drag anywhere on the canvas background to move around your forex teaching diagram.",
+    title: "Pan Tool",
+    desc: "Click and drag anywhere on the canvas background to move around your diagram.",
     shortcut: "H / Space",
   },
   pencil: {
@@ -8959,60 +8964,63 @@ export default function WhiteboardPage() {
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
               <WhiteboardToolBtn
-                active={["select", "node", "hand"].includes(activeTool)}
-                onClick={() => selectTool(activeSelectTool)}
+                active={["select", "node"].includes(activeTool)}
+                onClick={() => selectTool(activeSelectTool === "node" ? "node" : "select")}
                 onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "selection" ? null : "selection")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "selection" ? null : "selection");
                 }}
-                title="Select, Node & Hand Tools (Click arrow or right-click to choose tool)"
-                toolKey={activeSelectTool}
-                icon={activeSelectTool === "node" ? Waypoints : activeSelectTool === "hand" ? Hand : MousePointer}
+                title="Selection & Node Tools (Click arrow or right-click to choose tool)"
+                toolKey={activeSelectTool === "node" ? "node" : "select"}
+                icon={activeSelectTool === "node" ? Waypoints : MousePointer}
                 hasFlyout
                 isFlyoutOpen={flyoutGroup === "selection"}
                 showTooltips={showTooltips}
               />
 
               {flyoutGroup === "selection" && (
-                <div className="absolute left-full top-0 ml-2 w-64 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Select & Transform Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-line bg-white p-2 shadow-2xl z-50 animate-in fade-in space-y-1">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Selection Tools</p>
 
                   <FlyoutToolItem
                     toolKey="select"
-                    label="Select & Move Tool"
+                    label="Select Tool"
                     icon={MousePointer}
                     isActive={activeSelectTool === "select" && activeTool === "select"}
                     isFavorited={favoritedTools.includes("select")}
                     onSelect={() => { setActiveSelectTool("select"); selectTool("select"); setFlyoutGroup(null); }}
                     onToggleFavorite={() => toggleFavoriteTool("select")}
-                    shortcut="V"
+                    showTooltips={false}
                   />
 
                   <FlyoutToolItem
                     toolKey="node"
-                    label="Node / Anchor Point Tool"
+                    label="Node"
                     icon={Waypoints}
                     isActive={activeSelectTool === "node" && activeTool === "node"}
                     isFavorited={favoritedTools.includes("node")}
                     onSelect={() => { setActiveSelectTool("node"); selectTool("node"); setFlyoutGroup(null); }}
                     onToggleFavorite={() => toggleFavoriteTool("node")}
-                    shortcut="A"
-                  />
-
-                  <FlyoutToolItem
-                    toolKey="hand"
-                    label="Pan / Hand Tool"
-                    icon={Hand}
-                    isActive={activeSelectTool === "hand" && activeTool === "hand"}
-                    isFavorited={favoritedTools.includes("hand")}
-                    onSelect={() => { setActiveSelectTool("hand"); selectTool("hand"); setFlyoutGroup(null); }}
-                    onToggleFavorite={() => toggleFavoriteTool("hand")}
-                    shortcut="H"
+                    showTooltips={false}
                   />
                 </div>
               )}
             </div>
+
+            {/* Standalone Pan Tool */}
+            <WhiteboardToolBtn
+              active={activeTool === "hand"}
+              onClick={() => selectTool("hand")}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                toggleFavoriteTool("hand");
+              }}
+              title="Pan Tool (Click and drag canvas background)"
+              toolKey="hand"
+              icon={Hand}
+              showTooltips={showTooltips}
+            />
 
             {/* 1. FOREX TRADING TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
@@ -11510,26 +11518,7 @@ function FlyoutToolItem({
         </span>
       </button>
 
-      {/* Rich Interactive Preview Tooltip for Nested Tool */}
-      {showTooltips && isHovered && explanation && (
-        <div className="absolute left-full top-0 ml-2 w-52 rounded-2xl border border-slate-700 bg-slate-900 text-white p-2.5 shadow-2xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
-          <div className="w-full h-28 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-center overflow-hidden relative">
-            <ToolGifAnimation toolKey={toolKey} />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
-              <h4 className="font-extrabold text-xs text-amber-400">{explanation.title}</h4>
-              {explanation.shortcut && (
-                <span className="text-[9px] font-black uppercase tracking-wider bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">
-                  {explanation.shortcut}
-                </span>
-              )}
-            </div>
-            <p className="text-[10px] text-slate-300 leading-snug font-medium">{explanation.desc}</p>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }
