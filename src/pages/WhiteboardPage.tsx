@@ -6028,35 +6028,35 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="space-y-1 w-full border-t border-line pt-1.5 flex flex-col items-center">
-            <div className="flex flex-col gap-1 items-center">
+          <div className="w-full border-t border-line py-1 flex flex-col items-center">
+            <div className="flex flex-col w-full items-center">
               <button
                 type="button"
                 onClick={handleUndo}
                 disabled={shapes.length === 0}
-                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+                className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
                 title="Undo (Ctrl + Z)"
               >
-                <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+                <RotateCcw className="h-4 w-4 shrink-0" />
               </button>
               <button
                 type="button"
                 onClick={handleRedo}
                 disabled={redoStack.length === 0}
-                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+                className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
                 title="Redo (Ctrl + Y)"
               >
-                <RotateCw className="h-3.5 w-3.5 shrink-0" />
+                <RotateCw className="h-4 w-4 shrink-0" />
               </button>
             </div>
             <button
               type="button"
               onClick={handleClear}
               disabled={shapes.length === 0}
-              className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-8 flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition cursor-pointer"
               title="Clear Whiteboard"
             >
-              <Trash2 className="h-3.5 w-3.5 shrink-0" />
+              <Trash2 className="h-4 w-4 shrink-0" />
             </button>
           </div>
         </aside>
@@ -8540,9 +8540,9 @@ export default function WhiteboardPage() {
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, and Character Panel */}
-          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-2 shrink-0 z-30 shadow-xs select-none">
+          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-1 shrink-0 z-30 shadow-xs select-none">
             {/* Top Tool Icons */}
-            <div className="space-y-1.5 flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full">
               {/* 1. Inspector Tool Button */}
               <button
                 type="button"
@@ -8554,17 +8554,17 @@ export default function WhiteboardPage() {
                     setRightPanelTab("inspector");
                   }
                 }}
-                className={`relative h-7.5 w-7.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
+                className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
                   isInspectorOpen && rightPanelTab === "inspector"
-                    ? "bg-brand text-white shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
+                    ? "bg-brand-light text-brand border-brand font-bold"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                 }`}
                 title="Inspector & Properties"
               >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <SlidersHorizontal className="h-4 w-4" />
               </button>
 
-              {/* 2. Layers Tool Button with Non-Skewed Micro Count Badge */}
+              {/* 2. Layers Tool Button with Micro Count Badge */}
               <button
                 type="button"
                 onClick={() => {
@@ -8575,16 +8575,16 @@ export default function WhiteboardPage() {
                     setRightPanelTab("layers");
                   }
                 }}
-                className={`relative h-7.5 w-7.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
+                className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
                   isInspectorOpen && rightPanelTab === "layers"
-                    ? "bg-brand text-white shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
+                    ? "bg-brand-light text-brand border-brand font-bold"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                 }`}
                 title={`Layers (${shapes.length})`}
               >
-                <Layers className="h-3.5 w-3.5" />
+                <Layers className="h-4 w-4" />
                 {shapes.length > 0 && (
-                  <span className="absolute -top-1 -right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                  <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                     {shapes.length > 99 ? "99+" : shapes.length}
                   </span>
                 )}
@@ -8601,26 +8601,26 @@ export default function WhiteboardPage() {
                     setRightPanelTab("character");
                   }
                 }}
-                className={`relative h-7.5 w-7.5 rounded-lg flex items-center justify-center transition cursor-pointer ${
+                className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
                   isInspectorOpen && rightPanelTab === "character"
-                    ? "bg-brand text-white shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-ink"
+                    ? "bg-brand-light text-brand border-brand font-bold"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                 }`}
                 title="Character & Typography"
               >
-                <CharacterIcon className="h-3.5 w-3.5" />
+                <CharacterIcon className="h-4 w-4" />
               </button>
             </div>
 
             {/* Bottom: Collapse / Expand Toggle Button */}
-            <div className="pt-1.5 border-t border-line/60 w-full flex justify-center">
+            <div className="border-t border-line/60 w-full flex justify-center py-1">
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center text-slate-400 hover:text-ink hover:bg-slate-100 transition cursor-pointer"
+                className="w-full h-8 flex items-center justify-center text-slate-400 hover:text-ink hover:bg-slate-50 transition cursor-pointer"
                 title={isInspectorOpen ? "Collapse Panel" : "Expand Panel"}
               >
-                {isInspectorOpen ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
+                {isInspectorOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
               </button>
             </div>
           </aside>
@@ -9140,20 +9140,20 @@ function WhiteboardToolBtn({
         }}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative h-7.5 w-7.5 aspect-square rounded-lg flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+        className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-l-2 ${
           active
-            ? "bg-brand text-white shadow-xs"
-            : "text-slate-700 hover:bg-slate-100 hover:text-ink"
+            ? "bg-brand-light text-brand border-brand font-bold"
+            : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
         }`}
       >
-        <Icon className="h-3.5 w-3.5 shrink-0" />
+        <Icon className="h-4 w-4 shrink-0" />
         {hasFlyout && (
           <span
             onClick={(e) => {
               e.stopPropagation();
               if (onFlyoutToggle) onFlyoutToggle(e);
             }}
-            className="absolute -right-0.5 top-0 bottom-0 px-0.5 flex items-center justify-center text-slate-400 hover:text-ink hover:scale-125 transition cursor-pointer"
+            className="absolute right-0.5 top-0 bottom-0 px-0.5 flex items-center justify-center text-slate-400 hover:text-brand hover:scale-110 transition cursor-pointer"
             title="Expand tool options"
           >
             <ChevronRight className="h-2.5 w-2.5" />
