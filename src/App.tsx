@@ -46,6 +46,7 @@ import { AdminStudentOfTheWeek } from "./pages/admin/AdminStudentOfTheWeek";
 import { AdminCoupons } from "./pages/admin/AdminCoupons";
 import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
 import { AdminInvoices, AdminCompanyAssets } from "./pages/admin/AdminInvoicesAndAssets";
+import { AdminWhiteboard } from "./pages/admin/AdminWhiteboard";
 import WhiteboardPage from "./pages/WhiteboardPage";
 import { useRoute, segments } from "./lib/router";
 
@@ -73,6 +74,7 @@ const staticPages: Record<string, React.ComponentType> = {
   "/admin/analytics": AdminAnalytics,
   "/admin/students": AdminStudents,
   "/admin/courses": AdminCourses,
+  "/admin/whiteboard": AdminWhiteboard,
   "/admin/payments": AdminPayments,
   "/admin/invoices": AdminInvoices,
   "/admin/company-assets": AdminCompanyAssets,

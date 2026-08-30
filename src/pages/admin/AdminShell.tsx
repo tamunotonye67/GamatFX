@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, BookOpen, CreditCard, CalendarDays,
   Ticket, Settings, LogOut, Menu, X, ShieldAlert, ArrowLeft, Search, Inbox,
   FileText, UserCog, Newspaper, Sun, Library, Gift, Contact, Award, Bell,
-  Check, Tag, BarChart3, Receipt, FolderDown,
+  Check, Tag, BarChart3, Receipt, FolderDown, Presentation,
 } from "lucide-react";
 
 export const nav = [
@@ -14,6 +14,7 @@ export const nav = [
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/students", label: "Students", icon: Users },
   { to: "/admin/courses", label: "Courses", icon: BookOpen },
+  { to: "/admin/whiteboard", label: "Whiteboard Hub", icon: Presentation },
   { to: "/admin/payments", label: "Payments", icon: CreditCard },
   { to: "/admin/invoices", label: "Invoices & Receipts", icon: Receipt },
   { to: "/admin/company-assets", label: "Company Assets", icon: FolderDown },

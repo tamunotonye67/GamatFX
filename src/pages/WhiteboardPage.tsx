@@ -58,6 +58,21 @@ import {
   Percent,
   Minus,
   Link2,
+} from "lucide-react";
+import {
+  getStoredSamples,
+  getStoredResources,
+  getStoredLessons,
+  DEFAULT_SAMPLE_MINDMAP_SHAPES,
+  DEFAULT_SAMPLE_SMC_SHAPES,
+  DEFAULT_SAMPLE_RISK_SHAPES,
+  DEFAULT_SAMPLE_EURUSD_SHAPES,
+  DEFAULT_SAMPLE_LONDON_SHAPES,
+  type HubSampleTemplate,
+  type HubResourceCard as HubResourceGuide,
+  type HubLessonItem,
+} from "../lib/whiteboardHubData";
+import {
   LayoutTemplate,
   Palette,
   Boxes,
@@ -611,704 +626,6 @@ const DistributeVIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) 
   </svg>
 );
 
-/* ========================================================================== */
-/*                      FIGMA-STYLE WHITEBOARD HUB TYPES & DATA               */
-/* ========================================================================== */
-
-interface HubSampleTemplate {
-  id: string;
-  name: string;
-  category: string;
-  tag: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  desc: string;
-  shapesCount: number;
-  shapes: Shape[];
-}
-
-const SAMPLE_MINDMAP_SHAPES: Shape[] = [
-  // Center Core System Node
-  {
-    id: "mm_center",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 340, y: 160 }],
-    text: "🏛️ FOREX TRADING SYSTEM\n\n• Market Structure (Trend)\n• Smart Money (POI)\n• Risk Management (1%)\n• Trade Execution Rules",
-    stickyColor: "#fef08a",
-  },
-  // Branch 1: Market Structure (Left)
-  {
-    id: "mm_line1",
-    type: "arrow",
-    color: "#3b82f6",
-    strokeWidth: 2,
-    points: [{ x: 340, y: 220 }, { x: 230, y: 220 }],
-  },
-  {
-    id: "mm_node1",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 40, y: 150 }],
-    text: "📈 1. MARKET STRUCTURE\n\n• Swing Highs & Lows\n• Break of Structure (BOS)\n• Change of Character\n• Multi-Timeframe Alignment",
-    stickyColor: "#bae6fd",
-  },
-  // Branch 2: Smart Money POI (Bottom)
-  {
-    id: "mm_line2",
-    type: "arrow",
-    color: "#8b5cf6",
-    strokeWidth: 2,
-    points: [{ x: 430, y: 300 }, { x: 430, y: 360 }],
-  },
-  {
-    id: "mm_node2",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 340, y: 360 }],
-    text: "⚡ 2. SMART MONEY POI\n\n• Order Block (OB Zone)\n• Fair Value Gap (FVG)\n• Liquidity Pools ($$$)\n• 50% Mean Threshold (MT)",
-    stickyColor: "#ddd6fe",
-  },
-  // Branch 3: Risk & Execution (Right)
-  {
-    id: "mm_line3",
-    type: "arrow",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 520, y: 220 }, { x: 630, y: 220 }],
-  },
-  {
-    id: "mm_node3",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 630, y: 150 }],
-    text: "🛡️ 3. RISK MANAGEMENT\n\n• Max 1.0% Risk per trade\n• Minimum 1:3.0 Risk:Reward\n• Strict Stop Loss at Invalidation\n• 35%+ Winrate = Profitability",
-    stickyColor: "#bbf7d0",
-  },
-];
-
-const SAMPLE_SMC_SHAPES: Shape[] = [
-  // 1. Order Block Zone
-  {
-    id: "smc_ob_box",
-    type: "orderblock",
-    color: "#8b5cf6",
-    strokeWidth: 2,
-    points: [{ x: 100, y: 320 }, { x: 380, y: 410 }],
-    text: "H4 Bullish Order Block (POI)",
-  },
-  // 2. Candlestick Price Action
-  {
-    id: "smc_c1",
-    type: "bearish_candle",
-    color: "#ef4444",
-    strokeWidth: 2,
-    points: [{ x: 130, y: 320 }, { x: 165, y: 410 }],
-    text: "Last Down Candle",
-  },
-  {
-    id: "smc_c2",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 190, y: 220 }, { x: 225, y: 360 }],
-  },
-  {
-    id: "smc_c3",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 250, y: 130 }, { x: 285, y: 270 }],
-  },
-  // 3. FVG Imbalance
-  {
-    id: "smc_fvg_box",
-    type: "fvg",
-    color: "#f59e0b",
-    strokeWidth: 2,
-    points: [{ x: 225, y: 220 }, { x: 420, y: 280 }],
-    text: "FVG Imbalance (50% C.E.)",
-  },
-  // 4. BOS Trendline
-  {
-    id: "smc_bos_line",
-    type: "bos",
-    color: "#3b82f6",
-    strokeWidth: 2,
-    points: [{ x: 130, y: 130 }, { x: 480, y: 130 }],
-    text: "H4 BOS Breakout ↗",
-  },
-  // 5. Buy-Side Liquidity Target
-  {
-    id: "smc_bsl",
-    type: "liquidity",
-    color: "#e11d48",
-    strokeWidth: 2,
-    points: [{ x: 300, y: 70 }, { x: 560, y: 70 }],
-    text: "Buy-Side Liquidity Pool ($$$)",
-  },
-  // 6. Long Execution Setup (1:3.5)
-  {
-    id: "smc_long",
-    type: "long",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 380, y: 320 }, { x: 560, y: 70 }],
-    text: "1:3.5 R:R",
-  },
-  // 7. Annotation Leader Pin
-  {
-    id: "smc_annot",
-    type: "annotation",
-    color: "#8b5cf6",
-    strokeWidth: 2,
-    points: [{ x: 165, y: 360 }, { x: 60, y: 280 }],
-    text: "Mitigation Entry",
-  },
-  // 8. Sticky Lesson Card
-  {
-    id: "smc_note",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 600, y: 120 }],
-    text: "⚡ SMC PLAYBOOK RULES:\n\n1. Identify HTF Break of Structure (BOS).\n2. Mark unmitigated Order Block (OB) demand.\n3. Enter on FVG discount pullback.\n4. Take Profit at external Liquidity ($$$).",
-    stickyColor: "#ddd6fe",
-  },
-];
-
-const SAMPLE_RISK_SHAPES: Shape[] = [
-  // 1. Long Calculator setup
-  {
-    id: "risk_long",
-    type: "long",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 120, y: 280 }, { x: 380, y: 100 }],
-    text: "1:3.0 Target",
-  },
-  // 2. Annotation Callouts for TP, Entry, SL
-  {
-    id: "risk_ann_tp",
-    type: "annotation",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 380, y: 100 }, { x: 420, y: 70 }],
-    text: "Take Profit: +60 Pips (+$300)",
-  },
-  {
-    id: "risk_ann_entry",
-    type: "annotation",
-    color: "#3b82f6",
-    strokeWidth: 2,
-    points: [{ x: 120, y: 280 }, { x: 40, y: 240 }],
-    text: "Entry Price (1.08500)",
-  },
-  {
-    id: "risk_ann_sl",
-    type: "annotation",
-    color: "#ef4444",
-    strokeWidth: 2,
-    points: [{ x: 380, y: 340 }, { x: 420, y: 370 }],
-    text: "Stop Loss: -20 Pips (-$100 = 1%)",
-  },
-  // 3. Risk Sticky 1 (Calculator Formula)
-  {
-    id: "risk_calc_sticky",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 500, y: 90 }],
-    text: "📐 POSITION SIZING FORMULA\n\nLot Size = (Balance × Risk%)\n           / (SL Pips × $10)\n\nExample for $10,000 Capital:\n• 1.0% Risk = $100\n• Stop Loss = 20 Pips\n• Lot Size = $100 / (20 × $10) = 0.50 Lots",
-    stickyColor: "#bbf7d0",
-  },
-  // 4. Risk Sticky 2 (Psychology & Drawdown)
-  {
-    id: "risk_rules_sticky",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 500, y: 300 }],
-    text: "🛡️ ASYMMETRIC MATH (1:3 R:R)\n\n• 10 Trades Executed:\n• 4 Wins × $300 = +$1,200\n• 6 Losses × $100 = -$600\n• Net Profit = +$600 (+6% ROI)\n\nYou remain profitable even losing 60% of trades!",
-    stickyColor: "#fef08a",
-  },
-];
-
-const SAMPLE_EURUSD_SHAPES: Shape[] = [
-  // 1. Candlestick series
-  {
-    id: "eu_c1",
-    type: "bearish_candle",
-    color: "#ef4444",
-    strokeWidth: 2,
-    points: [{ x: 100, y: 220 }, { x: 130, y: 310 }],
-  },
-  {
-    id: "eu_c2",
-    type: "bearish_candle",
-    color: "#ef4444",
-    strokeWidth: 2,
-    points: [{ x: 145, y: 290 }, { x: 175, y: 380 }],
-  },
-  {
-    id: "eu_c3",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 200, y: 230 }, { x: 230, y: 350 }],
-  },
-  {
-    id: "eu_c4",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 255, y: 150 }, { x: 285, y: 280 }],
-  },
-  {
-    id: "eu_c5",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 310, y: 80 }, { x: 340, y: 200 }],
-  },
-  // 2. Order Block Zone
-  {
-    id: "eu_ob",
-    type: "orderblock",
-    color: "#8b5cf6",
-    strokeWidth: 2,
-    points: [{ x: 145, y: 290 }, { x: 440, y: 380 }],
-    text: "H4 Demand Order Block",
-  },
-  // 3. FVG Box
-  {
-    id: "eu_fvg",
-    type: "fvg",
-    color: "#f59e0b",
-    strokeWidth: 2,
-    points: [{ x: 230, y: 200 }, { x: 440, y: 260 }],
-    text: "H4 FVG Imbalance",
-  },
-  // 4. BOS Trendline
-  {
-    id: "eu_bos",
-    type: "bos",
-    color: "#3b82f6",
-    strokeWidth: 2,
-    points: [{ x: 100, y: 160 }, { x: 480, y: 160 }],
-    text: "H4 BOS Breakout ↗",
-  },
-  // 5. Buy Limit Position
-  {
-    id: "eu_long",
-    type: "long",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 420, y: 260 }, { x: 600, y: 70 }],
-    text: "1:3.2 Target",
-  },
-  // 6. Annotation Leader
-  {
-    id: "eu_ann",
-    type: "annotation",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 420, y: 260 }, { x: 470, y: 310 }],
-    text: "Buy Limit @ FVG Top",
-  },
-  // 7. Sticky Class Lesson
-  {
-    id: "eu_sticky",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 640, y: 110 }],
-    text: "🎓 EUR/USD H4 LESSON NOTE:\n\n• Price broke structural high with strong candle closes.\n• Large institutional FVG created between candles 2 and 4.\n• Limit order placed at FVG top with SL below Order Block.",
-    stickyColor: "#fef08a",
-  },
-];
-
-const SAMPLE_LONDON_SHAPES: Shape[] = [
-  // 1. Asian Range Box
-  {
-    id: "lon_asian",
-    type: "rectangle",
-    color: "#8b5cf6",
-    strokeWidth: 2,
-    points: [{ x: 100, y: 200 }, { x: 340, y: 310 }],
-    text: "Asian Consolidation (00:00 - 08:00 UTC)",
-  },
-  // 2. Asian Liquidity High & Low
-  {
-    id: "lon_bsl",
-    type: "liquidity",
-    color: "#e11d48",
-    strokeWidth: 2,
-    points: [{ x: 80, y: 190 }, { x: 360, y: 190 }],
-    text: "Asian High BSL ($$$)",
-  },
-  {
-    id: "lon_ssl",
-    type: "liquidity",
-    color: "#e11d48",
-    strokeWidth: 2,
-    points: [{ x: 80, y: 320 }, { x: 360, y: 320 }],
-    text: "Asian Low SSL ($$$)",
-  },
-  // 3. Judas Swing Sweep Arrow
-  {
-    id: "lon_sweep",
-    type: "arrow",
-    color: "#ef4444",
-    strokeWidth: 3,
-    points: [{ x: 360, y: 280 }, { x: 380, y: 390 }],
-  },
-  {
-    id: "lon_ann_sweep",
-    type: "annotation",
-    color: "#ef4444",
-    strokeWidth: 2,
-    points: [{ x: 380, y: 390 }, { x: 260, y: 410 }],
-    text: "08:00 Judas Sweep ⚡",
-  },
-  // 4. Reversal Candlesticks
-  {
-    id: "lon_c1",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 400, y: 300 }, { x: 430, y: 390 }],
-  },
-  {
-    id: "lon_c2",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 445, y: 210 }, { x: 475, y: 330 }],
-  },
-  {
-    id: "lon_c3",
-    type: "bullish_candle",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 490, y: 120 }, { x: 520, y: 240 }],
-  },
-  // 5. Long Position Setup
-  {
-    id: "lon_long",
-    type: "long",
-    color: "#10b981",
-    strokeWidth: 2,
-    points: [{ x: 420, y: 340 }, { x: 620, y: 120 }],
-    text: "1:3.6 R:R",
-  },
-  // 6. Sticky Setup Note
-  {
-    id: "lon_sticky",
-    type: "sticky",
-    color: "#0f172a",
-    strokeWidth: 2,
-    points: [{ x: 650, y: 110 }],
-    text: "🏫 LONDON OPEN SETUP:\n\n1. Mark Asian Range High & Low.\n2. Wait for 08:00 London Open Judas Swing.\n3. Enter upon rapid SSL sweep and reversal back into Asian Range.\n4. Target Asian High liquidity.",
-    stickyColor: "#bae6fd",
-  },
-];
-
-const HUB_SAMPLES: HubSampleTemplate[] = [
-  {
-    id: "mindmap",
-    name: "Forex Basics Mind Map",
-    category: "Concept Mind Map",
-    tag: "Fundamentals",
-    difficulty: "Beginner",
-    desc: "A structured conceptual diagram organizing Market Structure, 1% Risk Rules, and Trading Psychology.",
-    shapesCount: SAMPLE_MINDMAP_SHAPES.length,
-    shapes: SAMPLE_MINDMAP_SHAPES,
-  },
-  {
-    id: "smc",
-    name: "SMC Order Block & Liquidity",
-    category: "Strategy Setup",
-    tag: "Smart Money",
-    difficulty: "Intermediate",
-    desc: "Institutional order flow model demonstrating Bullish Order Blocks, Liquidity Sweeps, and Entry Confirmation.",
-    shapesCount: SAMPLE_SMC_SHAPES.length,
-    shapes: SAMPLE_SMC_SHAPES,
-  },
-  {
-    id: "risk",
-    name: "Risk Management Matrix",
-    category: "Framework",
-    tag: "Risk & Psychology",
-    difficulty: "Beginner",
-    desc: "Visual matrix detailing minimum 1:3 Risk-to-Reward ratio parameters, position sizing rules, and stop loss placement.",
-    shapesCount: SAMPLE_RISK_SHAPES.length,
-    shapes: SAMPLE_RISK_SHAPES,
-  },
-  {
-    id: "class_chart_eurusd",
-    name: "EUR/USD H4 BOS & FVG Class Chart",
-    category: "Live Class Setup",
-    tag: "Technical Analysis",
-    difficulty: "Advanced",
-    desc: "Full multi-timeframe lesson chart with Candlesticks, H4 Break of Structure (BOS) line, Fair Value Gap (FVG) demand box, and Buy Limit position.",
-    shapesCount: SAMPLE_EURUSD_SHAPES.length,
-    shapes: SAMPLE_EURUSD_SHAPES,
-  },
-  {
-    id: "sample_london_sweep",
-    name: "London Asian Sweep Class Setup",
-    category: "Live Class Setup",
-    tag: "Session Trading",
-    difficulty: "Advanced",
-    desc: "London open liquidity purge setup featuring Asian Session consolidation box, Judas Swing sweep arrow, and bullish expansion trend.",
-    shapesCount: SAMPLE_LONDON_SHAPES.length,
-    shapes: SAMPLE_LONDON_SHAPES,
-  },
-];
-
-interface HubResourceGuide {
-  id: string;
-  title: string;
-  category: string;
-  readTime: string;
-  desc: string;
-  iconName: "activity" | "palette" | "percent" | "keyboard";
-  color: string;
-  points: string[];
-}
-
-const HUB_RESOURCES: HubResourceGuide[] = [
-  {
-    id: "patterns",
-    title: "Price Action & Classical Chart Patterns",
-    category: "Technical Cheatsheet",
-    readTime: "3 min read",
-    desc: "Essential reversal and continuation patterns including Double Tops/Bottoms, Head & Shoulders, and Bull/Bear Flags.",
-    iconName: "activity",
-    color: "#3b82f6",
-    points: [
-      "Double Bottom (W-Pattern): Bullish reversal off key structural support.",
-      "Head & Shoulders: Exhaustion pattern marking reversal at high timeframes.",
-      "Bull Flag: High-probability continuation impulse following volume breakout.",
-      "Break of Structure (BOS): Validated by full candle close beyond previous swing high/low.",
-    ],
-  },
-  {
-    id: "smc_guide",
-    title: "Smart Money Concepts (SMC) Master Key",
-    category: "Strategy Guide",
-    readTime: "4 min read",
-    desc: "Institutional liquidity playbook explaining Order Blocks, Change of Character, and Imbalances.",
-    iconName: "palette",
-    color: "#8b5cf6",
-    points: [
-      "Order Block (OB): The last opposing candle before an aggressive displacement move.",
-      "Change of Character (CHoCH): Early warning signal of an impending trend shift.",
-      "Fair Value Gap (FVG): Three-candle price imbalance offering high-probability pullback entries.",
-      "Liquidity Pools: Clustered stop losses residing above swing highs (BSL) and below swing lows (SSL).",
-    ],
-  },
-  {
-    id: "position_sizing",
-    title: "Position Sizing & Risk Calculator Formula",
-    category: "Math & Risk Guide",
-    readTime: "2 min read",
-    desc: "Mathematical guide to calculating lot sizes and controlling account drawdown per trade.",
-    iconName: "percent",
-    color: "#10b981",
-    points: [
-      "Position Size = (Account Balance × Risk %) / (Stop Loss in Pips × Pip Value)",
-      "Standard 1% Rule: Never risk more than 1.0% of total capital on any single setup.",
-      "Asymmetric Risk: Minimum 1:3 Risk-to-Reward ratio ensures profitability even with 35% winrate.",
-      "Daily Max Drawdown: Cease live trading if daily loss reaches 3.0% to protect psychology.",
-    ],
-  },
-  {
-    id: "hotkeys",
-    title: "Master Whiteboard Keybindings & Shortcuts",
-    category: "Cheat Sheet",
-    readTime: "1 min read",
-    desc: "Full list of keyboard hotkeys and mouse actions for high-speed technical diagramming.",
-    iconName: "keyboard",
-    color: "#f59e0b",
-    points: [
-      "V / 1: Select & Transform | H / 2: Pan Canvas | P / 3: Pen | L / 4: Line | T / 5: Text",
-      "Ctrl + Z: Undo | Ctrl + Y: Redo | Ctrl + S: Save Draft | Ctrl + A: Select All",
-      "Ctrl + D: Duplicate Object | Alt + Drag: Quick Mouse Clone",
-      "Ctrl + L: Lock/Unlock Layer | Delete / Backspace: Remove Selected",
-    ],
-  },
-];
-
-interface HubLessonItem {
-  id: string;
-  num: string;
-  title: string;
-  subtitle: string;
-  desc: string;
-  colorClass: string;
-  badgeBg: string;
-  badgeText: string;
-  items: { label: string; value: string; isMono?: boolean }[];
-}
-
-const HUB_LESSONS: HubLessonItem[] = [
-  {
-    id: "nav",
-    num: "01",
-    title: "Canvas Navigation & Controls",
-    subtitle: "Fluid infinite canvas movement",
-    desc: "Pan seamlessly across your chart by holding the Spacebar and dragging with your mouse, or select the Hand Tool (H). Zoom in and out using Ctrl + Mouse Wheel or the bottom zoom bar.",
-    colorClass: "bg-blue-50 text-blue-600",
-    badgeBg: "bg-slate-50 border-line",
-    badgeText: "text-slate-700",
-    items: [
-      { label: "Pan Canvas", value: "Space + Drag / H", isMono: true },
-      { label: "Zoom In / Out", value: "Ctrl + Scroll / + -", isMono: true },
-      { label: "Reset View (100%)", value: "Ctrl + 0", isMono: true },
-    ]
-  },
-  {
-    id: "smc",
-    num: "02",
-    title: "Smart Money Concepts (SMC) Markup",
-    subtitle: "Institutional supply/demand zones",
-    desc: "Highlight institutional order blocks using Rectangles (R) with 20% opacity. Mark Break of Structure (BOS) and Change of Character (CHoCH) with labeled arrows, and use the Path Tool (P) to map multi-leg Elliott Wave impulses.",
-    colorClass: "bg-purple-50 text-purple-600",
-    badgeBg: "bg-purple-50/60 border-purple-100",
-    badgeText: "text-purple-900",
-    items: [
-      { label: "Order Blocks (OB)", value: "Translucent Demand Zones" },
-      { label: "Fair Value Gaps (FVG)", value: "3-Candle Imbalances" },
-      { label: "Break of Structure (BOS)", value: "Trend continuation lines" },
-    ]
-  },
-  {
-    id: "risk",
-    num: "03",
-    title: "Risk Tool & Trade Journals",
-    subtitle: "Automated 1:3 Risk-to-Reward setup",
-    desc: "Plot Long/Short Positions (S) to calculate Stop Loss vs Take Profit zones automatically. Add Sticky Notes (N) directly onto your charts to write execution checklists, entry confirmations, and pre-session trade ideas.",
-    colorClass: "bg-emerald-50 text-emerald-600",
-    badgeBg: "bg-emerald-50/60 border-emerald-100",
-    badgeText: "text-emerald-900",
-    items: [
-      { label: "Position Tool", value: "Press S", isMono: true },
-      { label: "Editable Sticky Notes", value: "Press N", isMono: true },
-      { label: "Candlestick Patterns", value: "Press K", isMono: true },
-    ]
-  },
-  {
-    id: "multitab",
-    num: "04",
-    title: "Multi-Tabs, Auto-Save & Exports",
-    subtitle: "Never lose analysis progress",
-    desc: "Open up to 5 concurrent charts in the top tab bar. Every markup stroke is automatically saved locally. Closed tabs are moved to the Trash Bin with a 30-day grace period. Export crystal-clear High-DPI PNGs, SVGs, or JPEGs anytime.",
-    colorClass: "bg-amber-50 text-amber-600",
-    badgeBg: "bg-amber-50/60 border-amber-100",
-    badgeText: "text-amber-900",
-    items: [
-      { label: "New Canvas Tab", value: "Ctrl + N", isMono: true },
-      { label: "Export PNG Diagram", value: "Ctrl + E", isMono: true },
-      { label: "Restore Trashed Charts", value: "Hub → Trash Bin" },
-    ]
-  },
-  {
-    id: "fibo",
-    num: "05",
-    title: "Fibonacci Retracement & Golden Pocket",
-    subtitle: "Precision 61.8% - 78.6% reversal levels",
-    desc: "Drag the Fibonacci Tool (F) from swing low to swing high in an uptrend to reveal optimal trade entry (OTE) zones. The 0.618 Golden Ratio and 0.786 deep discount offer the highest probability entries when aligned with Order Blocks.",
-    colorClass: "bg-indigo-50 text-indigo-600",
-    badgeBg: "bg-indigo-50/60 border-indigo-100",
-    badgeText: "text-indigo-900",
-    items: [
-      { label: "0.618 - 0.786 Zone", value: "Golden Pocket Confluence" },
-      { label: "0.500 Equilibrium", value: "Premium / Discount Boundary" },
-      { label: "Fib Tool Hotkey", value: "Press F", isMono: true },
-    ]
-  },
-  {
-    id: "topdown",
-    num: "06",
-    title: "Multi-Timeframe Top-Down Analysis",
-    subtitle: "Aligning Daily bias with 5m execution",
-    desc: "Start on Daily / 4H charts to identify the directional trend and high-liquidity sweep pools. Switch to 15m / 5m charts to capture tight-spread execution entries with minimal drawdowns and maximum risk-to-reward ratios.",
-    colorClass: "bg-cyan-50 text-cyan-600",
-    badgeBg: "bg-cyan-50/60 border-cyan-100",
-    badgeText: "text-cyan-900",
-    items: [
-      { label: "High Timeframe (HTF)", value: "Daily & 4H Directional Bias" },
-      { label: "Intermediate (ITF)", value: "1H & 15m Key Structural Zones" },
-      { label: "Low Timeframe (LTF)", value: "5m & 1m Entry Trigger Execution" },
-    ]
-  },
-  {
-    id: "candles",
-    num: "07",
-    title: "Candlestick Entry Formations",
-    subtitle: "High-probability trigger signals",
-    desc: "Validate key support and resistance bounces using high-probability candlestick signals: Pin Bars (rejection wicks), Engulfing Candles (momentum displacement), and Morning/Evening Stars.",
-    colorClass: "bg-rose-50 text-rose-600",
-    badgeBg: "bg-rose-50/60 border-rose-100",
-    badgeText: "text-rose-900",
-    items: [
-      { label: "Pin Bar Rejection", value: "Long wick sweeping liquidity" },
-      { label: "Engulfing Candle", value: "Full body overtaking previous candle" },
-      { label: "Plot Candlesticks Tool", value: "Press K", isMono: true },
-    ]
-  },
-  {
-    id: "layers",
-    num: "08",
-    title: "Layers, Locking & Z-Index Ordering",
-    subtitle: "Pro Photoshop-style layer stacking",
-    desc: "Keep complex chart breakdowns clean by locking chart backgrounds and order block rectangles with Ctrl + L. Use the right-hand Layers Inspector to reorder elements, toggle visibility, and adjust layer transparency.",
-    colorClass: "bg-teal-50 text-teal-600",
-    badgeBg: "bg-teal-50/60 border-teal-100",
-    badgeText: "text-teal-900",
-    items: [
-      { label: "Lock / Unlock Object", value: "Ctrl + L", isMono: true },
-      { label: "Bring Layer to Front", value: "Ctrl + ]", isMono: true },
-      { label: "Send Layer to Back", value: "Ctrl + [", isMono: true },
-    ]
-  },
-  {
-    id: "killzones",
-    num: "09",
-    title: "London & NY Session Killzones",
-    subtitle: "Institutional volatility windows",
-    desc: "Highlight peak liquidity sessions using vertical shading boxes: London Open (07:00 - 10:00 GMT) and New York Open (12:00 - 15:00 GMT). Look for early fakeouts (Judas Swings) that take out Asian highs/lows before running the true trend.",
-    colorClass: "bg-orange-50 text-orange-600",
-    badgeBg: "bg-orange-50/60 border-orange-100",
-    badgeText: "text-orange-900",
-    items: [
-      { label: "Asian Range Sweep", value: "00:00 - 06:00 GMT High/Low mark" },
-      { label: "London Killzone", value: "07:00 - 10:00 GMT expansion" },
-      { label: "New York Killzone", value: "12:00 - 15:00 GMT continuation" },
-    ]
-  },
-  {
-    id: "journal",
-    num: "10",
-    title: "Trade Journaling & Homework Submission",
-    subtitle: "Document setups for mentor grading",
-    desc: "Attach Sticky Notes (N) outlining your pre-trade checklist: Entry Reason, HTF Confluence, Stop Loss Pips, and Take Profit Target. Export high-resolution PNGs with Ctrl + E to submit homework assignments to GAMATFX coaches.",
-    colorClass: "bg-emerald-50 text-emerald-600",
-    badgeBg: "bg-emerald-50/60 border-emerald-100",
-    badgeText: "text-emerald-900",
-    items: [
-      { label: "Sticky Note Checklist", value: "Press N", isMono: true },
-      { label: "Ultra-HD 2x Diagram Export", value: "Ctrl + E", isMono: true },
-      { label: "Duplicate Trade Setup", value: "Ctrl + D", isMono: true },
-    ]
-  }
-];
-
 const INITIAL_TABS: DiagramTab[] = [
   { id: "canvas_1", name: "Canvas 1", shapes: [], theme: "dots", snapToGrid: true },
 ];
@@ -1350,6 +667,21 @@ export default function WhiteboardPage() {
   // Saved Drafts & Trashed Tabs State (Persistent LocalStorage)
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>([]);
   const [trashedTabs, setTrashedTabs] = useState<TrashedTab[]>([]);
+
+  // Dynamic Whiteboard Hub Collections (Synced with Admin Manager)
+  const [hubSamples, setHubSamples] = useState<HubSampleTemplate[]>(() => getStoredSamples());
+  const [hubResources, setHubResources] = useState<HubResourceGuide[]>(() => getStoredResources());
+  const [hubLessons, setHubLessons] = useState<HubLessonItem[]>(() => getStoredLessons());
+
+  useEffect(() => {
+    const handleHubDataUpdate = () => {
+      setHubSamples(getStoredSamples());
+      setHubResources(getStoredResources());
+      setHubLessons(getStoredLessons());
+    };
+    window.addEventListener("gamat_whiteboard_data_updated", handleHubDataUpdate);
+    return () => window.removeEventListener("gamat_whiteboard_data_updated", handleHubDataUpdate);
+  }, []);
 
   // Sub-Header Action Dropdown States
   const [diagramsMenuOpen, setDiagramsMenuOpen] = useState(false);
@@ -2967,26 +2299,31 @@ export default function WhiteboardPage() {
     let tabName = "Class Diagram";
     let tabKey = sampleType;
 
-    if (sampleType === "mindmap") {
+    const found = hubSamples.find((s) => s.id === sampleType || s.name.toLowerCase().includes(sampleType.toLowerCase()));
+    if (found) {
+      tabName = found.name;
+      tabKey = found.id;
+      targetShapes = (found.shapes || []) as Shape[];
+    } else if (sampleType === "mindmap") {
       tabName = "Forex Basics Mind Map";
       tabKey = "mindmap";
-      targetShapes = SAMPLE_MINDMAP_SHAPES;
+      targetShapes = DEFAULT_SAMPLE_MINDMAP_SHAPES as Shape[];
     } else if (sampleType === "smc") {
       tabName = "SMC Liquidity Diagram";
       tabKey = "smc_diag";
-      targetShapes = SAMPLE_SMC_SHAPES;
+      targetShapes = DEFAULT_SAMPLE_SMC_SHAPES as Shape[];
     } else if (sampleType === "risk") {
       tabName = "Risk Management Matrix";
       tabKey = "risk_diag";
-      targetShapes = SAMPLE_RISK_SHAPES;
+      targetShapes = DEFAULT_SAMPLE_RISK_SHAPES as Shape[];
     } else if (sampleType === "class_chart_eurusd") {
       tabName = "EUR/USD H4 Class Analysis";
       tabKey = "sample_eurusd";
-      targetShapes = SAMPLE_EURUSD_SHAPES;
+      targetShapes = DEFAULT_SAMPLE_EURUSD_SHAPES as Shape[];
     } else if (sampleType === "sample_london_sweep") {
       tabName = "London Sweep Class Setup";
       tabKey = "sample_london";
-      targetShapes = SAMPLE_LONDON_SHAPES;
+      targetShapes = DEFAULT_SAMPLE_LONDON_SHAPES as Shape[];
     }
 
     if (tabs.length >= 5 && !tabs.some((t) => t.id === tabKey)) {
@@ -3388,7 +2725,7 @@ export default function WhiteboardPage() {
     !hubSearch.trim() || d.name.toLowerCase().includes(hubSearch.toLowerCase())
   );
 
-  const filteredSamples = HUB_SAMPLES.filter((s) =>
+  const filteredSamples = hubSamples.filter((s) =>
     !hubSearch.trim() ||
     s.name.toLowerCase().includes(hubSearch.toLowerCase()) ||
     s.tag.toLowerCase().includes(hubSearch.toLowerCase()) ||
@@ -3396,7 +2733,7 @@ export default function WhiteboardPage() {
     s.desc.toLowerCase().includes(hubSearch.toLowerCase())
   );
 
-  const filteredResources = HUB_RESOURCES.filter((r) =>
+  const filteredResources = hubResources.filter((r) =>
     !hubSearch.trim() ||
     r.title.toLowerCase().includes(hubSearch.toLowerCase()) ||
     r.category.toLowerCase().includes(hubSearch.toLowerCase()) ||
@@ -3408,7 +2745,7 @@ export default function WhiteboardPage() {
     !hubSearch.trim() || t.name.toLowerCase().includes(hubSearch.toLowerCase())
   );
 
-  const filteredLessons = HUB_LESSONS.filter((l) =>
+  const filteredLessons = hubLessons.filter((l) =>
     !hubSearch.trim() ||
     l.title.toLowerCase().includes(hubSearch.toLowerCase()) ||
     l.subtitle.toLowerCase().includes(hubSearch.toLowerCase()) ||
@@ -3780,7 +3117,7 @@ export default function WhiteboardPage() {
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "samples" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
-                  {hubSearch ? filteredSamples.length : HUB_SAMPLES.length}
+                  {hubSearch ? filteredSamples.length : hubSamples.length}
                 </span>
               </button>
 
@@ -3798,7 +3135,7 @@ export default function WhiteboardPage() {
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "resources" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
                 }`}>
-                  {hubSearch ? filteredResources.length : HUB_RESOURCES.length}
+                  {hubSearch ? filteredResources.length : hubResources.length}
                 </span>
               </button>
 
@@ -3840,6 +3177,25 @@ export default function WhiteboardPage() {
                   {hubSearch ? `${filteredLessons.length}` : "Guide"}
                 </span>
               </button>
+
+              {/* 6. Admin Whiteboard Manager (Visible to Admins only) */}
+              {isAdmin && (
+                <>
+                  <div className="border-t border-line my-1.5" />
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/whiteboard")}
+                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 transition cursor-pointer border border-amber-200 shadow-2xs"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-amber-700" /> Admin Hub Manager
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900">
+                      Admin
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -5316,55 +4672,39 @@ export default function WhiteboardPage() {
                 {/* SECTION 2: SAMPLES */}
                 {activeMenuTab === "samples" && (
                   <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    <p className="text-[10px] font-black uppercase text-muted tracking-wider">Concept Mind Maps</p>
+                    {hubSamples.map((sample) => (
+                      <button
+                        key={sample.id}
+                        type="button"
+                        onClick={() => { loadSampleClassChart(sample.id); setDiagramsMenuOpen(false); }}
+                        className="flex w-full items-center justify-between rounded-xl border border-line p-2.5 text-left text-xs font-bold text-ink hover:border-brand/40 hover:bg-brand-light/20 transition cursor-pointer"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-black uppercase text-brand bg-brand-light px-1.5 py-0.5 rounded">
+                              {sample.category}
+                            </span>
+                            <span className="font-extrabold text-ink truncate">{sample.name}</span>
+                          </div>
+                          <p className="text-[10px] text-muted line-clamp-1 mt-0.5">{sample.desc}</p>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 shrink-0 ml-2">
+                          {sample.shapes?.length || 0} layers
+                        </span>
+                      </button>
+                    ))}
 
-                    <button
-                      type="button"
-                      onClick={() => { loadSampleClassChart("mindmap"); setDiagramsMenuOpen(false); }}
-                      className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                    >
-                      <span>Forex Basics Mind Map</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { loadSampleClassChart("smc"); setDiagramsMenuOpen(false); }}
-                      className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                    >
-                      <span>SMC Order Block & Liquidity</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { loadSampleClassChart("risk"); setDiagramsMenuOpen(false); }}
-                      className="flex w-full items-center justify-between rounded-xl border border-line p-2 text-left text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                    >
-                      <span>Risk Management Matrix</span>
-                    </button>
-
-                    <p className="text-[10px] font-black uppercase text-muted tracking-wider pt-2">Live Class Chart Analysis</p>
-
-                    <button
-                      type="button"
-                      onClick={() => { loadSampleClassChart("class_chart_eurusd"); setDiagramsMenuOpen(false); }}
-                      className="flex w-full items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 p-2 text-left text-xs font-bold text-blue-900 hover:bg-blue-100 transition"
-                    >
-                      <div>
-                        <p className="font-extrabold text-blue-950">EUR/USD H4 BOS & FVG Class Chart</p>
-                        <p className="text-[10px] text-blue-700 font-normal">Candlesticks, Break of Structure line, FVG box & Buy Limit</p>
+                    {isAdmin && (
+                      <div className="pt-2 border-t border-line">
+                        <button
+                          type="button"
+                          onClick={() => navigate("/admin/whiteboard")}
+                          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 p-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition cursor-pointer"
+                        >
+                          <ShieldCheck className="h-3.5 w-3.5 text-amber-700" /> Manage Templates in Admin Hub
+                        </button>
                       </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => { loadSampleClassChart("sample_london_sweep"); setDiagramsMenuOpen(false); }}
-                      className="flex w-full items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-2 text-left text-xs font-bold text-emerald-900 hover:bg-emerald-100 transition"
-                    >
-                      <div>
-                        <p className="font-extrabold text-emerald-950">London Asian Sweep Class Setup</p>
-                        <p className="text-[10px] text-emerald-700 font-normal">Asian range box, Judas Swing sweep arrow & reversal target</p>
-                      </div>
-                    </button>
+                    )}
                   </div>
                 )}
 
