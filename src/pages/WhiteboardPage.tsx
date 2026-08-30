@@ -6577,9 +6577,9 @@ export default function WhiteboardPage() {
       </div>
     </div>
 
-    {/* Right Inspector, Layers & Character Panel (when expanded - starts under header/avatar) */}
+    {/* Right Inspector, Layers & Character Panel (when expanded - overlays directly next to right dock without moving canvas) */}
     {isInspectorOpen && (
-      <aside className="w-72 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 shrink-0 z-30 select-none">
+      <aside className="absolute right-10 top-0 bottom-0 w-72 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none">
         {/* Panel Header & Tab Switcher */}
         <div className="flex items-center justify-between border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200">
