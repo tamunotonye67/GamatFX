@@ -1036,6 +1036,15 @@ export default function WhiteboardPage() {
   const dragStartOriginalPt = useRef<{ x: number; y: number } | null>(null);
   const lastEraserPt = useRef<{ x: number; y: number } | null>(null);
 
+  /* ------------------- LIVE POSITION SIZE & RISK CALCULATOR STATE ---------- */
+  const [calcBalance, setCalcBalance] = useState<number>(10000);
+  const [calcRiskMode, setCalcRiskMode] = useState<"percent" | "cash">("percent");
+  const [calcRiskPct, setCalcRiskPct] = useState<number>(1.0);
+  const [calcRiskCash, setCalcRiskCash] = useState<number>(100);
+  const [calcSlPips, setCalcSlPips] = useState<number>(20);
+  const [calcPair, setCalcPair] = useState<string>("EURUSD");
+  const [calcTargetRR, setCalcTargetRR] = useState<number>(3.0);
+
   // Continuous Auto-Save of Active Canvases and Open Tabs to LocalStorage (Safely placed after all state hooks)
   useEffect(() => {
     setTabs((prevTabs) => {
@@ -7778,93 +7787,307 @@ export default function WhiteboardPage() {
         )}
 
         {/* TAB 10: POSITION SIZE & FOREX RISK CALCULATOR */}
-        {tabKey === "risk_calc" && (
-          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-3 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Calculator className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Position Size Calculator
-                </span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-slate-300 text-slate-800">
-                  Live Forex Math
-                </span>
-              </div>
+        {tabKey === "risk_calc" && (() => {
+          const PAIR_CONFIG: Record<string, { label: string; pipVal: number; contract: number }> = {
+            EURUSD: { label: "EUR/USD", pipVal: 10.0, contract: 100000 },
+            GBPUSD: { label: "GBP/USD", pipVal: 10.0, contract: 100000 },
+            AUDUSD: { label: "AUD/USD", pipVal: 10.0, contract: 100000 },
+            NZDUSD: { label: "NZD/USD", pipVal: 10.0, contract: 100000 },
+            USDCAD: { label: "USD/CAD", pipVal: 7.4, contract: 100000 },
+            USDCHF: { label: "USD/CHF", pipVal: 11.2, contract: 100000 },
+            USDJPY: { label: "USD/JPY", pipVal: 6.7, contract: 100000 },
+            EURJPY: { label: "EUR/JPY", pipVal: 6.7, contract: 100000 },
+            GBPJPY: { label: "GBP/JPY", pipVal: 6.7, contract: 100000 },
+            XAUUSD: { label: "XAU/USD Gold", pipVal: 10.0, contract: 100 },
+            BTCUSD: { label: "BTC/USD Crypto", pipVal: 1.0, contract: 1 },
+            US30: { label: "US30 Dow Jones", pipVal: 1.0, contract: 1 },
+            NAS100: { label: "NAS100 Nasdaq", pipVal: 1.0, contract: 1 },
+          };
 
-              {/* Account Balance & Risk % Inputs */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-600">Account ($)</label>
-                  <input
-                    type="number"
-                    defaultValue={10000}
-                    id="calc_balance"
-                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700"
-                  />
+          const activeSpec = PAIR_CONFIG[calcPair] || PAIR_CONFIG.EURUSD;
+          const riskDollars = calcRiskMode === "percent" 
+            ? (calcBalance * calcRiskPct) / 100 
+            : calcRiskCash;
+          
+          const actualRiskPct = calcBalance > 0 ? (riskDollars / calcBalance) * 100 : 0;
+          const calculatedLots = calcSlPips > 0 && activeSpec.pipVal > 0 
+            ? riskDollars / (calcSlPips * activeSpec.pipVal) 
+            : 0;
+          
+          const standardLots = Math.max(0.01, Math.round(calculatedLots * 100) / 100);
+          const miniLots = Math.round(standardLots * 10 * 10) / 10;
+          const microLots = Math.round(standardLots * 100);
+          const units = Math.round(standardLots * activeSpec.contract);
+          const rewardDollars = riskDollars * calcTargetRR;
+          const rewardPips = calcSlPips * calcTargetRR;
+          const projectedBalanceWin = calcBalance + rewardDollars;
+          const projectedBalanceLoss = calcBalance - riskDollars;
+
+          return (
+            <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+              {/* PRIMARY CALCULATOR CONTROLS CARD */}
+              <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-3 shadow-xs">
+                <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <Calculator className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Position Size Calculator
+                  </span>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    Live Reactive Math
+                  </span>
                 </div>
+
+                {/* Account Balance & Quick Presets */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-slate-700">Account Balance ($)</label>
+                    <span className="text-[9.5px] font-mono text-slate-500 font-bold">${calcBalance.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-bold text-slate-500">$</span>
+                    <input
+                      type="number"
+                      min={100}
+                      step={500}
+                      value={calcBalance}
+                      onChange={(e) => setCalcBalance(Math.max(10, Number(e.target.value) || 0))}
+                      className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700"
+                      placeholder="10000"
+                    />
+                  </div>
+                  {/* Quick Balance Presets */}
+                  <div className="grid grid-cols-5 gap-1">
+                    {[1000, 5000, 10000, 25000, 100000].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setCalcBalance(preset)}
+                        className={`py-0.5 text-[9px] font-mono font-bold border transition cursor-pointer ${
+                          calcBalance === preset
+                            ? "bg-slate-800 text-white border-slate-800"
+                            : "bg-white hover:bg-slate-200 text-slate-700 border-slate-300"
+                        }`}
+                      >
+                        ${preset >= 1000 ? `${preset / 1000}k` : preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Instrument / Currency Pair */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-600">Risk (%)</label>
+                  <label className="text-[10px] font-bold text-slate-700">Trading Instrument</label>
                   <select
-                    id="calc_risk_pct"
-                    defaultValue="1"
+                    value={calcPair}
+                    onChange={(e) => setCalcPair(e.target.value)}
                     className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 cursor-pointer"
                   >
-                    <option value="0.5">0.5% (Conservative)</option>
-                    <option value="1">1.0% (Standard)</option>
-                    <option value="2">2.0% (Moderate)</option>
-                    <option value="3">3.0% (Aggressive)</option>
+                    {Object.entries(PAIR_CONFIG).map(([key, spec]) => (
+                      <option key={key} value={key}>
+                        {spec.label} (${spec.pipVal}/pip)
+                      </option>
+                    ))}
                   </select>
+                </div>
+
+                {/* Risk Mode (% vs $) and Stop Loss Pips */}
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Risk Section */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-slate-700">
+                        Risk ({calcRiskMode === "percent" ? "%" : "$"})
+                      </label>
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setCalcRiskMode("percent")}
+                          className={`px-1 py-0.2 text-[8.5px] font-bold cursor-pointer border ${
+                            calcRiskMode === "percent"
+                              ? "bg-slate-800 text-white border-slate-800"
+                              : "bg-white text-slate-600 border-slate-300"
+                          }`}
+                        >
+                          %
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCalcRiskMode("cash")}
+                          className={`px-1 py-0.2 text-[8.5px] font-bold cursor-pointer border ${
+                            calcRiskMode === "cash"
+                              ? "bg-slate-800 text-white border-slate-800"
+                              : "bg-white text-slate-600 border-slate-300"
+                          }`}
+                        >
+                          $
+                        </button>
+                      </div>
+                    </div>
+
+                    {calcRiskMode === "percent" ? (
+                      <input
+                        type="number"
+                        min={0.1}
+                        max={50}
+                        step={0.25}
+                        value={calcRiskPct}
+                        onChange={(e) => setCalcRiskPct(Math.max(0.01, Number(e.target.value) || 0))}
+                        className="w-full rounded-none border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 font-mono"
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        min={1}
+                        step={10}
+                        value={calcRiskCash}
+                        onChange={(e) => setCalcRiskCash(Math.max(1, Number(e.target.value) || 0))}
+                        className="w-full rounded-none border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 font-mono"
+                      />
+                    )}
+
+                    {/* Quick Risk Pill Presets */}
+                    {calcRiskMode === "percent" && (
+                      <div className="grid grid-cols-4 gap-0.5 pt-0.5">
+                        {[0.5, 1.0, 2.0, 3.0].map((pct) => (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() => setCalcRiskPct(pct)}
+                            className={`py-0.5 text-[8.5px] font-mono font-bold border transition cursor-pointer ${
+                              calcRiskPct === pct
+                                ? "bg-slate-800 text-white border-slate-800"
+                                : "bg-white hover:bg-slate-200 text-slate-600 border-slate-300"
+                            }`}
+                          >
+                            {pct}%
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stop Loss (Pips) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-700">Stop Loss (Pips)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={1000}
+                      step={1}
+                      value={calcSlPips}
+                      onChange={(e) => setCalcSlPips(Math.max(0.5, Number(e.target.value) || 0))}
+                      className="w-full rounded-none border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 font-mono"
+                    />
+                    {/* Quick SL presets */}
+                    <div className="grid grid-cols-4 gap-0.5 pt-0.5">
+                      {[10, 20, 30, 50].map((pips) => (
+                        <button
+                          key={pips}
+                          type="button"
+                          onClick={() => setCalcSlPips(pips)}
+                          className={`py-0.5 text-[8.5px] font-mono font-bold border transition cursor-pointer ${
+                            calcSlPips === pips
+                              ? "bg-slate-800 text-white border-slate-800"
+                              : "bg-white hover:bg-slate-200 text-slate-600 border-slate-300"
+                          }`}
+                        >
+                          {pips}p
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Target Risk-to-Reward (R:R) */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-slate-700">Target Risk-to-Reward (R:R)</label>
+                    <span className="text-[10px] font-mono font-bold text-blue-700">1 : {calcTargetRR}</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {[1.5, 2.0, 3.0, 4.0, 5.0].map((rr) => (
+                      <button
+                        key={rr}
+                        type="button"
+                        onClick={() => setCalcTargetRR(rr)}
+                        className={`py-1 text-[9.5px] font-mono font-bold border transition cursor-pointer ${
+                          calcTargetRR === rr
+                            ? "bg-blue-700 text-white border-blue-700"
+                            : "bg-white hover:bg-slate-200 text-slate-700 border-slate-300"
+                        }`}
+                      >
+                        1:{rr}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Stop Loss Pips & Pair */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-600">Stop Loss (Pips)</label>
-                  <input
-                    type="number"
-                    defaultValue={20}
-                    id="calc_sl_pips"
-                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700"
-                  />
+              {/* HERO RESULT DISPLAY CARD */}
+              <div className="rounded-none border border-slate-300 bg-slate-200/90 p-3 space-y-2.5 shadow-inner">
+                <div className="flex items-center justify-between border-b border-slate-300 pb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                    Recommended Position Size
+                  </span>
+                  <span className="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100 px-1 py-0.2 border border-emerald-300">
+                    {actualRiskPct.toFixed(1)}% Account Risk
+                  </span>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-600">Instrument</label>
-                  <select
-                    id="calc_pair"
-                    defaultValue="EURUSD"
-                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 cursor-pointer"
-                  >
-                    <option value="EURUSD">EUR/USD (Pip $10)</option>
-                    <option value="GBPUSD">GBP/USD (Pip $10)</option>
-                    <option value="USDJPY">USD/JPY (Pip $6.7)</option>
-                    <option value="XAUUSD">XAU/USD Gold</option>
-                    <option value="BTCUSD">BTC/USD Crypto</option>
-                  </select>
-                </div>
-              </div>
 
-              {/* Calculation Output Badge */}
-              <div className="rounded-none border border-slate-300 bg-slate-200/70 p-2.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-600 font-medium">Risk Amount:</span>
-                  <span className="font-bold text-rose-700 font-mono">$100.00 (1.0%)</span>
+                {/* Main Lot Size Hero Display */}
+                <div className="p-2.5 bg-white border border-slate-300 text-center space-y-0.5">
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Standard Lots</span>
+                  <span className="text-2xl font-black font-mono text-emerald-700 tracking-tight block">
+                    {standardLots.toFixed(2)} <span className="text-xs text-slate-600 font-bold">Lots</span>
+                  </span>
+                  <div className="flex items-center justify-center gap-3 text-[10px] font-mono text-slate-600 pt-1 border-t border-slate-100">
+                    <span><strong>{miniLots.toFixed(1)}</strong> Minis</span>
+                    <span>•</span>
+                    <span><strong>{microLots}</strong> Micros</span>
+                    <span>•</span>
+                    <span><strong>{units.toLocaleString()}</strong> Units</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-600 font-medium">Recommended Lot Size:</span>
-                  <span className="font-bold text-emerald-700 font-mono">0.50 Standard Lots</span>
+
+                {/* Risk vs Reward Metrics Matrix */}
+                <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
+                  {/* Risk Amount Box */}
+                  <div className="p-2 bg-rose-50 border border-rose-200 space-y-0.5">
+                    <span className="text-[9px] font-bold text-rose-700 block">Total Risk ($)</span>
+                    <span className="font-extrabold text-rose-800 text-sm block font-mono">
+                      -${riskDollars.toFixed(2)}
+                    </span>
+                    <span className="text-[9.5px] text-rose-600 block">
+                      -{actualRiskPct.toFixed(2)}% ({calcSlPips} Pips)
+                    </span>
+                  </div>
+
+                  {/* Reward Amount Box */}
+                  <div className="p-2 bg-emerald-50 border border-emerald-200 space-y-0.5">
+                    <span className="text-[9px] font-bold text-emerald-700 block">Target Gain ($)</span>
+                    <span className="font-extrabold text-emerald-800 text-sm block font-mono">
+                      +${rewardDollars.toFixed(2)}
+                    </span>
+                    <span className="text-[9.5px] text-emerald-600 block">
+                      +{(actualRiskPct * calcTargetRR).toFixed(2)}% ({rewardPips} Pips)
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-600 font-medium">Mini / Micro:</span>
-                  <span className="font-bold text-slate-900 font-mono">5.0 Mini / 50 Micro</span>
-                </div>
-                <div className="flex items-center justify-between text-xs border-t border-slate-300 pt-1">
-                  <span className="text-slate-600 font-medium">Target 1:3 RR Gain:</span>
-                  <span className="font-bold text-blue-700 font-mono">+$300.00 (60 Pips)</span>
+
+                {/* Account Balance Outcomes */}
+                <div className="p-2 bg-white border border-slate-300 space-y-1 text-[11px] font-mono">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-600">If Stop Loss Hit:</span>
+                    <span className="font-bold text-rose-700">${projectedBalanceLoss.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-600">If 1:{calcTargetRR} Target Hit:</span>
+                    <span className="font-bold text-emerald-700">${projectedBalanceWin.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* TAB 11: ECONOMIC NEWS CALENDAR & HIGH-IMPACT ALERTS */}
         {tabKey === "economic_calendar" && (
