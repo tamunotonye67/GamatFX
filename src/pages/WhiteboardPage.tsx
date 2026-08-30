@@ -1510,13 +1510,13 @@ export default function WhiteboardPage() {
     shapes.forEach((s) => {
       if (!s.isHidden) {
         const isSel = selectedShapeIds.includes(s.id);
-        renderWhiteboardShape(ctx, s, isSel, defaultRiskReward);
+        renderWhiteboardShape(ctx, s, isSel, defaultRiskReward, activeTool);
       }
     });
 
     // Render Currently Active In-Progress Shape
     if (currentShape) {
-      renderWhiteboardShape(ctx, currentShape, false, defaultRiskReward);
+      renderWhiteboardShape(ctx, currentShape, false, defaultRiskReward, activeTool);
     }
 
     // Render Multi-Select or Marquee Zoom Drag Box
@@ -12302,7 +12302,13 @@ function resizeShapePoints(
 }
 
 /** Renders shapes, sticky notes, and Forex Trading Tools on canvas */
-function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSelected: boolean = false, defaultRiskReward: number = 3) {
+function renderWhiteboardShape(
+  ctx: CanvasRenderingContext2D,
+  shape: Shape,
+  isSelected: boolean = false,
+  defaultRiskReward: number = 3,
+  activeToolMode: Tool = "select"
+) {
   const pts = shape.points;
   if (pts.length === 0) return;
 
@@ -13127,15 +13133,15 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
 
 
   // Render Vector Anchor Nodes when Node Tool is active
-  if (isSelected && (activeTool === "node" || activeTool === "select")) {
+  if (isSelected && (activeToolMode === "node" || activeToolMode === "select")) {
     pts.forEach((p, idx) => {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(p.x, p.y, activeTool === "node" ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, activeToolMode === "node" ? 5 : 3.5, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
       ctx.fill();
-      ctx.lineWidth = activeTool === "node" ? 2 : 1.5;
-      ctx.strokeStyle = activeTool === "node" ? "#3b82f6" : "#64748b";
+      ctx.lineWidth = activeToolMode === "node" ? 2 : 1.5;
+      ctx.strokeStyle = activeToolMode === "node" ? "#3b82f6" : "#64748b";
       ctx.stroke();
       ctx.restore();
     });
@@ -13148,11 +13154,11 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     let minY = Math.min(...pts.map((p) => p.y));
     let maxY = Math.max(...pts.map((p) => p.y));
 
-    if (shape.type === "sticky") {
-      minX = pts[0].x;
-      minY = pts[0].y;
-      maxX = pts[0].x + 180;
-      maxY = pts[0].y + 140;
+    if (shape.type === "sticky" && pts.length >= 2) {
+      minX = Math.min(pts[0].x, pts[1].x);
+      maxX = Math.max(pts[0].x, pts[1].x);
+      minY = Math.min(pts[0].y, pts[1].y);
+      maxY = Math.max(pts[0].y, pts[1].y);
     }
 
     const pad = 6;
