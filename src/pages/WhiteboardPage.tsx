@@ -5648,8 +5648,8 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside className="w-10 border-r border-line bg-white py-1 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
-          <div className="w-full flex flex-col items-center">
+            <aside className="w-10 border-r border-line bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
+          <div className="w-full flex flex-col items-center divide-y divide-line">
             <WhiteboardToolBtn
               active={activeTool === "select"}
               onClick={() => selectTool("select")}
@@ -6029,27 +6029,25 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="w-full border-t border-line py-1 flex flex-col items-center">
-            <div className="flex flex-col w-full items-center">
-              <button
-                type="button"
-                onClick={handleUndo}
-                disabled={shapes.length === 0}
-                className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
-                title="Undo (Ctrl + Z)"
-              >
-                <RotateCcw className="h-4 w-4 shrink-0" />
-              </button>
-              <button
-                type="button"
-                onClick={handleRedo}
-                disabled={redoStack.length === 0}
-                className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
-                title="Redo (Ctrl + Y)"
-              >
-                <RotateCw className="h-4 w-4 shrink-0" />
-              </button>
-            </div>
+          <div className="w-full border-t border-line flex flex-col items-center divide-y divide-line">
+            <button
+              type="button"
+              onClick={handleUndo}
+              disabled={shapes.length === 0}
+              className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+              title="Undo (Ctrl + Z)"
+            >
+              <RotateCcw className="h-4 w-4 shrink-0" />
+            </button>
+            <button
+              type="button"
+              onClick={handleRedo}
+              disabled={redoStack.length === 0}
+              className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+              title="Redo (Ctrl + Y)"
+            >
+              <RotateCw className="h-4 w-4 shrink-0" />
+            </button>
             <button
               type="button"
               onClick={handleClear}
@@ -8541,9 +8539,9 @@ export default function WhiteboardPage() {
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, and Character Panel */}
-          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-1 shrink-0 z-30 shadow-xs select-none">
+          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-0 shrink-0 z-30 shadow-xs select-none">
             {/* Top Tool Icons */}
-            <div className="flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full divide-y divide-line">
               {/* 1. Inspector Tool Button */}
               <button
                 type="button"
@@ -8614,7 +8612,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Bottom: Collapse / Expand Toggle Button */}
-            <div className="border-t border-line/60 w-full flex justify-center py-1">
+            <div className="border-t border-line w-full flex justify-center">
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
