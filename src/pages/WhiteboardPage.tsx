@@ -7579,147 +7579,199 @@ export default function WhiteboardPage() {
         {/* TAB 8: GOLDEN RATIO & GEOMETRY LAYOUTS ENGINE */}
         {tabKey === "geometry" && (
           <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
-            {/* Golden Ratio & Harmonic Spiral */}
+            {/* Golden Ratio (Phi) Harmonic Math Calculator */}
             <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Compass className="h-3.5 w-3.5 text-amber-700 stroke-[1.5]" /> Golden Ratio & Phi (Φ 1.618)
+                  <Compass className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Golden Ratio (Φ 1.618) Calculator
                 </span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300">
-                  Harmonic Math
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-slate-300 text-slate-800">
+                  Harmonics
                 </span>
               </div>
-              <p className="text-[10.5px] text-slate-600 leading-snug">
-                Construct institutional chart patterns and geometric harmonic levels using sacred geometry, dynamic symmetry, and golden section proportions.
+              <p className="text-[10.5px] text-slate-600 leading-snug font-normal">
+                Compute harmonic Fibonacci extensions, golden ratios, and dynamic geometric proportions for precise chart analysis.
               </p>
 
-              <div className="grid grid-cols-1 gap-1.5">
-                {/* Stamp Golden Spiral */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 100 - pan.x / zoom, y: 120 - pan.y / zoom };
-                    const goldenBox: Shape = {
-                      id: `shape_golden_${Date.now()}`,
-                      type: "rectangle",
-                      name: "Golden Ratio Phi Section",
-                      color: "#d97706",
-                      strokeWidth: 2,
-                      fillColor: "#fef3c7",
-                      fillStyle: "translucent",
-                      opacity: 0.25,
-                      points: [pt, { x: pt.x + 233, y: pt.y + 144 }],
-                      isLocked: false,
-                    };
-                    const goldenLabel: Shape = {
-                      id: `shape_golden_txt_${Date.now() + 1}`,
-                      type: "text",
-                      name: "Phi 1.618 Label",
-                      color: "#b45309",
-                      fontSize: 11,
-                      text: "GOLDEN SECTION (Φ 1.618 / 0.618) • Harmonic Reversal Level",
-                      points: [{ x: pt.x + 8, y: pt.y + 20 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, goldenBox, goldenLabel]);
-                    setSelectedShapeIds([goldenBox.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped Golden Ratio Matrix on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Ratio className="h-3.5 w-3.5 text-amber-700 stroke-[1.5]" /> Stamp Golden Ratio (Φ 1.618)
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">144x233</span>
-                </button>
+              {/* Live Phi Dimension Calculator */}
+              <div className="space-y-2 bg-slate-200/70 p-2.5 border border-slate-300">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                  <span className="text-slate-700">Base Unit (A):</span>
+                  <span className="font-mono text-slate-900 font-bold">100.0 px / pips</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
+                  <div className="p-1.5 bg-white border border-slate-300">
+                    <span className="text-[9px] text-slate-500 block">Golden Major (Φ 1.618)</span>
+                    <span className="font-bold text-slate-900">161.8 px</span>
+                  </div>
+                  <div className="p-1.5 bg-white border border-slate-300">
+                    <span className="text-[9px] text-slate-500 block">Golden Minor (0.618)</span>
+                    <span className="font-bold text-slate-900">61.8 px</span>
+                  </div>
+                  <div className="p-1.5 bg-white border border-slate-300">
+                    <span className="text-[9px] text-slate-500 block">Fib Extension (2.618)</span>
+                    <span className="font-bold text-slate-900">261.8 px</span>
+                  </div>
+                  <div className="p-1.5 bg-white border border-slate-300">
+                    <span className="text-[9px] text-slate-500 block">Deep Pullback (0.786)</span>
+                    <span className="font-bold text-slate-900">78.6 px</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                {/* Stamp Rule of Thirds Frame */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 120 - pan.x / zoom, y: 140 - pan.y / zoom };
-                    const thirdsBox: Shape = {
-                      id: `shape_thirds_${Date.now()}`,
-                      type: "rectangle",
-                      name: "Rule of Thirds Matrix",
-                      color: "#0284c7",
-                      strokeWidth: 1.5,
-                      fillColor: "#e0f2fe",
-                      fillStyle: "translucent",
-                      opacity: 0.2,
-                      points: [pt, { x: pt.x + 270, y: pt.y + 180 }],
-                      isLocked: false,
-                    };
-                    const line1: Shape = {
-                      id: `shape_thirds_l1_${Date.now() + 1}`,
-                      type: "line",
-                      name: "Thirds V1",
-                      color: "#0284c7",
-                      strokeWidth: 1,
-                      points: [{ x: pt.x + 90, y: pt.y }, { x: pt.x + 90, y: pt.y + 180 }],
-                      isLocked: false,
-                    };
-                    const line2: Shape = {
-                      id: `shape_thirds_l2_${Date.now() + 2}`,
-                      type: "line",
-                      name: "Thirds V2",
-                      color: "#0284c7",
-                      strokeWidth: 1,
-                      points: [{ x: pt.x + 180, y: pt.y }, { x: pt.x + 180, y: pt.y + 180 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, thirdsBox, line1, line2]);
-                    setSelectedShapeIds([thirdsBox.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped Rule of Thirds Matrix on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Grid className="h-3.5 w-3.5 text-sky-700 stroke-[1.5]" /> Stamp Rule of Thirds Grid
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">3x3</span>
-                </button>
+            {/* Geometric Composition & Symmetry Analyzer */}
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Grid className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Canvas Composition Matrix
+                </span>
+                <span className="text-[9px] text-slate-500 font-mono">Layout Guides</span>
+              </div>
 
-                {/* Stamp Dynamic Symmetry Armature */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 140 - pan.x / zoom, y: 160 - pan.y / zoom };
-                    const diag1: Shape = {
-                      id: `shape_sym_d1_${Date.now()}`,
-                      type: "line",
-                      name: "Harmonic Diagonal 1",
-                      color: "#9333ea",
-                      strokeWidth: 1.5,
-                      points: [pt, { x: pt.x + 240, y: pt.y + 160 }],
-                      isLocked: false,
-                    };
-                    const diag2: Shape = {
-                      id: `shape_sym_d2_${Date.now() + 1}`,
-                      type: "line",
-                      name: "Harmonic Diagonal 2",
-                      color: "#9333ea",
-                      strokeWidth: 1.5,
-                      points: [{ x: pt.x + 240, y: pt.y }, { x: pt.x, y: pt.y + 160 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, diag1, diag2]);
-                    setSelectedShapeIds([diag1.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped Dynamic Symmetry Armature on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Compass className="h-3.5 w-3.5 text-purple-700 stroke-[1.5]" /> Dynamic Symmetry Armature
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">Diagonals</span>
-                </button>
+              <div className="space-y-1.5 text-xs text-slate-700">
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300">
+                  <div>
+                    <p className="font-bold text-slate-900">Rule of Thirds</p>
+                    <p className="text-[10px] text-slate-600">3x3 harmonic focal intersection power points</p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-800">1:1:1 Ratio</span>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300">
+                  <div>
+                    <p className="font-bold text-slate-900">Dynamic Symmetry</p>
+                    <p className="text-[10px] text-slate-600">Root-2 & Root-3 harmonic diagonal armatures</p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-800">1.414 / 1.732</span>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300">
+                  <div>
+                    <p className="font-bold text-slate-900">Isometric Projection</p>
+                    <p className="text-[10px] text-slate-600">30° / 60° isometric spatial perspective</p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-slate-800">30° Grid</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 9: MARKET SESSIONS & KILLZONES RADAR */}
+        {tabKey === "sessions" && (
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+            {/* LIVE MARKET SESSIONS CLOCK CARD */}
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-2">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Market Sessions Radar
+                </span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  UTC / GMT Live
+                </span>
+              </div>
+
+              {/* 4 Sessions Live Status Feed */}
+              <div className="space-y-1.5">
+                {/* London Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <div>
+                      <p className="font-bold text-slate-900">London Session</p>
+                      <p className="text-[10px] text-slate-600">08:00 – 16:00 GMT • High Volume</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 block">ACTIVE</span>
+                    <span className="text-[8.5px] text-slate-500 font-mono">Vol: 88%</span>
+                  </div>
+                </div>
+
+                {/* New York Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-blue-500" />
+                    <div>
+                      <p className="font-bold text-slate-900">New York Session</p>
+                      <p className="text-[10px] text-slate-600">13:00 – 21:00 GMT • Peak Overlap</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9.5px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 border border-blue-200 block">ACTIVE</span>
+                    <span className="text-[8.5px] text-slate-500 font-mono">Vol: 94%</span>
+                  </div>
+                </div>
+
+                {/* Asian / Tokyo Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-800">Tokyo / Asian Session</p>
+                      <p className="text-[10px] text-slate-600">00:00 – 08:00 GMT • Accumulation</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300 block">CLOSED</span>
+                    <span className="text-[8.5px] text-slate-500 font-mono">Opens in 1h</span>
+                  </div>
+                </div>
+
+                {/* Sydney Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-800">Sydney Session</p>
+                      <p className="text-[10px] text-slate-600">22:00 – 07:00 GMT • Early Flow</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300 block">CLOSED</span>
+                    <span className="text-[8.5px] text-slate-500 font-mono">Opens in 22:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ICT / SMC KILLZONE WINDOWS SCHEDULE */}
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> ICT Killzone Windows
+                </span>
+                <span className="text-[9px] text-slate-500 font-mono">Algorithmic Times</span>
+              </div>
+
+              <div className="space-y-1 text-xs">
+                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-slate-900 block">London Open Killzone</span>
+                    <span className="text-[10px] text-slate-500">Judas Swing & Initial High/Low Formation</span>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-slate-700">07:00–10:00 GMT</span>
+                </div>
+                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-slate-900 block">New York AM Killzone</span>
+                    <span className="text-[10px] text-slate-500">Peak Session Expansion & Trend Run</span>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-slate-700">12:00–15:00 GMT</span>
+                </div>
+                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-slate-900 block">Silver Bullet Window</span>
+                    <span className="text-[10px] text-slate-500">1-Hour Algorithmic FVG Delivery</span>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-slate-700">14:00–15:00 GMT</span>
+                </div>
+                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-slate-900 block">Asian Range Benchmark</span>
+                    <span className="text-[10px] text-slate-500">Accumulation Range High/Low Targets</span>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-slate-700">00:00–06:00 GMT</span>
+                </div>
               </div>
             </div>
           </div>
@@ -7795,43 +7847,21 @@ export default function WhiteboardPage() {
               <div className="rounded-none border border-slate-300 bg-slate-200/70 p-2.5 space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-600 font-medium">Risk Amount:</span>
-                  <span className="font-bold text-rose-700">$100.00 (1.0%)</span>
+                  <span className="font-bold text-rose-700 font-mono">$100.00 (1.0%)</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-600 font-medium">Recommended Lot Size:</span>
-                  <span className="font-bold text-emerald-700">0.50 Standard Lots</span>
+                  <span className="font-bold text-emerald-700 font-mono">0.50 Standard Lots</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-600 font-medium">Mini / Micro:</span>
-                  <span className="font-bold text-slate-900">5.0 Mini / 50 Micro</span>
+                  <span className="font-bold text-slate-900 font-mono">5.0 Mini / 50 Micro</span>
+                </div>
+                <div className="flex items-center justify-between text-xs border-t border-slate-300 pt-1">
+                  <span className="text-slate-600 font-medium">Target 1:3 RR Gain:</span>
+                  <span className="font-bold text-blue-700 font-mono">+$300.00 (60 Pips)</span>
                 </div>
               </div>
-
-              {/* Stamp Calculation Onto Canvas */}
-              <button
-                type="button"
-                onClick={() => {
-                  const pt = { x: 100 - pan.x / zoom, y: 100 - pan.y / zoom };
-                  const riskCard: Shape = {
-                    id: `shape_risk_${Date.now()}`,
-                    type: "annotation",
-                    name: "Risk & Lot Badge",
-                    color: "#10b981",
-                    strokeWidth: 2,
-                    text: "RISK SETUP: $100 (1%) • 0.50 Lots • 20 Pips SL (1:3 RR Target)",
-                    points: [pt, { x: pt.x + 80, y: pt.y - 40 }],
-                    isLocked: false,
-                  };
-                  setShapes((prev) => [...prev, riskCard]);
-                  setSelectedShapeIds([riskCard.id]);
-                  setIsInspectorOpen(true);
-                  setRightPanelTab("inspector");
-                  showToast("Stamped Risk & Lot Size badge on canvas!");
-                }}
-                className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer rounded-none"
-              >
-                <Calculator className="h-3.5 w-3.5" /> Stamp Risk Badge on Canvas
-              </button>
             </div>
           </div>
         )}
@@ -7842,335 +7872,61 @@ export default function WhiteboardPage() {
             <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" /> High-Impact Red Folders
+                  <Calendar className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Economic Releases Schedule
                 </span>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-300">
-                  Volatility Risk
+                  High Impact
                 </span>
               </div>
               <p className="text-[10.5px] text-slate-600 leading-snug">
-                Stamp upcoming high-impact economic news releases and post-news algorithmic volatility markers on your charts.
+                Real-time tracking of institutional economic data releases and high-volatility news events.
               </p>
 
               <div className="space-y-1.5">
-                {/* Stamp US Non-Farm Payrolls (NFP) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 120 - pan.x / zoom, y: 130 - pan.y / zoom };
-                    const nfpBadge: Shape = {
-                      id: `shape_nfp_${Date.now()}`,
-                      type: "annotation",
-                      name: "US NFP News Alert",
-                      color: "#e11d48",
-                      strokeWidth: 2,
-                      text: "🔴 US NON-FARM PAYROLLS (NFP) • 13:30 GMT • High Volatility Flash",
-                      points: [pt, { x: pt.x + 110, y: pt.y - 35 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, nfpBadge]);
-                    setSelectedShapeIds([nfpBadge.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped US NFP News Alert on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Flame className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" /> US Non-Farm Payrolls (NFP)
-                  </span>
-                  <span className="text-[10px] font-mono text-rose-700">13:30 GMT</span>
-                </button>
-
-                {/* Stamp CPI Inflation Report */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 140 - pan.x / zoom, y: 150 - pan.y / zoom };
-                    const cpiBadge: Shape = {
-                      id: `shape_cpi_${Date.now()}`,
-                      type: "annotation",
-                      name: "US CPI Inflation Alert",
-                      color: "#e11d48",
-                      strokeWidth: 2,
-                      text: "🔴 US CPI INFLATION DATA (MoM / YoY) • 13:30 GMT • Rate Driver",
-                      points: [pt, { x: pt.x + 110, y: pt.y - 35 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, cpiBadge]);
-                    setSelectedShapeIds([cpiBadge.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped US CPI Inflation Alert on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Flame className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" /> US CPI Inflation (YoY)
-                  </span>
-                  <span className="text-[10px] font-mono text-rose-700">13:30 GMT</span>
-                </button>
-
-                {/* Stamp FOMC Interest Rate Decision */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 160 - pan.x / zoom, y: 170 - pan.y / zoom };
-                    const fomcBadge: Shape = {
-                      id: `shape_fomc_${Date.now()}`,
-                      type: "annotation",
-                      name: "FOMC Rate Decision",
-                      color: "#9333ea",
-                      strokeWidth: 2,
-                      text: "🟣 FOMC INTEREST RATE DECISION & PRESS CONF • 19:00 GMT",
-                      points: [pt, { x: pt.x + 120, y: pt.y - 35 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, fomcBadge]);
-                    setSelectedShapeIds([fomcBadge.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped FOMC Rate Decision on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-950 border border-purple-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldAlert className="h-3.5 w-3.5 text-purple-600 stroke-[1.5]" /> FOMC Rate Decision
-                  </span>
-                  <span className="text-[10px] font-mono text-purple-700">19:00 GMT</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 8: MARKET SESSIONS & KILLZONES RADAR */}
-        {tabKey === "sessions" && (
-          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
-            {/* LIVE MARKET SESSIONS CLOCK CARD */}
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-2">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Market Sessions Radar
-                </span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  UTC / GMT Live
-                </span>
-              </div>
-
-              {/* 4 Sessions Overview */}
-              <div className="space-y-1.5">
-                {/* London Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <div>
-                      <p className="font-bold text-slate-900">London Session</p>
-                      <p className="text-[10px] text-slate-600">08:00 – 16:00 GMT • High Volume</p>
-                    </div>
+                {/* US Non-Farm Payrolls (NFP) */}
+                <div className="p-2 bg-white border border-slate-300 text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <Flame className="h-3 w-3 text-rose-600" /> US Non-Farm Payrolls (NFP)
+                    </span>
+                    <span className="text-[9px] font-mono font-bold bg-rose-100 text-rose-700 px-1 py-0.2">HIGH</span>
                   </div>
-                  <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 border border-emerald-200">ACTIVE</span>
+                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 font-mono">
+                    <span>Time: 13:30 GMT</span>
+                    <span>Consensus: 185K</span>
+                    <span>Prev: 175K</span>
+                  </div>
                 </div>
 
-                {/* New York Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-500" />
-                    <div>
-                      <p className="font-bold text-slate-900">New York Session</p>
-                      <p className="text-[10px] text-slate-600">13:00 – 21:00 GMT • Peak Overlap</p>
-                    </div>
+                {/* CPI Inflation Report */}
+                <div className="p-2 bg-white border border-slate-300 text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <Flame className="h-3 w-3 text-rose-600" /> US CPI Inflation Rate (YoY)
+                    </span>
+                    <span className="text-[9px] font-mono font-bold bg-rose-100 text-rose-700 px-1 py-0.2">HIGH</span>
                   </div>
-                  <span className="text-[9.5px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 border border-blue-200">ACTIVE</span>
+                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 font-mono">
+                    <span>Time: 13:30 GMT</span>
+                    <span>Consensus: 3.1%</span>
+                    <span>Prev: 3.4%</span>
+                  </div>
                 </div>
 
-                {/* Asian / Tokyo Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-slate-400" />
-                    <div>
-                      <p className="font-bold text-slate-800">Tokyo / Asian Session</p>
-                      <p className="text-[10px] text-slate-600">00:00 – 08:00 GMT • Accumulation</p>
-                    </div>
+                {/* FOMC Rate Decision */}
+                <div className="p-2 bg-white border border-slate-300 text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <ShieldAlert className="h-3 w-3 text-purple-600" /> FOMC Interest Rate Decision
+                    </span>
+                    <span className="text-[9px] font-mono font-bold bg-purple-100 text-purple-700 px-1 py-0.2">HIGH</span>
                   </div>
-                  <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300">CLOSED</span>
-                </div>
-
-                {/* Sydney Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-slate-400" />
-                    <div>
-                      <p className="font-bold text-slate-800">Sydney Session</p>
-                      <p className="text-[10px] text-slate-600">22:00 – 07:00 GMT • Early Flow</p>
-                    </div>
+                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 font-mono">
+                    <span>Time: 19:00 GMT</span>
+                    <span>Forecast: 5.25%</span>
+                    <span>Prev: 5.25%</span>
                   </div>
-                  <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300">CLOSED</span>
                 </div>
-              </div>
-            </div>
-
-            {/* ICT / SMC KILLZONE STAMP BUTTONS */}
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Stamp Session Killzones
-                </span>
-                <span className="text-[9px] text-slate-500 font-mono">1-Click Stamp</span>
-              </div>
-
-              <div className="grid grid-cols-1 gap-1.5">
-                {/* Stamp London Killzone Box */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 120 - pan.x / zoom, y: 140 - pan.y / zoom };
-                    const londonBox: Shape = {
-                      id: `shape_london_${Date.now()}`,
-                      type: "rectangle",
-                      name: "London Open Killzone",
-                      color: "#10b981",
-                      strokeWidth: 1.5,
-                      fillColor: "#10b981",
-                      fillStyle: "translucent",
-                      opacity: 0.18,
-                      points: [pt, { x: pt.x + 180, y: pt.y + 120 }],
-                      isLocked: false,
-                    };
-                    const label: Shape = {
-                      id: `shape_london_txt_${Date.now() + 1}`,
-                      type: "text",
-                      name: "London Label",
-                      color: "#047857",
-                      fontSize: 11,
-                      text: "LONDON KILLZONE (07:00-10:00 GMT)",
-                      points: [{ x: pt.x + 5, y: pt.y + 18 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, londonBox, label]);
-                    setSelectedShapeIds([londonBox.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped London Killzone on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Sun className="h-3.5 w-3.5 text-emerald-700 stroke-[1.5]" /> London Open Killzone
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">07:00–10:00</span>
-                </button>
-
-                {/* Stamp NY Killzone Box */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 160 - pan.x / zoom, y: 180 - pan.y / zoom };
-                    const nyBox: Shape = {
-                      id: `shape_ny_${Date.now()}`,
-                      type: "rectangle",
-                      name: "NY AM Killzone",
-                      color: "#3b82f6",
-                      strokeWidth: 1.5,
-                      fillColor: "#3b82f6",
-                      fillStyle: "translucent",
-                      opacity: 0.18,
-                      points: [pt, { x: pt.x + 180, y: pt.y + 120 }],
-                      isLocked: false,
-                    };
-                    const label: Shape = {
-                      id: `shape_ny_txt_${Date.now() + 1}`,
-                      type: "text",
-                      name: "NY Label",
-                      color: "#1d4ed8",
-                      fontSize: 11,
-                      text: "NEW YORK AM KILLZONE (12:00-15:00 GMT)",
-                      points: [{ x: pt.x + 5, y: pt.y + 18 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, nyBox, label]);
-                    setSelectedShapeIds([nyBox.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped NY AM Killzone on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Globe className="h-3.5 w-3.5 text-blue-700 stroke-[1.5]" /> New York AM Killzone
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">12:00–15:00</span>
-                </button>
-
-                {/* Stamp Asian Range Accumulation Box */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 80 - pan.x / zoom, y: 100 - pan.y / zoom };
-                    const asianBox: Shape = {
-                      id: `shape_asian_${Date.now()}`,
-                      type: "rectangle",
-                      name: "Asian Range Box",
-                      color: "#8b5cf6",
-                      strokeWidth: 1.5,
-                      fillColor: "#8b5cf6",
-                      fillStyle: "translucent",
-                      opacity: 0.16,
-                      points: [pt, { x: pt.x + 160, y: pt.y + 90 }],
-                      isLocked: false,
-                    };
-                    const label: Shape = {
-                      id: `shape_asian_txt_${Date.now() + 1}`,
-                      type: "text",
-                      name: "Asian Label",
-                      color: "#6d28d9",
-                      fontSize: 11,
-                      text: "ASIAN RANGE ACCUMULATION (00:00-06:00 GMT)",
-                      points: [{ x: pt.x + 5, y: pt.y + 18 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, asianBox, label]);
-                    setSelectedShapeIds([asianBox.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped Asian Range on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Moon className="h-3.5 w-3.5 text-purple-700 stroke-[1.5]" /> Asian Accumulation Range
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">00:00–06:00</span>
-                </button>
-
-                {/* Stamp Silver Bullet Window */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pt = { x: 140 - pan.x / zoom, y: 150 - pan.y / zoom };
-                    const sbCard: Shape = {
-                      id: `shape_sb_${Date.now()}`,
-                      type: "annotation",
-                      name: "Silver Bullet Zone",
-                      color: "#f59e0b",
-                      strokeWidth: 2,
-                      text: "ICT SILVER BULLET (14:00 - 15:00 GMT) • 1-Hr FVG Setup Window",
-                      points: [pt, { x: pt.x + 100, y: pt.y - 35 }],
-                      isLocked: false,
-                    };
-                    setShapes((prev) => [...prev, sbCard]);
-                    setSelectedShapeIds([sbCard.id]);
-                    setIsInspectorOpen(true);
-                    setRightPanelTab("inspector");
-                    showToast("Stamped Silver Bullet Window on Canvas");
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <Clock className="h-3.5 w-3.5 text-amber-700 stroke-[1.5]" /> Silver Bullet Window
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-600">14:00–15:00</span>
-                </button>
               </div>
             </div>
           </div>
