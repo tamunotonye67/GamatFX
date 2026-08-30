@@ -11624,13 +11624,36 @@ function WhiteboardToolBtn({
   showTooltips: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const explanation = TOOL_EXPLANATIONS[toolKey];
+
+  const handleMouseEnter = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    // Delay preview by 750ms so it doesn't pop up immediately while moving or right-clicking
+    hoverTimer.current = setTimeout(() => {
+      setIsHovered(true);
+    }, 750);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimer.current) {
+      clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+    setIsHovered(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    };
+  }, []);
 
   return (
     <div
       className="relative w-full group flex items-center justify-center"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button
         type="button"
