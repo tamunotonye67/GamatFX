@@ -287,10 +287,18 @@ type Shape = {
   type: Tool;
   name?: string;
   color: string;
+  strokeColor?: string;
   fillColor?: string;
+  fillStyle?: "solid" | "gradient" | "none" | "translucent";
+  gradientEndColor?: string;
+  opacity?: number;
+  cornerRadius?: number;
   strokeWidth: number;
   lineStyle?: "solid" | "dashed";
   candleStyle?: "solid" | "translucent" | "hollow";
+  upperWickLength?: number;
+  lowerWickLength?: number;
+  wickColor?: string;
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
@@ -534,6 +542,74 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
     ],
   },
 ];
+
+/* ========================================================================== */
+/*                      FIGMA-STYLE ALIGNMENT SVG ICONS                       */
+/* ========================================================================== */
+
+const AlignLeftIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2.5" y1="2" x2="2.5" y2="14" strokeWidth="2" />
+    <rect x="5.5" y="4" width="8" height="3" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+    <rect x="5.5" y="9" width="5" height="3" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const AlignCenterHIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="8" y1="2" x2="8" y2="14" strokeDasharray="2 2" strokeWidth="1.25" />
+    <rect x="3.5" y="4" width="9" height="3" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+    <rect x="5" y="9" width="6" height="3" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const AlignRightIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="13.5" y1="2" x2="13.5" y2="14" strokeWidth="2" />
+    <rect x="2.5" y="4" width="8" height="3" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+    <rect x="5.5" y="9" width="5" height="3" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const AlignTopIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2" y1="2.5" x2="14" y2="2.5" strokeWidth="2" />
+    <rect x="4" y="5.5" width="3" height="8" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+    <rect x="9" y="5.5" width="3" height="5" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const AlignMiddleVIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2" y1="8" x2="14" y2="8" strokeDasharray="2 2" strokeWidth="1.25" />
+    <rect x="4" y="3.5" width="3" height="9" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+    <rect x="9" y="5" width="3" height="6" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const AlignBottomIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2" y1="13.5" x2="14" y2="13.5" strokeWidth="2" />
+    <rect x="4" y="2.5" width="3" height="8" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+    <rect x="9" y="5.5" width="3" height="5" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const DistributeHIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2" y1="2" x2="2" y2="14" strokeWidth="1.5" />
+    <line x1="14" y1="2" x2="14" y2="14" strokeWidth="1.5" />
+    <rect x="6" y="4" width="4" height="8" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
+
+const DistributeVIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="2" y1="2" x2="14" y2="2" strokeWidth="1.5" />
+    <line x1="2" y1="14" x2="14" y2="14" strokeWidth="1.5" />
+    <rect x="4" y="6" width="8" height="4" rx="0.75" fill="currentColor" fillOpacity="0.25" />
+  </svg>
+);
 
 /* ========================================================================== */
 /*                      FIGMA-STYLE WHITEBOARD HUB TYPES & DATA               */
@@ -1295,6 +1371,14 @@ export default function WhiteboardPage() {
   const [strokeColor, setStrokeColor] = useState("#dc3545");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
+  const [fillColor, setFillColor] = useState("#3b82f6");
+  const [fillStyle, setFillStyle] = useState<"solid" | "gradient" | "none" | "translucent">("translucent");
+  const [gradientEndColor, setGradientEndColor] = useState("#8b5cf6");
+  const [opacity, setOpacity] = useState<number>(1);
+  const [cornerRadius, setCornerRadius] = useState<number>(4);
+  const [upperWickLength, setUpperWickLength] = useState<number>(25);
+  const [lowerWickLength, setLowerWickLength] = useState<number>(25);
+  const [wickColor, setWickColor] = useState<string>("#10b981");
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
   const [stickyColor, setStickyColor] = useState<StickyColor>("#fef08a");
   const [zoom, setZoom] = useState(1);
@@ -2371,7 +2455,87 @@ export default function WhiteboardPage() {
     setStrokeColor(color);
     if (selectedShapeIds.length > 0) {
       setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, color } : s))
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, color, strokeColor: color } : s))
+      );
+    }
+  };
+
+  const applyFillColorToSelected = (fColor: string) => {
+    setFillColor(fColor);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, fillColor: fColor } : s))
+      );
+    }
+  };
+
+  const applyFillStyleToSelected = (fStyle: "solid" | "gradient" | "none" | "translucent") => {
+    setFillStyle(fStyle);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) =>
+          selectedShapeIds.includes(s.id) && !s.isLocked
+            ? {
+                ...s,
+                fillStyle: fStyle,
+                candleStyle: fStyle === "none" ? "hollow" : fStyle === "solid" ? "solid" : "translucent",
+              }
+            : s
+        )
+      );
+    }
+  };
+
+  const applyGradientEndColorToSelected = (gColor: string) => {
+    setGradientEndColor(gColor);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, gradientEndColor: gColor } : s))
+      );
+    }
+  };
+
+  const applyOpacityToSelected = (op: number) => {
+    setOpacity(op);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, opacity: op } : s))
+      );
+    }
+  };
+
+  const applyCornerRadiusToSelected = (rad: number) => {
+    setCornerRadius(rad);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, cornerRadius: rad } : s))
+      );
+    }
+  };
+
+  const applyUpperWickLengthToSelected = (len: number) => {
+    setUpperWickLength(len);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, upperWickLength: len } : s))
+      );
+    }
+  };
+
+  const applyLowerWickLengthToSelected = (len: number) => {
+    setLowerWickLength(len);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lowerWickLength: len } : s))
+      );
+    }
+  };
+
+  const applyWickColorToSelected = (wColor: string) => {
+    setWickColor(wColor);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, wickColor: wColor } : s))
       );
     }
   };
@@ -2383,6 +2547,96 @@ export default function WhiteboardPage() {
         prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, stickyColor: sColor } : s))
       );
     }
+  };
+
+  /* Alignment Engine (Figma-Standard: Align to selection bounding box / distribute evenly) */
+  const handleAlignShapes = (alignType: "left" | "centerH" | "right" | "top" | "middleV" | "bottom" | "distributeH" | "distributeV") => {
+    const targetIds = selectedShapeIds.length > 0 ? selectedShapeIds : selectedShapeId ? [selectedShapeId] : [];
+    if (targetIds.length === 0) return;
+
+    setShapes((prev) => {
+      const activeShapes = prev.filter((s) => targetIds.includes(s.id) && !s.isLocked);
+      if (activeShapes.length === 0) return prev;
+
+      // Compute bounding boxes for all active selected shapes
+      const bboxes = activeShapes.map((s) => {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        s.points.forEach((p) => {
+          if (p.x < minX) minX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y > maxY) maxY = p.y;
+        });
+        if (!isFinite(minX)) { minX = 0; minY = 0; maxX = 50; maxY = 50; }
+        return {
+          id: s.id,
+          minX,
+          minY,
+          maxX,
+          maxY,
+          w: Math.max(1, maxX - minX),
+          h: Math.max(1, maxY - minY),
+          cx: (minX + maxX) / 2,
+          cy: (minY + maxY) / 2,
+        };
+      });
+
+      const overallMinX = Math.min(...bboxes.map((b) => b.minX));
+      const overallMaxX = Math.max(...bboxes.map((b) => b.maxX));
+      const overallMinY = Math.min(...bboxes.map((b) => b.minY));
+      const overallMaxY = Math.max(...bboxes.map((b) => b.maxY));
+      const overallCx = (overallMinX + overallMaxX) / 2;
+      const overallCy = (overallMinY + overallMaxY) / 2;
+
+      const offsets = new Map<string, { dx: number; dy: number }>();
+
+      if (alignType === "left") {
+        bboxes.forEach((b) => offsets.set(b.id, { dx: overallMinX - b.minX, dy: 0 }));
+      } else if (alignType === "centerH") {
+        bboxes.forEach((b) => offsets.set(b.id, { dx: overallCx - b.cx, dy: 0 }));
+      } else if (alignType === "right") {
+        bboxes.forEach((b) => offsets.set(b.id, { dx: overallMaxX - b.maxX, dy: 0 }));
+      } else if (alignType === "top") {
+        bboxes.forEach((b) => offsets.set(b.id, { dx: 0, dy: overallMinY - b.minY }));
+      } else if (alignType === "middleV") {
+        bboxes.forEach((b) => offsets.set(b.id, { dx: 0, dy: overallCy - b.cy }));
+      } else if (alignType === "bottom") {
+        bboxes.forEach((b) => offsets.set(b.id, { dx: 0, dy: overallMaxY - b.maxY }));
+      } else if (alignType === "distributeH" && bboxes.length >= 2) {
+        const sorted = [...bboxes].sort((a, b) => a.minX - b.minX);
+        const totalW = sorted.reduce((sum, b) => sum + b.w, 0);
+        const totalGap = (overallMaxX - overallMinX) - totalW;
+        const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+        let curX = overallMinX;
+        sorted.forEach((b) => {
+          offsets.set(b.id, { dx: curX - b.minX, dy: 0 });
+          curX += b.w + gap;
+        });
+      } else if (alignType === "distributeV" && bboxes.length >= 2) {
+        const sorted = [...bboxes].sort((a, b) => a.minY - b.minY);
+        const totalH = sorted.reduce((sum, b) => sum + b.h, 0);
+        const totalGap = (overallMaxY - overallMinY) - totalH;
+        const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+        let curY = overallMinY;
+        sorted.forEach((b) => {
+          offsets.set(b.id, { dx: 0, dy: curY - b.minY });
+          curY += b.h + gap;
+        });
+      }
+
+      return prev.map((s) => {
+        const off = offsets.get(s.id);
+        if (!off || (off.dx === 0 && off.dy === 0)) return s;
+        return {
+          ...s,
+          points: s.points.map((p) => ({
+            x: Math.round(p.x + off.dx),
+            y: Math.round(p.y + off.dy),
+          })),
+        };
+      });
+    });
+    showToast(`Aligned object(s): ${alignType}`);
   };
 
   /* Tab Management Functions with Custom Tab Name Input Modal & MAX 5 TABS PROMPT */
@@ -6796,6 +7050,88 @@ export default function WhiteboardPage() {
                         </div>
                       </div>
 
+                      {/* 1. FIGMA-STYLE ALIGNMENT TOOLBAR (USING CRISP ICONS) */}
+                      <div className="rounded-2xl border border-line bg-white p-2.5 shadow-2xs space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted px-1">
+                          <span>Alignment</span>
+                          <span className="text-[9px] text-muted font-medium">Position & Distribute</span>
+                        </div>
+                        <div className="grid grid-cols-8 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("left")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Left"
+                          >
+                            <AlignLeftIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("centerH")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Horizontal Center"
+                          >
+                            <AlignCenterHIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("right")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Right"
+                          >
+                            <AlignRightIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("top")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Top"
+                          >
+                            <AlignTopIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("middleV")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Vertical Center"
+                          >
+                            <AlignMiddleVIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("bottom")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Align Bottom"
+                          >
+                            <AlignBottomIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("distributeH")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Distribute Horizontally"
+                          >
+                            <DistributeHIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAlignShapes("distributeV")}
+                            disabled={!selectedShape || selectedShape.isLocked}
+                            className="p-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-slate-700 transition flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Distribute Vertically"
+                          >
+                            <DistributeVIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
                       {/* 2. FIGMA TRANSFORM / BOUNDS (Fully editable dimensions and position from inspection panel) */}
                       {selectedShape && pts.length > 0 && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
@@ -6957,8 +7293,8 @@ export default function WhiteboardPage() {
                                         return {
                                           ...s,
                                           points: sPts.map((p) => ({
-                                            x: isAspectLocked ? Math.round(minX + (p.x - minX) * scaleX) : p.x,
-                                            y: Math.round(minY + (p.y - minY) * scaleY),
+                                            x: Math.round(minX + (p.x - minX) * scaleX),
+                                            y: isAspectLocked ? Math.round(minY + (p.y - minY) * scaleY) : p.y,
                                           })),
                                         };
                                       }
@@ -6978,263 +7314,454 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
-                      {/* 3. CONTEXT-SPECIFIC PROPERTY CONTROLS (Figma Standard: Only relevant controls appear!) */}
-
-                      {/* (A) FREEHAND DRAWING TOOLS: Pencil & Highlighter */}
-                      {(targetTool === "pencil" || targetTool === "highlighter") && (
+                      {/* 3. FILL & COLOR SYSTEM (SOLID / GRADIENT / TRANSLUCENT / NONE WITH COLOR PICKER) */}
+                      {(targetTool === "rectangle" || targetTool === "circle" || targetTool === "diamond" || targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bullish_candle" || targetTool === "bearish_candle" || targetTool === "sticky") && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
-                            {targetTool === "highlighter" ? "Highlighter Style" : "Brush & Stroke"}
-                          </p>
-
-                          {/* Stroke Palette */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
+                          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                            <span>Fill & Gradient</span>
+                            <span className="text-[9px] font-bold text-brand uppercase">{selectedShape?.fillStyle || fillStyle}</span>
                           </div>
 
-                          {/* Stroke Width */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                              <span>Stroke Width</span>
-                              <strong className="text-brand">{targetTool === "highlighter" ? "18px" : `${strokeWidth}px`}</strong>
-                            </label>
-                            {targetTool === "pencil" ? (
-                              <div className="grid grid-cols-4 gap-1.5">
-                                {[1, 2, 4, 6].map((w) => (
+                          {/* Mode Switch: Solid / Gradient / Soft / None */}
+                          <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-xl">
+                            {(["translucent", "solid", "gradient", "none"] as const).map((styleOpt) => (
+                              <button
+                                key={styleOpt}
+                                type="button"
+                                onClick={() => applyFillStyleToSelected(styleOpt)}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1 rounded-lg text-[10px] font-bold capitalize transition cursor-pointer ${
+                                  (selectedShape?.fillStyle || fillStyle) === styleOpt
+                                    ? "bg-white text-ink shadow-xs"
+                                    : "text-muted hover:text-ink"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                {styleOpt === "translucent" ? "Soft" : styleOpt}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Primary Fill Color */}
+                          {(selectedShape?.fillStyle || fillStyle) !== "none" && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>{(selectedShape?.fillStyle || fillStyle) === "gradient" ? "Start Fill Color" : "Fill Color"}</span>
+                                <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.fillColor || fillColor}</span>
+                              </label>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {PALETTE.map((c) => (
                                   <button
-                                    key={w}
+                                    key={c}
                                     type="button"
-                                    onClick={() => {
-                                      setStrokeWidth(w);
-                                      if (selectedShapeIds.length > 0) {
-                                        setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                                      }
-                                    }}
+                                    onClick={() => applyFillColorToSelected(c)}
                                     disabled={selectedShape?.isLocked}
-                                    className={`py-1 rounded-lg text-xs font-extrabold transition ${
-                                      strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                    className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                      (selectedShape?.fillColor || fillColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
                                     } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  >
-                                    {w}px
-                                  </button>
+                                    style={{ background: c }}
+                                  />
                                 ))}
+                                <label
+                                  className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                                  title="Custom Hex Fill Color Picker"
+                                >
+                                  <input
+                                    type="color"
+                                    value={selectedShape?.fillColor || fillColor}
+                                    onChange={(e) => applyFillColorToSelected(e.target.value)}
+                                    disabled={selectedShape?.isLocked}
+                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                  />
+                                  <span
+                                    className="w-full h-full rounded-full border"
+                                    style={{ background: selectedShape?.fillColor || fillColor }}
+                                  />
+                                </label>
                               </div>
-                            ) : (
-                              <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 font-medium">
-                                Soft 45% translucent neon highlight overlay with broad tip.
+                            </div>
+                          )}
+
+                          {/* Secondary Gradient End Color */}
+                          {(selectedShape?.fillStyle || fillStyle) === "gradient" && (
+                            <div className="pt-2 border-t border-line animate-in fade-in">
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Gradient End Color</span>
+                                <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.gradientEndColor || gradientEndColor}</span>
+                              </label>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {PALETTE.map((c) => (
+                                  <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => applyGradientEndColorToSelected(c)}
+                                    disabled={selectedShape?.isLocked}
+                                    className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                      (selectedShape?.gradientEndColor || gradientEndColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                    } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                    style={{ background: c }}
+                                  />
+                                ))}
+                                <label
+                                  className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                                  title="Custom Hex Gradient End Color Picker"
+                                >
+                                  <input
+                                    type="color"
+                                    value={selectedShape?.gradientEndColor || gradientEndColor}
+                                    onChange={(e) => applyGradientEndColorToSelected(e.target.value)}
+                                    disabled={selectedShape?.isLocked}
+                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                  />
+                                  <span
+                                    className="w-full h-full rounded-full border"
+                                    style={{ background: selectedShape?.gradientEndColor || gradientEndColor }}
+                                  />
+                                </label>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
 
-                      {/* (B) GEOMETRIC SHAPES: Rectangle, Circle, Diamond */}
-                      {(targetTool === "rectangle" || targetTool === "circle" || targetTool === "diamond") && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Shape Border & Appearance</p>
+                      {/* 4. STROKE COLOR & THICKNESS & PATTERN */}
+                      <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted">
+                          <span>Stroke & Outline</span>
+                          <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.strokeColor || selectedShape?.color || strokeColor}</span>
+                        </div>
 
-                          {/* Border Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Border Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
+                        {/* Stroke Palette + HTML5 Color Picker */}
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {PALETTE.map((c) => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => applyColorToSelected(c)}
+                                disabled={selectedShape?.isLocked}
+                                className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                  (selectedShape?.strokeColor || selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                style={{ background: c }}
+                              />
+                            ))}
+                            <label
+                              className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                              title="Custom Hex Stroke Color Picker"
+                            >
+                              <input
+                                type="color"
+                                value={selectedShape?.strokeColor || selectedShape?.color || strokeColor}
+                                onChange={(e) => applyColorToSelected(e.target.value)}
+                                disabled={selectedShape?.isLocked}
+                                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                              />
+                              <span
+                                className="w-full h-full rounded-full border"
+                                style={{ background: selectedShape?.strokeColor || selectedShape?.color || strokeColor }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Stroke Width Buttons */}
+                        <div>
+                          <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
+                            <span>Stroke Width</span>
+                            <strong className="text-brand">{selectedShape?.strokeWidth || strokeWidth}px</strong>
+                          </label>
+                          <div className="grid grid-cols-5 gap-1">
+                            {[1, 2, 3, 4, 6].map((w) => (
+                              <button
+                                key={w}
+                                type="button"
+                                onClick={() => {
+                                  setStrokeWidth(w);
+                                  if (selectedShapeIds.length > 0) {
+                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
+                                  }
+                                }}
+                                disabled={selectedShape?.isLocked}
+                                className={`py-1 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                                  (selectedShape?.strokeWidth || strokeWidth) === w ? "bg-brand text-white" : "bg-slate-100 text-ink hover:bg-slate-200"
+                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                {w}px
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Stroke Pattern (Solid / Dashed) */}
+                        <div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLineStyle("solid");
+                                if (selectedShapeIds.length > 0) {
+                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
+                                }
+                              }}
+                              disabled={selectedShape?.isLocked}
+                              className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                (selectedShape?.lineStyle || lineStyle) === "solid" ? "bg-ink text-white border-ink shadow-xs" : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                            >
+                              Solid
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLineStyle("dashed");
+                                if (selectedShapeIds.length > 0) {
+                                  setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
+                                }
+                              }}
+                              disabled={selectedShape?.isLocked}
+                              className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                                (selectedShape?.lineStyle || lineStyle) === "dashed" ? "bg-ink text-white border-ink shadow-xs" : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                              } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                            >
+                              Dashed
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 5. APPEARANCE (OPACITY & CORNER RADIUS) */}
+                      <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted">Appearance</p>
+
+                        {/* Opacity Slider */}
+                        <div>
+                          <div className="flex items-center justify-between text-[11px] font-bold text-ink mb-1.5">
+                            <span>Layer Opacity</span>
+                            <span className="font-mono text-brand">{Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100)}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={5}
+                            max={100}
+                            step={5}
+                            value={Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100)}
+                            onChange={(e) => applyOpacityToSelected(parseInt(e.target.value, 10) / 100)}
+                            disabled={selectedShape?.isLocked}
+                            className="w-full accent-brand cursor-pointer disabled:opacity-50"
+                          />
+                        </div>
+
+                        {/* Corner Radius (for shapes with corners) */}
+                        {(targetTool === "rectangle" || targetTool === "orderblock" || targetTool === "fvg" || targetTool === "sticky") && (
+                          <div className="pt-2 border-t border-line">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-ink mb-1.5">
+                              <span>Corner Radius</span>
+                              <span className="font-mono text-brand">{selectedShape?.cornerRadius ?? cornerRadius}px</span>
+                            </div>
+                            <div className="grid grid-cols-5 gap-1">
+                              {[0, 4, 8, 16, 24].map((rad) => (
                                 <button
-                                  key={c}
+                                  key={rad}
                                   type="button"
-                                  onClick={() => applyColorToSelected(c)}
+                                  onClick={() => applyCornerRadiusToSelected(rad)}
                                   disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                                    (selectedShape?.cornerRadius ?? cornerRadius) === rad
+                                      ? "bg-brand text-white"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                   } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
+                                >
+                                  {rad}px
+                                </button>
                               ))}
                             </div>
                           </div>
+                        )}
+                      </div>
 
-                          {/* Border Thickness */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                              <span>Border Thickness</span>
-                              <strong className="text-brand">{strokeWidth}px</strong>
-                            </label>
-                            <div className="grid grid-cols-4 gap-1.5">
-                              {[1, 2, 4, 6].map((w) => (
+                      {/* 6. BULLISH & BEARISH CANDLESTICK WICK ADJUSTMENT & STYLING */}
+                      {(targetTool === "bullish_candle" || targetTool === "bearish_candle") && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-muted">
+                              {targetTool === "bullish_candle" ? "Bullish Candle Setup" : "Bearish Candle Setup"}
+                            </p>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                              targetTool === "bullish_candle" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                            }`}>
+                              {targetTool === "bullish_candle" ? "Bullish" : "Bearish"}
+                            </span>
+                          </div>
+
+                          {/* Upper Wick Length */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-ink">
+                              <span>Upper Wick Length</span>
+                              <span className="font-mono text-brand">{selectedShape?.upperWickLength ?? upperWickLength}px</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={80}
+                              step={2}
+                              value={selectedShape?.upperWickLength ?? upperWickLength}
+                              onChange={(e) => applyUpperWickLengthToSelected(parseInt(e.target.value, 10))}
+                              disabled={selectedShape?.isLocked}
+                              className="w-full accent-brand cursor-pointer disabled:opacity-50"
+                            />
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "None", val: 0 },
+                                { label: "Short", val: 12 },
+                                { label: "Normal", val: 25 },
+                                { label: "Rejection", val: 55 },
+                              ].map((preset) => (
                                 <button
-                                  key={w}
+                                  key={preset.label}
                                   type="button"
-                                  onClick={() => {
-                                    setStrokeWidth(w);
-                                    if (selectedShapeIds.length > 0) {
-                                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                                    }
-                                  }}
+                                  onClick={() => applyUpperWickLengthToSelected(preset.val)}
                                   disabled={selectedShape?.isLocked}
-                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
-                                    strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                  className={`py-1 rounded-lg text-[9px] font-bold transition cursor-pointer ${
+                                    (selectedShape?.upperWickLength ?? upperWickLength) === preset.val
+                                      ? "bg-brand text-white"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                   } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                                 >
-                                  {w}px
+                                  {preset.label}
                                 </button>
                               ))}
                             </div>
                           </div>
 
-                          {/* Line Pattern */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Stroke Pattern</label>
-                            <div className="grid grid-cols-2 gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLineStyle("solid");
-                                  if (selectedShapeIds.length > 0) {
-                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                                  lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                              >
-                                Solid
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLineStyle("dashed");
-                                  if (selectedShapeIds.length > 0) {
-                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                                  lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                              >
-                                Dashed
-                              </button>
+                          {/* Lower Wick Length */}
+                          <div className="space-y-1.5 pt-2 border-t border-line">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-ink">
+                              <span>Lower Wick Length</span>
+                              <span className="font-mono text-brand">{selectedShape?.lowerWickLength ?? lowerWickLength}px</span>
                             </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (C) LINES & PATHS: Straight Line, Connector Arrow, Chart Pattern Path */}
-                      {(targetTool === "line" || targetTool === "arrow" || targetTool === "bezier") && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">
-                            {targetTool === "arrow" ? "Connector Arrow Properties" : targetTool === "bezier" ? "Chart Pattern Path" : "Line Properties"}
-                          </p>
-
-                          {/* Line Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Line Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
+                            <input
+                              type="range"
+                              min={0}
+                              max={80}
+                              step={2}
+                              value={selectedShape?.lowerWickLength ?? lowerWickLength}
+                              onChange={(e) => applyLowerWickLengthToSelected(parseInt(e.target.value, 10))}
+                              disabled={selectedShape?.isLocked}
+                              className="w-full accent-brand cursor-pointer disabled:opacity-50"
+                            />
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "None", val: 0 },
+                                { label: "Short", val: 12 },
+                                { label: "Normal", val: 25 },
+                                { label: "Rejection", val: 55 },
+                              ].map((preset) => (
                                 <button
-                                  key={c}
+                                  key={preset.label}
                                   type="button"
-                                  onClick={() => applyColorToSelected(c)}
+                                  onClick={() => applyLowerWickLengthToSelected(preset.val)}
                                   disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Line Width */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
-                              <span>Line Thickness</span>
-                              <strong className="text-brand">{strokeWidth}px</strong>
-                            </label>
-                            <div className="grid grid-cols-4 gap-1.5">
-                              {[1, 2, 3, 5].map((w) => (
-                                <button
-                                  key={w}
-                                  type="button"
-                                  onClick={() => {
-                                    setStrokeWidth(w);
-                                    if (selectedShapeIds.length > 0) {
-                                      setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s)));
-                                    }
-                                  }}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`py-1 rounded-lg text-xs font-extrabold transition ${
-                                    strokeWidth === w ? "bg-brand text-white" : "bg-cream text-ink hover:bg-slate-200"
+                                  className={`py-1 rounded-lg text-[9px] font-bold transition cursor-pointer ${
+                                    (selectedShape?.lowerWickLength ?? lowerWickLength) === preset.val
+                                      ? "bg-brand text-white"
+                                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                   } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                                 >
-                                  {w}px
+                                  {preset.label}
                                 </button>
                               ))}
                             </div>
                           </div>
 
-                          {/* Line Style */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Line Style</label>
-                            <div className="grid grid-cols-2 gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLineStyle("solid");
-                                  if (selectedShapeIds.length > 0) {
-                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "solid" } : s)));
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                                  lineStyle === "solid" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                          {/* Independent Wick Color */}
+                          <div className="pt-2 border-t border-line">
+                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                              <span>Wick Color</span>
+                              <span className="text-[9px] font-mono text-muted uppercase">{selectedShape?.wickColor || wickColor}</span>
+                            </label>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {PALETTE.map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => applyWickColorToSelected(c)}
+                                  disabled={selectedShape?.isLocked}
+                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
+                                    (selectedShape?.wickColor || wickColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                                  style={{ background: c }}
+                                />
+                              ))}
+                              <label
+                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden shadow-2xs"
+                                title="Custom Hex Wick Color"
                               >
-                                Solid
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLineStyle("dashed");
-                                  if (selectedShapeIds.length > 0) {
-                                    setShapes((prev) => prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: "dashed" } : s)));
-                                  }
-                                }}
-                                disabled={selectedShape?.isLocked}
-                                className={`py-1.5 rounded-xl text-xs font-bold transition ${
-                                  lineStyle === "dashed" ? "bg-ink text-white" : "bg-cream text-ink hover:bg-slate-200"
-                                } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                              >
-                                Dashed
-                              </button>
+                                <input
+                                  type="color"
+                                  value={selectedShape?.wickColor || wickColor}
+                                  onChange={(e) => applyWickColorToSelected(e.target.value)}
+                                  disabled={selectedShape?.isLocked}
+                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                />
+                                <span
+                                  className="w-full h-full rounded-full border"
+                                  style={{ background: selectedShape?.wickColor || wickColor }}
+                                />
+                              </label>
                             </div>
+                          </div>
+
+                          {/* Micro Label / Pattern Tag */}
+                          {selectedShape && (
+                            <div className="pt-2 border-t border-line">
+                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                                <span>Pattern Micro Label</span>
+                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={selectedShape.text ?? ""}
+                                placeholder={targetTool === "bullish_candle" ? "e.g. Bullish Engulfing, Hammer..." : "e.g. Bearish Engulfing, Shooting Star..."}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setShapes((prev) =>
+                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                                  );
+                                }}
+                                disabled={selectedShape.isLocked}
+                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                              />
+                            </div>
+                          )}
+
+                          <div className={`p-2.5 rounded-xl text-xs font-medium space-y-1 ${
+                            targetTool === "bullish_candle" ? "bg-emerald-50 text-emerald-900 border border-emerald-200" : "bg-rose-50 text-rose-900 border border-rose-200"
+                          }`}>
+                            <div className="flex items-center justify-between font-bold">
+                              <span>{targetTool === "bullish_candle" ? "Bullish Candlestick" : "Bearish Candlestick"}</span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                                targetTool === "bullish_candle" ? "bg-emerald-200 text-emerald-800" : "bg-rose-200 text-rose-800"
+                              }`}>
+                                {targetTool === "bullish_candle" ? "Close > Open" : "Close < Open"}
+                              </span>
+                            </div>
+                            <p className={`text-[11px] ${targetTool === "bullish_candle" ? "text-emerald-700" : "text-rose-700"}`}>
+                              Independent wick length adjusters with clean edge alignment.
+                            </p>
                           </div>
                         </div>
                       )}
 
-                      {/* (D) TEXT LABELS: Text editing & Typography */}
+                      {/* 7. CONTEXT-SPECIFIC TECHNICAL FOREX TOOL CARDS */}
+
+                      {/* (A) TEXT LABELS */}
                       {targetTool === "text" && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
                           <p className="text-[10px] font-black uppercase tracking-wider text-muted">Typography & Content</p>
 
-                          {/* Editable Text Content */}
                           {selectedShape ? (
                             <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Text Label</label>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Text Content</label>
                               <textarea
                                 rows={2}
                                 value={selectedShape.text || ""}
@@ -7245,7 +7772,7 @@ export default function WhiteboardPage() {
                                   );
                                 }}
                                 disabled={selectedShape.isLocked}
-                                placeholder="Type label text..."
+                                placeholder="Type text..."
                                 className={`w-full rounded-xl border border-line bg-cream/30 p-2 text-xs text-ink outline-none focus:border-brand resize-none font-medium ${
                                   selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
                                 }`}
@@ -7253,40 +7780,20 @@ export default function WhiteboardPage() {
                             </div>
                           ) : (
                             <div className="p-2.5 rounded-xl bg-cream/60 text-xs text-muted">
-                              Click anywhere on the canvas to place and type a text label.
+                              Click anywhere on canvas to place text.
                             </div>
                           )}
-
-                          {/* Text Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Font Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
-                          </div>
                         </div>
                       )}
 
-                      {/* (D2) ANNOTATIONS: Callout Leader Lines & Object Labels */}
+                      {/* (B) ANNOTATION LEADER PIN */}
                       {targetTool === "annotation" && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Annotation & Callout</p>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Annotation Leader Pin</p>
 
-                          {/* Editable Label Text */}
                           {selectedShape ? (
                             <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Annotation Label</label>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Callout Badge Label</label>
                               <input
                                 type="text"
                                 value={selectedShape.text || ""}
@@ -7297,7 +7804,7 @@ export default function WhiteboardPage() {
                                   );
                                 }}
                                 disabled={selectedShape.isLocked}
-                                placeholder="e.g. Key POI, Equal Highs, Rejection Wick..."
+                                placeholder="e.g. Key POI, Rejection Wick..."
                                 className={`w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition ${
                                   selectedShape.isLocked ? "opacity-50 cursor-not-allowed" : ""
                                 }`}
@@ -7305,105 +7812,17 @@ export default function WhiteboardPage() {
                             </div>
                           ) : (
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-muted">
-                              Drag from any chart element to point a leader line and callout label.
+                              Drag on chart to point a leader line to an object.
                             </div>
                           )}
-
-                          {/* Leader Line & Badge Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                              <span>Annotation Color</span>
-                              <span className="text-[9px] text-muted font-normal">Line & Badge</span>
-                            </label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    (selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                              <label
-                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden"
-                                title="Custom Hex Color"
-                              >
-                                <input
-                                  type="color"
-                                  value={selectedShape?.color || strokeColor}
-                                  onChange={(e) => applyColorToSelected(e.target.value)}
-                                  disabled={selectedShape?.isLocked}
-                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                />
-                                <span
-                                  className="w-full h-full rounded-full border"
-                                  style={{ background: selectedShape?.color || strokeColor }}
-                                />
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Line Style (Solid / Dashed) */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Leader Line Style</label>
-                              <div className="grid grid-cols-2 gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, lineStyle: "solid" } : s))
-                                    );
-                                  }}
-                                  disabled={selectedShape.isLocked}
-                                  className={`py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                                    selectedShape.lineStyle !== "dashed"
-                                      ? "bg-brand text-white border-brand shadow-2xs"
-                                      : "bg-slate-50 text-slate-700 border-line hover:bg-white"
-                                  }`}
-                                >
-                                  Solid Line
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setShapes((prev) =>
-                                      prev.map((s) => (s.id === selectedShape.id ? { ...s, lineStyle: "dashed" } : s))
-                                    );
-                                  }}
-                                  disabled={selectedShape.isLocked}
-                                  className={`py-1 rounded-xl text-xs font-bold transition cursor-pointer border ${
-                                    selectedShape.lineStyle === "dashed"
-                                      ? "bg-brand text-white border-brand shadow-2xs"
-                                      : "bg-slate-50 text-slate-700 border-line hover:bg-white"
-                                  }`}
-                                >
-                                  Dashed Line
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-xs font-medium space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>Annotation Callout</span>
-                              <span className="text-[10px] bg-blue-200 px-1.5 py-0.5 rounded text-blue-800 font-mono">Leader Pin</span>
-                            </div>
-                            <p className="text-[11px] text-blue-700">Anchor point pins the chart object with an attached callout label badge.</p>
-                          </div>
                         </div>
                       )}
 
-                      {/* (E) STICKY NOTES: Note Content & 5 Pastel Post-It Colors */}
+                      {/* (C) STICKY NOTES */}
                       {targetTool === "sticky" && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Sticky Note Setup</p>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Sticky Note Content & Color</p>
 
-                          {/* Editable Note Content */}
                           {selectedShape ? (
                             <div>
                               <label className="text-[11px] font-bold text-ink block mb-1.5">Note Content</label>
@@ -7429,7 +7848,7 @@ export default function WhiteboardPage() {
                             </div>
                           )}
 
-                          {/* Sticky Paper Color */}
+                          {/* Sticky Paper Color Swatches */}
                           <div>
                             <label className="text-[11px] font-bold text-ink block mb-1.5">Paper Color</label>
                             <div className="flex items-center gap-2">
@@ -7451,7 +7870,7 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
-                      {/* (F) FIBONACCI RETRACEMENT: Ratios Breakdown & Golden Pocket */}
+                      {/* (D) FIBONACCI RETRACEMENT */}
                       {targetTool === "fibo" && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
                           <p className="text-[10px] font-black uppercase tracking-wider text-muted">Fibonacci Retracement Levels</p>
@@ -7478,14 +7897,13 @@ export default function WhiteboardPage() {
                         </div>
                       )}
 
-                      {/* (G) FOREX POSITION: Long / Short Position Risk:Reward */}
+                      {/* (E) LONG / SHORT POSITION */}
                       {(targetTool === "long" || targetTool === "short") && (
                         <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
                           <p className="text-[10px] font-black uppercase tracking-wider text-muted">
                             {targetTool === "long" ? "Long Position (Bullish)" : "Short Position (Bearish)"}
                           </p>
 
-                          {/* Risk to Reward Preset Selectors */}
                           <div>
                             <label className="text-[11px] font-bold text-ink flex items-center justify-between mb-1.5">
                               <span>Risk : Reward Ratio</span>
@@ -7507,7 +7925,6 @@ export default function WhiteboardPage() {
                             </div>
                           </div>
 
-                          {/* Micro Label Input */}
                           {selectedShape && (
                             <div>
                               <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
@@ -7517,7 +7934,7 @@ export default function WhiteboardPage() {
                               <input
                                 type="text"
                                 value={selectedShape.text ?? `1:${defaultRiskReward.toFixed(1)}`}
-                                placeholder="e.g. 1:3.0, TP 1, Swing Long..."
+                                placeholder="e.g. 1:3.0, TP 1..."
                                 onChange={(e) => {
                                   const val = e.target.value;
                                   setShapes((prev) =>
@@ -7529,455 +7946,29 @@ export default function WhiteboardPage() {
                               />
                             </div>
                           )}
-
-                          <div className="grid grid-cols-2 gap-2 text-[11px] font-bold">
-                            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              <span className="block text-[9px] uppercase tracking-wider text-emerald-600">Take Profit</span>
-                              +60 Pips Target
-                            </div>
-                            <div className="p-2 rounded-xl bg-rose-50 text-rose-800 border border-rose-200">
-                              <span className="block text-[9px] uppercase tracking-wider text-rose-600">Stop Loss</span>
-                              -20 Pips Risk
-                            </div>
-                          </div>
                         </div>
                       )}
 
-                      {/* (H) ORDER BLOCK / POI ZONE */}
-                      {targetTool === "orderblock" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Order Block (OB / POI Zone)</p>
-
-                          {/* Zone Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Zone Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Micro Label Input */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? "OB"}
-                                placeholder="e.g. OB, H4 Supply..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          {/* Mitigation Line */}
-                          <div className="p-2.5 rounded-xl bg-purple-50 text-purple-900 border border-purple-200 text-xs space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>50% Mean Threshold (MT)</span>
-                              <span className="text-[10px] bg-purple-200 px-1.5 py-0.5 rounded text-purple-800 font-mono">Mitigation Level</span>
-                            </div>
-                            <p className="text-[11px] text-purple-700 font-medium">Equilibrium midline highlights optimal institutional re-entry trigger.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (I) FAIR VALUE GAP (FVG / IMBALANCE) */}
-                      {targetTool === "fvg" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Fair Value Gap (FVG / Imbalance)</p>
-
-                          {/* Imbalance Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Imbalance Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Micro Label Input */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? "FVG"}
-                                placeholder="e.g. FVG, M15 Imbalance..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          {/* Consequent Encroachment (50% C.E.) */}
-                          <div className="p-2.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-xs space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>50% Consequent Encroachment (C.E.)</span>
-                              <span className="text-[10px] bg-amber-200 px-1.5 py-0.5 rounded text-amber-800 font-mono">50% C.E.</span>
-                            </div>
-                            <p className="text-[11px] text-amber-700 font-medium">Marks midpoint of 3-candle inefficient delivery.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (J) BREAK OF STRUCTURE (BOS / CHoCH) */}
-                      {targetTool === "bos" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Break of Structure (BOS / CHoCH)</p>
-
-                          {/* Structure Line Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Structure Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Micro Label Input */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? "BOS"}
-                                placeholder="e.g. BOS, CHoCH, MSS..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          <div className="p-2.5 rounded-xl bg-blue-50 text-blue-900 border border-blue-200 text-xs font-medium space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>Structure Type</span>
-                              <span className="text-[10px] bg-blue-200 px-1.5 py-0.5 rounded text-blue-800 font-mono">BOS / MSS</span>
-                            </div>
-                            <p className="text-[11px] text-blue-700">Market structure shift confirming swing continuation or character change.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (K) LIQUIDITY POOL ($$$ / SWEEP TARGET) */}
-                      {targetTool === "liquidity" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Liquidity Target ($$$ / Sweep Pool)</p>
-
-                          {/* Pool Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Pool Color</label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Micro Label Input */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">TradingView Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? "$$$"}
-                                placeholder="e.g. $$$ , BSL, SSL, EQH..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          <div className="p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-200 text-xs font-medium space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>Liquidity Pool Target</span>
-                              <span className="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-800 font-mono">BSL / SSL</span>
-                            </div>
-                            <p className="text-[11px] text-rose-700">Equal highs (BSL) or equal lows (SSL) stop run magnet.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (L) BULLISH CANDLESTICK */}
-                      {targetTool === "bullish_candle" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Bullish Candlestick</p>
-
-                          {/* Candle Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                              <span>Candle Color</span>
-                              <span className="text-[9px] text-muted font-normal">Wicks & Body</span>
-                            </label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    (selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                              <label
-                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden"
-                                title="Choose Custom Hex Color"
-                              >
-                                <input
-                                  type="color"
-                                  value={selectedShape?.color || strokeColor}
-                                  onChange={(e) => applyColorToSelected(e.target.value)}
-                                  disabled={selectedShape?.isLocked}
-                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                />
-                                <span
-                                  className="w-full h-full rounded-full border"
-                                  style={{ background: selectedShape?.color || strokeColor }}
-                                />
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Body Fill Style */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Body Fill Style</label>
-                              <div className="grid grid-cols-3 gap-1.5">
-                                {(["translucent", "solid", "hollow"] as const).map((style) => (
-                                  <button
-                                    key={style}
-                                    type="button"
-                                    onClick={() => {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, candleStyle: style } : s))
-                                      );
-                                    }}
-                                    disabled={selectedShape.isLocked}
-                                    className={`py-1 px-2 rounded-xl text-[10px] font-bold transition cursor-pointer border ${
-                                      (selectedShape.candleStyle || "translucent") === style
-                                        ? "bg-brand text-white border-brand shadow-2xs"
-                                        : "bg-slate-50 text-slate-700 border-line hover:bg-white"
-                                    }`}
-                                  >
-                                    {style === "translucent" ? "Soft (35%)" : style === "solid" ? "Solid (100%)" : "Hollow"}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Micro Label Tag */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? ""}
-                                placeholder="e.g. Bullish Engulfing, Hammer..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs font-medium space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>Bullish Candle</span>
-                              <span className="text-[10px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-800 font-mono">Close &gt; Open</span>
-                            </div>
-                            <p className="text-[11px] text-emerald-700">Wicks extend from high/low to open/close body edges without intersecting.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* (M) BEARISH CANDLESTICK */}
-                      {targetTool === "bearish_candle" && (
-                        <div className="rounded-2xl border border-line bg-white p-3 space-y-3 shadow-2xs">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-muted">Bearish Candlestick</p>
-
-                          {/* Candle Color */}
-                          <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                              <span>Candle Color</span>
-                              <span className="text-[9px] text-muted font-normal">Wicks & Body</span>
-                            </label>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {PALETTE.map((c) => (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  onClick={() => applyColorToSelected(c)}
-                                  disabled={selectedShape?.isLocked}
-                                  className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    (selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                                  } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
-                                  style={{ background: c }}
-                                />
-                              ))}
-                              <label
-                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden"
-                                title="Choose Custom Hex Color"
-                              >
-                                <input
-                                  type="color"
-                                  value={selectedShape?.color || strokeColor}
-                                  onChange={(e) => applyColorToSelected(e.target.value)}
-                                  disabled={selectedShape?.isLocked}
-                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                                />
-                                <span
-                                  className="w-full h-full rounded-full border"
-                                  style={{ background: selectedShape?.color || strokeColor }}
-                                />
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Body Fill Style */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5">Body Fill Style</label>
-                              <div className="grid grid-cols-3 gap-1.5">
-                                {(["translucent", "solid", "hollow"] as const).map((style) => (
-                                  <button
-                                    key={style}
-                                    type="button"
-                                    onClick={() => {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, candleStyle: style } : s))
-                                      );
-                                    }}
-                                    disabled={selectedShape.isLocked}
-                                    className={`py-1 px-2 rounded-xl text-[10px] font-bold transition cursor-pointer border ${
-                                      (selectedShape.candleStyle || "translucent") === style
-                                        ? "bg-brand text-white border-brand shadow-2xs"
-                                        : "bg-slate-50 text-slate-700 border-line hover:bg-white"
-                                    }`}
-                                  >
-                                    {style === "translucent" ? "Soft (35%)" : style === "solid" ? "Solid (100%)" : "Hollow"}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Micro Label Tag */}
-                          {selectedShape && (
-                            <div>
-                              <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
-                                <span>Micro Label</span>
-                                <span className="text-[9px] text-muted font-normal">Optional Tag</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={selectedShape.text ?? ""}
-                                placeholder="e.g. Shooting Star, Bearish Engulfing..."
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setShapes((prev) =>
-                                    prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
-                                  );
-                                }}
-                                disabled={selectedShape.isLocked}
-                                className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
-                              />
-                            </div>
-                          )}
-
-                          <div className="p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-200 text-xs font-medium space-y-1">
-                            <div className="flex items-center justify-between font-bold">
-                              <span>Bearish Candle</span>
-                              <span className="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-800 font-mono">Open &gt; Close</span>
-                            </div>
-                            <p className="text-[11px] text-rose-700">Wicks extend from high/low to open/close body edges without intersecting.</p>
-                          </div>
+                      {/* (F) ORDER BLOCK & FVG MICRO LABELS */}
+                      {(targetTool === "orderblock" || targetTool === "fvg" || targetTool === "bos" || targetTool === "liquidity") && selectedShape && (
+                        <div className="rounded-2xl border border-line bg-white p-3 space-y-2 shadow-2xs">
+                          <label className="text-[11px] font-bold text-ink block flex items-center justify-between">
+                            <span>TradingView Micro Tag</span>
+                            <span className="text-[9px] text-muted font-mono">{targetTool.toUpperCase()}</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={selectedShape.text ?? targetTool.toUpperCase()}
+                            placeholder="e.g. H4 OB, M15 FVG, BOS..."
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setShapes((prev) =>
+                                prev.map((s) => (s.id === selectedShape.id ? { ...s, text: val } : s))
+                              );
+                            }}
+                            disabled={selectedShape.isLocked}
+                            className="w-full rounded-xl border border-line bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand focus:bg-white transition"
+                          />
                         </div>
                       )}
 
@@ -9530,17 +9521,44 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const boxW = Math.abs(pts[1].x - pts[0].x) || 160;
     const boxH = Math.abs(pts[1].y - pts[0].y) || 60;
     const midY = minY + boxH / 2;
+    const strokeCol = shape.strokeColor || shape.color || "#8b5cf6";
+    const fillCol = shape.fillColor || strokeCol;
+    const fillStyle = shape.fillStyle || "translucent";
+    const rad = shape.cornerRadius || 4;
 
-    ctx.globalAlpha = 0.22;
-    ctx.fillStyle = shape.color || "#8b5cf6";
-    ctx.fillRect(minX, minY, boxW, boxH);
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = shape.color || "#8b5cf6";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(minX, minY, boxW, boxH);
+    if (fillStyle !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.22;
+      ctx.globalAlpha = alpha;
+      if (fillStyle === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createLinearGradient(minX, minY, minX + boxW, minY + boxH);
+        grad.addColorStop(0, fillCol);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = fillCol;
+      }
+      if (typeof (ctx as any).roundRect === "function") {
+        ctx.beginPath();
+        (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
+        ctx.fill();
+      } else {
+        ctx.fillRect(minX, minY, boxW, boxH);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = shape.strokeWidth || 1.5;
+    if (typeof (ctx as any).roundRect === "function") {
+      ctx.beginPath();
+      (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(minX, minY, boxW, boxH);
+    }
 
     // 50% Mean Threshold line
-    ctx.strokeStyle = shape.color || "#8b5cf6";
+    ctx.strokeStyle = strokeCol;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
@@ -9552,7 +9570,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     // TradingView Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "OB";
     if (labelText) {
-      ctx.fillStyle = shape.color || "#8b5cf6";
+      ctx.fillStyle = strokeCol;
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
       ctx.fillText(labelText, minX + 6, minY + 11);
     }
@@ -9561,31 +9579,58 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const minX = Math.min(pts[0].x, pts[1].x);
     const minY = Math.min(pts[0].y, pts[1].y);
     const boxW = Math.abs(pts[1].x - pts[0].x) || 160;
-    const boxH = Math.abs(pts[1].y - pts[0].y) || 50;
-    const ceY = minY + boxH / 2;
+    const boxH = Math.abs(pts[1].y - pts[0].y) || 60;
+    const midY = minY + boxH / 2;
+    const strokeCol = shape.strokeColor || shape.color || "#f59e0b";
+    const fillCol = shape.fillColor || strokeCol;
+    const fillStyle = shape.fillStyle || "translucent";
+    const rad = shape.cornerRadius || 4;
 
-    ctx.globalAlpha = 0.22;
-    ctx.fillStyle = shape.color || "#f59e0b";
-    ctx.fillRect(minX, minY, boxW, boxH);
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = shape.color || "#f59e0b";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(minX, minY, boxW, boxH);
+    if (fillStyle !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.22;
+      ctx.globalAlpha = alpha;
+      if (fillStyle === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createLinearGradient(minX, minY, minX + boxW, minY + boxH);
+        grad.addColorStop(0, fillCol);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = fillCol;
+      }
+      if (typeof (ctx as any).roundRect === "function") {
+        ctx.beginPath();
+        (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
+        ctx.fill();
+      } else {
+        ctx.fillRect(minX, minY, boxW, boxH);
+      }
+      ctx.globalAlpha = 1;
+    }
 
-    // 50% Consequent Encroachment line
-    ctx.strokeStyle = shape.color || "#f59e0b";
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = shape.strokeWidth || 1.5;
+    if (typeof (ctx as any).roundRect === "function") {
+      ctx.beginPath();
+      (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(minX, minY, boxW, boxH);
+    }
+
+    // 50% Consequent Encroachment (C.E.) line
+    ctx.strokeStyle = strokeCol;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(minX, ceY);
-    ctx.lineTo(minX + boxW, ceY);
+    ctx.moveTo(minX, midY);
+    ctx.lineTo(minX + boxW, midY);
     ctx.stroke();
     ctx.setLineDash([]);
 
     // TradingView Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "FVG";
     if (labelText) {
-      ctx.fillStyle = shape.color || "#f59e0b";
+      ctx.fillStyle = strokeCol;
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
       ctx.fillText(labelText, minX + 6, minY + 11);
     }
@@ -9594,8 +9639,8 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const p1 = pts[0];
     const p2 = pts[1];
 
-    ctx.strokeStyle = shape.color || "#3b82f6";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = shape.strokeColor || shape.color || "#3b82f6";
+    ctx.lineWidth = shape.strokeWidth || 1.5;
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
@@ -9606,7 +9651,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     // TradingView Micro-Label
     const labelText = shape.text !== undefined ? shape.text : "BOS";
     if (labelText) {
-      ctx.fillStyle = shape.color || "#3b82f6";
+      ctx.fillStyle = shape.strokeColor || shape.color || "#3b82f6";
       ctx.font = "bold 8px Inter, -apple-system, sans-serif";
       ctx.fillText(labelText, (p1.x + p2.x) / 2 + 4, (p1.y + p2.y) / 2 - 4);
     }
@@ -9615,8 +9660,8 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const p1 = pts[0];
     const p2 = pts[1];
 
-    ctx.strokeStyle = shape.color || "#e11d48";
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = shape.strokeColor || shape.color || "#e11d48";
+    ctx.lineWidth = shape.strokeWidth || 1.5;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
@@ -9628,12 +9673,12 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const labelText = shape.text !== undefined ? shape.text : "$$$";
     if (labelText) {
       const minX = Math.min(p1.x, p2.x);
-      ctx.fillStyle = shape.color || "#e11d48";
+      ctx.fillStyle = shape.strokeColor || shape.color || "#e11d48";
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
       ctx.fillText(labelText, minX + 6, Math.min(p1.y, p2.y) - 4);
     }
   } else if (shape.type === "bullish_candle" && pts.length >= 2) {
-    /* 8. BULLISH CANDLESTICK TOOL */
+    /* 8. BULLISH CANDLESTICK TOOL (WITH ADJUSTABLE WICKS & FILLS) */
     const x1 = pts[0].x;
     const y1 = pts[0].y;
     const x2 = pts[1].x;
@@ -9646,31 +9691,59 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
-    const bodyH = Math.max(8, totalH * 0.62);
-    const bodyY = yHigh + (totalH - bodyH) / 2;
     const candleColor = shape.color || "#10b981";
+    const wickColor = shape.wickColor || candleColor;
+    const bodyFillColor = shape.fillColor || candleColor;
     const strokeW = shape.strokeWidth || 1.75;
-    const style = shape.candleStyle || "translucent";
+    const style = shape.fillStyle || (shape.candleStyle === "hollow" ? "none" : shape.candleStyle === "solid" ? "solid" : "translucent");
+
+    // Dynamic Upper & Lower Wick Adjustments
+    let upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
+    let lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
+
+    if (upperWickH + lowerWickH > totalH - 6) {
+      const ratio = (totalH - 6) / Math.max(1, upperWickH + lowerWickH);
+      upperWickH = Math.round(upperWickH * ratio);
+      lowerWickH = Math.round(lowerWickH * ratio);
+    }
+
+    const bodyH = Math.max(6, totalH - upperWickH - lowerWickH);
+    const bodyY = yHigh + upperWickH;
 
     // 1. Upper Wick: High down to Top of Body (Close)
-    ctx.strokeStyle = candleColor;
-    ctx.lineWidth = strokeW;
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(centerX, yHigh);
-    ctx.lineTo(centerX, bodyY);
-    ctx.stroke();
+    if (upperWickH > 0) {
+      ctx.strokeStyle = wickColor;
+      ctx.lineWidth = strokeW;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, yHigh);
+      ctx.lineTo(centerX, bodyY);
+      ctx.stroke();
+    }
 
     // 2. Lower Wick: Bottom of Body (Open) down to Low
-    ctx.beginPath();
-    ctx.moveTo(centerX, bodyY + bodyH);
-    ctx.lineTo(centerX, yLow);
-    ctx.stroke();
+    if (lowerWickH > 0) {
+      ctx.strokeStyle = wickColor;
+      ctx.lineWidth = strokeW;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, bodyY + bodyH);
+      ctx.lineTo(centerX, yLow);
+      ctx.stroke();
+    }
 
-    // 3. Candle Body (Open at bottom, Close at top)
-    if (style !== "hollow") {
-      ctx.globalAlpha = style === "solid" ? 1 : 0.35;
-      ctx.fillStyle = candleColor;
+    // 3. Candle Body
+    if (style !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : style === "solid" ? 1 : 0.35;
+      ctx.globalAlpha = alpha;
+      if (style === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createLinearGradient(bodyX, bodyY, bodyX, bodyY + bodyH);
+        grad.addColorStop(0, bodyFillColor);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = bodyFillColor;
+      }
       ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
       ctx.globalAlpha = 1;
     }
@@ -9685,7 +9758,7 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
       ctx.fillText(shape.text, bodyX + bodyW + 4, bodyY + 10);
     }
   } else if (shape.type === "bearish_candle" && pts.length >= 2) {
-    /* 9. BEARISH CANDLESTICK TOOL */
+    /* 9. BEARISH CANDLESTICK TOOL (WITH ADJUSTABLE WICKS & FILLS) */
     const x1 = pts[0].x;
     const y1 = pts[0].y;
     const x2 = pts[1].x;
@@ -9698,31 +9771,59 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
-    const bodyH = Math.max(8, totalH * 0.62);
-    const bodyY = yHigh + (totalH - bodyH) / 2;
     const candleColor = shape.color || "#ef4444";
+    const wickColor = shape.wickColor || candleColor;
+    const bodyFillColor = shape.fillColor || candleColor;
     const strokeW = shape.strokeWidth || 1.75;
-    const style = shape.candleStyle || "translucent";
+    const style = shape.fillStyle || (shape.candleStyle === "hollow" ? "none" : shape.candleStyle === "solid" ? "solid" : "translucent");
+
+    // Dynamic Upper & Lower Wick Adjustments
+    let upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
+    let lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
+
+    if (upperWickH + lowerWickH > totalH - 6) {
+      const ratio = (totalH - 6) / Math.max(1, upperWickH + lowerWickH);
+      upperWickH = Math.round(upperWickH * ratio);
+      lowerWickH = Math.round(lowerWickH * ratio);
+    }
+
+    const bodyH = Math.max(6, totalH - upperWickH - lowerWickH);
+    const bodyY = yHigh + upperWickH;
 
     // 1. Upper Wick: High down to Top of Body (Open)
-    ctx.strokeStyle = candleColor;
-    ctx.lineWidth = strokeW;
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(centerX, yHigh);
-    ctx.lineTo(centerX, bodyY);
-    ctx.stroke();
+    if (upperWickH > 0) {
+      ctx.strokeStyle = wickColor;
+      ctx.lineWidth = strokeW;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, yHigh);
+      ctx.lineTo(centerX, bodyY);
+      ctx.stroke();
+    }
 
     // 2. Lower Wick: Bottom of Body (Close) down to Low
-    ctx.beginPath();
-    ctx.moveTo(centerX, bodyY + bodyH);
-    ctx.lineTo(centerX, yLow);
-    ctx.stroke();
+    if (lowerWickH > 0) {
+      ctx.strokeStyle = wickColor;
+      ctx.lineWidth = strokeW;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, bodyY + bodyH);
+      ctx.lineTo(centerX, yLow);
+      ctx.stroke();
+    }
 
-    // 3. Candle Body (Open at top, Close at bottom)
-    if (style !== "hollow") {
-      ctx.globalAlpha = style === "solid" ? 1 : 0.35;
-      ctx.fillStyle = candleColor;
+    // 3. Candle Body
+    if (style !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : style === "solid" ? 1 : 0.35;
+      ctx.globalAlpha = alpha;
+      if (style === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createLinearGradient(bodyX, bodyY, bodyX, bodyY + bodyH);
+        grad.addColorStop(0, bodyFillColor);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = bodyFillColor;
+      }
       ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
       ctx.globalAlpha = 1;
     }
@@ -9752,25 +9853,78 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
       ctx.stroke();
     });
   } else if (shape.type === "rectangle" && pts.length >= 2) {
-    const w = pts[1].x - pts[0].x;
-    const h = pts[1].y - pts[0].y;
-    ctx.globalAlpha = 0.15;
-    ctx.fillRect(pts[0].x, pts[0].y, w, h);
-    ctx.globalAlpha = 1;
-    ctx.strokeRect(pts[0].x, pts[0].y, w, h);
+    const rx = Math.min(pts[0].x, pts[1].x);
+    const ry = Math.min(pts[0].y, pts[1].y);
+    const rw = Math.abs(pts[1].x - pts[0].x);
+    const rh = Math.abs(pts[1].y - pts[0].y);
+    const fillStyle = shape.fillStyle || "translucent";
+    const fillCol = shape.fillColor || shape.color;
+    const strokeCol = shape.strokeColor || shape.color;
+    const rad = shape.cornerRadius || 0;
+
+    if (fillStyle !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.15;
+      ctx.globalAlpha = alpha;
+      if (fillStyle === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createLinearGradient(rx, ry, rx + rw, ry + rh);
+        grad.addColorStop(0, fillCol);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = fillCol;
+      }
+      if (rad > 0 && typeof (ctx as any).roundRect === "function") {
+        ctx.beginPath();
+        (ctx as any).roundRect(rx, ry, rw, rh, rad);
+        ctx.fill();
+      } else {
+        ctx.fillRect(rx, ry, rw, rh);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = shape.strokeWidth || 2;
+    if (rad > 0 && typeof (ctx as any).roundRect === "function") {
+      ctx.beginPath();
+      (ctx as any).roundRect(rx, ry, rw, rh, rad);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(rx, ry, rw, rh);
+    }
   } else if (shape.type === "circle" && pts.length >= 2) {
     const r = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    const fillStyle = shape.fillStyle || "translucent";
+    const fillCol = shape.fillColor || shape.color;
+    const strokeCol = shape.strokeColor || shape.color;
+
     ctx.beginPath();
     ctx.arc(pts[0].x, pts[0].y, r, 0, Math.PI * 2);
-    ctx.globalAlpha = 0.15;
-    ctx.fill();
-    ctx.globalAlpha = 1;
+    if (fillStyle !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.15;
+      ctx.globalAlpha = alpha;
+      if (fillStyle === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createRadialGradient(pts[0].x, pts[0].y, 0, pts[0].x, pts[0].y, r);
+        grad.addColorStop(0, fillCol);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = fillCol;
+      }
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = shape.strokeWidth || 2;
     ctx.stroke();
   } else if (shape.type === "diamond" && pts.length >= 2) {
     const cx = (pts[0].x + pts[1].x) / 2;
     const cy = (pts[0].y + pts[1].y) / 2;
     const rx = Math.abs(pts[1].x - pts[0].x) / 2;
     const ry = Math.abs(pts[1].y - pts[0].y) / 2;
+    const fillStyle = shape.fillStyle || "translucent";
+    const fillCol = shape.fillColor || shape.color;
+    const strokeCol = shape.strokeColor || shape.color;
 
     ctx.beginPath();
     ctx.moveTo(cx, cy - ry);
@@ -9778,9 +9932,23 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     ctx.lineTo(cx, cy + ry);
     ctx.lineTo(cx - rx, cy);
     ctx.closePath();
-    ctx.globalAlpha = 0.15;
-    ctx.fill();
-    ctx.globalAlpha = 1;
+
+    if (fillStyle !== "none") {
+      const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.15;
+      ctx.globalAlpha = alpha;
+      if (fillStyle === "gradient" && shape.gradientEndColor) {
+        const grad = ctx.createLinearGradient(cx - rx, cy - ry, cx + rx, cy + ry);
+        grad.addColorStop(0, fillCol);
+        grad.addColorStop(1, shape.gradientEndColor);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = fillCol;
+      }
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = shape.strokeWidth || 2;
     ctx.stroke();
   } else if (shape.type === "arrow" && pts.length >= 2) {
     const from = pts[0];
