@@ -265,8 +265,10 @@ type Shape = {
   type: Tool;
   name?: string;
   color: string;
+  fillColor?: string;
   strokeWidth: number;
   lineStyle?: "solid" | "dashed";
+  candleStyle?: "solid" | "translucent" | "hollow";
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
@@ -7081,7 +7083,10 @@ export default function WhiteboardPage() {
 
                           {/* Candle Color */}
                           <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Candle Color</label>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                              <span>Candle Color</span>
+                              <span className="text-[9px] text-muted font-normal">Wicks & Body</span>
+                            </label>
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {PALETTE.map((c) => (
                                 <button
@@ -7090,13 +7095,57 @@ export default function WhiteboardPage() {
                                   onClick={() => applyColorToSelected(c)}
                                   disabled={selectedShape?.isLocked}
                                   className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                    (selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
                                   } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                                   style={{ background: c }}
                                 />
                               ))}
+                              <label
+                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden"
+                                title="Choose Custom Hex Color"
+                              >
+                                <input
+                                  type="color"
+                                  value={selectedShape?.color || strokeColor}
+                                  onChange={(e) => applyColorToSelected(e.target.value)}
+                                  disabled={selectedShape?.isLocked}
+                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                />
+                                <span
+                                  className="w-full h-full rounded-full border"
+                                  style={{ background: selectedShape?.color || strokeColor }}
+                                />
+                              </label>
                             </div>
                           </div>
+
+                          {/* Body Fill Style */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Body Fill Style</label>
+                              <div className="grid grid-cols-3 gap-1.5">
+                                {(["translucent", "solid", "hollow"] as const).map((style) => (
+                                  <button
+                                    key={style}
+                                    type="button"
+                                    onClick={() => {
+                                      setShapes((prev) =>
+                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, candleStyle: style } : s))
+                                      );
+                                    }}
+                                    disabled={selectedShape.isLocked}
+                                    className={`py-1 px-2 rounded-xl text-[10px] font-bold transition cursor-pointer border ${
+                                      (selectedShape.candleStyle || "translucent") === style
+                                        ? "bg-brand text-white border-brand shadow-2xs"
+                                        : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                                    }`}
+                                  >
+                                    {style === "translucent" ? "Soft (35%)" : style === "solid" ? "Solid (100%)" : "Hollow"}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
                           {/* Micro Label Tag */}
                           {selectedShape && (
@@ -7126,7 +7175,7 @@ export default function WhiteboardPage() {
                               <span>Bullish Candle</span>
                               <span className="text-[10px] bg-emerald-200 px-1.5 py-0.5 rounded text-emerald-800 font-mono">Close &gt; Open</span>
                             </div>
-                            <p className="text-[11px] text-emerald-700">Drag high to low to draw candlestick with proportional wicks and body.</p>
+                            <p className="text-[11px] text-emerald-700">Wicks extend from high/low to open/close body edges without intersecting.</p>
                           </div>
                         </div>
                       )}
@@ -7138,7 +7187,10 @@ export default function WhiteboardPage() {
 
                           {/* Candle Color */}
                           <div>
-                            <label className="text-[11px] font-bold text-ink block mb-1.5">Candle Color</label>
+                            <label className="text-[11px] font-bold text-ink block mb-1.5 flex items-center justify-between">
+                              <span>Candle Color</span>
+                              <span className="text-[9px] text-muted font-normal">Wicks & Body</span>
+                            </label>
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {PALETTE.map((c) => (
                                 <button
@@ -7147,13 +7199,57 @@ export default function WhiteboardPage() {
                                   onClick={() => applyColorToSelected(c)}
                                   disabled={selectedShape?.isLocked}
                                   className={`h-6 w-6 rounded-full transition-transform border border-line ${
-                                    strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                                    (selectedShape?.color || strokeColor) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
                                   } ${selectedShape?.isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
                                   style={{ background: c }}
                                 />
                               ))}
+                              <label
+                                className="h-6 w-6 rounded-full border border-line flex items-center justify-center cursor-pointer hover:scale-110 transition relative overflow-hidden"
+                                title="Choose Custom Hex Color"
+                              >
+                                <input
+                                  type="color"
+                                  value={selectedShape?.color || strokeColor}
+                                  onChange={(e) => applyColorToSelected(e.target.value)}
+                                  disabled={selectedShape?.isLocked}
+                                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                                />
+                                <span
+                                  className="w-full h-full rounded-full border"
+                                  style={{ background: selectedShape?.color || strokeColor }}
+                                />
+                              </label>
                             </div>
                           </div>
+
+                          {/* Body Fill Style */}
+                          {selectedShape && (
+                            <div>
+                              <label className="text-[11px] font-bold text-ink block mb-1.5">Body Fill Style</label>
+                              <div className="grid grid-cols-3 gap-1.5">
+                                {(["translucent", "solid", "hollow"] as const).map((style) => (
+                                  <button
+                                    key={style}
+                                    type="button"
+                                    onClick={() => {
+                                      setShapes((prev) =>
+                                        prev.map((s) => (s.id === selectedShape.id ? { ...s, candleStyle: style } : s))
+                                      );
+                                    }}
+                                    disabled={selectedShape.isLocked}
+                                    className={`py-1 px-2 rounded-xl text-[10px] font-bold transition cursor-pointer border ${
+                                      (selectedShape.candleStyle || "translucent") === style
+                                        ? "bg-brand text-white border-brand shadow-2xs"
+                                        : "bg-slate-50 text-slate-700 border-line hover:bg-white"
+                                    }`}
+                                  >
+                                    {style === "translucent" ? "Soft (35%)" : style === "solid" ? "Solid (100%)" : "Hollow"}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
 
                           {/* Micro Label Tag */}
                           {selectedShape && (
@@ -7183,7 +7279,7 @@ export default function WhiteboardPage() {
                               <span>Bearish Candle</span>
                               <span className="text-[10px] bg-rose-200 px-1.5 py-0.5 rounded text-rose-800 font-mono">Open &gt; Close</span>
                             </div>
-                            <p className="text-[11px] text-rose-700">Drag high to low to draw candlestick with proportional wicks and body.</p>
+                            <p className="text-[11px] text-rose-700">Wicks extend from high/low to open/close body edges without intersecting.</p>
                           </div>
                         </div>
                       )}
@@ -7772,8 +7868,12 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
   if (toolKey === "bullish_candle") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="70" y1="12" x2="70" y2="82" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+        {/* Upper Wick */}
+        <line x1="70" y1="12" x2="70" y2="28" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+        {/* Bullish Green Body */}
         <rect x="52" y="28" width="36" height="42" rx="3" fill="rgba(16, 185, 129, 0.35)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        {/* Lower Wick */}
+        <line x1="70" y1="70" x2="70" y2="84" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
         <text x="70" y="52" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">BULLISH</text>
       </svg>
     );
@@ -7782,8 +7882,12 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
   if (toolKey === "bearish_candle") {
     return (
       <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="70" y1="12" x2="70" y2="82" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        {/* Upper Wick */}
+        <line x1="70" y1="12" x2="70" y2="28" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        {/* Bearish Red Body */}
         <rect x="52" y="28" width="36" height="42" rx="3" fill="rgba(239, 68, 68, 0.35)" stroke="#ef4444" strokeWidth="2" className="animate-pulse" />
+        {/* Lower Wick */}
+        <line x1="70" y1="70" x2="70" y2="84" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
         <text x="70" y="52" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">BEARISH</text>
       </svg>
     );
@@ -8466,32 +8570,45 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const yHigh = Math.min(y1, y2);
     const yLow = Math.max(y1, y2);
     const totalH = Math.max(16, yLow - yHigh);
-    const bodyW = Math.max(16, Math.abs(x2 - x1) || 22);
+    const bodyW = Math.max(14, Math.abs(x2 - x1) || 22);
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
-    const bodyH = Math.max(10, totalH * 0.62);
+    const bodyH = Math.max(8, totalH * 0.62);
     const bodyY = yHigh + (totalH - bodyH) / 2;
+    const candleColor = shape.color || "#10b981";
+    const strokeW = shape.strokeWidth || 1.75;
+    const style = shape.candleStyle || "translucent";
 
-    // Center Wick
-    ctx.strokeStyle = shape.color || "#10b981";
-    ctx.lineWidth = 1.75;
+    // 1. Upper Wick: High down to Top of Body (Close)
+    ctx.strokeStyle = candleColor;
+    ctx.lineWidth = strokeW;
     ctx.setLineDash([]);
     ctx.beginPath();
     ctx.moveTo(centerX, yHigh);
+    ctx.lineTo(centerX, bodyY);
+    ctx.stroke();
+
+    // 2. Lower Wick: Bottom of Body (Open) down to Low
+    ctx.beginPath();
+    ctx.moveTo(centerX, bodyY + bodyH);
     ctx.lineTo(centerX, yLow);
     ctx.stroke();
 
-    // Bullish Candle Body
-    ctx.fillStyle = "rgba(16, 185, 129, 0.35)";
-    ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
-    ctx.strokeStyle = shape.color || "#10b981";
-    ctx.lineWidth = 1.75;
+    // 3. Candle Body (Open at bottom, Close at top)
+    if (style !== "hollow") {
+      ctx.globalAlpha = style === "solid" ? 1 : 0.35;
+      ctx.fillStyle = candleColor;
+      ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = candleColor;
+    ctx.lineWidth = strokeW;
     ctx.strokeRect(bodyX, bodyY, bodyW, bodyH);
 
     // Optional Micro-Label
     if (shape.text) {
-      ctx.fillStyle = shape.color || "#10b981";
+      ctx.fillStyle = candleColor;
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
       ctx.fillText(shape.text, bodyX + bodyW + 4, bodyY + 10);
     }
@@ -8505,32 +8622,45 @@ function renderWhiteboardShape(ctx: CanvasRenderingContext2D, shape: Shape, isSe
     const yHigh = Math.min(y1, y2);
     const yLow = Math.max(y1, y2);
     const totalH = Math.max(16, yLow - yHigh);
-    const bodyW = Math.max(16, Math.abs(x2 - x1) || 22);
+    const bodyW = Math.max(14, Math.abs(x2 - x1) || 22);
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
-    const bodyH = Math.max(10, totalH * 0.62);
+    const bodyH = Math.max(8, totalH * 0.62);
     const bodyY = yHigh + (totalH - bodyH) / 2;
+    const candleColor = shape.color || "#ef4444";
+    const strokeW = shape.strokeWidth || 1.75;
+    const style = shape.candleStyle || "translucent";
 
-    // Center Wick
-    ctx.strokeStyle = shape.color || "#ef4444";
-    ctx.lineWidth = 1.75;
+    // 1. Upper Wick: High down to Top of Body (Open)
+    ctx.strokeStyle = candleColor;
+    ctx.lineWidth = strokeW;
     ctx.setLineDash([]);
     ctx.beginPath();
     ctx.moveTo(centerX, yHigh);
+    ctx.lineTo(centerX, bodyY);
+    ctx.stroke();
+
+    // 2. Lower Wick: Bottom of Body (Close) down to Low
+    ctx.beginPath();
+    ctx.moveTo(centerX, bodyY + bodyH);
     ctx.lineTo(centerX, yLow);
     ctx.stroke();
 
-    // Bearish Candle Body
-    ctx.fillStyle = "rgba(239, 68, 68, 0.35)";
-    ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
-    ctx.strokeStyle = shape.color || "#ef4444";
-    ctx.lineWidth = 1.75;
+    // 3. Candle Body (Open at top, Close at bottom)
+    if (style !== "hollow") {
+      ctx.globalAlpha = style === "solid" ? 1 : 0.35;
+      ctx.fillStyle = candleColor;
+      ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+      ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = candleColor;
+    ctx.lineWidth = strokeW;
     ctx.strokeRect(bodyX, bodyY, bodyW, bodyH);
 
     // Optional Micro-Label
     if (shape.text) {
-      ctx.fillStyle = shape.color || "#ef4444";
+      ctx.fillStyle = candleColor;
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
       ctx.fillText(shape.text, bodyX + bodyW + 4, bodyY + 10);
     }
