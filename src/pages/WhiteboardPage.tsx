@@ -1020,6 +1020,7 @@ export default function WhiteboardPage() {
   const [editingTextShapeId, setEditingTextShapeId] = useState<string | null>(null);
   const [inlineTextValue, setInlineTextValue] = useState<string>("");
   const inlineTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const textCreatedTimeRef = useRef<number>(0);
 
   const commitInlineText = (targetId?: string) => {
     const idToCommit = targetId || editingTextShapeId;
@@ -1034,6 +1035,14 @@ export default function WhiteboardPage() {
       return prev;
     });
   };
+
+  // Auto-focus and select all text when inline editor opens
+  useEffect(() => {
+    if (editingTextShapeId && inlineTextRef.current) {
+      inlineTextRef.current.focus();
+      inlineTextRef.current.select();
+    }
+  }, [editingTextShapeId]);
   const [textValue, setTextValue] = useState("");
   const [isStickyMode, setIsStickyMode] = useState(false);
   const [editingShapeId, setEditingShapeId] = useState<string | null>(null);
@@ -2116,12 +2125,9 @@ export default function WhiteboardPage() {
           setEditingTextShapeId(hitShape.id);
           setInlineTextValue(hitShape.text || "");
           setSelectedShapeIds([hitShape.id]);
-          setTimeout(() => {
-            if (inlineTextRef.current) {
-              inlineTextRef.current.focus();
-              inlineTextRef.current.setSelectionRange(inlineTextRef.current.value.length, inlineTextRef.current.value.length);
-            }
-          }, 20);
+          setIsInspectorOpen(true);
+          setRightPanelTab("character");
+          textCreatedTimeRef.current = Date.now();
         }
         return;
       }
@@ -2131,8 +2137,9 @@ export default function WhiteboardPage() {
         commitInlineText(editingTextShapeId);
       }
 
-      // Create new text shape directly at cursor coordinates
+      // Create new text shape directly at cursor coordinates with initial placeholder
       const newId = `shape_txt_${Date.now()}`;
+      const initialText = "Type text here";
       const newTextShape: Shape = {
         id: newId,
         type: "text",
@@ -2142,23 +2149,18 @@ export default function WhiteboardPage() {
         fontFamily: "Inter, sans-serif",
         fontWeight: "normal",
         textAlign: "left",
-        text: "",
+        text: initialText,
         points: [pt],
         isLocked: false,
       };
 
+      textCreatedTimeRef.current = Date.now();
       setShapes((prev) => [...prev, newTextShape]);
       setEditingTextShapeId(newId);
-      setInlineTextValue("");
+      setInlineTextValue(initialText);
       setSelectedShapeIds([newId]);
       setIsInspectorOpen(true);
       setRightPanelTab("character");
-
-      setTimeout(() => {
-        if (inlineTextRef.current) {
-          inlineTextRef.current.focus();
-        }
-      }, 20);
       return;
     }
 
@@ -10977,6 +10979,9 @@ export default function WhiteboardPage() {
                   top: screenY,
                   transformOrigin: "top left",
                 }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
               >
                 <textarea
                   ref={inlineTextRef}
@@ -10999,6 +11004,9 @@ export default function WhiteboardPage() {
                     }
                   }}
                   onBlur={() => {
+                    if (Date.now() - textCreatedTimeRef.current < 400) {
+                      return;
+                    }
                     commitInlineText(editingTextShapeId);
                   }}
                   style={{
@@ -11011,7 +11019,7 @@ export default function WhiteboardPage() {
                     textAlign: (editingShape.textAlign as any) || "left",
                     textDecoration: editingShape.textDecoration || "none",
                   }}
-                  className="bg-transparent border border-dashed border-slate-700/80 outline-none p-1 m-0 resize-none overflow-hidden min-w-[140px] max-w-[800px] rounded-none caret-slate-900 shadow-sm"
+                  className="bg-white/95 border-2 border-slate-900 outline-none p-1.5 m-0 resize-none overflow-hidden min-w-[160px] max-w-[800px] rounded-none caret-slate-950 shadow-md font-sans"
                 />
               </div>
             );
