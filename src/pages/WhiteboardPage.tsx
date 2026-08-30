@@ -61,6 +61,8 @@ import {
   Monitor,
   Smartphone,
   Laptop,
+  Scan,
+  BoxSelect,
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -288,6 +290,7 @@ type Tool =
   | "annotation"
   | "eraser"
   | "zoom"
+  | "marquee_zoom"
   | "fibo"
   | "long"
   | "short"
@@ -801,7 +804,7 @@ export default function WhiteboardPage() {
   // Selection & Multi-Select Marquee State
   const [shapes, setShapes] = useState<Shape[]>([]);
   const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
-  const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number; mode?: "select" | "zoom" } | null>(null);
 
   // Interactive Shape Resizing State
   const [activeResizeHandle, setActiveResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
@@ -1163,20 +1166,38 @@ export default function WhiteboardPage() {
       renderWhiteboardShape(ctx, currentShape, false, defaultRiskReward);
     }
 
-    // Render Multi-Select Marquee Drag Box
+    // Render Multi-Select or Marquee Zoom Drag Box
     if (marqueeBox) {
       const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
       const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
       const minY = Math.min(marqueeBox.y1, marqueeBox.y2);
       const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
+      const boxW = maxX - minX;
+      const boxH = maxY - minY;
 
-      ctx.fillStyle = "rgba(59, 130, 246, 0.12)";
-      ctx.fillRect(minX, minY, maxX - minX, maxY - minY);
-      ctx.strokeStyle = "#3b82f6";
-      ctx.lineWidth = 1.5 / zoom;
-      ctx.setLineDash([4 / zoom, 4 / zoom]);
-      ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-      ctx.setLineDash([]);
+      if (marqueeBox.mode === "zoom") {
+        ctx.fillStyle = "rgba(245, 158, 11, 0.15)";
+        ctx.fillRect(minX, minY, boxW, boxH);
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 1.8 / zoom;
+        ctx.setLineDash([5 / zoom, 3 / zoom]);
+        ctx.strokeRect(minX, minY, boxW, boxH);
+        ctx.setLineDash([]);
+
+        if (boxW > 60 / zoom && boxH > 24 / zoom) {
+          ctx.fillStyle = "#d97706";
+          ctx.font = `bold ${Math.max(10, 12 / zoom)}px sans-serif`;
+          ctx.fillText("🔍 Zoom Area", minX + 6 / zoom, minY + 16 / zoom);
+        }
+      } else {
+        ctx.fillStyle = "rgba(59, 130, 246, 0.12)";
+        ctx.fillRect(minX, minY, boxW, boxH);
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = 1.5 / zoom;
+        ctx.setLineDash([4 / zoom, 4 / zoom]);
+        ctx.strokeRect(minX, minY, boxW, boxH);
+        ctx.setLineDash([]);
+      }
     }
 
     ctx.restore();
@@ -1379,8 +1400,10 @@ export default function WhiteboardPage() {
 
     const pt = getCanvasCoords(e);
 
-    if (activeTool === "zoom") {
-      setZoom((z) => Math.min(3.0, z + 0.2));
+    if (activeTool === "zoom" || activeTool === "marquee_zoom") {
+      isDrawing.current = true;
+      dragStartPt.current = pt;
+      setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, mode: "zoom" });
       return;
     }
 
@@ -1433,9 +1456,13 @@ export default function WhiteboardPage() {
           showToast("Object is locked 🔒");
         }
       } else {
-        setSelectedShapeIds([]);
-        setIsInspectorOpen(false);
-        setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y });
+        if (!e.shiftKey) {
+          setSelectedShapeIds([]);
+          setIsInspectorOpen(false);
+        }
+        isDrawing.current = true;
+        dragStartPt.current = pt;
+        setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, mode: "select" });
       }
       return;
     }
@@ -1574,13 +1601,15 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // 3. Selection Marquee Box
-    if (isDrawing.current && activeTool === "select" && dragStartPt.current) {
+    // 3. Selection or Marquee Zoom Box Drag
+    if (isDrawing.current && dragStartPt.current && (activeTool === "select" || activeTool === "zoom" || activeTool === "marquee_zoom")) {
+      const mode = (activeTool === "zoom" || activeTool === "marquee_zoom") ? "zoom" : "select";
       setMarqueeBox({
         x1: dragStartPt.current.x,
         y1: dragStartPt.current.y,
         x2: pt.x,
         y2: pt.y,
+        mode,
       });
       return;
     }
@@ -1632,19 +1661,53 @@ export default function WhiteboardPage() {
     isDraggingShape.current = false;
     setActiveResizeHandle(null);
 
-    // Finalize Multi-Select Marquee
+    // Finalize Multi-Select or Marquee Zoom
     if (marqueeBox) {
       const minX = Math.min(marqueeBox.x1, marqueeBox.x2);
       const maxX = Math.max(marqueeBox.x1, marqueeBox.x2);
       const minY = Math.min(marqueeBox.y1, marqueeBox.y2);
       const maxY = Math.max(marqueeBox.y1, marqueeBox.y2);
+      const boxW = maxX - minX;
+      const boxH = maxY - minY;
 
-      const enclosedShapes = shapes.filter((s) => {
-        if (s.isHidden) return false;
-        return s.points.some((p) => p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY);
-      });
+      if (marqueeBox.mode === "zoom") {
+        if (boxW >= 10 && boxH >= 10) {
+          // Marquee Zoom area
+          const canvasEl = canvasRef.current;
+          const viewW = canvasEl ? canvasEl.width : window.innerWidth;
+          const viewH = canvasEl ? canvasEl.height : window.innerHeight;
+          const cx = minX + boxW / 2;
+          const cy = minY + boxH / 2;
 
-      setSelectedShapeIds(enclosedShapes.map((s) => s.id));
+          const fitZoom = Math.min(3.0, Math.max(0.3, Math.min(viewW / boxW, viewH / boxH) * 0.9));
+          const newPanX = viewW / 2 - cx * fitZoom;
+          const newPanY = viewH / 2 - cy * fitZoom;
+
+          setZoom(fitZoom);
+          setPan({ x: newPanX, y: newPanY });
+          showToast(`Marquee Zoom: ${Math.round(fitZoom * 100)}%`);
+        } else {
+          // Single click point zoom
+          const newZoom = Math.min(3.0, zoom * 1.25);
+          const startPt = dragStartPt.current || { x: minX, y: minY };
+          const newPanX = startPt.x * zoom + pan.x - startPt.x * newZoom;
+          const newPanY = startPt.y * zoom + pan.y - startPt.y * newZoom;
+          setZoom(newZoom);
+          setPan({ x: newPanX, y: newPanY });
+        }
+      } else {
+        // Marquee Selection Mode
+        if (boxW >= 4 || boxH >= 4) {
+          const enclosedShapes = shapes.filter((s) => isShapeInMarquee(s, minX, maxX, minY, maxY));
+          const newSelectedIds = enclosedShapes.map((s) => s.id);
+          setSelectedShapeIds(newSelectedIds);
+          if (newSelectedIds.length > 0) {
+            setIsInspectorOpen(true);
+            showToast(`Selected ${newSelectedIds.length} object${newSelectedIds.length > 1 ? "s" : ""}`);
+          }
+        }
+      }
+
       setMarqueeBox(null);
     }
 
@@ -5672,6 +5735,30 @@ export default function WhiteboardPage() {
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
 
+            {/* Marquee Zoom Tool Button */}
+            <span className="h-4 w-px bg-line/80 mx-0.5" />
+            <button
+              type="button"
+              onClick={() => {
+                if (activeTool === "marquee_zoom") {
+                  setActiveTool("select");
+                  showToast("Switched back to Select Tool");
+                } else {
+                  setActiveTool("marquee_zoom");
+                  showToast("Marquee Zoom active: Drag a rectangle over any area to zoom in!");
+                }
+              }}
+              className={`px-2 py-1 rounded-lg flex items-center gap-1.5 transition cursor-pointer text-xs font-bold ${
+                activeTool === "marquee_zoom"
+                  ? "bg-amber-500 text-white shadow-xs"
+                  : "text-slate-700 hover:bg-slate-100 hover:text-amber-600"
+              }`}
+              title="Marquee Zoom: Drag a rectangle over any chart area to zoom into that exact area"
+            >
+              <Scan className="h-3.5 w-3.5 shrink-0" />
+              <span>Marquee Zoom</span>
+            </button>
+
             {/* Optional Cursor Coordinates Indicator */}
             {showCursorCoords && cursorCoords && (
               <>
@@ -8603,6 +8690,7 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "annotation": return AnnotationIcon;
     case "eraser": return Eraser;
     case "zoom": return Search;
+    case "marquee_zoom": return Scan;
     case "fibo": return Percent;
     case "long": return TradingViewLongIcon;
     case "short": return TradingViewShortIcon;
@@ -8632,6 +8720,45 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const maxY = Math.max(...pts.map((p) => p.y)) + 10;
 
   return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+}
+
+function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: number; maxY: number } {
+  const pts = shape.points;
+  if (!pts || !pts.length) return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+
+  let minX = Math.min(...pts.map((p) => p.x));
+  let maxX = Math.max(...pts.map((p) => p.x));
+  let minY = Math.min(...pts.map((p) => p.y));
+  let maxY = Math.max(...pts.map((p) => p.y));
+
+  if (shape.type === "sticky") {
+    minX = pts[0].x;
+    minY = pts[0].y;
+    maxX = pts[0].x + 180;
+    maxY = pts[0].y + 140;
+  } else if (shape.type === "text") {
+    minX = pts[0].x - 4;
+    minY = pts[0].y - 18;
+    maxX = pts[0].x + Math.max(60, (shape.text?.length || 4) * 9);
+    maxY = pts[0].y + 6;
+  } else if (shape.type === "bullish_candle" || shape.type === "bearish_candle") {
+    const upperWick = shape.upperWickLength ?? 25;
+    const lowerWick = shape.lowerWickLength ?? 25;
+    minY = Math.min(minY, minY - upperWick);
+    maxY = Math.max(maxY, maxY + lowerWick);
+  }
+  return { minX, maxX, minY, maxY };
+}
+
+function isShapeInMarquee(shape: Shape, mMinX: number, mMaxX: number, mMinY: number, mMaxY: number): boolean {
+  if (shape.isHidden) return false;
+  // 1. Any point of shape is inside marquee
+  if (shape.points.some((p) => p.x >= mMinX && p.x <= mMaxX && p.y >= mMinY && p.y <= mMaxY)) return true;
+  // 2. Bounding box overlaps with marquee box
+  const b = getShapeBounds(shape);
+  const overlapX = !(b.maxX < mMinX || b.minX > mMaxX);
+  const overlapY = !(b.maxY < mMinY || b.minY > mMaxY);
+  return overlapX && overlapY;
 }
 
 /** Check hit test on 8 resize handle nodes (4 corners + 4 center edges) */
@@ -9610,6 +9737,7 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null): Re
         ),
       };
     case "zoom":
+    case "marquee_zoom":
       return {
         cursor: makeSvgCursor(
           `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
