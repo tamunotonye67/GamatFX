@@ -11659,22 +11659,22 @@ function WhiteboardToolBtn({
 
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && !isFlyoutOpen && (
-        <div className="absolute left-full top-0 ml-2 w-56 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-1.5">
-          {/* Visual Illustration Container - Compact and Proportional */}
-          <div className="w-full h-28 rounded-none border border-slate-300 bg-slate-200/70 flex items-center justify-center overflow-hidden relative">
+        <div className="absolute left-full top-0 ml-2 w-60 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
+          {/* Visual Thumbnail Preview with Soft Curved Container and Ash Aesthetic */}
+          <div className="w-full h-28 rounded-lg border border-slate-300/90 bg-slate-200/90 flex items-center justify-center overflow-hidden relative shadow-inner">
             <ToolGifAnimation toolKey={toolKey} />
           </div>
 
-          <div>
-            <div className="flex items-center justify-between border-b border-slate-300 pb-1 mb-1">
-              <h4 className="font-extrabold text-xs text-slate-900">{explanation.title}</h4>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between border-b border-slate-300 pb-1">
+              <h4 className="font-bold text-xs text-slate-900 tracking-tight">{explanation.title}</h4>
               {explanation.shortcut && (
-                <span className="text-[9px] font-mono font-bold bg-slate-200 px-1.5 py-0.5 rounded-none text-slate-700">
+                <span className="text-[9px] font-mono font-bold bg-slate-300 text-slate-800 px-1.5 py-0.5 rounded-none">
                   {explanation.shortcut}
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-slate-600 leading-snug font-medium">{explanation.desc}</p>
+            <p className="text-[10.5px] text-slate-600 leading-snug font-normal">{explanation.desc}</p>
           </div>
         </div>
       )}
