@@ -25,9 +25,13 @@ export const STATIC_ROUTES = [
 ] as const;
 
 function parse(): string {
-  const raw = window.location.hash.replace(/^#/, "").split("?")[0];
-  const clean = raw.replace(/\/+$/, "");
-  return clean === "" ? "/" : clean;
+  if (window.location.hash) {
+    const raw = window.location.hash.replace(/^#/, "").split("?")[0];
+    const clean = raw.replace(/\/+$/, "");
+    return clean === "" ? "/" : clean;
+  }
+  const pathname = window.location.pathname.replace(/\/+$/, "");
+  return pathname === "" ? "/" : pathname;
 }
 
 /** Current path, e.g. "/courses/price-action-mastery". */
