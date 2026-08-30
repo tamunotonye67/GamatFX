@@ -984,9 +984,30 @@ export default function WhiteboardPage() {
           setPan((prevPan) => {
             const canvasX = (mouseX - prevPan.x) / prevZoom;
             const canvasY = (mouseY - prevPan.y) / prevZoom;
+            let nextPanX = mouseX - canvasX * newZoom;
+            let nextPanY = mouseY - canvasY * newZoom;
+
+            // Prevent objects from drifting under the top tabs bar when zooming out
+            if (shapes.length > 0) {
+              let minY = Infinity;
+              shapes.forEach((s) => {
+                if (!s.isHidden) {
+                  const b = getShapeBounds(s);
+                  if (b.minY < minY) minY = b.minY;
+                }
+              });
+              if (isFinite(minY)) {
+                const topScreenPos = minY * newZoom + nextPanY;
+                // If the top-most shape would be pushed under the tab bar (less than 20px from top)
+                if (topScreenPos < 20 && e.deltaY > 0) {
+                  nextPanY = 20 - minY * newZoom;
+                }
+              }
+            }
+
             return {
-              x: mouseX - canvasX * newZoom,
-              y: mouseY - canvasY * newZoom,
+              x: nextPanX,
+              y: nextPanY,
             };
           });
           return newZoom;
@@ -1003,7 +1024,7 @@ export default function WhiteboardPage() {
     return () => {
       canvas.removeEventListener("wheel", handleNonPassiveWheel);
     };
-  }, [mouseWheelMode]);
+  }, [mouseWheelMode, shapes]);
 
   /* -------------------------- FULL KEYBOARD SHORTCUTS ---------------------- */
 
