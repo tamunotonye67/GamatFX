@@ -893,6 +893,7 @@ export default function WhiteboardPage() {
   const [isAltHeld, setIsAltHeld] = useState(false);
   const altDuplicated = useRef(false);
   const dragStartOriginalPt = useRef<{ x: number; y: number } | null>(null);
+  const lastEraserPt = useRef<{ x: number; y: number } | null>(null);
 
   /* -------------------------- Page Scroll Lock & LocalStorage Initializer --- */
 
@@ -1322,8 +1323,22 @@ export default function WhiteboardPage() {
       }
     }
 
+    // Render Live Eraser Brush Sweep Indicator
+    if (activeTool === "eraser" && cursorCoords) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cursorCoords.x, cursorCoords.y, eraserSize, 0, Math.PI * 2);
+      ctx.fillStyle = isDarkBg ? "rgba(255, 255, 255, 0.15)" : "rgba(239, 68, 68, 0.12)";
+      ctx.fill();
+      ctx.strokeStyle = isDarkBg ? "rgba(255, 255, 255, 0.85)" : "rgba(239, 68, 68, 0.85)";
+      ctx.lineWidth = 1.5 / zoom;
+      ctx.setLineDash([3 / zoom, 2 / zoom]);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     ctx.restore();
-  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward]);
+  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize]);
 
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
@@ -1369,6 +1384,18 @@ export default function WhiteboardPage() {
   /* ------------------------- Precision Part-By-Part Eraser ---------------- */
 
   const performPrecisionErasing = (eraserPt: { x: number; y: number }, radius: number = eraserSize) => {
+    const prevPt = lastEraserPt.current || eraserPt;
+    lastEraserPt.current = eraserPt;
+
+    // Minimum distance from point P to line segment AB
+    const distToSegment = (p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }) => {
+      const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2;
+      if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+      let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(p.x - (a.x + t * (b.x - a.x)), p.y - (a.y + t * (b.y - a.y)));
+    };
+
     setShapes((prevShapes) => {
       let result: Shape[] = [];
 
@@ -1379,12 +1406,16 @@ export default function WhiteboardPage() {
           continue;
         }
 
-        if (s.type === "pencil" || s.type === "highlighter" || s.type === "bezier") {
+        // 1. Freehand strokes: carve points inside eraser circle/segment
+        if (s.type === "pencil" || s.type === "pen" || s.type === "highlighter" || s.type === "bezier") {
           const subPaths: { x: number; y: number }[][] = [];
           let currentSub: { x: number; y: number }[] = [];
 
           for (const p of s.points) {
-            const dist = Math.hypot(p.x - eraserPt.x, p.y - eraserPt.y);
+            const dist = Math.min(
+              Math.hypot(p.x - eraserPt.x, p.y - eraserPt.y),
+              distToSegment(p, prevPt, eraserPt)
+            );
             if (dist > radius) {
               currentSub.push(p);
             } else {
@@ -1399,16 +1430,38 @@ export default function WhiteboardPage() {
           }
 
           subPaths.forEach((pts, idx) => {
-            if (pts.length > (s.type === "pencil" || s.type === "highlighter" ? 1 : 0)) {
+            if (pts.length > (s.type === "pencil" || s.type === "pen" || s.type === "highlighter" ? 1 : 0)) {
               result.push({
                 ...s,
-                id: `${s.id}_part_${idx}_${Date.now()}`,
+                id: subPaths.length === 1 && idx === 0 ? s.id : `${s.id}_part_${idx}_${Date.now()}`,
                 points: pts,
               });
             }
           });
+        } else if (s.type === "line" || s.type === "arrow") {
+          const p1 = s.points[0];
+          const p2 = s.points[1];
+          if (p1 && p2) {
+            const dist1 = distToSegment(eraserPt, p1, p2);
+            const dist2 = distToSegment(prevPt, p1, p2);
+            if (Math.min(dist1, dist2) > radius) {
+              result.push(s);
+            }
+          } else {
+            result.push(s);
+          }
         } else {
-          if (!isPointInShape(eraserPt, s)) {
+          // Bounding box / shape overlap check
+          const b = getShapeBounds(s);
+          const clampedX1 = Math.max(b.minX, Math.min(b.maxX, eraserPt.x));
+          const clampedY1 = Math.max(b.minY, Math.min(b.maxY, eraserPt.y));
+          const hitCurrent = Math.hypot(eraserPt.x - clampedX1, eraserPt.y - clampedY1) <= radius;
+
+          const clampedX2 = Math.max(b.minX, Math.min(b.maxX, prevPt.x));
+          const clampedY2 = Math.max(b.minY, Math.min(b.maxY, prevPt.y));
+          const hitPrev = Math.hypot(prevPt.x - clampedX2, prevPt.y - clampedY2) <= radius;
+
+          if (!hitCurrent && !hitPrev) {
             result.push(s);
           }
         }
@@ -1574,6 +1627,9 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "eraser") {
+      isDrawing.current = true;
+      lastEraserPt.current = pt;
+      dragStartPt.current = pt;
       performPrecisionErasing(pt, eraserSize);
       return;
     }
@@ -1896,6 +1952,7 @@ export default function WhiteboardPage() {
 
     if (!isDrawing.current) return;
     isDrawing.current = false;
+    lastEraserPt.current = null;
 
     if (currentShape) {
       const finalShape = {
