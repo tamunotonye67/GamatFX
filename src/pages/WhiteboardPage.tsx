@@ -11158,15 +11158,15 @@ export default function WhiteboardPage() {
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                 </div>
 
-                {/* 8. Strategy & Risk Calculator Button */}
+                {/* 8. Market Sessions & Killzones Button */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (detachedPanels.strategy.isOpen) {
+                    if (detachedPanels.sessions?.isOpen) {
                       const newZ = highestPanelZIndex + 1;
                       setHighestPanelZIndex(newZ);
-                      setDetachedPanels((prev) => ({ ...prev, sessions: { ...prev.strategy, zIndex: newZ } }));
-                      showToast("Focused Strategy & Risk floating window");
+                      setDetachedPanels((prev) => ({ ...prev, sessions: { ...prev.sessions, zIndex: newZ } }));
+                      showToast("Focused Market Sessions floating window");
                     } else {
                       if (isInspectorOpen && rightPanelTab === "sessions") {
                         setIsInspectorOpen(false);
@@ -11177,16 +11177,16 @@ export default function WhiteboardPage() {
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.strategy.isOpen
+                    detachedPanels.sessions?.isOpen
                       ? "text-brand bg-brand-light/60 border-brand font-bold"
                       : isInspectorOpen && rightPanelTab === "sessions"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={detachedPanels.strategy.isOpen ? "Focus Floating Strategy & Risk" : "Strategy & Risk Calculator"}
+                  title={detachedPanels.sessions?.isOpen ? "Focus Floating Market Sessions" : "Market Sessions & Killzones"}
                 >
-                  <Calculator className="h-4 w-4" />
-                  {detachedPanels.strategy.isOpen && (
+                  <Globe className="h-4 w-4" />
+                  {detachedPanels.sessions?.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
