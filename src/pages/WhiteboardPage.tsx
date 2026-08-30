@@ -895,8 +895,8 @@ export default function WhiteboardPage() {
 
   // Individual Detachable & Attachable Floating Panels System
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "strategy" | "patterns">("inspector");
-  const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
+  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "sessions" | "patterns">("inspector");
+  const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "sessions" | "patterns", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
     inspector: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     character: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
@@ -904,7 +904,7 @@ export default function WhiteboardPage() {
     samples: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     trash: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     grid_guides: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    strategy: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    sessions: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     patterns: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
   });
   const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
@@ -1672,6 +1672,10 @@ export default function WhiteboardPage() {
   const selectTool = (tool: Tool) => {
     setActiveTool(tool);
     setFlyoutGroup(null);
+    if (tool === "select") {
+      setIsInspectorOpen(true);
+      setRightPanelTab("inspector");
+    }
     if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(tool)) {
       setActiveForexTool(tool as any);
     } else if (tool === "pencil" || tool === "highlighter") {
@@ -2365,6 +2369,7 @@ export default function WhiteboardPage() {
       setShapes((prev) => [...prev, finalShape]);
       setSelectedShapeIds([finalShape.id]);
       setIsInspectorOpen(true);
+      setRightPanelTab("inspector");
       setCurrentShape(null);
       setRedoStack([]);
       if (finalShape.type === "sticky") {
@@ -7559,169 +7564,234 @@ export default function WhiteboardPage() {
           </div>
         )}
 
-        {/* TAB 8: THEME & CANVAS STYLING */}
-        {tabKey === "strategy" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150">
-            {/* POSITION SIZE & RISK CALCULATOR */}
-            <div className="rounded-2xl border border-brand/20 bg-brand-light/20 p-3 space-y-3 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[10.5px] font-black uppercase tracking-wider text-brand flex items-center gap-1.5">
-                  <Calculator className="h-3.5 w-3.5" /> Position Size Calculator
+        {/* TAB 8: MARKET SESSIONS & KILLZONES RADAR */}
+        {tabKey === "sessions" && (
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+            {/* LIVE MARKET SESSIONS CLOCK CARD */}
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-2">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Market Sessions Radar
                 </span>
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand text-white">
-                  Live Forex Math
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  UTC / GMT Live
                 </span>
               </div>
 
-              {/* Account Balance & Risk % Inputs */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[9.5px] font-bold text-muted">Account ($)</label>
-                  <input
-                    type="number"
-                    defaultValue={10000}
-                    id="calc_balance"
-                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand"
-                  />
+              {/* 4 Sessions Overview */}
+              <div className="space-y-1.5">
+                {/* London Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <div>
+                      <p className="font-bold text-slate-900">London Session</p>
+                      <p className="text-[10px] text-slate-600">08:00 – 16:00 GMT • High Volume</p>
+                    </div>
+                  </div>
+                  <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 border border-emerald-200">ACTIVE</span>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[9.5px] font-bold text-muted">Risk (%)</label>
-                  <select
-                    id="calc_risk_pct"
-                    defaultValue="1"
-                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand cursor-pointer"
-                  >
-                    <option value="0.5">0.5% (Conservative)</option>
-                    <option value="1">1.0% (Standard)</option>
-                    <option value="2">2.0% (Moderate)</option>
-                    <option value="3">3.0% (Aggressive)</option>
-                  </select>
+
+                {/* New York Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-blue-500" />
+                    <div>
+                      <p className="font-bold text-slate-900">New York Session</p>
+                      <p className="text-[10px] text-slate-600">13:00 – 21:00 GMT • Peak Overlap</p>
+                    </div>
+                  </div>
+                  <span className="text-[9.5px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 border border-blue-200">ACTIVE</span>
+                </div>
+
+                {/* Asian / Tokyo Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-800">Tokyo / Asian Session</p>
+                      <p className="text-[10px] text-slate-600">00:00 – 08:00 GMT • Accumulation</p>
+                    </div>
+                  </div>
+                  <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300">CLOSED</span>
+                </div>
+
+                {/* Sydney Session */}
+                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" />
+                    <div>
+                      <p className="font-bold text-slate-800">Sydney Session</p>
+                      <p className="text-[10px] text-slate-600">22:00 – 07:00 GMT • Early Flow</p>
+                    </div>
+                  </div>
+                  <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300">CLOSED</span>
                 </div>
               </div>
-
-              {/* Stop Loss Pips & Pair */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-[9.5px] font-bold text-muted">Stop Loss (Pips)</label>
-                  <input
-                    type="number"
-                    defaultValue={20}
-                    id="calc_sl_pips"
-                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[9.5px] font-bold text-muted">Instrument</label>
-                  <select
-                    id="calc_pair"
-                    defaultValue="EURUSD"
-                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand cursor-pointer"
-                  >
-                    <option value="EURUSD">EUR/USD (Pip $10)</option>
-                    <option value="GBPUSD">GBP/USD (Pip $10)</option>
-                    <option value="USDJPY">USD/JPY (Pip $6.7)</option>
-                    <option value="XAUUSD">XAU/USD Gold</option>
-                    <option value="BTCUSD">BTC/USD Crypto</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Instant Calculation Output Badge */}
-              <div className="rounded-xl border border-line bg-white p-2.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted font-medium">Risk Amount:</span>
-                  <span className="font-extrabold text-rose-600">$100.00 (1%)</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted font-medium">Recommended Lot Size:</span>
-                  <span className="font-extrabold text-emerald-600">0.50 Standard Lots</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted font-medium">Mini / Micro:</span>
-                  <span className="font-bold text-ink">5.0 Mini / 50 Micro</span>
-                </div>
-              </div>
-
-              {/* Stamp Calculation Onto Canvas */}
-              <button
-                type="button"
-                onClick={() => {
-                  const pt = { x: 100 - pan.x / zoom, y: 100 - pan.y / zoom };
-                  const riskCard: Shape = {
-                    id: `shape_risk_${Date.now()}`,
-                    type: "annotation",
-                    name: "Risk & Lot Badge",
-                    color: "#10b981",
-                    strokeWidth: 2,
-                    text: "RISK SETUP: $100 (1%) • 0.50 Lots • 20 Pips SL (1:3 RR)",
-                    points: [pt, { x: pt.x + 80, y: pt.y - 40 }],
-                    isLocked: false,
-                  };
-                  setShapes((prev) => [...prev, riskCard]);
-                  setSelectedShapeIds([riskCard.id]);
-                  showToast("Stamped Risk & Lot Size badge on canvas!");
-                }}
-                className="w-full py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Target className="h-3.5 w-3.5" /> Stamp Risk Badge on Canvas
-              </button>
             </div>
 
-            {/* SMC & TRADING STRATEGY CHECKLIST */}
-            <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[10.5px] font-black uppercase tracking-wider text-ink flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Strategy Execution Checklist
+            {/* ICT / SMC KILLZONE STAMP BUTTONS */}
+            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2 shadow-xs">
+              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Stamp Session Killzones
                 </span>
-                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                  Trade Rules
-                </span>
+                <span className="text-[9px] text-slate-500 font-mono">1-Click Stamp</span>
               </div>
 
-              <div className="space-y-1.5 text-xs text-slate-700">
-                {[
-                  "1. Higher Timeframe Trend & Bias Aligned (4H/1D)",
-                  "2. Key Liquidity Sweep (BSL / SSL Taken)",
-                  "3. Order Block (OB) / Fair Value Gap (FVG) Tap",
-                  "4. Market Structure Shift (MSS) on 15M/5M",
-                  "5. Risk-to-Reward Ratio Minimum 1:2.5+",
-                  "6. No High-Impact News (Red Folder CPI/NFP)",
-                ].map((rule, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 transition border border-transparent hover:border-line cursor-pointer"
-                    onClick={() => showToast(`Rule checked: ${rule}`)}
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                    <span className="font-semibold text-[11px] leading-tight">{rule}</span>
-                  </div>
-                ))}
-              </div>
+              <div className="grid grid-cols-1 gap-1.5">
+                {/* Stamp London Killzone Box */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 120 - pan.x / zoom, y: 140 - pan.y / zoom };
+                    const londonBox: Shape = {
+                      id: `shape_london_${Date.now()}`,
+                      type: "rectangle",
+                      name: "London Open Killzone",
+                      color: "#10b981",
+                      strokeWidth: 1.5,
+                      fillColor: "#10b981",
+                      fillStyle: "translucent",
+                      opacity: 0.18,
+                      points: [pt, { x: pt.x + 180, y: pt.y + 120 }],
+                      isLocked: false,
+                    };
+                    const label: Shape = {
+                      id: `shape_london_txt_${Date.now() + 1}`,
+                      type: "text",
+                      name: "London Label",
+                      color: "#047857",
+                      fontSize: 11,
+                      text: "LONDON KILLZONE (07:00-10:00 GMT)",
+                      points: [{ x: pt.x + 5, y: pt.y + 18 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, londonBox, label]);
+                    setSelectedShapeIds([londonBox.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped London Killzone on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Sun className="h-3.5 w-3.5 text-emerald-700 stroke-[1.5]" /> London Open Killzone
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">07:00–10:00</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  const pt = { x: 140 - pan.x / zoom, y: 140 - pan.y / zoom };
-                  const checklistCard: Shape = {
-                    id: `shape_check_${Date.now()}`,
-                    type: "sticky",
-                    name: "Trade Checklist Note",
-                    color: "#1e293b",
-                    stickyColor: "#bbf7d0",
-                    fontSize: 13,
-                    textAlign: "left",
-                    text: "SMC TRADE RULES:\n✓ HTF Bias Aligned\n✓ Liquidity Swept\n✓ FVG/OB Tested\n✓ MSS on 15M\n✓ Target 1:3 RR",
-                    points: [pt, { x: pt.x + 220, y: pt.y + 170 }],
-                    isLocked: false,
-                  };
-                  setShapes((prev) => [...prev, checklistCard]);
-                  setSelectedShapeIds([checklistCard.id]);
-                  showToast("Stamped Trade Strategy Checklist on canvas!");
-                }}
-                className="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Stamp Checklist Card on Canvas
-              </button>
+                {/* Stamp NY Killzone Box */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 160 - pan.x / zoom, y: 180 - pan.y / zoom };
+                    const nyBox: Shape = {
+                      id: `shape_ny_${Date.now()}`,
+                      type: "rectangle",
+                      name: "NY AM Killzone",
+                      color: "#3b82f6",
+                      strokeWidth: 1.5,
+                      fillColor: "#3b82f6",
+                      fillStyle: "translucent",
+                      opacity: 0.18,
+                      points: [pt, { x: pt.x + 180, y: pt.y + 120 }],
+                      isLocked: false,
+                    };
+                    const label: Shape = {
+                      id: `shape_ny_txt_${Date.now() + 1}`,
+                      type: "text",
+                      name: "NY Label",
+                      color: "#1d4ed8",
+                      fontSize: 11,
+                      text: "NEW YORK AM KILLZONE (12:00-15:00 GMT)",
+                      points: [{ x: pt.x + 5, y: pt.y + 18 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, nyBox, label]);
+                    setSelectedShapeIds([nyBox.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped NY AM Killzone on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Globe className="h-3.5 w-3.5 text-blue-700 stroke-[1.5]" /> New York AM Killzone
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">12:00–15:00</span>
+                </button>
+
+                {/* Stamp Asian Range Accumulation Box */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 80 - pan.x / zoom, y: 100 - pan.y / zoom };
+                    const asianBox: Shape = {
+                      id: `shape_asian_${Date.now()}`,
+                      type: "rectangle",
+                      name: "Asian Range Box",
+                      color: "#8b5cf6",
+                      strokeWidth: 1.5,
+                      fillColor: "#8b5cf6",
+                      fillStyle: "translucent",
+                      opacity: 0.16,
+                      points: [pt, { x: pt.x + 160, y: pt.y + 90 }],
+                      isLocked: false,
+                    };
+                    const label: Shape = {
+                      id: `shape_asian_txt_${Date.now() + 1}`,
+                      type: "text",
+                      name: "Asian Label",
+                      color: "#6d28d9",
+                      fontSize: 11,
+                      text: "ASIAN RANGE ACCUMULATION (00:00-06:00 GMT)",
+                      points: [{ x: pt.x + 5, y: pt.y + 18 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, asianBox, label]);
+                    setSelectedShapeIds([asianBox.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped Asian Range on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Moon className="h-3.5 w-3.5 text-purple-700 stroke-[1.5]" /> Asian Accumulation Range
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">00:00–06:00</span>
+                </button>
+
+                {/* Stamp Silver Bullet Window */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pt = { x: 140 - pan.x / zoom, y: 150 - pan.y / zoom };
+                    const sbCard: Shape = {
+                      id: `shape_sb_${Date.now()}`,
+                      type: "annotation",
+                      name: "Silver Bullet Zone",
+                      color: "#f59e0b",
+                      strokeWidth: 2,
+                      text: "ICT SILVER BULLET (14:00 - 15:00 GMT) • 1-Hr FVG Setup Window",
+                      points: [pt, { x: pt.x + 100, y: pt.y - 35 }],
+                      isLocked: false,
+                    };
+                    setShapes((prev) => [...prev, sbCard]);
+                    setSelectedShapeIds([sbCard.id]);
+                    setIsInspectorOpen(true);
+                    setRightPanelTab("inspector");
+                    showToast("Stamped Silver Bullet Window on Canvas");
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-900 border border-slate-300 text-xs font-semibold transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-amber-700 stroke-[1.5]" /> Silver Bullet Window
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-600">14:00–15:00</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -10487,7 +10557,7 @@ export default function WhiteboardPage() {
           ? `Trash (${trashedTabs.length})`
           : panelKey === "grid_guides"
           ? "Grid & Snap"
-          : panelKey === "strategy"
+          : panelKey === "sessions"
           ? "Strategy & Risk"
           : "Line Patterns";
 
@@ -10506,7 +10576,7 @@ export default function WhiteboardPage() {
           ? Archive
           : panelKey === "grid_guides"
           ? Grid
-          : panelKey === "strategy"
+          : panelKey === "sessions"
           ? Calculator
           : Spline;
 
@@ -10602,7 +10672,7 @@ export default function WhiteboardPage() {
                   ? "Trash Bin"
                   : rightPanelTab === "grid_guides"
                   ? "Grid & Snap"
-                  : rightPanelTab === "strategy"
+                  : rightPanelTab === "sessions"
                   ? "Strategy & Risk"
                   : "Line Patterns"}
               </span>
@@ -10711,9 +10781,9 @@ export default function WhiteboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRightPanelTab("strategy")}
+                  onClick={() => setRightPanelTab("sessions")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
-                    rightPanelTab === "strategy" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                    rightPanelTab === "sessions" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
                   <Calculator className="h-3 w-3" /> Strategy
@@ -11093,21 +11163,21 @@ export default function WhiteboardPage() {
                     if (detachedPanels.strategy.isOpen) {
                       const newZ = highestPanelZIndex + 1;
                       setHighestPanelZIndex(newZ);
-                      setDetachedPanels((prev) => ({ ...prev, strategy: { ...prev.strategy, zIndex: newZ } }));
+                      setDetachedPanels((prev) => ({ ...prev, sessions: { ...prev.strategy, zIndex: newZ } }));
                       showToast("Focused Strategy & Risk floating window");
                     } else {
-                      if (isInspectorOpen && rightPanelTab === "strategy") {
+                      if (isInspectorOpen && rightPanelTab === "sessions") {
                         setIsInspectorOpen(false);
                       } else {
                         setIsInspectorOpen(true);
-                        setRightPanelTab("strategy");
+                        setRightPanelTab("sessions");
                       }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
                     detachedPanels.strategy.isOpen
                       ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "strategy"
+                      : isInspectorOpen && rightPanelTab === "sessions"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
@@ -11123,7 +11193,7 @@ export default function WhiteboardPage() {
                 <div
                   className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("strategy")}
+                  onClick={() => detachIndividualPanel("sessions")}
                 >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
