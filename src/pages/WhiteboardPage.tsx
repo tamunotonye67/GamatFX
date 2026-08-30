@@ -1989,7 +1989,7 @@ export default function WhiteboardPage() {
         strokeColor: "#e2e8f0",
         strokeWidth: 1,
         stickyColor: stickyColor || "#fef08a",
-        text: "Double-click to edit note",
+        text: "New Sticky Note",
         fontSize: 14,
         textAlign: "left",
         points: [pt, { x: pt.x + 200, y: pt.y + 160 }],
@@ -2302,7 +2302,8 @@ export default function WhiteboardPage() {
       setCurrentShape(null);
       setRedoStack([]);
       if (finalShape.type === "sticky") {
-        showToast("Created Sticky Note! Edit text in Inspector or double-click note.");
+        setActiveTool("select");
+        showToast("Created Sticky Note! Select or drag to move/resize, or double-click to edit.");
       }
     }
   };
@@ -12163,11 +12164,11 @@ function resizeShapePoints(
   let minY = Math.min(...pts.map((p) => p.y));
   let maxY = Math.max(...pts.map((p) => p.y));
 
-  if (shape.type === "sticky") {
-    minX = pts[0].x;
-    minY = pts[0].y;
-    maxX = pts[0].x + 180;
-    maxY = pts[0].y + 140;
+  if (shape.type === "sticky" && pts.length >= 2) {
+    minX = Math.min(pts[0].x, pts[1].x);
+    maxX = Math.max(pts[0].x, pts[1].x);
+    minY = Math.min(pts[0].y, pts[1].y);
+    maxY = Math.max(pts[0].y, pts[1].y);
   }
 
   const origW = Math.max(1, maxX - minX);
