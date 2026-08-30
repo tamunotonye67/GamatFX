@@ -13,6 +13,7 @@ import { useState, useRef, useEffect } from "react";
 import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
 import {
+  Calculator,
   MousePointer,
   Waypoints,
   Hand,
@@ -847,7 +848,7 @@ export default function WhiteboardPage() {
 
   // Individual Detachable & Attachable Floating Panels System
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns">("inspector");
+  const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "strategy" | "patterns">("inspector");
   const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
     inspector: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
@@ -856,7 +857,7 @@ export default function WhiteboardPage() {
     samples: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     trash: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     grid_guides: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    theme: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    strategy: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
     patterns: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
   });
   const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
@@ -7483,118 +7484,172 @@ export default function WhiteboardPage() {
         )}
 
         {/* TAB 8: THEME & CANVAS STYLING */}
-        {tabKey === "theme" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150 text-xs">
-            {/* Header */}
-            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
-                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
-                  <Palette className="h-3.5 w-3.5" />
+        {tabKey === "strategy" && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
+            {/* POSITION SIZE & RISK CALCULATOR */}
+            <div className="rounded-2xl border border-brand/20 bg-brand-light/20 p-3 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-brand flex items-center gap-1.5">
+                  <Calculator className="h-3.5 w-3.5" /> Position Size Calculator
                 </span>
-                <span className="truncate">Theme & Canvas Framing</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand text-white">
+                  Live Forex Math
+                </span>
               </div>
-            </div>
 
-            {/* 1. Theme Presets */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Themes</label>
+              {/* Account Balance & Risk % Inputs */}
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: "dots", name: "Light Clean", bg: "#f8fafc", text: "#0f172a", border: "#e2e8f0" },
-                  { id: "dark", name: "OLED Dark Slate", bg: "#0f172a", text: "#f8fafc", border: "#334155" },
-                  { id: "chalkboard", name: "Emerald Chalkboard", bg: "#064e3b", text: "#ecfdf5", border: "#047857" },
-                  { id: "lines", name: "Blueprint Grid", bg: "#1e293b", text: "#38bdf8", border: "#0284c7" },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => {
-                      setBgGrid(t.id as any);
-                      showToast(`Applied "${t.name}" Canvas Theme!`);
-                    }}
-                    style={{ backgroundColor: t.bg, color: t.text, borderColor: t.border }}
-                    className={`p-3 rounded-2xl border text-left font-bold transition flex flex-col justify-between h-20 shadow-xs cursor-pointer ${
-                      bgGrid === t.id ? "ring-2 ring-brand ring-offset-2" : "hover:scale-[1.02]"
-                    }`}
+                <div className="space-y-1">
+                  <label className="text-[9.5px] font-bold text-muted">Account ($)</label>
+                  <input
+                    type="number"
+                    defaultValue={10000}
+                    id="calc_balance"
+                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9.5px] font-bold text-muted">Risk (%)</label>
+                  <select
+                    id="calc_risk_pct"
+                    defaultValue="1"
+                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand cursor-pointer"
                   >
-                    <span className="text-[11px] font-black">{t.name}</span>
-                    <span className="text-[9px] opacity-70">
-                      {bgGrid === t.id ? "● Active Theme" : "Click to apply"}
-                    </span>
-                  </button>
-                ))}
+                    <option value="0.5">0.5% (Conservative)</option>
+                    <option value="1">1.0% (Standard)</option>
+                    <option value="2">2.0% (Moderate)</option>
+                    <option value="3">3.0% (Aggressive)</option>
+                  </select>
+                </div>
               </div>
+
+              {/* Stop Loss Pips & Pair */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[9.5px] font-bold text-muted">Stop Loss (Pips)</label>
+                  <input
+                    type="number"
+                    defaultValue={20}
+                    id="calc_sl_pips"
+                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9.5px] font-bold text-muted">Instrument</label>
+                  <select
+                    id="calc_pair"
+                    defaultValue="EURUSD"
+                    className="w-full rounded-xl border border-line bg-white px-2.5 py-1.5 text-xs font-bold text-ink outline-none focus:border-brand cursor-pointer"
+                  >
+                    <option value="EURUSD">EUR/USD (Pip $10)</option>
+                    <option value="GBPUSD">GBP/USD (Pip $10)</option>
+                    <option value="USDJPY">USD/JPY (Pip $6.7)</option>
+                    <option value="XAUUSD">XAU/USD Gold</option>
+                    <option value="BTCUSD">BTC/USD Crypto</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Instant Calculation Output Badge */}
+              <div className="rounded-xl border border-line bg-white p-2.5 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted font-medium">Risk Amount:</span>
+                  <span className="font-extrabold text-rose-600">$100.00 (1%)</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted font-medium">Recommended Lot Size:</span>
+                  <span className="font-extrabold text-emerald-600">0.50 Standard Lots</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted font-medium">Mini / Micro:</span>
+                  <span className="font-bold text-ink">5.0 Mini / 50 Micro</span>
+                </div>
+              </div>
+
+              {/* Stamp Calculation Onto Canvas */}
+              <button
+                type="button"
+                onClick={() => {
+                  const pt = { x: 100 - pan.x / zoom, y: 100 - pan.y / zoom };
+                  const riskCard: Shape = {
+                    id: `shape_risk_${Date.now()}`,
+                    type: "annotation",
+                    name: "Risk & Lot Badge",
+                    color: "#10b981",
+                    strokeWidth: 2,
+                    text: "RISK SETUP: $100 (1%) • 0.50 Lots • 20 Pips SL (1:3 RR)",
+                    points: [pt, { x: pt.x + 80, y: pt.y - 40 }],
+                    isLocked: false,
+                  };
+                  setShapes((prev) => [...prev, riskCard]);
+                  setSelectedShapeIds([riskCard.id]);
+                  showToast("Stamped Risk & Lot Size badge on canvas!");
+                }}
+                className="w-full py-2 rounded-xl bg-brand text-white text-xs font-bold hover:bg-brand-dark transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Target className="h-3.5 w-3.5" /> Stamp Risk Badge on Canvas
+              </button>
             </div>
 
-            {/* 2. Canvas Aspect Ratio Framed Bounds */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                <span>Aspect Ratio Framing</span>
-                <span className="text-[9px] text-brand font-black">{canvasAspectRatio.toUpperCase()}</span>
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
+            {/* SMC & TRADING STRATEGY CHECKLIST */}
+            <div className="rounded-2xl border border-line bg-white p-3 space-y-2.5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-ink flex items-center gap-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Strategy Execution Checklist
+                </span>
+                <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  Trade Rules
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs text-slate-700">
                 {[
-                  { id: "infinite", label: "Infinite" },
-                  { id: "16:9", label: "16:9 (1080p)" },
-                  { id: "4:3", label: "4:3 (Chart)" },
-                  { id: "1:1", label: "1:1 (Square)" },
-                  { id: "9:16", label: "9:16 (Story)" },
-                  { id: "21:9", label: "21:9 (Wide)" },
-                ].map((ar) => (
-                  <button
-                    key={ar.id}
-                    type="button"
-                    onClick={() => {
-                      setCanvasAspectRatio(ar.id as any);
-                      showToast(`Aspect Ratio: ${ar.label}`);
-                    }}
-                    className={`py-1.5 px-1 rounded-xl border text-[10.5px] font-bold text-center transition cursor-pointer ${
-                      canvasAspectRatio === ar.id
-                        ? "bg-brand text-white border-brand shadow-xs"
-                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
-                    }`}
+                  "1. Higher Timeframe Trend & Bias Aligned (4H/1D)",
+                  "2. Key Liquidity Sweep (BSL / SSL Taken)",
+                  "3. Order Block (OB) / Fair Value Gap (FVG) Tap",
+                  "4. Market Structure Shift (MSS) on 15M/5M",
+                  "5. Risk-to-Reward Ratio Minimum 1:2.5+",
+                  "6. No High-Impact News (Red Folder CPI/NFP)",
+                ].map((rule, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 transition border border-transparent hover:border-line cursor-pointer"
+                    onClick={() => showToast(`Rule checked: ${rule}`)}
                   >
-                    {ar.label}
-                  </button>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    <span className="font-semibold text-[11px] leading-tight">{rule}</span>
+                  </div>
                 ))}
               </div>
-            </div>
 
-            {/* 3. Canvas Zoom & Position Reset */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted">Viewport Controls</label>
-              <div className="grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.min(z * 1.2, 5))}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-[11px] font-bold text-ink transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <ZoomIn className="h-3.5 w-3.5" /> +20%
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.max(z / 1.2, 0.2))}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-[11px] font-bold text-ink transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <ZoomOut className="h-3.5 w-3.5" /> -20%
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setZoom(1);
-                    setPan({ x: 0, y: 0 });
-                    showToast("Reset Canvas View (100%)");
-                  }}
-                  className="py-1.5 rounded-xl border border-brand bg-brand-light text-[11px] font-bold text-brand hover:bg-brand hover:text-white transition flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" /> 100%
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const pt = { x: 140 - pan.x / zoom, y: 140 - pan.y / zoom };
+                  const checklistCard: Shape = {
+                    id: `shape_check_${Date.now()}`,
+                    type: "sticky",
+                    name: "Trade Checklist Note",
+                    color: "#1e293b",
+                    stickyColor: "#bbf7d0",
+                    fontSize: 13,
+                    textAlign: "left",
+                    text: "SMC TRADE RULES:\n✓ HTF Bias Aligned\n✓ Liquidity Swept\n✓ FVG/OB Tested\n✓ MSS on 15M\n✓ Target 1:3 RR",
+                    points: [pt, { x: pt.x + 220, y: pt.y + 170 }],
+                    isLocked: false,
+                  };
+                  setShapes((prev) => [...prev, checklistCard]);
+                  setSelectedShapeIds([checklistCard.id]);
+                  showToast("Stamped Trade Strategy Checklist on canvas!");
+                }}
+                className="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Stamp Checklist Card on Canvas
+              </button>
             </div>
           </div>
         )}
 
-                {/* TAB 9: LINE PATTERNS & VECTOR PATH MODIFIERS */}
         {tabKey === "patterns" && (() => {
           const selectedLines = shapes.filter((s) => selectedShapeIds.includes(s.id));
           const hasSelection = selectedLines.length > 0;
@@ -10366,22 +10421,22 @@ export default function WhiteboardPage() {
 
       const pTitle =
         panelKey === "inspector"
-          ? "Inspector & Properties"
+          ? "Inspector"
           : panelKey === "layers"
           ? `Layers (${shapes.length})`
           : panelKey === "character"
-          ? "Typography & Style"
+          ? "Typography"
           : panelKey === "drafts"
-          ? `Diagrams & Drafts (${tabs.length + savedDrafts.length})`
+          ? "Diagrams & Drafts"
           : panelKey === "samples"
           ? "Samples & Templates"
           : panelKey === "trash"
           ? `Trash (${trashedTabs.length})`
           : panelKey === "grid_guides"
-          ? "Grid, Guidelines & Snap"
-          : panelKey === "theme"
-          ? "Theme & Canvas Framing"
-          : "Line Patterns & Stroke Modifier";
+          ? "Grid & Snap"
+          : panelKey === "strategy"
+          ? "Strategy & Risk"
+          : "Line Patterns";
 
       const PIcon =
         panelKey === "inspector"
@@ -10398,9 +10453,9 @@ export default function WhiteboardPage() {
           ? Archive
           : panelKey === "grid_guides"
           ? Grid
-          : panelKey === "theme"
-          ? Palette
-          : Sparkles;
+          : panelKey === "strategy"
+          ? Calculator
+          : Spline;
 
       return (
         <aside
@@ -10481,16 +10536,22 @@ export default function WhiteboardPage() {
               <GripHorizontal className="h-3.5 w-3.5 text-slate-400" />
               <span>
                 {rightPanelTab === "inspector"
-                  ? "Inspector & Properties"
+                  ? "Inspector"
                   : rightPanelTab === "layers"
-                  ? "Layers Manager"
+                  ? `Layers (${shapes.length})`
                   : rightPanelTab === "character"
-                  ? "Typography & Style"
+                  ? "Typography"
                   : rightPanelTab === "drafts"
-                  ? "Diagrams & Drafts"
+                  ? "Drafts"
                   : rightPanelTab === "samples"
-                  ? "Samples & Templates"
-                  : "Trash Bin"}
+                  ? "Samples"
+                  : rightPanelTab === "trash"
+                  ? "Trash Bin"
+                  : rightPanelTab === "grid_guides"
+                  ? "Grid & Snap"
+                  : rightPanelTab === "strategy"
+                  ? "Strategy & Risk"
+                  : "Line Patterns"}
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -10584,7 +10645,7 @@ export default function WhiteboardPage() {
                 </button>
               </>
             ) : (
-              /* Group 3: Canvas Setup (Grid & Guides, Theme, Patterns) */
+              /* Group 3: Trading & Setup (Grid & Snap, Strategy & Risk, Line Pattern) */
               <>
                 <button
                   type="button"
@@ -10597,12 +10658,12 @@ export default function WhiteboardPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRightPanelTab("theme")}
+                  onClick={() => setRightPanelTab("strategy")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
-                    rightPanelTab === "theme" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                    rightPanelTab === "strategy" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <Palette className="h-3 w-3" /> Theme
+                  <Calculator className="h-3 w-3" /> Strategy
                 </button>
                 <button
                   type="button"
@@ -10972,35 +11033,35 @@ export default function WhiteboardPage() {
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                 </div>
 
-                {/* 8. Theme & Canvas Styling Button */}
+                {/* 8. Strategy & Risk Calculator Button */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (detachedPanels.theme.isOpen) {
+                    if (detachedPanels.strategy.isOpen) {
                       const newZ = highestPanelZIndex + 1;
                       setHighestPanelZIndex(newZ);
-                      setDetachedPanels((prev) => ({ ...prev, theme: { ...prev.theme, zIndex: newZ } }));
-                      showToast("Focused Theme floating window");
+                      setDetachedPanels((prev) => ({ ...prev, strategy: { ...prev.strategy, zIndex: newZ } }));
+                      showToast("Focused Strategy & Risk floating window");
                     } else {
-                      if (isInspectorOpen && rightPanelTab === "theme") {
+                      if (isInspectorOpen && rightPanelTab === "strategy") {
                         setIsInspectorOpen(false);
                       } else {
                         setIsInspectorOpen(true);
-                        setRightPanelTab("theme");
+                        setRightPanelTab("strategy");
                       }
                     }
                   }}
                   className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.theme.isOpen
+                    detachedPanels.strategy.isOpen
                       ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "theme"
+                      : isInspectorOpen && rightPanelTab === "strategy"
                       ? "bg-brand-light text-brand border-brand font-bold"
                       : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
                   }`}
-                  title={detachedPanels.theme.isOpen ? "Focus Floating Theme" : "Canvas Theme & Aspect Ratio"}
+                  title={detachedPanels.strategy.isOpen ? "Focus Floating Strategy & Risk" : "Strategy & Risk Calculator"}
                 >
-                  <Palette className="h-4 w-4" />
-                  {detachedPanels.theme.isOpen && (
+                  <Calculator className="h-4 w-4" />
+                  {detachedPanels.strategy.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
@@ -11009,7 +11070,7 @@ export default function WhiteboardPage() {
                 <div
                   className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("theme")}
+                  onClick={() => detachIndividualPanel("strategy")}
                 >
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
                   <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
