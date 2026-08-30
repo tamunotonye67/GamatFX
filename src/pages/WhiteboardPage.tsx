@@ -2242,11 +2242,6 @@ export default function WhiteboardPage() {
   };
 
   const handleCloseTab = (tabIdToClose: string) => {
-    if (tabs.length === 1) {
-      showToast("Cannot close the only open tab.");
-      return;
-    }
-
     const tabToRemove = tabs.find((t) => t.id === tabIdToClose);
     if (tabToRemove) {
       const trashedItem: TrashedTab = {
@@ -2259,6 +2254,18 @@ export default function WhiteboardPage() {
     }
 
     const remaining = tabs.filter((t) => t.id !== tabIdToClose);
+
+    if (remaining.length === 0) {
+      // Closing the single/last tab sends user directly back to Whiteboard Hub
+      setTabs(INITIAL_TABS);
+      setActiveTabId("canvas_1");
+      setShapes([]);
+      setViewMode("hub");
+      setHubTab("drafts");
+      showToast(`Closed "${tabToRemove?.name || "canvas"}" and returned to Whiteboard Hub`);
+      return;
+    }
+
     setTabs(remaining);
     if (activeTabId === tabIdToClose) {
       const nextTab = remaining[0];
