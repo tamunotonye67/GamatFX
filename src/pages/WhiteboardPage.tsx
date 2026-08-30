@@ -1375,6 +1375,7 @@ export default function WhiteboardPage() {
 
   const selectTool = (tool: ToolType) => {
     setActiveTool(tool);
+    setFlyoutGroup(null);
     if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(tool)) {
       setActiveForexTool(tool as any);
     } else if (tool === "pencil" || tool === "highlighter") {
@@ -5651,7 +5652,7 @@ export default function WhiteboardPage() {
           <div className="w-full flex flex-col items-center">
             <WhiteboardToolBtn
               active={activeTool === "select"}
-              onClick={() => setActiveTool("select")}
+              onClick={() => selectTool("select")}
               onContextMenu={(e) => {
                 e.preventDefault();
                 toggleFavoriteTool("select");
@@ -5663,7 +5664,7 @@ export default function WhiteboardPage() {
             />
             <WhiteboardToolBtn
               active={activeTool === "hand"}
-              onClick={() => setActiveTool("hand")}
+              onClick={() => selectTool("hand")}
               onContextMenu={(e) => {
                 e.preventDefault();
                 toggleFavoriteTool("hand");
