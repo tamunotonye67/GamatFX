@@ -1748,7 +1748,8 @@ export default function WhiteboardPage() {
   const selectTool = (tool: Tool) => {
     setActiveTool(tool);
     setFlyoutGroup(null);
-    if (tool === "select") {
+    if (tool === "select" || tool === "node") {
+      setActiveSelectTool(tool as any);
       setIsInspectorOpen(true);
       setRightPanelTab("inspector");
     }
@@ -2046,6 +2047,52 @@ export default function WhiteboardPage() {
       return;
     }
 
+    // --- VECTOR NODE TOOL: DIRECT VERTEX MANIPULATION ---
+    if (activeTool === "node") {
+      // 1. Check if user clicked on any individual vertex node of already selected shapes
+      if (selectedShapeIds.length > 0) {
+        for (const id of selectedShapeIds) {
+          const shape = shapes.find((s) => s.id === id);
+          if (shape && !shape.isLocked && !shape.isHidden) {
+            const nodeIdx = shape.points.findIndex((p) => Math.hypot(pt.x - p.x, pt.y - p.y) <= 12);
+            if (nodeIdx !== -1) {
+              setActiveNodeIndex({ shapeId: shape.id, index: nodeIdx });
+              dragStartPt.current = pt;
+              return;
+            }
+          }
+        }
+      }
+
+      // 2. Check if clicked on an unselected shape to select it and activate its nodes
+      const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
+      if (hitShape) {
+        if (!selectedShapeIds.includes(hitShape.id)) {
+          setSelectedShapeIds([hitShape.id]);
+          setIsInspectorOpen(true);
+        }
+        const nodeIdx = hitShape.points.findIndex((p) => Math.hypot(pt.x - p.x, pt.y - p.y) <= 12);
+        if (nodeIdx !== -1 && !hitShape.isLocked) {
+          setActiveNodeIndex({ shapeId: hitShape.id, index: nodeIdx });
+          dragStartPt.current = pt;
+        } else if (!hitShape.isLocked) {
+          isDraggingShape.current = true;
+          dragStartPt.current = pt;
+          dragStartOriginalPt.current = pt;
+          altDuplicated.current = false;
+        }
+        return;
+      } else {
+        setSelectedShapeIds([]);
+        setActiveNodeIndex(null);
+        isDrawing.current = true;
+        dragStartPt.current = pt;
+        setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, mode: "select" });
+        return;
+      }
+    }
+
+    // --- STANDARD OBJECT SELECTION TOOL ---
     if (activeTool === "select" && selectedShapeIds.length === 1) {
       const selShape = shapes.find((s) => s.id === selectedShapeIds[0]);
       if (selShape && !selShape.isLocked && !selShape.isHidden) {
@@ -2310,18 +2357,7 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Node Tool Dragging
-    if (activeNodeIndex) {
-      const targetShape = shapes.find((s) => s.id === activeNodeIndex.shapeId);
-      if (targetShape && !targetShape.isLocked) {
-        const newPts = [...targetShape.points];
-        newPts[activeNodeIndex.index] = pt;
-        setShapes((prev) => prev.map((s) => (s.id === targetShape.id ? { ...s, points: newPts } : s)));
-      }
-      return;
-    }
-
-    // Node Tool Dragging
+    // Node Tool Dragging (Direct Vertex Manipulation)
     if (activeNodeIndex) {
       const targetShape = shapes.find((s) => s.id === activeNodeIndex.shapeId);
       if (targetShape && !targetShape.isLocked) {
@@ -12859,6 +12895,18 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
 function getToolIcon(toolKey: Tool): React.ElementType {
   switch (toolKey) {
     case "select": return MousePointer;
+    case "node":
+      return {
+        cursor: makeSvgCursor(
+          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M4 4L11 20L13.5 13.5L20 11L4 4Z" fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="13.5" cy="13.5" r="2.5" fill="#3b82f6" stroke="#ffffff" stroke-width="1"/>
+          </svg>`,
+          4,
+          4,
+          "default"
+        ),
+      };
     case "hand": return Hand;
     case "pencil": return Pencil;
     case "highlighter": return Highlighter;
@@ -13992,11 +14040,11 @@ function renderWhiteboardShape(
     pts.forEach((p) => {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
       ctx.fill();
-      ctx.lineWidth = 1.25;
-      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#2563eb";
       ctx.stroke();
       ctx.restore();
     });
