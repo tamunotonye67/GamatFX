@@ -13987,22 +13987,22 @@ function renderWhiteboardShape(
   ctx.setLineDash([]);
 
 
-  // Render Vector Anchor Nodes when Node Tool is active
-  if (isSelected && (activeToolMode === "node" || activeToolMode === "select")) {
-    pts.forEach((p, idx) => {
+  // Render Vector Anchor Nodes ONLY when Node Tool is explicitly active
+  if (isSelected && activeToolMode === "node") {
+    pts.forEach((p) => {
       ctx.save();
       ctx.beginPath();
-      ctx.arc(p.x, p.y, activeToolMode === "node" ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
       ctx.fill();
-      ctx.lineWidth = activeToolMode === "node" ? 2 : 1.5;
-      ctx.strokeStyle = activeToolMode === "node" ? "#3b82f6" : "#64748b";
+      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = "#3b82f6";
       ctx.stroke();
       ctx.restore();
     });
   }
 
-    // Render Selection Highlight Box & Interactive 4 Corner Resize Nodes
+  // Render Sleek, Minimalist Selection Box & Subtle Handles
   if (isSelected) {
     const b = getShapeBounds(shape);
     let minX = b.minX;
@@ -14010,14 +14010,14 @@ function renderWhiteboardShape(
     let minY = b.minY;
     let maxY = b.maxY;
 
-    const pad = 6;
-    ctx.strokeStyle = shape.isLocked ? "#f59e0b" : "#3b82f6";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 5]);
+    const pad = 4;
+    ctx.strokeStyle = shape.isLocked ? "rgba(245, 158, 11, 0.75)" : "rgba(59, 130, 246, 0.65)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
     ctx.setLineDash([]);
 
-    // Resize Handle Nodes (4 corners + 4 center edge handles, only if NOT locked)
+    // Subtle, small resize handle nodes (size 5.5px, thin 1px border)
     if (!shape.isLocked) {
       const midX = (minX + maxX) / 2;
       const midY = (minY + maxY) / 2;
@@ -14033,10 +14033,10 @@ function renderWhiteboardShape(
       ];
       handles.forEach((c) => {
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(c.x - 4.5, c.y - 4.5, 9, 9);
-        ctx.strokeStyle = "#3b82f6";
-        ctx.lineWidth = 1.75;
-        ctx.strokeRect(c.x - 4.5, c.y - 4.5, 9, 9);
+        ctx.fillRect(c.x - 3, c.y - 3, 6, 6);
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(c.x - 3, c.y - 3, 6, 6);
       });
     }
   }
