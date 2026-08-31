@@ -1647,7 +1647,7 @@ export default function WhiteboardPage() {
     // Render All Shapes (Back-to-Front)
     shapes.forEach((s) => {
       if (!s.isHidden) {
-        const isSel = selectedShapeIds.includes(s.id);
+        const isSel = selectedShapeIds.includes(s.id) && s.id !== editingTextShapeId;
         renderWhiteboardShape(ctx, s, isSel, defaultRiskReward, activeTool);
       }
     });
