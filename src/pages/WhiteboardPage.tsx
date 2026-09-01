@@ -225,6 +225,26 @@ const ShortPositionIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }
   </svg>
 );
 
+
+const CandleToolIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Upper Wick */}
+    <line x1="12" y1="2" x2="12" y2="7" />
+    {/* Real Body */}
+    <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" fillOpacity="0.25" />
+    {/* Lower Wick */}
+    <line x1="12" y1="17" x2="12" y2="22" />
+  </svg>
+);
+
 const BullishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
@@ -387,6 +407,9 @@ type Shape = {
   isRay?: boolean;
   dashLength?: number;
   candleStyle?: "solid" | "translucent" | "hollow";
+  candleType?: "bullish" | "bearish";
+  candleBodyHeight?: number;
+  candleBodyWidth?: number;
   upperWickLength?: number;
   lowerWickLength?: number;
   wickColor?: string;
@@ -1296,11 +1319,11 @@ export default function WhiteboardPage() {
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
-  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "bullish_candle" | "bearish_candle">("fibo");
+  const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "candle" | "bullish_candle" | "bearish_candle">("fibo");
   const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky" | "annotation">("text");
 
   // Floating Favorites Toolbar State (Floats anywhere on canvas workspace)
-  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"]);
+  const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "candle"]);
   const [favPos, setFavPos] = useState({ x: 90, y: 130 });
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
@@ -3351,6 +3374,57 @@ export default function WhiteboardPage() {
         prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, cornerRadius: rad } : s))
       );
     }
+  };
+
+  
+  const applyCandleBodyHeightToSelected = (h: number) => {
+    if (!selectedShape) return;
+    const targetH = Math.max(6, h);
+    setShapes((prev) =>
+      prev.map((s) =>
+        s.id === selectedShape.id && !s.isLocked
+          ? {
+              ...s,
+              candleBodyHeight: targetH,
+            }
+          : s
+      )
+    );
+  };
+
+  const applyCandleBodyWidthToSelected = (w: number) => {
+    if (!selectedShape) return;
+    const targetW = Math.max(6, w);
+    setShapes((prev) =>
+      prev.map((s) =>
+        s.id === selectedShape.id && !s.isLocked
+          ? {
+              ...s,
+              candleBodyWidth: targetW,
+            }
+          : s
+      )
+    );
+  };
+
+  const applyCandleTypeToSelected = (cType: "bullish" | "bearish") => {
+    const col = cType === "bullish" ? "#10b981" : "#ef4444";
+    if (selectedShape) {
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? {
+                ...s,
+                candleType: cType,
+                color: col,
+                fillColor: col,
+                strokeColor: col,
+              }
+            : s
+        )
+      );
+    }
+    showToast(`Switched to ${cType.toUpperCase()} Candle`);
   };
 
   const applyUpperWickLengthToSelected = (len: number) => {
@@ -6259,7 +6333,7 @@ export default function WhiteboardPage() {
 
           const isSticky = selectedShape?.type === "sticky" || targetTool === "sticky";
           const isText = selectedShape?.type === "text" || targetTool === "text";
-          const isCandle = selectedShape?.type === "bullish_candle" || selectedShape?.type === "bearish_candle" || targetTool === "bullish_candle" || targetTool === "bearish_candle";
+          const isCandle = selectedShape?.type === "candle" || selectedShape?.type === "bullish_candle" || selectedShape?.type === "bearish_candle" || targetTool === "candle" || targetTool === "bullish_candle" || targetTool === "bearish_candle";
 
           return (
             <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
@@ -6564,67 +6638,173 @@ export default function WhiteboardPage() {
                 </div>
               )}
 
-              {/* 5. Institutional Candlestick Wicks (If Candle Selected) */}
-              {isCandle && (
-                <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    <span>Wick Setup</span>
-                    <span className={'px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ' + (targetTool === "bullish_candle" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800")}>
-                      {targetTool === "bullish_candle" ? "Bullish" : "Bearish"}
-                    </span>
-                  </div>
+              {/* 5. Institutional Candlestick Customizer (Candle Tool: Body & Tails) */}
+              {isCandle && (() => {
+                const candleType = selectedShape?.candleType || (selectedShape?.type === "bearish_candle" ? "bearish" : "bullish");
+                const curBodyH = selectedShape?.candleBodyHeight ?? 60;
+                const curBodyW = selectedShape?.candleBodyWidth ?? 24;
+                const curUpperWick = selectedShape?.upperWickLength ?? upperWickLength ?? 20;
+                const curLowerWick = selectedShape?.lowerWickLength ?? lowerWickLength ?? 20;
 
-                  {/* Upper Wick in px */}
-                  <div className="space-y-1">
+                return (
+                  <div className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-2xs">
+                    {/* Header with Direction Switcher */}
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-500">Upper Wick</span>
-                      <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono">
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={selectedShape?.upperWickLength ?? upperWickLength}
-                          onChange={(e) => applyUpperWickLengthToSelected(parseInt(e.target.value, 10) || 0)}
-                          className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
-                        />
-                        <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Candle Setup</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => applyCandleTypeToSelected("bullish")}
+                          className={'px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (candleType === "bullish" ? "bg-emerald-600 text-white shadow-2xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                        >
+                          Bullish 🟢
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => applyCandleTypeToSelected("bearish")}
+                          className={'px-2 py-0.5 rounded-md text-[10px] font-bold transition cursor-pointer ' + (candleType === "bearish" ? "bg-rose-600 text-white shadow-2xs" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                        >
+                          Bearish 🔴
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Lower Wick in px */}
-                  <div className="space-y-1 pt-1.5 border-t border-slate-100">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-500">Lower Wick</span>
-                      <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono">
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={selectedShape?.lowerWickLength ?? lowerWickLength}
-                          onChange={(e) => applyLowerWickLengthToSelected(parseInt(e.target.value, 10) || 0)}
-                          className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
-                        />
-                        <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
+                    {/* Body Dimensions: Height & Width in px */}
+                    <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500">Body Height</span>
+                        <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono">
+                          <input
+                            type="number"
+                            min={6}
+                            max={400}
+                            value={curBodyH}
+                            onChange={(e) => applyCandleBodyHeightToSelected(parseInt(e.target.value, 10) || 6)}
+                            className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
+                          />
+                          <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {[30, 60, 100, 150].map((hVal) => (
+                          <button
+                            key={hVal}
+                            type="button"
+                            onClick={() => applyCandleBodyHeightToSelected(hVal)}
+                            className={'py-0.5 rounded text-[10px] font-mono font-bold transition cursor-pointer ' + (curBodyH === hVal ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                          >
+                            {hVal}px
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Wick Color */}
-                  <div className="pt-2 border-t border-slate-100">
-                    <ModernColorField
-                      label="Wick Color"
-                      color={selectedShape?.wickColor || wickColor || curStrokeColor}
-                      onChange={(hex) => applyWickColorToSelected(hex)}
-                      pickerKey="wickColor"
-                      activeKey={activeColorPicker}
-                      setActiveKey={setActiveColorPicker}
-                      disabled={selectedShape?.isLocked}
-                      quickSwatches={["#10b981", "#ef4444", "#0f172a", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"]}
-                    />
+                    {/* Body Width in px */}
+                    <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500">Body Width</span>
+                        <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono">
+                          <input
+                            type="number"
+                            min={6}
+                            max={200}
+                            value={curBodyW}
+                            onChange={(e) => applyCandleBodyWidthToSelected(parseInt(e.target.value, 10) || 6)}
+                            className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
+                          />
+                          <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1">
+                        {[16, 24, 36, 48].map((wVal) => (
+                          <button
+                            key={wVal}
+                            type="button"
+                            onClick={() => applyCandleBodyWidthToSelected(wVal)}
+                            className={'py-0.5 rounded text-[10px] font-mono font-bold transition cursor-pointer ' + (curBodyW === wVal ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                          >
+                            {wVal}px
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Upper Wick (Tail) in px */}
+                    <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500">Upper Wick / Tail</span>
+                        <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono">
+                          <input
+                            type="number"
+                            min={0}
+                            max={200}
+                            value={curUpperWick}
+                            onChange={(e) => applyUpperWickLengthToSelected(parseInt(e.target.value, 10) || 0)}
+                            className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
+                          />
+                          <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[0, 15, 30, 50, 80].map((uVal) => (
+                          <button
+                            key={uVal}
+                            type="button"
+                            onClick={() => applyUpperWickLengthToSelected(uVal)}
+                            className={'py-0.5 rounded text-[10px] font-mono font-bold transition cursor-pointer ' + (curUpperWick === uVal ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                          >
+                            {uVal}px
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Lower Wick (Tail) in px */}
+                    <div className="space-y-1.5 pt-1.5 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500">Lower Wick / Tail</span>
+                        <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono">
+                          <input
+                            type="number"
+                            min={0}
+                            max={200}
+                            value={curLowerWick}
+                            onChange={(e) => applyLowerWickLengthToSelected(parseInt(e.target.value, 10) || 0)}
+                            className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
+                          />
+                          <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[0, 15, 30, 50, 80].map((lVal) => (
+                          <button
+                            key={lVal}
+                            type="button"
+                            onClick={() => applyLowerWickLengthToSelected(lVal)}
+                            className={'py-0.5 rounded text-[10px] font-mono font-bold transition cursor-pointer ' + (curLowerWick === lVal ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                          >
+                            {lVal}px
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Wick Color */}
+                    <div className="pt-2 border-t border-slate-100">
+                      <ModernColorField
+                        label="Wick Color"
+                        color={selectedShape?.wickColor || wickColor || curStrokeColor}
+                        onChange={(hex) => applyWickColorToSelected(hex)}
+                        pickerKey="wickColor"
+                        activeKey={activeColorPicker}
+                        setActiveKey={setActiveColorPicker}
+                        disabled={selectedShape?.isLocked}
+                        quickSwatches={["#10b981", "#ef4444", "#0f172a", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"]}
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* 6. Fill Section with Rich RGB/HEX Color Picker */}
               <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
