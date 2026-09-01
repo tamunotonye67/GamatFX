@@ -6731,7 +6731,10 @@ export default function WhiteboardPage() {
               </div>
             </div>
           );
-        })}{tabKey === "layers" && (
+        })()}
+
+        {/* TAB 2: LAYERS TAB */}
+        {tabKey === "layers" && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
@@ -12853,18 +12856,7 @@ function ToolGifAnimation({ toolKey }: { toolKey: string }) {
 function getToolIcon(toolKey: Tool): React.ElementType {
   switch (toolKey) {
     case "select": return MousePointer;
-    case "node":
-      return {
-        cursor: makeSvgCursor(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M4 4L11 20L13.5 13.5L20 11L4 4Z" fill="#ffffff" stroke="#000000" stroke-width="1.5" stroke-linejoin="round"/>
-            <circle cx="13.5" cy="13.5" r="2.5" fill="#3b82f6" stroke="#ffffff" stroke-width="1"/>
-          </svg>`,
-          4,
-          4,
-          "default"
-        ),
-      };
+    case "node": return Waypoints;
     case "hand": return Hand;
     case "pencil": return Pencil;
     case "highlighter": return Highlighter;
