@@ -382,7 +382,9 @@ type Tool =
   | "bos"
   | "liquidity"
   | "bullish_candle"
-  | "bearish_candle";
+  | "bearish_candle"
+  | "image"
+  | "eyedropper";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -432,6 +434,8 @@ type Shape = {
   lineHeight?: number;
   textColor?: string;
   textBgColor?: string;
+  // Image shape
+  imageData?: string; // base64 data URL for image shapes
 };
 
 type DiagramTab = {
@@ -1586,6 +1590,9 @@ export default function WhiteboardPage() {
   const [panelSelectedIds, setPanelSelectedIds] = useState<string[]>([]); // multi-select in layers panel
   const [showGroupNameInput, setShowGroupNameInput] = useState(false);
   const [pendingGroupName, setPendingGroupName] = useState("Group 1");
+  // Image Tool state
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const [sampledColor, setSampledColor] = useState<string>("#3b82f6");
 
   // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
@@ -2380,6 +2387,27 @@ export default function WhiteboardPage() {
       ctx.restore();
     }
 
+    // Render image shapes (drawn as images over canvas)
+    shapes.filter((s) => s.type === "image" && !s.isHidden).forEach((shape) => {
+      if (!shape.imageData || shape.points.length < 2) return;
+      const minX = Math.min(shape.points[0].x, shape.points[1].x);
+      const minY = Math.min(shape.points[0].y, shape.points[1].y);
+      const w = Math.abs(shape.points[1].x - shape.points[0].x);
+      const h = Math.abs(shape.points[1].y - shape.points[0].y);
+      const img = new window.Image();
+      img.src = shape.imageData;
+      if (img.complete) {
+        ctx.globalAlpha = shape.opacity ?? 1;
+        ctx.drawImage(img, minX, minY, w, h);
+        ctx.globalAlpha = 1;
+      } else {
+        img.onload = () => {
+          // trigger re-draw on load via state update trick
+          setShapes((prev) => [...prev]);
+        };
+      }
+    });
+
     ctx.restore();
   }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio]);
 
@@ -2580,6 +2608,45 @@ export default function WhiteboardPage() {
     showToast(`Created group "${name.trim() || "Group 1"}"`);
   };
 
+  const handleInsertImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (!dataUrl) return;
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 400;
+        const maxH = 300;
+        const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+        const w = img.naturalWidth * scale;
+        const h = img.naturalHeight * scale;
+        const cx = (-pan.x + window.innerWidth / 2) / zoom;
+        const cy = (-pan.y + window.innerHeight / 2) / zoom;
+        const newShape: Shape = {
+          id: `img_${Date.now()}`,
+          type: "image",
+          points: [{ x: cx - w / 2, y: cy - h / 2 }, { x: cx + w / 2, y: cy + h / 2 }],
+          imageData: dataUrl,
+          color: "#000000",
+          strokeColor: "#000000",
+          strokeWidth: 0,
+          opacity: 1,
+          isLocked: false,
+          isHidden: false,
+        };
+        setShapes((prev) => [...prev, newShape]);
+        setSelectedShapeIds([newShape.id]);
+        selectTool("select");
+        showToast("Image inserted!");
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const ungroupLayerGroup = (groupId: string) => {
     setLayerGroups((prev) => prev.filter((g) => g.id !== groupId));
     showToast("Ungrouped layers");
@@ -2736,6 +2803,29 @@ export default function WhiteboardPage() {
       isDrawing.current = true;
       dragStartPt.current = pt;
       setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, mode: "zoom" });
+      return;
+    }
+
+    if (activeTool === "image") {
+      imageInputRef.current?.click();
+      return;
+    }
+
+    if (activeTool === "eyedropper") {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          const rect = canvas.getBoundingClientRect();
+          const px = Math.round(e.clientX - rect.left);
+          const py = Math.round(e.clientY - rect.top);
+          const pixel = ctx.getImageData(px, py, 1, 1).data;
+          const hex = `#${pixel[0].toString(16).padStart(2, "0")}${pixel[1].toString(16).padStart(2, "0")}${pixel[2].toString(16).padStart(2, "0")}`;
+          setSampledColor(hex);
+          setFillColor(hex);
+          showToast(`Colour sampled: ${hex.toUpperCase()}`);
+        }
+      }
       return;
     }
 
@@ -4924,7 +5014,16 @@ export default function WhiteboardPage() {
   if (viewMode === "hub") {
     return (
       <div className="fixed inset-0 h-screen w-screen bg-slate-50 text-ink font-sans flex overflow-hidden select-none">
-        {/* Toast Notification */}
+        {/* Hidden file input for image insertion */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleInsertImageFile}
+      />
+
+      {/* Toast Notification */}
         {statusMsg && (
           <div className="fixed top-6 right-6 z-[120] rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
             <Check className="h-4 w-4" /> {statusMsg}
@@ -7313,39 +7412,44 @@ export default function WhiteboardPage() {
 
           return (
             <div className="space-y-3">
-              {/* Header */}
+              {/* Header with always-visible New Group button */}
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
-                <span className="text-[10px] font-bold text-brand">{shapes.length} Layer{shapes.length !== 1 ? "s" : ""}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-brand">{shapes.length} Layer{shapes.length !== 1 ? "s" : ""}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setPendingGroupName(panelSelectedIds.length >= 2 ? `Group ${layerGroups.length + 1}` : "Group 1"); setShowGroupNameInput(true); }}
+                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-slate-300 bg-white text-[10px] font-bold text-slate-600 hover:border-brand hover:text-brand transition"
+                    title={panelSelectedIds.length >= 2 ? `Group ${panelSelectedIds.length} selected layers` : "Create a new layer group (shift-click layers to pre-select)"}
+                  >
+                    <FolderPlus className="h-3 w-3" /> New Group
+                  </button>
+                </div>
               </div>
 
-              {/* Group Selected button — appears when ≥2 panel items selected */}
-              {panelSelectedIds.length >= 2 && (
-                <div className="rounded-xl border border-brand/30 bg-brand-light/20 p-2 space-y-2">
-                  {showGroupNameInput ? (
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        autoFocus
-                        type="text"
-                        value={pendingGroupName}
-                        onChange={(e) => setPendingGroupName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") createLayerGroup(pendingGroupName, panelSelectedIds); if (e.key === "Escape") setShowGroupNameInput(false); }}
-                        className="flex-1 rounded-lg border border-brand bg-white px-2 py-1 text-xs font-bold text-ink outline-none"
-                        placeholder="Group name…"
-                      />
-                      <button type="button" onClick={() => createLayerGroup(pendingGroupName, panelSelectedIds)} className="px-2 py-1 rounded-lg bg-brand text-white text-[10px] font-black hover:bg-brand-dark transition">Create</button>
-                      <button type="button" onClick={() => setShowGroupNameInput(false)} className="px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-[10px] font-bold hover:bg-slate-300 transition">Cancel</button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => { setPendingGroupName("Group 1"); setShowGroupNameInput(true); }}
-                      className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-brand/40 bg-brand/10 px-2 py-1.5 text-[11px] font-bold text-brand hover:bg-brand/20 transition"
-                    >
-                      <FolderPlus className="h-3.5 w-3.5" />
-                      Group {panelSelectedIds.length} Selected Layers
-                    </button>
-                  )}
+              {/* Name input for creating a group */}
+              {showGroupNameInput && (
+                <div className="rounded-xl border border-brand/30 bg-brand-light/20 p-2 space-y-1.5">
+                  <p className="text-[10px] text-muted font-medium">
+                    {panelSelectedIds.length >= 2 ? `Grouping ${panelSelectedIds.length} selected layers` : "New empty group — drag layers in after creation"}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={pendingGroupName}
+                      onChange={(e) => setPendingGroupName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") createLayerGroup(pendingGroupName, panelSelectedIds);
+                        if (e.key === "Escape") setShowGroupNameInput(false);
+                      }}
+                      className="flex-1 rounded-lg border border-brand bg-white px-2 py-1 text-xs font-bold text-ink outline-none"
+                      placeholder="Group name…"
+                    />
+                    <button type="button" onClick={() => createLayerGroup(pendingGroupName, panelSelectedIds.length >= 2 ? panelSelectedIds : [])} className="px-2 py-1 rounded-lg bg-brand text-white text-[10px] font-black hover:bg-brand-dark transition">Create</button>
+                    <button type="button" onClick={() => setShowGroupNameInput(false)} className="px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-[10px] font-bold hover:bg-slate-300 transition">Cancel</button>
+                  </div>
                 </div>
               )}
 
@@ -9766,6 +9870,32 @@ export default function WhiteboardPage() {
                     </span>
                     <span className="text-[9.5px] text-slate-500 font-mono">W</span>
                   </button>
+
+                  <div className="w-full h-px bg-slate-300 my-1" />
+
+                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Media &amp; Utilities</p>
+
+                  <button
+                    type="button"
+                    onClick={() => { setInsertMenuOpen(false); setTimeout(() => imageInputRef.current?.click(), 50); }}
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <ImageIcon className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Insert Image…
+                    </span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">I</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { selectTool("eyedropper"); setInsertMenuOpen(false); }}
+                    className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Pipette className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Color Picker (Eyedropper)
+                    </span>
+                    <span className="text-[9.5px] text-slate-500 font-mono">E</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -10590,6 +10720,32 @@ export default function WhiteboardPage() {
                 title="Zoom Tool (Right click to favorite)"
                 toolKey="zoom"
                 icon={Search}
+                showTooltips={showTooltips}
+              />
+            </div>
+
+            {/* Image Insert Tool */}
+            <div className="relative w-full">
+              <WhiteboardToolBtn
+                active={activeTool === "image"}
+                onClick={() => { selectTool("image"); imageInputRef.current?.click(); }}
+                onContextMenu={(e) => { e.preventDefault(); toggleFavoriteTool("image"); }}
+                title="Insert Image / Picture (Right click to favorite)"
+                toolKey="image"
+                icon={ImageIcon}
+                showTooltips={showTooltips}
+              />
+            </div>
+
+            {/* Eyedropper / Color Picker Tool */}
+            <div className="relative w-full">
+              <WhiteboardToolBtn
+                active={activeTool === "eyedropper"}
+                onClick={() => selectTool("eyedropper")}
+                onContextMenu={(e) => { e.preventDefault(); toggleFavoriteTool("eyedropper"); }}
+                title="Color Picker — click any pixel to sample its colour (Right click to favorite)"
+                toolKey="eyedropper"
+                icon={Pipette}
                 showTooltips={showTooltips}
               />
             </div>
@@ -14607,6 +14763,10 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isA
   }
 
   switch (tool) {
+    case "eyedropper":
+      return { cursor: "crosshair" };
+    case "image":
+      return { cursor: "copy" };
     case "hand":
       return {
         cursor: makeSvgCursor(
