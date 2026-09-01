@@ -72,9 +72,10 @@ export async function signUpSupabaseUser(
   accData: Omit<Account, "id" | "joined">
 ): Promise<{ ok: boolean; account?: Account; error?: string }> {
   try {
+    const cleanEmail = email.trim().toLowerCase();
     // 1. Register in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
+      email: cleanEmail,
       password: pass,
       options: {
         data: {
@@ -84,13 +85,21 @@ export async function signUpSupabaseUser(
       },
     });
 
-    if (authError && !authError.message.includes("User already registered")) {
+    if (authError) {
       console.warn("Supabase auth signup notice:", authError.message);
+      if (
+        authError.message.toLowerCase().includes("user already registered") ||
+        authError.message.toLowerCase().includes("already exists")
+      ) {
+        return { ok: false, error: "An account with this email already exists." };
+      }
+      return { ok: false, error: authError.message };
     }
 
     const userId = authData.user?.id || `u_${Date.now()}`;
     const newAccount: Account = {
       ...accData,
+      email: cleanEmail,
       id: userId,
       joined: new Date().toISOString(),
     };
@@ -114,43 +123,46 @@ export async function signInSupabaseUser(
   pass: string
 ): Promise<{ ok: boolean; account?: Account; error?: string }> {
   try {
+    const cleanEmail = email.trim().toLowerCase();
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
+      email: cleanEmail,
       password: pass,
     });
 
     if (authError) {
       console.warn("Supabase auth login notice:", authError.message);
+      return { ok: false, error: authError.message };
     }
 
-    // Query user profile from public.accounts
-    const { data: rows, error: dbError } = await supabase
-      .from("accounts")
-      .select("*")
-      .eq("email", email.trim().toLowerCase())
-      .single();
+    if (authData?.user) {
+      // Query user profile from public.accounts
+      const { data: rows, error: dbError } = await supabase
+        .from("accounts")
+        .select("*")
+        .eq("email", cleanEmail)
+        .single();
 
-    if (!dbError && rows) {
-      const acc = rowToAccount(rows as SupabaseAccountRow, pass);
-      return { ok: true, account: acc };
-    }
+      if (!dbError && rows) {
+        const acc = rowToAccount(rows as SupabaseAccountRow, pass);
+        return { ok: true, account: acc };
+      }
 
-    // Fallback if auth succeeded
-    if (authData.user) {
+      // Fallback if row does not exist yet in accounts table
       const fallbackAcc: Account = {
         id: authData.user.id,
-        firstName: authData.user.user_metadata?.first_name || email.split("@")[0],
+        firstName: authData.user.user_metadata?.first_name || cleanEmail.split("@")[0],
         lastName: authData.user.user_metadata?.last_name || "User",
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password: pass,
         role: "student",
         status: "active",
         joined: new Date().toISOString(),
       };
+      saveSupabaseAccount(fallbackAcc);
       return { ok: true, account: fallbackAcc };
     }
 
-    return { ok: false, error: authError?.message || "Invalid login credentials" };
+    return { ok: false, error: "Invalid login credentials" };
   } catch (err: any) {
     return { ok: false, error: err.message || "Sign in failed" };
   }

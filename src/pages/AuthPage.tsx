@@ -596,12 +596,12 @@ export function SignUpPage() {
     setError(null);
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const selectedCountry = COUNTRIES.find((c) => c.name === form.country) || COUNTRIES[0];
     const fullPhone = form.phone.trim() ? `${selectedCountry.code} ${form.phone.trim()}` : undefined;
 
-    const res = signup({
+    const res = await signup({
       ...form,
       phone: fullPhone,
     });

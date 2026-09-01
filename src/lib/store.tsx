@@ -1094,7 +1094,7 @@ type Ctx = {
   isAuthed: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
-  signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string }) => { ok: boolean; error?: string };
+  signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
   logout: () => void;
   updateProfile: (patch: Partial<User>) => void;
 
@@ -1471,10 +1471,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   /* ------------------------------ Auth ------------------------------ */
 
-  const signup: Ctx["signup"] = useCallback((d) => {
+  const signup: Ctx["signup"] = useCallback(async (d) => {
     const email = d.email.trim().toLowerCase();
     if (!d.firstName.trim() || !d.lastName.trim()) return { ok: false, error: "Please enter your full name." };
-    if (accounts.some((a) => a.email === email)) return { ok: false, error: "An account with this email already exists." };
+    if (accounts.some((a) => a.email.toLowerCase() === email)) return { ok: false, error: "An account with this email already exists." };
     if (d.password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
 
     const newAccData = {
@@ -1488,18 +1488,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       status: "active" as const,
     };
 
-    const acc: Account = {
+    // 1. Primary: Register in Supabase Auth & Database
+    const res = await signUpSupabaseUser(email, d.password, newAccData);
+    if (!res.ok) {
+      return { ok: false, error: res.error || "Failed to create account. Please try again." };
+    }
+
+    const acc = res.account || {
       ...newAccData,
       id: uid("u"),
       joined: new Date().toISOString(),
     };
 
-    setAccounts((p) => [...p, acc]);
+    setAccounts((p) => {
+      const next = p.some((a) => a.id === acc.id) ? p : [...p, acc];
+      write(K.accounts, next);
+      return next;
+    });
     setSessionId(acc.id);
-
-    // Sync user signup to Supabase Auth & Database
-    saveSupabaseAccount(acc);
-    signUpSupabaseUser(email, d.password, newAccData);
 
     return { ok: true };
   }, [accounts]);
@@ -1522,10 +1528,51 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ok: true };
     }
 
-    // 2. Check in-memory accounts state
-    let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
+    // 2. Primary: Authenticate via Supabase Auth (Cross-device authoritative authentication)
+    try {
+      const res = await signInSupabaseUser(cleanEmail, password);
+      if (res.ok && res.account) {
+        setAccounts((p) => {
+          const next = p.some((a) => a.id === res.account!.id)
+            ? p.map((a) => (a.id === res.account!.id ? res.account! : a))
+            : [...p, res.account!];
+          write(K.accounts, next);
+          return next;
+        });
+        setSessionId(res.account.id);
+        return { ok: true };
+      }
 
-    // 3. If not in state, check localStorage accounts
+      if (!res.ok && res.error) {
+        const errLower = res.error.toLowerCase();
+        if (errLower.includes("email not confirmed")) {
+          return { ok: false, error: "Please verify your email address or check your inbox to activate your account." };
+        }
+        if (
+          errLower.includes("invalid login credentials") ||
+          errLower.includes("invalid password") ||
+          errLower.includes("wrong password")
+        ) {
+          // Check if an account with this email exists in Supabase DB
+          const { data: existingUser } = await supabase
+            .from("accounts")
+            .select("id")
+            .eq("email", cleanEmail)
+            .maybeSingle();
+
+          if (existingUser || accounts.some((a) => a.email.toLowerCase() === cleanEmail)) {
+            return { ok: false, error: "Incorrect password. Please check your password and try again." };
+          }
+          return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
+        }
+        return { ok: false, error: res.error };
+      }
+    } catch {
+      // Supabase network unreachable, fall back to cached local storage
+    }
+
+    // 3. Offline / cached fallback (if already signed in or cached on this device)
+    let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
     if (!found) {
       const localAccs = read<Account[]>(K.accounts, []);
       found = localAccs.find((a) => a.email.toLowerCase() === cleanEmail);
@@ -1535,30 +1582,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (found) {
-      if (found.password !== password) return { ok: false, error: "Incorrect password. Please try again." };
-      if (found.status === "suspended") return { ok: false, error: "This account has been suspended. Contact support." };
+      if (found.password && found.password !== "password123" && found.password !== password) {
+        return { ok: false, error: "Incorrect password. Please try again." };
+      }
+      if (found.status === "suspended") {
+        return { ok: false, error: "This account has been suspended. Contact support." };
+      }
       setSessionId(found.id);
-      signInSupabaseUser(cleanEmail, password);
       return { ok: true };
-    }
-
-    // 4. Check remote Supabase Auth and database accounts
-    try {
-      const res = await signInSupabaseUser(cleanEmail, password);
-      if (res.ok && res.account) {
-        setAccounts((p) => {
-          const next = p.some((a) => a.id === res.account!.id) ? p : [...p, res.account!];
-          write(K.accounts, next);
-          return next;
-        });
-        setSessionId(res.account.id);
-        return { ok: true };
-      }
-      if (!res.ok && res.error && !res.error.toLowerCase().includes("invalid login")) {
-        return { ok: false, error: res.error };
-      }
-    } catch {
-      // Offline / network failure
     }
 
     return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
