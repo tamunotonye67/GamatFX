@@ -132,6 +132,8 @@ import {
   Flame,
   ShieldAlert,
   Ratio,
+  FolderMinus,
+  Folder
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -438,6 +440,16 @@ type DiagramTab = {
   shapes?: Shape[];
   theme?: "dots" | "lines" | "blank" | "dark" | "chalkboard";
   snapToGrid?: boolean;
+};
+
+type LayerGroup = {
+  id: string;
+  name: string;
+  shapeIds: string[];
+  isCollapsed: boolean;
+  isLocked?: boolean;
+  isHidden?: boolean;
+  color?: string;
 };
 
 type TrashedTab = {
@@ -1567,6 +1579,13 @@ export default function WhiteboardPage() {
   // Layer Renaming State
   const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
   const [editingLayerName, setEditingLayerName] = useState("");
+  // Layer Groups state
+  const [layerGroups, setLayerGroups] = useState<LayerGroup[]>([]);
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [editingGroupName, setEditingGroupName] = useState("");
+  const [panelSelectedIds, setPanelSelectedIds] = useState<string[]>([]); // multi-select in layers panel
+  const [showGroupNameInput, setShowGroupNameInput] = useState(false);
+  const [pendingGroupName, setPendingGroupName] = useState("Group 1");
 
   // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
@@ -2550,6 +2569,66 @@ export default function WhiteboardPage() {
   };
 
   /* ------------------------- Object Visibility Toggle Function -------------- */
+
+  /* ─── Layer Group Helpers ─────────────────────────────────────────────── */
+
+  const createLayerGroup = (name: string, shapeIdList: string[]) => {
+    const id = `group_${Date.now()}`;
+    setLayerGroups((prev) => [...prev, { id, name: name.trim() || "Group 1", shapeIds: shapeIdList, isCollapsed: false }]);
+    setPanelSelectedIds([]);
+    setShowGroupNameInput(false);
+    showToast(`Created group "${name.trim() || "Group 1"}"`);
+  };
+
+  const ungroupLayerGroup = (groupId: string) => {
+    setLayerGroups((prev) => prev.filter((g) => g.id !== groupId));
+    showToast("Ungrouped layers");
+  };
+
+  const deleteLayerGroup = (groupId: string, deleteShapes: boolean) => {
+    const grp = layerGroups.find((g) => g.id === groupId);
+    if (deleteShapes && grp) {
+      setShapes((prev) => prev.filter((s) => !grp.shapeIds.includes(s.id)));
+    }
+    setLayerGroups((prev) => prev.filter((g) => g.id !== groupId));
+    showToast(deleteShapes ? "Deleted group and layers" : "Removed group (layers kept)");
+  };
+
+  const toggleGroupCollapsed = (groupId: string) => {
+    setLayerGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, isCollapsed: !g.isCollapsed } : g)));
+  };
+
+  const toggleGroupLock = (groupId: string) => {
+    setLayerGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId) return g;
+        const nextLock = !g.isLocked;
+        setShapes((ss) => ss.map((s) => (g.shapeIds.includes(s.id) ? { ...s, isLocked: nextLock } : s)));
+        return { ...g, isLocked: nextLock };
+      })
+    );
+  };
+
+  const toggleGroupHide = (groupId: string) => {
+    setLayerGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId) return g;
+        const nextHidden = !g.isHidden;
+        setShapes((ss) => ss.map((s) => (g.shapeIds.includes(s.id) ? { ...s, isHidden: nextHidden } : s)));
+        return { ...g, isHidden: nextHidden };
+      })
+    );
+  };
+
+  const addShapeToGroup = (groupId: string, shapeId: string) => {
+    setLayerGroups((prev) => prev.map((g) => (g.id === groupId && !g.shapeIds.includes(shapeId) ? { ...g, shapeIds: [...g.shapeIds, shapeId] } : g)));
+  };
+
+  const removeShapeFromGroup = (groupId: string, shapeId: string) => {
+    setLayerGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shapeId) } : g)));
+  };
+
+  /* ─────────────────────────────────────────────────────────────────────── */
 
   const toggleHideShape = (shapeId: string) => {
     setShapes((prev) =>
@@ -7151,160 +7230,211 @@ export default function WhiteboardPage() {
         })()}
 
         {/* TAB 2: LAYERS TAB */}
-        {tabKey === "layers" && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
-                      <span className="text-[10px] font-bold text-brand">{shapes.length} Layers</span>
+        {tabKey === "layers" && (() => {
+          // Compute which shapeIds belong to any group
+          const groupedShapeIds = new Set(layerGroups.flatMap((g) => g.shapeIds));
+          // Shapes that are not in any group (ungrouped)
+          const reversedShapes = [...shapes].reverse();
+
+          const handleLayerPanelClick = (e: React.MouseEvent, shapeId: string) => {
+            if (e.shiftKey || e.metaKey || e.ctrlKey) {
+              setPanelSelectedIds((prev) =>
+                prev.includes(shapeId) ? prev.filter((id) => id !== shapeId) : [...prev, shapeId]
+              );
+            } else {
+              setPanelSelectedIds([shapeId]);
+              setSelectedShapeIds([shapeId]);
+            }
+          };
+
+          const LayerRow = ({ shape, realIdx, indent = false }: { shape: Shape; realIdx: number; indent?: boolean }) => {
+            const isPanelSelected = panelSelectedIds.includes(shape.id);
+            const isCanvasSelected = selectedShapeIds.includes(shape.id);
+            const IconComponent = getToolIcon(shape.type);
+            return (
+              <div
+                key={shape.id}
+                onClick={(e) => handleLayerPanelClick(e, shape.id)}
+                className={`group flex items-center justify-between rounded-2xl border p-2 text-xs transition cursor-pointer ${indent ? "ml-4" : ""} ${
+                  isPanelSelected || isCanvasSelected
+                    ? "border-brand bg-brand-light/40 font-bold"
+                    : "border-line bg-cream hover:bg-white"
+                } ${shape.isHidden ? "opacity-40" : ""}`}
+              >
+                <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                  <span
+                    className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                    style={{ background: shape.stickyColor || shape.color }}
+                  />
+                  <IconComponent className="h-4 w-4 text-brand shrink-0" />
+                  {editingLayerId === shape.id ? (
+                    <input
+                      autoFocus
+                      type="text"
+                      value={editingLayerName}
+                      onChange={(e) => setEditingLayerName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          setShapes((prev) => prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s)));
+                          setEditingLayerId(null);
+                          showToast("Renamed layer!");
+                        } else if (e.key === "Escape") { setEditingLayerId(null); }
+                      }}
+                      onBlur={() => {
+                        setShapes((prev) => prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s)));
+                        setEditingLayerId(null);
+                      }}
+                      className="w-28 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : (
+                    <span
+                      onDoubleClick={(e) => { e.stopPropagation(); setEditingLayerId(shape.id); setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)); }}
+                      className="truncate text-ink font-bold capitalize flex-1 cursor-text"
+                      title="Double-click to rename"
+                    >
+                      {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
+                  {editingLayerId !== shape.id && (
+                    <button type="button" onClick={() => { setEditingLayerId(shape.id); setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)); }} className="p-1 rounded text-slate-400 hover:text-brand" title="Rename"><Edit3 className="h-3.5 w-3.5" /></button>
+                  )}
+                  <button type="button" onClick={() => moveLayerUp(realIdx)} disabled={realIdx >= shapes.length - 1} className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20" title="Bring Forward"><ArrowUp className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => moveLayerDown(realIdx)} disabled={realIdx <= 0} className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20" title="Send Backward"><ArrowDown className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => toggleHideShape(shape.id)} className="p-1 rounded text-slate-400 hover:text-blue-600" title={shape.isHidden ? "Unhide" : "Hide"}>{shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}</button>
+                  <button type="button" onClick={() => toggleLockShape(shape.id)} className="p-1 rounded text-slate-400 hover:text-amber-600" title={shape.isLocked ? "Unlock" : "Lock"}>{shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}</button>
+                  <button type="button" onClick={() => deleteSelectedObject(shape.id)} className="p-1 rounded text-slate-400 hover:text-rose-600 transition" title={shape.isLocked ? "Cannot delete locked layer" : "Delete"}><Trash2 className={`h-3.5 w-3.5 ${shape.isLocked ? "text-slate-300" : "text-rose-500"}`} /></button>
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div className="space-y-3">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
+                <span className="text-[10px] font-bold text-brand">{shapes.length} Layer{shapes.length !== 1 ? "s" : ""}</span>
+              </div>
+
+              {/* Group Selected button — appears when ≥2 panel items selected */}
+              {panelSelectedIds.length >= 2 && (
+                <div className="rounded-xl border border-brand/30 bg-brand-light/20 p-2 space-y-2">
+                  {showGroupNameInput ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        autoFocus
+                        type="text"
+                        value={pendingGroupName}
+                        onChange={(e) => setPendingGroupName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") createLayerGroup(pendingGroupName, panelSelectedIds); if (e.key === "Escape") setShowGroupNameInput(false); }}
+                        className="flex-1 rounded-lg border border-brand bg-white px-2 py-1 text-xs font-bold text-ink outline-none"
+                        placeholder="Group name…"
+                      />
+                      <button type="button" onClick={() => createLayerGroup(pendingGroupName, panelSelectedIds)} className="px-2 py-1 rounded-lg bg-brand text-white text-[10px] font-black hover:bg-brand-dark transition">Create</button>
+                      <button type="button" onClick={() => setShowGroupNameInput(false)} className="px-2 py-1 rounded-lg bg-slate-200 text-slate-700 text-[10px] font-bold hover:bg-slate-300 transition">Cancel</button>
                     </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setPendingGroupName("Group 1"); setShowGroupNameInput(true); }}
+                      className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-brand/40 bg-brand/10 px-2 py-1.5 text-[11px] font-bold text-brand hover:bg-brand/20 transition"
+                    >
+                      <FolderPlus className="h-3.5 w-3.5" />
+                      Group {panelSelectedIds.length} Selected Layers
+                    </button>
+                  )}
+                </div>
+              )}
 
-                    {shapes.length === 0 ? (
-                      <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-muted space-y-1">
-                        <Layers className="h-8 w-8 text-slate-300 mx-auto" />
-                        <p className="font-bold text-ink">No Layers Yet</p>
-                        <p className="text-[11px]">Draw shapes, notes or lines on the canvas to see them in this layers stack.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
-                        {/* Reverse to show Top Layer first (Z-order) */}
-                        {[...shapes].reverse().map((shape, revIdx) => {
-                          const realIdx = shapes.length - 1 - revIdx;
-                          const isSelected = selectedShapeIds.includes(shape.id);
-                          const IconComponent = getToolIcon(shape.type);
-
-                          return (
-                            <div
-                              key={shape.id}
-                              onClick={() => setSelectedShapeIds([shape.id])}
-                              className={`group flex items-center justify-between rounded-2xl border p-2 text-xs transition cursor-pointer ${
-                                isSelected
-                                  ? "border-brand bg-brand-light/40 font-bold"
-                                  : "border-line bg-cream hover:bg-white"
-                              } ${shape.isHidden ? "opacity-40" : ""}`}
+              {shapes.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-xs text-muted space-y-1">
+                  <Layers className="h-8 w-8 text-slate-300 mx-auto" />
+                  <p className="font-bold text-ink">No Layers Yet</p>
+                  <p className="text-[11px]">Draw shapes, notes or lines on the canvas to see them in this layers stack.</p>
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-[55vh] overflow-y-auto pr-1">
+                  {/* ── GROUPS / FOLDERS ── */}
+                  {layerGroups.map((group) => {
+                    const memberShapes = group.shapeIds.map((sid) => shapes.find((s) => s.id === sid)).filter(Boolean) as Shape[];
+                    const allLocked = memberShapes.every((s) => s.isLocked);
+                    const allHidden = memberShapes.every((s) => s.isHidden);
+                    return (
+                      <div key={group.id} className="rounded-2xl border border-slate-300 bg-white overflow-hidden">
+                        {/* Folder header row */}
+                        {editingGroupId === group.id ? (
+                          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-slate-50">
+                            <FolderOpen className="h-4 w-4 text-amber-500 shrink-0" />
+                            <input
+                              autoFocus
+                              type="text"
+                              value={editingGroupName}
+                              onChange={(e) => setEditingGroupName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") { setLayerGroups((prev) => prev.map((g) => g.id === group.id ? { ...g, name: editingGroupName.trim() || g.name } : g)); setEditingGroupId(null); showToast("Group renamed"); }
+                                if (e.key === "Escape") setEditingGroupId(null);
+                              }}
+                              onBlur={() => { setLayerGroups((prev) => prev.map((g) => g.id === group.id ? { ...g, name: editingGroupName.trim() || g.name } : g)); setEditingGroupId(null); }}
+                              className="flex-1 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className="flex items-center gap-1.5 px-2 py-1.5 bg-slate-50 cursor-pointer hover:bg-slate-100 transition"
+                            onClick={() => toggleGroupCollapsed(group.id)}
+                          >
+                            <button type="button" className="shrink-0 text-slate-500" onClick={(e) => { e.stopPropagation(); toggleGroupCollapsed(group.id); }}>
+                              {group.isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                            </button>
+                            {group.isCollapsed ? <Folder className="h-4 w-4 text-amber-500 shrink-0" /> : <FolderOpen className="h-4 w-4 text-amber-500 shrink-0" />}
+                            <span
+                              onDoubleClick={(e) => { e.stopPropagation(); setEditingGroupId(group.id); setEditingGroupName(group.name); }}
+                              className="flex-1 truncate text-xs font-bold text-ink cursor-text"
+                              title="Double-click to rename group"
                             >
-                              <div className="flex items-center gap-2 truncate flex-1 min-w-0">
-                                {/* Color Swatch Badge */}
-                                <span
-                                  className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
-                                  style={{ background: shape.stickyColor || shape.color }}
-                                />
-                                <IconComponent className="h-4 w-4 text-brand shrink-0" />
-
-                                {editingLayerId === shape.id ? (
-                                  <input
-                                    autoFocus
-                                    type="text"
-                                    value={editingLayerName}
-                                    onChange={(e) => setEditingLayerName(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") {
-                                        setShapes((prev) =>
-                                          prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
-                                        );
-                                        setEditingLayerId(null);
-                                        showToast("Renamed layer!");
-                                      } else if (e.key === "Escape") {
-                                        setEditingLayerId(null);
-                                      }
-                                    }}
-                                    onBlur={() => {
-                                      setShapes((prev) =>
-                                        prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s))
-                                      );
-                                      setEditingLayerId(null);
-                                    }}
-                                    className="w-28 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
-                                  />
-                                ) : (
-                                  <span
-                                    onDoubleClick={() => {
-                                      setEditingLayerId(shape.id);
-                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
-                                    }}
-                                    className="truncate text-ink font-bold capitalize flex-1 cursor-text"
-                                    title="Double-click to rename layer"
-                                  >
-                                    {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Layer Actions: Rename, Reorder Up/Down, Visibility, Lock & Delete */}
-                              <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
-                                {/* Inline Rename Edit Button */}
-                                {editingLayerId !== shape.id && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditingLayerId(shape.id);
-                                      setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type));
-                                    }}
-                                    className="p-1 rounded text-slate-400 hover:text-brand"
-                                    title="Rename Layer"
-                                  >
-                                    <Edit3 className="h-3.5 w-3.5" />
-                                  </button>
-                                )}
-
-                                {/* Move Up in Z-stack */}
-                                <button
-                                  type="button"
-                                  onClick={() => moveLayerUp(realIdx)}
-                                  disabled={realIdx >= shapes.length - 1}
-                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
-                                  title="Move Layer Up (Bring Forward)"
-                                >
-                                  <ArrowUp className="h-3.5 w-3.5" />
-                                </button>
-
-                                {/* Move Down in Z-stack */}
-                                <button
-                                  type="button"
-                                  onClick={() => moveLayerDown(realIdx)}
-                                  disabled={realIdx <= 0}
-                                  className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20"
-                                  title="Move Layer Down (Send Backward)"
-                                >
-                                  <ArrowDown className="h-3.5 w-3.5" />
-                                </button>
-
-                                {/* Hide / Show Eye Toggle */}
-                                <button
-                                  type="button"
-                                  onClick={() => toggleHideShape(shape.id)}
-                                  className="p-1 rounded text-slate-400 hover:text-blue-600"
-                                  title={shape.isHidden ? "Unhide Layer" : "Hide Layer"}
-                                >
-                                  {shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}
-                                </button>
-
-                                {/* Lock / Unlock Toggle */}
-                                <button
-                                  type="button"
-                                  onClick={() => toggleLockShape(shape.id)}
-                                  className="p-1 rounded text-slate-400 hover:text-amber-600"
-                                  title={shape.isLocked ? "Unlock Layer" : "Lock Layer"}
-                                >
-                                  {shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}
-                                </button>
-
-                                {/* Delete Layer Trash Button */}
-                                <button
-                                  type="button"
-                                  onClick={() => deleteSelectedObject(shape.id)}
-                                  className="p-1 rounded text-slate-400 hover:text-rose-600 transition"
-                                  title={shape.isLocked ? "Cannot delete locked layer" : "Delete Layer"}
-                                >
-                                  <Trash2 className={`h-3.5 w-3.5 ${shape.isLocked ? "text-slate-300" : "text-rose-500"}`} />
-                                </button>
-                              </div>
+                              {group.name}
+                            </span>
+                            <span className="text-[9px] text-muted font-mono shrink-0">{memberShapes.length}</span>
+                            {/* Group actions */}
+                            <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <button type="button" onClick={() => toggleGroupHide(group.id)} className="p-1 rounded text-slate-400 hover:text-blue-600" title={allHidden ? "Unhide Group" : "Hide Group"}>{allHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}</button>
+                              <button type="button" onClick={() => toggleGroupLock(group.id)} className="p-1 rounded text-slate-400 hover:text-amber-600" title={allLocked ? "Unlock Group" : "Lock Group"}>{allLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}</button>
+                              <button type="button" onClick={() => ungroupLayerGroup(group.id)} className="p-1 rounded text-slate-400 hover:text-brand" title="Ungroup"><FolderMinus className="h-3.5 w-3.5" /></button>
+                              <button type="button" onClick={() => { if (window.confirm(`Delete group "${group.name}" and all ${memberShapes.length} layers inside?`)) deleteLayerGroup(group.id, true); }} className="p-1 rounded text-slate-400 hover:text-rose-600" title="Delete Group & Layers"><Trash2 className="h-3.5 w-3.5 text-rose-500" /></button>
                             </div>
-                          );
-                        })}
+                          </div>
+                        )}
+                        {/* Folder body — member layers */}
+                        {!group.isCollapsed && (
+                          <div className="border-t border-slate-200 space-y-1 p-1.5 bg-slate-50/50">
+                            {memberShapes.length === 0 ? (
+                              <p className="text-[10px] text-muted text-center py-2">Empty group — drag layers in</p>
+                            ) : memberShapes.map((shape) => {
+                              const realIdx = shapes.findIndex((s) => s.id === shape.id);
+                              return <LayerRow key={shape.id} shape={shape} realIdx={realIdx} indent />;
+                            })}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
+                    );
+                  })}
+
+                  {/* ── UNGROUPED SHAPES ── */}
+                  {reversedShapes
+                    .filter((shape) => !groupedShapeIds.has(shape.id))
+                    .map((shape) => {
+                      const realIdx = shapes.findIndex((s) => s.id === shape.id);
+                      return <LayerRow key={shape.id} shape={shape} realIdx={realIdx} />;
+                    })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
 
                 {/* TAB 3: CHARACTER & TYPOGRAPHY FORMATTING TAB */}
                 {tabKey === "character" && (
@@ -14400,7 +14530,8 @@ function renderWhiteboardShape(
   }
 
   // Render Sleek, Minimalist Selection Box & Subtle Handles
-  if (isSelected) {
+  // Locked shapes: skip canvas outline/handles entirely (less distraction)
+  if (isSelected && !shape.isLocked) {
     const b = getShapeBounds(shape);
     let minX = b.minX;
     let maxX = b.maxX;
@@ -14408,14 +14539,14 @@ function renderWhiteboardShape(
     let maxY = b.maxY;
 
     const pad = 4;
-    ctx.strokeStyle = shape.isLocked ? "rgba(245, 158, 11, 0.75)" : "rgba(59, 130, 246, 0.65)";
+    ctx.strokeStyle = "rgba(59, 130, 246, 0.65)";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
     ctx.setLineDash([]);
 
     // Subtle, small resize handle nodes (size 5.5px, thin 1px border)
-    if (!shape.isLocked) {
+    {
       const midX = (minX + maxX) / 2;
       const midY = (minY + maxY) / 2;
       const handles = [
