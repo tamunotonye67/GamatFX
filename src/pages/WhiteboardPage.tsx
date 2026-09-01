@@ -570,20 +570,24 @@ function ModernColorPicker({
     updateFromHsv(hue, newSat, newVal);
   };
 
-  const onSatValMouseDown = (e: React.MouseEvent) => {
+  const onSatValMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     isDraggingSatVal.current = true;
     handleSatValPointer(e);
 
-    const onMove = (moveEvt: MouseEvent) => {
+    const onMove = (moveEvt: MouseEvent | TouchEvent) => {
       if (isDraggingSatVal.current) handleSatValPointer(moveEvt);
     };
     const onUp = () => {
       isDraggingSatVal.current = false;
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend", onUp);
   };
 
   return (
@@ -617,6 +621,7 @@ function ModernColorPicker({
       <div
         ref={satValRef}
         onMouseDown={onSatValMouseDown}
+        onTouchStart={onSatValMouseDown}
         style={{
           backgroundColor: 'hsl(' + hue + ', 100%, 50%)',
         }}
@@ -2438,7 +2443,6 @@ export default function WhiteboardPage() {
       } else {
         if (!e.shiftKey) {
           setSelectedShapeIds([]);
-          setIsInspectorOpen(false);
         }
         isDrawing.current = true;
         dragStartPt.current = pt;
@@ -2447,9 +2451,8 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // Deselect and collapse inspector panel when clicking empty canvas to draw
+    // Deselect active shapes when clicking empty canvas to draw
     setSelectedShapeIds([]);
-    setIsInspectorOpen(false);
 
     if (activeTool === "bezier") {
       if (currentShape && currentShape.type === "bezier") {
@@ -2564,6 +2567,14 @@ export default function WhiteboardPage() {
       id: `shape_${Date.now()}`,
       type: activeTool,
       color: defaultForexColor,
+      strokeColor: defaultForexColor,
+      fillColor: fillColor,
+      fillStyle: fillStyle,
+      gradientEndColor: gradientEndColor,
+      opacity: opacity,
+      cornerRadius: cornerRadius,
+      upperWickLength: upperWickLength,
+      lowerWickLength: lowerWickLength,
       strokeWidth,
       lineStyle,
       isLocked: autoLockObjects,
@@ -5955,8 +5966,8 @@ export default function WhiteboardPage() {
           const calcH = Math.max(maxY - minY, selectedShape?.type === "sticky" ? 140 : selectedShape?.type === "text" ? 24 : 0);
           const IconComp = getToolIcon(targetTool);
 
-          const curFillColor = selectedShape?.fillColor || fillColor || "#3b82f6";
-          const curStrokeColor = selectedShape?.strokeColor || selectedShape?.color || strokeColor || "#0f172a";
+          const curFillColor = selectedShape ? (selectedShape.fillColor || selectedShape.color || fillColor || "#3b82f6") : (fillColor || "#3b82f6");
+          const curStrokeColor = selectedShape ? (selectedShape.strokeColor || selectedShape.color || strokeColor || "#0f172a") : (strokeColor || "#0f172a");
           const curGradientEnd = selectedShape?.gradientEndColor || gradientEndColor || "#1d4ed8";
           const curStrokeWidth = selectedShape?.strokeWidth !== undefined ? selectedShape.strokeWidth : strokeWidth || 2;
           const curOpacity = Math.round((selectedShape?.opacity !== undefined ? selectedShape.opacity : opacity) * 100);
