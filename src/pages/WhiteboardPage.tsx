@@ -1590,6 +1590,8 @@ export default function WhiteboardPage() {
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [editingGroupName, setEditingGroupName] = useState("");
   const [panelSelectedIds, setPanelSelectedIds] = useState<string[]>([]); // multi-select in layers panel
+  const [dragLayerId, setDragLayerId] = useState<string | null>(null); // layer being dragged
+  const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null); // group being hovered during drag
   const [showGroupNameInput, setShowGroupNameInput] = useState(false);
   const [pendingGroupName, setPendingGroupName] = useState("Group 1");
   // Image Tool state
@@ -7402,6 +7404,9 @@ export default function WhiteboardPage() {
                   {editingLayerId !== shape.id && (
                     <button type="button" onClick={() => { setEditingLayerId(shape.id); setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)); }} className="p-1 rounded text-slate-400 hover:text-brand" title="Rename"><Edit3 className="h-3.5 w-3.5" /></button>
                   )}
+                  {groupId && (
+                    <button type="button" onClick={() => { setLayerGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shape.id) } : g)); showToast("Removed from group"); }} className="p-1 rounded text-slate-400 hover:text-rose-500" title="Remove from group"><FolderMinus className="h-3.5 w-3.5" /></button>
+                  )}
                   <button type="button" onClick={() => moveLayerUp(realIdx)} disabled={realIdx >= shapes.length - 1} className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20" title="Bring Forward"><ArrowUp className="h-3.5 w-3.5" /></button>
                   <button type="button" onClick={() => moveLayerDown(realIdx)} disabled={realIdx <= 0} className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20" title="Send Backward"><ArrowDown className="h-3.5 w-3.5" /></button>
                   <button type="button" onClick={() => toggleHideShape(shape.id)} className="p-1 rounded text-slate-400 hover:text-blue-600" title={shape.isHidden ? "Unhide" : "Hide"}>{shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}</button>
@@ -7421,11 +7426,11 @@ export default function WhiteboardPage() {
                   <span className="text-[10px] font-bold text-brand">{shapes.length} Layer{shapes.length !== 1 ? "s" : ""}</span>
                   <button
                     type="button"
-                    onClick={() => { setPendingGroupName(panelSelectedIds.length >= 2 ? `Group ${layerGroups.length + 1}` : "Group 1"); setShowGroupNameInput(true); }}
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-slate-300 bg-white text-[10px] font-bold text-slate-600 hover:border-brand hover:text-brand transition"
-                    title={panelSelectedIds.length >= 2 ? `Group ${panelSelectedIds.length} selected layers` : "Create a new layer group (shift-click layers to pre-select)"}
+                    onClick={() => { setPendingGroupName(`Group ${layerGroups.length + 1}`); setShowGroupNameInput(true); }}
+                    className="p-1 rounded-md border border-slate-300 bg-white text-slate-500 hover:border-brand hover:text-brand transition flex items-center justify-center"
+                    title={panelSelectedIds.length >= 2 ? `Group ${panelSelectedIds.length} selected layers into folder` : "New layer group / folder (shift-click layers to pre-select)"}
                   >
-                    <FolderPlus className="h-3 w-3" /> New Group
+                    <FolderPlus className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -7513,15 +7518,38 @@ export default function WhiteboardPage() {
                             </div>
                           </div>
                         )}
-                        {/* Folder body — member layers */}
+                        {/* Folder body — member layers with drop zone */}
                         {!group.isCollapsed && (
-                          <div className="border-t border-slate-200 space-y-1 p-1.5 bg-slate-50/50">
+                          <div
+                            className={`border-t border-slate-200 space-y-1 p-1.5 transition-colors ${dragOverGroupId === group.id ? "bg-brand/10 border-brand" : "bg-slate-50/50"}`}
+                            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverGroupId(group.id); }}
+                            onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverGroupId(null); }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              if (dragLayerId && dragLayerId !== group.id) {
+                                // Remove from any existing group first
+                                setLayerGroups((prev) => prev.map((g) => ({ ...g, shapeIds: g.shapeIds.filter((id) => id !== dragLayerId) })));
+                                // Add to this group if not already present
+                                setLayerGroups((prev) => prev.map((g) => g.id === group.id && !g.shapeIds.includes(dragLayerId!) ? { ...g, shapeIds: [...g.shapeIds, dragLayerId!] } : g));
+                                showToast(`Layer moved into "${group.name}"`);
+                              }
+                              setDragLayerId(null);
+                              setDragOverGroupId(null);
+                            }}
+                          >
                             {memberShapes.length === 0 ? (
-                              <p className="text-[10px] text-muted text-center py-2">Empty group — drag layers in</p>
+                              <p className={`text-[10px] text-center py-2 ${dragOverGroupId === group.id ? "text-brand font-bold" : "text-muted"}`}>
+                                {dragOverGroupId === group.id ? "Drop to add to group" : "Empty — drag layers here to group them"}
+                              </p>
                             ) : memberShapes.map((shape) => {
                               const realIdx = shapes.findIndex((s) => s.id === shape.id);
-                              return <LayerRow key={shape.id} shape={shape} realIdx={realIdx} indent />;
+                              return <LayerRow key={shape.id} shape={shape} realIdx={realIdx} indent groupId={group.id} />;
                             })}
+                            {memberShapes.length > 0 && dragOverGroupId === group.id && (
+                              <div className="h-8 rounded-xl border-2 border-dashed border-brand bg-brand/5 flex items-center justify-center">
+                                <span className="text-[10px] font-bold text-brand">Drop here</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -7529,12 +7557,33 @@ export default function WhiteboardPage() {
                   })}
 
                   {/* ── UNGROUPED SHAPES ── */}
-                  {reversedShapes
-                    .filter((shape) => !groupedShapeIds.has(shape.id))
-                    .map((shape) => {
-                      const realIdx = shapes.findIndex((s) => s.id === shape.id);
-                      return <LayerRow key={shape.id} shape={shape} realIdx={realIdx} />;
-                    })}
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverGroupId("__ungrouped__"); }}
+                    onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverGroupId(null); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragLayerId) {
+                        // Remove from all groups (move to ungrouped)
+                        setLayerGroups((prev) => prev.map((g) => ({ ...g, shapeIds: g.shapeIds.filter((id) => id !== dragLayerId) })));
+                        showToast("Layer moved to ungrouped");
+                      }
+                      setDragLayerId(null);
+                      setDragOverGroupId(null);
+                    }}
+                    className={`rounded-xl transition-colors ${dragOverGroupId === "__ungrouped__" && dragLayerId ? "bg-slate-200/60 ring-2 ring-dashed ring-slate-400" : ""}`}
+                  >
+                    {dragOverGroupId === "__ungrouped__" && dragLayerId && (
+                      <div className="h-7 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-slate-500">Drop to ungroup</span>
+                      </div>
+                    )}
+                    {reversedShapes
+                      .filter((shape) => !groupedShapeIds.has(shape.id))
+                      .map((shape) => {
+                        const realIdx = shapes.findIndex((s) => s.id === shape.id);
+                        return <LayerRow key={shape.id} shape={shape} realIdx={realIdx} />;
+                      })}
+                  </div>
                 </div>
               )}
             </div>
