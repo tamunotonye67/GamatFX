@@ -133,7 +133,9 @@ import {
   ShieldAlert,
   Ratio,
   FolderMinus,
-  Folder
+  Folder,
+  Image as ImageIcon,
+  Pipette
 } from "lucide-react";
 import {
   getStoredSamples,
