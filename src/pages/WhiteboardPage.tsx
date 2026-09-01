@@ -592,17 +592,17 @@ function ModernColorPicker({
 
   return (
     <div
-      className="p-3 w-full bg-white rounded-2xl border border-slate-200 shadow-md space-y-3 select-none text-slate-800 animate-in fade-in duration-100"
+      className="p-2.5 w-full bg-slate-50/80 rounded-xl border border-slate-200 shadow-sm space-y-2.5 select-none text-slate-800 animate-in fade-in duration-100 box-border overflow-hidden"
       onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
-      <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+      <div className="flex items-center justify-between pb-1 border-b border-slate-200">
         <span className="text-[11px] font-bold text-slate-900 tracking-tight">{title}</span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setInputMode(inputMode === "hex" ? "rgb" : "hex")}
-            className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition uppercase cursor-pointer"
+            className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition uppercase cursor-pointer"
             title="Switch between HEX and RGB values"
           >
             {inputMode.toUpperCase()}
@@ -610,9 +610,9 @@ function ModernColorPicker({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition cursor-pointer"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3 w-3" />
           </button>
         </div>
       </div>
@@ -625,13 +625,13 @@ function ModernColorPicker({
         style={{
           backgroundColor: 'hsl(' + hue + ', 100%, 50%)',
         }}
-        className="relative w-full h-32 rounded-xl cursor-crosshair overflow-hidden shadow-inner touch-none"
+        className="relative w-full h-28 rounded-lg cursor-crosshair overflow-hidden shadow-inner touch-none border border-slate-200/60"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none" />
         {/* Crosshair Handle */}
         <div
-          className="absolute w-4 h-4 rounded-full border-2 border-white shadow-md pointer-events-none -translate-x-1/2 -translate-y-1/2"
+          className="absolute w-3.5 h-3.5 rounded-full border-2 border-white shadow-md pointer-events-none -translate-x-1/2 -translate-y-1/2"
           style={{
             left: (sat * 100) + '%',
             top: ((1 - val) * 100) + '%',
@@ -641,31 +641,29 @@ function ModernColorPicker({
       </div>
 
       {/* Hue Rainbow Slider */}
-      <div className="space-y-1">
-        <div className="relative flex items-center">
-          <input
-            type="range"
-            min={0}
-            max={360}
-            value={hue}
-            onChange={(e) => {
-              const newH = parseInt(e.target.value, 10);
-              updateFromHsv(newH, sat, val);
-            }}
-            className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-            style={{
-              background:
-                "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)",
-            }}
-          />
-        </div>
+      <div className="space-y-0.5">
+        <input
+          type="range"
+          min={0}
+          max={360}
+          value={hue}
+          onChange={(e) => {
+            const newH = parseInt(e.target.value, 10);
+            updateFromHsv(newH, sat, val);
+          }}
+          className="w-full h-2.5 rounded-md appearance-none cursor-pointer"
+          style={{
+            background:
+              "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)",
+          }}
+        />
       </div>
 
       {/* Value Input: HEX or RGB */}
       {inputMode === "hex" ? (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition font-mono text-xs">
-            <span className="text-slate-400 mr-1 font-bold">#</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex-1 min-w-0 flex items-center rounded-lg border border-slate-200 bg-white px-2 py-1 focus-within:border-brand transition font-mono text-xs">
+            <span className="text-slate-400 mr-1 font-bold select-none">#</span>
             <input
               type="text"
               value={hexInput.replace("#", "")}
@@ -682,52 +680,54 @@ function ModernColorPicker({
                   onChange('#' + valStr);
                 }
               }}
-              className="w-full bg-transparent font-bold text-slate-900 outline-none uppercase"
+              className="w-full bg-transparent font-bold text-slate-900 outline-none uppercase text-xs"
               maxLength={6}
             />
           </div>
           <span
-            className="w-7 h-7 rounded-lg border border-slate-300 shadow-2xs shrink-0"
+            className="w-6 h-6 rounded-md border border-slate-300 shadow-2xs shrink-0"
             style={{ backgroundColor: color }}
           />
         </div>
       ) : (
-        <div className="flex items-center gap-1 text-[11px] font-mono">
-          {(["r", "g", "b"] as const).map((ch) => (
-            <div key={ch} className="flex-1 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1 focus-within:border-brand focus-within:bg-white transition">
-              <span className="text-slate-400 font-bold uppercase mr-1 text-[10px]">{ch}</span>
-              <input
-                type="number"
-                min={0}
-                max={255}
-                value={rgbState[ch]}
-                onChange={(e) => {
-                  const num = Math.max(0, Math.min(255, parseInt(e.target.value, 10) || 0));
-                  const newRgb = { ...rgbState, [ch]: num };
-                  setRgbState(newRgb);
-                  const newHex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
-                  const hsv = rgbToHsv(newRgb.r, newRgb.g, newRgb.b);
-                  setHue(hsv.h);
-                  setSat(hsv.s);
-                  setVal(hsv.v);
-                  setHexInput(newHex.toUpperCase());
-                  onChange(newHex);
-                }}
-                className="w-full bg-transparent font-bold text-slate-900 outline-none text-right"
-              />
-            </div>
-          ))}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="grid grid-cols-3 gap-1 flex-1 min-w-0 text-[10px] font-mono">
+            {(["r", "g", "b"] as const).map((ch) => (
+              <div key={ch} className="flex items-center rounded-lg border border-slate-200 bg-white px-1 py-0.5 focus-within:border-brand transition min-w-0">
+                <span className="text-slate-400 font-bold uppercase mr-0.5 select-none">{ch}</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={255}
+                  value={rgbState[ch]}
+                  onChange={(e) => {
+                    const num = Math.max(0, Math.min(255, parseInt(e.target.value, 10) || 0));
+                    const newRgb = { ...rgbState, [ch]: num };
+                    setRgbState(newRgb);
+                    const newHex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
+                    const hsv = rgbToHsv(newRgb.r, newRgb.g, newRgb.b);
+                    setHue(hsv.h);
+                    setSat(hsv.s);
+                    setVal(hsv.v);
+                    setHexInput(newHex.toUpperCase());
+                    onChange(newHex);
+                  }}
+                  className="w-full bg-transparent font-bold text-slate-900 outline-none text-right pr-0.5 min-w-0"
+                />
+              </div>
+            ))}
+          </div>
           <span
-            className="w-7 h-7 rounded-lg border border-slate-300 shadow-2xs shrink-0"
+            className="w-6 h-6 rounded-md border border-slate-300 shadow-2xs shrink-0"
             style={{ backgroundColor: color }}
           />
         </div>
       )}
 
       {/* Preset Swatches Palette */}
-      <div className="pt-2 border-t border-slate-100">
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Presets</span>
-        <div className="grid grid-cols-7 gap-1">
+      <div className="pt-1.5 border-t border-slate-200">
+        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Presets</span>
+        <div className="grid grid-cols-7 gap-1 min-w-0">
           {EXTENDED_PALETTE.map((swatch) => (
             <button
               key={swatch}
@@ -742,12 +742,12 @@ function ModernColorPicker({
                 setHexInput(swatch.toUpperCase());
                 onChange(swatch);
               }}
-              className={'w-6 h-6 rounded-md border border-slate-200 transition-transform hover:scale-110 cursor-pointer flex items-center justify-center ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-110 shadow-xs" : "")}
+              className={'w-full aspect-square rounded border border-slate-200 transition-transform hover:scale-110 cursor-pointer flex items-center justify-center ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-105 shadow-xs" : "")}
               style={{ backgroundColor: swatch }}
               title={swatch}
             >
               {color.toLowerCase() === swatch.toLowerCase() && (
-                <Check className={'h-3 w-3 ' + (swatch === "#ffffff" ? "text-slate-800" : "text-white")} />
+                <Check className={'h-2.5 w-2.5 ' + (swatch === "#ffffff" ? "text-slate-800" : "text-white")} />
               )}
             </button>
           ))}
@@ -756,8 +756,6 @@ function ModernColorPicker({
     </div>
   );
 }
-
-
 /* ------------------------- Modern Color Picker Field Row ------------------------- */
 interface ModernColorFieldProps {
   label?: string;
@@ -789,7 +787,7 @@ function ModernColorField({
   const displayColor = isNone ? "#ffffff" : color;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 min-w-0">
       {label && (
         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <span>{label}</span>
@@ -797,32 +795,32 @@ function ModernColorField({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-1.5 min-w-0">
         {/* Swatch Button toggling Color Picker */}
         <button
           type="button"
           onClick={() => setActiveKey(isOpen ? null : pickerKey)}
           disabled={disabled}
-          className={'flex-1 flex items-center gap-2 p-1.5 rounded-lg border transition cursor-pointer ' + (isOpen ? "border-brand bg-brand-light/30 ring-1 ring-brand" : "border-slate-200 bg-slate-50 hover:bg-white") + (disabled ? " opacity-40 cursor-not-allowed" : "")}
+          className={'flex-1 min-w-0 flex items-center gap-1.5 p-1 rounded-lg border transition cursor-pointer ' + (isOpen ? "border-brand bg-brand-light/30 ring-1 ring-brand" : "border-slate-200 bg-slate-50 hover:bg-white") + (disabled ? " opacity-40 cursor-not-allowed" : "")}
         >
           <span
-            className="w-5 h-5 rounded-md border border-slate-300 shadow-2xs shrink-0 relative overflow-hidden"
+            className="w-4 h-4 rounded border border-slate-300 shadow-2xs shrink-0 relative overflow-hidden"
             style={{ backgroundColor: displayColor }}
           >
             {isNone && (
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-rose-500">/</span>
+              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-rose-500 leading-none">/</span>
             )}
           </span>
           <span className="font-mono font-bold text-xs text-slate-800 uppercase truncate">
             {isNone ? "None" : color}
           </span>
-          <span className="ml-auto text-[10px] text-slate-400 font-sans">
+          <span className="ml-auto text-[9.5px] text-slate-400 font-sans shrink-0">
             {isOpen ? "Close" : "Pick"}
           </span>
         </button>
 
         {/* Direct HEX Input */}
-        <div className="w-24 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition">
+        <div className="w-20 shrink-0 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1 focus-within:border-brand focus-within:bg-white transition">
           <span className="text-[10px] font-mono text-slate-400 mr-0.5 select-none">#</span>
           <input
             type="text"
@@ -843,24 +841,24 @@ function ModernColorField({
           <button
             type="button"
             onClick={onClear}
-            className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-400 transition cursor-pointer"
+            className="p-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-400 transition cursor-pointer shrink-0"
             title="Clear / Transparent"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3 w-3" />
           </button>
         )}
       </div>
 
       {/* Quick Swatch Pills if provided */}
       {quickSwatches && quickSwatches.length > 0 && (
-        <div className="flex items-center gap-1.5 pt-1 overflow-x-auto [scrollbar-width:none]">
+        <div className="flex items-center gap-1 pt-0.5 overflow-x-auto [scrollbar-width:none]">
           {quickSwatches.map((swatch) => (
             <button
               key={swatch}
               type="button"
               onClick={() => onChange(swatch)}
               disabled={disabled}
-              className={'w-5 h-5 rounded-md border border-slate-200 transition-transform hover:scale-110 shrink-0 cursor-pointer ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-110 shadow-xs" : "")}
+              className={'w-4.5 h-4.5 rounded border border-slate-200 transition-transform hover:scale-110 shrink-0 cursor-pointer ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-105 shadow-xs" : "")}
               style={{ backgroundColor: swatch }}
               title={swatch}
             />
@@ -870,7 +868,7 @@ function ModernColorField({
 
       {/* Inline Expandable Modern Color Picker */}
       {isOpen && (
-        <div className="pt-1 animate-in fade-in duration-100">
+        <div className="pt-1 animate-in fade-in duration-100 min-w-0">
           <ModernColorPicker
             title={`${label || "Color"} Picker`}
             color={isNone ? "#3b82f6" : color}
@@ -11168,7 +11166,7 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Floating Panel Scrollable Body */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 [scrollbar-width:thin]">
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 [scrollbar-width:thin]">
             {renderTabBody(panelKey)}
           </div>
 
@@ -11189,7 +11187,7 @@ export default function WhiteboardPage() {
 
     {/* Docked Sidebar Panel */}
     {isInspectorOpen && (
-      <aside className="absolute right-10 top-0 bottom-0 w-80 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-none">
+      <aside className="absolute right-10 top-0 bottom-0 w-84 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-text">
         {/* Panel Header */}
         <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           {/* Top Titlebar Controls */}
