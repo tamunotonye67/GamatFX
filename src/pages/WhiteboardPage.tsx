@@ -757,6 +757,132 @@ function ModernColorPicker({
   );
 }
 
+
+/* ------------------------- Modern Color Picker Field Row ------------------------- */
+interface ModernColorFieldProps {
+  label?: string;
+  color: string;
+  onChange: (hex: string) => void;
+  pickerKey: string;
+  activeKey: string | null;
+  setActiveKey: (key: string | null) => void;
+  disabled?: boolean;
+  allowClear?: boolean;
+  onClear?: () => void;
+  quickSwatches?: string[];
+}
+
+function ModernColorField({
+  label,
+  color,
+  onChange,
+  pickerKey,
+  activeKey,
+  setActiveKey,
+  disabled = false,
+  allowClear = false,
+  onClear,
+  quickSwatches,
+}: ModernColorFieldProps) {
+  const isOpen = activeKey === pickerKey;
+  const isNone = color === "transparent" || color === "none" || !color;
+  const displayColor = isNone ? "#ffffff" : color;
+
+  return (
+    <div className="space-y-2">
+      {label && (
+        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <span>{label}</span>
+          <span className="font-mono text-slate-700 uppercase">{isNone ? "None" : color}</span>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-2">
+        {/* Swatch Button toggling Color Picker */}
+        <button
+          type="button"
+          onClick={() => setActiveKey(isOpen ? null : pickerKey)}
+          disabled={disabled}
+          className={'flex-1 flex items-center gap-2 p-1.5 rounded-lg border transition cursor-pointer ' + (isOpen ? "border-brand bg-brand-light/30 ring-1 ring-brand" : "border-slate-200 bg-slate-50 hover:bg-white") + (disabled ? " opacity-40 cursor-not-allowed" : "")}
+        >
+          <span
+            className="w-5 h-5 rounded-md border border-slate-300 shadow-2xs shrink-0 relative overflow-hidden"
+            style={{ backgroundColor: displayColor }}
+          >
+            {isNone && (
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-rose-500">/</span>
+            )}
+          </span>
+          <span className="font-mono font-bold text-xs text-slate-800 uppercase truncate">
+            {isNone ? "None" : color}
+          </span>
+          <span className="ml-auto text-[10px] text-slate-400 font-sans">
+            {isOpen ? "Close" : "Pick"}
+          </span>
+        </button>
+
+        {/* Direct HEX Input */}
+        <div className="w-24 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition">
+          <span className="text-[10px] font-mono text-slate-400 mr-0.5 select-none">#</span>
+          <input
+            type="text"
+            value={isNone ? "" : color.replace("#", "")}
+            placeholder={isNone ? "NONE" : "HEX"}
+            disabled={disabled}
+            onChange={(e) => {
+              const valStr = e.target.value.trim();
+              if (valStr.length <= 6) {
+                onChange('#' + valStr);
+              }
+            }}
+            className="w-full bg-transparent font-mono font-bold text-xs text-slate-900 outline-none uppercase"
+          />
+        </div>
+
+        {allowClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="p-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-400 transition cursor-pointer"
+            title="Clear / Transparent"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Quick Swatch Pills if provided */}
+      {quickSwatches && quickSwatches.length > 0 && (
+        <div className="flex items-center gap-1.5 pt-1 overflow-x-auto [scrollbar-width:none]">
+          {quickSwatches.map((swatch) => (
+            <button
+              key={swatch}
+              type="button"
+              onClick={() => onChange(swatch)}
+              disabled={disabled}
+              className={'w-5 h-5 rounded-md border border-slate-200 transition-transform hover:scale-110 shrink-0 cursor-pointer ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-110 shadow-xs" : "")}
+              style={{ backgroundColor: swatch }}
+              title={swatch}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Inline Expandable Modern Color Picker */}
+      {isOpen && (
+        <div className="pt-1 animate-in fade-in duration-100">
+          <ModernColorPicker
+            title={`${label || "Color"} Picker`}
+            color={isNone ? "#3b82f6" : color}
+            onChange={onChange}
+            onClose={() => setActiveKey(null)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 const CANVAS_THEMES = [
   { id: "dots", name: "Dots Grid" },
   { id: "lines", name: "Square Grid" },
@@ -1148,7 +1274,7 @@ export default function WhiteboardPage() {
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
 
-  const [activeColorPicker, setActiveColorPicker] = useState<"fill" | "stroke" | "gradientEnd" | null>(null);
+  const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
   const [strokeColor, setStrokeColor] = useState("#dc3545");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
@@ -6185,49 +6311,17 @@ export default function WhiteboardPage() {
 
               {/* 3. Sticky Note Customizer (If Sticky Note Selected or Active) */}
               {isSticky && (
-                <div className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/50 space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-amber-900">
-                    <span className="flex items-center gap-1">
-                      <StickyNote className="h-3 w-3 text-amber-600" /> Sticky Note Color
-                    </span>
-                    <span className="text-[9px] text-amber-700">Palette</span>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[
-                      { col: "#fef08a", name: "Classic Yellow" },
-                      { col: "#fbcfe8", name: "Soft Pink" },
-                      { col: "#bae6fd", name: "Sky Blue" },
-                      { col: "#bbf7d0", name: "Mint Green" },
-                      { col: "#ddd6fe", name: "Lavender" },
-                      { col: "#fed7aa", name: "Peach Coral" },
-                      { col: "#ffffff", name: "Clean White" },
-                      { col: "#1e293b", name: "Dark Slate" },
-                    ].map((item) => {
-                      const isSel = (selectedShape?.stickyColor || stickyColor || "#fef08a") === item.col;
-                      return (
-                        <button
-                          key={item.col}
-                          type="button"
-                          onClick={() => {
-                            setStickyColor(item.col as any);
-                            if (selectedShape) {
-                              setShapes((prev) =>
-                                prev.map((s) => (s.id === selectedShape.id ? { ...s, stickyColor: item.col as any } : s))
-                              );
-                            }
-                          }}
-                          style={{ backgroundColor: item.col }}
-                          className={'h-7 rounded-lg border border-slate-300 transition-transform hover:scale-105 cursor-pointer flex items-center justify-center ' + (isSel ? "ring-2 ring-brand scale-105 shadow-xs" : "")}
-                          title={item.name}
-                        >
-                          {isSel && (
-                            <Check className={'h-3.5 w-3.5 ' + (item.col === "#1e293b" ? "text-white" : "text-slate-800")} />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/50 space-y-2.5">
+                  <ModernColorField
+                    label="Sticky Note Color"
+                    color={selectedShape?.stickyColor || stickyColor || "#fef08a"}
+                    onChange={(col) => applyStickyColorToSelected(col as any)}
+                    pickerKey="stickyColor"
+                    activeKey={activeColorPicker}
+                    setActiveKey={setActiveColorPicker}
+                    disabled={selectedShape?.isLocked}
+                    quickSwatches={["#fef08a", "#fbcfe8", "#bae6fd", "#bbf7d0", "#ddd6fe", "#fed7aa", "#ffffff", "#1e293b"]}
+                  />
 
                   {selectedShape && (
                     <div className="pt-1 border-t border-amber-200/60 space-y-1">
@@ -6358,6 +6452,20 @@ export default function WhiteboardPage() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Wick Color */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <ModernColorField
+                      label="Wick Color"
+                      color={selectedShape?.wickColor || wickColor || curStrokeColor}
+                      onChange={(hex) => applyWickColorToSelected(hex)}
+                      pickerKey="wickColor"
+                      activeKey={activeColorPicker}
+                      setActiveKey={setActiveColorPicker}
+                      disabled={selectedShape?.isLocked}
+                      quickSwatches={["#10b981", "#ef4444", "#0f172a", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"]}
+                    />
+                  </div>
                 </div>
               )}
 
@@ -6385,107 +6493,31 @@ export default function WhiteboardPage() {
 
                 {/* Fill Color Row */}
                 {curFillStyle !== "none" && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      {/* Swatch Button toggling Color Picker */}
-                      <button
-                        type="button"
-                        onClick={() => setActiveColorPicker(activeColorPicker === "fill" ? null : "fill")}
-                        disabled={selectedShape?.isLocked}
-                        className={'flex-1 flex items-center gap-2 p-1.5 rounded-lg border transition cursor-pointer ' + (activeColorPicker === "fill" ? "border-brand bg-brand-light/30 ring-1 ring-brand" : "border-slate-200 bg-slate-50 hover:bg-white")}
-                      >
-                        <span
-                          className="w-5 h-5 rounded-md border border-slate-300 shadow-2xs shrink-0"
-                          style={{ backgroundColor: curFillColor }}
-                        />
-                        <span className="font-mono font-bold text-xs text-slate-800 uppercase truncate">
-                          {curFillColor}
-                        </span>
-                        <span className="ml-auto text-[10px] text-slate-400 font-sans">
-                          {activeColorPicker === "fill" ? "Close" : "Pick"}
-                        </span>
-                      </button>
-
-                      {/* Direct HEX Input */}
-                      <div className="w-24 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition">
-                        <span className="text-[10px] font-mono text-slate-400 mr-0.5 select-none">#</span>
-                        <input
-                          type="text"
-                          value={curFillColor.replace("#", "")}
-                          disabled={selectedShape?.isLocked}
-                          onChange={(e) => {
-                            const valStr = e.target.value.trim();
-                            if (valStr.length <= 6) {
-                              applyFillColorToSelected('#' + valStr);
-                            }
-                          }}
-                          className="w-full bg-transparent font-mono font-bold text-xs text-slate-900 outline-none uppercase"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Inline Expandable Modern Color Picker */}
-                    {activeColorPicker === "fill" && (
-                      <div className="pt-1">
-                        <ModernColorPicker
-                          title="Fill Color Picker"
-                          color={curFillColor}
-                          onChange={(hex) => applyFillColorToSelected(hex)}
-                          onClose={() => setActiveColorPicker(null)}
-                        />
-                      </div>
-                    )}
+                  <div className="space-y-3">
+                    <ModernColorField
+                      label="Fill Color"
+                      color={curFillColor}
+                      onChange={(hex) => applyFillColorToSelected(hex)}
+                      pickerKey="fill"
+                      activeKey={activeColorPicker}
+                      setActiveKey={setActiveColorPicker}
+                      disabled={selectedShape?.isLocked}
+                      quickSwatches={["#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#0f172a", "#ffffff"]}
+                    />
 
                     {/* Gradient End Color (if Gradient mode) */}
                     {curFillStyle === "gradient" && (
-                      <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Gradient End Color</span>
-                        <div className="flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setActiveColorPicker(activeColorPicker === "gradientEnd" ? null : "gradientEnd")}
-                            disabled={selectedShape?.isLocked}
-                            className={'flex-1 flex items-center gap-2 p-1.5 rounded-lg border transition cursor-pointer ' + (activeColorPicker === "gradientEnd" ? "border-brand bg-brand-light/30 ring-1 ring-brand" : "border-slate-200 bg-slate-50 hover:bg-white")}
-                          >
-                            <span
-                              className="w-5 h-5 rounded-md border border-slate-300 shadow-2xs shrink-0"
-                              style={{ backgroundColor: curGradientEnd }}
-                            />
-                            <span className="font-mono font-bold text-xs text-slate-800 uppercase truncate">
-                              {curGradientEnd}
-                            </span>
-                            <span className="ml-auto text-[10px] text-slate-400 font-sans">
-                              {activeColorPicker === "gradientEnd" ? "Close" : "Pick"}
-                            </span>
-                          </button>
-
-                          <div className="w-24 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition">
-                            <span className="text-[10px] font-mono text-slate-400 mr-0.5 select-none">#</span>
-                            <input
-                              type="text"
-                              value={curGradientEnd.replace("#", "")}
-                              disabled={selectedShape?.isLocked}
-                              onChange={(e) => {
-                                const valStr = e.target.value.trim();
-                                if (valStr.length <= 6) {
-                                  applyGradientEndColorToSelected('#' + valStr);
-                                }
-                              }}
-                              className="w-full bg-transparent font-mono font-bold text-xs text-slate-900 outline-none uppercase"
-                            />
-                          </div>
-                        </div>
-
-                        {activeColorPicker === "gradientEnd" && (
-                          <div className="pt-1">
-                            <ModernColorPicker
-                              title="Gradient End Color Picker"
-                              color={curGradientEnd}
-                              onChange={(hex) => applyGradientEndColorToSelected(hex)}
-                              onClose={() => setActiveColorPicker(null)}
-                            />
-                          </div>
-                        )}
+                      <div className="pt-2 border-t border-slate-100">
+                        <ModernColorField
+                          label="Gradient End Color"
+                          color={curGradientEnd}
+                          onChange={(hex) => applyGradientEndColorToSelected(hex)}
+                          pickerKey="gradientEnd"
+                          activeKey={activeColorPicker}
+                          setActiveKey={setActiveColorPicker}
+                          disabled={selectedShape?.isLocked}
+                          quickSwatches={["#1d4ed8", "#047857", "#b91c1c", "#b45309", "#6d28d9", "#0f172a", "#ffffff"]}
+                        />
                       </div>
                     )}
                   </div>
@@ -6499,55 +6531,16 @@ export default function WhiteboardPage() {
                   <span className="text-[10px] font-mono font-bold text-slate-700">{curStrokeWidth}px</span>
                 </div>
 
-                {/* Stroke Color + HEX */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setActiveColorPicker(activeColorPicker === "stroke" ? null : "stroke")}
-                      disabled={selectedShape?.isLocked}
-                      className={'flex-1 flex items-center gap-2 p-1.5 rounded-lg border transition cursor-pointer ' + (activeColorPicker === "stroke" ? "border-brand bg-brand-light/30 ring-1 ring-brand" : "border-slate-200 bg-slate-50 hover:bg-white")}
-                    >
-                      <span
-                        className="w-5 h-5 rounded-md border border-slate-300 shadow-2xs shrink-0"
-                        style={{ backgroundColor: curStrokeColor }}
-                      />
-                      <span className="font-mono font-bold text-xs text-slate-800 uppercase truncate">
-                        {curStrokeColor}
-                      </span>
-                      <span className="ml-auto text-[10px] text-slate-400 font-sans">
-                        {activeColorPicker === "stroke" ? "Close" : "Pick"}
-                      </span>
-                    </button>
-
-                    <div className="w-24 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition">
-                      <span className="text-[10px] font-mono text-slate-400 mr-0.5 select-none">#</span>
-                      <input
-                        type="text"
-                        value={curStrokeColor.replace("#", "")}
-                        disabled={selectedShape?.isLocked}
-                        onChange={(e) => {
-                          const valStr = e.target.value.trim();
-                          if (valStr.length <= 6) {
-                            applyColorToSelected('#' + valStr);
-                          }
-                        }}
-                        className="w-full bg-transparent font-mono font-bold text-xs text-slate-900 outline-none uppercase"
-                      />
-                    </div>
-                  </div>
-
-                  {activeColorPicker === "stroke" && (
-                    <div className="pt-1">
-                      <ModernColorPicker
-                        title="Stroke Color Picker"
-                        color={curStrokeColor}
-                        onChange={(hex) => applyColorToSelected(hex)}
-                        onClose={() => setActiveColorPicker(null)}
-                      />
-                    </div>
-                  )}
-                </div>
+                <ModernColorField
+                  label="Stroke Color"
+                  color={curStrokeColor}
+                  onChange={(hex) => applyColorToSelected(hex)}
+                  pickerKey="stroke"
+                  activeKey={activeColorPicker}
+                  setActiveKey={setActiveColorPicker}
+                  disabled={selectedShape?.isLocked}
+                  quickSwatches={["#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#ffffff"]}
+                />
 
                 {/* Stroke Width in px Input Field + Preset Chips */}
                 <div className="space-y-1.5 pt-1 border-t border-slate-100">
