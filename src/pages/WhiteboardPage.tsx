@@ -11752,12 +11752,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.inspector.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "inspector"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.inspector?.isOpen || (isInspectorOpen && rightPanelTab === "inspector"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.inspector.isOpen ? "Focus Floating Inspector (Detached)" : "Inspector & Properties"}
                 >
@@ -11796,12 +11794,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.layers.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "layers"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.layers?.isOpen || (isInspectorOpen && rightPanelTab === "layers"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.layers.isOpen ? `Focus Floating Layers (${shapes.length})` : `Layers (${shapes.length})`}
                 >
@@ -11845,12 +11841,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.character.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "character"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.character?.isOpen || (isInspectorOpen && rightPanelTab === "character"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.character.isOpen ? "Focus Floating Text & Typography" : "Character & Typography"}
                 >
@@ -11895,12 +11889,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.drafts.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "drafts"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.drafts?.isOpen || (isInspectorOpen && rightPanelTab === "drafts"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.drafts.isOpen ? `Focus Floating Drafts (${tabs.length + savedDrafts.length})` : `Drafts & Diagrams (${tabs.length + savedDrafts.length})`}
                 >
@@ -11944,12 +11936,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.samples.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "samples"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.samples?.isOpen || (isInspectorOpen && rightPanelTab === "samples"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.samples.isOpen ? "Focus Floating Samples Gallery" : "Samples & Templates Gallery"}
                 >
@@ -11988,12 +11978,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.trash.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "trash"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.trash?.isOpen || (isInspectorOpen && rightPanelTab === "trash"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.trash.isOpen ? `Focus Floating Trash (${trashedTabs.length})` : `Trash (${trashedTabs.length})`}
                 >
@@ -12043,12 +12031,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.grid_guides.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "grid_guides"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.grid_guides?.isOpen || (isInspectorOpen && rightPanelTab === "grid_guides"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.grid_guides.isOpen ? "Focus Floating Grid & Snap" : "Grid, Guidelines & Snap"}
                 >
@@ -12087,12 +12073,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.geometry?.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "geometry"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.geometry?.isOpen || (isInspectorOpen && rightPanelTab === "geometry"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.geometry?.isOpen ? "Focus Floating Geometry" : "Golden Ratio & Geometry Layouts"}
                 >
@@ -12131,12 +12115,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.patterns.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "patterns"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.patterns?.isOpen || (isInspectorOpen && rightPanelTab === "patterns"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.patterns.isOpen ? "Focus Floating Line Patterns" : "Line Patterns & Stroke Modifier"}
                 >
@@ -12181,12 +12163,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.sessions?.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "sessions"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.sessions?.isOpen || (isInspectorOpen && rightPanelTab === "sessions"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.sessions?.isOpen ? "Focus Floating Market Sessions" : "Market Sessions & Killzones"}
                 >
@@ -12225,12 +12205,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.risk_calc?.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "risk_calc"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.risk_calc?.isOpen || (isInspectorOpen && rightPanelTab === "risk_calc"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.risk_calc?.isOpen ? "Focus Floating Risk Calc" : "Position Size & Risk Calculator"}
                 >
@@ -12269,12 +12247,10 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-r-2 ${
-                    detachedPanels.economic_calendar?.isOpen
-                      ? "text-brand bg-brand-light/60 border-brand font-bold"
-                      : isInspectorOpen && rightPanelTab === "economic_calendar"
-                      ? "bg-brand-light text-brand border-brand font-bold"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                    (detachedPanels.economic_calendar?.isOpen || (isInspectorOpen && rightPanelTab === "economic_calendar"))
+                      ? "text-rose-600"
+                      : "text-slate-500 hover:text-slate-900"
                   }`}
                   title={detachedPanels.economic_calendar?.isOpen ? "Focus Floating Economic Calendar" : "Economic News Calendar & High-Impact Alerts"}
                 >
