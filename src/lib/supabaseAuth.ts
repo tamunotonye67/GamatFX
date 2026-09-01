@@ -73,11 +73,13 @@ export async function signUpSupabaseUser(
 ): Promise<{ ok: boolean; account?: Account; error?: string }> {
   try {
     const cleanEmail = email.trim().toLowerCase();
+    const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : undefined;
     // 1. Register in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: cleanEmail,
       password: pass,
       options: {
+        emailRedirectTo: siteOrigin,
         data: {
           first_name: accData.firstName,
           last_name: accData.lastName,
