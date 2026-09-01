@@ -6578,7 +6578,7 @@ export default function WhiteboardPage() {
               {isText && selectedShape && (
                 <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
                   <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    <span>Typography</span>
+                    <span>Character</span>
                     <span className="font-mono text-slate-700">{selectedShape.fontSize || 16}px</span>
                   </div>
 
@@ -7229,7 +7229,7 @@ export default function WhiteboardPage() {
                           <CharacterIcon className="h-3.5 w-3.5" />
                         </span>
                         <span className="font-extrabold text-xs text-ink truncate">
-                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Typography Settings"}
+                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Character Settings"}
                         </span>
                       </div>
                     </div>
@@ -11412,7 +11412,7 @@ export default function WhiteboardPage() {
           : panelKey === "layers"
           ? `Layers (${shapes.length})`
           : panelKey === "character"
-          ? "Typography"
+          ? "Character"
           : panelKey === "drafts"
           ? "Diagrams & Drafts"
           : panelKey === "samples"
@@ -11539,7 +11539,7 @@ export default function WhiteboardPage() {
                   : rightPanelTab === "layers"
                   ? `Layers (${shapes.length})`
                   : rightPanelTab === "character"
-                  ? "Typography"
+                  ? "Character"
                   : rightPanelTab === "drafts"
                   ? "Drafts"
                   : rightPanelTab === "samples"
@@ -11615,7 +11615,7 @@ export default function WhiteboardPage() {
                     rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
-                  <CharacterIcon className="h-3 w-3" /> Text
+                  <CharacterIcon className="h-3 w-3" /> Character
                 </button>
               </>
             ) : ["drafts", "samples", "trash"].includes(rightPanelTab) ? (
@@ -11846,7 +11846,7 @@ export default function WhiteboardPage() {
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
                   }`}
-                  title={detachedPanels.character.isOpen ? "Focus Floating Text & Typography" : "Character & Typography"}
+                  title={detachedPanels.character.isOpen ? "Focus Floating Character" : "Character"}
                 >
                   <CharacterIcon className="h-4 w-4" />
                   {detachedPanels.character.isOpen && (
