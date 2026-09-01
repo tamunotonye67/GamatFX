@@ -1591,7 +1591,7 @@ export default function WhiteboardPage() {
   const [showGroupNameInput, setShowGroupNameInput] = useState(false);
   const [pendingGroupName, setPendingGroupName] = useState("Group 1");
   // Image Tool state
-  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [sampledColor, setSampledColor] = useState<string>("#3b82f6");
 
   // Modals & Flyout Dropdowns
