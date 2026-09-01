@@ -233,9 +233,18 @@ export async function signInWithGoogleSupabase(): Promise<{ ok: boolean; error?:
 /** Sends a password reset email via Supabase Auth. */
 export async function resetPasswordForEmailSupabase(email: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const redirectTo = `${window.location.origin}/#reset-password`;
+    const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
+    const redirectTo = `${siteOrigin}/#reset-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      if (error.message.toLowerCase().includes("rate limit") || error.message.toLowerCase().includes("rate_limit")) {
+        return {
+          ok: false,
+          error: "You have requested too many password reset emails recently. Please wait a few minutes before trying again.",
+        };
+      }
+      return { ok: false, error: error.message };
+    }
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err.message || "Failed to send reset email" };
