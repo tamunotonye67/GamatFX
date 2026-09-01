@@ -9,7 +9,7 @@ const RulerIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   </svg>
 );
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
 import {
