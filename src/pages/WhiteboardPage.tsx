@@ -881,6 +881,39 @@ function ModernColorField({
   );
 }
 
+
+/* ------------------------- TradingView Economic Calendar Widget ------------------------- */
+function TradingViewCalendarWidget() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
+    script.async = true;
+    script.type = "text/javascript";
+    script.innerHTML = JSON.stringify({
+      colorTheme: "light",
+      isTransparent: true,
+      width: "100%",
+      height: "480",
+      locale: "en",
+      importanceFilter: "-1,0,1",
+      currencyFilter: "USD,EUR,GBP,JPY,AUD,CAD,CHF,NZD",
+    });
+    containerRef.current.appendChild(script);
+  }, []);
+
+  return (
+    <div className="w-full h-[480px] rounded-xl overflow-hidden border border-slate-200 bg-white shadow-2xs">
+      <div className="tradingview-widget-container h-full w-full" ref={containerRef}>
+        <div className="tradingview-widget-container__widget h-full w-full"></div>
+      </div>
+    </div>
+  );
+}
+
 const CANVAS_THEMES = [
   { id: "dots", name: "Dots Grid" },
   { id: "lines", name: "Square Grid" },
@@ -1273,6 +1306,132 @@ export default function WhiteboardPage() {
   const dragFavStart = useRef({ x: 0, y: 0 });
 
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
+
+  /* ------------------------- Real-Time Economic Calendar State ------------------------- */
+  interface EconomicEvent {
+    title: string;
+    country: string;
+    date: string;
+    impact: string;
+    forecast: string;
+    previous: string;
+    actual?: string;
+  }
+
+  const [calendarViewMode, setCalendarViewMode] = useState<"live" | "tradingview">("live");
+  const [calendarEvents, setCalendarEvents] = useState<EconomicEvent[]>([]);
+  const [isCalendarLoading, setIsCalendarLoading] = useState(false);
+  const [calendarImpactFilter, setCalendarImpactFilter] = useState<"all" | "high" | "med_high">("med_high");
+  const [calendarCurrencyFilter, setCalendarCurrencyFilter] = useState<string>("ALL");
+  const [calendarCountdown, setCalendarCountdown] = useState<string>("");
+
+  const fetchLiveCalendarEvents = async (showNotification = false) => {
+    setIsCalendarLoading(true);
+    try {
+      // Primary: FairEconomy live feed; Fallback: CORS Proxy
+      let data: EconomicEvent[] = [];
+      try {
+        const res = await fetch("https://nfs.faireconomy.media/ff_calendar_thisweek.json");
+        if (res.ok) {
+          data = await res.json();
+        }
+      } catch (err) {
+        // Fallback through AllOrigins CORS proxy
+        const resProxy = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json"));
+        if (resProxy.ok) {
+          data = await resProxy.json();
+        }
+      }
+
+      if (Array.isArray(data) && data.length > 0) {
+        setCalendarEvents(data);
+        if (showNotification) showToast("Economic Calendar synchronized in real-time!");
+      }
+    } catch (e) {
+      console.error("Failed to fetch live economic calendar:", e);
+    } finally {
+      setIsCalendarLoading(false);
+    }
+  };
+
+  // Initial load and recurring auto-poll every 60s
+  useEffect(() => {
+    fetchLiveCalendarEvents();
+    const interval = setInterval(() => {
+      fetchLiveCalendarEvents();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Filtered economic events based on user selection
+  const filteredCalendarEvents = useMemo(() => {
+    return calendarEvents.filter((evt) => {
+      if (calendarCurrencyFilter !== "ALL" && evt.country !== calendarCurrencyFilter) return false;
+      if (calendarImpactFilter === "high" && evt.impact?.toLowerCase() !== "high") return false;
+      if (calendarImpactFilter === "med_high" && !["high", "medium"].includes(evt.impact?.toLowerCase())) return false;
+      return true;
+    });
+  }, [calendarEvents, calendarCurrencyFilter, calendarImpactFilter]);
+
+  // Find next upcoming high impact event for the live countdown
+  const nextHighImpactEvent = useMemo(() => {
+    const now = Date.now();
+    const upcomingHighs = calendarEvents.filter((e) => e.impact?.toLowerCase() === "high" && new Date(e.date).getTime() > now);
+    upcomingHighs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return upcomingHighs[0] || null;
+  }, [calendarEvents]);
+
+  // Real-time second countdown ticker to next release
+  useEffect(() => {
+    if (!nextHighImpactEvent) {
+      setCalendarCountdown("");
+      return;
+    }
+
+    const updateTimer = () => {
+      const diff = Math.max(0, new Date(nextHighImpactEvent.date).getTime() - Date.now());
+      if (diff <= 0) {
+        setCalendarCountdown("LIVE NOW");
+        return;
+      }
+      const hrs = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      setCalendarCountdown(`${String(hrs).padStart(2, "0")}h ${String(mins).padStart(2, "0")}m ${String(secs).padStart(2, "0")}s`);
+    };
+
+    updateTimer();
+    const timerId = setInterval(updateTimer, 1000);
+    return () => clearInterval(timerId);
+  }, [nextHighImpactEvent]);
+
+  // Stamp news event marker directly onto whiteboard canvas
+  const stampNewsEventToCanvas = (event: EconomicEvent) => {
+    const cx = Math.round((-pan.x + window.innerWidth / 2) / zoom);
+    const cy = Math.round((-pan.y + window.innerHeight / 2) / zoom);
+
+    const isHigh = event.impact?.toLowerCase() === "high";
+    const evtTime = new Date(event.date);
+    const timeStr = !isNaN(evtTime.getTime()) ? evtTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Scheduled";
+
+    const newsShape: Shape = {
+      id: `news_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      type: "annotation" as Tool,
+      color: isHigh ? "#ef4444" : "#f59e0b",
+      strokeWidth: 2,
+      points: [{ x: cx - 110, y: cy - 35 }, { x: cx + 110, y: cy + 35 }],
+      text: `📢 [${event.country}] ${event.title} (${event.impact?.toUpperCase()})\nTime: ${timeStr} | Forecast: ${event.forecast || "N/A"} | Prev: ${event.previous || "N/A"}${event.actual ? ` | Act: ${event.actual}` : ""}`,
+      fontSize: 12,
+      fillColor: isHigh ? "#fef2f2" : "#fffbeb",
+      fillStyle: "solid",
+    };
+
+    setShapes((prev) => [...prev, newsShape]);
+    setSelectedShapeIds([newsShape.id]);
+    setActiveTool("select");
+    showToast(`Stamped "${event.title}" onto whiteboard!`);
+  };
+
   const [strokeColor, setStrokeColor] = useState("#dc3545");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
