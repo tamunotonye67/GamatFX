@@ -25,11 +25,31 @@ export const STATIC_ROUTES = [
 ] as const;
 
 function parse(): string {
-  if (window.location.hash) {
-    const raw = window.location.hash.replace(/^#/, "").split("?")[0];
-    const clean = raw.replace(/\/+$/, "");
-    return clean === "" ? "/" : clean;
+  const hash = window.location.hash || "";
+
+  // 1. Handle Supabase Auth password recovery redirect (#access_token=...&type=recovery or #reset-password)
+  if (hash.includes("type=recovery") || hash.includes("reset-password")) {
+    return "/reset-password";
   }
+
+  // 2. Handle Supabase Auth email confirmation or invite redirect
+  if (hash.includes("access_token=") && (hash.includes("type=signup") || hash.includes("type=invite") || hash.includes("type=email_change"))) {
+    return "/dashboard";
+  }
+
+  // 3. Handle general OAuth login token redirect (#access_token=... with no subpath)
+  if (hash.startsWith("#access_token=") && !hash.includes("/")) {
+    return "/dashboard";
+  }
+
+  // 4. Standard hash route parsing
+  if (hash) {
+    const raw = hash.replace(/^#/, "").split("?")[0];
+    const clean = raw.replace(/\/+$/, "");
+    if (clean === "") return "/";
+    return clean.startsWith("/") ? clean : `/${clean}`;
+  }
+
   const pathname = window.location.pathname.replace(/\/+$/, "");
   return pathname === "" ? "/" : pathname;
 }
