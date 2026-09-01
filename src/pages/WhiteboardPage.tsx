@@ -3376,36 +3376,7 @@ export default function WhiteboardPage() {
     }
   };
 
-  
-  const applyCandleBodyHeightToSelected = (h: number) => {
-    if (!selectedShape) return;
-    const targetH = Math.max(6, h);
-    setShapes((prev) =>
-      prev.map((s) =>
-        s.id === selectedShape.id && !s.isLocked
-          ? {
-              ...s,
-              candleBodyHeight: targetH,
-            }
-          : s
-      )
-    );
-  };
 
-  const applyCandleBodyWidthToSelected = (w: number) => {
-    if (!selectedShape) return;
-    const targetW = Math.max(6, w);
-    setShapes((prev) =>
-      prev.map((s) =>
-        s.id === selectedShape.id && !s.isLocked
-          ? {
-              ...s,
-              candleBodyWidth: targetW,
-            }
-          : s
-      )
-    );
-  };
 
   const applyCandleTypeToSelected = (cType: "bullish" | "bearish") => {
     const col = cType === "bullish" ? "#10b981" : "#ef4444";
@@ -3427,23 +3398,139 @@ export default function WhiteboardPage() {
     showToast(`Switched to ${cType.toUpperCase()} Candle`);
   };
 
-  const applyUpperWickLengthToSelected = (len: number) => {
-    setUpperWickLength(len);
-    if (selectedShapeIds.length > 0) {
+    const applyCandleBodyHeightToSelected = (h: number) => {
+    if (!selectedShape) return;
+    const targetH = Math.max(6, h);
+    const sPts = selectedShape.points;
+    if (sPts.length >= 2) {
+      const minY = Math.min(sPts[0].y, sPts[1].y);
+      const upperW = selectedShape.upperWickLength ?? 20;
+      const lowerW = selectedShape.lowerWickLength ?? 20;
+      const newTotalH = targetH + upperW + lowerW;
       setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, upperWickLength: len } : s))
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? {
+                ...s,
+                candleBodyHeight: targetH,
+                points: [
+                  { x: sPts[0].x, y: minY },
+                  { x: sPts[1].x, y: minY + newTotalH },
+                ],
+              }
+            : s
+        )
+      );
+    } else {
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? { ...s, candleBodyHeight: targetH }
+            : s
+        )
+      );
+    }
+  };
+
+  const applyCandleBodyWidthToSelected = (w: number) => {
+    if (!selectedShape) return;
+    const targetW = Math.max(6, w);
+    const sPts = selectedShape.points;
+    if (sPts.length >= 2) {
+      const minX = Math.min(sPts[0].x, sPts[1].x);
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? {
+                ...s,
+                candleBodyWidth: targetW,
+                points: [
+                  { x: minX, y: sPts[0].y },
+                  { x: minX + targetW, y: sPts[1].y },
+                ],
+              }
+            : s
+        )
+      );
+    } else {
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? { ...s, candleBodyWidth: targetW }
+            : s
+        )
+      );
+    }
+  };
+
+  const applyUpperWickLengthToSelected = (len: number) => {
+    if (!selectedShape) return;
+    const targetLen = Math.max(0, len);
+    const sPts = selectedShape.points;
+    if (sPts.length >= 2) {
+      const minY = Math.min(sPts[0].y, sPts[1].y);
+      const bodyH = selectedShape.candleBodyHeight ?? 60;
+      const lowerW = selectedShape.lowerWickLength ?? 20;
+      const newTotalH = targetLen + bodyH + lowerW;
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? {
+                ...s,
+                upperWickLength: targetLen,
+                points: [
+                  { x: sPts[0].x, y: minY },
+                  { x: sPts[1].x, y: minY + newTotalH },
+                ],
+              }
+            : s
+        )
+      );
+    } else {
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? { ...s, upperWickLength: targetLen }
+            : s
+        )
       );
     }
   };
 
   const applyLowerWickLengthToSelected = (len: number) => {
-    setLowerWickLength(len);
-    if (selectedShapeIds.length > 0) {
+    if (!selectedShape) return;
+    const targetLen = Math.max(0, len);
+    const sPts = selectedShape.points;
+    if (sPts.length >= 2) {
+      const minY = Math.min(sPts[0].y, sPts[1].y);
+      const bodyH = selectedShape.candleBodyHeight ?? 60;
+      const upperW = selectedShape.upperWickLength ?? 20;
+      const newTotalH = upperW + bodyH + targetLen;
       setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lowerWickLength: len } : s))
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? {
+                ...s,
+                lowerWickLength: targetLen,
+                points: [
+                  { x: sPts[0].x, y: minY },
+                  { x: sPts[1].x, y: minY + newTotalH },
+                ],
+              }
+            : s
+        )
+      );
+    } else {
+      setShapes((prev) =>
+        prev.map((s) =>
+          s.id === selectedShape.id && !s.isLocked
+            ? { ...s, lowerWickLength: targetLen }
+            : s
+        )
       );
     }
   };
+
 
   const applyWickColorToSelected = (wColor: string) => {
     setWickColor(wColor);
@@ -10128,23 +10215,13 @@ export default function WhiteboardPage() {
                     showTooltips={showTooltips}
                   />
                   <FlyoutToolItem
-                    toolKey="bullish_candle"
-                    label="Bullish Candle Block"
-                    icon={BarChart2}
-                    isActive={activeForexTool === "bullish_candle"}
-                    isFavorited={favoritedTools.includes("bullish_candle")}
-                    onSelect={() => { selectTool("bullish_candle"); setFlyoutGroup(null); }}
-                    onToggleFavorite={() => toggleFavoriteTool("bullish_candle")}
-                    showTooltips={showTooltips}
-                  />
-                  <FlyoutToolItem
-                    toolKey="bearish_candle"
-                    label="Bearish Candle Block"
-                    icon={BarChart2}
-                    isActive={activeForexTool === "bearish_candle"}
-                    isFavorited={favoritedTools.includes("bearish_candle")}
-                    onSelect={() => { selectTool("bearish_candle"); setFlyoutGroup(null); }}
-                    onToggleFavorite={() => toggleFavoriteTool("bearish_candle")}
+                    toolKey="candle"
+                    label="Candle Tool (Candlestick)"
+                    icon={CandleToolIcon}
+                    isActive={activeForexTool === "candle" || activeTool === "candle" || activeTool === "bullish_candle" || activeTool === "bearish_candle"}
+                    isFavorited={favoritedTools.includes("candle") || favoritedTools.includes("bullish_candle") || favoritedTools.includes("bearish_candle")}
+                    onSelect={() => { selectTool("candle"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("candle")}
                     showTooltips={showTooltips}
                   />
                 </div>
@@ -13179,14 +13256,15 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "zoom": return Search;
     case "marquee_zoom": return Scan;
     case "fibo": return Percent;
-    case "long": return LongPositionIcon;
-    case "short": return ShortPositionIcon;
-    case "orderblock": return OrderBlockIcon;
-    case "fvg": return FvgCandlesIcon;
-    case "bos": return BosIcon;
-    case "liquidity": return LiquidityIcon;
-    case "bullish_candle": return BullishCandleIcon;
-    case "bearish_candle": return BearishCandleIcon;
+    case "long": return TrendingUp;
+    case "short": return TrendingDown;
+    case "orderblock": return BoxSelect;
+    case "fvg": return Sparkles;
+    case "bos": return Activity;
+    case "liquidity": return CircleDollarSign;
+    case "candle": return CandleToolIcon;
+    case "bullish_candle": return CandleToolIcon;
+    case "bearish_candle": return CandleToolIcon;
     default: return Pencil;
   }
 }
@@ -13440,6 +13518,21 @@ function resizeShapePoints(
       x: pts[1].x >= pts[0].x ? finalMaxX : finalMinX,
       y: pts[1].y >= pts[0].y ? finalMaxY : finalMinY,
     };
+
+    const isCandle = shape.type === "candle" || shape.type === "bullish_candle" || shape.type === "bearish_candle";
+    if (isCandle) {
+      const scaleX = (finalMaxX - finalMinX) / origW;
+      const scaleY = (finalMaxY - finalMinY) / origH;
+      return {
+        ...shape,
+        points: [p0, p1],
+        candleBodyHeight: shape.candleBodyHeight ? Math.max(6, Math.round(shape.candleBodyHeight * scaleY)) : undefined,
+        candleBodyWidth: shape.candleBodyWidth ? Math.max(6, Math.round(shape.candleBodyWidth * scaleX)) : undefined,
+        upperWickLength: shape.upperWickLength !== undefined ? Math.round(shape.upperWickLength * scaleY) : undefined,
+        lowerWickLength: shape.lowerWickLength !== undefined ? Math.round(shape.lowerWickLength * scaleY) : undefined,
+      };
+    }
+
     return { ...shape, points: [p0, p1] };
   }
 
