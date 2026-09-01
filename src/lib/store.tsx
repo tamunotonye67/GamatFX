@@ -1324,17 +1324,58 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => write(K.studentOfTheWeek, studentOfTheWeek), [studentOfTheWeek]);
   useEffect(() => write(K.sotwHistory, studentOfTheWeekHistory), [studentOfTheWeekHistory]);
   useEffect(() => write(K.coupons, coupons), [coupons]);
-  /* Sync active user session with native Supabase Auth */
+  /* Sync active user session with native Supabase Auth & Google OAuth callbacks */
   useEffect(() => {
+    const syncAuthUser = async (userObj: any) => {
+      if (!userObj?.id) return;
+      const uid = userObj.id;
+      const userEmail = (userObj.email || "").trim().toLowerCase();
+
+      // Check if user profile is already in local state
+      setAccounts((prev) => {
+        const found = prev.find((a) => a.id === uid || (userEmail && a.email.toLowerCase() === userEmail));
+        if (found) {
+          if (found.id !== uid) {
+            return prev.map((a) => (a.email.toLowerCase() === userEmail ? { ...a, id: uid } : a));
+          }
+          return prev;
+        }
+
+        // Auto-provision Google OAuth / Supabase user into accounts
+        const meta = userObj.user_metadata || {};
+        const fullName = meta.full_name || meta.name || "";
+        const nameParts = fullName.split(" ");
+        const firstName = meta.first_name || nameParts[0] || (userEmail ? userEmail.split("@")[0] : "User");
+        const lastName = meta.last_name || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Trader");
+        const newAcc: Account = {
+          id: uid,
+          firstName,
+          lastName,
+          email: userEmail,
+          password: "password123",
+          avatar: meta.avatar_url || meta.picture || undefined,
+          role: "student",
+          status: "active",
+          joined: new Date().toISOString(),
+        };
+        saveSupabaseAccount(newAcc);
+        return [...prev, newAcc];
+      });
+
+      setSessionId(uid);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.id) {
-        setSessionId(session.user.id);
+      if (session?.user) {
+        syncAuthUser(session.user);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user?.id) {
-        setSessionId(session.user.id);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        syncAuthUser(session.user);
       } else if (_event === "SIGNED_OUT") {
         setSessionId(null);
       }
