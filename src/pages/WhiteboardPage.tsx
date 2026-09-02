@@ -7344,6 +7344,10 @@ export default function WhiteboardPage() {
               setPanelSelectedIds((prev) =>
                 prev.includes(shapeId) ? prev.filter((id) => id !== shapeId) : [...prev, shapeId]
               );
+              // also keep canvas selection in sync for multi‑select
+              setSelectedShapeIds((prev) =>
+                prev.includes(shapeId) ? prev.filter((id) => id !== shapeId) : [...prev, shapeId]
+              );
             } else {
               setPanelSelectedIds([shapeId]);
               setSelectedShapeIds([shapeId]);
@@ -10775,18 +10779,7 @@ export default function WhiteboardPage() {
               />
             </div>
 
-            {/* Image Insert Tool */}
-            <div className="relative w-full">
-              <WhiteboardToolBtn
-                active={activeTool === "image"}
-                onClick={() => { selectTool("image"); imageInputRef.current?.click(); }}
-                onContextMenu={(e) => { e.preventDefault(); toggleFavoriteTool("image"); }}
-                title="Insert Image / Picture (Right click to favorite)"
-                toolKey="image"
-                icon={ImageIcon}
-                showTooltips={showTooltips}
-              />
-            </div>
+
 
             {/* Eyedropper / Color Picker Tool */}
             <div className="relative w-full">
