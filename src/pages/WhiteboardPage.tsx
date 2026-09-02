@@ -10602,7 +10602,7 @@ export default function WhiteboardPage() {
               />
               {flyoutGroup === "shapes" && (
                 <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Shape Tools</p>
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Shape and Object Tools</p>
                   <FlyoutToolItem
                     toolKey="rectangle"
                     label="Rectangle Zone"
