@@ -135,7 +135,10 @@ import {
   FolderMinus,
   Folder,
   Image as ImageIcon,
-  Pipette
+  Pipette,
+  Droplet,
+  SwatchBook,
+  RefreshCcw
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -1339,6 +1342,7 @@ export default function WhiteboardPage() {
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
   const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "candle" | "bullish_candle" | "bearish_candle">("fibo");
   const [activeNoteTool, setActiveNoteTool] = useState<"text" | "sticky" | "annotation">("text");
+  const [activeColorTool, setActiveColorTool] = useState<"eyedropper" | "paintbucket">("eyedropper");
 
   // Floating Favorites Toolbar State (Floats anywhere on canvas workspace)
   const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "candle"]);
@@ -7354,7 +7358,7 @@ export default function WhiteboardPage() {
             }
           };
 
-          const LayerRow = ({ shape, realIdx, indent = false }: { shape: Shape; realIdx: number; indent?: boolean }) => {
+          const LayerRow = ({ shape, realIdx, indent = false, groupId }: { shape: Shape; realIdx: number; indent?: boolean; groupId?: string }) => {
             const isPanelSelected = panelSelectedIds.includes(shape.id);
             const isCanvasSelected = selectedShapeIds.includes(shape.id);
             const IconComponent = getToolIcon(shape.type);
@@ -10637,6 +10641,17 @@ export default function WhiteboardPage() {
                     onToggleFavorite={() => toggleFavoriteTool("diamond")}
                     showTooltips={showTooltips}
                   />
+                  <div className="w-full h-px bg-slate-300 my-0.5" />
+                  <p className="px-3 py-0.5 text-[9px] font-black uppercase text-slate-400 tracking-wider">Media</p>
+                  <button
+                    type="button"
+                    onClick={() => { setFlyoutGroup(null); setTimeout(() => imageInputRef.current?.click(), 50); }}
+                    className="flex w-full items-center gap-2.5 rounded-none px-3 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <ImageIcon className="h-4 w-4 text-slate-600" />
+                    <span>Insert Image…</span>
+                    <span className="ml-auto text-[9px] text-slate-400 font-mono">I</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -10781,17 +10796,142 @@ export default function WhiteboardPage() {
 
 
 
-            {/* Eyedropper / Color Picker Tool */}
+            {/* 7. COLOR TOOLS GROUP — Eyedropper + Paint Bucket */}
             <div className="relative w-full">
               <WhiteboardToolBtn
                 active={activeTool === "eyedropper"}
-                onClick={() => selectTool("eyedropper")}
-                onContextMenu={(e) => { e.preventDefault(); toggleFavoriteTool("eyedropper"); }}
-                title="Color Picker — click any pixel to sample its colour (Right click to favorite)"
-                toolKey="eyedropper"
-                icon={Pipette}
+                onClick={() => {
+                  if (activeColorTool === "eyedropper") {
+                    selectTool("eyedropper");
+                  } else {
+                    // Paint bucket: fill selected shapes with foreground color
+                    if (selectedShapeIds.length > 0) {
+                      setShapes((prev) =>
+                        prev.map((s) =>
+                          selectedShapeIds.includes(s.id) && !s.isLocked
+                            ? { ...s, fillColor: strokeColor, fillStyle: "solid" }
+                            : s
+                        )
+                      );
+                      showToast("Filled with foreground color!");
+                    } else {
+                      showToast("Select a shape first to fill it");
+                    }
+                  }
+                }}
+                onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "colortools" ? null : "colortools")}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setFlyoutGroup(flyoutGroup === "colortools" ? null : "colortools");
+                }}
+                title="Color Tools (Click arrow or right-click to choose tool)"
+                toolKey={activeColorTool === "eyedropper" ? "eyedropper" : "eyedropper"}
+                icon={activeColorTool === "paintbucket" ? Droplet : Pipette}
+                hasFlyout
+                isFlyoutOpen={flyoutGroup === "colortools"}
                 showTooltips={showTooltips}
               />
+              {flyoutGroup === "colortools" && (
+                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Color Tools</p>
+                  <FlyoutToolItem
+                    toolKey="eyedropper"
+                    label="Color Picker (Eyedropper)"
+                    icon={Pipette}
+                    isActive={activeColorTool === "eyedropper"}
+                    isFavorited={favoritedTools.includes("eyedropper")}
+                    onSelect={() => { setActiveColorTool("eyedropper"); selectTool("eyedropper"); setFlyoutGroup(null); }}
+                    onToggleFavorite={() => toggleFavoriteTool("eyedropper")}
+                    showTooltips={showTooltips}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveColorTool("paintbucket");
+                      setFlyoutGroup(null);
+                      if (selectedShapeIds.length > 0) {
+                        setShapes((prev) =>
+                          prev.map((s) =>
+                            selectedShapeIds.includes(s.id) && !s.isLocked
+                              ? { ...s, fillColor: strokeColor, fillStyle: "solid" }
+                              : s
+                          )
+                        );
+                        showToast("Filled with foreground color!");
+                      } else {
+                        showToast("Select a shape, then click Paint Bucket to fill it");
+                      }
+                    }}
+                    className={`flex w-full items-center gap-2.5 rounded-none px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
+                      activeColorTool === "paintbucket"
+                        ? "bg-brand text-white font-bold"
+                        : "hover:bg-slate-200 hover:text-slate-950"
+                    }`}
+                  >
+                    <Droplet className="h-4 w-4" />
+                    <span>Paint Bucket (Fill Shape)</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Foreground / Background Color Swap */}
+            <div className="relative w-full flex items-center justify-center py-1">
+              <div className="relative w-8 h-8">
+                {/* Background (fill) swatch — behind, offset */}
+                <div
+                  className="absolute bottom-0 right-0 w-5 h-5 rounded border-2 border-white shadow-sm cursor-pointer"
+                  style={{ background: fillColor }}
+                  title={`Background (Fill): ${fillColor}`}
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "color";
+                    input.value = fillColor;
+                    input.addEventListener("input", (e) => setFillColor((e.target as HTMLInputElement).value));
+                    input.click();
+                  }}
+                />
+                {/* Foreground (stroke) swatch — on top, offset */}
+                <div
+                  className="absolute top-0 left-0 w-5 h-5 rounded border-2 border-white shadow-md cursor-pointer z-10"
+                  style={{ background: strokeColor }}
+                  title={`Foreground (Stroke): ${strokeColor}`}
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "color";
+                    input.value = strokeColor;
+                    input.addEventListener("input", (e) => setStrokeColor((e.target as HTMLInputElement).value));
+                    input.click();
+                  }}
+                />
+                {/* Swap button — top-right corner */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const tmp = strokeColor;
+                    setStrokeColor(fillColor);
+                    setFillColor(tmp);
+                    showToast("Swapped FG ↔ BG colors");
+                  }}
+                  className="absolute -top-1 -right-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-100 transition cursor-pointer shadow-sm"
+                  title="Swap Foreground ↔ Background"
+                >
+                  <SwatchBook className="h-2 w-2 text-slate-600" />
+                </button>
+                {/* Reset button — bottom-left corner */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStrokeColor("#dc3545");
+                    setFillColor("#3b82f6");
+                    showToast("Colors reset to defaults");
+                  }}
+                  className="absolute -bottom-1 -left-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-100 transition cursor-pointer shadow-sm"
+                  title="Reset to default colors"
+                >
+                  <RefreshCcw className="h-2 w-2 text-slate-500" />
+                </button>
+              </div>
             </div>
           </div>
 
