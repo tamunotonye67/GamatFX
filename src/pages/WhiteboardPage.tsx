@@ -389,7 +389,8 @@ type Tool =
   | "bullish_candle"
   | "bearish_candle"
   | "image"
-  | "eyedropper";
+  | "eyedropper"
+  | "paintbucket";
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
@@ -1092,6 +1093,21 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     desc: "Draw an authentic red Bearish Candlestick with upper and lower wicks.",
     shortcut: "J",
   },
+  eyedropper: {
+    title: "Color Picker (Eyedropper)",
+    desc: "Sample colors directly from any shape or pixel on the canvas.",
+    shortcut: "I",
+  },
+  paintbucket: {
+    title: "Paint Bucket Tool",
+    desc: "Click on any shape or selected objects to instantly fill with the fill color.",
+    shortcut: "K",
+  },
+  image: {
+    title: "Insert Image",
+    desc: "Upload and insert PNG, JPG, or SVG images directly onto the canvas.",
+    shortcut: "Ctrl+I",
+  },
 };
 
 interface ShortcutItem {
@@ -1477,10 +1493,10 @@ export default function WhiteboardPage() {
     showToast(`Stamped "${event.title}" onto whiteboard!`);
   };
 
-  const [strokeColor, setStrokeColor] = useState("#dc3545");
+  const [strokeColor, setStrokeColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
-  const [fillColor, setFillColor] = useState("#3b82f6");
+  const [fillColor, setFillColor] = useState("#ffffff");
   const [fillStyle, setFillStyle] = useState<"solid" | "gradient" | "none" | "translucent">("translucent");
   const [gradientEndColor, setGradientEndColor] = useState("#8b5cf6");
   const [opacity, setOpacity] = useState<number>(1);
@@ -2439,6 +2455,8 @@ export default function WhiteboardPage() {
       setActiveLineTool(tool);
     } else if (tool === "text" || tool === "sticky" || tool === "annotation") {
       setActiveNoteTool(tool);
+    } else if (tool === "eyedropper" || tool === "paintbucket") {
+      setActiveColorTool(tool);
     }
   };
 
@@ -2623,7 +2641,7 @@ export default function WhiteboardPage() {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
       if (!dataUrl) return;
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const maxW = 400;
         const maxH = 300;
@@ -2653,6 +2671,39 @@ export default function WhiteboardPage() {
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  };
+
+  const triggerImageUpload = () => {
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+      imageInputRef.current.click();
+    } else {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e) => handleInsertImageFile(e as any);
+      input.click();
+    }
+  };
+
+  const activateEyedropper = async () => {
+    if (typeof window !== "undefined" && "EyeDropper" in window) {
+      try {
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
+        if (result?.sRGBHex) {
+          const hex = result.sRGBHex;
+          setSampledColor(hex);
+          setStrokeColor(hex);
+          showToast(`Colour sampled: ${hex.toUpperCase()}`);
+          return;
+        }
+      } catch {
+        // Fallback to canvas tool if user cancels EyeDropper
+      }
+    }
+    selectTool("eyedropper");
+    showToast("Color Picker active — click any shape or canvas pixel");
   };
 
   const ungroupLayerGroup = (groupId: string) => {
@@ -2815,24 +2866,80 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "image") {
-      imageInputRef.current?.click();
+      triggerImageUpload();
       return;
     }
 
     if (activeTool === "eyedropper") {
+      const isAlt = e.altKey;
+      // 1. Prioritize direct shape hit testing for 100% exact vector colors
+      const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
+      if (hitShape) {
+        const picked = hitShape.fillColor || hitShape.color || hitShape.strokeColor || "#000000";
+        setSampledColor(picked);
+        if (isAlt) {
+          setFillColor(picked);
+          showToast(`Fill colour sampled: ${picked.toUpperCase()}`);
+        } else {
+          setStrokeColor(picked);
+          showToast(`Stroke colour sampled: ${picked.toUpperCase()}`);
+        }
+        return;
+      }
+
+      // 2. Sample from canvas raster pixel data with DPI scaling
       const canvas = canvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext("2d");
         if (ctx) {
           const rect = canvas.getBoundingClientRect();
-          const px = Math.round(e.clientX - rect.left);
-          const py = Math.round(e.clientY - rect.top);
-          const pixel = ctx.getImageData(px, py, 1, 1).data;
-          const hex = `#${pixel[0].toString(16).padStart(2, "0")}${pixel[1].toString(16).padStart(2, "0")}${pixel[2].toString(16).padStart(2, "0")}`;
-          setSampledColor(hex);
-          setFillColor(hex);
-          showToast(`Colour sampled: ${hex.toUpperCase()}`);
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          const px = Math.max(0, Math.min(canvas.width - 1, Math.floor((e.clientX - rect.left) * scaleX)));
+          const py = Math.max(0, Math.min(canvas.height - 1, Math.floor((e.clientY - rect.top) * scaleY)));
+          try {
+            const pixel = ctx.getImageData(px, py, 1, 1).data;
+            const hex = `#${pixel[0].toString(16).padStart(2, "0")}${pixel[1].toString(16).padStart(2, "0")}${pixel[2].toString(16).padStart(2, "0")}`;
+            setSampledColor(hex);
+            if (isAlt) {
+              setFillColor(hex);
+              showToast(`Fill colour sampled: ${hex.toUpperCase()}`);
+            } else {
+              setStrokeColor(hex);
+              showToast(`Stroke colour sampled: ${hex.toUpperCase()}`);
+            }
+          } catch (err) {
+            console.warn("Could not read canvas pixel", err);
+          }
         }
+      }
+      return;
+    }
+
+    if (activeTool === "paintbucket") {
+      const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
+      const targetColor = fillColor || strokeColor || "#ffffff";
+      if (hitShape && !hitShape.isLocked) {
+        setShapes((prev) =>
+          prev.map((s) =>
+            s.id === hitShape.id
+              ? { ...s, fillColor: targetColor, fillStyle: "solid" }
+              : s
+          )
+        );
+        setSelectedShapeIds([hitShape.id]);
+        showToast(`Filled ${hitShape.name || hitShape.type} with color!`);
+      } else if (selectedShapeIds.length > 0) {
+        setShapes((prev) =>
+          prev.map((s) =>
+            selectedShapeIds.includes(s.id) && !s.isLocked
+              ? { ...s, fillColor: targetColor, fillStyle: "solid" }
+              : s
+          )
+        );
+        showToast("Filled selected shapes!");
+      } else {
+        showToast("Click on any shape to fill it with color");
       }
       return;
     }
@@ -9287,6 +9394,14 @@ export default function WhiteboardPage() {
   /* -------------------------------------------------------------------------- */
   return (
     <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
+      {/* Hidden file input for image insertion (must be in whiteboard view) */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleInsertImageFile}
+      />
       {/* Toast Notification */}
       {statusMsg && (
         <div className="fixed top-20 right-6 z-50 rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
@@ -9936,7 +10051,7 @@ export default function WhiteboardPage() {
 
                   <button
                     type="button"
-                    onClick={() => { setInsertMenuOpen(false); setTimeout(() => imageInputRef.current?.click(), 50); }}
+                    onClick={() => { setInsertMenuOpen(false); triggerImageUpload(); }}
                     className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
@@ -9947,7 +10062,7 @@ export default function WhiteboardPage() {
 
                   <button
                     type="button"
-                    onClick={() => { selectTool("eyedropper"); setInsertMenuOpen(false); }}
+                    onClick={() => { setInsertMenuOpen(false); activateEyedropper(); }}
                     className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
@@ -10642,16 +10757,20 @@ export default function WhiteboardPage() {
                     showTooltips={showTooltips}
                   />
                   <div className="w-full h-px bg-slate-300 my-0.5" />
-                  <p className="px-3 py-0.5 text-[9px] font-black uppercase text-slate-400 tracking-wider">Media</p>
-                  <button
-                    type="button"
-                    onClick={() => { setFlyoutGroup(null); setTimeout(() => imageInputRef.current?.click(), 50); }}
-                    className="flex w-full items-center gap-2.5 rounded-none px-3 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
-                  >
-                    <ImageIcon className="h-4 w-4 text-slate-600" />
-                    <span>Insert Image…</span>
-                    <span className="ml-auto text-[9px] text-slate-400 font-mono">I</span>
-                  </button>
+                  <p className="px-3 py-0.5 text-[9px] font-black uppercase text-slate-400 tracking-wider">Media & Objects</p>
+                  <FlyoutToolItem
+                    toolKey="image"
+                    label="Insert Image…"
+                    icon={ImageIcon}
+                    isActive={activeTool === "image"}
+                    isFavorited={favoritedTools.includes("image")}
+                    onSelect={() => {
+                      setFlyoutGroup(null);
+                      triggerImageUpload();
+                    }}
+                    onToggleFavorite={() => toggleFavoriteTool("image")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
@@ -10799,24 +10918,24 @@ export default function WhiteboardPage() {
             {/* 7. COLOR TOOLS GROUP — Eyedropper + Paint Bucket */}
             <div className="relative w-full">
               <WhiteboardToolBtn
-                active={activeTool === "eyedropper"}
+                active={activeTool === "eyedropper" || activeTool === "paintbucket"}
                 onClick={() => {
-                  if (activeColorTool === "eyedropper") {
-                    selectTool("eyedropper");
-                  } else {
-                    // Paint bucket: fill selected shapes with foreground color
+                  if (activeColorTool === "paintbucket") {
+                    selectTool("paintbucket");
                     if (selectedShapeIds.length > 0) {
                       setShapes((prev) =>
                         prev.map((s) =>
                           selectedShapeIds.includes(s.id) && !s.isLocked
-                            ? { ...s, fillColor: strokeColor, fillStyle: "solid" }
+                            ? { ...s, fillColor: fillColor, fillStyle: "solid" }
                             : s
                         )
                       );
-                      showToast("Filled with foreground color!");
+                      showToast("Filled selected shapes!");
                     } else {
-                      showToast("Select a shape first to fill it");
+                      showToast("Paint Bucket active — click any shape to fill it");
                     }
+                  } else {
+                    activateEyedropper();
                   }
                 }}
                 onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "colortools" ? null : "colortools")}
@@ -10824,8 +10943,8 @@ export default function WhiteboardPage() {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "colortools" ? null : "colortools");
                 }}
-                title="Color Tools (Click arrow or right-click to choose tool)"
-                toolKey={activeColorTool === "eyedropper" ? "eyedropper" : "eyedropper"}
+                title={activeColorTool === "paintbucket" ? "Paint Bucket (Click to activate or fill selected)" : "Color Picker (Click to sample colour)"}
+                toolKey={activeColorTool}
                 icon={activeColorTool === "paintbucket" ? Droplet : Pipette}
                 hasFlyout
                 isFlyoutOpen={flyoutGroup === "colortools"}
@@ -10833,103 +10952,106 @@ export default function WhiteboardPage() {
               />
               {flyoutGroup === "colortools" && (
                 <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Color Tools</p>
+                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Color & Fill Tools</p>
                   <FlyoutToolItem
                     toolKey="eyedropper"
                     label="Color Picker (Eyedropper)"
                     icon={Pipette}
                     isActive={activeColorTool === "eyedropper"}
                     isFavorited={favoritedTools.includes("eyedropper")}
-                    onSelect={() => { setActiveColorTool("eyedropper"); selectTool("eyedropper"); setFlyoutGroup(null); }}
+                    onSelect={() => {
+                      setActiveColorTool("eyedropper");
+                      setFlyoutGroup(null);
+                      activateEyedropper();
+                    }}
                     onToggleFavorite={() => toggleFavoriteTool("eyedropper")}
                     showTooltips={showTooltips}
                   />
-                  <button
-                    type="button"
-                    onClick={() => {
+                  <FlyoutToolItem
+                    toolKey="paintbucket"
+                    label="Paint Bucket (Fill Shape)"
+                    icon={Droplet}
+                    isActive={activeColorTool === "paintbucket"}
+                    isFavorited={favoritedTools.includes("paintbucket")}
+                    onSelect={() => {
                       setActiveColorTool("paintbucket");
+                      selectTool("paintbucket");
                       setFlyoutGroup(null);
                       if (selectedShapeIds.length > 0) {
                         setShapes((prev) =>
                           prev.map((s) =>
                             selectedShapeIds.includes(s.id) && !s.isLocked
-                              ? { ...s, fillColor: strokeColor, fillStyle: "solid" }
+                              ? { ...s, fillColor: fillColor, fillStyle: "solid" }
                               : s
                           )
                         );
-                        showToast("Filled with foreground color!");
+                        showToast("Filled selected shapes!");
                       } else {
-                        showToast("Select a shape, then click Paint Bucket to fill it");
+                        showToast("Paint Bucket active — click any shape to fill it");
                       }
                     }}
-                    className={`flex w-full items-center gap-2.5 rounded-none px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
-                      activeColorTool === "paintbucket"
-                        ? "bg-brand text-white font-bold"
-                        : "hover:bg-slate-200 hover:text-slate-950"
-                    }`}
-                  >
-                    <Droplet className="h-4 w-4" />
-                    <span>Paint Bucket (Fill Shape)</span>
-                  </button>
+                    onToggleFavorite={() => toggleFavoriteTool("paintbucket")}
+                    showTooltips={showTooltips}
+                  />
                 </div>
               )}
             </div>
 
-            {/* Foreground / Background Color Swap */}
-            <div className="relative w-full flex items-center justify-center py-1">
+            {/* Stroke / Fill Color Swap */}
+            <div className="relative w-full flex items-center justify-center py-2" title="Stroke / Fill Color Swap">
               <div className="relative w-8 h-8">
-                {/* Background (fill) swatch — behind, offset */}
+                {/* Fill swatch — behind, offset bottom-right */}
                 <div
-                  className="absolute bottom-0 right-0 w-5 h-5 rounded border-2 border-white shadow-sm cursor-pointer"
+                  className="absolute bottom-0 right-0 w-4.5 h-4.5 rounded border border-slate-400/80 shadow-xs cursor-pointer hover:scale-105 transition"
                   style={{ background: fillColor }}
-                  title={`Background (Fill): ${fillColor}`}
+                  title={`Fill Color: ${fillColor} (Click to change)`}
                   onClick={() => {
                     const input = document.createElement("input");
                     input.type = "color";
-                    input.value = fillColor;
+                    input.value = fillColor.startsWith("#") ? fillColor : "#ffffff";
                     input.addEventListener("input", (e) => setFillColor((e.target as HTMLInputElement).value));
                     input.click();
                   }}
                 />
-                {/* Foreground (stroke) swatch — on top, offset */}
+                {/* Stroke swatch — on top, offset top-left */}
                 <div
-                  className="absolute top-0 left-0 w-5 h-5 rounded border-2 border-white shadow-md cursor-pointer z-10"
+                  className="absolute top-0 left-0 w-4.5 h-4.5 rounded border border-slate-400/80 shadow-sm cursor-pointer z-10 hover:scale-105 transition"
                   style={{ background: strokeColor }}
-                  title={`Foreground (Stroke): ${strokeColor}`}
+                  title={`Stroke Color: ${strokeColor} (Click to change)`}
                   onClick={() => {
                     const input = document.createElement("input");
                     input.type = "color";
-                    input.value = strokeColor;
+                    input.value = strokeColor.startsWith("#") ? strokeColor : "#000000";
                     input.addEventListener("input", (e) => setStrokeColor((e.target as HTMLInputElement).value));
                     input.click();
                   }}
                 />
-                {/* Swap button — top-right corner */}
+                {/* Minimalist Swap arrow — top-right */}
                 <button
                   type="button"
                   onClick={() => {
                     const tmp = strokeColor;
                     setStrokeColor(fillColor);
                     setFillColor(tmp);
-                    showToast("Swapped FG ↔ BG colors");
+                    showToast("Swapped Stroke ↔ Fill");
                   }}
-                  className="absolute -top-1 -right-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-100 transition cursor-pointer shadow-sm"
-                  title="Swap Foreground ↔ Background"
+                  className="absolute -top-1 -right-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-500 hover:text-ink hover:border-slate-400 transition cursor-pointer shadow-xs"
+                  title="Swap Stroke ↔ Fill"
                 >
-                  <SwatchBook className="h-2 w-2 text-slate-600" />
+                  <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 3h7M6 1l2 2-2 2M9 7H2M4 5l-2 2 2 2" /></svg>
                 </button>
-                {/* Reset button — bottom-left corner */}
+                {/* Minimalist Reset to Black & White — bottom-left */}
                 <button
                   type="button"
                   onClick={() => {
-                    setStrokeColor("#dc3545");
-                    setFillColor("#3b82f6");
-                    showToast("Colors reset to defaults");
+                    setStrokeColor("#000000");
+                    setFillColor("#ffffff");
+                    showToast("Reset to default Black & White");
                   }}
-                  className="absolute -bottom-1 -left-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-100 transition cursor-pointer shadow-sm"
-                  title="Reset to default colors"
+                  className="absolute -bottom-1 -left-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-400 hover:text-ink hover:border-slate-400 transition cursor-pointer shadow-xs"
+                  title="Reset to default Black & White"
                 >
-                  <RefreshCcw className="h-2 w-2 text-slate-500" />
+                  <svg viewBox="0 0 10 10" className="w-2 h-2"><rect x="0" y="0" width="5" height="5" fill="#000" /><rect x="5" y="5" width="5" height="5" fill="#000" /><rect x="5" y="0" width="5" height="5" fill="#fff" stroke="#999" strokeWidth="0.5" /><rect x="0" y="5" width="5" height="5" fill="#fff" stroke="#999" strokeWidth="0.5" /></svg>
                 </button>
               </div>
             </div>
@@ -13311,6 +13433,7 @@ function WhiteboardToolBtn({
   active,
   onClick,
   onContextMenu,
+  onFlyoutToggle,
   title,
   toolKey,
   icon: Icon,
@@ -13378,8 +13501,12 @@ function WhiteboardToolBtn({
         <Icon className="h-4 w-4 shrink-0" />
         {hasFlyout && (
           <span
-            className="absolute right-1 bottom-1 pointer-events-none text-slate-400 group-hover:text-slate-600 transition"
-            title="Right-click to view group tools"
+            onClick={(e) => {
+              e.stopPropagation();
+              onFlyoutToggle?.(e);
+            }}
+            className="absolute right-0 bottom-0 p-1 pointer-events-auto text-slate-400 hover:text-brand transition cursor-pointer"
+            title="Click arrow or right-click to view group tools"
           >
             <span className="block w-1.5 h-1.5 border-r border-b border-current" />
           </span>
@@ -13735,6 +13862,9 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "candle": return CandleToolIcon;
     case "bullish_candle": return CandleToolIcon;
     case "bearish_candle": return CandleToolIcon;
+    case "eyedropper": return Pipette;
+    case "paintbucket": return Droplet;
+    case "image": return ImageIcon;
     default: return Pencil;
   }
 }
@@ -14949,6 +15079,8 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isA
   switch (tool) {
     case "eyedropper":
       return { cursor: "crosshair" };
+    case "paintbucket":
+      return { cursor: "cell" };
     case "image":
       return { cursor: "copy" };
     case "hand":
