@@ -252,6 +252,27 @@ const CandleToolIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) =
   </svg>
 );
 
+const FvgToolIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Upper Boundary Level */}
+    <line x1="3" y1="4" x2="21" y2="4" strokeWidth="2.2" />
+    {/* Imbalance Shaded Zone */}
+    <rect x="4" y="6.5" width="16" height="11" rx="2" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" />
+    {/* 50% Consequent Encroachment (C.E.) Line */}
+    <line x1="6" y1="12" x2="18" y2="12" strokeWidth="1.5" />
+    {/* Lower Boundary Level */}
+    <line x1="3" y1="20" x2="21" y2="20" strokeWidth="2.2" />
+  </svg>
+);
+
 const BullishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
@@ -386,6 +407,7 @@ type Tool =
   | "fvg"
   | "bos"
   | "liquidity"
+  | "candle"
   | "bullish_candle"
   | "bearish_candle"
   | "image"
@@ -1082,6 +1104,11 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     title: "Liquidity Pool ($$$ / BSL / SSL)",
     desc: "Mark Buy-Side (BSL) and Sell-Side (SSL) liquidity sweep pools and equal highs/lows.",
     shortcut: "Q",
+  },
+  candle: {
+    title: "Candle Tool (Candlestick)",
+    desc: "Draw authentic Forex & Crypto candlesticks with dynamic wicks, body, and bullish/bearish auto-detection.",
+    shortcut: "U",
   },
   bullish_candle: {
     title: "Bullish Candlestick",
@@ -2519,7 +2546,7 @@ export default function WhiteboardPage() {
       setIsInspectorOpen(true);
       setRightPanelTab("inspector");
     }
-    if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "bullish_candle", "bearish_candle"].includes(tool)) {
+    if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "candle", "bullish_candle", "bearish_candle"].includes(tool)) {
       setActiveForexTool(tool as any);
     } else if (tool === "pencil" || tool === "highlighter") {
       setActivePenTool(tool);
@@ -3213,7 +3240,7 @@ export default function WhiteboardPage() {
     }
 
     const defaultForexColor =
-      activeTool === "long" || activeTool === "bullish_candle"
+      activeTool === "long" || activeTool === "bullish_candle" || activeTool === "candle"
         ? "#10b981"
         : activeTool === "short" || activeTool === "bearish_candle"
         ? "#dc3545"
@@ -3411,17 +3438,58 @@ export default function WhiteboardPage() {
       currentShape.type === "fvg" ||
       currentShape.type === "bos" ||
       currentShape.type === "liquidity" ||
+      currentShape.type === "candle" ||
       currentShape.type === "bullish_candle" ||
       currentShape.type === "bearish_candle"
     ) {
-      setCurrentShape({
-        ...currentShape,
-        points: [currentShape.points[0], pt],
-      });
+      let finalPt = pt;
+      const startPt = currentShape.points[0];
+      const dx = pt.x - startPt.x;
+      const dy = pt.y - startPt.y;
+
+      // Holding Shift: Constrain to perfect geometric 1:1 shape or 45-degree snapped angle
+      if (e.shiftKey) {
+        if (
+          currentShape.type === "rectangle" ||
+          currentShape.type === "circle" ||
+          currentShape.type === "diamond" ||
+          currentShape.type === "sticky" ||
+          currentShape.type === "orderblock"
+        ) {
+          const side = Math.max(Math.abs(dx), Math.abs(dy));
+          finalPt = {
+            x: startPt.x + (dx >= 0 ? 1 : -1) * side,
+            y: startPt.y + (dy >= 0 ? 1 : -1) * side,
+          };
+        } else if (currentShape.type === "line" || currentShape.type === "arrow") {
+          const angle = Math.atan2(dy, dx);
+          const snappedAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+          const dist = Math.hypot(dx, dy);
+          finalPt = {
+            x: startPt.x + dist * Math.cos(snappedAngle),
+            y: startPt.y + dist * Math.sin(snappedAngle),
+          };
+        }
+      }
+
+      if (currentShape.type === "candle") {
+        const isBearish = dy >= 0;
+        setCurrentShape({
+          ...currentShape,
+          color: isBearish ? "#ef4444" : "#10b981",
+          candleType: isBearish ? "bearish" : "bullish",
+          points: [startPt, finalPt],
+        });
+      } else {
+        setCurrentShape({
+          ...currentShape,
+          points: [startPt, finalPt],
+        });
+      }
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e?: React.MouseEvent) => {
     isPanning.current = false;
     isDraggingShape.current = false;
     dragStartOriginalPt.current = null;
@@ -3456,13 +3524,15 @@ export default function WhiteboardPage() {
           setPan({ x: newPanX, y: newPanY });
           showToast(`Marquee Zoom: ${Math.round(fitZoom * 100)}%`);
         } else {
-          // Single click point zoom
-          const newZoom = Math.min(3.0, zoom * 1.25);
+          // Single click point zoom: Alt key toggles Zoom In (+) vs Zoom Out (-)
+          const isZoomOut = isAltHeld || (e && e.altKey);
+          const newZoom = isZoomOut ? Math.max(0.3, zoom / 1.25) : Math.min(3.0, zoom * 1.25);
           const startPt = dragStartPt.current || { x: minX, y: minY };
           const newPanX = startPt.x * zoom + pan.x - startPt.x * newZoom;
           const newPanY = startPt.y * zoom + pan.y - startPt.y * newZoom;
           setZoom(newZoom);
           setPan({ x: newPanX, y: newPanY });
+          showToast(isZoomOut ? `Zoom Out: ${Math.round(newZoom * 100)}%` : `Zoom In: ${Math.round(newZoom * 100)}%`);
         }
       } else {
         // Marquee Selection Mode
@@ -3498,6 +3568,13 @@ export default function WhiteboardPage() {
             { x: Math.min(p0.x, p1.x), y: Math.min(p0.y, p1.y) },
             { x: Math.max(p0.x, p1.x), y: Math.max(p0.y, p1.y) },
           ];
+        }
+      } else if (currentShape.type === "candle" || currentShape.type === "bullish_candle" || currentShape.type === "bearish_candle") {
+        const p0 = currentShape.points[0];
+        const p1 = currentShape.points.length >= 2 ? currentShape.points[1] : null;
+        if (!p1 || (Math.abs(p1.x - p0.x) < 4 && Math.abs(p1.y - p0.y) < 4)) {
+          // Default candle size on single click without drag
+          finalPoints = [p0, { x: p0.x + 22, y: p0.y + 65 }];
         }
       }
 
@@ -10677,7 +10754,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="fvg"
                     label="Fair Value Gap (FVG)"
-                    icon={Sparkles}
+                    icon={FvgToolIcon}
                     isActive={activeForexTool === "fvg"}
                     isFavorited={favoritedTools.includes("fvg")}
                     onSelect={() => { selectTool("fvg"); setFlyoutGroup(null); }}
@@ -11054,18 +11131,18 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Standard Minimalist Stroke & Fill Color, Default B&W, and Swap Control */}
-            <div className="w-full flex flex-col items-center py-2 px-1 select-none" title="Stroke & Fill Color Tools">
+            <div className="w-full flex flex-col items-center py-1.5 px-1 select-none" title="Stroke & Fill Color Tools">
               {/* Top micro utility row: Default B&W on left, Swap on right */}
-              <div className="w-[30px] flex items-center justify-between mb-1">
+              <div className="w-[23px] flex items-center justify-between mb-0.5">
                 {/* Reset to Default Black & White (D / Shift+D) */}
                 <button
                   type="button"
                   onClick={handleResetDefaultColors}
-                  className="w-3.5 h-3.5 flex items-center justify-center rounded-[2px] hover:bg-slate-100 transition cursor-pointer text-slate-700"
+                  className="w-3 h-3 flex items-center justify-center rounded-[2px] hover:bg-slate-100 transition cursor-pointer text-slate-700"
                   title="Default Black and White (Shift+D)"
                   aria-label="Default Black and White"
                 >
-                  <svg viewBox="0 0 14 14" className="w-3 h-3 pointer-events-none">
+                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none">
                     {/* Black bottom-right square */}
                     <rect x="5" y="5" width="8" height="8" fill="#000000" rx="1" />
                     {/* White top-left square with border */}
@@ -11077,11 +11154,11 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={handleSwapColors}
-                  className="w-3.5 h-3.5 flex items-center justify-center rounded-[2px] text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                  className="w-3 h-3 flex items-center justify-center rounded-[2px] text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
                   title="Swap Stroke ↔ Fill (X)"
                   aria-label="Swap Stroke and Fill"
                 >
-                  <svg viewBox="0 0 14 14" className="w-3 h-3 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2.5 5.5V3.5a1.5 1.5 0 0 1 1.5-1.5h6.5" />
                     <polyline points="8.5 0.5 10.5 2 8.5 3.5" />
                     <path d="M11.5 8.5v2a1.5 1.5 0 0 1-1.5 1.5H3.5" />
@@ -11091,7 +11168,7 @@ export default function WhiteboardPage() {
               </div>
 
               {/* Overlapping Color Swatches Container */}
-              <div className="relative w-[30px] h-[30px]">
+              <div className="relative w-[23px] h-[23px]">
                 {/* Hidden native color pickers */}
                 <input
                   ref={strokeColorInputRef}
@@ -11120,7 +11197,7 @@ export default function WhiteboardPage() {
                     setActiveColorTarget("stroke");
                     strokeColorInputRef.current?.click();
                   }}
-                  className={`absolute top-0 left-0 w-[19px] h-[19px] rounded-[3px] transition-all cursor-pointer flex items-center justify-center ${
+                  className={`absolute top-0 left-0 w-[14.5px] h-[14.5px] rounded-[2.5px] transition-all cursor-pointer flex items-center justify-center ${
                     activeColorTarget === "stroke"
                       ? "z-20 shadow-md ring-1.5 ring-brand ring-offset-0.5 scale-102"
                       : "z-10 shadow-xs ring-1 ring-black/20 hover:scale-105"
@@ -11132,7 +11209,7 @@ export default function WhiteboardPage() {
                   aria-label={`Stroke Color: ${strokeColor}`}
                 >
                   {/* Hollow center showing it's a stroke / outline */}
-                  <span className="w-[9px] h-[9px] rounded-[1px] bg-white border border-black/10 shadow-inner" />
+                  <span className="w-[6.5px] h-[6.5px] rounded-[1px] bg-white border border-black/10 shadow-inner" />
                 </button>
 
                 {/* Fill Swatch (Bottom-right, overlapping):
@@ -11143,7 +11220,7 @@ export default function WhiteboardPage() {
                     setActiveColorTarget("fill");
                     fillColorInputRef.current?.click();
                   }}
-                  className={`absolute bottom-0 right-0 w-[19px] h-[19px] rounded-[3px] transition-all cursor-pointer overflow-hidden ${
+                  className={`absolute bottom-0 right-0 w-[14.5px] h-[14.5px] rounded-[2.5px] transition-all cursor-pointer overflow-hidden ${
                     activeColorTarget === "fill"
                       ? "z-20 shadow-md ring-1.5 ring-brand ring-offset-0.5 scale-102"
                       : "z-10 shadow-xs ring-1 ring-black/20 hover:scale-105"
@@ -11157,7 +11234,7 @@ export default function WhiteboardPage() {
                   {/* If fillStyle is 'none', show classic transparent red slash */}
                   {fillStyle === "none" && (
                     <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <span className="w-[120%] h-[1.5px] bg-rose-500 transform -rotate-45" />
+                      <span className="w-[130%] h-[1.2px] bg-rose-500 transform -rotate-45" />
                     </span>
                   )}
                 </button>
@@ -13352,7 +13429,7 @@ function HubDiagramThumbnail({
             );
           }
 
-          if (s.type === "bullish_candle" && pts.length >= 2) {
+          if ((s.type === "candle" || s.type === "bullish_candle") && pts.length >= 2) {
             const y1 = ty(pts[0].y);
             const y2 = ty(pts[1].y);
             const yHigh = Math.min(y1, y2);
@@ -13964,7 +14041,7 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "long": return TrendingUp;
     case "short": return TrendingDown;
     case "orderblock": return BoxSelect;
-    case "fvg": return Sparkles;
+    case "fvg": return FvgToolIcon;
     case "bos": return Activity;
     case "liquidity": return CircleDollarSign;
     case "candle": return CandleToolIcon;
@@ -14032,7 +14109,7 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     }
     minY = pts[0].y;
     maxY = pts[0].y + totalH;
-  } else if (shape.type === "bullish_candle" || shape.type === "bearish_candle") {
+  } else if (shape.type === "candle" || shape.type === "bullish_candle" || shape.type === "bearish_candle") {
     const upperWick = shape.upperWickLength ?? 25;
     const lowerWick = shape.lowerWickLength ?? 25;
     minY = Math.min(minY, minY - upperWick);
@@ -14684,8 +14761,8 @@ function renderWhiteboardShape(
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
       ctx.fillText(labelText, minX + 6, Math.min(p1.y, p2.y) - 4);
     }
-  } else if (shape.type === "bullish_candle" && pts.length >= 2) {
-    /* 8. BULLISH CANDLESTICK TOOL (WITH ADJUSTABLE WICKS & FILLS) */
+  } else if ((shape.type === "candle" || shape.type === "bullish_candle") && pts.length >= 2) {
+    /* 8. CANDLESTICK TOOL (WITH ADJUSTABLE WICKS & FILLS) */
     const x1 = pts[0].x;
     const y1 = pts[0].y;
     const x2 = pts[1].x;
@@ -14698,7 +14775,8 @@ function renderWhiteboardShape(
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
-    const candleColor = shape.color || "#10b981";
+    const defaultCandleColor = shape.candleType === "bearish" ? "#ef4444" : "#10b981";
+    const candleColor = shape.color || defaultCandleColor;
     const wickColor = shape.wickColor || candleColor;
     const bodyFillColor = shape.fillColor || candleColor;
     const strokeW = shape.strokeWidth || 1.75;
@@ -15215,6 +15293,20 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isA
       };
     case "zoom":
     case "marquee_zoom":
+      if (isAltHeld) {
+        return {
+          cursor: makeSvgCursor(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="9.5" cy="9.5" r="6" fill="#ffffff" stroke="#000000" stroke-width="1.8"/>
+              <path d="M14 14L20.5 20.5" stroke="#000000" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 9.5H12" stroke="#000000" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>`,
+            9,
+            9,
+            "zoom-out"
+          ),
+        };
+      }
       return {
         cursor: makeSvgCursor(
           `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -15479,6 +15571,7 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isA
           "crosshair"
         ),
       };
+    case "candle":
     case "bullish_candle":
       return {
         cursor: makeSvgCursor(
