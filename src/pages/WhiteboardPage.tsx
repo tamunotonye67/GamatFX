@@ -1536,6 +1536,7 @@ export default function WhiteboardPage() {
   const [upperWickLength, setUpperWickLength] = useState<number>(25);
   const [lowerWickLength, setLowerWickLength] = useState<number>(25);
   const [wickColor, setWickColor] = useState<string>("#10b981");
+  const [highlighterColor, setHighlighterColor] = useState<string>("#facc15");
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">(() => {
     try {
       const savedTabsStr = localStorage.getItem("gamat_whiteboard_active_tabs");
@@ -3252,6 +3253,8 @@ export default function WhiteboardPage() {
         ? "#3b82f6"
         : activeTool === "liquidity"
         ? "#e11d48"
+        : activeTool === "highlighter"
+        ? highlighterColor
         : strokeColor;
 
     const newShape: Shape = {
@@ -6847,6 +6850,7 @@ export default function WhiteboardPage() {
           const isSticky = selectedShape?.type === "sticky" || targetTool === "sticky";
           const isText = selectedShape?.type === "text" || targetTool === "text";
           const isCandle = selectedShape?.type === "candle" || selectedShape?.type === "bullish_candle" || selectedShape?.type === "bearish_candle" || targetTool === "candle" || targetTool === "bullish_candle" || targetTool === "bearish_candle";
+          const isHighlighter = selectedShape?.type === "highlighter" || targetTool === "highlighter";
 
           return (
             <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
@@ -7148,6 +7152,27 @@ export default function WhiteboardPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* 4b. Highlighter Customizer (If Highlighter Selected or Active) */}
+              {isHighlighter && (
+                <div className="p-2.5 rounded-xl border border-amber-200 bg-amber-50/50 space-y-2.5">
+                  <ModernColorField
+                    label="Highlighter Color"
+                    color={selectedShape?.strokeColor || selectedShape?.color || highlighterColor || "#facc15"}
+                    onChange={(col) => {
+                      setHighlighterColor(col);
+                      if (selectedShape) {
+                        applyColorToSelected(col);
+                      }
+                    }}
+                    pickerKey="highlighterColor"
+                    activeKey={activeColorPicker}
+                    setActiveKey={setActiveColorPicker}
+                    disabled={selectedShape?.isLocked}
+                    quickSwatches={["#facc15", "#4ade80", "#38bdf8", "#f472b6", "#fb923c", "#c084fc", "#a3e635", "#e2e8f0"]}
+                  />
                 </div>
               )}
 
@@ -10835,6 +10860,44 @@ export default function WhiteboardPage() {
                     onToggleFavorite={() => toggleFavoriteTool("highlighter")}
                     showTooltips={showTooltips}
                   />
+
+                  {/* Highlighter Color Palette Options */}
+                  <div className="pt-1.5 pb-1 px-2 border-t border-slate-200 mt-1">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Highlighter Color</span>
+                      <span className="text-[9px] font-mono text-slate-400">{highlighterColor}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {[
+                        { color: "#facc15", name: "Yellow" },
+                        { color: "#4ade80", name: "Green" },
+                        { color: "#38bdf8", name: "Blue" },
+                        { color: "#f472b6", name: "Pink" },
+                        { color: "#fb923c", name: "Orange" },
+                        { color: "#c084fc", name: "Purple" },
+                      ].map((item) => (
+                        <button
+                          key={item.color}
+                          type="button"
+                          onClick={() => {
+                            setHighlighterColor(item.color);
+                            selectTool("highlighter");
+                            if (selectedShape && selectedShape.type === "highlighter") {
+                              applyColorToSelected(item.color);
+                            }
+                          }}
+                          className={`w-5 h-5 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
+                            highlighterColor.toLowerCase() === item.color.toLowerCase()
+                              ? "ring-2 ring-slate-800 ring-offset-1 scale-110 shadow-xs border-white"
+                              : "border-black/15 hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: item.color }}
+                          title={`${item.name} Highlighter`}
+                          aria-label={`${item.name} Highlighter`}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -11129,7 +11192,10 @@ export default function WhiteboardPage() {
                 </div>
               )}
             </div>
+          </div>
 
+          {/* Bottom Actions */}
+          <div className="w-full border-t border-line flex flex-col items-center divide-y divide-line">
             {/* Standard Minimalist Stroke & Fill Color, Default B&W, and Swap Control */}
             <div className="w-full flex flex-col items-center py-1.5 px-1 select-none" title="Stroke & Fill Color Tools">
               {/* Top micro utility row: Default B&W on left, Swap on right */}
@@ -11240,10 +11306,7 @@ export default function WhiteboardPage() {
                 </button>
               </div>
             </div>
-          </div>
 
-          {/* Bottom Actions */}
-          <div className="w-full border-t border-line flex flex-col items-center divide-y divide-line">
             <button
               type="button"
               onClick={handleUndo}
@@ -14383,8 +14446,26 @@ function renderWhiteboardShape(
     pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
     ctx.stroke();
   } else if (shape.type === "highlighter") {
-    ctx.strokeStyle = "rgba(253, 224, 71, 0.45)";
-    ctx.lineWidth = 18;
+    const rawHCol = shape.strokeColor || shape.color || "#facc15";
+    let hlColor = "rgba(250, 204, 21, 0.45)";
+    if (rawHCol.startsWith("#")) {
+      const hex = rawHCol.replace("#", "");
+      if (hex.length === 6) {
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+        hlColor = `rgba(${r}, ${g}, ${b}, 0.45)`;
+      } else if (hex.length === 3) {
+        const r = parseInt(hex[0] + hex[0], 16);
+        const g = parseInt(hex[1] + hex[1], 16);
+        const b = parseInt(hex[2] + hex[2], 16);
+        hlColor = `rgba(${r}, ${g}, ${b}, 0.45)`;
+      }
+    } else if (rawHCol.startsWith("rgb")) {
+      hlColor = rawHCol;
+    }
+    ctx.strokeStyle = hlColor;
+    ctx.lineWidth = shape.strokeWidth && shape.strokeWidth > 5 ? shape.strokeWidth : 18;
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
@@ -14762,7 +14843,7 @@ function renderWhiteboardShape(
       ctx.fillText(labelText, minX + 6, Math.min(p1.y, p2.y) - 4);
     }
   } else if ((shape.type === "candle" || shape.type === "bullish_candle") && pts.length >= 2) {
-    /* 8. CANDLESTICK TOOL (WITH ADJUSTABLE WICKS & FILLS) */
+    /* 8. CANDLESTICK TOOL (WITH INDEPENDENT BODY & WICK RESIZING) */
     const x1 = pts[0].x;
     const y1 = pts[0].y;
     const x2 = pts[1].x;
@@ -14771,7 +14852,7 @@ function renderWhiteboardShape(
     const yHigh = Math.min(y1, y2);
     const yLow = Math.max(y1, y2);
     const totalH = Math.max(16, yLow - yHigh);
-    const bodyW = Math.max(14, Math.abs(x2 - x1) || 22);
+    const bodyW = shape.candleBodyWidth ?? Math.max(14, Math.abs(x2 - x1) || 22);
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
@@ -14782,17 +14863,10 @@ function renderWhiteboardShape(
     const strokeW = shape.strokeWidth || 1.75;
     const style = shape.fillStyle || (shape.candleStyle === "hollow" ? "none" : shape.candleStyle === "solid" ? "solid" : "translucent");
 
-    // Dynamic Upper & Lower Wick Adjustments
-    let upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
-    let lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
-
-    if (upperWickH + lowerWickH > totalH - 6) {
-      const ratio = (totalH - 6) / Math.max(1, upperWickH + lowerWickH);
-      upperWickH = Math.round(upperWickH * ratio);
-      lowerWickH = Math.round(lowerWickH * ratio);
-    }
-
-    const bodyH = Math.max(6, totalH - upperWickH - lowerWickH);
+    // Independent Upper & Lower Wick and Body Adjustments
+    const upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
+    const lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
+    const bodyH = shape.candleBodyHeight !== undefined ? shape.candleBodyHeight : Math.max(6, totalH - upperWickH - lowerWickH);
     const bodyY = yHigh + upperWickH;
 
     // 1. Upper Wick: High down to Top of Body (Close)
@@ -14801,7 +14875,7 @@ function renderWhiteboardShape(
       ctx.lineWidth = strokeW;
       ctx.setLineDash([]);
       ctx.beginPath();
-      ctx.moveTo(centerX, yHigh);
+      ctx.moveTo(centerX, bodyY - upperWickH);
       ctx.lineTo(centerX, bodyY);
       ctx.stroke();
     }
@@ -14813,7 +14887,7 @@ function renderWhiteboardShape(
       ctx.setLineDash([]);
       ctx.beginPath();
       ctx.moveTo(centerX, bodyY + bodyH);
-      ctx.lineTo(centerX, yLow);
+      ctx.lineTo(centerX, bodyY + bodyH + lowerWickH);
       ctx.stroke();
     }
 
@@ -14843,7 +14917,7 @@ function renderWhiteboardShape(
       ctx.fillText(shape.text, bodyX + bodyW + 4, bodyY + 10);
     }
   } else if (shape.type === "bearish_candle" && pts.length >= 2) {
-    /* 9. BEARISH CANDLESTICK TOOL (WITH ADJUSTABLE WICKS & FILLS) */
+    /* 9. BEARISH CANDLESTICK TOOL (WITH INDEPENDENT BODY & WICK RESIZING) */
     const x1 = pts[0].x;
     const y1 = pts[0].y;
     const x2 = pts[1].x;
@@ -14852,7 +14926,7 @@ function renderWhiteboardShape(
     const yHigh = Math.min(y1, y2);
     const yLow = Math.max(y1, y2);
     const totalH = Math.max(16, yLow - yHigh);
-    const bodyW = Math.max(14, Math.abs(x2 - x1) || 22);
+    const bodyW = shape.candleBodyWidth ?? Math.max(14, Math.abs(x2 - x1) || 22);
     const centerX = pts.length === 2 && Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
     const bodyX = centerX - bodyW / 2;
 
@@ -14862,17 +14936,10 @@ function renderWhiteboardShape(
     const strokeW = shape.strokeWidth || 1.75;
     const style = shape.fillStyle || (shape.candleStyle === "hollow" ? "none" : shape.candleStyle === "solid" ? "solid" : "translucent");
 
-    // Dynamic Upper & Lower Wick Adjustments
-    let upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
-    let lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
-
-    if (upperWickH + lowerWickH > totalH - 6) {
-      const ratio = (totalH - 6) / Math.max(1, upperWickH + lowerWickH);
-      upperWickH = Math.round(upperWickH * ratio);
-      lowerWickH = Math.round(lowerWickH * ratio);
-    }
-
-    const bodyH = Math.max(6, totalH - upperWickH - lowerWickH);
+    // Independent Upper & Lower Wick and Body Adjustments
+    const upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
+    const lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
+    const bodyH = shape.candleBodyHeight !== undefined ? shape.candleBodyHeight : Math.max(6, totalH - upperWickH - lowerWickH);
     const bodyY = yHigh + upperWickH;
 
     // 1. Upper Wick: High down to Top of Body (Open)
@@ -14881,7 +14948,7 @@ function renderWhiteboardShape(
       ctx.lineWidth = strokeW;
       ctx.setLineDash([]);
       ctx.beginPath();
-      ctx.moveTo(centerX, yHigh);
+      ctx.moveTo(centerX, bodyY - upperWickH);
       ctx.lineTo(centerX, bodyY);
       ctx.stroke();
     }
@@ -14893,7 +14960,7 @@ function renderWhiteboardShape(
       ctx.setLineDash([]);
       ctx.beginPath();
       ctx.moveTo(centerX, bodyY + bodyH);
-      ctx.lineTo(centerX, yLow);
+      ctx.lineTo(centerX, bodyY + bodyH + lowerWickH);
       ctx.stroke();
     }
 
