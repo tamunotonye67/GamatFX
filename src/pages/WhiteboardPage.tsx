@@ -1142,6 +1142,8 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Precision Eraser", keys: ["E"] },
       { label: "Click Zoom Tool", keys: ["Z"] },
       { label: "Marquee Zoom Box", keys: ["Shift", "Z"] },
+      { label: "Swap Stroke ↔ Fill", keys: ["X"] },
+      { label: "Default Black & White Colors", keys: ["Shift", "D"] },
     ],
   },
   {
@@ -1498,6 +1500,9 @@ export default function WhiteboardPage() {
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
   const [fillColor, setFillColor] = useState("#ffffff");
   const [fillStyle, setFillStyle] = useState<"solid" | "gradient" | "none" | "translucent">("translucent");
+  const [activeColorTarget, setActiveColorTarget] = useState<"stroke" | "fill">("stroke");
+  const strokeColorInputRef = useRef<HTMLInputElement>(null);
+  const fillColorInputRef = useRef<HTMLInputElement>(null);
   const [gradientEndColor, setGradientEndColor] = useState("#8b5cf6");
   const [opacity, setOpacity] = useState<number>(1);
   const [cornerRadius, setCornerRadius] = useState<number>(4);
@@ -2015,6 +2020,67 @@ export default function WhiteboardPage() {
     };
   }, [mouseWheelMode, shapes]);
 
+  /* Bulk Apply Color / Properties & Swap / Default Actions */
+  const applyColorToSelected = (color: string) => {
+    setStrokeColor(color);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, color, strokeColor: color } : s))
+      );
+    }
+  };
+
+  const applyFillColorToSelected = (fColor: string) => {
+    setFillColor(fColor);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, fillColor: fColor } : s))
+      );
+    }
+  };
+
+  const handleSwapColors = () => {
+    const nextStroke = fillColor;
+    const nextFill = strokeColor;
+    setStrokeColor(nextStroke);
+    setFillColor(nextFill);
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => {
+          if (!selectedShapeIds.includes(s.id) || s.isLocked) return s;
+          const curStroke = s.strokeColor || s.color || strokeColor;
+          const curFill = s.fillColor || fillColor;
+          return {
+            ...s,
+            strokeColor: curFill,
+            color: curFill,
+            fillColor: curStroke,
+          };
+        })
+      );
+    }
+    showToast("Swapped Stroke ↔ Fill (X)");
+  };
+
+  const handleResetDefaultColors = () => {
+    setStrokeColor("#000000");
+    setFillColor("#ffffff");
+    if (selectedShapeIds.length > 0) {
+      setShapes((prev) =>
+        prev.map((s) => {
+          if (!selectedShapeIds.includes(s.id) || s.isLocked) return s;
+          return {
+            ...s,
+            strokeColor: "#000000",
+            color: "#000000",
+            fillColor: "#ffffff",
+          };
+        })
+      );
+    }
+    showToast("Reset to default Black & White (Shift+D)");
+  };
+
   /* -------------------------- FULL KEYBOARD SHORTCUTS ---------------------- */
 
   useEffect(() => {
@@ -2189,7 +2255,15 @@ export default function WhiteboardPage() {
 
       // 2. Whiteboard Tool Switcher Shortcuts
       if (!isCtrl && !e.altKey) {
-        if (key === "v") { setActiveTool("select"); showToast("Tool: Select (V)"); }
+        if (key === "x" && !e.shiftKey) {
+          e.preventDefault();
+          handleSwapColors();
+          return;
+        } else if (key === "d" && e.shiftKey) {
+          e.preventDefault();
+          handleResetDefaultColors();
+          return;
+        } else if (key === "v") { setActiveTool("select"); showToast("Tool: Select (V)"); }
         else if (key === "h") { setActiveTool("hand"); showToast("Tool: Hand / Pan (H)"); }
         else if (key === "p" && !e.shiftKey) { setActivePenTool("pencil"); setActiveTool("pencil"); showToast("Tool: Freehand Pen (P)"); }
         else if (key === "p" && e.shiftKey) { setActivePenTool("highlighter"); setActiveTool("highlighter"); showToast("Tool: Highlighter (Shift+P)"); }
@@ -2245,7 +2319,7 @@ export default function WhiteboardPage() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize]);
+  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize, strokeColor, fillColor]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
@@ -3597,25 +3671,7 @@ export default function WhiteboardPage() {
     showToast("Sent to back!");
   };
 
-  /* Bulk Apply Color / Properties */
-  const applyColorToSelected = (color: string) => {
-    setStrokeColor(color);
-    if (selectedShapeIds.length > 0) {
-      setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, color, strokeColor: color } : s))
-      );
-    }
-  };
-
-  const applyFillColorToSelected = (fColor: string) => {
-    setFillColor(fColor);
-    if (selectedShapeIds.length > 0) {
-      setShapes((prev) =>
-        prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, fillColor: fColor } : s))
-      );
-    }
-  };
-
+  /* Bulk Apply Fill Style */
   const applyFillStyleToSelected = (fStyle: "solid" | "gradient" | "none" | "translucent") => {
     setFillStyle(fStyle);
     if (selectedShapeIds.length > 0) {
@@ -10997,61 +11053,113 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* Stroke / Fill Color Swap */}
-            <div className="relative w-full flex items-center justify-center py-2" title="Stroke / Fill Color Swap">
-              <div className="relative w-8 h-8">
-                {/* Fill swatch — behind, offset bottom-right */}
-                <div
-                  className="absolute bottom-0 right-0 w-4.5 h-4.5 rounded border border-slate-400/80 shadow-xs cursor-pointer hover:scale-105 transition"
-                  style={{ background: fillColor }}
-                  title={`Fill Color: ${fillColor} (Click to change)`}
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "color";
-                    input.value = fillColor.startsWith("#") ? fillColor : "#ffffff";
-                    input.addEventListener("input", (e) => setFillColor((e.target as HTMLInputElement).value));
-                    input.click();
-                  }}
-                />
-                {/* Stroke swatch — on top, offset top-left */}
-                <div
-                  className="absolute top-0 left-0 w-4.5 h-4.5 rounded border border-slate-400/80 shadow-sm cursor-pointer z-10 hover:scale-105 transition"
-                  style={{ background: strokeColor }}
-                  title={`Stroke Color: ${strokeColor} (Click to change)`}
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "color";
-                    input.value = strokeColor.startsWith("#") ? strokeColor : "#000000";
-                    input.addEventListener("input", (e) => setStrokeColor((e.target as HTMLInputElement).value));
-                    input.click();
-                  }}
-                />
-                {/* Minimalist Swap arrow — top-right */}
+            {/* Standard Minimalist Stroke & Fill Color, Default B&W, and Swap Control */}
+            <div className="w-full flex flex-col items-center py-2 px-1 select-none" title="Stroke & Fill Color Tools">
+              {/* Top micro utility row: Default B&W on left, Swap on right */}
+              <div className="w-[30px] flex items-center justify-between mb-1">
+                {/* Reset to Default Black & White (D / Shift+D) */}
                 <button
                   type="button"
-                  onClick={() => {
-                    const tmp = strokeColor;
-                    setStrokeColor(fillColor);
-                    setFillColor(tmp);
-                    showToast("Swapped Stroke ↔ Fill");
-                  }}
-                  className="absolute -top-1 -right-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-500 hover:text-ink hover:border-slate-400 transition cursor-pointer shadow-xs"
-                  title="Swap Stroke ↔ Fill"
+                  onClick={handleResetDefaultColors}
+                  className="w-3.5 h-3.5 flex items-center justify-center rounded-[2px] hover:bg-slate-100 transition cursor-pointer text-slate-700"
+                  title="Default Black and White (Shift+D)"
+                  aria-label="Default Black and White"
                 >
-                  <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 3h7M6 1l2 2-2 2M9 7H2M4 5l-2 2 2 2" /></svg>
+                  <svg viewBox="0 0 14 14" className="w-3 h-3 pointer-events-none">
+                    {/* Black bottom-right square */}
+                    <rect x="5" y="5" width="8" height="8" fill="#000000" rx="1" />
+                    {/* White top-left square with border */}
+                    <rect x="1" y="1" width="8" height="8" fill="#ffffff" stroke="#64748b" strokeWidth="1" rx="1" />
+                  </svg>
                 </button>
-                {/* Minimalist Reset to Black & White — bottom-left */}
+
+                {/* Swap Stroke ↔ Fill (X) */}
+                <button
+                  type="button"
+                  onClick={handleSwapColors}
+                  className="w-3.5 h-3.5 flex items-center justify-center rounded-[2px] text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+                  title="Swap Stroke ↔ Fill (X)"
+                  aria-label="Swap Stroke and Fill"
+                >
+                  <svg viewBox="0 0 14 14" className="w-3 h-3 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2.5 5.5V3.5a1.5 1.5 0 0 1 1.5-1.5h6.5" />
+                    <polyline points="8.5 0.5 10.5 2 8.5 3.5" />
+                    <path d="M11.5 8.5v2a1.5 1.5 0 0 1-1.5 1.5H3.5" />
+                    <polyline points="5.5 13.5 3.5 12 5.5 10.5" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Overlapping Color Swatches Container */}
+              <div className="relative w-[30px] h-[30px]">
+                {/* Hidden native color pickers */}
+                <input
+                  ref={strokeColorInputRef}
+                  type="color"
+                  value={strokeColor.startsWith("#") ? strokeColor : "#000000"}
+                  onChange={(e) => applyColorToSelected(e.target.value)}
+                  className="sr-only pointer-events-none"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                />
+                <input
+                  ref={fillColorInputRef}
+                  type="color"
+                  value={fillColor.startsWith("#") ? fillColor : "#ffffff"}
+                  onChange={(e) => applyFillColorToSelected(e.target.value)}
+                  className="sr-only pointer-events-none"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                />
+
+                {/* Stroke Swatch (Top-left, overlapping):
+                    Illustrator-style hollow frame so users can tell it's the STROKE */}
                 <button
                   type="button"
                   onClick={() => {
-                    setStrokeColor("#000000");
-                    setFillColor("#ffffff");
-                    showToast("Reset to default Black & White");
+                    setActiveColorTarget("stroke");
+                    strokeColorInputRef.current?.click();
                   }}
-                  className="absolute -bottom-1 -left-1 z-20 w-3.5 h-3.5 rounded-full bg-white border border-slate-300 flex items-center justify-center text-slate-400 hover:text-ink hover:border-slate-400 transition cursor-pointer shadow-xs"
-                  title="Reset to default Black & White"
+                  className={`absolute top-0 left-0 w-[19px] h-[19px] rounded-[3px] transition-all cursor-pointer flex items-center justify-center ${
+                    activeColorTarget === "stroke"
+                      ? "z-20 shadow-md ring-1.5 ring-brand ring-offset-0.5 scale-102"
+                      : "z-10 shadow-xs ring-1 ring-black/20 hover:scale-105"
+                  }`}
+                  style={{
+                    backgroundColor: strokeColor,
+                  }}
+                  title={`Stroke Color: ${strokeColor} (Click to change)`}
+                  aria-label={`Stroke Color: ${strokeColor}`}
                 >
-                  <svg viewBox="0 0 10 10" className="w-2 h-2"><rect x="0" y="0" width="5" height="5" fill="#000" /><rect x="5" y="5" width="5" height="5" fill="#000" /><rect x="5" y="0" width="5" height="5" fill="#fff" stroke="#999" strokeWidth="0.5" /><rect x="0" y="5" width="5" height="5" fill="#fff" stroke="#999" strokeWidth="0.5" /></svg>
+                  {/* Hollow center showing it's a stroke / outline */}
+                  <span className="w-[9px] h-[9px] rounded-[1px] bg-white border border-black/10 shadow-inner" />
+                </button>
+
+                {/* Fill Swatch (Bottom-right, overlapping):
+                    Solid square showing it's the FILL */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveColorTarget("fill");
+                    fillColorInputRef.current?.click();
+                  }}
+                  className={`absolute bottom-0 right-0 w-[19px] h-[19px] rounded-[3px] transition-all cursor-pointer overflow-hidden ${
+                    activeColorTarget === "fill"
+                      ? "z-20 shadow-md ring-1.5 ring-brand ring-offset-0.5 scale-102"
+                      : "z-10 shadow-xs ring-1 ring-black/20 hover:scale-105"
+                  }`}
+                  style={{
+                    backgroundColor: fillColor,
+                  }}
+                  title={`Fill Color: ${fillColor} (Click to change)`}
+                  aria-label={`Fill Color: ${fillColor}`}
+                >
+                  {/* If fillStyle is 'none', show classic transparent red slash */}
+                  {fillStyle === "none" && (
+                    <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <span className="w-[120%] h-[1.5px] bg-rose-500 transform -rotate-45" />
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
