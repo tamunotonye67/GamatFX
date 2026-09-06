@@ -2576,14 +2576,30 @@ export default function WhiteboardPage() {
       y: (Math.max(20, screenY) - pan.y) / zoom,
     };
 
+    let finalX = rawPt.x;
+    let finalY = rawPt.y;
+
     if (snapToGrid && activeTool !== "pencil" && activeTool !== "highlighter" && activeTool !== "eraser") {
-      return {
-        x: Math.round(rawPt.x / gridSnapSize) * gridSnapSize,
-        y: Math.round(rawPt.y / gridSnapSize) * gridSnapSize,
-      };
+      finalX = Math.round(rawPt.x / gridSnapSize) * gridSnapSize;
+      finalY = Math.round(rawPt.y / gridSnapSize) * gridSnapSize;
     }
 
-    return rawPt;
+    if (snapToGuides && showGuidelines && guidelines.length > 0 && activeTool !== "pencil" && activeTool !== "highlighter" && activeTool !== "eraser") {
+      const guideTolerance = 10 / zoom;
+      guidelines.forEach((g) => {
+        if (g.orientation === "horizontal") {
+          if (Math.abs(g.position - finalY) <= guideTolerance) {
+            finalY = g.position;
+          }
+        } else if (g.orientation === "vertical") {
+          if (Math.abs(g.position - finalX) <= guideTolerance) {
+            finalX = g.position;
+          }
+        }
+      });
+    }
+
+    return { x: finalX, y: finalY };
   };
 
   /* ------------------------- Precision Part-By-Part Eraser ---------------- */
@@ -3271,6 +3287,10 @@ export default function WhiteboardPage() {
       lowerWickLength: lowerWickLength,
       strokeWidth,
       lineStyle,
+      lineCap: activeLineCap,
+      lineJoin: activeLineJoin,
+      arrowStart: activeTool === "line" ? activeArrowStart : undefined,
+      arrowEnd: activeTool === "line" ? activeArrowEnd : undefined,
       isLocked: autoLockObjects,
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
@@ -3338,18 +3358,57 @@ export default function WhiteboardPage() {
         }
       }
 
-      const dx = pt.x - dragStartPt.current.x;
+      let dx = pt.x - dragStartPt.current.x;
       let dy = pt.y - dragStartPt.current.y;
       dragStartPt.current = pt;
 
-      // Strict Rule: Shapes being moved must never be pushed above the top boundary (< 24px from tab bar)
+      // Smart Guidelines snapping during shape dragging
       const activeShapes = shapes.filter((s) => selectedShapeIds.includes(s.id) && !s.isLocked);
       if (activeShapes.length > 0) {
+        let minShapeX = Infinity;
+        let maxShapeX = -Infinity;
         let minShapeY = Infinity;
+        let maxShapeY = -Infinity;
         activeShapes.forEach((s) => {
           const b = getShapeBounds(s);
+          if (b.minX < minShapeX) minShapeX = b.minX;
+          if (b.maxX > maxShapeX) maxShapeX = b.maxX;
           if (b.minY < minShapeY) minShapeY = b.minY;
+          if (b.maxY > maxShapeY) maxShapeY = b.maxY;
         });
+
+        if (snapToGuides && showGuidelines && guidelines.length > 0) {
+          const snapDist = 8 / zoom;
+          guidelines.forEach((g) => {
+            if (g.orientation === "horizontal") {
+              // Check top, center, bottom against guide
+              const curTop = minShapeY + dy;
+              const curBottom = maxShapeY + dy;
+              const curMid = (curTop + curBottom) / 2;
+              if (Math.abs(curTop - g.position) <= snapDist) {
+                dy += g.position - curTop;
+              } else if (Math.abs(curBottom - g.position) <= snapDist) {
+                dy += g.position - curBottom;
+              } else if (Math.abs(curMid - g.position) <= snapDist) {
+                dy += g.position - curMid;
+              }
+            } else if (g.orientation === "vertical") {
+              // Check left, center, right against guide
+              const curLeft = minShapeX + dx;
+              const curRight = maxShapeX + dx;
+              const curMid = (curLeft + curRight) / 2;
+              if (Math.abs(curLeft - g.position) <= snapDist) {
+                dx += g.position - curLeft;
+              } else if (Math.abs(curRight - g.position) <= snapDist) {
+                dx += g.position - curRight;
+              } else if (Math.abs(curMid - g.position) <= snapDist) {
+                dx += g.position - curMid;
+              }
+            }
+          });
+        }
+
+        // Strict Rule: Shapes being moved must never be pushed above the top boundary (< 24px from tab bar)
         if (isFinite(minShapeY)) {
           const nextScreenY = (minShapeY + dy) * zoom + pan.y;
           if (nextScreenY < 24) {
@@ -8606,7 +8665,7 @@ export default function WhiteboardPage() {
                   }}
                   className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <Plus className="h-3 w-3" /> + Horizontal
+                  <Plus className="h-3 w-3" /> + Horizontal (Center)
                 </button>
                 <button
                   type="button"
@@ -8620,25 +8679,90 @@ export default function WhiteboardPage() {
                   }}
                   className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <Plus className="h-3 w-3" /> + Vertical
+                  <Plus className="h-3 w-3" /> + Vertical (Center)
                 </button>
               </div>
 
-              {/* Guidelines List */}
+              {/* Exact Position / Coordinate Input for Guidelines */}
+              <div className="p-2 rounded-xl bg-slate-50 border border-line space-y-1.5">
+                <div className="text-[10px] font-bold text-ink flex items-center justify-between">
+                  <span>Add Guide at Exact Coordinate</span>
+                  <span className="text-[9px] text-muted font-normal">X or Y position (px)</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    id="custom-guide-pos-input"
+                    type="number"
+                    placeholder="e.g. 450"
+                    defaultValue={350}
+                    className="w-24 px-2 py-1 text-[11px] font-mono font-bold bg-white border border-line rounded-lg text-ink focus:outline-none focus:border-brand"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const inp = document.getElementById("custom-guide-pos-input") as HTMLInputElement | null;
+                      const val = inp ? parseInt(inp.value, 10) : NaN;
+                      const pos = isNaN(val) ? 0 : val;
+                      setGuidelines((prev) => [
+                        ...prev,
+                        { id: `g_${Date.now()}`, orientation: "horizontal", position: pos, color: "#3b82f6" },
+                      ]);
+                      showToast(`Added Horizontal Guide at Y: ${pos}px`);
+                    }}
+                    className="flex-1 py-1 text-[10px] font-bold bg-white hover:bg-brand-light hover:text-brand border border-line hover:border-brand/40 rounded-lg transition cursor-pointer text-center"
+                  >
+                    + Y (Horiz)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const inp = document.getElementById("custom-guide-pos-input") as HTMLInputElement | null;
+                      const val = inp ? parseInt(inp.value, 10) : NaN;
+                      const pos = isNaN(val) ? 0 : val;
+                      setGuidelines((prev) => [
+                        ...prev,
+                        { id: `g_${Date.now()}`, orientation: "vertical", position: pos, color: "#3b82f6" },
+                      ]);
+                      showToast(`Added Vertical Guide at X: ${pos}px`);
+                    }}
+                    className="flex-1 py-1 text-[10px] font-bold bg-white hover:bg-brand-light hover:text-brand border border-line hover:border-brand/40 rounded-lg transition cursor-pointer text-center"
+                  >
+                    + X (Vert)
+                  </button>
+                </div>
+              </div>
+
+              {/* Guidelines List with editable positions */}
               {guidelines.length > 0 && (
-                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                   {guidelines.map((g) => (
                     <div
                       key={g.id}
-                      className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-line text-[10.5px]"
+                      className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-line text-[10.5px] gap-2"
                     >
-                      <div className="flex items-center gap-1.5 font-bold text-ink">
+                      <div className="flex items-center gap-1.5 font-bold text-ink shrink-0">
                         <span
                           className="h-2.5 w-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: g.color }}
                         />
-                        <span className="capitalize">{g.orientation}</span>
-                        <span className="text-muted font-normal">({g.position}px)</span>
+                        <span className="capitalize">{g.orientation === "horizontal" ? "Y (Horiz)" : "X (Vert)"}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[10px] text-muted font-mono">{g.orientation === "horizontal" ? "Y:" : "X:"}</span>
+                        <input
+                          type="number"
+                          value={g.position}
+                          onChange={(e) => {
+                            const newPos = parseInt(e.target.value, 10);
+                            if (!isNaN(newPos)) {
+                              setGuidelines((prev) =>
+                                prev.map((item) => (item.id === g.id ? { ...item, position: newPos } : item))
+                              );
+                            }
+                          }}
+                          className="w-16 px-1.5 py-0.5 text-[10.5px] font-mono font-bold bg-white border border-line rounded text-ink focus:outline-none focus:border-brand text-right"
+                        />
+                        <span className="text-[9px] text-muted">px</span>
                       </div>
                       <button
                         type="button"
@@ -8646,7 +8770,8 @@ export default function WhiteboardPage() {
                           setGuidelines((prev) => prev.filter((item) => item.id !== g.id));
                           showToast("Removed guide");
                         }}
-                        className="p-0.5 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                        className="p-0.5 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer shrink-0"
+                        title="Delete guide"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -14151,7 +14276,22 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     minX = Math.min(p0.x, p1.x);
     maxX = Math.max(p0.x, p1.x);
     minY = Math.min(p0.y, p1.y);
-    maxY = Math.max(p0.y, p1.y);
+    const baseH = Math.max(60, Math.abs(p1.y - p0.y));
+    const w = Math.max(80, maxX - minX);
+    const fSize = shape.fontSize || 14;
+    const padding = 16;
+    const maxTextWidth = Math.max(20, w - padding * 2);
+    const lineHeight = fSize * 1.35;
+    let lineCount = 0;
+    if (shape.text) {
+      const rawLines = shape.text.split("\n");
+      rawLines.forEach((rL) => {
+        const estCharPerLine = Math.max(1, Math.floor(maxTextWidth / (fSize * 0.55)));
+        lineCount += Math.max(1, Math.ceil((rL.length || 1) / estCharPerLine));
+      });
+    }
+    const requiredH = Math.max(baseH, 36 + lineCount * lineHeight + padding + 10);
+    maxY = minY + requiredH;
   } else if (shape.type === "text") {
     const fSize = shape.fontSize || 16;
     const lHeight = shape.lineHeight ? shape.lineHeight * fSize : fSize * 1.35;
@@ -14369,16 +14509,63 @@ function resizeShapePoints(
 
     const isCandle = shape.type === "candle" || shape.type === "bullish_candle" || shape.type === "bearish_candle";
     if (isCandle) {
-      const scaleX = (finalMaxX - finalMinX) / origW;
-      const scaleY = (finalMaxY - finalMinY) / origH;
-      return {
-        ...shape,
-        points: [p0, p1],
-        candleBodyHeight: shape.candleBodyHeight ? Math.max(6, Math.round(shape.candleBodyHeight * scaleY)) : undefined,
-        candleBodyWidth: shape.candleBodyWidth ? Math.max(6, Math.round(shape.candleBodyWidth * scaleX)) : undefined,
-        upperWickLength: shape.upperWickLength !== undefined ? Math.round(shape.upperWickLength * scaleY) : undefined,
-        lowerWickLength: shape.lowerWickLength !== undefined ? Math.round(shape.lowerWickLength * scaleY) : undefined,
-      };
+      const curUpperW = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(origH * 0.19);
+      const curLowerW = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(origH * 0.19);
+      const curBodyH = shape.candleBodyHeight !== undefined ? shape.candleBodyHeight : Math.max(6, origH - curUpperW - curLowerW);
+      const curBodyW = shape.candleBodyWidth ?? Math.max(14, origW);
+
+      // Handle individual handle manipulations
+      if (handle === "tm") {
+        // Dragging top-middle handle adjusts upper wick independently without changing body or lower wick!
+        // pt.y is the tip of the upper wick. Top of body is at (minY + curUpperW).
+        const bodyTopY = minY + curUpperW;
+        const newUpperW = Math.max(0, Math.round(bodyTopY - pt.y));
+        const newTotalH = newUpperW + curBodyH + curLowerW;
+        const newTopY = bodyTopY - newUpperW;
+        return {
+          ...shape,
+          upperWickLength: newUpperW,
+          points: [
+            { x: pts[0].x, y: newTopY },
+            { x: pts[1].x, y: newTopY + newTotalH },
+          ],
+        };
+      } else if (handle === "bm") {
+        // Dragging bottom-middle handle adjusts lower wick independently without changing body or upper wick!
+        // Bottom of body is at (minY + curUpperW + curBodyH). pt.y is the tip of the lower wick.
+        const bodyBottomY = minY + curUpperW + curBodyH;
+        const newLowerW = Math.max(0, Math.round(pt.y - bodyBottomY));
+        const newTotalH = curUpperW + curBodyH + newLowerW;
+        return {
+          ...shape,
+          lowerWickLength: newLowerW,
+          points: [
+            { x: pts[0].x, y: minY },
+            { x: pts[1].x, y: minY + newTotalH },
+          ],
+        };
+      } else if (handle === "ml" || handle === "mr") {
+        // Dragging left or right handle adjusts candle body width independently without affecting height or wicks!
+        const newW = Math.max(6, Math.round(Math.abs(finalMaxX - finalMinX)));
+        return {
+          ...shape,
+          candleBodyWidth: newW,
+          points: [p0, p1],
+        };
+      } else {
+        // Corner handles (tl, tr, bl, br): adjust body height and width, keeping wicks intact!
+        const totalNewH = Math.max(curUpperW + curLowerW + 6, finalMaxY - finalMinY);
+        const newBodyH = Math.max(6, totalNewH - curUpperW - curLowerW);
+        const newBodyW = Math.max(6, Math.round(Math.abs(finalMaxX - finalMinX)));
+        return {
+          ...shape,
+          points: [p0, p1],
+          candleBodyHeight: newBodyH,
+          candleBodyWidth: newBodyW,
+          upperWickLength: curUpperW,
+          lowerWickLength: curLowerW,
+        };
+      }
     }
 
     return { ...shape, points: [p0, p1] };
@@ -14471,19 +14658,126 @@ function renderWhiteboardShape(
     pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
     ctx.stroke();
   } else if (shape.type === "line" && pts.length >= 2) {
-    /* STRAIGHT LINE TOOL */
+    /* STRAIGHT LINE TOOL WITH CUSTOM TERMINAL ENDPOINTS */
+    const p1 = pts[0];
+    const p2 = pts[1];
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx);
+    const strokeW = shape.strokeWidth || 2;
+    const strokeCol = shape.strokeColor || shape.color || "#0f172a";
+
+    // Draw base line
     ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    ctx.lineTo(pts[1].x, pts[1].y);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
     ctx.stroke();
+
+    // Helper to draw terminal head
+    const renderTerminal = (tip: { x: number; y: number }, dirAngle: number, termType?: string) => {
+      if (!termType || termType === "none") return;
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.fillStyle = strokeCol;
+      ctx.strokeStyle = strokeCol;
+      ctx.lineWidth = strokeW;
+
+      const headSize = Math.max(8, strokeW * 3.5);
+
+      if (termType === "arrow") {
+        ctx.beginPath();
+        ctx.moveTo(tip.x, tip.y);
+        ctx.lineTo(
+          tip.x - headSize * Math.cos(dirAngle - Math.PI / 6),
+          tip.y - headSize * Math.sin(dirAngle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          tip.x - headSize * Math.cos(dirAngle + Math.PI / 6),
+          tip.y - headSize * Math.sin(dirAngle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+      } else if (termType === "circle") {
+        const radius = Math.max(3.5, strokeW * 1.6);
+        ctx.beginPath();
+        ctx.arc(tip.x, tip.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (termType === "diamond") {
+        const dSize = Math.max(5, strokeW * 2.2);
+        const cosA = Math.cos(dirAngle);
+        const sinA = Math.sin(dirAngle);
+        const perpCos = -sinA;
+        const perpSin = cosA;
+        ctx.beginPath();
+        ctx.moveTo(tip.x, tip.y);
+        ctx.lineTo(tip.x - dSize * cosA + (dSize * 0.6) * perpCos, tip.y - dSize * sinA + (dSize * 0.6) * perpSin);
+        ctx.lineTo(tip.x - (dSize * 2) * cosA, tip.y - (dSize * 2) * sinA);
+        ctx.lineTo(tip.x - dSize * cosA - (dSize * 0.6) * perpCos, tip.y - dSize * sinA - (dSize * 0.6) * perpSin);
+        ctx.closePath();
+        ctx.fill();
+      } else if (termType === "bar") {
+        const barHalf = Math.max(5, strokeW * 2.5);
+        const perpCos = -Math.sin(dirAngle);
+        const perpSin = Math.cos(dirAngle);
+        ctx.beginPath();
+        ctx.moveTo(tip.x + barHalf * perpCos, tip.y + barHalf * perpSin);
+        ctx.lineTo(tip.x - barHalf * perpCos, tip.y - barHalf * perpSin);
+        ctx.lineWidth = Math.max(2, strokeW * 1.2);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+
+    // Draw Start Terminal (facing backwards away from line: angle + PI)
+    if (len > 2) {
+      renderTerminal(p1, angle + Math.PI, shape.arrowStart);
+      renderTerminal(p2, angle, shape.arrowEnd);
+    }
   } else if (shape.type === "sticky") {
     const p0 = pts[0];
     const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
     const x = Math.min(p0.x, p1.x);
     const y = Math.min(p0.y, p1.y);
     const w = Math.max(80, Math.abs(p1.x - p0.x));
-    const h = Math.max(60, Math.abs(p1.y - p0.y));
+    const baseH = Math.max(60, Math.abs(p1.y - p0.y));
     const foldSize = 20;
+
+    const noteText = shape.text || "";
+    const fSize = shape.fontSize || 14;
+    const padding = 16;
+    const maxTextWidth = Math.max(20, w - padding * 2);
+    const lineHeight = fSize * 1.35;
+
+    // Calculate all wrapped text lines in advance to determine exact required height
+    const wrappedLines: string[] = [];
+    if (noteText) {
+      ctx.save();
+      ctx.font = `${shape.fontWeight === "bold" ? "bold " : ""}${fSize}px Inter, -apple-system, sans-serif`;
+      const rawLines = noteText.split("\n");
+      rawLines.forEach((rawLine) => {
+        const words = rawLine.split(" ");
+        let currentLine = "";
+        words.forEach((word) => {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          if (ctx.measureText(testLine).width > maxTextWidth && currentLine) {
+            wrappedLines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        if (currentLine) {
+          wrappedLines.push(currentLine);
+        }
+      });
+      ctx.restore();
+    }
+
+    // Auto-expand sticky note height so text NEVER overflows outside the note!
+    const textBlockHeight = wrappedLines.length * lineHeight;
+    const requiredH = Math.max(baseH, 36 + textBlockHeight + padding + 10);
+    const h = requiredH;
 
     // Drop Shadow
     ctx.fillStyle = "rgba(0,0,0,0.07)";
@@ -14519,40 +14813,27 @@ function renderWhiteboardShape(
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Multiline Text with auto-wrapping
-    const noteText = shape.text || "";
-    if (noteText) {
-      const fSize = shape.fontSize || 14;
+    // Render Text cleanly inside note boundaries
+    if (wrappedLines.length > 0) {
+      ctx.save();
       const isDarkBg = bgColor === "#1e293b" || bgColor === "#0f172a";
       ctx.fillStyle = shape.textColor || (isDarkBg ? "#f8fafc" : "#1e293b");
       ctx.font = `${shape.fontWeight === "bold" ? "bold " : ""}${fSize}px Inter, -apple-system, sans-serif`;
       ctx.textAlign = (shape.textAlign as CanvasTextAlign) || "left";
 
-      const padding = 16;
-      const maxTextWidth = w - padding * 2;
       const textX = shape.textAlign === "center" ? x + w / 2 : shape.textAlign === "right" ? x + w - padding : x + padding;
-
-      const rawLines = noteText.split("\n");
       let lineY = y + 36;
 
-      rawLines.forEach((rawLine) => {
-        const words = rawLine.split(" ");
-        let currentLine = "";
-        words.forEach((word) => {
-          const testLine = currentLine ? `${currentLine} ${word}` : word;
-          if (ctx.measureText(testLine).width > maxTextWidth && currentLine) {
-            ctx.fillText(currentLine, textX, lineY);
-            currentLine = word;
-            lineY += fSize * 1.35;
-          } else {
-            currentLine = testLine;
-          }
-        });
-        if (currentLine) {
-          ctx.fillText(currentLine, textX, lineY);
-          lineY += fSize * 1.35;
-        }
+      // Clip inside sticky note body so no text ever spills outside
+      ctx.beginPath();
+      ctx.rect(x + 2, y + 22, w - 4, h - 24);
+      ctx.clip();
+
+      wrappedLines.forEach((line) => {
+        ctx.fillText(line, textX, lineY);
+        lineY += lineHeight;
       });
+      ctx.restore();
     }
   } else if (shape.type === "fibo" && pts.length >= 2) {
     /* 1. FIBONACCI RETRACEMENT TOOL */
