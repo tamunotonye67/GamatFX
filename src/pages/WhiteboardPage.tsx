@@ -1725,6 +1725,7 @@ export default function WhiteboardPage() {
   const [inlineTextValue, setInlineTextValue] = useState<string>("");
   const inlineTextRef = useRef<HTMLTextAreaElement | null>(null);
   const textCreatedTimeRef = useRef<number>(0);
+  const pendingImagePos = useRef<{ x: number; y: number } | null>(null);
 
   const commitInlineText = (targetId?: string) => {
     const idToCommit = targetId || editingTextShapeId;
@@ -2766,8 +2767,16 @@ export default function WhiteboardPage() {
         const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
         const w = img.naturalWidth * scale;
         const h = img.naturalHeight * scale;
-        const cx = (-pan.x + window.innerWidth / 2) / zoom;
-        const cy = (-pan.y + window.innerHeight / 2) / zoom;
+        
+        // Use clicked position if available, else center of viewport
+        let cx = (-pan.x + window.innerWidth / 2) / zoom;
+        let cy = (-pan.y + window.innerHeight / 2) / zoom;
+        if (pendingImagePos.current) {
+          cx = pendingImagePos.current.x;
+          cy = pendingImagePos.current.y;
+          pendingImagePos.current = null;
+        }
+
         const newShape: Shape = {
           id: `img_${Date.now()}`,
           type: "image",
@@ -2791,7 +2800,10 @@ export default function WhiteboardPage() {
     e.target.value = "";
   };
 
-  const triggerImageUpload = () => {
+  const triggerImageUpload = (targetPos?: { x: number; y: number }) => {
+    if (targetPos) {
+      pendingImagePos.current = targetPos;
+    }
     if (imageInputRef.current) {
       imageInputRef.current.value = "";
       imageInputRef.current.click();
@@ -2984,7 +2996,7 @@ export default function WhiteboardPage() {
     }
 
     if (activeTool === "image") {
-      triggerImageUpload();
+      triggerImageUpload(pt);
       return;
     }
 
@@ -3291,6 +3303,8 @@ export default function WhiteboardPage() {
       lineJoin: activeLineJoin,
       arrowStart: activeTool === "line" ? activeArrowStart : undefined,
       arrowEnd: activeTool === "line" ? activeArrowEnd : undefined,
+      isRay: (activeTool === "line" || activeTool === "arrow") ? activeIsRay : undefined,
+      isGlowing: (activeTool === "line" || activeTool === "arrow" || activeTool === "bezier") ? activeLineGlow : undefined,
       isLocked: autoLockObjects,
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
@@ -4345,19 +4359,46 @@ export default function WhiteboardPage() {
 
   /* ---------------------- DRAFTS, SAMPLES, TRASH & SAVE HANDLERS ------------- */
 
-  const handleSaveCurrentDraft = () => {
+  const handleSaveCurrentDraft = (forceNewDraft = false) => {
     const activeTab = tabs.find((t) => t.id === activeTabId);
     const draftName = activeTab ? activeTab.name : "Saved Whiteboard Draft";
 
-    const newDraft: SavedDraft = {
-      id: `draft_${Date.now()}`,
-      name: draftName,
-      shapes: [...shapes],
-      savedAt: Date.now(),
-    };
+    setSavedDrafts((prev) => {
+      const existingIndex = prev.findIndex(
+        (d) => d.name.trim().toLowerCase() === draftName.trim().toLowerCase()
+      );
 
-    setSavedDrafts((prev) => [newDraft, ...prev.filter((d) => d.name !== draftName)]);
-    showToast(`Draft "${draftName}" saved successfully! You can resume anytime.`);
+      if (existingIndex >= 0 && !forceNewDraft) {
+        // Update already saved draft in-place without duplicating
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          shapes: [...shapes],
+          savedAt: Date.now(),
+        };
+        showToast(`Draft "${updated[existingIndex].name}" updated to latest changes!`);
+        return updated;
+      } else {
+        // Enforce unique name: if forceNewDraft and name exists, generate a distinct incremented name
+        let uniqueName = draftName;
+        if (existingIndex >= 0) {
+          let counter = 2;
+          while (prev.some((d) => d.name.trim().toLowerCase() === `${draftName} (${counter})`.toLowerCase())) {
+            counter++;
+          }
+          uniqueName = `${draftName} (${counter})`;
+        }
+
+        const newDraft: SavedDraft = {
+          id: `draft_${Date.now()}`,
+          name: uniqueName,
+          shapes: [...shapes],
+          savedAt: Date.now(),
+        };
+        showToast(`Saved new draft "${uniqueName}"!`);
+        return [newDraft, ...prev.filter((d) => d.name.trim().toLowerCase() !== uniqueName.trim().toLowerCase())];
+      }
+    });
   };
 
   const loadSavedDraft = (draft: SavedDraft) => {
@@ -8176,7 +8217,7 @@ export default function WhiteboardPage() {
                               type="button"
                               onClick={() => updateActiveTypography({ textColor: col })}
                               style={{ backgroundColor: col }}
-                              className={`h-6 w-6 rounded-full border border-slate-300 transition cursor-pointer ${
+                              className={`w-5 h-5 rounded border border-slate-300 transition cursor-pointer ${
                                 activeTextColor === col ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
                               }`}
                             />
@@ -8185,7 +8226,7 @@ export default function WhiteboardPage() {
                             type="color"
                             value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
                             onChange={(e) => updateActiveTypography({ textColor: e.target.value })}
-                            className="h-6 w-6 rounded-full cursor-pointer border-0 p-0"
+                            className="w-5 h-5 rounded cursor-pointer border-0 p-0"
                             title="Custom Color"
                           />
                         </div>
@@ -8207,7 +8248,7 @@ export default function WhiteboardPage() {
                               type="button"
                               onClick={() => updateActiveTypography({ textBgColor: bg.color })}
                               style={{ backgroundColor: bg.color === "transparent" ? "#f1f5f9" : bg.color }}
-                              className={`h-6 w-6 rounded-full border border-slate-300 transition flex items-center justify-center text-[8px] font-bold cursor-pointer ${
+                              className={`w-5 h-5 rounded border border-slate-300 transition flex items-center justify-center text-[8px] font-bold cursor-pointer ${
                                 activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
                               }`}
                               title={bg.label}
@@ -8230,14 +8271,24 @@ export default function WhiteboardPage() {
                         <h3 className="font-extrabold text-ink text-sm">Diagrams & Drafts</h3>
                         <p className="text-[10px] text-muted">{tabs.length} open tab{tabs.length > 1 ? "s" : ""} • {savedDrafts.length} saved draft{savedDrafts.length > 1 ? "s" : ""}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={handleSaveCurrentDraft}
-                        className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
-                        title="Save Current Diagram as Draft"
-                      >
-                        <Download className="h-3 w-3" /> Save Draft
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleSaveCurrentDraft(false)}
+                          className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
+                          title="Save Changes to Current Draft (Overwrite in-place)"
+                        >
+                          <Save className="h-3 w-3" /> Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveCurrentDraft(true)}
+                          className="px-2 py-1 rounded-lg border border-line bg-white text-slate-700 text-[11px] font-bold hover:bg-slate-50 transition shadow-xs flex items-center gap-1 cursor-pointer"
+                          title="Save as a Brand New Draft Snapshot"
+                        >
+                          <Download className="h-3 w-3" /> Save New
+                        </button>
+                      </div>
                     </div>
 
                     {/* Active Open Tabs Section */}
@@ -9501,7 +9552,10 @@ export default function WhiteboardPage() {
 
                 {/* Color Swatches */}
                 <div className="space-y-1.5 pt-1 border-t border-line">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-muted">Line Color</label>
+                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted">
+                    <span>Line Color</span>
+                    <span className="font-mono text-ink uppercase font-bold">{currentColor}</span>
+                  </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {[
                       "#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b",
@@ -9516,9 +9570,10 @@ export default function WhiteboardPage() {
                           showToast(`Line Color updated`);
                         }}
                         style={{ backgroundColor: col }}
-                        className={`h-6 w-6 rounded-full border shadow-2xs transition-transform cursor-pointer ${
-                          currentColor === col ? "scale-125 ring-2 ring-brand ring-offset-1" : "hover:scale-110 border-slate-300"
+                        className={`w-5 h-5 rounded border border-slate-300 shadow-2xs transition-transform cursor-pointer ${
+                          currentColor.toLowerCase() === col.toLowerCase() ? "scale-125 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
                         }`}
+                        title={col}
                       />
                     ))}
                   </div>
@@ -9800,14 +9855,27 @@ export default function WhiteboardPage() {
                     type="button"
                     onClick={() => {
                       setFileMenuOpen(false);
-                      handleSaveCurrentDraft();
+                      handleSaveCurrentDraft(false);
                     }}
                     className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
-                      <Save className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Save as Draft
+                      <Save className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Save
                     </span>
                     <span className="text-[10px] text-slate-500 font-mono">Ctrl+S</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileMenuOpen(false);
+                      handleSaveCurrentDraft(true);
+                    }}
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Download className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Save as New Draft...
+                    </span>
                   </button>
 
                   <div className="w-full h-px bg-slate-300 my-1" />
@@ -10334,7 +10402,11 @@ export default function WhiteboardPage() {
 
                   <button
                     type="button"
-                    onClick={() => { setInsertMenuOpen(false); triggerImageUpload(); }}
+                    onClick={() => {
+                      setInsertMenuOpen(false);
+                      selectTool("image");
+                      showToast("Image tool active — click anywhere on canvas to place image");
+                    }}
                     className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
@@ -11081,13 +11153,14 @@ export default function WhiteboardPage() {
                   <p className="px-3 py-0.5 text-[9px] font-black uppercase text-slate-400 tracking-wider">Media & Objects</p>
                   <FlyoutToolItem
                     toolKey="image"
-                    label="Insert Image…"
+                    label="Image Tool (Click Canvas to Insert)"
                     icon={ImageIcon}
                     isActive={activeTool === "image"}
                     isFavorited={favoritedTools.includes("image")}
                     onSelect={() => {
+                      selectTool("image");
                       setFlyoutGroup(null);
-                      triggerImageUpload();
+                      showToast("Image tool active — click anywhere on canvas to place image");
                     }}
                     onToggleFavorite={() => toggleFavoriteTool("image")}
                     showTooltips={showTooltips}
@@ -11780,6 +11853,17 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
                   >
                     <Type className="h-3.5 w-3.5 text-slate-700" /> Add Text Label Here
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerImageUpload(contextMenu.canvasPt);
+                      setContextMenu(null);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5 text-slate-700" /> Insert Image Here
                   </button>
 
                   <div className="border-t border-line pt-1 mt-1">
@@ -14668,10 +14752,21 @@ function renderWhiteboardShape(
     const strokeW = shape.strokeWidth || 2;
     const strokeCol = shape.strokeColor || shape.color || "#0f172a";
 
+    // Support Infinite Ray Mode
+    let renderP2 = p2;
+    if (shape.isRay && len > 0.1) {
+      // Extend p2 by a very large distance along the direction vector (e.g. 50,000px)
+      const rayExtension = 50000;
+      renderP2 = {
+        x: p1.x + Math.cos(angle) * rayExtension,
+        y: p1.y + Math.sin(angle) * rayExtension,
+      };
+    }
+
     // Draw base line
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
+    ctx.lineTo(renderP2.x, renderP2.y);
     ctx.stroke();
 
     // Helper to draw terminal head
@@ -14729,10 +14824,12 @@ function renderWhiteboardShape(
       ctx.restore();
     };
 
-    // Draw Start Terminal (facing backwards away from line: angle + PI)
+    // Draw Start Terminal (facing backwards away from line: angle + PI) and End Terminal
     if (len > 2) {
       renderTerminal(p1, angle + Math.PI, shape.arrowStart);
-      renderTerminal(p2, angle, shape.arrowEnd);
+      if (!shape.isRay) {
+        renderTerminal(p2, angle, shape.arrowEnd);
+      }
     }
   } else if (shape.type === "sticky") {
     const p0 = pts[0];
@@ -15389,19 +15486,31 @@ function renderWhiteboardShape(
     const headlen = 12;
     const dx = to.x - from.x;
     const dy = to.y - from.y;
+    const len = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx);
+
+    let renderTo = to;
+    if (shape.isRay && len > 0.1) {
+      const rayExtension = 50000;
+      renderTo = {
+        x: from.x + Math.cos(angle) * rayExtension,
+        y: from.y + Math.sin(angle) * rayExtension,
+      };
+    }
 
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
+    ctx.lineTo(renderTo.x, renderTo.y);
     ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(to.x, to.y);
-    ctx.lineTo(to.x - headlen * Math.cos(angle - Math.PI / 6), to.y - headlen * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(to.x - headlen * Math.cos(angle + Math.PI / 6), to.y - headlen * Math.sin(angle + Math.PI / 6));
-    ctx.closePath();
-    ctx.fill();
+    if (!shape.isRay) {
+      ctx.beginPath();
+      ctx.moveTo(to.x, to.y);
+      ctx.lineTo(to.x - headlen * Math.cos(angle - Math.PI / 6), to.y - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(to.x - headlen * Math.cos(angle + Math.PI / 6), to.y - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
   } else if (shape.type === "text" && shape.text) {
     const fFamily = shape.fontFamily || "Inter, sans-serif";
     const fSize = shape.fontSize || 16;
