@@ -9,7 +9,7 @@ import {
 import { navigate } from "../../lib/router";
 import {
   Presentation, LayoutTemplate, BookOpen, Library, Plus, Pencil, Trash2,
-  RotateCcw, Sparkles, ExternalLink, Check, Copy, AlertTriangle, Layers,
+  RotateCcw, ExternalLink, Check, Copy, AlertTriangle, Layers,
   FileSpreadsheet, ShieldAlert, SlidersHorizontal
 } from "lucide-react";
 

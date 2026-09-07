@@ -90,7 +90,6 @@ import {
   ExternalLink,
   GripHorizontal,
   FileText,
-  Sparkles,
   FolderPlus,
   Compass,
   CheckCircle2,
@@ -794,7 +793,7 @@ function ModernColorPicker({
       {/* Preset Swatches Palette */}
       <div className="pt-1.5 border-t border-slate-200">
         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Presets</span>
-        <div className="grid grid-cols-7 gap-1 min-w-0">
+        <div className="grid grid-cols-7 gap-1.5 p-1.5 min-w-0 bg-slate-50/70 rounded-lg border border-slate-200/60">
           {EXTENDED_PALETTE.map((swatch) => (
             <button
               key={swatch}
@@ -809,7 +808,7 @@ function ModernColorPicker({
                 setHexInput(swatch.toUpperCase());
                 onChange(swatch);
               }}
-              className={'w-full aspect-square rounded border border-slate-200 transition-transform hover:scale-110 cursor-pointer flex items-center justify-center ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-105 shadow-xs" : "")}
+              className={'w-full aspect-square rounded-md border border-slate-300 transition-all hover:scale-105 cursor-pointer flex items-center justify-center ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand ring-offset-1 ring-offset-white shadow-xs z-10" : "hover:border-slate-400")}
               style={{ backgroundColor: swatch }}
               title={swatch}
             >
@@ -918,14 +917,14 @@ function ModernColorField({
 
       {/* Quick Swatch Pills if provided */}
       {quickSwatches && quickSwatches.length > 0 && (
-        <div className="flex items-center gap-1 pt-0.5 overflow-x-auto [scrollbar-width:none]">
+        <div className="flex items-center gap-1.5 p-1.5 overflow-x-auto [scrollbar-width:none] bg-slate-50/70 rounded-lg border border-slate-200/60">
           {quickSwatches.map((swatch) => (
             <button
               key={swatch}
               type="button"
               onClick={() => onChange(swatch)}
               disabled={disabled}
-              className={'w-4.5 h-4.5 rounded border border-slate-200 transition-transform hover:scale-110 shrink-0 cursor-pointer ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand scale-105 shadow-xs" : "")}
+              className={'w-5 h-5 rounded-md border border-slate-300 transition-all hover:scale-105 shrink-0 cursor-pointer ' + (color.toLowerCase() === swatch.toLowerCase() ? "ring-2 ring-brand ring-offset-1 ring-offset-white shadow-xs z-10" : "hover:border-slate-400")}
               style={{ backgroundColor: swatch }}
               title={swatch}
             />
@@ -1121,17 +1120,17 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     shortcut: "J",
   },
   eyedropper: {
-    title: "Color Picker (Eyedropper)",
+    title: "Color Picker",
     desc: "Sample colors directly from any shape or pixel on the canvas.",
     shortcut: "I",
   },
   paintbucket: {
-    title: "Paint Bucket Tool",
+    title: "Paint Drop",
     desc: "Click on any shape or selected objects to instantly fill with the fill color.",
     shortcut: "K",
   },
   image: {
-    title: "Insert Image",
+    title: "Image Tool",
     desc: "Upload and insert PNG, JPG, or SVG images directly onto the canvas.",
     shortcut: "Ctrl+I",
   },
@@ -1165,6 +1164,9 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Chart Pattern Path (Bezier)", keys: ["B"] },
       { label: "Teaching Sticky Note", keys: ["N"] },
       { label: "Text Label Tool", keys: ["T"] },
+      { label: "Color Picker", keys: ["I"] },
+      { label: "Paint Drop", keys: ["K"] },
+      { label: "Image Tool", keys: ["Ctrl", "I"] },
       { label: "Annotation Leader Line", keys: ["W"] },
       { label: "Precision Eraser", keys: ["E"] },
       { label: "Click Zoom Tool", keys: ["Z"] },
@@ -1181,7 +1183,7 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
       { label: "Short Position Setup", keys: ["S"] },
       { label: "Order Block (OB Zone)", keys: ["O"] },
       { label: "Fair Value Gap (FVG)", keys: ["G"] },
-      { label: "Break of Structure (BOS)", keys: ["K"] },
+      { label: "Break of Structure (BOS)", keys: ["Shift", "B"] },
       { label: "Liquidity Pool ($$$)", keys: ["Q"] },
       { label: "Bullish Candlestick", keys: ["U"] },
       { label: "Bearish Candlestick", keys: ["J"] },
@@ -1203,6 +1205,8 @@ const SHORTCUT_GROUPS: ShortcutCategory[] = [
   {
     category: "Object Manipulation, Layers & Tabs",
     items: [
+      { label: "Group Selected Objects", keys: ["Ctrl", "G"] },
+      { label: "Ungroup Selected Objects", keys: ["Ctrl", "Shift", "G"] },
       { label: "Undo Last Action", keys: ["Ctrl", "Z"] },
       { label: "Redo Last Action", keys: ["Ctrl", "Y"] },
       { label: "Save Diagram Draft", keys: ["Ctrl", "S"] },
@@ -1290,6 +1294,314 @@ const DistributeVIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) 
 const INITIAL_TABS: DiagramTab[] = [
   { id: "canvas_1", name: "Canvas 1", shapes: [], theme: "dots", snapToGrid: true },
 ];
+
+/* ========================================================================== */
+/*                       MARKET SESSIONS RADAR TAB                            */
+/* ========================================================================== */
+
+function MarketSessionsRadarTab() {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const utcH = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  const utcStr = `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}:${String(now.getUTCSeconds()).padStart(2, "0")} UTC`;
+  const localStr = now.toLocaleTimeString();
+
+  const sessions = [
+    {
+      id: "london",
+      name: "London Session",
+      city: "London",
+      short: "LDN",
+      start: 8,
+      end: 16,
+      color: "#10b981",
+      desc: "08:00 – 16:00 GMT • High Volume & Trends",
+    },
+    {
+      id: "newyork",
+      name: "New York Session",
+      city: "New York",
+      short: "NY",
+      start: 13,
+      end: 21,
+      color: "#3b82f6",
+      desc: "13:00 – 21:00 GMT • Peak Liquidity",
+    },
+    {
+      id: "tokyo",
+      name: "Tokyo / Asian",
+      city: "Tokyo",
+      short: "TYO",
+      start: 0,
+      end: 9,
+      color: "#8b5cf6",
+      desc: "00:00 – 09:00 GMT • Range Accumulation",
+    },
+    {
+      id: "sydney",
+      name: "Sydney Session",
+      city: "Sydney",
+      short: "SYD",
+      start: 21,
+      end: 6,
+      color: "#f59e0b",
+      desc: "21:00 – 06:00 GMT • Early Pacific Flow",
+    },
+  ];
+
+  const sessionStatuses = sessions.map((s) => {
+    const isOpen = s.start < s.end
+      ? utcH >= s.start && utcH < s.end
+      : utcH >= s.start || utcH < s.end;
+    const timeRemaining = isOpen
+      ? (s.end - utcH + 24) % 24
+      : (s.start - utcH + 24) % 24;
+    const hrs = Math.floor(timeRemaining);
+    const mins = Math.floor((timeRemaining - hrs) * 60);
+    const countdown = `${hrs}h ${mins}m`;
+    return { ...s, isOpen, countdown };
+  });
+
+  const activeCount = sessionStatuses.filter((s) => s.isOpen).length;
+  const isOverlap = sessionStatuses.find((s) => s.id === "london")?.isOpen && sessionStatuses.find((s) => s.id === "newyork")?.isOpen;
+  const overallVol = isOverlap ? 96 : activeCount >= 2 ? 82 : activeCount === 1 ? 64 : 32;
+
+  // Killzones
+  const killzones = [
+    { name: "London Open Killzone", start: 7, end: 10, timeStr: "07:00–10:00 GMT", desc: "Judas Swing & Initial Low/High Formation" },
+    { name: "New York AM Killzone", start: 12, end: 15, timeStr: "12:00–15:00 GMT", desc: "Peak Session Expansion & Trend Run" },
+    { name: "Silver Bullet Window", start: 14, end: 15, timeStr: "14:00–15:00 GMT", desc: "1-Hour Algorithmic FVG Delivery" },
+    { name: "Asian Range Benchmark", start: 0, end: 6, timeStr: "00:00–06:00 GMT", desc: "Accumulation Range High/Low Liquidity" },
+  ].map((kz) => {
+    const isActive = kz.start < kz.end
+      ? utcH >= kz.start && utcH < kz.end
+      : utcH >= kz.start || utcH < kz.end;
+    return { ...kz, isActive };
+  });
+
+  // Radar geometry
+  const cx = 100;
+  const cy = 100;
+  const r = 70;
+
+  const getArc = (startH: number, endH: number, radius: number) => {
+    const span = (endH - startH + 24) % 24 || 24;
+    const sAngle = (startH / 24) * 2 * Math.PI - Math.PI / 2;
+    const eAngle = ((startH + span) / 24) * 2 * Math.PI - Math.PI / 2;
+    const x1 = cx + radius * Math.cos(sAngle);
+    const y1 = cy + radius * Math.sin(sAngle);
+    const x2 = cx + radius * Math.cos(eAngle);
+    const y2 = cy + radius * Math.sin(eAngle);
+    const largeArc = span > 12 ? 1 : 0;
+    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
+  };
+
+  const nowAngle = (utcH / 24) * 2 * Math.PI - Math.PI / 2;
+  const nowX = cx + (r - 2) * Math.cos(nowAngle);
+  const nowY = cy + (r - 2) * Math.sin(nowAngle);
+
+  return (
+    <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
+      {/* 1. INTERACTIVE LIVE 24H RADAR DISPLAY */}
+      <div className="rounded-xl border border-slate-300 bg-slate-900 p-3 text-white shadow-md relative overflow-hidden">
+        {/* Glow backdrop */}
+        <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
+
+        {/* Top clock bar */}
+        <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 relative z-10">
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-bold text-xs tracking-tight text-white flex items-center gap-1">
+              <Globe className="h-3.5 w-3.5 text-emerald-400" /> 24H Sessions Radar
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="font-mono text-[11px] font-bold text-emerald-400 block leading-tight">{utcStr}</span>
+            <span className="font-mono text-[9px] text-slate-400 block">Local: {localStr}</span>
+          </div>
+        </div>
+
+        {/* Circular Radar Visual Dial */}
+        <div className="relative flex items-center justify-center my-1">
+          <svg viewBox="0 0 200 200" className="w-48 h-48 drop-shadow-lg">
+            <defs>
+              <linearGradient id="radarSweep" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            {/* Radar Background circle */}
+            <circle cx={cx} cy={cy} r={r + 14} fill="#0b1120" stroke="#1e293b" strokeWidth="1.5" />
+
+            {/* Concentric distance rings */}
+            <circle cx={cx} cy={cy} r={r * 0.35} fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="2 2" />
+            <circle cx={cx} cy={cy} r={r * 0.7} fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#334155" strokeWidth="1" />
+
+            {/* Radar Crosshairs */}
+            <line x1={cx} y1={cy - r - 8} x2={cx} y2={cy + r + 8} stroke="#1e293b" strokeWidth="1" />
+            <line x1={cx - r - 8} y1={cy} x2={cx + r + 8} y2={cy} stroke="#1e293b" strokeWidth="1" />
+
+            {/* Hour labels (00, 06, 12, 18) */}
+            <text x={cx} y={cy - r - 4} textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">00h</text>
+            <text x={cx + r + 6} y={cy + 2.5} textAnchor="start" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">06h</text>
+            <text x={cx} y={cy + r + 10} textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">12h</text>
+            <text x={cx - r - 6} y={cy + 2.5} textAnchor="end" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">18h</text>
+
+            {/* Session Arcs on Outer Radar Ring */}
+            {sessionStatuses.map((s, idx) => {
+              const arcRadius = r + 4 + idx * 2.5;
+              return (
+                <path
+                  key={s.id}
+                  d={getArc(s.start, s.end, arcRadius)}
+                  fill="none"
+                  stroke={s.color}
+                  strokeWidth={s.isOpen ? 4 : 1.5}
+                  strokeLinecap="round"
+                  opacity={s.isOpen ? 1 : 0.35}
+                />
+              );
+            })}
+
+            {/* Rotating Radar Sweep Beam */}
+            <g style={{ transformOrigin: "100px 100px", animation: "spin 5s linear infinite" }}>
+              <path
+                d={`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 0 1 ${cx + r * 0.7} ${cy - r * 0.7} Z`}
+                fill="url(#radarSweep)"
+              />
+              <line x1={cx} y1={cy} x2={cx} y2={cy - r} stroke="#10b981" strokeWidth="1.5" opacity="0.85" />
+            </g>
+
+            {/* Center Radar Core */}
+            <circle cx={cx} cy={cy} r="18" fill="#0f172a" stroke="#334155" strokeWidth="1.5" />
+            <circle cx={cx} cy={cy} r="4" fill="#10b981" />
+
+            {/* Current Live Time Marker Blip on Ring */}
+            <circle cx={nowX} cy={nowY} r="5" fill="#ffffff" opacity="0.3" className="animate-ping" />
+            <circle cx={nowX} cy={nowY} r="4" fill="#ffffff" stroke="#ef4444" strokeWidth="1.5" />
+          </svg>
+        </div>
+
+        {/* Live Liquidity / Volume Gauge */}
+        <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] relative z-10">
+          <span className="text-slate-400">Market Liquidity:</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-20 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  overallVol >= 85 ? "bg-emerald-500" : overallVol >= 60 ? "bg-blue-500" : "bg-amber-500"
+                }`}
+                style={{ width: `${overallVol}%` }}
+              />
+            </div>
+            <span className="font-mono font-bold text-white">{overallVol}%</span>
+            {isOverlap && <span className="text-[8.5px] font-bold text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-800/80">OVERLAP</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. LIVE SESSION STATUS CARDS WITH ACTIVE COUNTDOWNS */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-slate-600" /> Active Session Feeds
+          </span>
+          <span className="text-[9.5px] font-mono font-bold text-slate-500">
+            {activeCount} of 4 Open
+          </span>
+        </div>
+
+        <div className="space-y-1.5">
+          {sessionStatuses.map((s) => (
+            <div
+              key={s.id}
+              className={`flex items-center justify-between p-2 rounded-lg border text-xs transition-all ${
+                s.isOpen
+                  ? "bg-slate-50 border-slate-300 shadow-2xs"
+                  : "bg-slate-50/40 border-slate-200/60 opacity-70"
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.isOpen ? "animate-pulse" : ""}`}
+                  style={{ backgroundColor: s.color }}
+                />
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900 truncate">{s.name}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{s.desc}</p>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border block ${
+                    s.isOpen
+                      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                      : "text-slate-500 bg-slate-100 border-slate-200"
+                  }`}
+                >
+                  {s.isOpen ? "ACTIVE" : "CLOSED"}
+                </span>
+                <span className="text-[8.5px] text-slate-500 font-mono block mt-0.5">
+                  {s.isOpen ? `Closes in ${s.countdown}` : `Opens in ${s.countdown}`}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. ICT / SMC KILLZONE WINDOWS SCHEDULE */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            <Activity className="h-3.5 w-3.5 text-amber-500" /> ICT Killzone Windows
+          </span>
+          <span className="text-[9px] text-slate-400 font-mono">Algorithmic Delivery</span>
+        </div>
+
+        <div className="space-y-1">
+          {killzones.map((kz) => (
+            <div
+              key={kz.name}
+              className={`p-2 rounded-lg border flex items-center justify-between transition-all ${
+                kz.isActive
+                  ? "bg-amber-50/70 border-amber-300 shadow-2xs"
+                  : "bg-slate-50/50 border-slate-200/70"
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className={`font-bold text-slate-900 ${kz.isActive ? "text-amber-900" : ""}`}>
+                    {kz.name}
+                  </span>
+                  {kz.isActive && (
+                    <span className="px-1 py-0.2 rounded text-[8px] font-extrabold bg-amber-200 text-amber-900 uppercase">
+                      Live
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-slate-500 block leading-tight">{kz.desc}</span>
+              </div>
+              <span className="font-mono text-[10px] font-bold text-slate-700 shrink-0 ml-2">
+                {kz.timeStr}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ========================================================================== */
 /*                             MAIN COMPONENT                                 */
@@ -2210,6 +2522,23 @@ export default function WhiteboardPage() {
         return;
       }
 
+      if (isCtrl && key === "g") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          ungroupSelectedObjects();
+        } else {
+          groupSelectedObjects();
+        }
+        return;
+      }
+
+      if (isCtrl && key === "i") {
+        e.preventDefault();
+        selectTool("image");
+        triggerImageUpload();
+        return;
+      }
+
       // Keyboard Navigation Keys: Move selected object(s) Up, Down, Left, Right
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
         e.preventDefault();
@@ -2313,7 +2642,9 @@ export default function WhiteboardPage() {
         else if (key === "s") { setActiveForexTool("short"); setActiveTool("short"); showToast("Forex Tool: Short Position (S)"); }
         else if (key === "o") { setActiveForexTool("orderblock"); setActiveTool("orderblock"); showToast("Forex Tool: Order Block Zone (O)"); }
         else if (key === "g") { setActiveForexTool("fvg"); setActiveTool("fvg"); showToast("Forex Tool: Fair Value Gap / FVG (G)"); }
-        else if (key === "k") { setActiveForexTool("bos"); setActiveTool("bos"); showToast("Forex Tool: Break of Structure / BOS (K)"); }
+        else if (key === "k" && !e.shiftKey) { setActiveColorTool("paintbucket"); selectTool("paintbucket"); showToast("Tool: Paint Drop (K)"); }
+        else if (key === "k" && e.shiftKey) { setActiveForexTool("bos"); setActiveTool("bos"); showToast("Forex Tool: Break of Structure / BOS (Shift+K)"); }
+        else if (key === "i") { activateEyedropper(); }
         else if (key === "q") { setActiveForexTool("liquidity"); setActiveTool("liquidity"); showToast("Forex Tool: Liquidity Pool / $$$ (Q)"); }
         else if (key === "u") { setActiveForexTool("bullish_candle"); setActiveTool("bullish_candle"); showToast("Forex Tool: Bullish Candlestick (U)"); }
         else if (key === "j") { setActiveForexTool("bearish_candle"); setActiveTool("bearish_candle"); showToast("Forex Tool: Bearish Candlestick (J)"); }
@@ -2348,7 +2679,7 @@ export default function WhiteboardPage() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize, strokeColor, fillColor]);
+  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize, strokeColor, fillColor, layerGroups]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
@@ -2836,6 +3167,52 @@ export default function WhiteboardPage() {
     showToast("Color Picker active — click any shape or canvas pixel");
   };
 
+  const groupSelectedObjects = () => {
+    if (selectedShapeIds.length < 2) {
+      showToast("Select 2 or more objects to group");
+      return;
+    }
+    const newGroupId = `group-${Date.now()}`;
+    const newGroupName = `Group ${layerGroups.length + 1}`;
+    setLayerGroups((prev) => {
+      const cleaned = prev
+        .map((g) => ({
+          ...g,
+          shapeIds: g.shapeIds.filter((id) => !selectedShapeIds.includes(id)),
+        }))
+        .filter((g) => g.shapeIds.length > 0);
+      return [
+        ...cleaned,
+        {
+          id: newGroupId,
+          name: newGroupName,
+          shapeIds: [...selectedShapeIds],
+          isCollapsed: false,
+          isLocked: false,
+          isHidden: false,
+        },
+      ];
+    });
+    showToast(`Grouped ${selectedShapeIds.length} objects (Ctrl+G)`);
+  };
+
+  const ungroupSelectedObjects = () => {
+    if (selectedShapeIds.length === 0) {
+      showToast("Select a group or grouped objects to ungroup");
+      return;
+    }
+    const matchingGroups = layerGroups.filter((g) =>
+      g.shapeIds.some((id) => selectedShapeIds.includes(id))
+    );
+    if (matchingGroups.length === 0) {
+      showToast("Selected object(s) are not in a group");
+      return;
+    }
+    const matchingIds = matchingGroups.map((g) => g.id);
+    setLayerGroups((prev) => prev.filter((g) => !matchingIds.includes(g.id)));
+    showToast(`Ungrouped ${matchingGroups.length} group(s) (Ctrl+Shift+G)`);
+  };
+
   const ungroupLayerGroup = (groupId: string) => {
     setLayerGroups((prev) => prev.filter((g) => g.id !== groupId));
     showToast("Ungrouped layers");
@@ -3146,10 +3523,24 @@ export default function WhiteboardPage() {
       if (hitShape) {
         setIsInspectorOpen(true);
 
+        const parentGroup = layerGroups.find((g) => g.shapeIds.includes(hitShape.id));
         if (e.shiftKey) {
-          setSelectedShapeIds((prev) => (prev.includes(hitShape.id) ? prev.filter((id) => id !== hitShape.id) : [...prev, hitShape.id]));
+          if (parentGroup && !e.altKey) {
+            const hasAll = parentGroup.shapeIds.every((id) => selectedShapeIds.includes(id));
+            setSelectedShapeIds((prev) =>
+              hasAll
+                ? prev.filter((id) => !parentGroup.shapeIds.includes(id))
+                : Array.from(new Set([...prev, ...parentGroup.shapeIds]))
+            );
+          } else {
+            setSelectedShapeIds((prev) => (prev.includes(hitShape.id) ? prev.filter((id) => id !== hitShape.id) : [...prev, hitShape.id]));
+          }
         } else if (!selectedShapeIds.includes(hitShape.id)) {
-          setSelectedShapeIds([hitShape.id]);
+          if (parentGroup && !e.altKey) {
+            setSelectedShapeIds(parentGroup.shapeIds);
+          } else {
+            setSelectedShapeIds([hitShape.id]);
+          }
         }
 
         if (!hitShape.isLocked) {
@@ -6971,6 +7362,26 @@ export default function WhiteboardPage() {
                 </div>
                 {selectedShape && (
                   <div className="flex items-center gap-1">
+                    {selectedShapeIds.length >= 2 && (
+                      <button
+                        type="button"
+                        onClick={groupSelectedObjects}
+                        className="p-1.5 rounded-lg border text-xs transition cursor-pointer bg-white text-slate-600 hover:text-brand border-slate-200 hover:bg-slate-50"
+                        title="Group Selected Objects (Ctrl+G)"
+                      >
+                        <FolderPlus className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    {layerGroups.some((g) => g.shapeIds.some((id) => selectedShapeIds.includes(id))) && (
+                      <button
+                        type="button"
+                        onClick={ungroupSelectedObjects}
+                        className="p-1.5 rounded-lg border text-xs transition cursor-pointer bg-white text-slate-600 hover:text-brand border-slate-200 hover:bg-slate-50"
+                        title="Ungroup Selected Objects (Ctrl+Shift+G)"
+                      >
+                        <FolderMinus className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => toggleLockShape(selectedShape.id)}
@@ -7966,97 +8377,97 @@ export default function WhiteboardPage() {
 
                 {/* TAB 3: CHARACTER & TYPOGRAPHY FORMATTING TAB */}
                 {tabKey === "character" && (
-                  <div className="space-y-3.5 animate-in fade-in duration-150">
+                  <div className="space-y-2.5 animate-in fade-in duration-150 text-slate-800 text-xs">
                     {/* Header */}
-                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
-                      <div className="flex items-center gap-2.5 font-extrabold text-xs text-ink min-w-0 flex-1">
-                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                    <div className="flex items-center justify-between px-1 py-0.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 shrink-0">
                           <CharacterIcon className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="font-extrabold text-xs text-ink truncate">
-                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type}` : "Character Settings"}
-                        </span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs text-slate-900 truncate block">
+                            {selectedShape ? `Text: ${selectedShape.name || selectedShape.type.toUpperCase()}` : "Typography"}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-sans block">
+                            {selectedShape ? "Live Canvas Sync" : "Default Typography"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* 1. Live Text Content Editor (Direct Editing) */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                        <span>Text Content</span>
-                        <span className="text-[9px] text-brand font-medium">Live Canvas Sync</span>
-                      </label>
+                    {/* 1. Live Text Content Editor */}
+                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <span>Content</span>
+                        {selectedShape && <span className="text-[9px] text-brand font-semibold">Synced</span>}
+                      </div>
                       <textarea
-                        rows={3}
-                        value={
-                          selectedShape
-                            ? (selectedShape.text ?? "")
-                            : ""
-                        }
+                        rows={2}
+                        value={selectedShape ? (selectedShape.text ?? "") : ""}
                         onChange={(e) => {
                           const val = e.target.value;
                           if (selectedShape) {
                             updateActiveTypography({ text: val });
                           }
                         }}
-                        placeholder={selectedShape ? "Type text or note..." : "Select text on canvas to edit content..."}
+                        placeholder={selectedShape ? "Type text or note..." : "Select text on canvas to edit..."}
                         disabled={!selectedShape}
-                        className="w-full rounded-xl border border-line bg-slate-50 p-2.5 text-xs text-ink outline-none focus:border-brand focus:bg-white resize-none transition disabled:opacity-50"
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50/70 p-2 text-xs font-medium text-slate-900 outline-none focus:border-brand focus:bg-white resize-none transition disabled:opacity-40"
                       />
                     </div>
 
-                    {/* 2. Font Family Selection */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Family</label>
-                      <select
-                        value={activeFontFamily}
-                        onChange={(e) => updateActiveTypography({ fontFamily: e.target.value })}
-                        className="w-full rounded-xl border border-line bg-slate-50 p-2 text-xs font-bold text-ink outline-none focus:border-brand transition cursor-pointer"
-                      >
-                        <option value="Inter, sans-serif">Inter (Modern Sans)</option>
-                        <option value="Roboto, sans-serif">Roboto</option>
-                        <option value="Arial, sans-serif">Arial Standard</option>
-                        <option value="Georgia, serif">Georgia (Editorial Serif)</option>
-                        <option value="'Times New Roman', serif">Times New Roman</option>
-                        <option value="'Courier New', monospace">Courier Monospace</option>
-                        <option value="'Caveat', cursive, sans-serif">Caveat (Handwritten)</option>
-                        <option value="'Impact', sans-serif">Impact (Bold Display)</option>
-                      </select>
-                    </div>
-
-                    {/* 3. Font Size Stepper & Quick Presets */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted">Font Size</label>
-                        <div className="flex items-center gap-1.5">
+                    {/* 2. Font Family & Size Combined Compact Card */}
+                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2 shadow-2xs">
+                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <span>Font & Size</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <select
+                          value={activeFontFamily}
+                          onChange={(e) => updateActiveTypography({ fontFamily: e.target.value })}
+                          className="flex-1 min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 py-1.5 px-2 text-xs font-bold text-slate-800 outline-none focus:border-brand focus:bg-white transition cursor-pointer"
+                        >
+                          <option value="Inter, sans-serif">Inter</option>
+                          <option value="Roboto, sans-serif">Roboto</option>
+                          <option value="Arial, sans-serif">Arial</option>
+                          <option value="Georgia, serif">Georgia</option>
+                          <option value="'Times New Roman', serif">Times New Roman</option>
+                          <option value="'Courier New', monospace">Courier</option>
+                          <option value="'Caveat', cursive, sans-serif">Caveat</option>
+                          <option value="'Impact', sans-serif">Impact</option>
+                        </select>
+                        <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50/70 p-0.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ fontSize: Math.max(8, activeFontSize - 2) })}
-                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                            className="h-6 w-6 rounded flex items-center justify-center text-xs font-black text-slate-600 hover:bg-white hover:text-brand transition cursor-pointer"
+                            title="Decrease Size"
                           >
                             -
                           </button>
-                          <span className="text-xs font-bold text-ink w-9 text-center font-mono">{activeFontSize}px</span>
+                          <span className="text-xs font-mono font-bold text-slate-800 w-8 text-center">{activeFontSize}</span>
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ fontSize: Math.min(120, activeFontSize + 2) })}
-                            className="h-6 w-6 rounded-lg border border-line bg-slate-50 flex items-center justify-center text-xs font-black text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                            className="h-6 w-6 rounded flex items-center justify-center text-xs font-black text-slate-600 hover:bg-white hover:text-brand transition cursor-pointer"
+                            title="Increase Size"
                           >
                             +
                           </button>
                         </div>
                       </div>
 
-                      {/* Quick Size Pills */}
-                      <div className="flex flex-wrap gap-1">
-                        {[12, 14, 16, 20, 24, 32, 48, 64].map((sz) => (
+                      {/* Quick Size Presets */}
+                      <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] pt-0.5">
+                        {[12, 14, 16, 20, 24, 32, 48].map((sz) => (
                           <button
                             key={sz}
                             type="button"
                             onClick={() => updateActiveTypography({ fontSize: sz })}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                            className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold transition cursor-pointer shrink-0 ${
                               activeFontSize === sz
-                                ? "bg-brand text-white shadow-xs"
-                                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                                ? "bg-brand text-white shadow-2xs"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                             }`}
                           >
                             {sz}
@@ -8065,17 +8476,21 @@ export default function WhiteboardPage() {
                       </div>
                     </div>
 
-                    {/* 4. Font Styles: Bold, Italic, Underline, Strikethrough */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Character Style</label>
-                      <div className="grid grid-cols-4 gap-1.5">
+                    {/* 3. Style, Alignment & Case Segmented Control Card */}
+                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2 shadow-2xs">
+                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <span>Format & Align</span>
+                      </div>
+
+                      {/* Style buttons */}
+                      <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-lg">
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ fontWeight: activeFontWeight === "bold" ? "normal" : "bold" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
                             activeFontWeight === "bold"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                              ? "bg-white text-slate-900 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Bold"
                         >
@@ -8084,10 +8499,10 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ fontStyle: activeFontStyle === "italic" ? "normal" : "italic" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
                             activeFontStyle === "italic"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                              ? "bg-white text-slate-900 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Italic"
                         >
@@ -8096,10 +8511,10 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "underline" ? "none" : "underline" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
                             activeTextDecoration === "underline"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                              ? "bg-white text-slate-900 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Underline"
                         >
@@ -8108,133 +8523,124 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "line-through" ? "none" : "line-through" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
                             activeTextDecoration === "line-through"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
+                              ? "bg-white text-slate-900 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Strikethrough"
                         >
                           <Strikethrough className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                    </div>
 
-                    {/* 5. Text Alignment */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Alignment</label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textAlign: "left" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextAlign === "left"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Align Left"
-                        >
-                          <AlignLeft className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textAlign: "center" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextAlign === "center"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Align Center"
-                        >
-                          <AlignCenter className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textAlign: "right" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-xs font-bold transition cursor-pointer ${
-                            activeTextAlign === "right"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Align Right"
-                        >
-                          <AlignRight className="h-3.5 w-3.5" />
-                        </button>
+                      {/* Alignment and Transform Row */}
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {/* Alignment */}
+                        <div className="flex items-center gap-0.5 p-0.5 bg-slate-100/80 rounded-lg">
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ textAlign: "left" })}
+                            className={`flex-1 py-1 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextAlign === "left" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            }`}
+                            title="Align Left"
+                          >
+                            <AlignLeft className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ textAlign: "center" })}
+                            className={`flex-1 py-1 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextAlign === "center" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            }`}
+                            title="Align Center"
+                          >
+                            <AlignCenter className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ textAlign: "right" })}
+                            className={`flex-1 py-1 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextAlign === "right" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            }`}
+                            title="Align Right"
+                          >
+                            <AlignRight className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Case transform */}
+                        <div className="flex items-center gap-0.5 p-0.5 bg-slate-100/80 rounded-lg">
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ textTransform: "none" })}
+                            className={`flex-1 py-1 rounded-md flex items-center justify-center text-[10px] font-bold transition cursor-pointer ${
+                              activeTextTransform === "none" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            }`}
+                            title="Regular"
+                          >
+                            <Type className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ textTransform: "uppercase" })}
+                            className={`flex-1 py-1 rounded-md flex items-center justify-center text-[10px] font-bold transition cursor-pointer ${
+                              activeTextTransform === "uppercase" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            }`}
+                            title="UPPERCASE"
+                          >
+                            <CaseUpper className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateActiveTypography({ textTransform: "lowercase" })}
+                            className={`flex-1 py-1 rounded-md flex items-center justify-center text-[10px] font-bold transition cursor-pointer ${
+                              activeTextTransform === "lowercase" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            }`}
+                            title="lowercase"
+                          >
+                            <CaseLower className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* 6. Text Transform */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-muted">Capitalization</label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textTransform: "none" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
-                            activeTextTransform === "none"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="Regular Case"
-                        >
-                          <Type className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textTransform: "uppercase" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
-                            activeTextTransform === "uppercase"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="UPPERCASE"
-                        >
-                          <CaseUpper className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateActiveTypography({ textTransform: "lowercase" })}
-                          className={`py-1.5 rounded-xl border flex items-center justify-center text-[10.5px] font-bold transition cursor-pointer ${
-                            activeTextTransform === "lowercase"
-                              ? "bg-brand text-white border-brand shadow-xs"
-                              : "bg-slate-50 text-slate-700 border-line hover:bg-slate-100"
-                          }`}
-                          title="lowercase"
-                        >
-                          <CaseLower className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 7. Text Color & Highlight Background */}
-                    <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                      <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Text Color</label>
-                        <div className="flex items-center gap-1.5">
+                    {/* 4. Color & Highlight Card */}
+                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2 shadow-2xs">
+                      {/* Text Color */}
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Text Color</span>
+                        <div className="flex items-center gap-1.5 p-1.5 bg-slate-50/70 rounded-lg border border-slate-200/60 overflow-x-auto [scrollbar-width:none]">
                           {["#1e293b", "#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => (
                             <button
                               key={col}
                               type="button"
                               onClick={() => updateActiveTypography({ textColor: col })}
                               style={{ backgroundColor: col }}
-                              className={`w-5 h-5 rounded border border-slate-300 transition cursor-pointer ${
-                                activeTextColor === col ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
+                              className={`w-5 h-5 rounded-md border border-slate-300 transition-all hover:scale-105 cursor-pointer shrink-0 ${
+                                activeTextColor.toLowerCase() === col.toLowerCase() ? "ring-2 ring-brand ring-offset-1 ring-offset-white shadow-xs z-10" : ""
                               }`}
+                              title={col}
                             />
                           ))}
-                          <input
-                            type="color"
-                            value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
-                            onChange={(e) => updateActiveTypography({ textColor: e.target.value })}
-                            className="w-5 h-5 rounded cursor-pointer border-0 p-0"
-                            title="Custom Color"
-                          />
+                          <div className="relative w-5 h-5 rounded-md border border-slate-300 overflow-hidden shrink-0 hover:scale-105 transition cursor-pointer flex items-center justify-center bg-white">
+                            <input
+                              type="color"
+                              value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
+                              onChange={(e) => updateActiveTypography({ textColor: e.target.value })}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              title="Custom Color"
+                            />
+                            <Palette className="h-3 w-3 text-slate-500 pointer-events-none" />
+                          </div>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted block mb-1.5">Highlight Background</label>
-                        <div className="flex items-center gap-1.5">
+                      {/* Highlight Background */}
+                      <div className="space-y-1 pt-1 border-t border-slate-100">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Highlight</span>
+                        <div className="flex items-center gap-1.5 p-1.5 bg-slate-50/70 rounded-lg border border-slate-200/60 overflow-x-auto [scrollbar-width:none]">
                           {[
                             { color: "transparent", label: "None" },
                             { color: "#fef08a", label: "Yellow" },
@@ -8247,13 +8653,13 @@ export default function WhiteboardPage() {
                               key={bg.color}
                               type="button"
                               onClick={() => updateActiveTypography({ textBgColor: bg.color })}
-                              style={{ backgroundColor: bg.color === "transparent" ? "#f1f5f9" : bg.color }}
-                              className={`w-5 h-5 rounded border border-slate-300 transition flex items-center justify-center text-[8px] font-bold cursor-pointer ${
-                                activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 scale-110" : ""
+                              style={{ backgroundColor: bg.color === "transparent" ? "#ffffff" : bg.color }}
+                              className={`w-5 h-5 rounded-md border border-slate-300 transition-all hover:scale-105 flex items-center justify-center text-[9px] font-bold cursor-pointer shrink-0 ${
+                                activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 ring-offset-white shadow-xs z-10" : ""
                               }`}
                               title={bg.label}
                             >
-                              {bg.color === "transparent" && "✕"}
+                              {bg.color === "transparent" && <span className="text-slate-400 text-[10px]">✕</span>}
                             </button>
                           ))}
                         </div>
@@ -8929,123 +9335,7 @@ export default function WhiteboardPage() {
 
         {/* TAB 9: MARKET SESSIONS & KILLZONES RADAR */}
         {tabKey === "sessions" && (
-          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
-            {/* LIVE MARKET SESSIONS CLOCK CARD */}
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-2">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Market Sessions Radar
-                </span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  UTC / GMT Live
-                </span>
-              </div>
-
-              {/* 4 Sessions Live Status Feed */}
-              <div className="space-y-1.5">
-                {/* London Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <div>
-                      <p className="font-bold text-slate-900">London Session</p>
-                      <p className="text-[10px] text-slate-600">08:00 – 16:00 GMT • High Volume</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 border border-emerald-200 block">ACTIVE</span>
-                    <span className="text-[8.5px] text-slate-500 font-mono">Vol: 88%</span>
-                  </div>
-                </div>
-
-                {/* New York Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-500" />
-                    <div>
-                      <p className="font-bold text-slate-900">New York Session</p>
-                      <p className="text-[10px] text-slate-600">13:00 – 21:00 GMT • Peak Overlap</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9.5px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 border border-blue-200 block">ACTIVE</span>
-                    <span className="text-[8.5px] text-slate-500 font-mono">Vol: 94%</span>
-                  </div>
-                </div>
-
-                {/* Asian / Tokyo Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-slate-400" />
-                    <div>
-                      <p className="font-bold text-slate-800">Tokyo / Asian Session</p>
-                      <p className="text-[10px] text-slate-600">00:00 – 08:00 GMT • Accumulation</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300 block">CLOSED</span>
-                    <span className="text-[8.5px] text-slate-500 font-mono">Opens in 1h</span>
-                  </div>
-                </div>
-
-                {/* Sydney Session */}
-                <div className="flex items-center justify-between p-2 bg-slate-200/40 border border-slate-300 text-xs opacity-75">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-slate-400" />
-                    <div>
-                      <p className="font-bold text-slate-800">Sydney Session</p>
-                      <p className="text-[10px] text-slate-600">22:00 – 07:00 GMT • Early Flow</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[9.5px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 border border-slate-300 block">CLOSED</span>
-                    <span className="text-[8.5px] text-slate-500 font-mono">Opens in 22:00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ICT / SMC KILLZONE WINDOWS SCHEDULE */}
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> ICT Killzone Windows
-                </span>
-                <span className="text-[9px] text-slate-500 font-mono">Algorithmic Times</span>
-              </div>
-
-              <div className="space-y-1 text-xs">
-                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-900 block">London Open Killzone</span>
-                    <span className="text-[10px] text-slate-500">Judas Swing & Initial High/Low Formation</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-bold text-slate-700">07:00–10:00 GMT</span>
-                </div>
-                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-900 block">New York AM Killzone</span>
-                    <span className="text-[10px] text-slate-500">Peak Session Expansion & Trend Run</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-bold text-slate-700">12:00–15:00 GMT</span>
-                </div>
-                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-900 block">Silver Bullet Window</span>
-                    <span className="text-[10px] text-slate-500">1-Hour Algorithmic FVG Delivery</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-bold text-slate-700">14:00–15:00 GMT</span>
-                </div>
-                <div className="p-2 bg-white border border-slate-300 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-900 block">Asian Range Benchmark</span>
-                    <span className="text-[10px] text-slate-500">Accumulation Range High/Low Targets</span>
-                  </div>
-                  <span className="font-mono text-[10px] font-bold text-slate-700">00:00–06:00 GMT</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <MarketSessionsRadarTab />
         )}
 
         {/* TAB 10: POSITION SIZE & FOREX RISK CALCULATOR */}
@@ -9847,7 +10137,7 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
-                      <Sparkles className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Setup Canvas...
+                      <SlidersHorizontal className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Setup Canvas...
                     </span>
                   </button>
 
@@ -10049,6 +10339,36 @@ export default function WhiteboardPage() {
                       <Layers className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Duplicate
                     </span>
                     <span className="text-[10px] text-slate-500 font-mono">Ctrl+D</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      groupSelectedObjects();
+                    }}
+                    disabled={selectedShapeIds.length < 2}
+                    className={'flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium transition cursor-pointer ' + (selectedShapeIds.length >= 2 ? "hover:bg-slate-200 hover:text-slate-950" : "opacity-40 cursor-not-allowed")}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <FolderPlus className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Group
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+G</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditMenuOpen(false);
+                      ungroupSelectedObjects();
+                    }}
+                    disabled={selectedShapeIds.length === 0}
+                    className={'flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium transition cursor-pointer ' + (selectedShapeIds.length > 0 ? "hover:bg-slate-200 hover:text-slate-950" : "opacity-40 cursor-not-allowed")}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <FolderMinus className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Ungroup
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">Ctrl+Shift+G</span>
                   </button>
 
                   <button
@@ -10421,7 +10741,7 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
-                      <Pipette className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Color Picker (Eyedropper)
+                      <Pipette className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Color Picker
                     </span>
                     <span className="text-[9.5px] text-slate-500 font-mono">E</span>
                   </button>
@@ -11153,7 +11473,7 @@ export default function WhiteboardPage() {
                   <p className="px-3 py-0.5 text-[9px] font-black uppercase text-slate-400 tracking-wider">Media & Objects</p>
                   <FlyoutToolItem
                     toolKey="image"
-                    label="Image Tool (Click Canvas to Insert)"
+                    label="Image Tool"
                     icon={ImageIcon}
                     isActive={activeTool === "image"}
                     isFavorited={favoritedTools.includes("image")}
@@ -11326,7 +11646,7 @@ export default function WhiteboardPage() {
                       );
                       showToast("Filled selected shapes!");
                     } else {
-                      showToast("Paint Bucket active — click any shape to fill it");
+                      showToast("Paint Drop active — click any shape to fill it");
                     }
                   } else {
                     activateEyedropper();
@@ -11337,7 +11657,7 @@ export default function WhiteboardPage() {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "colortools" ? null : "colortools");
                 }}
-                title={activeColorTool === "paintbucket" ? "Paint Bucket (Click to activate or fill selected)" : "Color Picker (Click to sample colour)"}
+                title={activeColorTool === "paintbucket" ? "Paint Drop (Click to activate or fill selected)" : "Color Picker (Click to sample colour)"}
                 toolKey={activeColorTool}
                 icon={activeColorTool === "paintbucket" ? Droplet : Pipette}
                 hasFlyout
@@ -11349,7 +11669,7 @@ export default function WhiteboardPage() {
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Color & Fill Tools</p>
                   <FlyoutToolItem
                     toolKey="eyedropper"
-                    label="Color Picker (Eyedropper)"
+                    label="Color Picker"
                     icon={Pipette}
                     isActive={activeColorTool === "eyedropper"}
                     isFavorited={favoritedTools.includes("eyedropper")}
@@ -11363,7 +11683,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="paintbucket"
-                    label="Paint Bucket (Fill Shape)"
+                    label="Paint Drop"
                     icon={Droplet}
                     isActive={activeColorTool === "paintbucket"}
                     isFavorited={favoritedTools.includes("paintbucket")}
@@ -11759,6 +12079,26 @@ export default function WhiteboardPage() {
                   >
                     <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
                   </button>
+
+                  {selectedShapeIds.length >= 2 && (
+                    <button
+                      type="button"
+                      onClick={() => { groupSelectedObjects(); setContextMenu(null); }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                    >
+                      <FolderPlus className="h-3.5 w-3.5 text-brand" /> Group Objects (Ctrl+G)
+                    </button>
+                  )}
+
+                  {layerGroups.some((g) => g.shapeIds.some((id) => selectedShapeIds.includes(id) || (contextMenu.targetShape && id === contextMenu.targetShape.id))) && (
+                    <button
+                      type="button"
+                      onClick={() => { ungroupSelectedObjects(); setContextMenu(null); }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                    >
+                      <FolderMinus className="h-3.5 w-3.5 text-brand" /> Ungroup (Ctrl+Shift+G)
+                    </button>
+                  )}
 
                   {!contextMenu.targetShape.isLocked && (
                     <>
@@ -13972,9 +14312,9 @@ function WhiteboardToolBtn({
 
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && !isFlyoutOpen && (
-        <div className="absolute left-full top-0 ml-2 w-60 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
-          {/* Visual Thumbnail Preview with Soft Curved Container and Ash Aesthetic */}
-          <div className="w-full h-28 rounded-lg border border-slate-300/90 bg-slate-200/90 flex items-center justify-center overflow-hidden relative shadow-inner">
+        <div className="absolute left-full top-0 ml-2 w-52 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
+          {/* Visual Thumbnail Preview with Soft Curved Container and Uniform Square Aspect Ratio */}
+          <div className="w-full aspect-square rounded-lg border border-slate-300/90 bg-slate-200/90 flex items-center justify-center overflow-hidden relative shadow-inner p-1">
             <ToolGifAnimation toolKey={toolKey} />
           </div>
 
@@ -13995,296 +14335,375 @@ function WhiteboardToolBtn({
   );
 }
 
-/** Animated GIF-style SVG Visual Illustrations for Tool Usage */
+/** Animated GIF-style SVG Visual Illustrations for Tool Usage - Uniform 100x100 Square Previews */
 function ToolGifAnimation({ toolKey }: { toolKey: string }) {
-  if (toolKey === "bullish_candle") {
+  if (toolKey === "bullish_candle" || toolKey === "candle") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
+      <svg className="w-full h-full" viewBox="0 0 100 100">
         {/* Upper Wick */}
-        <line x1="70" y1="12" x2="70" y2="28" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+        <line x1="50" y1="12" x2="50" y2="28" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
         {/* Bullish Green Body */}
-        <rect x="52" y="28" width="36" height="42" rx="3" fill="rgba(16, 185, 129, 0.35)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <rect x="34" y="28" width="32" height="42" rx="3" fill="rgba(16, 185, 129, 0.35)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
         {/* Lower Wick */}
-        <line x1="70" y1="70" x2="70" y2="84" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
-        <text x="70" y="52" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">BULLISH</text>
+        <line x1="50" y1="70" x2="50" y2="88" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+        <text x="50" y="52" textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">BULLISH</text>
       </svg>
     );
   }
 
   if (toolKey === "bearish_candle") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
+      <svg className="w-full h-full" viewBox="0 0 100 100">
         {/* Upper Wick */}
-        <line x1="70" y1="12" x2="70" y2="28" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+        <line x1="50" y1="12" x2="50" y2="28" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
         {/* Bearish Red Body */}
-        <rect x="52" y="28" width="36" height="42" rx="3" fill="rgba(239, 68, 68, 0.35)" stroke="#ef4444" strokeWidth="2" className="animate-pulse" />
+        <rect x="34" y="28" width="32" height="42" rx="3" fill="rgba(239, 68, 68, 0.35)" stroke="#ef4444" strokeWidth="2" className="animate-pulse" />
         {/* Lower Wick */}
-        <line x1="70" y1="70" x2="70" y2="84" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
-        <text x="70" y="52" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">BEARISH</text>
+        <line x1="50" y1="70" x2="50" y2="88" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+        <text x="50" y="52" textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="bold">BEARISH</text>
       </svg>
     );
   }
 
   if (toolKey === "fibo") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="15" y1="12" x2="105" y2="12" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="3 3" />
-        <text x="108" y="15" fill="#f43f5e" fontSize="7.5" fontWeight="bold">0.0%</text>
-        <line x1="15" y1="30" x2="105" y2="30" stroke="#f59e0b" strokeWidth="1.5" />
-        <text x="108" y="33" fill="#f59e0b" fontSize="7.5" fontWeight="bold">0.382</text>
-        <rect x="15" y="42" width="90" height="15" fill="rgba(234, 179, 8, 0.25)" />
-        <line x1="15" y1="42" x2="105" y2="42" stroke="#eab308" strokeWidth="2" />
-        <text x="108" y="45" fill="#eab308" fontSize="7.5" fontWeight="bold">0.50</text>
-        <line x1="15" y1="57" x2="105" y2="57" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
-        <text x="108" y="60" fill="#10b981" fontSize="7.5" fontWeight="bold">0.618</text>
-        <line x1="15" y1="78" x2="105" y2="78" stroke="#3b82f6" strokeWidth="1.5" />
-        <text x="108" y="81" fill="#3b82f6" fontSize="7.5" fontWeight="bold">1.00</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <line x1="10" y1="16" x2="72" y2="16" stroke="#f43f5e" strokeWidth="1.5" strokeDasharray="3 3" />
+        <text x="76" y="19" fill="#f43f5e" fontSize="7" fontWeight="bold">0.0%</text>
+        <line x1="10" y1="34" x2="72" y2="34" stroke="#f59e0b" strokeWidth="1.5" />
+        <text x="76" y="37" fill="#f59e0b" fontSize="7" fontWeight="bold">0.382</text>
+        <rect x="10" y="46" width="62" height="15" fill="rgba(234, 179, 8, 0.25)" />
+        <line x1="10" y1="46" x2="72" y2="46" stroke="#eab308" strokeWidth="2" />
+        <text x="76" y="49" fill="#eab308" fontSize="7" fontWeight="bold">0.50</text>
+        <line x1="10" y1="61" x2="72" y2="61" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <text x="76" y="64" fill="#10b981" fontSize="7" fontWeight="bold">0.618</text>
+        <line x1="10" y1="82" x2="72" y2="82" stroke="#3b82f6" strokeWidth="1.5" />
+        <text x="76" y="85" fill="#3b82f6" fontSize="7" fontWeight="bold">1.00</text>
       </svg>
     );
   }
 
   if (toolKey === "long") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="20" y="12" width="100" height="34" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
-        <text x="70" y="33" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">TP: +90 pips</text>
-        <line x1="20" y1="46" x2="120" y2="46" stroke="#3b82f6" strokeWidth="2.5" />
-        <rect x="20" y="46" width="100" height="34" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
-        <text x="70" y="67" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">SL: -30 pips (1:3)</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="12" y="14" width="76" height="34" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="50" y="34" textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">TP: +90 pips</text>
+        <line x1="12" y1="48" x2="88" y2="48" stroke="#3b82f6" strokeWidth="2.5" />
+        <rect x="12" y="48" width="76" height="34" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="50" y="68" textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="bold">SL: -30 (1:3)</text>
       </svg>
     );
   }
 
   if (toolKey === "short") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="20" y="12" width="100" height="34" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
-        <text x="70" y="33" textAnchor="middle" fill="#ef4444" fontSize="8.5" fontWeight="bold">SL: -25 pips (1:3)</text>
-        <line x1="20" y1="46" x2="120" y2="46" stroke="#3b82f6" strokeWidth="2.5" />
-        <rect x="20" y="46" width="100" height="34" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
-        <text x="70" y="67" textAnchor="middle" fill="#10b981" fontSize="8.5" fontWeight="bold">TP: +75 pips</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="12" y="14" width="76" height="34" rx="4" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" strokeWidth="1.5" />
+        <text x="50" y="34" textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="bold">SL: -25 (1:3)</text>
+        <line x1="12" y1="48" x2="88" y2="48" stroke="#3b82f6" strokeWidth="2.5" />
+        <rect x="12" y="48" width="76" height="34" rx="4" fill="rgba(16, 185, 129, 0.25)" stroke="#10b981" strokeWidth="1.5" />
+        <text x="50" y="68" textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">TP: +75 pips</text>
       </svg>
     );
   }
 
   if (toolKey === "orderblock") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="18" y="18" width="104" height="58" rx="4" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" strokeWidth="1.5" />
-        <line x1="18" y1="47" x2="122" y2="47" stroke="#8b5cf6" strokeWidth="1" strokeDasharray="3 3" />
-        <text x="70" y="36" textAnchor="middle" fill="#8b5cf6" fontSize="9" fontWeight="bold">ORDER BLOCK (OB)</text>
-        <text x="70" y="60" textAnchor="middle" fill="#a78bfa" fontSize="7.5" fontWeight="bold">50% Mean Threshold</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="12" y="18" width="76" height="62" rx="4" fill="rgba(139, 92, 246, 0.25)" stroke="#8b5cf6" strokeWidth="1.5" />
+        <line x1="12" y1="49" x2="88" y2="49" stroke="#8b5cf6" strokeWidth="1.5" strokeDasharray="3 3" />
+        <text x="50" y="38" textAnchor="middle" fill="#8b5cf6" fontSize="8" fontWeight="bold">ORDER BLOCK</text>
+        <text x="50" y="64" textAnchor="middle" fill="#a78bfa" fontSize="7" fontWeight="bold">50% MT Line</text>
       </svg>
     );
   }
 
   if (toolKey === "fvg") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        {/* Shaded FVG Imbalance Box */}
-        <rect x="25" y="32" width="90" height="26" rx="4" fill="rgba(245, 158, 11, 0.22)" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 3" />
-        <line x1="25" y1="45" x2="115" y2="45" stroke="#f59e0b" strokeWidth="1" strokeDasharray="2 2" />
-
-        {/* Candle 1 (Left base candle) */}
-        <line x1="38" y1="58" x2="38" y2="82" stroke="#64748b" strokeWidth="2" />
-        <rect x="33" y="64" width="10" height="14" rx="2" fill="#ef4444" />
-
-        {/* Candle 2 (Center tall green impulse candle) */}
-        <line x1="70" y1="12" x2="70" y2="84" stroke="#10b981" strokeWidth="2" />
-        <rect x="64" y="20" width="12" height="56" rx="2" fill="#10b981" />
-
-        {/* Candle 3 (Right high candle) */}
-        <line x1="102" y1="14" x2="102" y2="32" stroke="#64748b" strokeWidth="2" />
-        <rect x="97" y="16" width="10" height="12" rx="2" fill="#10b981" />
-
-        {/* FVG Label */}
-        <text x="70" y="48" textAnchor="middle" fill="#d97706" fontSize="9" fontWeight="900">FVG (50% C.E.)</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="14" y="34" width="72" height="28" rx="4" fill="rgba(245, 158, 11, 0.22)" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 3" />
+        <line x1="14" y1="48" x2="86" y2="48" stroke="#f59e0b" strokeWidth="1" strokeDasharray="2 2" />
+        {/* Left base candle */}
+        <line x1="26" y1="58" x2="26" y2="82" stroke="#64748b" strokeWidth="1.5" />
+        <rect x="22" y="64" width="8" height="14" rx="1.5" fill="#ef4444" />
+        {/* Middle impulsive green candle */}
+        <line x1="50" y1="14" x2="50" y2="86" stroke="#10b981" strokeWidth="1.5" />
+        <rect x="45" y="20" width="10" height="60" rx="1.5" fill="#10b981" />
+        {/* Right high candle */}
+        <line x1="74" y1="14" x2="74" y2="34" stroke="#64748b" strokeWidth="1.5" />
+        <rect x="70" y="16" width="8" height="12" rx="1.5" fill="#10b981" />
+        <text x="50" y="51" textAnchor="middle" fill="#d97706" fontSize="7.5" fontWeight="bold">FVG 50%</text>
       </svg>
     );
   }
 
   if (toolKey === "bos") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        {/* Horizontal Structure Level Line */}
-        <line x1="45" y1="42" x2="125" y2="42" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 4" />
-        <text x="126" y="44" fill="#3b82f6" fontSize="7.5" fontWeight="bold">BOS LEVEL</text>
-
-        {/* Impulsive Zig-Zag Breakout Path */}
-        <polyline points="20,78 45,42 72,62 118,22" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        
-        {/* Breakout Arrowhead */}
-        <polygon points="126,16 112,20 120,28" fill="#3b82f6" />
-
-        {/* Peak Trigger Point */}
-        <circle cx="45" cy="42" r="4" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
-
-        {/* BOS Badge */}
-        <rect x="85" y="24" width="30" height="15" rx="4" fill="#3b82f6" />
-        <text x="100" y="34.5" textAnchor="middle" fill="#ffffff" fontSize="8" fontWeight="bold">BOS ↗</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <line x1="30" y1="46" x2="90" y2="46" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3" />
+        <polyline points="12,80 32,46 54,64 88,24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <polygon points="94,18 82,22 88,30" fill="#3b82f6" />
+        <circle cx="32" cy="46" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="2" />
+        <rect x="60" y="26" width="26" height="13" rx="3" fill="#3b82f6" />
+        <text x="73" y="35" textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold">BOS ↗</text>
       </svg>
     );
   }
 
   if (toolKey === "liquidity") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="20" y1="45" x2="120" y2="45" stroke="#e11d48" strokeWidth="2" strokeDasharray="3 3" />
-        <text x="70" y="36" textAnchor="middle" fill="#e11d48" fontSize="9" fontWeight="bold">$$$ LIQUIDITY POOL</text>
-        <text x="70" y="62" textAnchor="middle" fill="#fb7185" fontSize="7.5" fontWeight="bold">BSL / SSL Target</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <line x1="12" y1="48" x2="88" y2="48" stroke="#e11d48" strokeWidth="2" strokeDasharray="3 3" />
+        <text x="50" y="38" textAnchor="middle" fill="#e11d48" fontSize="8" fontWeight="bold">$$$ LIQUIDITY</text>
+        <text x="50" y="64" textAnchor="middle" fill="#fb7185" fontSize="7" fontWeight="bold">BSL / SSL Target</text>
       </svg>
     );
   }
 
   if (toolKey === "select") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="25" y="18" width="80" height="54" rx="6" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="3 3" />
-        <circle cx="25" cy="18" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
-        <circle cx="105" cy="18" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
-        <circle cx="105" cy="72" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
-        <circle cx="25" cy="72" r="3.5" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="18" y="18" width="62" height="52" rx="4" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="3 3" />
+        <circle cx="18" cy="18" r="3" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="80" cy="18" r="3" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="80" cy="70" r="3" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="18" cy="70" r="3" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
         <g className="animate-pulse">
-          <path d="M 105 72 L 120 84" stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
-          <polygon points="105,72 114,72 105,81" fill="#dc3545" />
+          <path d="M 80 70 L 92 82" stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
+          <polygon points="80,70 87,70 80,77" fill="#dc3545" />
         </g>
+      </svg>
+    );
+  }
+
+  if (toolKey === "node") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <path d="M 18 72 Q 48 18, 82 72" fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="2 2" />
+        {/* Anchor point handles */}
+        <line x1="48" y1="45" x2="30" y2="30" stroke="#94a3b8" strokeWidth="1.5" />
+        <line x1="48" y1="45" x2="66" y2="60" stroke="#94a3b8" strokeWidth="1.5" />
+        <circle cx="30" cy="30" r="3" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="66" cy="60" r="3" fill="#ffffff" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx="48" cy="45" r="4.5" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" className="animate-pulse" />
+        <text x="50" y="85" textAnchor="middle" fill="#3b82f6" fontSize="7.5" fontWeight="bold">ANCHOR NODE</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "hand") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        {/* Canvas grid lines behind hand */}
+        <line x1="15" y1="30" x2="85" y2="30" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 2" />
+        <line x1="15" y1="50" x2="85" y2="50" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 2" />
+        <line x1="15" y1="70" x2="85" y2="70" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 2" />
+        <line x1="30" y1="15" x2="30" y2="85" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 2" />
+        <line x1="50" y1="15" x2="50" y2="85" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 2" />
+        <line x1="70" y1="15" x2="70" y2="85" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2 2" />
+        {/* Pan arrows */}
+        <path d="M 50 20 L 50 32 M 50 20 L 46 25 M 50 20 L 54 25" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 50 80 L 50 68 M 50 80 L 46 75 M 50 80 L 54 75" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 20 50 L 32 50 M 20 50 L 25 46 M 20 50 L 25 54" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 80 50 L 68 50 M 80 50 L 75 46 M 80 50 L 75 54" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="50" cy="50" r="10" fill="#3b82f6" fillOpacity="0.2" stroke="#3b82f6" strokeWidth="1.5" className="animate-pulse" />
+        <text x="50" y="53" textAnchor="middle" fill="#3b82f6" fontSize="7" fontWeight="bold">PAN</text>
       </svg>
     );
   }
 
   if (toolKey === "pencil") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <path d="M 18 68 Q 45 15, 75 55 T 122 28" fill="none" stroke="#dc3545" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
-        <circle cx="122" cy="28" r="4" fill="#dc3545" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <path d="M 16 68 Q 36 20, 56 55 T 86 28" fill="none" stroke="#dc3545" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
+        <circle cx="86" cy="28" r="4" fill="#dc3545" />
       </svg>
     );
   }
 
   if (toolKey === "highlighter") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="15" y="32" width="110" height="28" rx="6" fill="rgba(253, 224, 71, 0.4)" />
-        <line x1="20" y1="46" x2="120" y2="46" stroke="#fef08a" strokeWidth="8" strokeLinecap="round" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="12" y="36" width="76" height="28" rx="5" fill="rgba(253, 224, 71, 0.4)" />
+        <line x1="16" y1="50" x2="84" y2="50" stroke="#fef08a" strokeWidth="8" strokeLinecap="round" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "rectangle") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="20" y="20" width="100" height="55" rx="8" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" strokeWidth="2" className="animate-pulse" />
-        <text x="70" y="52" textAnchor="middle" fill="#93c5fd" fontSize="9.5" fontWeight="bold">ORDER BLOCK</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="15" y="22" width="70" height="56" rx="6" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" strokeWidth="2" className="animate-pulse" />
+        <text x="50" y="53" textAnchor="middle" fill="#3b82f6" fontSize="8" fontWeight="bold">ORDER BLOCK</text>
       </svg>
     );
   }
 
   if (toolKey === "circle") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <circle cx="70" cy="48" r="30" fill="rgba(16,185,129,0.2)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
-        <circle cx="70" cy="48" r="4" fill="#10b981" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="30" fill="rgba(16,185,129,0.2)" stroke="#10b981" strokeWidth="2" className="animate-pulse" />
+        <circle cx="50" cy="50" r="4" fill="#10b981" />
       </svg>
     );
   }
 
   if (toolKey === "diamond") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <polygon points="70,14 115,48 70,82 25,48" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" strokeWidth="2" className="animate-pulse" />
-        <text x="70" y="51" textAnchor="middle" fill="#fde68a" fontSize="8.5" fontWeight="bold">TRIGGER</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <polygon points="50,15 85,50 50,85 15,50" fill="rgba(245,158,11,0.2)" stroke="#f59e0b" strokeWidth="2" className="animate-pulse" />
+        <text x="50" y="53" textAnchor="middle" fill="#f59e0b" fontSize="8" fontWeight="bold">TRIGGER</text>
       </svg>
     );
   }
 
   if (toolKey === "line") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="20" y1="72" x2="120" y2="24" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <line x1="16" y1="74" x2="84" y2="26" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "arrow") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <line x1="20" y1="48" x2="110" y2="48" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
-        <polygon points="122,48 108,39 108,57" fill="#10b981" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <line x1="16" y1="50" x2="74" y2="50" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+        <polygon points="86,50 72,42 72,58" fill="#10b981" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "bezier") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <polyline points="15,75 45,30 75,65 102,22 125,58" fill="none" stroke="#dc3545" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="15" cy="75" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
-        <circle cx="45" cy="30" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
-        <circle cx="75" cy="65" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
-        <circle cx="102" cy="22" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
-        <circle cx="125" cy="58" r="3" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <polyline points="14,75 36,32 58,65 80,24 88,52" fill="none" stroke="#dc3545" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="14" cy="75" r="2.5" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="36" cy="32" r="2.5" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="58" cy="65" r="2.5" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
+        <circle cx="80" cy="24" r="2.5" fill="#ffffff" stroke="#dc3545" strokeWidth="1.5" />
       </svg>
     );
   }
 
   if (toolKey === "sticky") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <rect x="35" y="16" width="70" height="62" rx="4" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
-        <line x1="45" y1="28" x2="95" y2="28" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
-        <line x1="45" y1="40" x2="88" y2="40" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
-        <line x1="45" y1="52" x2="92" y2="52" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="22" y="16" width="56" height="66" rx="4" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+        <line x1="30" y1="28" x2="70" y2="28" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+        <line x1="30" y1="40" x2="64" y2="40" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
+        <line x1="30" y1="52" x2="68" y2="52" stroke="#854d0e" strokeWidth="2" strokeLinecap="round" />
       </svg>
     );
   }
 
   if (toolKey === "text") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <text x="20" y="52" fill="#38bdf8" fontSize="13" fontWeight="bold" fontFamily="sans-serif">EUR/USD +150</text>
-        <line x1="122" y1="36" x2="122" y2="54" stroke="#ffffff" strokeWidth="2" className="animate-pulse" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <text x="14" y="54" fill="#38bdf8" fontSize="11" fontWeight="bold" fontFamily="sans-serif">EUR/USD +150</text>
+        <line x1="88" y1="42" x2="88" y2="56" stroke="#0284c7" strokeWidth="2" className="animate-pulse" />
       </svg>
     );
   }
 
   if (toolKey === "annotation") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        {/* Anchor Pin on Object */}
-        <circle cx="28" cy="65" r="4" fill="#3b82f6" className="animate-ping" />
-        <circle cx="28" cy="65" r="4" fill="#3b82f6" />
-        {/* Leader line to callout box */}
-        <path d="M 31 62 L 58 36 H 115" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
-        {/* Callout Badge */}
-        <rect x="58" y="24" width="62" height="24" rx="4" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="1.5" />
-        <text x="89" y="39" textAnchor="middle" fill="#38bdf8" fontSize="8" fontWeight="bold">Key POI Level</text>
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <circle cx="24" cy="65" r="3.5" fill="#3b82f6" className="animate-ping" />
+        <circle cx="24" cy="65" r="3.5" fill="#3b82f6" />
+        <path d="M 26 62 L 46 36 H 88" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+        <rect x="46" y="24" width="46" height="22" rx="3.5" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="1.5" />
+        <text x="69" y="38" textAnchor="middle" fill="#38bdf8" fontSize="7" fontWeight="bold">POI Level</text>
       </svg>
     );
   }
 
   if (toolKey === "eraser") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <path d="M 15 48 L 70 48" stroke="#475569" strokeWidth="3" strokeDasharray="4 4" />
-        <path d="M 70 48 L 125 48" stroke="#f43f5e" strokeWidth="3" />
-        <rect x="58" y="34" width="24" height="24" rx="4" fill="#f43f5e" stroke="#ffffff" strokeWidth="1.5" className="animate-bounce" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <path d="M 15 50 L 50 50" stroke="#94a3b8" strokeWidth="3" strokeDasharray="3 3" />
+        <path d="M 50 50 L 85 50" stroke="#f43f5e" strokeWidth="3" />
+        <rect x="40" y="38" width="22" height="22" rx="4" fill="#f43f5e" stroke="#ffffff" strokeWidth="1.5" className="animate-bounce" />
       </svg>
     );
   }
 
   if (toolKey === "zoom") {
     return (
-      <svg className="w-full h-full" viewBox="0 0 140 95">
-        <circle cx="60" cy="44" r="22" fill="none" stroke="#38bdf8" strokeWidth="3" />
-        <line x1="76" y1="60" x2="98" y2="82" stroke="#38bdf8" strokeWidth="4" strokeLinecap="round" />
-        <path d="M 48 48 L 56 38 L 64 50 L 72 34" fill="none" stroke="#10b981" strokeWidth="2" />
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <circle cx="45" cy="44" r="20" fill="none" stroke="#38bdf8" strokeWidth="3" />
+        <line x1="60" y1="59" x2="82" y2="81" stroke="#38bdf8" strokeWidth="4" strokeLinecap="round" />
+        <path d="M 35 46 L 42 38 L 48 48 L 55 34" fill="none" stroke="#10b981" strokeWidth="2" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "marquee_zoom") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <rect x="16" y="18" width="56" height="46" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 3" />
+        <circle cx="68" cy="62" r="16" fill="none" stroke="#0284c7" strokeWidth="2.5" />
+        <line x1="80" y1="74" x2="90" y2="84" stroke="#0284c7" strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M 26 44 L 38 32 L 50 48 L 60 26" fill="none" stroke="#10b981" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  if (toolKey === "eyedropper") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        {/* Sample target shapes */}
+        <circle cx="30" cy="65" r="16" fill="#3b82f6" fillOpacity="0.4" stroke="#3b82f6" strokeWidth="1.5" />
+        <rect x="52" y="48" width="28" height="28" rx="4" fill="#10b981" fillOpacity="0.4" stroke="#10b981" strokeWidth="1.5" />
+        {/* Eyedropper / Pipette icon angled */}
+        <g transform="translate(42, 22) rotate(45)">
+          <rect x="-3" y="-18" width="6" height="24" rx="2" fill="#38bdf8" />
+          <path d="M -3 6 L 0 14 L 3 6 Z" fill="#0284c7" />
+          <circle cx="0" cy="-22" r="5" fill="#f43f5e" />
+        </g>
+        {/* Droplet sample result */}
+        <circle cx="58" cy="74" r="5" fill="#10b981" stroke="#ffffff" strokeWidth="1.5" className="animate-pulse" />
+        <text x="50" y="92" textAnchor="middle" fill="#0284c7" fontSize="7.5" fontWeight="bold">COLOR PICKER</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "paintbucket") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        {/* Target shape being filled */}
+        <rect x="22" y="42" width="56" height="38" rx="5" fill="rgba(59, 130, 246, 0.4)" stroke="#3b82f6" strokeWidth="2" />
+        {/* Dropping ink droplet */}
+        <g className="animate-bounce">
+          <path d="M 50 16 C 50 16, 42 28, 42 34 A 8 8 0 0 0 58 34 C 58 28, 50 16, 50 16 Z" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1.5" />
+        </g>
+        {/* Ripple splash */}
+        <ellipse cx="50" cy="58" rx="14" ry="4" fill="none" stroke="#60a5fa" strokeWidth="1.5" className="animate-ping" />
+        <text x="50" y="68" textAnchor="middle" fill="#ffffff" fontSize="7.5" fontWeight="bold">PAINT DROP</text>
+      </svg>
+    );
+  }
+
+  if (toolKey === "image") {
+    return (
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        {/* Photo frame */}
+        <rect x="18" y="20" width="64" height="54" rx="6" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="2" />
+        {/* Sun / Moon */}
+        <circle cx="34" cy="36" r="6" fill="#f59e0b" />
+        {/* Mountains / Hills */}
+        <polygon points="22,68 44,44 60,60 68,52 78,68" fill="#10b981" fillOpacity="0.5" stroke="#10b981" strokeWidth="1.5" />
+        {/* Plus badge */}
+        <circle cx="74" cy="26" r="8" fill="#3b82f6" className="animate-pulse" />
+        <path d="M 74 22 L 74 30 M 70 26 L 78 26" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+        <text x="50" y="86" textAnchor="middle" fill="#475569" fontSize="7.5" fontWeight="bold">IMAGE TOOL</text>
       </svg>
     );
   }
 
   return (
-    <svg className="w-full h-full" viewBox="0 0 140 95">
-      <path d="M 25 48 Q 70 18, 115 48" fill="none" stroke="#38bdf8" strokeWidth="3" className="animate-pulse" />
+    <svg className="w-full h-full" viewBox="0 0 100 100">
+      <path d="M 20 50 Q 50 20, 80 50" fill="none" stroke="#38bdf8" strokeWidth="3" className="animate-pulse" />
     </svg>
   );
 }
