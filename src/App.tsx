@@ -50,7 +50,7 @@ import { AdminWhiteboard } from "./pages/admin/AdminWhiteboard";
 import WhiteboardPage from "./pages/WhiteboardPage";
 import { useRoute, segments } from "./lib/router";
 
-class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
+export class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
   public state = {
     hasError: false,
     error: null as Error | null,

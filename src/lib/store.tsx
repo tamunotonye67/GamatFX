@@ -26,10 +26,12 @@ import {
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
 } from "./supabaseServices";
+import { seedSupabaseDatabaseIfEmpty, subscribeToSupabaseRealtime } from "./supabaseSync";
 import {
   getQuiz, getCustomQuizzes, saveCustomQuiz, deleteCustomQuiz,
   type Quiz, type Question,
 } from "./quizzes";
+import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
 
 /* ================================ Types ================================ */
 
