@@ -482,6 +482,9 @@ type Shape = {
   lowerWickLength?: number;
   wickColor?: string;
   fiboLevels?: FiboLevel[];
+  targetDistance?: number;
+  stopDistance?: number;
+  riskReward?: number;
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
@@ -3899,6 +3902,9 @@ export default function WhiteboardPage() {
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
       fiboLevels: activeTool === "fibo" ? [...activeFiboLevels] : undefined,
+      targetDistance: (activeTool === "long" || activeTool === "short") ? 90 : undefined,
+      stopDistance: (activeTool === "long" || activeTool === "short") ? Math.round(90 / defaultRiskReward) : undefined,
+      riskReward: (activeTool === "long" || activeTool === "short") ? defaultRiskReward : undefined,
     };
 
     setCurrentShape(newShape);
@@ -4147,6 +4153,17 @@ export default function WhiteboardPage() {
           candleType: isBearish ? "bearish" : "bullish",
           points: [startPt, finalPt],
         });
+      } else if (currentShape.type === "long" || currentShape.type === "short") {
+        const targetH = Math.max(20, Math.abs(dy) || 90);
+        const stopH = Math.max(10, Math.round(targetH / defaultRiskReward) || 30);
+        const rr = Number((targetH / stopH).toFixed(2));
+        setCurrentShape({
+          ...currentShape,
+          targetDistance: targetH,
+          stopDistance: stopH,
+          riskReward: rr,
+          points: [startPt, finalPt],
+        });
       } else {
         setCurrentShape({
           ...currentShape,
@@ -4243,11 +4260,38 @@ export default function WhiteboardPage() {
           // Default candle size on single click without drag
           finalPoints = [p0, { x: p0.x + 22, y: p0.y + 65 }];
         }
+      } else if (currentShape.type === "long" || currentShape.type === "short") {
+        const p0 = currentShape.points[0];
+        const p1 = currentShape.points.length >= 2 ? currentShape.points[1] : null;
+        if (!p1 || (Math.abs(p1.x - p0.x) < 4 && Math.abs(p1.y - p0.y) < 4)) {
+          finalPoints = [p0, { x: p0.x + 160, y: p0.y - (currentShape.type === "long" ? 90 : -90) }];
+        }
+      }
+
+      const isPos = currentShape.type === "long" || currentShape.type === "short";
+      let posTarget = currentShape.targetDistance;
+      let posStop = currentShape.stopDistance;
+      let posRR = currentShape.riskReward;
+      if (isPos) {
+        const p0 = finalPoints[0];
+        const p1 = finalPoints.length >= 2 ? finalPoints[1] : { x: p0.x + 160, y: p0.y - (currentShape.type === "long" ? 90 : -90) };
+        if (posTarget === undefined) {
+          posTarget = Math.max(20, Math.abs(p1.y - p0.y) || 90);
+        }
+        if (posStop === undefined) {
+          posStop = Math.max(10, Math.round(posTarget / defaultRiskReward) || 30);
+        }
+        if (posRR === undefined) {
+          posRR = Number((posTarget / posStop).toFixed(2));
+        }
       }
 
       const finalShape: Shape = {
         ...currentShape,
         points: finalPoints,
+        targetDistance: isPos ? posTarget : currentShape.targetDistance,
+        stopDistance: isPos ? posStop : currentShape.stopDistance,
+        riskReward: isPos ? posRR : currentShape.riskReward,
         text: currentShape.type === "sticky" && !currentShape.text ? "Double-click to edit note" : currentShape.type === "annotation" && !currentShape.text ? "Annotation" : currentShape.text,
       };
       setShapes((prev) => [...prev, finalShape]);
@@ -8185,6 +8229,128 @@ export default function WhiteboardPage() {
                 );
               })()}
 
+              {/* 5c. Long / Short Position Calculator Controls */}
+              {((selectedShape && (selectedShape.type === "long" || selectedShape.type === "short")) || activeTool === "long" || activeTool === "short") && (() => {
+                const isLong = selectedShape ? selectedShape.type === "long" : activeTool === "long";
+                const curTarget = selectedShape?.targetDistance !== undefined ? selectedShape.targetDistance : 90;
+                const curStop = selectedShape?.stopDistance !== undefined ? selectedShape.stopDistance : Math.max(10, Math.round(curTarget / defaultRiskReward));
+                const curRR = selectedShape?.riskReward !== undefined ? selectedShape.riskReward : Number((curTarget / curStop).toFixed(2));
+
+                const updatePosition = (newTarget: number, newStop: number) => {
+                  const targetClamped = Math.max(10, Math.round(newTarget));
+                  const stopClamped = Math.max(10, Math.round(newStop));
+                  const rr = Number((targetClamped / stopClamped).toFixed(2));
+                  setDefaultRiskReward(rr);
+
+                  if (selectedShape && (selectedShape.type === "long" || selectedShape.type === "short")) {
+                    setShapes((prev) =>
+                      prev.map((s) => {
+                        if (s.id === selectedShape.id) {
+                          const yEntry = s.points[0].y;
+                          const isL = s.type === "long";
+                          const p1 = s.points.length >= 2 ? s.points[1] : { x: s.points[0].x + 160, y: yEntry };
+                          return {
+                            ...s,
+                            targetDistance: targetClamped,
+                            stopDistance: stopClamped,
+                            riskReward: rr,
+                            points: [
+                              s.points[0],
+                              { x: p1.x, y: isL ? yEntry - targetClamped : yEntry + targetClamped },
+                            ],
+                          };
+                        }
+                        return s;
+                      })
+                    );
+                  }
+                };
+
+                return (
+                  <div className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        {isLong ? <TrendingUp className="h-3 w-3 text-emerald-600" /> : <TrendingDown className="h-3 w-3 text-rose-600" />}
+                        {isLong ? "Long Position (Buy)" : "Short Position (Sell)"}
+                      </span>
+                      <span className="text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                        R:R 1 : {curRR}
+                      </span>
+                    </div>
+
+                    {/* Quick Preset Ratios */}
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-mono text-slate-400 uppercase">Target R:R Presets</span>
+                      <div className="grid grid-cols-5 gap-1">
+                        {[1.0, 1.5, 2.0, 3.0, 4.0].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => updatePosition(Math.round(curStop * preset), curStop)}
+                            className={`py-0.5 rounded text-[9.5px] font-mono font-bold border transition cursor-pointer ${
+                              Math.abs(curRR - preset) < 0.05
+                                ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            1:{preset}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Target Profit & Stop Loss inputs */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-1">
+                        <span className="text-[9px] font-bold text-emerald-800 block">Take Profit (TP)</span>
+                        <div className="flex items-center rounded border border-emerald-300 bg-white px-1.5 py-0.5 font-mono">
+                          <input
+                            type="number"
+                            min="10"
+                            step="5"
+                            value={curTarget}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (!isNaN(val)) updatePosition(val, curStop);
+                            }}
+                            className="w-full text-xs font-bold text-emerald-900 outline-none"
+                          />
+                          <span className="text-[9px] text-emerald-600 font-mono">px</span>
+                        </div>
+                        <span className="text-[8.5px] text-emerald-700 font-mono block">
+                          +{(curTarget * 0.1).toFixed(1)} pips
+                        </span>
+                      </div>
+
+                      <div className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/40 space-y-1">
+                        <span className="text-[9px] font-bold text-rose-800 block">Stop Loss (SL)</span>
+                        <div className="flex items-center rounded border border-rose-300 bg-white px-1.5 py-0.5 font-mono">
+                          <input
+                            type="number"
+                            min="10"
+                            step="5"
+                            value={curStop}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value);
+                              if (!isNaN(val)) updatePosition(curTarget, val);
+                            }}
+                            className="w-full text-xs font-bold text-rose-900 outline-none"
+                          />
+                          <span className="text-[9px] text-rose-600 font-mono">px</span>
+                        </div>
+                        <span className="text-[8.5px] text-rose-700 font-mono block">
+                          -{(curStop * 0.1).toFixed(1)} pips
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[9px] text-slate-400 font-mono leading-tight">
+                      Tip: Drag the green TP handle or red SL handle directly on canvas to adjust graphically.
+                    </p>
+                  </div>
+                );
+              })()}
+
               {/* 6. Fill Section with Rich RGB/HEX Color Picker */}
               <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -10572,7 +10738,7 @@ export default function WhiteboardPage() {
         <div className="flex items-center gap-3.5 shrink-0 h-full">
           <Logo variant="dark" asDiv />
           <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
-          <span className="hidden md:inline text-sm font-bold text-slate-800 tracking-tight">
+          <span className="hidden md:inline text-[16px] font-extrabold text-slate-900 tracking-tight">
             Technical Analysis Whiteboard
           </span>
         </div>
@@ -15185,7 +15351,7 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const pts = shape.points;
   if (!pts.length) return false;
 
-  if (shape.type === "text" || shape.type === "sticky" || shape.type === "annotation" || shape.type === "fibo") {
+  if (shape.type === "text" || shape.type === "sticky" || shape.type === "annotation" || shape.type === "fibo" || shape.type === "long" || shape.type === "short") {
     const b = getShapeBounds(shape);
     const pad = 8;
     return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
@@ -15281,6 +15447,23 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     maxX = Math.max(x1, x2) + 60;
     minY = Math.min(...yCoords);
     maxY = Math.max(...yCoords);
+  } else if ((shape.type === "long" || shape.type === "short") && pts.length >= 2) {
+    const x1 = pts[0].x;
+    const yEntry = pts[0].y;
+    const x2 = pts[1].x;
+    const yExt = pts[1].y;
+    const boxW = Math.abs(x2 - x1) || 160;
+    const targetH = shape.targetDistance !== undefined ? shape.targetDistance : Math.max(20, Math.abs(yExt - yEntry) || 90);
+    const stopH = shape.stopDistance !== undefined ? shape.stopDistance : Math.max(10, Math.round(targetH / 3) || 30);
+    minX = Math.min(x1, x2);
+    maxX = minX + boxW;
+    if (shape.type === "long") {
+      minY = yEntry - targetH;
+      maxY = yEntry + stopH;
+    } else {
+      minY = yEntry - stopH;
+      maxY = yEntry + targetH;
+    }
   }
   return { minX, maxX, minY, maxY };
 }
@@ -15310,6 +15493,14 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
   const pad = 0;
+
+  // High-priority edge grab for Long and Short positions (top edge for TP/SL, bottom edge for SL/TP)
+  if ((shape.type === "long" || shape.type === "short") && pts.length >= 2) {
+    if (pt.x >= minX - 10 && pt.x <= maxX + 10) {
+      if (Math.abs(pt.y - minY) <= 12) return "tm";
+      if (Math.abs(pt.y - maxY) <= 12) return "bm";
+    }
+  }
 
   const handles: { handle: ResizeHandle; x: number; y: number }[] = [
     { handle: "tl", x: minX - pad, y: minY - pad },
@@ -15528,6 +15719,86 @@ function resizeShapePoints(
           candleBodyWidth: newBodyW,
           upperWickLength: curUpperW,
           lowerWickLength: curLowerW,
+        };
+      }
+    }
+
+    const isPosition = shape.type === "long" || shape.type === "short";
+    if (isPosition) {
+      const isLong = shape.type === "long";
+      const yEntry = pts[0].y;
+      const curTargetH = shape.targetDistance !== undefined ? shape.targetDistance : Math.max(20, Math.abs(pts[1].y - yEntry) || 90);
+      const curStopH = shape.stopDistance !== undefined ? shape.stopDistance : Math.max(10, Math.round(curTargetH / 3) || 30);
+
+      if (handle === "tm" || handle === "tl" || handle === "tr") {
+        // Dragging top edge
+        if (isLong) {
+          // Long: Top is GREEN TP PART!
+          const newTargetH = Math.max(10, Math.round(yEntry - pt.y));
+          const newRR = Number((newTargetH / curStopH).toFixed(2));
+          return {
+            ...shape,
+            targetDistance: newTargetH,
+            stopDistance: curStopH,
+            riskReward: newRR,
+            points: [
+              { x: p0.x, y: yEntry },
+              { x: p1.x, y: yEntry - newTargetH },
+            ],
+          };
+        } else {
+          // Short: Top is RED SL PART!
+          const newStopH = Math.max(10, Math.round(yEntry - pt.y));
+          const newRR = Number((curTargetH / newStopH).toFixed(2));
+          return {
+            ...shape,
+            targetDistance: curTargetH,
+            stopDistance: newStopH,
+            riskReward: newRR,
+            points: [
+              { x: p0.x, y: yEntry },
+              { x: p1.x, y: pts[1].y },
+            ],
+          };
+        }
+      } else if (handle === "bm" || handle === "bl" || handle === "br") {
+        // Dragging bottom edge
+        if (isLong) {
+          // Long: Bottom is RED SL PART!
+          const newStopH = Math.max(10, Math.round(pt.y - yEntry));
+          const newRR = Number((curTargetH / newStopH).toFixed(2));
+          return {
+            ...shape,
+            targetDistance: curTargetH,
+            stopDistance: newStopH,
+            riskReward: newRR,
+            points: [
+              { x: p0.x, y: yEntry },
+              { x: p1.x, y: pts[1].y },
+            ],
+          };
+        } else {
+          // Short: Bottom is GREEN TP PART!
+          const newTargetH = Math.max(10, Math.round(pt.y - yEntry));
+          const newRR = Number((newTargetH / curStopH).toFixed(2));
+          return {
+            ...shape,
+            targetDistance: newTargetH,
+            stopDistance: curStopH,
+            riskReward: newRR,
+            points: [
+              { x: p0.x, y: yEntry },
+              { x: p1.x, y: yEntry + newTargetH },
+            ],
+          };
+        }
+      } else if (handle === "ml" || handle === "mr") {
+        return {
+          ...shape,
+          points: [
+            { x: p0.x, y: yEntry },
+            { x: p1.x, y: pts[1].y },
+          ],
         };
       }
     }
@@ -15862,17 +16133,18 @@ function renderWhiteboardShape(
     const minX = Math.min(x1, x2);
     const boxW = Math.abs(x2 - x1) || 160;
 
-    const targetHeight = Math.abs(yExt - yEntry) || 80;
-    const stopHeight = targetHeight / defaultRiskReward;
+    const targetHeight = shape.targetDistance !== undefined ? shape.targetDistance : (Math.abs(yExt - yEntry) || 90);
+    const stopHeight = shape.stopDistance !== undefined ? shape.stopDistance : (Math.round(targetHeight / defaultRiskReward) || 30);
+    const rrRatio = shape.riskReward !== undefined ? shape.riskReward : Number((targetHeight / stopHeight).toFixed(2));
 
-    // Target Green Box (Top)
+    // Target Green Box (Top - Profit Zone)
     ctx.fillStyle = "rgba(16, 185, 129, 0.22)";
     ctx.fillRect(minX, yEntry - targetHeight, boxW, targetHeight);
     ctx.strokeStyle = "#10b981";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(minX, yEntry - targetHeight, boxW, targetHeight);
 
-    // Stop Loss Red Box (Bottom)
+    // Stop Loss Red Box (Bottom - Risk Zone)
     ctx.fillStyle = "rgba(239, 68, 68, 0.22)";
     ctx.fillRect(minX, yEntry, boxW, stopHeight);
     ctx.strokeStyle = "#ef4444";
@@ -15881,18 +16153,54 @@ function renderWhiteboardShape(
 
     // Entry Line (Center)
     ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(minX, yEntry);
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // Chart Micro-Label
-    const labelText = shape.text !== undefined ? shape.text : `1:${defaultRiskReward.toFixed(1)}`;
-    if (labelText) {
+    // Micro-Labels on Zones
+    ctx.fillStyle = "#059669";
+    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
+    ctx.fillText(`Target (TP): +${(targetHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry - targetHeight + 13);
+
+    ctx.fillStyle = "#dc2626";
+    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
+    ctx.fillText(`Stop (SL): -${(stopHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry + stopHeight - 6);
+
+    // Center R:R Badge on Entry Line
+    const rrText = `R:R: 1 : ${rrRatio}`;
+    ctx.font = "bold 9.5px Inter, -apple-system, sans-serif";
+    const textW = ctx.measureText(rrText).width;
+    const badgeX = minX + boxW / 2 - textW / 2 - 6;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 1;
+    ctx.fillRect(badgeX, yEntry - 8, textW + 12, 16);
+    ctx.strokeRect(badgeX, yEntry - 8, textW + 12, 16);
+    ctx.fillStyle = "#1d4ed8";
+    ctx.fillText(rrText, badgeX + 6, yEntry + 4);
+
+    // If selected: render dedicated colored TP & SL adjustment handles
+    if (isSelected && !shape.isLocked) {
+      const midX = minX + boxW / 2;
+      // TP Handle (Top Center - Emerald Pill)
       ctx.fillStyle = "#10b981";
-      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
-      ctx.fillText(labelText, minX + 6, yEntry - 5);
+      ctx.beginPath();
+      ctx.arc(midX, yEntry - targetHeight, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // SL Handle (Bottom Center - Rose Pill)
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath();
+      ctx.arc(midX, yEntry + stopHeight, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     }
   } else if (shape.type === "short" && pts.length >= 2) {
     /* 3. SHORT POSITION CALCULATOR TOOL */
@@ -15904,17 +16212,18 @@ function renderWhiteboardShape(
     const minX = Math.min(x1, x2);
     const boxW = Math.abs(x2 - x1) || 160;
 
-    const targetHeight = Math.abs(yExt - yEntry) || 80;
-    const stopHeight = targetHeight / defaultRiskReward;
+    const targetHeight = shape.targetDistance !== undefined ? shape.targetDistance : (Math.abs(yExt - yEntry) || 90);
+    const stopHeight = shape.stopDistance !== undefined ? shape.stopDistance : (Math.round(targetHeight / defaultRiskReward) || 30);
+    const rrRatio = shape.riskReward !== undefined ? shape.riskReward : Number((targetHeight / stopHeight).toFixed(2));
 
-    // Stop Loss Red Box (Top)
+    // Stop Loss Red Box (Top - Risk Zone)
     ctx.fillStyle = "rgba(239, 68, 68, 0.22)";
     ctx.fillRect(minX, yEntry - stopHeight, boxW, stopHeight);
     ctx.strokeStyle = "#ef4444";
     ctx.lineWidth = 1.5;
     ctx.strokeRect(minX, yEntry - stopHeight, boxW, stopHeight);
 
-    // Target Green Box (Bottom)
+    // Target Green Box (Bottom - Profit Zone)
     ctx.fillStyle = "rgba(16, 185, 129, 0.22)";
     ctx.fillRect(minX, yEntry, boxW, targetHeight);
     ctx.strokeStyle = "#10b981";
@@ -15923,18 +16232,54 @@ function renderWhiteboardShape(
 
     // Entry Line (Center)
     ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(minX, yEntry);
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // Chart Micro-Label
-    const labelText = shape.text !== undefined ? shape.text : `1:${defaultRiskReward.toFixed(1)}`;
-    if (labelText) {
+    // Micro-Labels on Zones
+    ctx.fillStyle = "#dc2626";
+    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
+    ctx.fillText(`Stop (SL): -${(stopHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry - stopHeight + 13);
+
+    ctx.fillStyle = "#059669";
+    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
+    ctx.fillText(`Target (TP): +${(targetHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry + targetHeight - 6);
+
+    // Center R:R Badge on Entry Line
+    const rrText = `R:R: 1 : ${rrRatio}`;
+    ctx.font = "bold 9.5px Inter, -apple-system, sans-serif";
+    const textW = ctx.measureText(rrText).width;
+    const badgeX = minX + boxW / 2 - textW / 2 - 6;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 1;
+    ctx.fillRect(badgeX, yEntry - 8, textW + 12, 16);
+    ctx.strokeRect(badgeX, yEntry - 8, textW + 12, 16);
+    ctx.fillStyle = "#1d4ed8";
+    ctx.fillText(rrText, badgeX + 6, yEntry + 4);
+
+    // If selected: render dedicated colored TP & SL adjustment handles
+    if (isSelected && !shape.isLocked) {
+      const midX = minX + boxW / 2;
+      // SL Handle (Top Center - Rose Pill)
       ctx.fillStyle = "#ef4444";
-      ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
-      ctx.fillText(labelText, minX + 6, yEntry - 5);
+      ctx.beginPath();
+      ctx.arc(midX, yEntry - stopHeight, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // TP Handle (Bottom Center - Emerald Pill)
+      ctx.fillStyle = "#10b981";
+      ctx.beginPath();
+      ctx.arc(midX, yEntry + targetHeight, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
     }
   } else if (shape.type === "orderblock" && pts.length >= 2) {
     /* 4. ORDER BLOCK / POI ZONE */
