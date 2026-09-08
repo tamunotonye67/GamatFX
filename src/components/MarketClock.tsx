@@ -150,15 +150,16 @@ export default function MarketClock() {
           );
         })}
 
-        {/* Radial moving session indicator line & glowing dot on the outer session track */}
+        {/* Radial moving session indicator line & glowing dot pointing from the inner rim to the outer session track corresponding to the actual time */}
         {(() => {
-          // Span the session ring tracks cleanly (from R + 1 to R + 16) without intruding into the 12h face
-          const pStart = pt(nowFrac, R + 1);
-          const pEnd = pt(nowFrac, R + 16);
-          const tip = pt(nowFrac, R + 16);
+          // Point from the inner rim (R - 10) to the outer session track (R + 16) at the clock's actual time position
+          const clockFrac = ((h % 12) + m / 60 + s / 3600) / 12;
+          const pStart = pt(clockFrac, R - 10);
+          const pEnd = pt(clockFrac, R + 16);
+          const tip = pt(clockFrac, R + 16);
           return (
             <g key="session-indicator-needle">
-              {/* Glow line across session tracks */}
+              {/* Outer glow line pointing from inner rim across session tracks */}
               <line
                 x1={pStart.x}
                 y1={pStart.y}
@@ -177,11 +178,11 @@ export default function MarketClock() {
                 x2={pEnd.x}
                 y2={pEnd.y}
                 stroke="#ffffff"
-                strokeWidth="1.5"
+                strokeWidth="1.75"
                 strokeLinecap="round"
               />
-              {/* Outer tip glowing beacon dot */}
-              <circle cx={tip.x} cy={tip.y} r="5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
+              {/* Outer beacon dot */}
+              <circle cx={tip.x} cy={tip.y} r="5.5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
             </g>
           );
         })()}
