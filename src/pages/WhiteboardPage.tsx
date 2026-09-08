@@ -137,7 +137,8 @@ import {
   Pipette,
   Droplet,
   SwatchBook,
-  RefreshCcw
+  RefreshCcw,
+  BookmarkPlus
 } from "lucide-react";
 import {
   getStoredSamples,
@@ -3566,27 +3567,22 @@ export default function WhiteboardPage() {
     if (activeTool === "paintbucket") {
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
       const targetColor = fillColor || strokeColor || "#ffffff";
-      if (hitShape && !hitShape.isLocked) {
-        setShapes((prev) =>
-          prev.map((s) =>
-            s.id === hitShape.id
-              ? { ...s, fillColor: targetColor, fillStyle: "solid" }
-              : s
-          )
-        );
-        setSelectedShapeIds([hitShape.id]);
-        showToast(`Filled ${hitShape.name || hitShape.type} with color!`);
-      } else if (selectedShapeIds.length > 0) {
-        setShapes((prev) =>
-          prev.map((s) =>
-            selectedShapeIds.includes(s.id) && !s.isLocked
-              ? { ...s, fillColor: targetColor, fillStyle: "solid" }
-              : s
-          )
-        );
-        showToast("Filled selected shapes!");
+      if (hitShape) {
+        if (!hitShape.isLocked) {
+          setShapes((prev) =>
+            prev.map((s) =>
+              s.id === hitShape.id
+                ? { ...s, fillColor: targetColor, fillStyle: "solid" }
+                : s
+            )
+          );
+          setSelectedShapeIds([hitShape.id]);
+          showToast(`Filled ${hitShape.name || hitShape.type} with color!`);
+        } else {
+          showToast("Shape is locked and cannot be filled");
+        }
       } else {
-        showToast("Click on any shape to fill it with color");
+        showToast("Click directly on any shape to fill it");
       }
       return;
     }
@@ -4250,18 +4246,23 @@ export default function WhiteboardPage() {
     const pt = getCanvasCoords(e);
     const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
+    const menuW = 240;
+    const menuH = 340;
+    const clampedX = Math.max(12, Math.min(e.clientX, window.innerWidth - menuW - 12));
+    const clampedY = Math.max(12, Math.min(e.clientY, window.innerHeight - menuH - 12));
+
     if (hitShape) {
       setSelectedShapeIds([hitShape.id]);
       setContextMenu({
-        x: e.clientX,
-        y: e.clientY,
+        x: clampedX,
+        y: clampedY,
         canvasPt: pt,
         targetShape: hitShape,
       });
     } else {
       setContextMenu({
-        x: e.clientX,
-        y: e.clientY,
+        x: clampedX,
+        y: clampedY,
         canvasPt: pt,
         targetShape: null,
       });
@@ -10422,22 +10423,9 @@ export default function WhiteboardPage() {
                     className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
-                      <Plus className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> New Diagram
+                      <Plus className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> New Canvas
                     </span>
                     <span className="text-[10px] text-slate-500 font-mono">Ctrl+N</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFileMenuOpen(false);
-                      setCreateCanvasModalOpen(true);
-                    }}
-                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <SlidersHorizontal className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Setup Canvas...
-                    </span>
                   </button>
 
                   <button
@@ -11898,18 +11886,7 @@ export default function WhiteboardPage() {
                 onClick={() => {
                   if (activeColorTool === "paintbucket") {
                     selectTool("paintbucket");
-                    if (selectedShapeIds.length > 0) {
-                      setShapes((prev) =>
-                        prev.map((s) =>
-                          selectedShapeIds.includes(s.id) && !s.isLocked
-                            ? { ...s, fillColor: fillColor, fillStyle: "solid" }
-                            : s
-                        )
-                      );
-                      showToast("Filled selected shapes!");
-                    } else {
-                      showToast("Paint Drop active — click any shape to fill it");
-                    }
+                    showToast("Paint Drop active — click any shape on canvas to fill it");
                   } else {
                     activateEyedropper();
                   }
@@ -11953,18 +11930,7 @@ export default function WhiteboardPage() {
                       setActiveColorTool("paintbucket");
                       selectTool("paintbucket");
                       setFlyoutGroup(null);
-                      if (selectedShapeIds.length > 0) {
-                        setShapes((prev) =>
-                          prev.map((s) =>
-                            selectedShapeIds.includes(s.id) && !s.isLocked
-                              ? { ...s, fillColor: fillColor, fillStyle: "solid" }
-                              : s
-                          )
-                        );
-                        showToast("Filled selected shapes!");
-                      } else {
-                        showToast("Paint Bucket active — click any shape to fill it");
-                      }
+                      showToast("Paint Drop active — click any shape on canvas to fill it");
                     }}
                     onToggleFavorite={() => toggleFavoriteTool("paintbucket")}
                     showTooltips={showTooltips}
@@ -14512,6 +14478,8 @@ function WhiteboardToolBtn({
   showTooltips: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ top?: number; bottom?: number }>({ top: 0 });
+  const btnRef = useRef<HTMLDivElement | null>(null);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const explanation = TOOL_EXPLANATIONS[toolKey];
 
@@ -14519,6 +14487,17 @@ function WhiteboardToolBtn({
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     // Delay preview by 750ms so it doesn't pop up immediately while moving or right-clicking
     hoverTimer.current = setTimeout(() => {
+      if (btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect();
+        const popoverH = 260; // Estimated height of the tooltip preview box
+        const spaceBelow = window.innerHeight - rect.top;
+        if (spaceBelow < popoverH + 20) {
+          // If close to bottom, position aligned to bottom of button or shifted up
+          setPopoverPos({ bottom: 0 });
+        } else {
+          setPopoverPos({ top: 0 });
+        }
+      }
       setIsHovered(true);
     }, 750);
   };
@@ -14539,6 +14518,7 @@ function WhiteboardToolBtn({
 
   return (
     <div
+      ref={btnRef}
       className="relative w-full group flex items-center justify-center"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -14574,7 +14554,10 @@ function WhiteboardToolBtn({
 
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && !isFlyoutOpen && (
-        <div className="absolute left-full top-0 ml-2 w-52 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2">
+        <div
+          className="absolute left-full ml-2 w-52 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2"
+          style={popoverPos.bottom !== undefined ? { bottom: popoverPos.bottom } : { top: popoverPos.top ?? 0 }}
+        >
           {/* Visual Thumbnail Preview with Soft Curved Container and Uniform Square Aspect Ratio */}
           <div className="w-full aspect-square rounded-lg border border-slate-300/90 bg-slate-200/90 flex items-center justify-center overflow-hidden relative shadow-inner p-1">
             <ToolGifAnimation toolKey={toolKey} />
@@ -15078,10 +15061,22 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     minY = pts[0].y;
     maxY = pts[0].y + totalH;
   } else if (shape.type === "candle" || shape.type === "bullish_candle" || shape.type === "bearish_candle") {
-    const upperWick = shape.upperWickLength ?? 25;
-    const lowerWick = shape.lowerWickLength ?? 25;
-    minY = Math.min(minY, minY - upperWick);
-    maxY = Math.max(maxY, maxY + lowerWick);
+    if (pts.length >= 2) {
+      const x1 = pts[0].x;
+      const y1 = pts[0].y;
+      const x2 = pts[1].x;
+      const y2 = pts[1].y;
+      const yHigh = Math.min(y1, y2);
+      const yLow = Math.max(y1, y2);
+      const totalH = Math.max(16, yLow - yHigh);
+      const bodyW = shape.candleBodyWidth ?? Math.max(14, Math.abs(x2 - x1) || 22);
+      const centerX = Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
+
+      minX = centerX - bodyW / 2;
+      maxX = centerX + bodyW / 2;
+      minY = yHigh;
+      maxY = yLow;
+    }
   }
   return { minX, maxX, minY, maxY };
 }
@@ -15110,7 +15105,7 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
 
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
-  const pad = 6;
+  const pad = 0;
 
   const handles: { handle: ResizeHandle; x: number; y: number }[] = [
     { handle: "tl", x: minX - pad, y: minY - pad },
@@ -16332,7 +16327,7 @@ function renderWhiteboardShape(
     let minY = b.minY;
     let maxY = b.maxY;
 
-    const pad = 4;
+    const pad = 0;
     ctx.strokeStyle = "rgba(59, 130, 246, 0.65)";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
