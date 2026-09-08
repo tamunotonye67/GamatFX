@@ -442,6 +442,16 @@ type FiboLevel = {
   enabled?: boolean;
 };
 
+export const DEFAULT_FIBO_LEVELS: FiboLevel[] = [
+  { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444", enabled: true },
+  { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316", enabled: true },
+  { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b", enabled: true },
+  { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308", enabled: true },
+  { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981", enabled: true },
+  { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6", enabled: true },
+  { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6", enabled: true },
+];
+
 type Shape = {
   id: string;
   type: Tool;
@@ -1610,25 +1620,31 @@ function MarketSessionsRadarTab() {
               className={`p-2 border flex items-center justify-between transition-colors ${
                 kz.isActive
                   ? "bg-amber-50/70 border-amber-300 shadow-2xs"
-                  : "bg-white border-slate-200"
+                  : "bg-white border-slate-200 opacity-60"
               }`}
             >
-              <div className="min-w-0">
+              <div className="min-w-0 pr-2">
                 <div className="flex items-center gap-1.5">
-                  <span className={`font-bold text-[11.5px] ${kz.isActive ? "text-amber-950" : "text-slate-800"}`}>
+                  <span className={`font-bold text-[11.5px] truncate ${kz.isActive ? "text-amber-950" : "text-slate-800"}`}>
                     {kz.name}
                   </span>
-                  {kz.isActive && (
-                    <span className="px-1 py-0.2 text-[8px] font-mono font-bold bg-amber-200 text-amber-900 border border-amber-300 uppercase">
-                      LIVE
-                    </span>
-                  )}
                 </div>
-                <span className="text-[9.5px] text-slate-500 block leading-tight mt-0.5">{kz.desc}</span>
+                <span className="text-[9.5px] text-slate-500 block truncate leading-tight mt-0.5">{kz.desc}</span>
               </div>
-              <span className="font-mono text-[10px] font-bold text-slate-700 shrink-0 ml-2 bg-slate-50 px-1.5 py-0.5 border border-slate-200">
-                {kz.timeStr}
-              </span>
+              <div className="text-right shrink-0 ml-2">
+                <span
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 border block ${
+                    kz.isActive
+                      ? "bg-amber-200 text-amber-950 border-amber-300"
+                      : "bg-slate-100 text-slate-400 border-slate-200"
+                  }`}
+                >
+                  {kz.isActive ? "LIVE" : "INACTIVE"}
+                </span>
+                <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
+                  {kz.timeStr}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -1742,6 +1758,7 @@ export default function WhiteboardPage() {
   const dragFavStart = useRef({ x: 0, y: 0 });
 
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
+  const [activeFiboLevels, setActiveFiboLevels] = useState<FiboLevel[]>(DEFAULT_FIBO_LEVELS);
 
   /* ------------------------- Real-Time Economic Calendar State ------------------------- */
   interface EconomicEvent {
@@ -3701,6 +3718,9 @@ export default function WhiteboardPage() {
 
       if (hitShape) {
         setIsInspectorOpen(true);
+        if (hitShape.type === "fibo" && hitShape.fiboLevels && hitShape.fiboLevels.length > 0) {
+          setActiveFiboLevels(hitShape.fiboLevels);
+        }
 
         const parentGroup = layerGroups.find((g) => g.shapeIds.includes(hitShape.id));
         if (e.shiftKey) {
@@ -3878,6 +3898,7 @@ export default function WhiteboardPage() {
       isLocked: autoLockObjects,
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
+      fiboLevels: activeTool === "fibo" ? [...activeFiboLevels] : undefined,
     };
 
     setCurrentShape(newShape);
@@ -8041,24 +8062,16 @@ export default function WhiteboardPage() {
 
               {/* 5b. Fibonacci Levels Configuration (If Fibo tool or shape selected) */}
               {((selectedShape && selectedShape.type === "fibo") || activeTool === "fibo") && (() => {
-                const defaultFibList: FiboLevel[] = [
-                  { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444", enabled: true },
-                  { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316", enabled: true },
-                  { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b", enabled: true },
-                  { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308", enabled: true },
-                  { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981", enabled: true },
-                  { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6", enabled: true },
-                  { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6", enabled: true },
-                ];
-
-                const currentLevels = (selectedShape?.fiboLevels && selectedShape.fiboLevels.length > 0)
+                const isShapeSelected = selectedShape && selectedShape.type === "fibo";
+                const currentLevels = (isShapeSelected && selectedShape.fiboLevels && selectedShape.fiboLevels.length > 0)
                   ? selectedShape.fiboLevels
-                  : defaultFibList;
+                  : activeFiboLevels;
 
                 const updateLevels = (newLvls: FiboLevel[]) => {
-                  if (selectedShape) {
+                  setActiveFiboLevels(newLvls);
+                  if (selectedShapeIds.length > 0) {
                     setShapes((prev) =>
-                      prev.map((s) => (s.id === selectedShape.id ? { ...s, fiboLevels: newLvls } : s))
+                      prev.map((s) => (selectedShapeIds.includes(s.id) && s.type === "fibo" ? { ...s, fiboLevels: newLvls } : s))
                     );
                   }
                 };
@@ -8071,7 +8084,7 @@ export default function WhiteboardPage() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => updateLevels(defaultFibList)}
+                        onClick={() => updateLevels(DEFAULT_FIBO_LEVELS)}
                         className="text-[9.5px] font-mono text-slate-500 hover:text-slate-900 underline cursor-pointer"
                         title="Reset to standard Fibonacci ratios"
                       >
@@ -8100,7 +8113,7 @@ export default function WhiteboardPage() {
                             <div className="w-16 flex items-center rounded border border-slate-300 bg-white px-1 py-0.5 font-mono">
                               <input
                                 type="number"
-                                step="0.001"
+                                step="any"
                                 value={lvl.ratio}
                                 onChange={(e) => {
                                   const val = parseFloat(e.target.value);
@@ -8148,10 +8161,17 @@ export default function WhiteboardPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const newRatio = 1.618;
+                        const candidateRatios = [1.272, 1.618, 2.0, 2.618, 3.618, 4.236, -0.272, -0.618];
+                        let nextRatio = candidateRatios.find(
+                          (r) => !currentLevels.some((l) => Math.abs(l.ratio - r) < 0.005)
+                        );
+                        if (nextRatio === undefined) {
+                          const maxR = Math.max(...currentLevels.map((l) => l.ratio), 1.0);
+                          nextRatio = parseFloat((maxR + 0.5).toFixed(3));
+                        }
                         const newLevel: FiboLevel = {
-                          ratio: newRatio,
-                          label: "161.8% Golden Extension",
+                          ratio: nextRatio,
+                          label: `${(nextRatio * 100).toFixed(1)}% (${nextRatio.toFixed(3)})`,
                           color: "#10b981",
                           enabled: true,
                         };
@@ -15165,7 +15185,7 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const pts = shape.points;
   if (!pts.length) return false;
 
-  if (shape.type === "text" || shape.type === "sticky" || shape.type === "annotation") {
+  if (shape.type === "text" || shape.type === "sticky" || shape.type === "annotation" || shape.type === "fibo") {
     const b = getShapeBounds(shape);
     const pad = 8;
     return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
@@ -15247,6 +15267,20 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
       minY = yHigh;
       maxY = yLow;
     }
+  } else if (shape.type === "fibo" && pts.length >= 2) {
+    const x1 = pts[0].x;
+    const y1 = pts[0].y;
+    const x2 = pts[1].x;
+    const y2 = pts[1].y;
+    const height = y2 - y1;
+    const levels = (shape.fiboLevels && shape.fiboLevels.length > 0)
+      ? shape.fiboLevels.filter((l) => l.enabled !== false)
+      : DEFAULT_FIBO_LEVELS;
+    const yCoords = levels.map((l) => y1 + height * l.ratio).concat([y1, y2]);
+    minX = Math.min(x1, x2);
+    maxX = Math.max(x1, x2) + 60;
+    minY = Math.min(...yCoords);
+    maxY = Math.max(...yCoords);
   }
   return { minX, maxX, minY, maxY };
 }
@@ -15788,19 +15822,9 @@ function renderWhiteboardShape(
     const width = x2 - x1;
     const height = y2 - y1;
 
-    const defaultFibLevels: FiboLevel[] = [
-      { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444", enabled: true },
-      { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316", enabled: true },
-      { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b", enabled: true },
-      { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308", enabled: true },
-      { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981", enabled: true },
-      { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6", enabled: true },
-      { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6", enabled: true },
-    ];
-
     const activeFibLevels = (shape.fiboLevels && shape.fiboLevels.length > 0)
       ? shape.fiboLevels.filter((lvl) => lvl.enabled !== false)
-      : defaultFibLevels;
+      : DEFAULT_FIBO_LEVELS;
 
     // Shaded Golden Pocket Zone (Between 0.5 and 0.618 if present)
     const lvl50 = activeFibLevels.find((l) => Math.abs(l.ratio - 0.5) < 0.01);
