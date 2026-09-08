@@ -150,16 +150,16 @@ export default function MarketClock() {
           );
         })}
 
-        {/* Radial moving session indicator line & glowing dot pointing from the inner rim to the outer session track corresponding to the actual time */}
+        {/* Radial moving session indicator line & glowing dot pointing from the dial to the outer rim beacon dot corresponding to actual time */}
         {(() => {
-          // Point from the inner rim (R - 10) to the outer session track (R + 16) at the clock's actual time position
+          // Distinct radial colored session pointer connecting the outer clock face to the session rim beacon
           const clockFrac = ((h % 12) + m / 60 + s / 3600) / 12;
-          const pStart = pt(clockFrac, R - 10);
+          const pStart = pt(clockFrac, R - 24);
           const pEnd = pt(clockFrac, R + 16);
           const tip = pt(clockFrac, R + 16);
           return (
             <g key="session-indicator-needle">
-              {/* Outer glow line pointing from inner rim across session tracks */}
+              {/* Radial coloured glow line */}
               <line
                 x1={pStart.x}
                 y1={pStart.y}
@@ -169,19 +169,30 @@ export default function MarketClock() {
                 strokeWidth="4"
                 strokeLinecap="round"
                 filter="url(#soft)"
-                opacity="0.85"
+                opacity="0.9"
               />
-              {/* Crisp core line */}
+              {/* Crisp radial coloured session line */}
+              <line
+                x1={pStart.x}
+                y1={pStart.y}
+                x2={pEnd.x}
+                y2={pEnd.y}
+                stroke={activeColor}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              {/* Bright inner accent on the line */}
               <line
                 x1={pStart.x}
                 y1={pStart.y}
                 x2={pEnd.x}
                 y2={pEnd.y}
                 stroke="#ffffff"
-                strokeWidth="1.75"
+                strokeWidth="1"
                 strokeLinecap="round"
+                opacity="0.85"
               />
-              {/* Outer beacon dot */}
+              {/* Rim radial beacon dot */}
               <circle cx={tip.x} cy={tip.y} r="5.5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
             </g>
           );
@@ -239,10 +250,10 @@ export default function MarketClock() {
           transform={`rotate(${minAngle} ${CX} ${CY})`}>
           <line x1={CX} y1={CY + 18} x2={CX} y2={CY - 84} stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity="0.9" />
         </g>
-        {/* Moving second hand & dot dynamically colored for the market session */}
+        {/* Second hand */}
         <g transform={`rotate(${secAngle} ${CX} ${CY})`}>
-          <line x1={CX} y1={CY + 24} x2={CX} y2={CY - 94} stroke={activeColor} strokeWidth="2" strokeLinecap="round" />
-          <circle cx={CX} cy={CY - 94} r="3.5" fill={activeColor} stroke="#ffffff" strokeWidth="0.8" />
+          <line x1={CX} y1={CY + 24} x2={CX} y2={CY - 94} stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
+          <circle cx={CX} cy={CY - 94} r="3.5" fill="#dc3545" />
         </g>
 
         <circle cx={CX} cy={CY} r="7" fill="#16181c" stroke={activeColor} strokeWidth="2.5" />
