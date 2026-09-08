@@ -82,6 +82,30 @@ export default function MarketClock() {
           <filter id="soft"><feGaussianBlur stdDeviation="2.5" /></filter>
         </defs>
 
+        {/* 24-hour UTC track indicators (00, 06, 12, 18) for session orientation */}
+        {[
+          { label: "00", frac: 0 },
+          { label: "06", frac: 6 / 24 },
+          { label: "12", frac: 12 / 24 },
+          { label: "18", frac: 18 / 24 },
+        ].map(({ label, frac }) => {
+          const ptTick = pt(frac, R + 18);
+          return (
+            <text
+              key={`utc-${label}`}
+              x={ptTick.x}
+              y={ptTick.y + (label === "00" ? -3 : label === "12" ? 7 : 3)}
+              textAnchor="middle"
+              fill="rgba(255,255,255,0.35)"
+              fontSize="7"
+              fontWeight="600"
+              fontFamily="Inter, sans-serif"
+            >
+              {label}
+            </text>
+          );
+        })}
+
         {/* Concentric session arcs with distinct tracks */}
         {SESSIONS.map((x, i) => {
           const on = isOpen(x, utcH);
@@ -126,21 +150,22 @@ export default function MarketClock() {
           );
         })}
 
-        {/* Radial moving line & glowing dot pointing to current session time */}
+        {/* Radial moving session indicator line & glowing dot on the outer session track */}
         {(() => {
-          const pStart = pt(nowFrac, R - 14);
+          // Span the session ring tracks cleanly (from R + 1 to R + 16) without intruding into the 12h face
+          const pStart = pt(nowFrac, R + 1);
           const pEnd = pt(nowFrac, R + 16);
           const tip = pt(nowFrac, R + 16);
           return (
             <g key="session-indicator-needle">
-              {/* Glow line */}
+              {/* Glow line across session tracks */}
               <line
                 x1={pStart.x}
                 y1={pStart.y}
                 x2={pEnd.x}
                 y2={pEnd.y}
                 stroke={activeColor}
-                strokeWidth="3.5"
+                strokeWidth="4"
                 strokeLinecap="round"
                 filter="url(#soft)"
                 opacity="0.85"
@@ -155,7 +180,7 @@ export default function MarketClock() {
                 strokeWidth="1.5"
                 strokeLinecap="round"
               />
-              {/* Tip dot */}
+              {/* Outer tip glowing beacon dot */}
               <circle cx={tip.x} cy={tip.y} r="5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
             </g>
           );
