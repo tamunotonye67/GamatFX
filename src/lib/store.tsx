@@ -26,9 +26,10 @@ import {
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
 } from "./supabaseServices";
-import { seedSupabaseDatabaseIfEmpty, subscribeToSupabaseRealtime } from "./supabaseSync";
-import { getQuiz } from "./quizzes";
-import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
+import {
+  getQuiz, getCustomQuizzes, saveCustomQuiz, deleteCustomQuiz,
+  type Quiz, type Question,
+} from "./quizzes";
 
 /* ================================ Types ================================ */
 
@@ -1040,6 +1041,7 @@ const K = {
   studentOfTheWeek: "gamat.sotw.v1",
   sotwHistory: "gamat.sotwHistory.v1",
   coupons: "gamat.coupons.v1",
+  customQuizzes: "gamat.customQuizzes.v1",
 };
 
 function read<T>(key: string, fallback: T): T {
@@ -1132,6 +1134,10 @@ type Ctx = {
 
   /* quizzes */
   attempts: QuizAttempt[];
+  customQuizzes: Quiz[];
+  getCourseQuiz: (courseId: string) => Quiz | undefined;
+  saveCourseQuiz: (quiz: Quiz) => { ok: boolean; error?: string };
+  deleteCourseQuiz: (courseId: string) => void;
   submitAttempt: (courseId: string, answers: Record<string, number>) => QuizAttempt;
   bestAttempt: (courseId: string) => QuizAttempt | undefined;
   hasPassedQuiz: (courseId: string) => boolean;
@@ -1298,6 +1304,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [coupons, setCoupons] = useState<Coupon[]>(() => read<Coupon[]>(K.coupons, SEED_COUPONS));
   const [reviews, setReviews] = useState<ReviewItem[]>(() => read<ReviewItem[]>("gamat_reviews_v1", SEED_REVIEWS));
+  const [customQuizzes, setCustomQuizzes] = useState<Quiz[]>(() => read<Quiz[]>(K.customQuizzes, []));
 
   /* persist */
   useEffect(() => write(K.accounts, accounts), [accounts]);
@@ -1324,6 +1331,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => write(K.studentOfTheWeek, studentOfTheWeek), [studentOfTheWeek]);
   useEffect(() => write(K.sotwHistory, studentOfTheWeekHistory), [studentOfTheWeekHistory]);
   useEffect(() => write(K.coupons, coupons), [coupons]);
+  useEffect(() => write(K.customQuizzes, customQuizzes), [customQuizzes]);
   /* Sync active user session with native Supabase Auth & Google OAuth callbacks */
   useEffect(() => {
     const syncAuthUser = async (userObj: any) => {
@@ -1836,8 +1844,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   /* ---------------------------- Quizzes ---------------------------- */
 
+  const getCourseQuiz: Ctx["getCourseQuiz"] = useCallback(
+    (courseId) => customQuizzes.find((q) => q.courseId === courseId) ?? getQuiz(courseId),
+    [customQuizzes]
+  );
+
+  const saveCourseQuiz: Ctx["saveCourseQuiz"] = useCallback((quiz) => {
+    saveCustomQuiz(quiz);
+    setCustomQuizzes((prev) => {
+      const idx = prev.findIndex((q) => q.courseId === quiz.courseId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = quiz;
+        return next;
+      }
+      return [quiz, ...prev];
+    });
+    return { ok: true };
+  }, []);
+
+  const deleteCourseQuiz: Ctx["deleteCourseQuiz"] = useCallback((courseId) => {
+    deleteCustomQuiz(courseId);
+    setCustomQuizzes((prev) => prev.filter((q) => q.courseId !== courseId));
+  }, []);
+
   const submitAttempt: Ctx["submitAttempt"] = useCallback((courseId, answers) => {
-    const quiz = getQuiz(courseId);
+    const quiz = getCourseQuiz(courseId);
     const total = quiz?.questions.length ?? 0;
     const correct = quiz
       ? quiz.questions.reduce((n, q) => n + (answers[q.id] === q.answer ? 1 : 0), 0)
@@ -1853,7 +1885,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
     setAttempts((p) => [attempt, ...p]);
     return attempt;
-  }, [sessionId]);
+  }, [sessionId, getCourseQuiz]);
 
   const myAttempts = useMemo(
     () => attempts.filter((a) => a.userId === sessionId), [attempts, sessionId]
@@ -2937,6 +2969,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     isStaff: user?.role === "staff",
     can, permissions,
     attempts: myAttempts, submitAttempt, bestAttempt, hasPassedQuiz,
+    customQuizzes, getCourseQuiz, saveCourseQuiz, deleteCourseQuiz,
     posts, myPosts, publishedPosts, savePost, deletePost, setPostStatus,
     news, publishedNews, saveNews, deleteNews,
     outlooks, publishedOutlooks, saveOutlook, deleteOutlook,

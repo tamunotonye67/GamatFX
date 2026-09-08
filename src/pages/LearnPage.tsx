@@ -44,7 +44,12 @@ export default function LearnPage({ id }: { id: string }) {
 
   const go = (dir: -1 | 1) => {
     const next = lessons[index + dir];
-    if (next) { setActiveId(next.id); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    if (next) {
+      setActiveId(next.id);
+      const mainEl = document.getElementById("learn-main-scroll");
+      if (mainEl) mainEl.scrollTo({ top: 0, behavior: "smooth" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const completeAndNext = () => {
@@ -53,10 +58,10 @@ export default function LearnPage({ id }: { id: string }) {
   };
 
   return (
-    <div className="min-h-screen bg-ink text-white">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-ink text-white">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 backdrop-blur">
-        <div className="flex h-16 items-center justify-between gap-4 px-5">
+      <header className="h-16 shrink-0 border-b border-white/10 bg-ink/95 backdrop-blur z-40">
+        <div className="flex h-full items-center justify-between gap-4 px-5">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebar((v) => !v)} className="rounded-lg p-2 text-white lg:hidden" aria-label="Toggle lessons">
               {sidebar ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -75,44 +80,58 @@ export default function LearnPage({ id }: { id: string }) {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className={`fixed inset-y-0 left-0 top-16 z-30 w-80 overflow-y-auto border-r border-white/10 bg-[#101216] transition-transform lg:sticky lg:translate-x-0 ${sidebar ? "translate-x-0" : "-translate-x-full"}`}>
-          <div className="p-5">
-            <p className="font-display text-sm font-bold">{course.title}</p>
-            <p className="mt-1 text-xs text-white/50">{done.length} of {totalLessons(course)} lessons complete</p>
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile backdrop */}
+        {sidebar && (
+          <div
+            className="fixed inset-0 top-16 z-20 bg-black/60 backdrop-blur-sm lg:hidden"
+            onClick={() => setSidebar(false)}
+          />
+        )}
+
+        {/* Left Sidebar: Lessons playlist (pinned, independent scroll) */}
+        <aside
+          className={`fixed inset-y-0 left-0 top-16 z-30 w-80 shrink-0 border-r border-white/10 bg-[#101216] transition-transform duration-300 lg:static lg:h-full lg:translate-x-0 ${
+            sidebar ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex h-full flex-col overflow-hidden">
+            <div className="shrink-0 border-b border-white/10 p-5">
+              <p className="font-display text-sm font-bold truncate text-white">{course.title}</p>
+              <p className="mt-1 text-xs text-white/50">{done.length} of {totalLessons(course)} lessons complete</p>
+            </div>
+            <nav className="flex-1 overflow-y-auto pb-16">
+              {course.modules.map((m) => (
+                <div key={m.title}>
+                  <p className="bg-white/5 px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white/50">{m.title}</p>
+                  <ul>
+                    {m.lessons.map((l) => {
+                      const lDone = done.includes(l.id);
+                      const isActive = l.id === active.id;
+                      return (
+                        <li key={l.id}>
+                          <button onClick={() => { setActiveId(l.id); setSidebar(false); }}
+                            className={`flex w-full items-start gap-3 px-5 py-3 text-left transition ${isActive ? "border-l-2 border-brand bg-brand/15" : "border-l-2 border-transparent hover:bg-white/5"}`}>
+                            <span onClick={(e) => { e.stopPropagation(); toggleLesson(course.id, l.id); }} className="mt-0.5 shrink-0">
+                              {lDone ? <CheckCircle2 className="h-4 w-4 text-brand" /> : <Circle className="h-4 w-4 text-white/30" />}
+                            </span>
+                            <span className="flex-1">
+                              <span className={`block text-sm leading-snug ${isActive ? "font-semibold text-white" : lDone ? "text-white/45 line-through" : "text-white/75"}`}>{l.title}</span>
+                              <span className="mt-0.5 block text-[11px] text-white/40">{l.duration}</span>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </nav>
           </div>
-          <nav className="pb-24">
-            {course.modules.map((m) => (
-              <div key={m.title}>
-                <p className="bg-white/5 px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white/50">{m.title}</p>
-                <ul>
-                  {m.lessons.map((l) => {
-                    const lDone = done.includes(l.id);
-                    const isActive = l.id === active.id;
-                    return (
-                      <li key={l.id}>
-                        <button onClick={() => { setActiveId(l.id); setSidebar(false); }}
-                          className={`flex w-full items-start gap-3 px-5 py-3 text-left transition ${isActive ? "border-l-2 border-brand bg-brand/15" : "border-l-2 border-transparent hover:bg-white/5"}`}>
-                          <span onClick={(e) => { e.stopPropagation(); toggleLesson(course.id, l.id); }} className="mt-0.5 shrink-0">
-                            {lDone ? <CheckCircle2 className="h-4 w-4 text-brand" /> : <Circle className="h-4 w-4 text-white/30" />}
-                          </span>
-                          <span className="flex-1">
-                            <span className={`block text-sm leading-snug ${isActive ? "font-semibold text-white" : lDone ? "text-white/45 line-through" : "text-white/75"}`}>{l.title}</span>
-                            <span className="mt-0.5 block text-[11px] text-white/40">{l.duration}</span>
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </nav>
         </aside>
 
-        {/* Player */}
-        <main className="min-w-0 flex-1 p-5 lg:p-10">
+        {/* Right Main Player & Notes: Scrollable without affecting the sidebar or outer window */}
+        <main id="learn-main-scroll" className="min-w-0 flex-1 overflow-y-auto p-5 lg:p-10">
           <div className="mx-auto max-w-4xl">
             {/* Download / right-click / PiP disabled to protect course content. */}
             <video
@@ -173,6 +192,12 @@ export default function LearnPage({ id }: { id: string }) {
                 </div>
               </div>
             )}
+
+            {/* In-page copyright footer anchored naturally at the bottom of the right panel */}
+            <footer className="mt-20 border-t border-white/10 pt-6 pb-12 text-center text-xs text-white/40">
+              Copyright © {new Date().getFullYear()}{" "}
+              <span className="font-semibold text-white/70">GAMAT Fx Academy</span>. All rights reserved.
+            </footer>
           </div>
         </main>
       </div>

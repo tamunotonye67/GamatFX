@@ -49,22 +49,28 @@ export default function MarketClock() {
   const h = now.getHours();
   const m = now.getMinutes();
   const s = now.getSeconds();
-  const utcH = now.getUTCHours() + now.getUTCMinutes() / 60;
+  // Include seconds for smooth real-time progression
+  const utcH = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
 
   const hourAngle = ((h % 12) + m / 60) * 30;
   const minAngle = (m + s / 60) * 6;
   const secAngle = s * 6;
 
   const open = SESSIONS.filter((x) => isOpen(x, utcH));
+  const activeColor = open.length > 0 ? open[open.length - 1].color : "#dc3545";
   const nowFrac = utcH / 24;
-  const marker = pt(nowFrac, R + 12);
 
   return (
     <div
       className="group/clock relative w-full max-w-[320px] cursor-pointer select-none transition-transform duration-500 ease-[cubic-bezier(.34,1.8,.5,1)] hover:scale-[1.07] sm:max-w-[340px] xl:max-w-[370px]"
     >
       {/* Glow */}
-      <div className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-[radial-gradient(circle,rgba(220,53,69,0.28),transparent_65%)] blur-2xl transition-transform duration-500 group-hover/clock:scale-125" />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 rounded-full blur-2xl transition-all duration-700 group-hover/clock:scale-125"
+        style={{
+          background: `radial-gradient(circle, ${activeColor}33, transparent 65%)`,
+        }}
+      />
 
       <svg viewBox="0 0 300 300" className="w-full drop-shadow-2xl" role="img"
         aria-label={`Analog clock showing ${now.toLocaleTimeString()}`}>
@@ -76,18 +82,84 @@ export default function MarketClock() {
           <filter id="soft"><feGaussianBlur stdDeviation="2.5" /></filter>
         </defs>
 
-        {/* Session arcs */}
-        {SESSIONS.map((x, i) => (
-          <path key={x.name} d={arc(x.start, x.end, R + 12 - i * 0)}
-            stroke={x.color} strokeWidth={isOpen(x, utcH) ? 7 : 3}
-            strokeLinecap="round" fill="none"
-            opacity={isOpen(x, utcH) ? 0.95 : 0.28}
-            style={{ transition: "stroke-width .4s, opacity .4s" }} />
-        ))}
+        {/* Concentric session arcs with distinct tracks */}
+        {SESSIONS.map((x, i) => {
+          const on = isOpen(x, utcH);
+          const trackR = R + 14 - i * 4;
+          return (
+            <g key={x.name}>
+              {/* Session track arc */}
+              <path
+                d={arc(x.start, x.end, trackR)}
+                stroke={x.color}
+                strokeWidth={on ? 5.5 : 2.5}
+                strokeLinecap="round"
+                fill="none"
+                opacity={on ? 0.95 : 0.22}
+                style={{ transition: "stroke-width .4s, opacity .4s" }}
+              />
+              {/* Moving session dot for active session */}
+              {on && (() => {
+                const sMarker = pt(nowFrac, trackR);
+                return (
+                  <g key={`dot-${x.name}`}>
+                    <circle
+                      cx={sMarker.x}
+                      cy={sMarker.y}
+                      r="6"
+                      fill={x.color}
+                      opacity="0.6"
+                      filter="url(#soft)"
+                    />
+                    <circle
+                      cx={sMarker.x}
+                      cy={sMarker.y}
+                      r="3.5"
+                      fill="#ffffff"
+                      stroke={x.color}
+                      strokeWidth="1.5"
+                    />
+                  </g>
+                );
+              })()}
+            </g>
+          );
+        })}
 
-        {/* Now marker on the session ring */}
-        <circle cx={marker.x} cy={marker.y} r="6" fill="#fff" filter="url(#soft)" opacity="0.9" />
-        <circle cx={marker.x} cy={marker.y} r="4" fill="#dc3545" />
+        {/* Radial moving line & glowing dot pointing to current session time */}
+        {(() => {
+          const pStart = pt(nowFrac, R - 14);
+          const pEnd = pt(nowFrac, R + 16);
+          const tip = pt(nowFrac, R + 16);
+          return (
+            <g key="session-indicator-needle">
+              {/* Glow line */}
+              <line
+                x1={pStart.x}
+                y1={pStart.y}
+                x2={pEnd.x}
+                y2={pEnd.y}
+                stroke={activeColor}
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                filter="url(#soft)"
+                opacity="0.85"
+              />
+              {/* Crisp core line */}
+              <line
+                x1={pStart.x}
+                y1={pStart.y}
+                x2={pEnd.x}
+                y2={pEnd.y}
+                stroke="#ffffff"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              {/* Tip dot */}
+              <circle cx={tip.x} cy={tip.y} r="5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
+            </g>
+          );
+        })()}
 
         {/* Face */}
         <circle cx={CX} cy={CY} r={R - 8} fill="url(#face)" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" />
@@ -127,7 +199,7 @@ export default function MarketClock() {
           fontSize="20" fontWeight="700" fontFamily="Sora, sans-serif">
           {String(h).padStart(2, "0")}:{String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}
         </text>
-        <text x={CX} y={CY + 70} textAnchor="middle" fill="rgba(255,255,255,0.4)"
+        <text x={CX} y={CY + 70} textAnchor="middle" fill={activeColor}
           fontSize="9.5" fontWeight="600" letterSpacing="1.5" fontFamily="Inter, sans-serif">
           {open.length ? `${open.map((o) => o.short).join(" · ")} OPEN` : "MARKET QUIET"}
         </text>
@@ -141,12 +213,13 @@ export default function MarketClock() {
           transform={`rotate(${minAngle} ${CX} ${CY})`}>
           <line x1={CX} y1={CY + 18} x2={CX} y2={CY - 84} stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity="0.9" />
         </g>
+        {/* Moving second hand & dot dynamically colored for the market session */}
         <g transform={`rotate(${secAngle} ${CX} ${CY})`}>
-          <line x1={CX} y1={CY + 24} x2={CX} y2={CY - 94} stroke="#dc3545" strokeWidth="2" strokeLinecap="round" />
-          <circle cx={CX} cy={CY - 94} r="3.5" fill="#dc3545" />
+          <line x1={CX} y1={CY + 24} x2={CX} y2={CY - 94} stroke={activeColor} strokeWidth="2" strokeLinecap="round" />
+          <circle cx={CX} cy={CY - 94} r="3.5" fill={activeColor} stroke="#ffffff" strokeWidth="0.8" />
         </g>
 
-        <circle cx={CX} cy={CY} r="7" fill="#16181c" stroke="#dc3545" strokeWidth="2.5" />
+        <circle cx={CX} cy={CY} r="7" fill="#16181c" stroke={activeColor} strokeWidth="2.5" />
       </svg>
 
       {/* Legend */}

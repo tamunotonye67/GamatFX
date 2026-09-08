@@ -612,4 +612,42 @@ export const QUIZZES: Quiz[] = [
   },
 ];
 
-export const getQuiz = (courseId: string) => QUIZZES.find((q) => q.courseId === courseId);
+export const CUSTOM_QUIZZES_KEY = "gamat.customQuizzes.v1";
+
+export function getCustomQuizzes(): Quiz[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_QUIZZES_KEY);
+    return raw ? (JSON.parse(raw) as Quiz[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCustomQuiz(quiz: Quiz): void {
+  try {
+    const list = getCustomQuizzes();
+    const idx = list.findIndex((q) => q.courseId === quiz.courseId);
+    let updated: Quiz[];
+    if (idx >= 0) {
+      updated = [...list];
+      updated[idx] = quiz;
+    } else {
+      updated = [quiz, ...list];
+    }
+    localStorage.setItem(CUSTOM_QUIZZES_KEY, JSON.stringify(updated));
+  } catch {}
+}
+
+export function deleteCustomQuiz(courseId: string): void {
+  try {
+    const list = getCustomQuizzes().filter((q) => q.courseId !== courseId);
+    localStorage.setItem(CUSTOM_QUIZZES_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+export const getQuiz = (courseId: string): Quiz | undefined => {
+  const custom = getCustomQuizzes();
+  const foundCustom = custom.find((q) => q.courseId === courseId);
+  if (foundCustom) return foundCustom;
+  return QUIZZES.find((q) => q.courseId === courseId);
+};

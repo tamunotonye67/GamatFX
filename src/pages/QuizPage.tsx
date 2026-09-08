@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Logo from "../components/Logo";
 import { getQuiz } from "../lib/quizzes";
-import { getCourse } from "../lib/courses";
+import { getCourse, asCourse } from "../lib/courses";
 import { useStore, type QuizAttempt } from "../lib/store";
 import { navigate } from "../lib/router";
 import {
@@ -10,9 +10,11 @@ import {
 } from "lucide-react";
 
 export default function QuizPage({ courseId }: { courseId: string }) {
-  const quiz = getQuiz(courseId);
-  const course = getCourse(courseId);
-  const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf } = useStore();
+  const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz } = useStore();
+  const quiz = getCourseQuiz(courseId);
+  const builtIn = getCourse(courseId);
+  const managed = managedCourses.find((c) => c.id === courseId);
+  const course = builtIn ?? (managed ? asCourse(managed) : undefined);
 
   const [started, setStarted] = useState(false);
   const [idx, setIdx] = useState(0);

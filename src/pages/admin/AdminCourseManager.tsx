@@ -7,11 +7,13 @@ import {
   type ManagedModule,
   type ManagedLesson,
 } from "../../lib/store";
-import { naira } from "../../lib/courses";
+import { naira, COURSES } from "../../lib/courses";
+import { type Quiz, type Question } from "../../lib/quizzes";
 import {
   BookOpen, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
   GraduationCap, LineChart, Brain, Target, Shield, Award, Rocket,
   TrendingUp, BarChart3, Layers, Upload, Link2, Video, ChevronDown, ChevronUp,
+  FileQuestion, AlertCircle,
 } from "lucide-react";
 
 const ICON_OPTIONS = [
@@ -89,13 +91,145 @@ function readVideoFile(file: File): Promise<{ url: string; name: string }> {
 }
 
 export function AdminCourseManager() {
-  const { managedCourses, saveManagedCourse, deleteManagedCourse } = useStore();
+  const {
+    managedCourses, saveManagedCourse, deleteManagedCourse,
+    getCourseQuiz, saveCourseQuiz, deleteCourseQuiz, customQuizzes,
+  } = useStore();
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<Draft | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [openMod, setOpenMod] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const lessonUpload = useRef<{ mi: number; li: number } | null>(null);
+
+  // Exam Questions Manager state
+  const [examCourse, setExamCourse] = useState<{ id: string; title: string } | null>(null);
+  const [examQuiz, setExamQuiz] = useState<Quiz | null>(null);
+  const [examNotice, setExamNotice] = useState<string | null>(null);
+  const [examError, setExamError] = useState<string | null>(null);
+
+  const allCourseChoices = useMemo(() => {
+    const list: { id: string; title: string; tag: string }[] = [];
+    managedCourses.forEach((c) => list.push({ id: c.id, title: c.title, tag: "Managed" }));
+    COURSES.forEach((c) => {
+      if (!list.some((x) => x.id === c.id)) {
+        list.push({ id: c.id, title: c.title, tag: "Built-in" });
+      }
+    });
+    return list;
+  }, [managedCourses]);
+
+  const openExam = (course: { id: string; title: string }) => {
+    setExamCourse(course);
+    setExamNotice(null);
+    setExamError(null);
+    const existing = getCourseQuiz(course.id);
+    if (existing) {
+      setExamQuiz(JSON.parse(JSON.stringify(existing)));
+    } else {
+      setExamQuiz({
+        courseId: course.id,
+        title: `${course.title} — Final Assessment`,
+        passMark: 70,
+        timeLimitMins: 25,
+        questions: [
+          {
+            id: `q_${Date.now()}_1`,
+            q: "",
+            options: ["", "", "", ""],
+            answer: 0,
+            explain: "",
+          },
+        ],
+      });
+    }
+  };
+
+  const addExamQuestion = () => {
+    if (!examQuiz) return;
+    const newQ: Question = {
+      id: `q_${Date.now()}_${examQuiz.questions.length + 1}`,
+      q: "",
+      options: ["", "", "", ""],
+      answer: 0,
+      explain: "",
+    };
+    setExamQuiz({
+      ...examQuiz,
+      questions: [...examQuiz.questions, newQ],
+    });
+    setExamNotice(null);
+    setExamError(null);
+  };
+
+  const updateExamQuestion = (qi: number, patch: Partial<Question>) => {
+    if (!examQuiz) return;
+    const updated = examQuiz.questions.map((item, i) => (i === qi ? { ...item, ...patch } : item));
+    setExamQuiz({ ...examQuiz, questions: updated });
+    setExamNotice(null);
+    setExamError(null);
+  };
+
+  const updateExamOption = (qi: number, optIdx: number, text: string) => {
+    if (!examQuiz) return;
+    const q = examQuiz.questions[qi];
+    const newOpts = [...q.options];
+    newOpts[optIdx] = text;
+    updateExamQuestion(qi, { options: newOpts });
+  };
+
+  const removeExamQuestion = (qi: number) => {
+    if (!examQuiz) return;
+    if (examQuiz.questions.length <= 1) {
+      setExamError("An exam must contain at least one question.");
+      return;
+    }
+    const updated = examQuiz.questions.filter((_, i) => i !== qi);
+    setExamQuiz({ ...examQuiz, questions: updated });
+    setExamNotice(null);
+    setExamError(null);
+  };
+
+  const saveExam = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!examQuiz || !examCourse) return;
+    if (!examQuiz.title.trim()) {
+      setExamError("Exam assessment title is required.");
+      return;
+    }
+    for (let i = 0; i < examQuiz.questions.length; i++) {
+      const q = examQuiz.questions[i];
+      if (!q.q.trim()) {
+        setExamError(`Question #${i + 1} prompt cannot be empty.`);
+        return;
+      }
+      const filledOpts = q.options.filter((o) => o.trim().length > 0);
+      if (filledOpts.length < 2) {
+        setExamError(`Question #${i + 1} must have at least 2 non-empty options.`);
+        return;
+      }
+    }
+
+    const cleanQuiz: Quiz = {
+      ...examQuiz,
+      courseId: examCourse.id,
+      title: examQuiz.title.trim(),
+      passMark: Math.min(100, Math.max(1, Number(examQuiz.passMark) || 70)),
+      timeLimitMins: Math.max(1, Number(examQuiz.timeLimitMins) || 25),
+      questions: examQuiz.questions.map((q, idx) => ({
+        id: q.id || `q_${Date.now()}_${idx + 1}`,
+        q: q.q.trim(),
+        options: q.options.map((o) => o.trim()),
+        answer: Math.max(0, Math.min(q.options.length - 1, q.answer)),
+        explain: q.explain.trim(),
+      })),
+    };
+
+    saveCourseQuiz(cleanQuiz);
+    setExamQuiz(cleanQuiz);
+    setExamNotice(`Exam questions successfully saved! ${cleanQuiz.questions.length} questions are live for ${examCourse.title}.`);
+    setExamError(null);
+  };
 
   const rows = useMemo(
     () => managedCourses.filter((c) => `${c.title} ${c.tag} ${c.level}`.toLowerCase().includes(q.toLowerCase())),
@@ -216,8 +350,16 @@ export function AdminCourseManager() {
             Title: c.title, Tag: c.tag, Level: c.level, Price: c.price,
             Modules: c.modules?.length ?? 0,
             Lessons: c.modules?.reduce((n, m) => n + m.lessons.length, 0) ?? 0,
+            ExamQuestions: getCourseQuiz(c.id)?.questions.length ?? 0,
             Published: c.published ? "Yes" : "No",
           })))} className="btn-outline-dark !py-2.5"><Download className="h-4 w-4" /> Export</button>
+          <button
+            type="button"
+            onClick={() => openExam(managedCourses[0] || COURSES[0])}
+            className="btn-outline-dark !py-2.5 text-brand hover:border-brand"
+          >
+            <FileQuestion className="h-4 w-4" /> Exam Questions
+          </button>
           <button onClick={() => openEdit()} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> Add course</button>
         </div>
       }
@@ -228,7 +370,7 @@ export function AdminCourseManager() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={BookOpen} label="Managed courses" value={managedCourses.length} />
         <StatCard icon={CheckCircle2} label="Published" value={managedCourses.filter((c) => c.published).length} />
-        <StatCard icon={EyeOff} label="Hidden" value={managedCourses.filter((c) => !c.published).length} />
+        <StatCard icon={FileQuestion} label="Exam questions" value={allCourseChoices.reduce((n, c) => n + (getCourseQuiz(c.id)?.questions.length ?? 0), 0)} />
         <StatCard icon={Video} label="Total lessons" value={managedCourses.reduce((n, c) => n + (c.modules?.reduce((a, m) => a + m.lessons.length, 0) ?? 0), 0)} />
       </div>
 
@@ -239,13 +381,23 @@ export function AdminCourseManager() {
         </div>
         {rows.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[960px] text-sm">
+            <table className="w-full min-w-[1040px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Course</Th><Th>Tag</Th><Th>Curriculum</Th><Th>Price</Th><Th>Status</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th>Course</Th>
+                  <Th>Tag</Th>
+                  <Th>Curriculum</Th>
+                  <Th>Exam Questions</Th>
+                  <Th>Price</Th>
+                  <Th>Status</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((c) => {
                   const lessons = c.modules?.reduce((n, m) => n + m.lessons.length, 0) ?? 0;
+                  const qz = getCourseQuiz(c.id);
+                  const hasQ = !!(qz && qz.questions && qz.questions.length > 0);
                   return (
                     <tr key={c.id} className="transition hover:bg-cream/60">
                       <Td>
@@ -259,6 +411,30 @@ export function AdminCourseManager() {
                       </Td>
                       <Td><Badge tone="gray">{c.tag}</Badge></Td>
                       <Td><span className="text-muted">{c.modules?.length ?? 0} modules · {lessons} lessons</span></Td>
+                      <Td>
+                        <button
+                          type="button"
+                          onClick={() => openExam(c)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition border cursor-pointer ${
+                            hasQ
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                              : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                          }`}
+                          title={hasQ ? "View or edit exam questions" : "Add exam questions for this course"}
+                        >
+                          {hasQ ? (
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>{qz!.questions.length} Qs ({qz!.passMark}%)</span>
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                              <span>+ Add Exam</span>
+                            </>
+                          )}
+                        </button>
+                      </Td>
                       <Td><span className="font-bold text-ink">{naira(c.price)}</span></Td>
                       <Td>
                         <div className="flex flex-wrap gap-1.5">
@@ -268,7 +444,10 @@ export function AdminCourseManager() {
                       </Td>
                       <Td right>
                         <div className="flex justify-end gap-1">
-                          <IconBtn title="Edit" onClick={() => openEdit(c)}><Pencil className="h-4 w-4" /></IconBtn>
+                          <IconBtn title="Exam Questions" onClick={() => openExam(c)}>
+                            <FileQuestion className="h-4 w-4 text-brand" />
+                          </IconBtn>
+                          <IconBtn title="Edit Course" onClick={() => openEdit(c)}><Pencil className="h-4 w-4" /></IconBtn>
                           <IconBtn danger title="Delete" onClick={() => { if (confirm(`Delete "${c.title}"?`)) deleteManagedCourse(c.id); }}>
                             <Trash2 className="h-4 w-4" />
                           </IconBtn>
@@ -475,9 +654,253 @@ export function AdminCourseManager() {
               </label>
             </div>
 
-            <div className="flex justify-end gap-3">
-              <button type="button" onClick={() => setEdit(null)} className="btn-outline-dark !py-2.5">Cancel</button>
-              <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save course</button>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+              {edit.id ? (
+                <button
+                  type="button"
+                  onClick={() => openExam({ id: edit.id!, title: edit.title || "Course" })}
+                  className="btn-outline-dark !py-2.5 text-brand hover:border-brand"
+                >
+                  <FileQuestion className="h-4 w-4" /> Manage Exam Questions
+                </button>
+              ) : <div />}
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setEdit(null)} className="btn-outline-dark !py-2.5">Cancel</button>
+                <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save course</button>
+              </div>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Exam Questions Manager Modal */}
+      <Modal
+        open={!!examCourse}
+        onClose={() => setExamCourse(null)}
+        title={`Exam Questions — ${examCourse?.title || "Course Assessment"}`}
+        wide
+      >
+        {examQuiz && examCourse && (
+          <form onSubmit={saveExam} className="space-y-6">
+            {examNotice && (
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                <span>{examNotice}</span>
+              </div>
+            )}
+            {examError && (
+              <div className="flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-brand-dark">
+                <AlertCircle className="h-4 w-4 shrink-0 text-brand" />
+                <span>{examError}</span>
+              </div>
+            )}
+
+            {/* Course & Exam Meta Header */}
+            <div className="rounded-2xl border border-line bg-cream/40 p-4 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">
+                    Target Course
+                  </label>
+                  <select
+                    value={examCourse.id}
+                    onChange={(e) => {
+                      const found = allCourseChoices.find((c) => c.id === e.target.value);
+                      if (found) openExam(found);
+                    }}
+                    className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm font-semibold text-ink outline-none focus:border-brand"
+                  >
+                    {allCourseChoices.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title} ({c.tag})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">
+                    Pass Mark (%)
+                  </label>
+                  <input
+                    type="number"
+                    min={10}
+                    max={100}
+                    value={examQuiz.passMark}
+                    onChange={(e) =>
+                      setExamQuiz({ ...examQuiz, passMark: Number(e.target.value) || 70 })
+                    }
+                    className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm font-bold text-ink outline-none focus:border-brand"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">
+                    Time Limit (Mins)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={180}
+                    value={examQuiz.timeLimitMins}
+                    onChange={(e) =>
+                      setExamQuiz({ ...examQuiz, timeLimitMins: Number(e.target.value) || 25 })
+                    }
+                    className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm font-bold text-ink outline-none focus:border-brand"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted">
+                  Assessment Title
+                </label>
+                <input
+                  value={examQuiz.title}
+                  onChange={(e) => setExamQuiz({ ...examQuiz, title: e.target.value })}
+                  placeholder="e.g. Fundamental & Supply and Demand — Final Assessment"
+                  className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm font-semibold text-ink outline-none focus:border-brand"
+                />
+              </div>
+            </div>
+
+            {/* Questions List Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-display text-sm font-bold uppercase tracking-wide text-ink">
+                  Questions ({examQuiz.questions.length})
+                </h4>
+                <p className="text-xs text-muted mt-0.5">
+                  Questions and options are saved instantly when you click "Save Exam Questions".
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addExamQuestion}
+                className="btn-outline-dark !py-1.5 !px-3 text-xs"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add Question
+              </button>
+            </div>
+
+            {/* Scrollable Questions list */}
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
+              {examQuiz.questions.map((q, qi) => (
+                <div key={q.id || qi} className="rounded-2xl border border-line bg-white p-4 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between gap-3 border-b border-line pb-2.5">
+                    <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white text-[10px]">
+                        {qi + 1}
+                      </span>
+                      Question {qi + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeExamQuestion(qi)}
+                      disabled={examQuiz.questions.length <= 1}
+                      className="rounded-lg p-1 text-muted hover:bg-brand-light hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Remove question"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Prompt */}
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-muted">
+                      Question Prompt
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={q.q}
+                      onChange={(e) => updateExamQuestion(qi, { q: e.target.value })}
+                      placeholder="e.g. What is the safest way to place your very first trades?"
+                      className="w-full rounded-xl border border-line bg-cream/30 p-2.5 text-sm font-medium text-ink outline-none focus:border-brand focus:bg-white"
+                    />
+                  </div>
+
+                  {/* 4 Options */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-muted">
+                      Answer Options (Select the radio button next to the correct answer)
+                    </label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {q.options.map((opt, oi) => {
+                        const isCorrect = q.answer === oi;
+                        const labelChar = ["A", "B", "C", "D"][oi] || String(oi + 1);
+                        return (
+                          <div
+                            key={oi}
+                            className={`flex items-center gap-2 rounded-xl border p-2.5 transition ${
+                              isCorrect
+                                ? "border-emerald-500 bg-emerald-50/80 ring-1 ring-emerald-500/30"
+                                : "border-line bg-white hover:border-slate-300"
+                            }`}
+                          >
+                            <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+                              <input
+                                type="radio"
+                                name={`correct_${q.id || qi}`}
+                                checked={isCorrect}
+                                onChange={() => updateExamQuestion(qi, { answer: oi })}
+                                className="h-4 w-4 accent-emerald-600 cursor-pointer"
+                              />
+                              <span className={`text-xs font-bold ${isCorrect ? "text-emerald-700" : "text-muted"}`}>
+                                {labelChar}:
+                              </span>
+                            </label>
+                            <input
+                              type="text"
+                              value={opt}
+                              onChange={(e) => updateExamOption(qi, oi, e.target.value)}
+                              placeholder={`Option ${labelChar}`}
+                              className="w-full bg-transparent text-sm text-ink outline-none"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Explanation */}
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-muted">
+                      Explanation (Shown upon test completion)
+                    </label>
+                    <input
+                      type="text"
+                      value={q.explain}
+                      onChange={(e) => updateExamQuestion(qi, { explain: e.target.value })}
+                      placeholder="e.g. Demo trading builds process at zero cost before going live."
+                      className="w-full rounded-xl border border-line bg-cream/30 px-3 py-2 text-xs text-ink outline-none focus:border-brand focus:bg-white"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+              <button
+                type="button"
+                onClick={addExamQuestion}
+                className="btn-outline-dark !py-2.5"
+              >
+                <Plus className="h-4 w-4" /> Add Another Question
+              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExamCourse(null)}
+                  className="btn-outline-dark !py-2.5"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary !py-2.5"
+                >
+                  <Save className="h-4 w-4" /> Save Exam Questions
+                </button>
+              </div>
             </div>
           </form>
         )}
