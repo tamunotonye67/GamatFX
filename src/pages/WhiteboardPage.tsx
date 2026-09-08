@@ -435,6 +435,13 @@ type Tool =
 
 type StickyColor = "#fef08a" | "#fbcfe8" | "#bae6fd" | "#bbf7d0" | "#ddd6fe";
 
+type FiboLevel = {
+  ratio: number;
+  label?: string;
+  color?: string;
+  enabled?: boolean;
+};
+
 type Shape = {
   id: string;
   type: Tool;
@@ -464,6 +471,7 @@ type Shape = {
   upperWickLength?: number;
   lowerWickLength?: number;
   wickColor?: string;
+  fiboLevels?: FiboLevel[];
   points: { x: number; y: number }[];
   text?: string;
   stickyColor?: StickyColor;
@@ -1427,55 +1435,52 @@ function MarketSessionsRadarTab() {
 
   return (
     <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
-      {/* 1. INTERACTIVE LIVE 24H RADAR DISPLAY */}
-      <div className="rounded-xl border border-slate-300 bg-slate-900 p-3 text-white shadow-md relative overflow-hidden">
-        {/* Glow backdrop */}
-        <div className="absolute inset-0 bg-radial from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
-
-        {/* Top clock bar */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 relative z-10">
+      {/* 1. MINIMALIST 24H SESSIONS RADAR DIAL */}
+      <div className="border border-slate-300 bg-white p-3 shadow-2xs">
+        {/* Top clock & status bar */}
+        <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-2.5">
           <div className="flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
-            <span className="font-bold text-xs tracking-tight text-white flex items-center gap-1">
-              <Globe className="h-3.5 w-3.5 text-emerald-400" /> 24H Sessions Radar
+            <span className="font-bold text-xs text-slate-900 tracking-tight flex items-center gap-1">
+              <Globe className="h-3.5 w-3.5 text-slate-700" /> 24H Radar
             </span>
           </div>
-          <div className="text-right">
-            <span className="font-mono text-[11px] font-bold text-emerald-400 block leading-tight">{utcStr}</span>
-            <span className="font-mono text-[9px] text-slate-400 block">Local: {localStr}</span>
+          <div className="flex items-center gap-2 text-right">
+            <span className="font-mono text-[11px] font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 border border-slate-200">{utcStr}</span>
+            <span className="font-mono text-[10px] text-slate-500 hidden sm:inline">{localStr}</span>
           </div>
         </div>
 
-        {/* Circular Radar Visual Dial */}
-        <div className="relative flex items-center justify-center my-1">
-          <svg viewBox="0 0 200 200" className="w-48 h-48 drop-shadow-lg">
+        {/* Circular Radar Visual Dial with clean slate background */}
+        <div className="relative flex items-center justify-center py-1">
+          <svg viewBox="0 0 200 200" className="w-44 h-44">
             <defs>
               <linearGradient id="radarSweep" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
                 <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
               </linearGradient>
             </defs>
 
             {/* Radar Background circle */}
-            <circle cx={cx} cy={cy} r={r + 14} fill="#0b1120" stroke="#1e293b" strokeWidth="1.5" />
+            <circle cx={cx} cy={cy} r={r + 14} fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
 
             {/* Concentric distance rings */}
-            <circle cx={cx} cy={cy} r={r * 0.35} fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="2 2" />
-            <circle cx={cx} cy={cy} r={r * 0.7} fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="3 3" />
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#334155" strokeWidth="1" />
+            <circle cx={cx} cy={cy} r={r * 0.35} fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="2 2" />
+            <circle cx={cx} cy={cy} r={r * 0.7} fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3 3" />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="1" />
 
             {/* Radar Crosshairs */}
-            <line x1={cx} y1={cy - r - 8} x2={cx} y2={cy + r + 8} stroke="#1e293b" strokeWidth="1" />
-            <line x1={cx - r - 8} y1={cy} x2={cx + r + 8} y2={cy} stroke="#1e293b" strokeWidth="1" />
+            <line x1={cx} y1={cy - r - 8} x2={cx} y2={cy + r + 8} stroke="#e2e8f0" strokeWidth="1" />
+            <line x1={cx - r - 8} y1={cy} x2={cx + r + 8} y2={cy} stroke="#e2e8f0" strokeWidth="1" />
 
             {/* Hour labels (00, 06, 12, 18) */}
-            <text x={cx} y={cy - r - 4} textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">00h</text>
-            <text x={cx + r + 6} y={cy + 2.5} textAnchor="start" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">06h</text>
-            <text x={cx} y={cy + r + 10} textAnchor="middle" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">12h</text>
-            <text x={cx - r - 6} y={cy + 2.5} textAnchor="end" fill="#64748b" fontSize="7" fontWeight="bold" fontFamily="monospace">18h</text>
+            <text x={cx} y={cy - r - 4} textAnchor="middle" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">00h</text>
+            <text x={cx + r + 6} y={cy + 2.5} textAnchor="start" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">06h</text>
+            <text x={cx} y={cy + r + 10} textAnchor="middle" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">12h</text>
+            <text x={cx - r - 6} y={cy + 2.5} textAnchor="end" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">18h</text>
 
             {/* Session Arcs on Outer Radar Ring */}
             {sessionStatuses.map((s, idx) => {
@@ -1488,82 +1493,86 @@ function MarketSessionsRadarTab() {
                   stroke={s.color}
                   strokeWidth={s.isOpen ? 4 : 1.5}
                   strokeLinecap="round"
-                  opacity={s.isOpen ? 1 : 0.35}
+                  opacity={s.isOpen ? 1 : 0.3}
                 />
               );
             })}
 
             {/* Rotating Radar Sweep Beam */}
-            <g style={{ transformOrigin: "100px 100px", animation: "spin 5s linear infinite" }}>
+            <g style={{ transformOrigin: "100px 100px", animation: "spin 6s linear infinite" }}>
               <path
                 d={`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 0 1 ${cx + r * 0.7} ${cy - r * 0.7} Z`}
                 fill="url(#radarSweep)"
               />
-              <line x1={cx} y1={cy} x2={cx} y2={cy - r} stroke="#10b981" strokeWidth="1.5" opacity="0.85" />
+              <line x1={cx} y1={cy} x2={cx} y2={cy - r} stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
             </g>
 
             {/* Center Radar Core */}
-            <circle cx={cx} cy={cy} r="18" fill="#0f172a" stroke="#334155" strokeWidth="1.5" />
-            <circle cx={cx} cy={cy} r="4" fill="#10b981" />
+            <circle cx={cx} cy={cy} r="14" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.5" />
+            <circle cx={cx} cy={cy} r="3.5" fill="#10b981" />
 
             {/* Current Live Time Marker Blip on Ring */}
-            <circle cx={nowX} cy={nowY} r="5" fill="#ffffff" opacity="0.3" className="animate-ping" />
-            <circle cx={nowX} cy={nowY} r="4" fill="#ffffff" stroke="#ef4444" strokeWidth="1.5" />
+            <circle cx={nowX} cy={nowY} r="5" fill="#ef4444" opacity="0.25" className="animate-ping" />
+            <circle cx={nowX} cy={nowY} r="3.5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
           </svg>
         </div>
 
-        {/* Live Liquidity / Volume Gauge */}
-        <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] relative z-10">
-          <span className="text-slate-400">Market Liquidity:</span>
-          <div className="flex items-center gap-1.5">
-            <div className="w-20 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+        {/* Minimalist Liquidity Gauge */}
+        <div className="pt-2 mt-1 border-t border-slate-200 flex items-center justify-between text-[10.5px]">
+          <span className="text-slate-600 font-medium">Market Liquidity</span>
+          <div className="flex items-center gap-2">
+            <div className="w-20 h-1.5 bg-slate-100 border border-slate-200 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${
+                className={`h-full transition-all duration-500 ${
                   overallVol >= 85 ? "bg-emerald-500" : overallVol >= 60 ? "bg-blue-500" : "bg-amber-500"
                 }`}
                 style={{ width: `${overallVol}%` }}
               />
             </div>
-            <span className="font-mono font-bold text-white">{overallVol}%</span>
-            {isOverlap && <span className="text-[8.5px] font-bold text-emerald-400 bg-emerald-950/80 px-1 rounded border border-emerald-800/80">OVERLAP</span>}
+            <span className="font-mono font-bold text-slate-800">{overallVol}%</span>
+            {isOverlap && (
+              <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 border border-emerald-300">
+                OVERLAP
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 2. LIVE SESSION STATUS CARDS WITH ACTIVE COUNTDOWNS */}
-      <div className="border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+      {/* 2. LIVE SESSION STATUS CARDS */}
+      <div className="border border-slate-300 bg-white p-3 space-y-2 shadow-2xs">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
           <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Active Session Feeds
+            <Clock className="h-3.5 w-3.5 text-slate-600" /> Active Sessions
           </span>
-          <span className="text-[10px] font-mono font-bold text-slate-600 bg-white px-1.5 py-0.2 border border-slate-300">
+          <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 border border-slate-200">
             {activeCount} of 4 Open
           </span>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {sessionStatuses.map((s) => (
             <div
               key={s.id}
-              className={`flex items-center justify-between p-2.5 border text-xs transition-all ${
+              className={`flex items-center justify-between p-2 border text-xs transition-colors ${
                 s.isOpen
-                  ? "bg-white border-slate-400 shadow-2xs"
-                  : "bg-white/60 border-slate-200 opacity-75"
+                  ? "bg-slate-50/80 border-slate-300 shadow-2xs"
+                  : "bg-white border-slate-200 opacity-60"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.isOpen ? "animate-pulse ring-2 ring-emerald-400/40" : ""}`}
+                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.isOpen ? "ring-2 ring-emerald-400/40" : ""}`}
                   style={{ backgroundColor: s.color }}
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-slate-900 truncate">{s.name}</p>
-                    <span className="text-[9px] font-mono font-bold text-slate-500 bg-slate-100 px-1 py-0.2 border border-slate-200">
+                    <span className="font-bold text-slate-900 truncate text-[11.5px]">{s.name}</span>
+                    <span className="text-[9px] font-mono font-bold text-slate-500 bg-white px-1 py-0.2 border border-slate-200">
                       {s.short}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-500 truncate leading-snug">{s.desc}</p>
+                  <p className="text-[9.5px] text-slate-500 font-mono truncate leading-none mt-0.5">{s.desc}</p>
                 </div>
               </div>
               <div className="text-right shrink-0 ml-2">
@@ -1576,8 +1585,8 @@ function MarketSessionsRadarTab() {
                 >
                   {s.isOpen ? "ACTIVE" : "CLOSED"}
                 </span>
-                <span className="text-[8.5px] text-slate-500 font-mono block mt-0.5">
-                  {s.isOpen ? `Closes in ${s.countdown}` : `Opens in ${s.countdown}`}
+                <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
+                  {s.isOpen ? `Closes: ${s.countdown}` : `Opens: ${s.countdown}`}
                 </span>
               </div>
             </div>
@@ -1585,39 +1594,39 @@ function MarketSessionsRadarTab() {
         </div>
       </div>
 
-      {/* 3. ICT / SMC KILLZONE WINDOWS SCHEDULE */}
-      <div className="border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+      {/* 3. ICT KILLZONE WINDOWS */}
+      <div className="border border-slate-300 bg-white p-3 space-y-2 shadow-2xs">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
           <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Activity className="h-3.5 w-3.5 text-amber-600 stroke-[1.5]" /> ICT Killzone Windows
+            <Activity className="h-3.5 w-3.5 text-slate-600" /> ICT Killzone Windows
           </span>
-          <span className="text-[9.5px] text-slate-500 font-mono">Algorithmic Delivery</span>
+          <span className="text-[9px] text-slate-500 font-mono">Algorithmic Delivery</span>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {killzones.map((kz) => (
             <div
               key={kz.name}
-              className={`p-2.5 border flex items-center justify-between transition-all ${
+              className={`p-2 border flex items-center justify-between transition-colors ${
                 kz.isActive
-                  ? "bg-amber-50/80 border-amber-300 shadow-2xs"
+                  ? "bg-amber-50/70 border-amber-300 shadow-2xs"
                   : "bg-white border-slate-200"
               }`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className={`font-bold text-xs ${kz.isActive ? "text-amber-900" : "text-slate-900"}`}>
+                  <span className={`font-bold text-[11.5px] ${kz.isActive ? "text-amber-950" : "text-slate-800"}`}>
                     {kz.name}
                   </span>
                   {kz.isActive && (
-                    <span className="px-1.5 py-0.2 text-[8.5px] font-mono font-extrabold bg-amber-200 text-amber-900 border border-amber-400 uppercase">
-                      Live
+                    <span className="px-1 py-0.2 text-[8px] font-mono font-bold bg-amber-200 text-amber-900 border border-amber-300 uppercase">
+                      LIVE
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-slate-500 block leading-snug mt-0.5">{kz.desc}</span>
+                <span className="text-[9.5px] text-slate-500 block leading-tight mt-0.5">{kz.desc}</span>
               </div>
-              <span className="font-mono text-[10.5px] font-bold text-slate-700 shrink-0 ml-2 bg-slate-50 px-1.5 py-0.5 border border-slate-200">
+              <span className="font-mono text-[10px] font-bold text-slate-700 shrink-0 ml-2 bg-slate-50 px-1.5 py-0.5 border border-slate-200">
                 {kz.timeStr}
               </span>
             </div>
@@ -3289,6 +3298,10 @@ export default function WhiteboardPage() {
   };
 
   const activateEyedropper = async () => {
+    setActiveColorTool("eyedropper");
+    selectTool("eyedropper");
+    showToast("Color Picker active — click any shape or canvas pixel to sample color");
+
     if (typeof window !== "undefined" && "EyeDropper" in window) {
       try {
         const eyeDropper = new (window as any).EyeDropper();
@@ -3298,14 +3311,11 @@ export default function WhiteboardPage() {
           setSampledColor(hex);
           setStrokeColor(hex);
           showToast(`Colour sampled: ${hex.toUpperCase()}`);
-          return;
         }
       } catch {
-        // Fallback to canvas tool if user cancels EyeDropper
+        // User canceled EyeDropper modal; keep canvas eyedropper tool active
       }
     }
-    selectTool("eyedropper");
-    showToast("Color Picker active — click any shape or canvas pixel");
   };
 
   const groupSelectedObjects = () => {
@@ -7996,6 +8006,132 @@ export default function WhiteboardPage() {
                 );
               })()}
 
+              {/* 5b. Fibonacci Levels Configuration (If Fibo tool or shape selected) */}
+              {((selectedShape && selectedShape.type === "fibo") || activeTool === "fibo") && (() => {
+                const defaultFibList: FiboLevel[] = [
+                  { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444", enabled: true },
+                  { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316", enabled: true },
+                  { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b", enabled: true },
+                  { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308", enabled: true },
+                  { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981", enabled: true },
+                  { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6", enabled: true },
+                  { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6", enabled: true },
+                ];
+
+                const currentLevels = (selectedShape?.fiboLevels && selectedShape.fiboLevels.length > 0)
+                  ? selectedShape.fiboLevels
+                  : defaultFibList;
+
+                const updateLevels = (newLvls: FiboLevel[]) => {
+                  if (selectedShape) {
+                    setShapes((prev) =>
+                      prev.map((s) => (s.id === selectedShape.id ? { ...s, fiboLevels: newLvls } : s))
+                    );
+                  }
+                };
+
+                return (
+                  <div className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-2.5 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <Spline className="h-3 w-3 text-emerald-600" /> Fibonacci Levels & Percentages
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => updateLevels(defaultFibList)}
+                        className="text-[9.5px] font-mono text-slate-500 hover:text-slate-900 underline cursor-pointer"
+                        title="Reset to standard Fibonacci ratios"
+                      >
+                        Reset Defaults
+                      </button>
+                    </div>
+
+                    <div className="space-y-1 max-h-48 overflow-y-auto pr-0.5">
+                      {currentLevels.map((lvl, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between gap-1.5 p-1 rounded bg-slate-50 border border-slate-200 text-xs"
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <input
+                              type="checkbox"
+                              checked={lvl.enabled !== false}
+                              onChange={(e) => {
+                                const copy = [...currentLevels];
+                                copy[idx] = { ...copy[idx], enabled: e.target.checked };
+                                updateLevels(copy);
+                              }}
+                              className="rounded text-emerald-600 focus:ring-0 cursor-pointer"
+                              title="Toggle level visibility"
+                            />
+                            <div className="w-16 flex items-center rounded border border-slate-300 bg-white px-1 py-0.5 font-mono">
+                              <input
+                                type="number"
+                                step="0.001"
+                                value={lvl.ratio}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value);
+                                  if (isNaN(val)) return;
+                                  const copy = [...currentLevels];
+                                  copy[idx] = { ...copy[idx], ratio: val, label: `${(val * 100).toFixed(1)}% (${val.toFixed(3)})` };
+                                  updateLevels(copy);
+                                }}
+                                className="w-full text-[11px] font-bold text-slate-900 outline-none text-right"
+                              />
+                            </div>
+                            <span className="text-[10px] font-mono text-slate-600 truncate">
+                              {(lvl.ratio * 100).toFixed(1)}%
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <input
+                              type="color"
+                              value={lvl.color || "#10b981"}
+                              onChange={(e) => {
+                                const copy = [...currentLevels];
+                                copy[idx] = { ...copy[idx], color: e.target.value };
+                                updateLevels(copy);
+                              }}
+                              className="w-5 h-5 rounded border border-slate-300 cursor-pointer p-0 bg-transparent"
+                              title="Change level line color"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const copy = currentLevels.filter((_, i) => i !== idx);
+                                updateLevels(copy);
+                              }}
+                              className="p-0.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                              title="Remove level"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newRatio = 1.618;
+                        const newLevel: FiboLevel = {
+                          ratio: newRatio,
+                          label: "161.8% Golden Extension",
+                          color: "#10b981",
+                          enabled: true,
+                        };
+                        updateLevels([...currentLevels, newLevel]);
+                      }}
+                      className="w-full py-1 rounded border border-dashed border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-900 text-[10px] font-bold flex items-center justify-center gap-1 transition cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" /> Add Custom Level
+                    </button>
+                  </div>
+                );
+              })()}
+
               {/* 6. Fill Section with Rich RGB/HEX Color Picker */}
               <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -9784,17 +9920,17 @@ export default function WhiteboardPage() {
 
         {/* TAB 11: ECONOMIC NEWS CALENDAR & HIGH-IMPACT ALERTS */}
         {tabKey === "economic_calendar" && (
-          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
             {/* View Mode Toggle & Live Sync Header */}
-            <div className="flex items-center justify-between gap-2 p-1 bg-slate-100 border border-slate-300">
+            <div className="flex items-center justify-between gap-2 p-1 bg-white border border-slate-300 shadow-2xs">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setCalendarViewMode("live")}
-                  className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                  className={`px-2 py-0.5 text-[11px] font-bold transition-colors ${
                     calendarViewMode === "live"
-                      ? "bg-white text-slate-900 border border-slate-300 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-slate-100 text-slate-900 border border-slate-300"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   Live Feed
@@ -9802,10 +9938,10 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setCalendarViewMode("tradingview")}
-                  className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                  className={`px-2 py-0.5 text-[11px] font-bold transition-colors ${
                     calendarViewMode === "tradingview"
-                      ? "bg-white text-slate-900 border border-slate-300 shadow-2xs"
-                      : "text-slate-600 hover:text-slate-900"
+                      ? "bg-slate-100 text-slate-900 border border-slate-300"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   TradingView Widget
@@ -9816,7 +9952,7 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={() => fetchLiveCalendarEvents(true)}
                 disabled={isCalendarLoading}
-                className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-50"
                 title="Refresh live economic calendar"
               >
                 <RefreshCw className={`h-3 w-3 ${isCalendarLoading ? "animate-spin text-emerald-600" : ""}`} />
@@ -9834,31 +9970,31 @@ export default function WhiteboardPage() {
               </div>
             ) : (
               /* Live Feed Mode */
-              <div className="space-y-3">
-                {/* Next Upcoming High Impact Countdown Banner */}
+              <div className="space-y-2.5">
+                {/* Next Upcoming High Impact Alert Banner (Clean Minimalist) */}
                 {nextHighImpactEvent && (
-                  <div className="p-2.5 bg-slate-900 text-white border border-slate-800 space-y-1.5 shadow-sm">
-                    <div className="flex items-center justify-between">
+                  <div className="p-2 bg-rose-50/80 border border-rose-200 space-y-1.5 shadow-2xs">
+                    <div className="flex items-center justify-between gap-1.5">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="relative flex h-2 w-2 shrink-0">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
                         </span>
-                        <span className="text-[11px] font-bold text-rose-300 truncate">
+                        <span className="text-[11px] font-bold text-rose-900 truncate">
                           Next High Impact: [{nextHighImpactEvent.country}] {nextHighImpactEvent.title}
                         </span>
                       </div>
-                      <span className="font-mono text-[10.5px] font-bold px-1.5 py-0.2 bg-rose-950 text-rose-300 border border-rose-800 shrink-0 ml-1">
+                      <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-rose-100 text-rose-800 border border-rose-300 shrink-0">
                         {calendarCountdown || "SOON"}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-0.5 border-t border-slate-800">
-                      <span>Forecast: {nextHighImpactEvent.forecast || "N/A"}</span>
-                      <span>Prior: {nextHighImpactEvent.previous || "N/A"}</span>
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-600 pt-1 border-t border-rose-200/70">
+                      <span>Forecast: <strong className="text-slate-800">{nextHighImpactEvent.forecast || "N/A"}</strong></span>
+                      <span>Prior: <strong className="text-slate-800">{nextHighImpactEvent.previous || "N/A"}</strong></span>
                       <button
                         type="button"
                         onClick={() => stampNewsEventToCanvas(nextHighImpactEvent)}
-                        className="text-[9.5px] text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
+                        className="text-[10px] font-bold text-rose-700 hover:text-rose-900 underline cursor-pointer"
                       >
                         Stamp to Canvas
                       </button>
@@ -9866,18 +10002,18 @@ export default function WhiteboardPage() {
                   </div>
                 )}
 
-                {/* Filters: Impact & Currency */}
-                <div className="p-2 bg-slate-100 border border-slate-300 space-y-2">
-                  <div className="flex items-center justify-between gap-1 text-[10px]">
-                    <span className="font-bold text-slate-700">Impact:</span>
+                {/* Minimalist Filter Controls: Impact & Currency */}
+                <div className="p-2 bg-white border border-slate-300 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between gap-1 text-[10.5px]">
+                    <span className="font-medium text-slate-600">Impact:</span>
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setCalendarImpactFilter("all")}
-                        className={`px-1.5 py-0.5 rounded-none text-[10px] font-medium border ${
+                        className={`px-1.5 py-0.5 text-[9.5px] font-medium border transition-colors ${
                           calendarImpactFilter === "all"
-                            ? "bg-white text-slate-900 border-slate-400 font-bold"
-                            : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200"
+                            ? "bg-slate-100 text-slate-900 border-slate-300 font-bold"
+                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
                         All
@@ -9885,10 +10021,10 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => setCalendarImpactFilter("med_high")}
-                        className={`px-1.5 py-0.5 rounded-none text-[10px] font-medium border ${
+                        className={`px-1.5 py-0.5 text-[9.5px] font-medium border transition-colors ${
                           calendarImpactFilter === "med_high"
-                            ? "bg-white text-slate-900 border-slate-400 font-bold"
-                            : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200"
+                            ? "bg-slate-100 text-slate-900 border-slate-300 font-bold"
+                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
                         Med+High
@@ -9896,10 +10032,10 @@ export default function WhiteboardPage() {
                       <button
                         type="button"
                         onClick={() => setCalendarImpactFilter("high")}
-                        className={`px-1.5 py-0.5 rounded-none text-[10px] font-medium border ${
+                        className={`px-1.5 py-0.5 text-[9.5px] font-medium border transition-colors ${
                           calendarImpactFilter === "high"
-                            ? "bg-rose-100 text-rose-800 border-rose-400 font-bold"
-                            : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200"
+                            ? "bg-rose-50 text-rose-800 border-rose-300 font-bold"
+                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
                         High Only
@@ -9907,12 +10043,12 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-1 text-[10px]">
-                    <span className="font-bold text-slate-700">Currency:</span>
+                  <div className="flex items-center justify-between gap-1 text-[10.5px] pt-1 border-t border-slate-100">
+                    <span className="font-medium text-slate-600">Currency:</span>
                     <select
                       value={calendarCurrencyFilter}
                       onChange={(e) => setCalendarCurrencyFilter(e.target.value)}
-                      className="px-2 py-0.5 bg-white border border-slate-300 text-[11px] font-mono font-bold text-slate-800 focus:outline-hidden"
+                      className="px-1.5 py-0.5 bg-slate-50 border border-slate-300 text-[10.5px] font-mono font-bold text-slate-800 focus:outline-hidden"
                     >
                       <option value="ALL">ALL Currencies</option>
                       <option value="USD">USD - US Dollar</option>
@@ -9927,12 +10063,13 @@ export default function WhiteboardPage() {
                   </div>
                 </div>
 
-                {/* Event Count and List */}
+                {/* Event Count and Header */}
                 <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono px-0.5">
-                  <span>Showing {filteredCalendarEvents.length} release(s)</span>
+                  <span>{filteredCalendarEvents.length} Release(s)</span>
                   <span>Institutional Feed</span>
                 </div>
 
+                {/* Event Cards List */}
                 <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-0.5">
                   {filteredCalendarEvents.length === 0 ? (
                     <div className="p-4 bg-white border border-slate-300 text-center text-slate-500 text-xs">
@@ -9950,32 +10087,32 @@ export default function WhiteboardPage() {
                       return (
                         <div
                           key={`${evt.title}-${idx}`}
-                          className="p-2.5 bg-white border border-slate-300 space-y-1.5 hover:border-slate-400 transition-colors shadow-2xs"
+                          className="p-2 bg-white border border-slate-300 space-y-1 hover:border-slate-400 transition-colors shadow-2xs"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5 mb-0.5">
-                                <span className="text-[10px] font-mono font-black px-1 py-0.2 bg-slate-100 text-slate-800 border border-slate-300">
+                                <span className="text-[10px] font-mono font-bold px-1 py-0.2 bg-slate-100 text-slate-800 border border-slate-200">
                                   {evt.country}
                                 </span>
                                 <span
-                                  className={`text-[9px] font-mono font-bold px-1.5 py-0.2 border ${
+                                  className={`text-[8.5px] font-mono font-bold px-1 py-0.2 border ${
                                     isHigh
-                                      ? "bg-rose-100 text-rose-800 border-rose-300"
+                                      ? "bg-rose-50 text-rose-800 border-rose-300"
                                       : isMed
-                                      ? "bg-amber-100 text-amber-800 border-amber-300"
-                                      : "bg-slate-100 text-slate-700 border-slate-300"
+                                      ? "bg-amber-50 text-amber-800 border-amber-300"
+                                      : "bg-slate-50 text-slate-600 border-slate-200"
                                   }`}
                                 >
                                   {evt.impact?.toUpperCase() || "LOW"}
                                 </span>
                                 {isValidDate && (
-                                  <span className="text-[10px] font-mono text-slate-500">
+                                  <span className="text-[9.5px] font-mono text-slate-500">
                                     {dateStr} {timeStr}
                                   </span>
                                 )}
                               </div>
-                              <p className="font-bold text-xs text-slate-900 leading-snug">
+                              <p className="font-bold text-[11.5px] text-slate-900 leading-snug">
                                 {evt.title}
                               </p>
                             </div>
@@ -9983,18 +10120,18 @@ export default function WhiteboardPage() {
                             <button
                               type="button"
                               onClick={() => stampNewsEventToCanvas(evt)}
-                              className="shrink-0 p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-colors"
+                              className="shrink-0 p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
                               title="Stamp this news event onto Whiteboard canvas"
                             >
                               <BookmarkPlus className="h-3.5 w-3.5" />
                             </button>
                           </div>
 
-                          <div className="flex items-center justify-between text-[10.5px] font-mono pt-1 border-t border-slate-100 text-slate-600">
-                            <span>Forecast: <strong className="text-slate-800">{evt.forecast || "—"}</strong></span>
+                          <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-slate-100 text-slate-600">
+                            <span>Frcst: <strong className="text-slate-800">{evt.forecast || "—"}</strong></span>
                             <span>Prior: <strong className="text-slate-800">{evt.previous || "—"}</strong></span>
                             {evt.actual && (
-                              <span>Actual: <strong className={isHigh ? "text-emerald-700" : "text-slate-900"}>{evt.actual}</strong></span>
+                              <span>Actual: <strong className={isHigh ? "text-rose-700" : "text-slate-900"}>{evt.actual}</strong></span>
                             )}
                           </div>
                         </div>
@@ -15618,36 +15755,45 @@ function renderWhiteboardShape(
     const width = x2 - x1;
     const height = y2 - y1;
 
-    const fibLevels = [
-      { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444" },
-      { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316" },
-      { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b" },
-      { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308" },
-      { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981" },
-      { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6" },
-      { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6" },
+    const defaultFibLevels: FiboLevel[] = [
+      { ratio: 0.0, label: "0.0% (1.000)", color: "#ef4444", enabled: true },
+      { ratio: 0.236, label: "23.6% (0.236)", color: "#f97316", enabled: true },
+      { ratio: 0.382, label: "38.2% (0.382)", color: "#f59e0b", enabled: true },
+      { ratio: 0.5, label: "50.0% Equilibrium (0.50)", color: "#eab308", enabled: true },
+      { ratio: 0.618, label: "61.8% Golden Pocket (0.618)", color: "#10b981", enabled: true },
+      { ratio: 0.786, label: "78.6% (0.786)", color: "#3b82f6", enabled: true },
+      { ratio: 1.0, label: "100.0% (0.000)", color: "#8b5cf6", enabled: true },
     ];
 
-    // Shaded Golden Pocket Zone (Between 0.5 and 0.618)
-    const y50 = y1 + height * 0.5;
-    const y618 = y1 + height * 0.618;
-    ctx.fillStyle = "rgba(234, 179, 8, 0.18)";
-    ctx.fillRect(Math.min(x1, x2), Math.min(y50, y618), Math.abs(width), Math.abs(y618 - y50));
+    const activeFibLevels = (shape.fiboLevels && shape.fiboLevels.length > 0)
+      ? shape.fiboLevels.filter((lvl) => lvl.enabled !== false)
+      : defaultFibLevels;
+
+    // Shaded Golden Pocket Zone (Between 0.5 and 0.618 if present)
+    const lvl50 = activeFibLevels.find((l) => Math.abs(l.ratio - 0.5) < 0.01);
+    const lvl618 = activeFibLevels.find((l) => Math.abs(l.ratio - 0.618) < 0.01);
+    if (lvl50 && lvl618) {
+      const y50 = y1 + height * lvl50.ratio;
+      const y618 = y1 + height * lvl618.ratio;
+      ctx.fillStyle = "rgba(234, 179, 8, 0.18)";
+      ctx.fillRect(Math.min(x1, x2), Math.min(y50, y618), Math.abs(width), Math.abs(y618 - y50));
+    }
 
     // Draw level lines & subtle micro-percentage labels
-    fibLevels.forEach((lvl) => {
+    activeFibLevels.forEach((lvl) => {
       const ly = y1 + height * lvl.ratio;
-      ctx.strokeStyle = lvl.color;
-      ctx.lineWidth = lvl.ratio === 0.618 || lvl.ratio === 0.5 ? 2 : 1;
-      ctx.setLineDash(lvl.ratio === 0.5 ? [4, 4] : []);
+      ctx.strokeStyle = lvl.color || shape.color || "#10b981";
+      ctx.lineWidth = Math.abs(lvl.ratio - 0.618) < 0.01 || Math.abs(lvl.ratio - 0.5) < 0.01 ? 2 : 1;
+      ctx.setLineDash(Math.abs(lvl.ratio - 0.5) < 0.01 ? [4, 4] : []);
       ctx.beginPath();
       ctx.moveTo(x1, ly);
       ctx.lineTo(x2, ly);
       ctx.stroke();
 
-      ctx.fillStyle = lvl.color;
+      ctx.fillStyle = lvl.color || shape.color || "#10b981";
       ctx.font = "bold 8.5px Inter, -apple-system, sans-serif";
-      ctx.fillText(lvl.label.split(" ")[0], Math.max(x1, x2) + 6, ly + 3);
+      const displayLabel = lvl.label ? lvl.label.split(" ")[0] : `${(lvl.ratio * 100).toFixed(1)}%`;
+      ctx.fillText(displayLabel, Math.max(x1, x2) + 6, ly + 3);
     });
   } else if (shape.type === "long" && pts.length >= 2) {
     /* 2. LONG POSITION CALCULATOR TOOL */
