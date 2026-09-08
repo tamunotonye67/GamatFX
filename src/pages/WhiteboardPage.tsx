@@ -1985,7 +1985,7 @@ export default function WhiteboardPage() {
   };
 
   const [strokeColor, setStrokeColor] = useState("#000000");
-  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [strokeWidth, setStrokeWidth] = useState(1);
   const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
   const [fillColor, setFillColor] = useState("#ffffff");
   const [fillStyle, setFillStyle] = useState<"solid" | "gradient" | "none" | "translucent">("translucent");
@@ -1994,7 +1994,7 @@ export default function WhiteboardPage() {
   const fillColorInputRef = useRef<HTMLInputElement>(null);
   const [gradientEndColor, setGradientEndColor] = useState("#8b5cf6");
   const [opacity, setOpacity] = useState<number>(1);
-  const [cornerRadius, setCornerRadius] = useState<number>(4);
+  const [cornerRadius, setCornerRadius] = useState<number>(0);
   const [upperWickLength, setUpperWickLength] = useState<number>(25);
   const [lowerWickLength, setLowerWickLength] = useState<number>(25);
   const [wickColor, setWickColor] = useState<string>("#10b981");
@@ -2072,8 +2072,8 @@ export default function WhiteboardPage() {
   // Line Patterns & Vector Stroke Modifiers State
   const [activeLinePattern, setActiveLinePattern] = useState<"solid" | "dashed" | "dotted" | "dash-dot" | "long-dash">("solid");
   const [activeDashLength, setActiveDashLength] = useState<number>(8);
-  const [activeLineCap, setActiveLineCap] = useState<"round" | "butt" | "square">("round");
-  const [activeLineJoin, setActiveLineJoin] = useState<"round" | "miter" | "bevel">("round");
+  const [activeLineCap, setActiveLineCap] = useState<"round" | "butt" | "square">("butt");
+  const [activeLineJoin, setActiveLineJoin] = useState<"round" | "miter" | "bevel">("miter");
   const [activeArrowStart, setActiveArrowStart] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("none");
   const [activeArrowEnd, setActiveArrowEnd] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("arrow");
   const [activeLineGlow, setActiveLineGlow] = useState<boolean>(false);
@@ -2217,6 +2217,8 @@ export default function WhiteboardPage() {
   // References
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const topMenubarRef = useRef<HTMLDivElement>(null);
+  const leftDockRef = useRef<HTMLElement>(null);
   const isDrawing = useRef(false);
   const isDraggingShape = useRef(false);
   const dragStartPt = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -2571,6 +2573,37 @@ export default function WhiteboardPage() {
     }
     showToast("Reset to default Black & White (Shift+D)");
   };
+
+  // Close menus and flyouts when clicking outside
+  useEffect(() => {
+    const handleDocumentPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+
+      // If clicking outside top menubar, close all header menu dropdowns
+      if (topMenubarRef.current && !topMenubarRef.current.contains(target)) {
+        setFileMenuOpen(false);
+        setEditMenuOpen(false);
+        setViewMenuOpen(false);
+        setInsertMenuOpen(false);
+        setBgOpen(false);
+        setExportOpen(false);
+      }
+
+      // If clicking outside user avatar menu, close it
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setUserMenuOpen(false);
+      }
+
+      // If clicking outside left toolbar dock, close any open tool flyouts
+      if (leftDockRef.current && !leftDockRef.current.contains(target)) {
+        setFlyoutGroup(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleDocumentPointerDown);
+    return () => document.removeEventListener("pointerdown", handleDocumentPointerDown);
+  }, []);
 
   /* -------------------------- FULL KEYBOARD SHORTCUTS ---------------------- */
 
@@ -9952,11 +9985,11 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={() => fetchLiveCalendarEvents(true)}
                 disabled={isCalendarLoading}
-                className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="w-18 shrink-0 flex items-center justify-center gap-1 px-1.5 py-0.5 text-[10px] font-mono text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-75"
                 title="Refresh live economic calendar"
               >
-                <RefreshCw className={`h-3 w-3 ${isCalendarLoading ? "animate-spin text-emerald-600" : ""}`} />
-                <span>{isCalendarLoading ? "Syncing..." : "Sync"}</span>
+                <RefreshCw className={`h-3 w-3 shrink-0 ${isCalendarLoading ? "animate-spin text-emerald-600" : ""}`} />
+                <span className="truncate">{isCalendarLoading ? "Syncing…" : "Sync"}</span>
               </button>
             </div>
 
@@ -10527,7 +10560,7 @@ export default function WhiteboardPage() {
         {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
         <div className="flex items-center gap-2.5 h-full shrink-0">
           {/* Compact Ash Grey Overlay Menu Bar */}
-          <div className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
+          <div ref={topMenubarRef} className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -11592,7 +11625,7 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside className="left-dock-container w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
+            <aside ref={leftDockRef} className="left-dock-container w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
           <div className="w-full flex flex-col items-center divide-y divide-line">
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
@@ -15562,7 +15595,7 @@ function renderWhiteboardShape(
     const dy = p2.y - p1.y;
     const len = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx);
-    const strokeW = shape.strokeWidth || 2;
+    const strokeW = shape.strokeWidth || 1;
     const strokeCol = shape.strokeColor || shape.color || "#0f172a";
 
     // Support Infinite Ray Mode
@@ -15889,7 +15922,7 @@ function renderWhiteboardShape(
     const strokeCol = shape.strokeColor || shape.color || "#8b5cf6";
     const fillCol = shape.fillColor || strokeCol;
     const fillStyle = shape.fillStyle || "translucent";
-    const rad = shape.cornerRadius || 4;
+    const rad = shape.cornerRadius || 0;
 
     if (fillStyle !== "none") {
       const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.22;
@@ -15902,7 +15935,7 @@ function renderWhiteboardShape(
       } else {
         ctx.fillStyle = fillCol;
       }
-      if (typeof (ctx as any).roundRect === "function") {
+      if (rad > 0 && typeof (ctx as any).roundRect === "function") {
         ctx.beginPath();
         (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
         ctx.fill();
@@ -15913,8 +15946,8 @@ function renderWhiteboardShape(
     }
 
     ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = shape.strokeWidth || 1.5;
-    if (typeof (ctx as any).roundRect === "function") {
+    ctx.lineWidth = shape.strokeWidth || 1;
+    if (rad > 0 && typeof (ctx as any).roundRect === "function") {
       ctx.beginPath();
       (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
       ctx.stroke();
@@ -15949,7 +15982,7 @@ function renderWhiteboardShape(
     const strokeCol = shape.strokeColor || shape.color || "#f59e0b";
     const fillCol = shape.fillColor || strokeCol;
     const fillStyle = shape.fillStyle || "translucent";
-    const rad = shape.cornerRadius || 4;
+    const rad = shape.cornerRadius || 0;
 
     if (fillStyle !== "none") {
       const alpha = shape.opacity !== undefined ? shape.opacity : fillStyle === "solid" ? 1 : 0.22;
@@ -15962,7 +15995,7 @@ function renderWhiteboardShape(
       } else {
         ctx.fillStyle = fillCol;
       }
-      if (typeof (ctx as any).roundRect === "function") {
+      if (rad > 0 && typeof (ctx as any).roundRect === "function") {
         ctx.beginPath();
         (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
         ctx.fill();
@@ -15973,8 +16006,8 @@ function renderWhiteboardShape(
     }
 
     ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = shape.strokeWidth || 1.5;
-    if (typeof (ctx as any).roundRect === "function") {
+    ctx.lineWidth = shape.strokeWidth || 1;
+    if (rad > 0 && typeof (ctx as any).roundRect === "function") {
       ctx.beginPath();
       (ctx as any).roundRect(minX, minY, boxW, boxH, rad);
       ctx.stroke();
@@ -16236,7 +16269,7 @@ function renderWhiteboardShape(
     }
 
     ctx.strokeStyle = strokeCol;
-    ctx.lineWidth = shape.strokeWidth || 2;
+    ctx.lineWidth = shape.strokeWidth || 1;
     if (rad > 0 && typeof (ctx as any).roundRect === "function") {
       ctx.beginPath();
       (ctx as any).roundRect(rx, ry, rw, rh, rad);
