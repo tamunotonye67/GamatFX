@@ -82,6 +82,10 @@ export default function MarketClock() {
           <filter id="soft"><feGaussianBlur stdDeviation="2.5" /></filter>
         </defs>
 
+        {/* Face */}
+        <circle cx={CX} cy={CY} r={R - 8} fill="url(#face)" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
+        <circle cx={CX} cy={CY} r={R - 20} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+
         {/* 24-hour UTC track indicators (00, 06, 12, 18) for session orientation */}
         {[
           { label: "00", frac: 0 },
@@ -94,9 +98,9 @@ export default function MarketClock() {
             <text
               key={`utc-${label}`}
               x={ptTick.x}
-              y={ptTick.y + (label === "00" ? -3 : label === "12" ? 7 : 3)}
+              y={ptTick.y + (label === "00" ? -4 : label === "12" ? 7 : 3)}
               textAnchor="middle"
-              fill="rgba(255,255,255,0.35)"
+              fill="rgba(255,255,255,0.4)"
               fontSize="7"
               fontWeight="600"
               fontFamily="Inter, sans-serif"
@@ -109,9 +113,9 @@ export default function MarketClock() {
         {/* Radial moving session indicator line & glowing beacon beam rendered BEHIND session tracks */}
         {(() => {
           // Radial pointer beam and beacon dot aligned to current 24-hour UTC session position (nowFrac), rendered behind the arcs
-          const pStart = pt(nowFrac, R - 12);
-          const pEnd = pt(nowFrac, R + 18);
-          const tip = pt(nowFrac, R + 18);
+          const pStart = pt(nowFrac, R - 8);
+          const pEnd = pt(nowFrac, R + 17);
+          const tip = pt(nowFrac, R + 17);
           return (
             <g key="session-indicator-needle">
               {/* Radial coloured glow beam behind session arcs */}
@@ -124,7 +128,7 @@ export default function MarketClock() {
                 strokeWidth="6"
                 strokeLinecap="round"
                 filter="url(#soft)"
-                opacity="0.85"
+                opacity="0.9"
               />
               {/* Crisp radial session line */}
               <line
@@ -145,12 +149,12 @@ export default function MarketClock() {
                 stroke="#ffffff"
                 strokeWidth="1.25"
                 strokeLinecap="round"
-                opacity="0.85"
+                opacity="0.9"
               />
               {/* Outer beacon beam glow behind the track */}
-              <circle cx={tip.x} cy={tip.y} r="8" fill={activeColor} opacity="0.65" filter="url(#soft)" />
-              <circle cx={tip.x} cy={tip.y} r="5.5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
-              <circle cx={tip.x} cy={tip.y} r="2.5" fill="#ffffff" />
+              <circle cx={tip.x} cy={tip.y} r="7.5" fill={activeColor} opacity="0.65" filter="url(#soft)" />
+              <circle cx={tip.x} cy={tip.y} r="5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
+              <circle cx={tip.x} cy={tip.y} r="2" fill="#ffffff" />
             </g>
           );
         })()}
@@ -179,7 +183,7 @@ export default function MarketClock() {
                     <circle
                       cx={sMarker.x}
                       cy={sMarker.y}
-                      r="6"
+                      r="5.5"
                       fill={x.color}
                       opacity="0.6"
                       filter="url(#soft)"
@@ -198,10 +202,6 @@ export default function MarketClock() {
             </g>
           );
         })}
-
-        {/* Face */}
-        <circle cx={CX} cy={CY} r={R - 8} fill="url(#face)" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" />
-        <circle cx={CX} cy={CY} r={R - 20} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
         {/* Ticks */}
         {Array.from({ length: 60 }).map((_, i) => {
