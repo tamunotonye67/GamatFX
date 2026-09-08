@@ -16159,47 +16159,62 @@ function renderWhiteboardShape(
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // Micro-Labels on Zones
-    ctx.fillStyle = "#059669";
-    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
-    ctx.fillText(`Target (TP): +${(targetHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry - targetHeight + 13);
+    // Subtle Micro-Labels on Zones (Minimalist & Non-Distracting)
+    if (targetHeight >= 14) {
+      ctx.fillStyle = "rgba(5, 150, 105, 0.75)";
+      ctx.font = "600 7px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillText(`+${(targetHeight * 0.1).toFixed(1)}p`, minX + 4, yEntry - targetHeight + 9);
+    }
 
-    ctx.fillStyle = "#dc2626";
-    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
-    ctx.fillText(`Stop (SL): -${(stopHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry + stopHeight - 6);
+    if (stopHeight >= 14) {
+      ctx.fillStyle = "rgba(220, 38, 38, 0.75)";
+      ctx.font = "600 7px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillText(`-${(stopHeight * 0.1).toFixed(1)}p`, minX + 4, yEntry + stopHeight - 4);
+    }
 
-    // Center R:R Badge on Entry Line
-    const rrText = `R:R: 1 : ${rrRatio}`;
-    ctx.font = "bold 9.5px Inter, -apple-system, sans-serif";
+    // Minimalist Micro R:R Badge on Entry Line (Discreet & Clean)
+    const rrText = `1:${rrRatio.toFixed(2)}`;
+    ctx.font = "600 7.5px ui-monospace, SFMono-Regular, Menlo, monospace";
     const textW = ctx.measureText(rrText).width;
-    const badgeX = minX + boxW / 2 - textW / 2 - 6;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 1;
-    ctx.fillRect(badgeX, yEntry - 8, textW + 12, 16);
-    ctx.strokeRect(badgeX, yEntry - 8, textW + 12, 16);
-    ctx.fillStyle = "#1d4ed8";
-    ctx.fillText(rrText, badgeX + 6, yEntry + 4);
+    const badgeW = textW + 6;
+    const badgeH = 10;
+    const badgeX = minX + boxW / 2 - badgeW / 2;
+    const badgeY = yEntry - badgeH / 2;
 
-    // If selected: render dedicated colored TP & SL adjustment handles
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.strokeStyle = "rgba(59, 130, 246, 0.35)";
+    ctx.lineWidth = 0.6;
+    if (typeof (ctx as any).roundRect === "function") {
+      ctx.beginPath();
+      (ctx as any).roundRect(badgeX, badgeY, badgeW, badgeH, 2);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+      ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+    }
+    ctx.fillStyle = "#1e3a8a";
+    ctx.fillText(rrText, badgeX + 3, yEntry + 2.5);
+
+    // If selected: render subtle micro adjustment dots
     if (isSelected && !shape.isLocked) {
       const midX = minX + boxW / 2;
-      // TP Handle (Top Center - Emerald Pill)
+      // TP Handle (Top Center - Micro Emerald Dot)
       ctx.fillStyle = "#10b981";
       ctx.beginPath();
-      ctx.arc(midX, yEntry - targetHeight, 4.5, 0, Math.PI * 2);
+      ctx.arc(midX, yEntry - targetHeight, 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      // SL Handle (Bottom Center - Rose Pill)
+      // SL Handle (Bottom Center - Micro Rose Dot)
       ctx.fillStyle = "#ef4444";
       ctx.beginPath();
-      ctx.arc(midX, yEntry + stopHeight, 4.5, 0, Math.PI * 2);
+      ctx.arc(midX, yEntry + stopHeight, 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1;
       ctx.stroke();
     }
   } else if (shape.type === "short" && pts.length >= 2) {
@@ -16238,47 +16253,62 @@ function renderWhiteboardShape(
     ctx.lineTo(minX + boxW, yEntry);
     ctx.stroke();
 
-    // Micro-Labels on Zones
-    ctx.fillStyle = "#dc2626";
-    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
-    ctx.fillText(`Stop (SL): -${(stopHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry - stopHeight + 13);
+    // Subtle Micro-Labels on Zones (Minimalist & Non-Distracting)
+    if (stopHeight >= 14) {
+      ctx.fillStyle = "rgba(220, 38, 38, 0.75)";
+      ctx.font = "600 7px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillText(`-${(stopHeight * 0.1).toFixed(1)}p`, minX + 4, yEntry - stopHeight + 9);
+    }
 
-    ctx.fillStyle = "#059669";
-    ctx.font = "bold 9px Inter, -apple-system, sans-serif";
-    ctx.fillText(`Target (TP): +${(targetHeight * 0.1).toFixed(1)} pips`, minX + 6, yEntry + targetHeight - 6);
+    if (targetHeight >= 14) {
+      ctx.fillStyle = "rgba(5, 150, 105, 0.75)";
+      ctx.font = "600 7px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillText(`+${(targetHeight * 0.1).toFixed(1)}p`, minX + 4, yEntry + targetHeight - 4);
+    }
 
-    // Center R:R Badge on Entry Line
-    const rrText = `R:R: 1 : ${rrRatio}`;
-    ctx.font = "bold 9.5px Inter, -apple-system, sans-serif";
+    // Minimalist Micro R:R Badge on Entry Line (Discreet & Clean)
+    const rrText = `1:${rrRatio.toFixed(2)}`;
+    ctx.font = "600 7.5px ui-monospace, SFMono-Regular, Menlo, monospace";
     const textW = ctx.measureText(rrText).width;
-    const badgeX = minX + boxW / 2 - textW / 2 - 6;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 1;
-    ctx.fillRect(badgeX, yEntry - 8, textW + 12, 16);
-    ctx.strokeRect(badgeX, yEntry - 8, textW + 12, 16);
-    ctx.fillStyle = "#1d4ed8";
-    ctx.fillText(rrText, badgeX + 6, yEntry + 4);
+    const badgeW = textW + 6;
+    const badgeH = 10;
+    const badgeX = minX + boxW / 2 - badgeW / 2;
+    const badgeY = yEntry - badgeH / 2;
 
-    // If selected: render dedicated colored TP & SL adjustment handles
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.strokeStyle = "rgba(59, 130, 246, 0.35)";
+    ctx.lineWidth = 0.6;
+    if (typeof (ctx as any).roundRect === "function") {
+      ctx.beginPath();
+      (ctx as any).roundRect(badgeX, badgeY, badgeW, badgeH, 2);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(badgeX, badgeY, badgeW, badgeH);
+      ctx.strokeRect(badgeX, badgeY, badgeW, badgeH);
+    }
+    ctx.fillStyle = "#1e3a8a";
+    ctx.fillText(rrText, badgeX + 3, yEntry + 2.5);
+
+    // If selected: render subtle micro adjustment dots
     if (isSelected && !shape.isLocked) {
       const midX = minX + boxW / 2;
-      // SL Handle (Top Center - Rose Pill)
+      // SL Handle (Top Center - Micro Rose Dot)
       ctx.fillStyle = "#ef4444";
       ctx.beginPath();
-      ctx.arc(midX, yEntry - stopHeight, 4.5, 0, Math.PI * 2);
+      ctx.arc(midX, yEntry - stopHeight, 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1;
       ctx.stroke();
 
-      // TP Handle (Bottom Center - Emerald Pill)
+      // TP Handle (Bottom Center - Micro Emerald Dot)
       ctx.fillStyle = "#10b981";
       ctx.beginPath();
-      ctx.arc(midX, yEntry + targetHeight, 4.5, 0, Math.PI * 2);
+      ctx.arc(midX, yEntry + targetHeight, 3, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1;
       ctx.stroke();
     }
   } else if (shape.type === "orderblock" && pts.length >= 2) {
