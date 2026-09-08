@@ -106,7 +106,56 @@ export default function MarketClock() {
           );
         })}
 
-        {/* Concentric session arcs with distinct tracks */}
+        {/* Radial moving session indicator line & glowing beacon beam rendered BEHIND session tracks */}
+        {(() => {
+          // Radial pointer beam and beacon dot aligned to current 24-hour UTC session position (nowFrac), rendered behind the arcs
+          const pStart = pt(nowFrac, R - 12);
+          const pEnd = pt(nowFrac, R + 18);
+          const tip = pt(nowFrac, R + 18);
+          return (
+            <g key="session-indicator-needle">
+              {/* Radial coloured glow beam behind session arcs */}
+              <line
+                x1={pStart.x}
+                y1={pStart.y}
+                x2={pEnd.x}
+                y2={pEnd.y}
+                stroke={activeColor}
+                strokeWidth="6"
+                strokeLinecap="round"
+                filter="url(#soft)"
+                opacity="0.85"
+              />
+              {/* Crisp radial session line */}
+              <line
+                x1={pStart.x}
+                y1={pStart.y}
+                x2={pEnd.x}
+                y2={pEnd.y}
+                stroke={activeColor}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              {/* Bright core accent on the line */}
+              <line
+                x1={pStart.x}
+                y1={pStart.y}
+                x2={pEnd.x}
+                y2={pEnd.y}
+                stroke="#ffffff"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+                opacity="0.85"
+              />
+              {/* Outer beacon beam glow behind the track */}
+              <circle cx={tip.x} cy={tip.y} r="8" fill={activeColor} opacity="0.65" filter="url(#soft)" />
+              <circle cx={tip.x} cy={tip.y} r="5.5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
+              <circle cx={tip.x} cy={tip.y} r="2.5" fill="#ffffff" />
+            </g>
+          );
+        })()}
+
+        {/* Concentric session arcs with distinct tracks (rendered in front of the radial beam) */}
         {SESSIONS.map((x, i) => {
           const on = isOpen(x, utcH);
           const trackR = R + 14 - i * 4;
@@ -149,55 +198,6 @@ export default function MarketClock() {
             </g>
           );
         })}
-
-        {/* Radial moving session indicator line & glowing beacon dot pointing across session tracks to current 24-hour session time */}
-        {(() => {
-          // Radial pointer and beacon dot aligned to current 24-hour UTC session position (nowFrac)
-          const pStart = pt(nowFrac, R - 12);
-          const pEnd = pt(nowFrac, R + 18);
-          const tip = pt(nowFrac, R + 18);
-          return (
-            <g key="session-indicator-needle">
-              {/* Radial coloured glow line */}
-              <line
-                x1={pStart.x}
-                y1={pStart.y}
-                x2={pEnd.x}
-                y2={pEnd.y}
-                stroke={activeColor}
-                strokeWidth="5"
-                strokeLinecap="round"
-                filter="url(#soft)"
-                opacity="0.9"
-              />
-              {/* Crisp radial coloured session line */}
-              <line
-                x1={pStart.x}
-                y1={pStart.y}
-                x2={pEnd.x}
-                y2={pEnd.y}
-                stroke={activeColor}
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              {/* Bright core accent on the line */}
-              <line
-                x1={pStart.x}
-                y1={pStart.y}
-                x2={pEnd.x}
-                y2={pEnd.y}
-                stroke="#ffffff"
-                strokeWidth="1.25"
-                strokeLinecap="round"
-                opacity="0.9"
-              />
-              {/* Outer glowing beacon dot */}
-              <circle cx={tip.x} cy={tip.y} r="7" fill={activeColor} opacity="0.6" filter="url(#soft)" />
-              <circle cx={tip.x} cy={tip.y} r="5.5" fill={activeColor} stroke="#ffffff" strokeWidth="1.5" />
-              <circle cx={tip.x} cy={tip.y} r="2.5" fill="#ffffff" />
-            </g>
-          );
-        })()}
 
         {/* Face */}
         <circle cx={CX} cy={CY} r={R - 8} fill="url(#face)" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" />
