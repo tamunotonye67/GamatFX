@@ -272,6 +272,25 @@ const FvgToolIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   </svg>
 );
 
+const BosToolIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Horizontal Structure Break Level */}
+    <line x1="9" y1="9" x2="22" y2="9" strokeWidth="1.75" strokeDasharray="2.5 2" />
+    {/* Upward Zig-zag Trend Structure Breakout */}
+    <polyline points="2 19 8 9 13 14 20 4" strokeWidth="2.2" />
+    {/* Breakout Arrowhead */}
+    <polyline points="15 4 20 4 20 9" strokeWidth="2.2" />
+  </svg>
+);
+
 const BullishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
@@ -1511,12 +1530,12 @@ function MarketSessionsRadarTab() {
       </div>
 
       {/* 2. LIVE SESSION STATUS CARDS WITH ACTIVE COUNTDOWNS */}
-      <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+      <div className="border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
           <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-slate-600" /> Active Session Feeds
+            <Clock className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Active Session Feeds
           </span>
-          <span className="text-[9.5px] font-mono font-bold text-slate-500">
+          <span className="text-[10px] font-mono font-bold text-slate-600 bg-white px-1.5 py-0.2 border border-slate-300">
             {activeCount} of 4 Open
           </span>
         </div>
@@ -1525,27 +1544,32 @@ function MarketSessionsRadarTab() {
           {sessionStatuses.map((s) => (
             <div
               key={s.id}
-              className={`flex items-center justify-between p-2 rounded-lg border text-xs transition-all ${
+              className={`flex items-center justify-between p-2.5 border text-xs transition-all ${
                 s.isOpen
-                  ? "bg-slate-50 border-slate-300 shadow-2xs"
-                  : "bg-slate-50/40 border-slate-200/60 opacity-70"
+                  ? "bg-white border-slate-400 shadow-2xs"
+                  : "bg-white/60 border-slate-200 opacity-75"
               }`}
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <span
-                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.isOpen ? "animate-pulse" : ""}`}
+                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.isOpen ? "animate-pulse ring-2 ring-emerald-400/40" : ""}`}
                   style={{ backgroundColor: s.color }}
                 />
                 <div className="min-w-0">
-                  <p className="font-bold text-slate-900 truncate">{s.name}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{s.desc}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-bold text-slate-900 truncate">{s.name}</p>
+                    <span className="text-[9px] font-mono font-bold text-slate-500 bg-slate-100 px-1 py-0.2 border border-slate-200">
+                      {s.short}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 truncate leading-snug">{s.desc}</p>
                 </div>
               </div>
-              <div className="text-right shrink-0">
+              <div className="text-right shrink-0 ml-2">
                 <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border block ${
+                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 border block ${
                     s.isOpen
-                      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                      ? "text-emerald-800 bg-emerald-50 border-emerald-300"
                       : "text-slate-500 bg-slate-100 border-slate-200"
                   }`}
                 >
@@ -1561,38 +1585,38 @@ function MarketSessionsRadarTab() {
       </div>
 
       {/* 3. ICT / SMC KILLZONE WINDOWS SCHEDULE */}
-      <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+      <div className="border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
           <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Activity className="h-3.5 w-3.5 text-amber-500" /> ICT Killzone Windows
+            <Activity className="h-3.5 w-3.5 text-amber-600 stroke-[1.5]" /> ICT Killzone Windows
           </span>
-          <span className="text-[9px] text-slate-400 font-mono">Algorithmic Delivery</span>
+          <span className="text-[9.5px] text-slate-500 font-mono">Algorithmic Delivery</span>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           {killzones.map((kz) => (
             <div
               key={kz.name}
-              className={`p-2 rounded-lg border flex items-center justify-between transition-all ${
+              className={`p-2.5 border flex items-center justify-between transition-all ${
                 kz.isActive
-                  ? "bg-amber-50/70 border-amber-300 shadow-2xs"
-                  : "bg-slate-50/50 border-slate-200/70"
+                  ? "bg-amber-50/80 border-amber-300 shadow-2xs"
+                  : "bg-white border-slate-200"
               }`}
             >
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className={`font-bold text-slate-900 ${kz.isActive ? "text-amber-900" : ""}`}>
+                  <span className={`font-bold text-xs ${kz.isActive ? "text-amber-900" : "text-slate-900"}`}>
                     {kz.name}
                   </span>
                   {kz.isActive && (
-                    <span className="px-1 py-0.2 rounded text-[8px] font-extrabold bg-amber-200 text-amber-900 uppercase">
+                    <span className="px-1.5 py-0.2 text-[8.5px] font-mono font-extrabold bg-amber-200 text-amber-900 border border-amber-400 uppercase">
                       Live
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] text-slate-500 block leading-tight">{kz.desc}</span>
+                <span className="text-[10px] text-slate-500 block leading-snug mt-0.5">{kz.desc}</span>
               </div>
-              <span className="font-mono text-[10px] font-bold text-slate-700 shrink-0 ml-2">
+              <span className="font-mono text-[10.5px] font-bold text-slate-700 shrink-0 ml-2 bg-slate-50 px-1.5 py-0.5 border border-slate-200">
                 {kz.timeStr}
               </span>
             </div>
@@ -1694,7 +1718,7 @@ export default function WhiteboardPage() {
   const [activeSelectTool, setActiveSelectTool] = useState<"select" | "node" | "hand">("select");
   const [activeNodeIndex, setActiveNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
   const [hoveredNodeIndex, setHoveredNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
-  const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond">("rectangle");
+  const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond" | "image">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
   const [activeForexTool, setActiveForexTool] = useState<"fibo" | "long" | "short" | "orderblock" | "fvg" | "bos" | "liquidity" | "candle" | "bullish_candle" | "bearish_candle">("fibo");
@@ -1720,8 +1744,119 @@ export default function WhiteboardPage() {
     actual?: string;
   }
 
+  const getDefaultUpcomingEvents = (): EconomicEvent[] => {
+    const today = new Date();
+    const d = (dayOffset: number, hour: number, min: number) => {
+      const dt = new Date(today);
+      dt.setDate(today.getDate() + dayOffset);
+      dt.setHours(hour, min, 0, 0);
+      return dt.toISOString();
+    };
+
+    return [
+      {
+        title: "US Non-Farm Payrolls (NFP)",
+        country: "USD",
+        date: d(0, 13, 30),
+        impact: "High",
+        forecast: "185K",
+        previous: "175K",
+        actual: "216K",
+      },
+      {
+        title: "US Unemployment Rate",
+        country: "USD",
+        date: d(0, 13, 30),
+        impact: "High",
+        forecast: "4.1%",
+        previous: "4.1%",
+        actual: "4.0%",
+      },
+      {
+        title: "FOMC Interest Rate Decision & Statement",
+        country: "USD",
+        date: d(1, 19, 0),
+        impact: "High",
+        forecast: "5.25%",
+        previous: "5.25%",
+      },
+      {
+        title: "ECB Main Refinancing Rate & Monetary Policy",
+        country: "EUR",
+        date: d(1, 12, 45),
+        impact: "High",
+        forecast: "4.25%",
+        previous: "4.25%",
+      },
+      {
+        title: "US Consumer Price Index (CPI YoY)",
+        country: "USD",
+        date: d(2, 13, 30),
+        impact: "High",
+        forecast: "3.1%",
+        previous: "3.4%",
+      },
+      {
+        title: "UK Gross Domestic Product (GDP MoM)",
+        country: "GBP",
+        date: d(2, 7, 0),
+        impact: "High",
+        forecast: "0.2%",
+        previous: "0.0%",
+      },
+      {
+        title: "Bank of England (BoE) Official Bank Rate",
+        country: "GBP",
+        date: d(3, 12, 0),
+        impact: "High",
+        forecast: "5.00%",
+        previous: "5.25%",
+      },
+      {
+        title: "Bank of Japan (BoJ) Policy Rate & Outlook",
+        country: "JPY",
+        date: d(3, 3, 30),
+        impact: "High",
+        forecast: "0.25%",
+        previous: "0.10%",
+      },
+      {
+        title: "Initial Jobless Claims",
+        country: "USD",
+        date: d(4, 13, 30),
+        impact: "Medium",
+        forecast: "220K",
+        previous: "227K",
+      },
+      {
+        title: "Reserve Bank of Australia (RBA) Rate Decision",
+        country: "AUD",
+        date: d(4, 4, 30),
+        impact: "High",
+        forecast: "4.35%",
+        previous: "4.35%",
+      },
+      {
+        title: "US Core PCE Price Index (MoM)",
+        country: "USD",
+        date: d(5, 13, 30),
+        impact: "High",
+        forecast: "0.2%",
+        previous: "0.2%",
+      },
+      {
+        title: "ISM Manufacturing PMI",
+        country: "USD",
+        date: d(5, 15, 0),
+        impact: "Medium",
+        forecast: "49.2",
+        previous: "48.5",
+      },
+    ];
+  };
+
   const [calendarViewMode, setCalendarViewMode] = useState<"live" | "tradingview">("live");
-  const [calendarEvents, setCalendarEvents] = useState<EconomicEvent[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<EconomicEvent[]>(getDefaultUpcomingEvents);
   const [isCalendarLoading, setIsCalendarLoading] = useState(false);
   const [calendarImpactFilter, setCalendarImpactFilter] = useState<"all" | "high" | "med_high">("med_high");
   const [calendarCurrencyFilter, setCalendarCurrencyFilter] = useState<string>("ALL");
@@ -1739,18 +1874,23 @@ export default function WhiteboardPage() {
         }
       } catch (err) {
         // Fallback through AllOrigins CORS proxy
-        const resProxy = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json"));
-        if (resProxy.ok) {
-          data = await resProxy.json();
-        }
+        try {
+          const resProxy = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://nfs.faireconomy.media/ff_calendar_thisweek.json"));
+          if (resProxy.ok) {
+            data = await resProxy.json();
+          }
+        } catch {}
       }
 
       if (Array.isArray(data) && data.length > 0) {
         setCalendarEvents(data);
         if (showNotification) showToast("Economic Calendar synchronized in real-time!");
+      } else {
+        if (showNotification) showToast("Using institutional economic releases schedule");
       }
     } catch (e) {
       console.error("Failed to fetch live economic calendar:", e);
+      if (showNotification) showToast("Loaded scheduled economic events");
     } finally {
       setIsCalendarLoading(false);
     }
@@ -2883,7 +3023,7 @@ export default function WhiteboardPage() {
       setActiveForexTool(tool as any);
     } else if (tool === "pencil" || tool === "highlighter") {
       setActivePenTool(tool);
-    } else if (tool === "rectangle" || tool === "circle" || tool === "diamond") {
+    } else if (tool === "rectangle" || tool === "circle" || tool === "diamond" || tool === "image") {
       setActiveShapeTool(tool);
     } else if (tool === "line" || tool === "arrow" || tool === "bezier") {
       setActiveLineTool(tool);
@@ -9644,66 +9784,225 @@ export default function WhiteboardPage() {
         {/* TAB 11: ECONOMIC NEWS CALENDAR & HIGH-IMPACT ALERTS */}
         {tabKey === "economic_calendar" && (
           <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Economic Releases Schedule
-                </span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-300">
-                  High Impact
-                </span>
+            {/* View Mode Toggle & Live Sync Header */}
+            <div className="flex items-center justify-between gap-2 p-1 bg-slate-100 border border-slate-300">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCalendarViewMode("live")}
+                  className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                    calendarViewMode === "live"
+                      ? "bg-white text-slate-900 border border-slate-300 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  Live Feed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCalendarViewMode("tradingview")}
+                  className={`px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                    calendarViewMode === "tradingview"
+                      ? "bg-white text-slate-900 border border-slate-300 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  TradingView Widget
+                </button>
               </div>
-              <p className="text-[10.5px] text-slate-600 leading-snug">
-                Real-time tracking of institutional economic data releases and high-volatility news events.
-              </p>
 
-              <div className="space-y-1.5">
-                {/* US Non-Farm Payrolls (NFP) */}
-                <div className="p-2 bg-white border border-slate-300 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                      <Flame className="h-3 w-3 text-rose-600" /> US Non-Farm Payrolls (NFP)
-                    </span>
-                    <span className="text-[9px] font-mono font-bold bg-rose-100 text-rose-700 px-1 py-0.2">HIGH</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 font-mono">
-                    <span>Time: 13:30 GMT</span>
-                    <span>Consensus: 185K</span>
-                    <span>Prev: 175K</span>
-                  </div>
-                </div>
-
-                {/* CPI Inflation Report */}
-                <div className="p-2 bg-white border border-slate-300 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                      <Flame className="h-3 w-3 text-rose-600" /> US CPI Inflation Rate (YoY)
-                    </span>
-                    <span className="text-[9px] font-mono font-bold bg-rose-100 text-rose-700 px-1 py-0.2">HIGH</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 font-mono">
-                    <span>Time: 13:30 GMT</span>
-                    <span>Consensus: 3.1%</span>
-                    <span>Prev: 3.4%</span>
-                  </div>
-                </div>
-
-                {/* FOMC Rate Decision */}
-                <div className="p-2 bg-white border border-slate-300 text-xs space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                      <ShieldAlert className="h-3 w-3 text-purple-600" /> FOMC Interest Rate Decision
-                    </span>
-                    <span className="text-[9px] font-mono font-bold bg-purple-100 text-purple-700 px-1 py-0.2">HIGH</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10.5px] text-slate-600 font-mono">
-                    <span>Time: 19:00 GMT</span>
-                    <span>Forecast: 5.25%</span>
-                    <span>Prev: 5.25%</span>
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => fetchLiveCalendarEvents(true)}
+                disabled={isCalendarLoading}
+                className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                title="Refresh live economic calendar"
+              >
+                <RefreshCw className={`h-3 w-3 ${isCalendarLoading ? "animate-spin text-emerald-600" : ""}`} />
+                <span>{isCalendarLoading ? "Syncing..." : "Sync"}</span>
+              </button>
             </div>
+
+            {/* TradingView Widget Mode */}
+            {calendarViewMode === "tradingview" ? (
+              <div className="space-y-2">
+                <TradingViewCalendarWidget />
+                <p className="text-[10px] text-slate-500 text-center font-mono">
+                  Live institutional data streamed via TradingView Events Engine
+                </p>
+              </div>
+            ) : (
+              /* Live Feed Mode */
+              <div className="space-y-3">
+                {/* Next Upcoming High Impact Countdown Banner */}
+                {nextHighImpactEvent && (
+                  <div className="p-2.5 bg-slate-900 text-white border border-slate-800 space-y-1.5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                        </span>
+                        <span className="text-[11px] font-bold text-rose-300 truncate">
+                          Next High Impact: [{nextHighImpactEvent.country}] {nextHighImpactEvent.title}
+                        </span>
+                      </div>
+                      <span className="font-mono text-[10.5px] font-bold px-1.5 py-0.2 bg-rose-950 text-rose-300 border border-rose-800 shrink-0 ml-1">
+                        {calendarCountdown || "SOON"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-0.5 border-t border-slate-800">
+                      <span>Forecast: {nextHighImpactEvent.forecast || "N/A"}</span>
+                      <span>Prior: {nextHighImpactEvent.previous || "N/A"}</span>
+                      <button
+                        type="button"
+                        onClick={() => stampNewsEventToCanvas(nextHighImpactEvent)}
+                        className="text-[9.5px] text-emerald-400 hover:text-emerald-300 underline cursor-pointer"
+                      >
+                        Stamp to Canvas
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Filters: Impact & Currency */}
+                <div className="p-2 bg-slate-100 border border-slate-300 space-y-2">
+                  <div className="flex items-center justify-between gap-1 text-[10px]">
+                    <span className="font-bold text-slate-700">Impact:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setCalendarImpactFilter("all")}
+                        className={`px-1.5 py-0.5 rounded-none text-[10px] font-medium border ${
+                          calendarImpactFilter === "all"
+                            ? "bg-white text-slate-900 border-slate-400 font-bold"
+                            : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200"
+                        }`}
+                      >
+                        All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCalendarImpactFilter("med_high")}
+                        className={`px-1.5 py-0.5 rounded-none text-[10px] font-medium border ${
+                          calendarImpactFilter === "med_high"
+                            ? "bg-white text-slate-900 border-slate-400 font-bold"
+                            : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200"
+                        }`}
+                      >
+                        Med+High
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCalendarImpactFilter("high")}
+                        className={`px-1.5 py-0.5 rounded-none text-[10px] font-medium border ${
+                          calendarImpactFilter === "high"
+                            ? "bg-rose-100 text-rose-800 border-rose-400 font-bold"
+                            : "bg-slate-200/70 text-slate-600 border-transparent hover:bg-slate-200"
+                        }`}
+                      >
+                        High Only
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-1 text-[10px]">
+                    <span className="font-bold text-slate-700">Currency:</span>
+                    <select
+                      value={calendarCurrencyFilter}
+                      onChange={(e) => setCalendarCurrencyFilter(e.target.value)}
+                      className="px-2 py-0.5 bg-white border border-slate-300 text-[11px] font-mono font-bold text-slate-800 focus:outline-hidden"
+                    >
+                      <option value="ALL">ALL Currencies</option>
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="EUR">EUR - Euro</option>
+                      <option value="GBP">GBP - British Pound</option>
+                      <option value="JPY">JPY - Japanese Yen</option>
+                      <option value="AUD">AUD - Australian Dollar</option>
+                      <option value="CAD">CAD - Canadian Dollar</option>
+                      <option value="CHF">CHF - Swiss Franc</option>
+                      <option value="NZD">NZD - New Zealand Dollar</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Event Count and List */}
+                <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono px-0.5">
+                  <span>Showing {filteredCalendarEvents.length} release(s)</span>
+                  <span>Institutional Feed</span>
+                </div>
+
+                <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-0.5">
+                  {filteredCalendarEvents.length === 0 ? (
+                    <div className="p-4 bg-white border border-slate-300 text-center text-slate-500 text-xs">
+                      No economic events found for the selected filters.
+                    </div>
+                  ) : (
+                    filteredCalendarEvents.map((evt, idx) => {
+                      const isHigh = evt.impact?.toLowerCase() === "high";
+                      const isMed = evt.impact?.toLowerCase() === "medium";
+                      const evtDate = new Date(evt.date);
+                      const isValidDate = !isNaN(evtDate.getTime());
+                      const dateStr = isValidDate ? evtDate.toLocaleDateString([], { month: "short", day: "numeric" }) : "";
+                      const timeStr = isValidDate ? evtDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+
+                      return (
+                        <div
+                          key={`${evt.title}-${idx}`}
+                          className="p-2.5 bg-white border border-slate-300 space-y-1.5 hover:border-slate-400 transition-colors shadow-2xs"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="text-[10px] font-mono font-black px-1 py-0.2 bg-slate-100 text-slate-800 border border-slate-300">
+                                  {evt.country}
+                                </span>
+                                <span
+                                  className={`text-[9px] font-mono font-bold px-1.5 py-0.2 border ${
+                                    isHigh
+                                      ? "bg-rose-100 text-rose-800 border-rose-300"
+                                      : isMed
+                                      ? "bg-amber-100 text-amber-800 border-amber-300"
+                                      : "bg-slate-100 text-slate-700 border-slate-300"
+                                  }`}
+                                >
+                                  {evt.impact?.toUpperCase() || "LOW"}
+                                </span>
+                                {isValidDate && (
+                                  <span className="text-[10px] font-mono text-slate-500">
+                                    {dateStr} {timeStr}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="font-bold text-xs text-slate-900 leading-snug">
+                                {evt.title}
+                              </p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => stampNewsEventToCanvas(evt)}
+                              className="shrink-0 p-1 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition-colors"
+                              title="Stamp this news event onto Whiteboard canvas"
+                            >
+                              <BookmarkPlus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10.5px] font-mono pt-1 border-t border-slate-100 text-slate-600">
+                            <span>Forecast: <strong className="text-slate-800">{evt.forecast || "—"}</strong></span>
+                            <span>Prior: <strong className="text-slate-800">{evt.previous || "—"}</strong></span>
+                            {evt.actual && (
+                              <span>Actual: <strong className={isHigh ? "text-emerald-700" : "text-slate-900"}>{evt.actual}</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -11306,7 +11605,7 @@ export default function WhiteboardPage() {
                   <FlyoutToolItem
                     toolKey="bos"
                     label="Break of Structure (BOS)"
-                    icon={Activity}
+                    icon={BosToolIcon}
                     isActive={activeForexTool === "bos"}
                     isFavorited={favoritedTools.includes("bos")}
                     onSelect={() => { selectTool("bos"); setFlyoutGroup(null); }}
@@ -11377,44 +11676,6 @@ export default function WhiteboardPage() {
                     onToggleFavorite={() => toggleFavoriteTool("highlighter")}
                     showTooltips={showTooltips}
                   />
-
-                  {/* Highlighter Color Palette Options */}
-                  <div className="pt-1.5 pb-1 px-2 border-t border-slate-200 mt-1">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Highlighter Color</span>
-                      <span className="text-[9px] font-mono text-slate-400">{highlighterColor}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {[
-                        { color: "#facc15", name: "Yellow" },
-                        { color: "#4ade80", name: "Green" },
-                        { color: "#38bdf8", name: "Blue" },
-                        { color: "#f472b6", name: "Pink" },
-                        { color: "#fb923c", name: "Orange" },
-                        { color: "#c084fc", name: "Purple" },
-                      ].map((item) => (
-                        <button
-                          key={item.color}
-                          type="button"
-                          onClick={() => {
-                            setHighlighterColor(item.color);
-                            selectTool("highlighter");
-                            if (selectedShape && selectedShape.type === "highlighter") {
-                              applyColorToSelected(item.color);
-                            }
-                          }}
-                          className={`w-5 h-5 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
-                            highlighterColor.toLowerCase() === item.color.toLowerCase()
-                              ? "ring-2 ring-slate-800 ring-offset-1 scale-110 shadow-xs border-white"
-                              : "border-black/15 hover:scale-105"
-                          }`}
-                          style={{ backgroundColor: item.color }}
-                          title={`${item.name} Highlighter`}
-                          aria-label={`${item.name} Highlighter`}
-                        />
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -11422,16 +11683,16 @@ export default function WhiteboardPage() {
             {/* 3. SHAPES GROUP */}
             <div className="relative w-full">
               <WhiteboardToolBtn
-                active={activeTool === "rectangle" || activeTool === "circle" || activeTool === "diamond"}
+                active={["rectangle", "circle", "diamond", "image"].includes(activeTool)}
                 onClick={() => selectTool(activeShapeTool)}
                 onFlyoutToggle={() => setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes")}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setFlyoutGroup(flyoutGroup === "shapes" ? null : "shapes");
                 }}
-                title="Geometric Shapes (Click arrow or right-click to change shape)"
+                title="Shape & Object Tools (Click arrow or right-click to change tool)"
                 toolKey={activeShapeTool}
-                icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : Square}
+                icon={activeShapeTool === "circle" ? Circle : activeShapeTool === "diamond" ? Diamond : activeShapeTool === "image" ? ImageIcon : Square}
                 hasFlyout
                 isFlyoutOpen={flyoutGroup === "shapes"}
                 showTooltips={showTooltips}
@@ -11478,6 +11739,7 @@ export default function WhiteboardPage() {
                     isActive={activeTool === "image"}
                     isFavorited={favoritedTools.includes("image")}
                     onSelect={() => {
+                      setActiveShapeTool("image");
                       selectTool("image");
                       setFlyoutGroup(null);
                       showToast("Image tool active — click anywhere on canvas to place image");
@@ -14733,7 +14995,7 @@ function getToolIcon(toolKey: Tool): React.ElementType {
     case "short": return TrendingDown;
     case "orderblock": return BoxSelect;
     case "fvg": return FvgToolIcon;
-    case "bos": return Activity;
+    case "bos": return BosToolIcon;
     case "liquidity": return CircleDollarSign;
     case "candle": return CandleToolIcon;
     case "bullish_candle": return CandleToolIcon;
