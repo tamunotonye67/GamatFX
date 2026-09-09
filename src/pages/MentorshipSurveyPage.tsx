@@ -23,24 +23,9 @@ export default function MentorshipSurveyPage() {
   const [longTermGoals, setLongTermGoals] = useState("");
   const [availability, setAvailability] = useState("Evening Sessions (7 PM UTC)");
 
-  if (!isAuthed) {
-    return (
-      <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
-        <Lock className="h-14 w-14 text-brand" />
-        <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Sign in required</h1>
-        <p className="mt-3 max-w-md text-muted">
-          Please sign in or create an account to complete your pre-enrollment survey for the <strong className="text-ink">{planTitles[planId]}</strong>.
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button onClick={() => navigate("/login")} className="btn-outline-dark">Log In</button>
-          <button onClick={() => navigate("/signup")} className="btn-primary">Create Account</button>
-        </div>
-      </section>
-    );
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthed) return;
     const surveyData = {
       userId: user?.id,
       userName: `${user?.firstName} ${user?.lastName}`,
@@ -71,23 +56,39 @@ export default function MentorshipSurveyPage() {
 
       <section className="section bg-cream">
         <div className="container-x max-w-3xl space-y-8">
-          {/* Live Class Notice */}
-          <div className="rounded-3xl border border-line bg-white p-8 shadow-sm">
-            <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shrink-0">
-                <Video className="h-6 w-6" />
-              </span>
-              <div>
-                <h3 className="font-display text-lg font-bold text-ink">Live Interactive Classes (Zoom & Google Meet)</h3>
-                <p className="text-xs text-muted mt-0.5 leading-relaxed">
-                  Your mentorship package is conducted via <strong>Live Zoom & Google Meet Classes</strong>. Completing this intake survey helps lead mentors tailor your live masterclasses and 1-on-1 calls.
-                </p>
+          {!isAuthed ? (
+            <div className="rounded-3xl border border-line bg-white p-8 sm:p-12 shadow-xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-light text-brand">
+                <Lock className="h-8 w-8" />
+              </div>
+              <h2 className="mt-6 font-display text-2xl sm:text-3xl font-extrabold text-ink">Sign in required</h2>
+              <p className="mt-3 max-w-md mx-auto text-sm text-muted">
+                Please sign in or create an account to complete your pre-enrollment survey for the <strong className="text-ink">{planTitles[planId]}</strong>.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <button onClick={() => navigate("/login")} className="btn-outline-dark">Log In</button>
+                <button onClick={() => navigate("/signup")} className="btn-primary">Create Account</button>
               </div>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Live Class Notice */}
+              <div className="rounded-3xl border border-line bg-white p-8 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shrink-0">
+                    <Video className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-ink">Live Interactive Classes (Zoom & Google Meet)</h3>
+                    <p className="text-xs text-muted mt-0.5 leading-relaxed">
+                      Your mentorship package is conducted via <strong>Live Zoom & Google Meet Classes</strong>. Completing this intake survey helps lead mentors tailor your live masterclasses and 1-on-1 calls.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-          {/* Survey Form */}
-          <div className="rounded-3xl border border-line bg-white p-8 sm:p-10 shadow-xl">
+              {/* Survey Form */}
+              <div className="rounded-3xl border border-line bg-white p-8 sm:p-10 shadow-xl">
             <div className="border-b border-line pb-4 flex items-center justify-between">
               <div>
                 <span className="eyebrow">Student Intake Questionnaire</span>
@@ -185,6 +186,8 @@ export default function MentorshipSurveyPage() {
               </div>
             </form>
           </div>
+        </>
+      )}
         </div>
       </section>
 
