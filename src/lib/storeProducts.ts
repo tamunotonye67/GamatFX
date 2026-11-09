@@ -9,15 +9,19 @@ export type StoreProduct = {
   originalPrice?: number;
   rating: number;
   reviewCount: number;
-  badge?: string; // e.g. "Best Seller", "Prop-Firm Safe", "New Release"
+  badge?: string; // e.g. "Best Seller #1", "Prop-Firm Verified", "New Release"
+  author: string; // e.g. "By GAMAT Institutional Research Team"
   description: string;
   features: string[];
-  deliverableType: string; // e.g. "Instant PDF Download", "MT4/MT5 Expert Advisor", "TradingView Script"
+  deliverableType: string; // e.g. "Instant PDF + Cheatsheet", "MT4/MT5 Robot File"
   downloadUrl?: string;
   accessInstructions?: string;
   published: boolean;
   salesCount: number;
-  image?: string;
+  image: string;
+  gallery?: string[];
+  fileSize?: string;
+  compatibility?: string[]; // e.g. ["TradingView", "MT4", "MT5", "PDF"]
   createdAt: string;
   updatedAt?: string;
 };
@@ -32,8 +36,9 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     originalPrice: 45000,
     rating: 4.9,
     reviewCount: 148,
-    badge: "Best Seller",
-    description: "Written by Chief Mentor Taylor and the GAMAT senior trading desk, this handbook walks you through the exact structural models institutions use to engineer liquidity, sweep retail stops, and execute high-probability order flow continuations. Packed with 120+ high-definition annotated chart case studies.",
+    badge: "Best Seller #1",
+    author: "By Lead Mentor Tonye & GAMAT Research Desk",
+    description: "Written by Chief Mentor Tonye and the GAMAT senior trading desk, this handbook walks you through the exact structural models institutions use to engineer liquidity, sweep retail stops, and execute high-probability order flow continuations. Packed with 120+ high-definition annotated chart case studies.",
     features: [
       "280 full-colour pages with annotated trade markups",
       "Step-by-step Fair Value Gap (FVG) and Order Block validation rules",
@@ -46,6 +51,14 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     accessInstructions: "Instant PDF download link is unlocked in your dashboard upon payment. You also receive an email with your permanent offline copy.",
     published: true,
     salesCount: 312,
+    image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "28 MB (High-Res PDF)",
+    compatibility: ["PDF Reader", "Adobe Acrobat", "iPad / Kindle", "Mobile"],
     createdAt: "2026-01-15T10:00:00Z",
   },
   {
@@ -58,6 +71,7 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     rating: 4.9,
     reviewCount: 94,
     badge: "Prop-Firm Safe",
+    author: "By GAMAT Algorithmic Quant Team",
     description: "The Apex Scalper EA is built on GAMAT's proprietary session expansion algorithm. It hunts high-momentum continuations on EUR/USD, GBP/USD, and Gold during the London–New York overlap, with dynamic trailing stops, automatic spread filters, and a hard 2% daily loss lock.",
     features: [
       "Compatible with MetaTrader 4 (MT4) and MetaTrader 5 (MT5)",
@@ -71,6 +85,14 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     accessInstructions: "Download your compiled EA archive and enter your MT4/MT5 account number in the license portal inside your student dashboard.",
     published: true,
     salesCount: 128,
+    image: "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "45 MB (ZIP Archive)",
+    compatibility: ["MetaTrader 4", "MetaTrader 5", "Windows VPS", "macOS"],
     createdAt: "2026-02-01T12:00:00Z",
   },
   {
@@ -82,7 +104,8 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     originalPrice: 60000,
     rating: 4.8,
     reviewCount: 182,
-    badge: "Top Rated",
+    badge: "Top Rated ★",
+    author: "By GAMAT Technical Tools Lab",
     description: "Eliminate guesswork from your charts. This institutional radar automatically highlights fresh Fair Value Gaps, unmitigated Order Blocks, and Break of Structure (BOS) / Change of Character (CHoCH) swings across any timeframe from 1-minute to Daily.",
     features: [
       "TradingView invite-only script + MetaTrader 5 indicator (.ex5)",
@@ -96,6 +119,13 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     accessInstructions: "Provide your TradingView username or MT5 account number on the confirmation screen to receive instant invite activation.",
     published: true,
     salesCount: 245,
+    image: "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "14 MB (Compiled Script)",
+    compatibility: ["TradingView", "MetaTrader 5", "Web / Mobile"],
     createdAt: "2026-01-20T14:30:00Z",
   },
   {
@@ -108,6 +138,7 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     rating: 5.0,
     reviewCount: 215,
     badge: "Essential",
+    author: "By Senior Prop Trader Joshua & Desk",
     description: "Most prop firm challenges fail because of psychological over-leveraging near the profit target. This blueprint gives you our mathematical drawdown insulation rules, daily trade caps, and an automated Google Sheets risk calculator that prevents breach.",
     features: [
       "Step-by-step 0.25%–0.50% risk runway management model",
@@ -121,6 +152,13 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     accessInstructions: "Immediate access to the video tutorial portal and a one-click Google Sheets copy link upon checkout.",
     published: true,
     salesCount: 380,
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "18 MB (Excel + HD Video)",
+    compatibility: ["Google Sheets", "Microsoft Excel", "Video Player"],
     createdAt: "2026-01-10T09:00:00Z",
   },
   {
@@ -133,6 +171,7 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     rating: 4.8,
     reviewCount: 68,
     badge: "New Release",
+    author: "By GAMAT Quant Engineering",
     description: "Designed for traders who understand liquidity sweeps but cannot watch the London open live at 8:00 AM UTC. This EA marks the Asian high/low, waits for an aggressive wick sweep followed by lower-timeframe CHoCH displacement, and triggers entries automatically.",
     features: [
       "MetaTrader 5 (MT5) compatible",
@@ -146,6 +185,13 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     accessInstructions: "Download your files immediately; private license key sent to your student email.",
     published: true,
     salesCount: 89,
+    image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "32 MB (ZIP Archive)",
+    compatibility: ["MetaTrader 5", "Windows", "VPS"],
     createdAt: "2026-02-18T16:00:00Z",
   },
   {
@@ -158,6 +204,7 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     rating: 4.9,
     reviewCount: 160,
     badge: "Physical + Digital",
+    author: "By GAMAT Official Merchandise Desk",
     description: "Professional trading is built on documentation. This custom-printed 90-day physical logbook features dedicated pages for pre-market top-down narrative, planned stop-loss and R:R calculations, post-trade emotional ratings, and weekly consistency reviews.",
     features: [
       "Premium faux-leather hardcover with thick 120gsm ink-proof paper",
@@ -171,11 +218,18 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     accessInstructions: "Digital Notion template unlocked immediately; enter delivery address at checkout for physical shipping.",
     published: true,
     salesCount: 204,
+    image: "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "Physical Courier / Notion Link",
+    compatibility: ["Physical Book", "Notion App", "Printable PDF"],
     createdAt: "2026-01-05T08:00:00Z",
   },
 ];
 
-export const STORE_STORAGE_KEY = "gamat.store_products.v1";
+export const STORE_STORAGE_KEY = "gamat.store_products.v2";
 
 export function loadStoredProducts(): StoreProduct[] {
   try {

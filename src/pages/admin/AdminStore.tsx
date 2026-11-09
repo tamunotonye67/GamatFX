@@ -240,6 +240,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
     price: product?.price ? String(product.price) : "25000",
     originalPrice: product?.originalPrice ? String(product.originalPrice) : "45000",
     badge: product?.badge ?? "Best Seller",
+    author: product?.author ?? "By GAMAT Institutional Research Desk",
+    image: product?.image ?? "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
     deliverableType: product?.deliverableType ?? "Instant PDF Download",
     downloadUrl: product?.downloadUrl ?? "",
     accessInstructions: product?.accessInstructions ?? "Instant download available upon checkout.",
@@ -275,6 +277,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       price: numPrice,
       originalPrice: f.originalPrice ? Number(f.originalPrice) : undefined,
       badge: f.badge.trim() || undefined,
+      author: f.author.trim() || "By GAMAT Institutional Research Desk",
+      image: f.image.trim() || "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
       deliverableType: f.deliverableType.trim(),
       downloadUrl: f.downloadUrl.trim() || undefined,
       accessInstructions: f.accessInstructions.trim(),
@@ -311,6 +315,30 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
             placeholder="e.g. GAMAT Apex Scalper EA"
             className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
           />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted">Author / Creator Line</label>
+            <input
+              type="text"
+              value={f.author}
+              onChange={(e) => setF({ ...f, author: e.target.value })}
+              placeholder="e.g. By Lead Mentor Tonye & Research Desk"
+              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted">Cover Image URL</label>
+            <input
+              type="url"
+              value={f.image}
+              onChange={(e) => setF({ ...f, image: e.target.value })}
+              placeholder="https://images.unsplash.com/..."
+              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+            />
+          </div>
         </div>
 
         <div>
