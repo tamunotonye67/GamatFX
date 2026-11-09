@@ -7,7 +7,7 @@ import {
   LayoutDashboard, BookOpen, Award, User as UserIcon, CalendarDays,
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
-  ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, Sparkles,
+  ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -427,6 +427,22 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-8">
+        {/* Top Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+          <div>
+            <h2 className="font-display text-2xl font-extrabold text-ink">
+              Invite & Earn Commissions
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-muted">
+              Share your personal invite link or enrollment announcement card. Earn <strong>15% commission</strong> when friends enroll in paid programs or store tools.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm shrink-0 self-start sm:self-auto">
+            <span>Invite Code:</span>
+            <span className="font-mono text-brand font-black">{profile.referralCode}</span>
+          </div>
+        </div>
+
         {/* Top Earnings & Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
@@ -487,9 +503,9 @@ export default function DashboardPage() {
 
           <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted">
-              <span className="text-xs font-bold uppercase tracking-wider">Link Clicks</span>
+              <span className="text-xs font-bold uppercase tracking-wider">Link Visits</span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-                <Sparkles className="h-5 w-5" />
+                <MousePointerClick className="h-5 w-5" />
               </div>
             </div>
             <div className="mt-3">

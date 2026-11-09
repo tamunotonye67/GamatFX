@@ -528,7 +528,7 @@ export async function exportAffiliateCardAsPng(
 
   ctx.font = "bold 20px sans-serif";
   ctx.fillStyle = "#6ee7b7";
-  ctx.fillText("🎁 TUITION: 100% FREE BEGINNER ACCESS", 160, 762);
+  ctx.fillText("TUITION: 100% FREE BEGINNER ACCESS", 160, 762);
 
   ctx.font = "500 18px sans-serif";
   ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
