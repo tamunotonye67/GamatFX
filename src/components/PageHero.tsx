@@ -25,7 +25,7 @@ export default function PageHero({
         <div className="absolute inset-0 bg-[radial-gradient(55%_55%_at_85%_15%,rgba(220,53,69,0.35),transparent_60%)]" />
       </div>
 
-      <div className="container-x pb-14 pt-[calc(var(--header-h,104px)+1.5rem)] text-white sm:pb-20 sm:pt-36 md:pb-28 md:pt-44">
+      <div className="container-x pb-14 pt-[calc(var(--header-h,104px)+2.5rem)] text-white sm:pb-20 sm:pt-36 md:pb-28 md:pt-44">
         {/* Breadcrumb */}
         <nav className="mb-4 sm:mb-6 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/55">
           <button

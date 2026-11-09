@@ -28,7 +28,7 @@ export default function Hero() {
           <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_10%,rgba(220,53,69,0.35),transparent_60%)]" />
         </div>
 
-        <div className="container-x flex flex-col justify-center pb-12 pt-[calc(var(--header-h,104px)+1.5rem)] sm:pb-16 sm:pt-36 lg:min-h-screen text-white">
+        <div className="container-x flex flex-col justify-center pb-14 pt-[calc(var(--header-h,104px)+3.25rem)] sm:pb-16 sm:pt-40 lg:min-h-screen text-white">
           {/* Animated Synced Latest Event Announcement */}
           <div
             data-aos-delay="100"
