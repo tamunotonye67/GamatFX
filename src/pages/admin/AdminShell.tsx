@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Logo from "../../components/Logo";
 import { navigate, useRoute } from "../../lib/router";
 import { useStore } from "../../lib/store";
@@ -6,8 +6,11 @@ import {
   LayoutDashboard, Users, BookOpen, CreditCard, CalendarDays,
   Ticket, Settings, LogOut, Menu, X, ShieldAlert, ArrowLeft, Search, Inbox,
   FileText, UserCog, Newspaper, Sun, Library, Gift, Contact, Award, Bell,
-  Check, Tag, BarChart3, Receipt, FolderDown, Presentation,
+  Check, Tag, BarChart3, Receipt, FolderDown, Presentation, ArrowUpRight,
 } from "lucide-react";
+
+/** Persist the Admin sidebar scroll position across route changes so clicking an item never jumps back to top. */
+let savedAdminSidebarScroll = 0;
 
 export const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -42,6 +45,16 @@ export function AdminShell({ title, subtitle, action, children }: {
   const route = useRoute();
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState<"all" | "unread" | "registration" | "payment" | "content">("all");
+  const asideRef = useRef<HTMLElement | null>(null);
+
+  // Restore left sidebar scroll position synchronously before paint so it never jumps back to top
+  useLayoutEffect(() => {
+    if (asideRef.current) {
+      asideRef.current.scrollTop = savedAdminSidebarScroll;
+    }
+  }, [route]);
+
   const [readAllTimestamp, setReadAllTimestamp] = useState<number>(() => {
     try {
       return Number(localStorage.getItem("admin_notifs_read_at") || 0);
@@ -78,6 +91,22 @@ export function AdminShell({ title, subtitle, action, children }: {
   );
   const unreadCount = unreadNotifs.length;
 
+  const filteredNotifs = notifs.filter((item) => {
+    if (notifFilter === "unread") {
+      return new Date(item.timestamp).getTime() > readAllTimestamp;
+    }
+    if (notifFilter === "registration") {
+      return item.type === "registration";
+    }
+    if (notifFilter === "payment") {
+      return item.type === "payment" || item.type === "refund";
+    }
+    if (notifFilter === "content") {
+      return item.type !== "registration" && item.type !== "payment" && item.type !== "refund";
+    }
+    return true;
+  });
+
   const handleMarkAllRead = () => {
     const now = Date.now();
     setReadAllTimestamp(now);
@@ -88,8 +117,16 @@ export function AdminShell({ title, subtitle, action, children }: {
 
   return (
     <div className="min-h-screen w-full overflow-x-clip bg-cream">
-      {/* Sidebar - Fixed to viewport */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] overflow-y-auto bg-ink text-white transition-transform duration-300 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      {/* Sidebar - Fixed to viewport with preserved scroll position */}
+      <aside
+        ref={asideRef}
+        onScroll={(e) => {
+          savedAdminSidebarScroll = e.currentTarget.scrollTop;
+        }}
+        className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] overflow-y-auto bg-ink text-white transition-transform duration-300 lg:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex h-[72px] items-center justify-between border-b border-white/10 px-5">
           <Logo variant="light" />
           <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 text-white/80 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Close menu">
@@ -100,12 +137,22 @@ export function AdminShell({ title, subtitle, action, children }: {
         <p className="px-5 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Management</p>
         <nav className="mt-3 space-y-1 px-3">
           {nav.map((n) => {
-            const active = route === n.to;
+            const active = route === n.to && !notifOpen;
             return (
-              <button key={n.to} onClick={() => { navigate(n.to); setOpen(false); }}
+              <button
+                key={n.to}
+                onClick={() => {
+                  if (asideRef.current) {
+                    savedAdminSidebarScroll = asideRef.current.scrollTop;
+                  }
+                  setNotifOpen(false);
+                  setOpen(false);
+                  navigate(n.to);
+                }}
                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
                   active ? "bg-brand text-white shadow-lg shadow-brand/20" : "text-white/65 hover:bg-white/8 hover:text-white"
-                }`}>
+                }`}
+              >
                 <n.icon className="h-4 w-4 shrink-0" /> <span className="truncate">{n.label}</span>
               </button>
             );
@@ -132,92 +179,113 @@ export function AdminShell({ title, subtitle, action, children }: {
           <button onClick={() => setOpen(true)} className="shrink-0 rounded-lg p-2 text-ink hover:bg-cream lg:hidden" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="truncate font-display text-base sm:text-lg font-extrabold text-ink">{title}</h1>
+          <h1 className="truncate font-display text-base sm:text-lg font-extrabold text-ink">
+            {notifOpen ? "Notifications" : title}
+          </h1>
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
-          {/* Notification Bell */}
-          <div className="relative">
-            <button
-              onClick={() => setNotifOpen(!notifOpen)}
-              className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition ${
-                notifOpen
-                  ? "border-brand bg-brand text-white shadow-md shadow-brand/20"
-                  : "border-line bg-cream text-ink hover:border-brand hover:bg-white"
-              }`}
-              title="Activity Center Notifications"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span
-                  className={`absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black shadow-md ${
-                    notifOpen ? "bg-ink text-white" : "bg-brand text-white"
-                  }`}
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Mobile Backdrop */}
-            {notifOpen && (
-              <div
-                onClick={() => setNotifOpen(false)}
-                className="fixed inset-0 top-[72px] z-40 bg-ink/40 backdrop-blur-[2px] sm:hidden"
-              />
+        <div className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
+          {/* In-Page Notification Center Toggle Button (no flyout) */}
+          <button
+            type="button"
+            onClick={() => setNotifOpen((v) => !v)}
+            className={`relative inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-bold transition ${
+              notifOpen
+                ? "border-brand bg-brand text-white shadow-md shadow-brand/20"
+                : "border-line bg-cream text-ink hover:border-brand hover:bg-white"
+            }`}
+            title="Toggle Activity & Notifications View"
+            aria-label="Notifications"
+          >
+            <Bell className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">
+              {notifOpen ? `Back to ${title}` : "Activity"}
+            </span>
+            {unreadCount > 0 && (
+              <span
+                className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
+                  notifOpen ? "bg-white text-brand" : "bg-brand text-white"
+                }`}
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
             )}
+          </button>
 
-            {/* Modern Activity Notifications Panel */}
-            {notifOpen && (
-              <div className="fixed inset-x-3 top-[80px] z-50 flex max-h-[calc(100dvh-96px)] flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-[0_24px_60px_-15px_rgba(22,24,28,0.35)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:max-h-[460px] sm:w-[380px]">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-line bg-ink px-4 py-3.5 text-white">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-brand-light">
-                      <Bell className="h-4 w-4 text-brand" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-display text-sm font-bold text-white truncate">
-                          Activity Center
-                        </h3>
-                        {unreadCount > 0 && (
-                          <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold text-white">
-                            {unreadCount} new
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-white/55 truncate">
-                        Real-time student &amp; platform updates
-                      </p>
-                    </div>
-                  </div>
+          <span className="hidden rounded-full bg-brand-light px-3 py-1.5 text-xs font-bold text-brand sm:inline">
+            Admin
+          </span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+            {initials}
+          </span>
+        </div>
+      </header>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {unreadCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleMarkAllRead}
-                        className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 transition hover:bg-white/20"
-                      >
-                        <Check className="h-3 w-3 text-emerald-400" /> Read all
-                      </button>
-                    )}
+      {/* Main Content Area */}
+      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-hidden pt-[72px] lg:pl-64">
+        <div className="min-w-0 w-full flex-1">
+          <main className="min-w-0 w-full p-4 sm:p-5 lg:p-8">
+            {notifOpen ? (
+              /* Dedicated In-Workspace Notification & Activity View (Replaces Flyout) */
+              <div className="mx-auto max-w-4xl">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                  <div>
                     <button
                       type="button"
                       onClick={() => setNotifOpen(false)}
-                      aria-label="Close notifications"
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/75 transition hover:bg-white/20 hover:text-white"
+                      className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <ArrowLeft className="h-3.5 w-3.5" /> Back to {title}
                     </button>
+                    <h2 className="font-display text-2xl font-extrabold text-ink lg:text-3xl">
+                      Activity &amp; Notifications
+                    </h2>
+                    <p className="mt-1 text-sm text-muted">
+                      All student enrollments, payments, and platform events in one clean view.
+                    </p>
                   </div>
+
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllRead}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-xs font-bold text-ink shadow-xs transition hover:border-brand hover:text-brand"
+                    >
+                      <Check className="h-4 w-4 text-emerald-600" /> Mark all as read ({unreadCount})
+                    </button>
+                  )}
                 </div>
 
-                {/* Notification List */}
-                <div className="flex-1 overflow-y-auto divide-y divide-line/70">
-                  {notifs.length ? (
-                    notifs.slice(0, 12).map((item) => {
+                {/* Filter Tabs */}
+                <div className="mb-5 flex flex-wrap items-center gap-2">
+                  {[
+                    { id: "all", label: `All (${notifs.length})` },
+                    { id: "unread", label: `Unread (${unreadCount})` },
+                    { id: "registration", label: "Students" },
+                    { id: "payment", label: "Payments" },
+                    { id: "content", label: "Content & Team" },
+                  ].map((tab) => {
+                    const active = notifFilter === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setNotifFilter(tab.id as typeof notifFilter)}
+                        className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                          active
+                            ? "bg-ink text-white shadow-xs"
+                            : "border border-line bg-white text-muted hover:border-ink/30 hover:text-ink"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Activity Feed Cards */}
+                <Card className="divide-y divide-line overflow-hidden">
+                  {filteredNotifs.length ? (
+                    filteredNotifs.map((item) => {
                       const isUnread = new Date(item.timestamp).getTime() > readAllTimestamp;
                       const IconComp =
                         item.type === "registration"
@@ -249,78 +317,75 @@ export function AdminShell({ title, subtitle, action, children }: {
                             setNotifOpen(false);
                             navigate(item.link);
                           }}
-                          className={`group flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-cream/80 ${
-                            isUnread ? "bg-brand/[0.03]" : "bg-white"
+                          className={`group flex w-full items-start justify-between gap-3.5 p-4 sm:p-5 text-left transition hover:bg-cream/70 ${
+                            isUnread ? "bg-brand/[0.02]" : "bg-white"
                           }`}
                         >
-                          <div
-                            className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105 ${badgeTone}`}
-                          >
-                            <IconComp className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <h4
-                                className={`text-xs truncate ${
-                                  isUnread ? "font-extrabold text-ink" : "font-semibold text-ink/80"
-                                }`}
-                              >
-                                {item.title}
-                              </h4>
-                              <span className="flex items-center gap-1.5 text-[10px] font-medium text-muted shrink-0">
+                          <div className="flex min-w-0 flex-1 items-start gap-3.5">
+                            <span
+                              className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${badgeTone}`}
+                            >
+                              <IconComp className="h-5 w-5" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-sm font-bold text-ink">{item.title}</h4>
+                                {isUnread && (
+                                  <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold uppercase text-white">
+                                    New
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-1 text-xs sm:text-sm leading-relaxed text-muted">
+                                {item.body}
+                              </p>
+                              <p className="mt-2 text-[11px] font-medium text-muted/80">
+                                {new Date(item.timestamp).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}{" "}
+                                at{" "}
                                 {new Date(item.timestamp).toLocaleTimeString("en-US", {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                 })}
-                                {isUnread && (
-                                  <span className="h-2 w-2 rounded-full bg-brand" />
-                                )}
-                              </span>
+                              </p>
                             </div>
-                            <p className="mt-1 text-[11px] leading-relaxed text-muted line-clamp-2">
-                              {item.body}
-                            </p>
                           </div>
+
+                          <span className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-full border border-line bg-cream px-2.5 py-1 text-[11px] font-semibold text-ink/75 transition group-hover:border-brand group-hover:bg-brand group-hover:text-white">
+                            <span className="hidden sm:inline">Open</span>
+                            <ArrowUpRight className="h-3.5 w-3.5" />
+                          </span>
                         </button>
                       );
                     })
                   ) : (
-                    <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cream text-muted">
-                        <Bell className="h-5 w-5" />
+                    <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cream text-muted">
+                        <Bell className="h-6 w-6" />
                       </span>
-                      <p className="mt-3 text-xs font-bold text-ink">All caught up!</p>
-                      <p className="mt-1 text-[11px] text-muted">
-                        New registrations, payments, and updates will appear here.
+                      <p className="mt-3 text-sm font-bold text-ink">No matching notifications</p>
+                      <p className="mt-1 text-xs text-muted">
+                        Try switching the filter tab above or check back later for new activity.
                       </p>
                     </div>
                   )}
+                </Card>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6 sm:mb-7 flex flex-wrap items-end justify-between gap-4">
+                  <div className="min-w-0">
+                    <h2 className="font-display text-2xl font-extrabold text-ink lg:text-3xl">{title}</h2>
+                    {subtitle && <p className="mt-1.5 text-sm text-muted">{subtitle}</p>}
+                  </div>
+                  {action}
                 </div>
-              </div>
+                {children}
+              </>
             )}
-          </div>
-
-          <span className="hidden rounded-full bg-brand-light px-3 py-1.5 text-xs font-bold text-brand sm:inline">
-            Admin
-          </span>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-            {initials}
-          </span>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-hidden pt-[72px] lg:pl-64">
-        <div className="min-w-0 w-full flex-1">
-          <main className="min-w-0 w-full p-4 sm:p-5 lg:p-8">
-            <div className="mb-6 sm:mb-7 flex flex-wrap items-end justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="font-display text-2xl font-extrabold text-ink lg:text-3xl">{title}</h2>
-                {subtitle && <p className="mt-1.5 text-sm text-muted">{subtitle}</p>}
-              </div>
-              {action}
-            </div>
-            {children}
           </main>
         </div>
 
