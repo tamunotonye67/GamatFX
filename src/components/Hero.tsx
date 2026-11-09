@@ -114,9 +114,9 @@ export default function Hero() {
           <div className="relative mt-10 sm:mt-14">
             <div className="grid max-w-3xl grid-cols-2 gap-4 pr-8 sm:pr-0 sm:gap-6 border-t border-white/10 pt-6 sm:pt-8 sm:grid-cols-4">
               {[
-                { value: 4000, suffix: "+", label: "Students Trained" },
-                { value: 40000, suffix: "+", label: "Telegram Members" },
-                { value: 6, suffix: "+", label: "Years Experience" },
+                { value: 1000, suffix: "+", label: "Students Trained" },
+                { value: 2000, suffix: "+", label: "Telegram Members" },
+                { value: 3, suffix: "+", label: "Years Experience" },
                 { value: 4.9, suffix: "/5", label: "Avg. Rating", decimal: true },
               ].map((s) => (
                 <div key={s.label}>

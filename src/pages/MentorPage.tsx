@@ -28,7 +28,7 @@ const milestones = [
   {
     year: "2022–2023",
     title: "Curriculum, community and consistency",
-    body: "Launched flagship programmes in fundamentals, price action and mentorship. The Telegram community crossed tens of thousands of members seeking education over signals.",
+    body: "Launched flagship programmes in fundamentals, price action and mentorship. The Telegram community crossed 2,000+ members seeking education over signals.",
   },
   {
     year: "2024–2025",
@@ -38,14 +38,14 @@ const milestones = [
   {
     year: "2026",
     title: "GAMAT Fx Academy today",
-    body: "Thousands of students trained, a multi-programme catalogue, live intakes in Port Harcourt and a desk that still publishes daily outlooks from the markets Tonye trades.",
+    body: "Over 1,000 students trained, a multi-programme catalogue, live intakes in Port Harcourt and a desk that still publishes daily outlooks from the markets Tonye trades.",
   },
 ];
 
 const credentials = [
   { icon: LineChart, title: "Active market practitioner", body: "Still trades live currencies, indices and crypto — and teaches only what is used on the desk." },
   { icon: GraduationCap, title: "Curriculum architect", body: "Designed GAMAT’s fundamentals, supply & demand, price action and mentorship programmes from the ground up." },
-  { icon: Users, title: "Mentor to thousands", body: "Guided retail and aspiring professional traders across Africa and the diaspora through structured cohorts." },
+  { icon: Users, title: "Mentor to 1,000+ traders", body: "Guided retail and aspiring professional traders across Africa and the diaspora through structured cohorts." },
   { icon: Mic2, title: "Public educator", body: "Regular live sessions, webinars and market breakdowns focused on process, not hype." },
   { icon: Globe2, title: "Community builder", body: "Grew a free education-first Telegram community known for analysis over signal-selling." },
   { icon: ShieldCheck, title: "Integrity-first brand", body: "No account management, no guaranteed profits — only transparent, rules-based education." },
@@ -95,10 +95,10 @@ export default function MentorPage() {
             </p>
             <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {[
-                { end: 6, suffix: "+", label: "Years trading" },
-                { end: 4000, suffix: "+", label: "Traders mentored" },
+                { end: 3, suffix: "+", label: "Years trading" },
+                { end: 1000, suffix: "+", label: "Traders mentored" },
                 { end: 12, suffix: "", label: "Programmes built" },
-                { end: 40, suffix: "K+", label: "Community reach" },
+                { end: 2000, suffix: "+", label: "Community reach" },
               ].map((s) => (
                 <div key={s.label} className="rounded-2xl border border-line bg-cream p-4 text-center">
                   <div className="font-display text-2xl font-extrabold text-ink">

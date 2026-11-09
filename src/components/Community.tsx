@@ -34,7 +34,7 @@ export default function Community() {
       <div ref={ref} className="container-x">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow justify-center">Our telegram community</span>
-          <h2 className="section-title mt-4">Join 40K+ traders in our community</h2>
+          <h2 className="section-title mt-4">Join 2,000+ traders in our community</h2>
           <p className="mt-4 text-muted">
             Get exclusive forex trading updates, live signals commentary, and daily market insights.
           </p>

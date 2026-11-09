@@ -61,7 +61,7 @@ const moreGroups: { title: string; items: (NavLink & { icon: React.ElementType; 
       { label: "Trading Whiteboard", to: "/whiteboard", icon: Pencil, desc: "Interactive technical analysis & teaching canvas" },
       { label: "Student Forum", to: "/forum", icon: MessagesSquare, desc: "Meet students & ask questions" },
       { label: "Blog", to: "/blog", icon: Newspaper, desc: "Forex articles & market insight" },
-      { label: "Community", to: "/community", icon: Users, desc: "Join 40K+ traders on Telegram" },
+      { label: "Community", to: "/community", icon: Users, desc: "Join 2,000+ traders on Telegram" },
       { label: "Reviews", to: "/reviews", icon: Star, desc: "What our students say" },
       { label: "FAQ", to: "/faq", icon: HelpCircle, desc: "Answers to common questions" },
       { label: "Contact", to: "/contact", icon: MailOpen, desc: "Talk to our team" },

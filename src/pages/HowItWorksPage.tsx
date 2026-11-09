@@ -235,7 +235,7 @@ export default function HowItWorksPage() {
             <div className="mt-8 grid gap-6 sm:grid-cols-3">
               {[
                 { icon: Clock, v: "6 min", l: "Watch time" },
-                { icon: Users, v: "4,000+", l: "Traders trained this way" },
+                { icon: Users, v: "1,000+", l: "Traders trained this way" },
                 { icon: Award, v: "4.9/5", l: "Student rating" },
               ].map((s) => (
                 <div key={s.l} className="rounded-2xl border border-line bg-white p-5 text-center">

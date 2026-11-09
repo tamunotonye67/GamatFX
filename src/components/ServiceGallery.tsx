@@ -182,7 +182,7 @@ export default function ServiceGallery() {
           <div className="flex items-center gap-2 sm:gap-2.5">
             <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-brand text-white"><TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
             <div>
-              <p className="font-display text-sm sm:text-base font-extrabold leading-none text-ink">4,000+</p>
+              <p className="font-display text-sm sm:text-base font-extrabold leading-none text-ink">1,000+</p>
               <p className="text-[10px] sm:text-[11px] text-muted">Trained</p>
             </div>
           </div>

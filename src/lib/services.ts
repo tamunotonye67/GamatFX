@@ -49,7 +49,7 @@ export const SERVICES: Service[] = [
       { q: "Are classes online or physical?", a: "Both. All courses are available online with lifetime access, and we run physical cohorts at our Port Harcourt campus." },
       { q: "Do you sell signals?", a: "Never. We teach analysis so you can make your own decisions. We deliberately do not operate a paid signal service." },
     ],
-    stats: [{ v: "4,000+", l: "Students trained" }, { v: "12", l: "Programs" }, { v: "4.9/5", l: "Average rating" }],
+    stats: [{ v: "1,000+", l: "Students trained" }, { v: "12", l: "Programs" }, { v: "4.9/5", l: "Average rating" }],
   },
   {
     slug: "academy-setup-consultancy",
@@ -59,7 +59,7 @@ export const SERVICES: Service[] = [
     hero: "/images/services.jpg",
     image: "/images/services.jpg",
     intro: [
-      "Running a trading academy is a business, not just a classroom. We have built one from a small study circle into a multi-thousand-student institution — and we now help others do the same.",
+      "Running a trading academy is a business, not just a classroom. We have built one from a small study circle into a 1,000+-student institution — and we now help others do the same.",
       "From curriculum architecture to tutor recruitment, physical setup and operational systems, we partner with you end to end or advise on the specific gaps you need closed.",
     ],
     features: [
@@ -86,7 +86,7 @@ export const SERVICES: Service[] = [
       { q: "Will you compete with us?", a: "No. We operate non-compete agreements within your defined market and territory for the duration of the engagement." },
       { q: "Can you just do the curriculum?", a: "Absolutely — our Advisory Sprint can be scoped to curriculum design only." },
     ],
-    stats: [{ v: "6+", l: "Years operating" }, { v: "40K+", l: "Community built" }, { v: "100%", l: "Confidential" }],
+    stats: [{ v: "3+", l: "Years operating" }, { v: "2,000+", l: "Community built" }, { v: "100%", l: "Confidential" }],
   },
   {
     slug: "business-training-advisory",

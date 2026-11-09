@@ -147,7 +147,7 @@ export default function CommunityPage() {
         crumb="Community"
         eyebrow="Our telegram community"
         image="/images/community.jpg"
-        title={<>Join <span className="text-brand">40,000+ traders</span> learning together</>}
+        title={<>Join <span className="text-brand">2,000+ traders</span> learning together</>}
         subtitle="A free, strictly moderated Telegram community where we share daily market insight, live breakdowns and honest education — with absolutely no signal selling."
       />
 
@@ -155,8 +155,8 @@ export default function CommunityPage() {
       <section className="border-b border-line bg-white py-12">
         <div className="container-x grid grid-cols-2 gap-8 text-center md:grid-cols-4">
           {[
-            { end: 40000, suffix: "+", label: "Members" },
-            { end: 4000, suffix: "+", label: "Students trained" },
+            { end: 2000, suffix: "+", label: "Members" },
+            { end: 1000, suffix: "+", label: "Students trained" },
             { end: 250, suffix: "+", label: "Analyses shared monthly" },
             { end: 24, suffix: "/7", label: "Active discussion" },
           ].map((s) => (

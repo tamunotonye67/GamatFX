@@ -82,7 +82,7 @@ function AuthShell({
               <p className="mt-4 max-w-md text-white/70">
                 {isLogin
                   ? "Pick up right where you left off — your courses, journal and community are waiting."
-                  : "Create your free account and join 4,000+ traders learning the GAMAT method."}
+                  : "Create your free account and join 1,000+ traders learning the GAMAT method."}
               </p>
 
               <ul className="mt-8 space-y-3">
@@ -96,8 +96,8 @@ function AuthShell({
 
             <div className="flex items-center gap-8 border-t border-white/10 pt-6">
               {[
-                { v: "4K+", l: "Students" },
-                { v: "40K+", l: "Community" },
+                { v: "1,000+", l: "Students" },
+                { v: "2,000+", l: "Community" },
                 { v: "4.9/5", l: "Rating" },
               ].map((s) => (
                 <div key={s.l}>

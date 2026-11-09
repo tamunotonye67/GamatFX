@@ -63,8 +63,8 @@ function Story() {
             <p>
               So we built one under the GAMAT umbrella. What started as a focused
               mentorship circle with Tonye S. Taylor has grown into a full academy
-              training thousands of verified students and supporting a community of over
-              40,000 traders across Africa and beyond.
+              training over 1,000 verified students and supporting a community of over
+              2,000 traders across Africa and beyond.
             </p>
             <p>
               Today, as a core pillar of{" "}
@@ -96,8 +96,8 @@ function Story() {
             className="col-span-2 h-64 w-full rounded-3xl object-cover shadow-lg"
           />
           {[
-            { end: 4000, suffix: "+", label: "Students trained" },
-            { end: 40000, suffix: "+", label: "Community members" },
+            { end: 1000, suffix: "+", label: "Students trained" },
+            { end: 2000, suffix: "+", label: "Community members" },
           ].map((s) => (
             <div
               key={s.label}
@@ -152,21 +152,21 @@ function Founder() {
             GAMAT — Growth and Mentorship Academy with Taylor.&rdquo;
           </p>
           <p className="mt-5 text-sm leading-relaxed text-white/60">
-            With over six years navigating currencies, indices and crypto through
+            With over three years navigating currencies, indices and crypto through
             multiple market cycles, Tonye S. Taylor founded{" "}
             <strong className="text-white/85">
               GAMAT (Growth and Mentorship Academy with Taylor)
             </strong>{" "}
             and its forex trading division, <strong className="text-white/85">GAMAT Fx Academy</strong>,
-            mentoring thousands of traders through a curriculum grounded in fundamentals,
+            mentoring over 1,000 traders through a curriculum grounded in fundamentals,
             supply &amp; demand, and disciplined risk management.
           </p>
 
           <div className="mt-8 grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
             {[
-              { end: 6, suffix: "+", label: "Years trading" },
+              { end: 3, suffix: "+", label: "Years trading" },
               { end: 12, suffix: "", label: "Programs built" },
-              { end: 4000, suffix: "+", label: "Traders mentored" },
+              { end: 1000, suffix: "+", label: "Traders mentored" },
             ].map((s) => (
               <div key={s.label}>
                 <div className="font-display text-2xl font-extrabold">
@@ -316,7 +316,7 @@ const reasons = [
   "Fundamentals-first curriculum, not recycled indicator strategies",
   "Live market breakdowns every single week",
   "Personal performance reviews and trade journaling support",
-  "A 40,000+ strong community of accountable traders",
+  "A 2,000+ strong community of accountable traders",
   "Mentors who actively trade the markets they teach",
   "Lifetime access to course updates and replays",
 ];

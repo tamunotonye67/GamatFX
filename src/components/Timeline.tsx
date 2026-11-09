@@ -13,7 +13,7 @@ const milestones = [
   },
   {
     year: "2023",
-    title: "Community crosses 10,000 traders",
+    title: "Community crosses 1,000 traders",
     body: "Our Telegram channel becomes one of the most active free forex education communities in the region.",
   },
   {
@@ -23,7 +23,7 @@ const milestones = [
   },
   {
     year: "2026",
-    title: "4,000+ students & 40,000+ members",
+    title: "1,000+ students & 2,000+ members",
     body: "GAMAT expands into consultancy, business advisory and digital support for traders and academies.",
   },
 ];

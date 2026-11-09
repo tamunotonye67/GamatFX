@@ -282,7 +282,7 @@ function Summary() {
           </div>
           <div>
             <div className="font-display text-3xl font-extrabold text-brand">
-              <Counter end={4000} suffix="+" />
+              <Counter end={1000} suffix="+" />
             </div>
             <p className="mt-1 text-sm text-muted">Active Students</p>
           </div>

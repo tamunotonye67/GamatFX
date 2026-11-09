@@ -3,8 +3,8 @@ import Counter from "./Counter";
 import { Award, Users, BookOpen, ShieldCheck } from "lucide-react";
 
 const stats = [
-  { icon: Award, end: 6, suffix: "+", label: "Years Trading Experience" },
-  { icon: Users, end: 4000, suffix: "+", label: "Students Trained" },
+  { icon: Award, end: 3, suffix: "+", label: "Years Trading Experience" },
+  { icon: Users, end: 1000, suffix: "+", label: "Students Trained" },
   { icon: BookOpen, end: 12, label: "Courses & Programs" },
 ];
 
