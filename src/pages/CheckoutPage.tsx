@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getCourse, totalLessons, naira, asCourse } from "../lib/courses";
 import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
@@ -27,9 +27,25 @@ export default function CheckoutPage({ id }: { id: string }) {
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
   const [coupon, setCoupon] = useState("");
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [transferRef, setTransferRef] = useState("");
+
+  useEffect(() => {
+    try {
+      const claimed = sessionStorage.getItem("gamat_claimed_coupon");
+      if (claimed && !appliedCode) {
+        const res = validateCoupon(claimed, "courses");
+        if (res.ok && res.discountPercent && res.coupon) {
+          setCoupon(res.coupon.code);
+          setAppliedCode(res.coupon.code);
+          setDiscount(res.discountPercent / 100);
+          setCouponMsg(`Success! ${res.discountPercent}% discount applied (${res.coupon.code}).`);
+        }
+      }
+    } catch {}
+  }, [validateCoupon, appliedCode]);
 
   if (!course) {
     return (
@@ -68,24 +84,61 @@ export default function CheckoutPage({ id }: { id: string }) {
   }
 
   const base = managed ? managed.price : priceOf(course.id);
-  const vat = Math.round(base * 0.075);
   const discountAmt = Math.round(base * discount);
-  const total = base + vat - discountAmt;
+  const discountedSubtotal = Math.max(0, base - discountAmt);
+  const vat = Math.round(discountedSubtotal * 0.075);
+  const total = discountedSubtotal + vat;
 
-  const applyCoupon = () => {
+  const applyCoupon = (codeToApply = coupon) => {
     setCouponMsg(null);
-    const res = validateCoupon(coupon, "courses");
-    if (res.ok && res.discountPercent) {
+    const res = validateCoupon(codeToApply, "courses");
+    if (res.ok && res.discountPercent && res.coupon) {
+      setCoupon(res.coupon.code);
+      setAppliedCode(res.coupon.code);
       setDiscount(res.discountPercent / 100);
-      setCouponMsg(`Success! ${res.discountPercent}% discount applied (${res.coupon?.code}).`);
+      setCouponMsg(`Success! ${res.discountPercent}% discount applied (${res.coupon.code}).`);
+      try {
+        sessionStorage.setItem("gamat_claimed_coupon", res.coupon.code);
+      } catch {}
     } else {
+      setAppliedCode(null);
       setDiscount(0);
       setCouponMsg(res.error || "That coupon code isn't valid.");
     }
   };
 
+  const removeCoupon = () => {
+    setCoupon("");
+    setAppliedCode(null);
+    setDiscount(0);
+    setCouponMsg(null);
+    try {
+      sessionStorage.removeItem("gamat_claimed_coupon");
+    } catch {}
+  };
+
   const pay = (e: React.FormEvent) => {
     e.preventDefault();
+
+    let activeDiscount = discount;
+    let activeCode = appliedCode;
+    if (coupon.trim() && coupon.trim().toUpperCase() !== appliedCode) {
+      const check = validateCoupon(coupon, "courses");
+      if (check.ok && check.discountPercent && check.coupon) {
+        activeDiscount = check.discountPercent / 100;
+        activeCode = check.coupon.code;
+        setCoupon(check.coupon.code);
+        setAppliedCode(check.coupon.code);
+        setDiscount(activeDiscount);
+        setCouponMsg(`Success! ${check.discountPercent}% discount applied (${check.coupon.code}).`);
+      }
+    }
+
+    const finalDiscountAmt = Math.round(base * activeDiscount);
+    const finalSubtotal = Math.max(0, base - finalDiscountAmt);
+    const finalVat = Math.round(finalSubtotal * 0.075);
+    const finalTotal = finalSubtotal + finalVat;
+
     setProcessing(true);
 
     const ref = generateTxRef("GFX");
@@ -99,22 +152,25 @@ export default function CheckoutPage({ id }: { id: string }) {
         courseId: course.id,
         courseTitle: course.title,
         subtotal: base,
-        vat,
-        discount: discountAmt,
-        amount: total,
+        vat: finalVat,
+        discount: finalDiscountAmt,
+        amount: finalTotal,
         method,
-        coupon: discount ? coupon.trim().toUpperCase() : undefined,
+        coupon: activeDiscount && activeCode ? activeCode : undefined,
       });
+      try {
+        sessionStorage.removeItem("gamat_claimed_coupon");
+      } catch {}
       setProcessing(false);
       setDone(true);
       window.scrollTo({ top: 0 });
     };
 
-    if (method === "card") {
+    if (method === "card" && finalTotal > 0) {
       payWithPaystack({
         key: "pk_test_gamatfx_public_key",
         email: user!.email,
-        amountInKobo: total * 100,
+        amountInKobo: finalTotal * 100,
         ref,
         metadata: {
           course_id: course.id,
@@ -387,24 +443,49 @@ export default function CheckoutPage({ id }: { id: string }) {
 
               {/* Coupon */}
               <div className="mt-6">
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Coupon code</label>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-muted">Coupon code</label>
+                  {appliedCode && (
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-[11px] font-semibold text-muted underline hover:text-brand"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
                 <div className="flex gap-2">
-                  <input value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="GAMAT20"
-                    className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white" />
-                  <button type="button" onClick={applyCoupon} className="shrink-0 rounded-xl border border-ink/15 px-4 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand">
+                  <input
+                    value={coupon}
+                    onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        applyCoupon();
+                      }
+                    }}
+                    placeholder="WELCOME10"
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 font-mono text-sm uppercase tracking-wider text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => applyCoupon()}
+                    className="shrink-0 rounded-xl border border-ink/15 bg-ink px-4 text-sm font-semibold text-white transition hover:bg-brand hover:border-brand"
+                  >
                     Apply
                   </button>
                 </div>
                 {couponMsg && (
-                  <p className={`mt-2 flex items-center gap-1.5 text-xs ${discount ? "text-brand" : "text-muted"}`}>
-                    <Tag className="h-3.5 w-3.5" /> {couponMsg}
+                  <p className={`mt-2 flex items-center gap-1.5 text-xs font-semibold ${discount > 0 ? "text-emerald-600" : "text-brand"}`}>
+                    <Tag className="h-3.5 w-3.5 shrink-0" /> {couponMsg}
                   </p>
                 )}
               </div>
 
               <div className="mt-6 space-y-2.5 border-t border-line pt-5 text-sm">
                 <Row l="Subtotal" v={naira(base)} />
-                {discount > 0 && <Row l={`Discount (${discount * 100}%)`} v={`− ${naira(discountAmt)}`} accent />}
+                {discount > 0 && <Row l={`Discount (${Math.round(discount * 100)}% — ${appliedCode})`} v={`− ${naira(discountAmt)}`} accent />}
                 <Row l="VAT (7.5%)" v={naira(vat)} />
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-line pt-4">

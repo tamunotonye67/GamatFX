@@ -8,8 +8,18 @@ export default function TopCouponBar() {
   const [dismissed, setDismissed] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // Active coupon code to display
-  const activeCoupon = (coupons || []).find((c) => c.status === "active") || {
+  // Active, non-expired coupon code to display
+  const activeCoupon = (coupons || []).find((c) => {
+    if (c.status !== "active") return false;
+    if ((c.usedCount || 0) >= (c.maxUses || 1)) return false;
+    if (c.expiryDate) {
+      const expiryEnd = new Date(
+        c.expiryDate.includes("T") ? c.expiryDate : `${c.expiryDate}T23:59:59.999`
+      ).getTime();
+      if (!Number.isNaN(expiryEnd) && expiryEnd < Date.now()) return false;
+    }
+    return true;
+  }) || {
     code: "WELCOME10",
     discountPercent: 10,
   };
@@ -30,8 +40,18 @@ export default function TopCouponBar() {
     } catch {
       /* ignore fallback */
     }
+    try {
+      sessionStorage.setItem("gamat_claimed_coupon", activeCoupon.code);
+    } catch {}
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleClaim = () => {
+    try {
+      sessionStorage.setItem("gamat_claimed_coupon", activeCoupon.code);
+    } catch {}
+    navigate("/courses");
   };
 
   if (dismissed) return null;
@@ -78,7 +98,7 @@ export default function TopCouponBar() {
         {/* Right CTA + Dismiss Button */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <button
-            onClick={() => navigate("/courses")}
+            onClick={handleClaim}
             className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 px-2.5 py-1 sm:px-3.5 text-[10px] sm:text-xs font-black uppercase tracking-wide text-slate-950 shadow-md hover:from-amber-300 hover:to-amber-400 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
           >
             <span>Claim</span>

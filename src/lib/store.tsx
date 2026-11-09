@@ -21,7 +21,7 @@ import {
   fetchSupabaseNews, saveSupabaseNews, deleteSupabaseNews,
   fetchSupabaseOutlooks, saveSupabaseOutlook, deleteSupabaseOutlook,
   fetchSupabaseEnquiries, saveSupabaseEnquiry,
-  fetchSupabaseCoupons,
+  fetchSupabaseCoupons, saveSupabaseCoupon, deleteSupabaseCoupon,
   fetchSupabaseGiveaways,
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
@@ -305,7 +305,7 @@ export const SEED_COUPONS: Coupon[] = [
     discountPercent: 10,
     maxUses: 500,
     usedCount: 34,
-    expiryDate: "2026-12-31",
+    expiryDate: "2027-12-31",
     applicableTo: "all",
     status: "active",
     createdAt: "2026-08-01T00:00:00Z",
@@ -314,10 +314,21 @@ export const SEED_COUPONS: Coupon[] = [
     id: "cp_2",
     code: "GAMATVIP20",
     discountPercent: 20,
-    maxUses: 100,
+    maxUses: 500,
     usedCount: 18,
-    expiryDate: "2026-10-31",
-    applicableTo: "courses",
+    expiryDate: "2027-12-31",
+    applicableTo: "all",
+    status: "active",
+    createdAt: "2026-08-05T00:00:00Z",
+  },
+  {
+    id: "cp_4",
+    code: "GAMAT20",
+    discountPercent: 20,
+    maxUses: 500,
+    usedCount: 12,
+    expiryDate: "2027-12-31",
+    applicableTo: "all",
     status: "active",
     createdAt: "2026-08-05T00:00:00Z",
   },
@@ -325,14 +336,44 @@ export const SEED_COUPONS: Coupon[] = [
     id: "cp_3",
     code: "DESK50",
     discountPercent: 50,
-    maxUses: 50,
+    maxUses: 100,
     usedCount: 5,
-    expiryDate: "2026-12-31",
-    applicableTo: "services",
+    expiryDate: "2027-12-31",
+    applicableTo: "all",
     status: "active",
     createdAt: "2026-08-10T00:00:00Z",
   },
 ];
+
+function normalizeCoupons(existing: Coupon[], incoming: Coupon[] = []): Coupon[] {
+  const byCode = new Map<string, Coupon>();
+  SEED_COUPONS.forEach((sc) => byCode.set(sc.code.trim().toUpperCase(), { ...sc }));
+
+  const applyItem = (item: Coupon) => {
+    if (!item || !item.code) return;
+    const cleanCode = item.code.trim().toUpperCase();
+    const seedMatch = SEED_COUPONS.find((s) => s.id === item.id || s.code === cleanCode);
+    let expiryDate = item.expiryDate;
+    if (seedMatch && (expiryDate === "2026-10-31" || expiryDate === "2026-12-31")) {
+      expiryDate = "2027-12-31";
+    }
+    const applicableTo = seedMatch && item.applicableTo !== "all" ? "all" : item.applicableTo || "all";
+    byCode.set(cleanCode, {
+      ...item,
+      code: cleanCode,
+      discountPercent: Number(item.discountPercent) || 10,
+      maxUses: Number(item.maxUses) || 100,
+      usedCount: Number(item.usedCount) || 0,
+      expiryDate,
+      applicableTo,
+      status: item.status || "active",
+    });
+  };
+
+  existing.forEach(applyItem);
+  incoming.forEach(applyItem);
+  return Array.from(byCode.values());
+}
 
 /* ---------------------------- Public team ---------------------------- */
 
@@ -1304,7 +1345,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [studentOfTheWeekHistory, setStudentOfTheWeekHistory] = useState<StudentOfTheWeek[]>(() =>
     read<StudentOfTheWeek[]>(K.sotwHistory, SEED_SOTW_HISTORY)
   );
-  const [coupons, setCoupons] = useState<Coupon[]>(() => read<Coupon[]>(K.coupons, SEED_COUPONS));
+  const [coupons, setCoupons] = useState<Coupon[]>(() =>
+    normalizeCoupons(read<Coupon[]>(K.coupons, SEED_COUPONS))
+  );
   const [reviews, setReviews] = useState<ReviewItem[]>(() => read<ReviewItem[]>("gamat_reviews_v1", SEED_REVIEWS));
   const [customQuizzes, setCustomQuizzes] = useState<Quiz[]>(() => read<Quiz[]>(K.customQuizzes, []));
 
@@ -1486,7 +1529,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fetchSupabaseNews().then((r) => r.length && setNews(r));
       fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
       fetchSupabaseEnquiries().then((r) => r.length && setEnquiries(r));
-      fetchSupabaseCoupons().then((r) => r.length && setCoupons(r));
+      fetchSupabaseCoupons().then((r) => {
+        if (r.length) {
+          setCoupons((prev) => normalizeCoupons(prev, r));
+        }
+      });
       fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
       fetchSupabaseSOTW().then((r) => r && setStudentOfTheWeek(r));
       fetchSupabaseReviews().then((r) => r.length && setReviews(r));
@@ -1775,6 +1822,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
     setPayments((prev) => [payment, ...prev]);
     saveSupabasePayment(payment);
+
+    if (p.coupon) {
+      const cleanCode = p.coupon.trim().toUpperCase();
+      setCoupons((prev) =>
+        prev.map((c) => {
+          if (c.code.trim().toUpperCase() === cleanCode) {
+            const updated: Coupon = { ...c, usedCount: (c.usedCount || 0) + 1 };
+            saveSupabaseCoupon(updated);
+            return updated;
+          }
+          return c;
+        })
+      );
+    }
+
     return payment;
   }, []);
 
@@ -2907,37 +2969,64 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (c.discountPercent <= 0 || c.discountPercent > 100) return { ok: false, error: "Discount must be between 1% and 100%." };
 
     setCoupons((prev) => {
-      const exists = prev.some((x) => x.id === c.id);
-      if (exists) {
-        return prev.map((x) => (x.id === c.id ? { ...x, ...c, code } : x));
+      const existing = prev.find((x) => x.id === c.id || x.code.trim().toUpperCase() === code);
+      let nextList: Coupon[];
+      if (existing) {
+        const updated: Coupon = {
+          ...existing,
+          ...c,
+          id: existing.id,
+          code,
+        };
+        saveSupabaseCoupon(updated);
+        nextList = prev.map((x) => (x.id === existing.id ? updated : x));
+      } else {
+        const newCoupon: Coupon = {
+          ...c,
+          id: uid("cp"),
+          code,
+          usedCount: 0,
+          createdAt: new Date().toISOString(),
+        };
+        saveSupabaseCoupon(newCoupon);
+        nextList = [newCoupon, ...prev];
       }
-      const newCoupon: Coupon = {
-        ...c,
-        id: uid("cp"),
-        code,
-        usedCount: 0,
-        createdAt: new Date().toISOString(),
-      };
-      return [newCoupon, ...prev];
+      write(K.coupons, nextList);
+      return nextList;
     });
     return { ok: true };
   }, []);
 
   const deleteCoupon: Ctx["deleteCoupon"] = useCallback((id) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
+    setCoupons((prev) => {
+      const nextList = prev.filter((c) => c.id !== id);
+      write(K.coupons, nextList);
+      return nextList;
+    });
+    deleteSupabaseCoupon(id);
   }, []);
 
   const validateCoupon: Ctx["validateCoupon"] = useCallback((code, target = "all") => {
     const clean = code.trim().toUpperCase();
     if (!clean) return { ok: false, error: "Enter a coupon code." };
-    const found = coupons.find((c) => c.code === clean);
+    const found = coupons.find((c) => c.code.trim().toUpperCase() === clean);
     if (!found) return { ok: false, error: "Invalid coupon code." };
     if (found.status !== "active") return { ok: false, error: "This coupon is no longer active." };
     if (found.usedCount >= found.maxUses) return { ok: false, error: "This coupon has reached its maximum redemptions." };
-    if (found.expiryDate && new Date(found.expiryDate).getTime() < Date.now()) {
-      return { ok: false, error: "This coupon has expired." };
+    if (found.expiryDate) {
+      const expiryEnd = new Date(
+        found.expiryDate.includes("T") ? found.expiryDate : `${found.expiryDate}T23:59:59.999`
+      ).getTime();
+      if (!Number.isNaN(expiryEnd) && expiryEnd < Date.now()) {
+        return { ok: false, error: "This coupon has expired." };
+      }
     }
-    if (found.applicableTo !== "all" && target !== "all" && found.applicableTo !== target) {
+    if (
+      found.applicableTo !== "all" &&
+      target !== "all" &&
+      found.applicableTo !== target &&
+      !(target === "courses" && found.applicableTo === "services")
+    ) {
       return { ok: false, error: `This coupon is only valid for ${found.applicableTo}.` };
     }
     return { ok: true, coupon: found, discountPercent: found.discountPercent };
