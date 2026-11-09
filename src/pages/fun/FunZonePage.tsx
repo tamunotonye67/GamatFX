@@ -94,18 +94,18 @@ export default function FunZonePage() {
                 className={`group flex flex-col overflow-hidden rounded-3xl border border-line bg-white text-left shadow-[0_18px_50px_-30px_rgba(22,24,28,0.35)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_32px_65px_-30px_rgba(22,24,28,0.45)] reveal ${visible ? "is-visible" : ""}`}
                 style={{ transitionDelay: `${i * 120}ms` }}
               >
-                <div className={`relative overflow-hidden bg-gradient-to-br ${g.accent} p-8 text-white`}>
+                <div className={`relative overflow-hidden bg-gradient-to-br ${g.accent} p-6 sm:p-8 text-white`}>
                   <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 transition-transform duration-500 group-hover:scale-150" />
                   <div className="relative">
                     <span className="inline-block rounded-full bg-white/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
                       {g.tag}
                     </span>
-                    <g.icon className="mt-5 h-12 w-12 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
-                    <h3 className="mt-4 font-display text-2xl font-extrabold">{g.name}</h3>
+                    <g.icon className="mt-4 sm:mt-5 h-10 w-10 sm:h-12 sm:w-12 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
+                    <h3 className="mt-3 sm:mt-4 font-display text-xl sm:text-2xl font-extrabold">{g.name}</h3>
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col p-7">
+                <div className="flex flex-1 flex-col p-5 sm:p-7">
                   <p className="text-sm leading-relaxed text-muted">{g.desc}</p>
                   <ul className="mt-5 space-y-2">
                     {g.points.map((p) => (

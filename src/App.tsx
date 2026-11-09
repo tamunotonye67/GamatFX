@@ -170,6 +170,9 @@ const staticPages: Record<string, React.ComponentType> = {
 /** Routes rendered without the marketing chrome. */
 const BARE = ["/login", "/signup", "/forgot-password", "/reset-password", "/checkout", "/learn", "/admin", "/quiz"];
 
+/** Interactive & workspace routes that keep the Navbar but use a slim 1-line copyright bar instead of the full marketing Footer. */
+const SLIM_FOOTER = ["/fun", "/dashboard", "/mentorship-survey", "/forum"];
+
 export default function App() {
   const route = useRoute();
   const [first, second] = segments(route);
@@ -219,6 +222,7 @@ export default function App() {
   const isAdminRoute = route === "/admin" || route.startsWith("/admin/");
   const isAuthRoute = route === "/login" || route === "/signup" || route === "/forgot-password" || route === "/reset-password";
   const bare = BARE.some((b) => route === b || route.startsWith(`${b}/`));
+  const slimFooter = SLIM_FOOTER.some((p) => route === p || route.startsWith(`${p}/`));
 
   if (bare) {
     if (isAdminRoute || isAuthRoute) {
@@ -241,7 +245,7 @@ export default function App() {
       <ErrorBoundary>
         <div className="flex min-h-screen flex-col bg-cream">
           <div className="flex-1">{content}</div>
-          <div className="border-t border-line bg-ink px-6 py-5 text-center text-xs text-white/50">
+          <div className="border-t border-line bg-ink px-4 sm:px-6 py-4 text-center text-xs text-white/50">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
           </div>
@@ -252,12 +256,19 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-cream">
+      <div className="flex min-h-screen flex-col bg-cream">
         <Navbar />
-        <main key={route} className="animate-[fadeIn_.35s_ease]">
+        <main key={route} className="flex-1 animate-[fadeIn_.35s_ease]">
           {content}
         </main>
-        <Footer />
+        {slimFooter ? (
+          <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-xs text-white/50">
+            Copyright © {new Date().getFullYear()}{" "}
+            <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
+          </footer>
+        ) : (
+          <Footer />
+        )}
       </div>
     </ErrorBoundary>
   );
