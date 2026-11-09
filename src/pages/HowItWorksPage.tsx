@@ -89,7 +89,7 @@ function VideoPlayer() {
   };
 
   return (
-    <div className="group relative overflow-hidden rounded-3xl bg-ink shadow-2xl ring-1 ring-white/10">
+    <div className="group relative aspect-video w-full overflow-hidden rounded-3xl bg-ink shadow-2xl ring-1 ring-white/10">
       <video
         ref={videoRef}
         poster={MAIN_POSTER}
@@ -107,7 +107,7 @@ function VideoPlayer() {
           const v = e.currentTarget;
           setProgress(v.duration ? (v.currentTime / v.duration) * 100 : 0);
         }}
-        className="aspect-video w-full cursor-pointer object-cover"
+        className="block h-full w-full cursor-pointer object-cover transform-gpu"
       >
         <source src={MAIN_VIDEO} type="video/mp4" />
         Your browser does not support the video tag.
@@ -121,17 +121,17 @@ function VideoPlayer() {
           aria-label="Play video"
           className="absolute inset-0 flex items-center justify-center bg-ink/45 transition hover:bg-ink/30"
         >
-          <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-brand text-white shadow-2xl transition hover:scale-105">
+          <span className="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-brand text-white shadow-2xl transition hover:scale-105">
             <span className="absolute inset-0 animate-ping rounded-full bg-brand/40" />
-            <Play className="relative ml-1 h-10 w-10 fill-white" />
+            <Play className="relative ml-1 h-8 w-8 sm:h-10 sm:w-10 fill-white" />
           </span>
         </button>
       )}
 
       {/* Control bar */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink to-transparent p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink to-transparent p-4 sm:p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
         <div className="h-1 w-full overflow-hidden rounded-full bg-white/20">
-          <div className="h-full rounded-full bg-brand transition-[width]" style={{ width: `${progress}%` }} />
+          <div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} />
         </div>
         <div className="mt-3 flex items-center gap-4 text-white">
           <button type="button" onClick={toggle} aria-label={playing ? "Pause" : "Play"} className="transition hover:text-brand">
@@ -140,10 +140,10 @@ function VideoPlayer() {
           <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"} className="transition hover:text-brand">
             {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
           </button>
-          <span className="text-xs font-medium text-white/70">
+          <span className="truncate text-xs font-medium text-white/70">
             GAMAT Fx Academy — How It Works
           </span>
-          <button type="button" onClick={goFullscreen} aria-label="Fullscreen" className="ml-auto transition hover:text-brand">
+          <button type="button" onClick={goFullscreen} aria-label="Fullscreen" className="ml-auto shrink-0 transition hover:text-brand">
             <Maximize2 className="h-5 w-5" />
           </button>
         </div>
@@ -154,7 +154,7 @@ function VideoPlayer() {
 
 /* ----------------------------- Clip cards ----------------------------- */
 
-function ClipCard({ clip, delay }: { clip: (typeof clips)[number]; delay: number }) {
+function ClipCard({ clip }: { clip: (typeof clips)[number]; delay?: number }) {
   const ref = useRef<HTMLVideoElement | null>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -167,10 +167,9 @@ function ClipCard({ clip, delay }: { clip: (typeof clips)[number]; delay: number
 
   return (
     <div
-      className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_18px_50px_-30px_rgba(22,24,28,0.35)] transition-all duration-300 hover:-translate-y-1.5"
-      style={{ transitionDelay: `${delay}ms` }}
+      className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_18px_50px_-30px_rgba(22,24,28,0.35)] transition-shadow duration-300 hover:shadow-[0_26px_60px_-28px_rgba(22,24,28,0.45)]"
     >
-      <div className="relative">
+      <div className="relative aspect-video w-full overflow-hidden bg-ink">
         <video
           ref={ref}
           poster={clip.poster}
@@ -184,7 +183,7 @@ function ClipCard({ clip, delay }: { clip: (typeof clips)[number]; delay: number
           onContextMenu={(e) => e.preventDefault()}
           onDragStart={(e) => e.preventDefault()}
           onClick={toggle}
-          className="aspect-video w-full cursor-pointer object-cover"
+          className="block h-full w-full cursor-pointer object-cover transform-gpu"
         >
           <source src={clip.src} type="video/mp4" />
         </video>

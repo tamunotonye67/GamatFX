@@ -236,7 +236,7 @@ export default function App() {
     if (route.startsWith("/learn")) {
       return (
         <ErrorBoundary>
-          <div className="h-screen w-screen overflow-hidden bg-ink">{content}</div>
+          <div className="h-dvh w-full overflow-hidden bg-ink">{content}</div>
         </ErrorBoundary>
       );
     }

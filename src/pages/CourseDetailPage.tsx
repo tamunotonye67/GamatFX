@@ -61,15 +61,20 @@ export default function CourseDetailPage({ id }: { id: string }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="relative bg-black">
+            <div className="relative aspect-video w-full overflow-hidden bg-black">
               <video
                 src={videoModal.videoUrl}
                 poster={course.poster}
                 controls
                 autoPlay
                 playsInline
-                controlsList="nodownload"
-                className="aspect-video w-full object-contain"
+                preload="metadata"
+                disablePictureInPicture
+                disableRemotePlayback
+                controlsList="nodownload noplaybackrate noremoteplayback"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                className="block h-full w-full object-contain transform-gpu"
               />
             </div>
           </div>
@@ -125,13 +130,13 @@ export default function CourseDetailPage({ id }: { id: string }) {
           {/* Purchase card */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl">
-              <div className="relative group cursor-pointer" onClick={() => openPreview()}>
+              <div className="relative aspect-video w-full overflow-hidden bg-black group cursor-pointer" onClick={() => openPreview()}>
                 <video poster={course.poster} muted loop playsInline preload="none"
                   disablePictureInPicture disableRemotePlayback
                   controlsList="nodownload noplaybackrate noremoteplayback"
                   onContextMenu={(e) => e.preventDefault()}
                   onDragStart={(e) => e.preventDefault()}
-                  className="aspect-video w-full object-cover">
+                  className="block h-full w-full object-cover transform-gpu">
                   <source src={course.video} type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 flex items-center justify-center bg-ink/40 transition-colors group-hover:bg-ink/20">

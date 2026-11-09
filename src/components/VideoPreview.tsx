@@ -68,7 +68,7 @@ export default function VideoPreview() {
           onMouseEnter={onEnter}
           onMouseLeave={onLeave}
           onClick={() => navigate("/how-it-works")}
-          className="group relative cursor-pointer overflow-hidden rounded-3xl shadow-2xl ring-1 ring-white/10 transition-transform duration-300 hover:-translate-y-1.5"
+          className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10"
         >
           <video
             ref={videoRef}
@@ -82,7 +82,7 @@ export default function VideoPreview() {
             controlsList="nodownload noplaybackrate noremoteplayback"
             onContextMenu={(e) => e.preventDefault()}
             onDragStart={(e) => e.preventDefault()}
-            className="aspect-video w-full object-cover"
+            className="block h-full w-full object-cover transform-gpu"
           >
             <source src={PREVIEW_SRC} type="video/mp4" />
           </video>

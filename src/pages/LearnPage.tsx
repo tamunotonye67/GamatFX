@@ -58,7 +58,7 @@ export default function LearnPage({ id }: { id: string }) {
   };
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-ink text-white">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-ink text-white">
       {/* Top bar */}
       <header className="h-16 shrink-0 border-b border-white/10 bg-ink/95 backdrop-blur z-40">
         <div className="flex h-full items-center justify-between gap-4 px-5">
@@ -100,7 +100,7 @@ export default function LearnPage({ id }: { id: string }) {
               <p className="font-display text-sm font-bold truncate text-white">{course.title}</p>
               <p className="mt-1 text-xs text-white/50">{done.length} of {totalLessons(course)} lessons complete</p>
             </div>
-            <nav className="flex-1 overflow-y-auto pb-16">
+            <nav className="flex-1 overflow-y-auto overflow-x-hidden pb-16">
               {course.modules.map((m) => (
                 <div key={m.title}>
                   <p className="bg-white/5 px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white/50">{m.title}</p>
@@ -115,7 +115,7 @@ export default function LearnPage({ id }: { id: string }) {
                             <span onClick={(e) => { e.stopPropagation(); toggleLesson(course.id, l.id); }} className="mt-0.5 shrink-0">
                               {lDone ? <CheckCircle2 className="h-4 w-4 text-brand" /> : <Circle className="h-4 w-4 text-white/30" />}
                             </span>
-                            <span className="flex-1">
+                            <span className="flex-1 min-w-0">
                               <span className={`block text-sm leading-snug ${isActive ? "font-semibold text-white" : lDone ? "text-white/45 line-through" : "text-white/75"}`}>{l.title}</span>
                               <span className="mt-0.5 block text-[11px] text-white/40">{l.duration}</span>
                             </span>
@@ -131,23 +131,26 @@ export default function LearnPage({ id }: { id: string }) {
         </aside>
 
         {/* Right Main Player & Notes: Scrollable without affecting the sidebar or outer window */}
-        <main id="learn-main-scroll" className="min-w-0 flex-1 overflow-y-auto p-5 lg:p-10">
+        <main id="learn-main-scroll" className="min-w-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] p-4 sm:p-6 lg:p-10">
           <div className="mx-auto max-w-4xl">
             {/* Download / right-click / PiP disabled to protect course content. */}
-            <video
-              key={active.id + (activeVideo || "")}
-              poster={course.poster}
-              controls
-              playsInline
-              disablePictureInPicture
-              disableRemotePlayback
-              controlsList="nodownload noplaybackrate noremoteplayback"
-              onContextMenu={(e) => e.preventDefault()}
-              onDragStart={(e) => e.preventDefault()}
-              className="aspect-video w-full rounded-2xl bg-black shadow-2xl"
-            >
-              <source src={activeVideo} type="video/mp4" />
-            </video>
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
+              <video
+                key={active.id + (activeVideo || "")}
+                poster={course.poster}
+                controls
+                playsInline
+                preload="metadata"
+                disablePictureInPicture
+                disableRemotePlayback
+                controlsList="nodownload noplaybackrate noremoteplayback"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                className="block h-full w-full object-contain transform-gpu"
+              >
+                <source src={activeVideo} type="video/mp4" />
+              </video>
+            </div>
 
             <div className="mt-7">
               <p className="text-xs font-semibold uppercase tracking-wider text-brand">
@@ -165,7 +168,7 @@ export default function LearnPage({ id }: { id: string }) {
               </button>
 
               <button onClick={() => toggleLesson(course.id, active.id)}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 sm:px-5 text-sm font-semibold transition ${isDone ? "bg-white/10 text-white hover:bg-white/15" : "bg-white text-ink hover:-translate-y-0.5"}`}>
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 sm:px-5 text-sm font-semibold transition-colors ${isDone ? "bg-white/10 text-white hover:bg-white/15" : "bg-white text-ink hover:bg-white/90"}`}>
                 {isDone ? <><CheckCircle2 className="h-4 w-4 text-brand" /> Completed</> : <><Circle className="h-4 w-4" /> Mark complete</>}
               </button>
 
