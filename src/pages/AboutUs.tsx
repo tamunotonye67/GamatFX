@@ -356,7 +356,7 @@ export default function AboutUs() {
     <>
       <PageHero
         crumb="About Us"
-        eyebrow="About GAMAT Fx Academy"
+        eyebrow="Part of GAMAT (Growth and Mentorship Academy with Taylor)"
         image="/images/about-hero.jpg"
         title={
           <>
@@ -364,7 +364,7 @@ export default function AboutUs() {
             <span className="text-brand">digital empowerment</span>
           </>
         }
-        subtitle="We exist to turn ambitious beginners into disciplined, consistently profitable traders — through honest education, live market mentorship and a community that holds you accountable."
+        subtitle="GAMAT Fx Academy is an official part of GAMAT (Growth and Mentorship Academy with Taylor) — built to turn ambitious beginners into disciplined, consistently profitable traders through honest education, live market mentorship and an accountable community."
       />
 
       <Story />

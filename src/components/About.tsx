@@ -1,6 +1,6 @@
 import { useReveal } from "../lib/useReveal";
 import Counter from "./Counter";
-import { Award, Users, BookOpen } from "lucide-react";
+import { Award, Users, BookOpen, ShieldCheck } from "lucide-react";
 
 const stats = [
   { icon: Award, end: 6, suffix: "+", label: "Years Trading Experience" },
@@ -16,18 +16,28 @@ export default function About() {
       <div ref={ref} className="container-x grid items-center gap-10 lg:gap-14 lg:grid-cols-2">
         {/* Copy + stats */}
         <div className={`reveal ${visible ? "is-visible" : ""}`}>
-          <span className="eyebrow">Why learn from us</span>
+          <span className="eyebrow">About Us · Part of GAMAT</span>
           <h2 className="section-title mt-4">
             Why learn from us as a{" "}
             <span className="text-brand">forex trading academy</span>
           </h2>
           <p className="mt-5 max-w-xl text-muted">
-            We provide in-depth and practical training programs designed to equip
-            individuals with the knowledge and skills required to navigate the
-            complexities of the foreign exchange market — and trade with confidence.
+            <strong className="font-semibold text-ink">GAMAT Fx Academy</strong> is an
+            official part of{" "}
+            <strong className="font-semibold text-ink">
+              GAMAT (Growth and Mentorship Academy with Taylor)
+            </strong>
+            . We provide in-depth, transparent, and practical training programs designed
+            to equip individuals with the real knowledge and skills required to navigate
+            the foreign exchange market and trade with confidence.
           </p>
 
-          <div className="mt-8 sm:mt-9 grid grid-cols-1 gap-3.5 sm:gap-4 sm:grid-cols-3">
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-light/70 px-3.5 py-1.5 text-xs font-semibold text-brand">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span>GAMAT — Growth and Mentorship Academy with Taylor</span>
+          </div>
+
+          <div className="mt-7 sm:mt-8 grid grid-cols-1 gap-3.5 sm:gap-4 sm:grid-cols-3">
             {stats.map((s) => (
               <div
                 key={s.label}
@@ -58,7 +68,9 @@ export default function About() {
                 “We don't just teach trading — we build{" "}
                 <span className="text-brand">disciplined, profitable traders.</span>”
               </p>
-              <p className="mt-3 sm:mt-4 text-sm text-white/60">— GAMAT Fx Academy</p>
+              <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-white/60">
+                — GAMAT Fx Academy · Growth and Mentorship Academy with Taylor
+              </p>
             </div>
             <div className="flex-1 rounded-3xl bg-gradient-to-br from-brand to-brand-dark p-5 sm:p-7 text-white shadow-lg">
               <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-white/80">
