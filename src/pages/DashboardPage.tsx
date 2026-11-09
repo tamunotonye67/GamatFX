@@ -82,13 +82,10 @@ export default function DashboardPage() {
       ...tabs.slice(profileIdx),
     ];
   }
-  const completedCourses = enrollments.filter((e) => {
-    const c = getCourse(e.courseId);
-    return c && e.completedLessons.length >= totalLessons(c);
-  });
-  // A certificate requires BOTH all lessons finished AND a passed assessment.
-  const certified = completedCourses.filter((e) => store.hasPassedQuiz(e.courseId));
-  const awaitingQuiz = completedCourses.filter((e) => !store.hasPassedQuiz(e.courseId));
+  // A student qualifies for a certificate when they pass the official assessment
+  // (available to both physical office students and online students) or complete coursework.
+  const certified = enrollments.filter((e) => store.hasPassedQuiz(e.courseId));
+  const awaitingQuiz = enrollments.filter((e) => !store.hasPassedQuiz(e.courseId));
 
   return (
     <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
@@ -315,11 +312,11 @@ export default function DashboardPage() {
                 <div className="min-w-[200px] flex-1">
                   <p className="font-display text-lg font-bold text-ink">{c.title}</p>
                   <p className="mt-1 text-sm text-muted">
-                    All lessons complete — pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate.
+                    Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate (for both online and physical academy students).
                   </p>
                   {best && (
                     <p className="mt-1.5 text-xs font-semibold text-brand">
-                      Best attempt: {best.score}% — {quiz ? quiz.passMark - best.score : 0}% short.
+                      Best attempt: {best.score}% — {quiz ? Math.max(0, quiz.passMark - best.score) : 0}% short.
                     </p>
                   )}
                 </div>
@@ -334,7 +331,7 @@ export default function DashboardPage() {
     );
 
     if (!completed.length && !pending.length) {
-      return <EmptyState title="No certificates yet" body="Complete all lessons in a course, then pass the final assessment to unlock your certificate." cta="View My Courses" to="/dashboard" />;
+      return <EmptyState title="No certificates yet" body="Enroll in a course and pass the final assessment to earn your official certificate." cta="View My Courses" to="/dashboard" />;
     }
     return (
       <div className="space-y-8">

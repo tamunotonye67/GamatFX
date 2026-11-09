@@ -1181,7 +1181,7 @@ type Ctx = {
   getCourseQuiz: (courseId: string) => Quiz | undefined;
   saveCourseQuiz: (quiz: Quiz) => { ok: boolean; error?: string };
   deleteCourseQuiz: (courseId: string) => void;
-  submitAttempt: (courseId: string, answers: Record<string, number>) => QuizAttempt;
+  submitAttempt: (courseId: string, answers: Record<string, number>, sessionQuestions?: Question[]) => QuizAttempt;
   bestAttempt: (courseId: string) => QuizAttempt | undefined;
   hasPassedQuiz: (courseId: string) => boolean;
 
@@ -1305,6 +1305,9 @@ type Ctx = {
     setRegistrationStatus: (id: string, status: Registration["status"]) => void;
     deleteRegistration: (id: string) => void;
     setCourseSetting: (courseId: string, patch: CourseSetting) => void;
+    issueCertificate: (userId: string, courseId: string) => void;
+    revokeCertificate: (userId: string, courseId: string) => void;
+    isUserCertified: (userId: string, courseId: string) => boolean;
     resetDemoData: () => void;
   };
 };
@@ -1796,11 +1799,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const c = getCourse(e.courseId);
       if (!c) return;
       lessonsDone += e.completedLessons.length;
-      if (e.completedLessons.length >= totalLessons(c)) completed += 1;
+      const isCertified = attempts.some((a) => a.userId === sessionId && a.courseId === e.courseId && a.passed);
+      if (e.completedLessons.length >= totalLessons(c) || isCertified) completed += 1;
       minutes += e.completedLessons.length * 18;
     });
     return { enrolled: myEnrollments.length, completed, lessonsDone, hours: Math.round(minutes / 60) };
-  }, [myEnrollments]);
+  }, [myEnrollments, attempts, sessionId]);
 
   /* ----------------------------- Pricing ----------------------------- */
 
@@ -1940,12 +1944,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setCustomQuizzes((prev) => prev.filter((q) => q.courseId !== courseId));
   }, []);
 
-  const submitAttempt: Ctx["submitAttempt"] = useCallback((courseId, answers) => {
+  const submitAttempt: Ctx["submitAttempt"] = useCallback((courseId, answers, sessionQuestions) => {
     const quiz = getCourseQuiz(courseId);
-    const total = quiz?.questions.length ?? 0;
-    const correct = quiz
-      ? quiz.questions.reduce((n, q) => n + (answers[q.id] === q.answer ? 1 : 0), 0)
-      : 0;
+    const questionsToGrade = sessionQuestions && sessionQuestions.length ? sessionQuestions : (quiz?.questions ?? []);
+    const total = questionsToGrade.length;
+    const correct = questionsToGrade.reduce((n, q) => n + (answers[q.id] === q.answer ? 1 : 0), 0);
     const score = total ? Math.round((correct / total) * 100) : 0;
     const attempt: QuizAttempt = {
       id: uid("qa"),
@@ -2799,6 +2802,55 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     deleteRegistration: (id) => setRegistrations((p) => p.filter((r) => r.id !== id)),
     setCourseSetting: (courseId, patch) =>
       setCourseSettings((p) => ({ ...p, [courseId]: { ...p[courseId], ...patch } })),
+    issueCertificate: (userId, courseId) => {
+      // 1. Ensure user has enrollment with all lessons marked completed
+      const c = getCourse(courseId);
+      const allLIds = c ? c.sections.flatMap((s) => s.lessons.map((l) => l.id)) : [];
+      setAllEnrollments((prev) => {
+        const existing = prev.find((e) => e.userId === userId && e.courseId === courseId);
+        if (existing) {
+          const updated = prev.map((e) =>
+            e.id === existing.id
+              ? { ...e, completedLessons: allLIds.length ? allLIds : e.completedLessons }
+              : e
+          );
+          const found = updated.find((e) => e.id === existing.id);
+          if (found) saveSupabaseEnrollment(found);
+          return updated;
+        }
+        const newEnr: Enrollment = {
+          id: uid("en"),
+          userId,
+          courseId,
+          enrolledAt: new Date().toISOString(),
+          completedLessons: allLIds,
+        };
+        saveSupabaseEnrollment(newEnr);
+        return [...prev, newEnr];
+      });
+
+      // 2. Add passed quiz attempt
+      const quiz = getCourseQuiz(courseId);
+      const total = quiz?.questions.length ?? 10;
+      const attempt: QuizAttempt = {
+        id: uid("qa"),
+        userId,
+        courseId,
+        score: 100,
+        correct: total,
+        total,
+        passed: true,
+        answers: {},
+        createdAt: new Date().toISOString(),
+      };
+      setAttempts((prev) => [attempt, ...prev.filter((a) => !(a.userId === userId && a.courseId === courseId && a.passed))]);
+    },
+    revokeCertificate: (userId, courseId) => {
+      setAttempts((prev) => prev.filter((a) => !(a.userId === userId && a.courseId === courseId && a.passed)));
+    },
+    isUserCertified: (userId, courseId) => {
+      return attempts.some((a) => a.userId === userId && a.courseId === courseId && a.passed);
+    },
     resetDemoData: () => {
       setAllEnrollments([]); setPayments([]); setRegistrations([]); setEnquiries([]);
       setEvents(DEFAULT_EVENTS); setCourseSettings({});

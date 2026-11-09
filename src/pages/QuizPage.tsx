@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Logo from "../components/Logo";
-import { getQuiz } from "../lib/quizzes";
+import { getQuiz, generateAssessmentQuestions, type Question } from "../lib/quizzes";
 import { getCourse, asCourse } from "../lib/courses";
 import { useStore, type QuizAttempt } from "../lib/store";
 import { navigate } from "../lib/router";
@@ -17,6 +17,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   const course = builtIn ?? (managed ? asCourse(managed) : undefined);
 
   const [started, setStarted] = useState(false);
+  const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [result, setResult] = useState<QuizAttempt | null>(null);
@@ -35,14 +36,27 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started, left, result]);
 
+  const activeQuestions = sessionQuestions.length ? sessionQuestions : (quiz?.questions ?? []);
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
 
   if (!quiz || !course) return <Fallback title="Assessment not found" cta="Back to Courses" to="/courses" />;
   if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${courseId}`} icon={Lock} />;
   if (!isEnrolled(courseId)) return <Fallback title="You're not enrolled in this course" cta="View Course" to={`/courses/${courseId}`} icon={Lock} />;
 
+  function startAssessment() {
+    if (!quiz) return;
+    const fresh = generateAssessmentQuestions(courseId, quiz);
+    setSessionQuestions(fresh);
+    setAnswers({});
+    setIdx(0);
+    setResult(null);
+    setStarted(true);
+    setLeft(quiz.timeLimitMins * 60);
+    window.scrollTo({ top: 0 });
+  }
+
   function finish() {
-    const a = submitAttempt(courseId, answers);
+    const a = submitAttempt(courseId, answers, activeQuestions);
     setResult(a);
     setStarted(false);
     window.scrollTo({ top: 0 });
@@ -93,7 +107,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               {/* Review */}
               <h2 className="mt-8 font-display text-lg font-bold text-ink">Review your answers</h2>
               <div className="mt-4 space-y-4">
-                {quiz.questions.map((q, i) => {
+                {activeQuestions.map((q, i) => {
                   const given = result.answers[q.id];
                   const ok = given === q.answer;
                   return (
@@ -122,7 +136,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     <Award className="h-4 w-4" /> View my certificate
                   </button>
                 ) : (
-                  <button onClick={() => { setResult(null); setAnswers({}); setIdx(0); setStarted(true); setLeft(quiz.timeLimitMins * 60); }} className="btn-primary">
+                  <button onClick={startAssessment} className="btn-primary">
                     <RotateCcw className="h-4 w-4" /> Retake assessment
                   </button>
                 )}
@@ -202,7 +216,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
             )}
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <button onClick={() => { setStarted(true); setLeft(quiz.timeLimitMins * 60); setAnswers({}); setIdx(0); }} className="btn-primary">
+              <button onClick={startAssessment} className="btn-primary">
                 Start Assessment <ArrowRight className="h-4 w-4" />
               </button>
               <button onClick={() => navigate(`/learn/${courseId}`)} className="btn-outline-dark">
@@ -216,7 +230,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   }
 
   /* ------------------------------ Running ------------------------------ */
-  const q = quiz.questions[idx];
+  const q = activeQuestions[idx] ?? activeQuestions[0];
   const low = left <= 60;
 
   return (
@@ -225,14 +239,14 @@ export default function QuizPage({ courseId }: { courseId: string }) {
         <div className="mx-auto flex h-[72px] max-w-4xl items-center justify-between gap-4 px-4 sm:px-5">
           <Logo />
           <div className="flex items-center gap-4">
-            <span className="hidden text-sm text-muted sm:inline">{answeredCount}/{quiz.questions.length} answered</span>
+            <span className="hidden text-sm text-muted sm:inline">{answeredCount}/{activeQuestions.length} answered</span>
             <span className={`inline-flex items-center gap-2 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-sm font-bold ${low ? "animate-pulse bg-brand text-white" : "bg-cream text-ink"}`}>
               <Clock className="h-4 w-4" /> {mmss}
             </span>
           </div>
         </div>
         <div className="h-1 bg-line">
-          <div className="h-full bg-brand transition-all" style={{ width: `${((idx + 1) / quiz.questions.length) * 100}%` }} />
+          <div className="h-full bg-brand transition-all" style={{ width: `${((idx + 1) / activeQuestions.length) * 100}%` }} />
         </div>
       </header>
 
@@ -245,7 +259,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
         <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-lg">
           <p className="text-xs font-bold uppercase tracking-wide text-brand">
-            Question {idx + 1} of {quiz.questions.length}
+            Question {idx + 1} of {activeQuestions.length}
           </p>
           <h2 className="mt-3 font-display text-xl font-bold leading-snug text-ink md:text-2xl">{q.q}</h2>
 
@@ -269,7 +283,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
         {/* Navigator */}
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          {quiz.questions.map((qq, i) => (
+          {activeQuestions.map((qq, i) => (
             <button key={qq.id} onClick={() => setIdx(i)}
               className={`h-9 w-9 rounded-lg text-xs font-bold transition ${
                 i === idx ? "bg-ink text-white" : answers[qq.id] !== undefined ? "bg-brand text-white" : "border border-line bg-white text-muted hover:border-brand"
@@ -283,15 +297,15 @@ export default function QuizPage({ courseId }: { courseId: string }) {
           <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0} className="btn-outline-dark disabled:opacity-40">
             <ArrowLeft className="h-4 w-4" /> Previous
           </button>
-          {idx < quiz.questions.length - 1 ? (
+          {idx < activeQuestions.length - 1 ? (
             <button onClick={() => setIdx((i) => i + 1)} className="btn-primary ml-auto">
               Next <ArrowRight className="h-4 w-4" />
             </button>
           ) : (
             <button
               onClick={() => {
-                if (answeredCount < quiz.questions.length) {
-                  setErr(`Please answer all ${quiz.questions.length} questions before submitting.`);
+                if (answeredCount < activeQuestions.length) {
+                  setErr(`Please answer all ${activeQuestions.length} questions before submitting.`);
                   return;
                 }
                 finish();

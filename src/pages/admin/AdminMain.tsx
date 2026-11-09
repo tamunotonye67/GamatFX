@@ -2,10 +2,11 @@ import { useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { useStore, type Account } from "../../lib/store";
 import { COURSES, getCourse, totalLessons, naira } from "../../lib/courses";
+import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
-  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save,
+  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award,
 } from "lucide-react";
 
 /* ============================= Dashboard ============================= */
@@ -207,6 +208,7 @@ export function AdminStudents() {
   const [view, setView] = useState<Account | null>(null);
   const [edit, setEdit] = useState<Account | null>(null);
   const [creating, setCreating] = useState(false);
+  const [issuingCert, setIssuingCert] = useState(false);
 
   const rows = useMemo(() => admin.accounts.filter((a) => {
     const matchQ = `${a.firstName} ${a.lastName} ${a.email}`.toLowerCase().includes(q.toLowerCase());
@@ -222,13 +224,16 @@ export function AdminStudents() {
       title="Students"
       subtitle={`${admin.accounts.length} total accounts`}
       action={
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button onClick={() => exportCsv("students.csv", rows.map(a => ({
             Name: `${a.firstName} ${a.lastName}`, Email: a.email, Role: a.role, Status: a.status,
             Phone: a.phone ?? "", Country: a.country ?? "", Joined: fmtDate(a.joined),
             Courses: enrollmentsOf(a.id).length, Spend: spendOf(a.id),
           })))} className="btn-outline-dark !py-2.5">
             <Download className="h-4 w-4" /> Export CSV
+          </button>
+          <button onClick={() => setIssuingCert(true)} className="btn-primary !py-2.5 !bg-ink hover:!bg-black">
+            <Award className="h-4 w-4 text-brand" /> Issue Office Certificate
           </button>
           <button onClick={() => setCreating(true)} className="btn-primary !py-2.5">
             <Plus className="h-4 w-4" /> Add Student
@@ -308,12 +313,142 @@ export function AdminStudents() {
       <Modal open={creating} onClose={() => setCreating(false)} title="Add new student">
         <StudentForm onDone={() => setCreating(false)} />
       </Modal>
+
+      {/* Direct Office / Walk-in Certificate */}
+      <IssueOfficeCertModal open={issuingCert} onClose={() => setIssuingCert(false)} />
     </AdminShell>
   );
 }
 
+function IssueOfficeCertModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { admin, publishedTeam } = useStore();
+  const [studentName, setStudentName] = useState("");
+  const [courseId, setCourseId] = useState(COURSES[0].id);
+  const [completionDate, setCompletionDate] = useState(() =>
+    new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+  );
+  const [serial, setSerial] = useState(() => `GX-OFFICE-${Math.floor(100000 + Math.random() * 900000)}`);
+  const [linkedAccountId, setLinkedAccountId] = useState("");
+
+  const selectedCourse = getCourse(courseId);
+
+  const handleIssueAndDownload = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!studentName.trim()) {
+      alert("Please enter the student's full name.");
+      return;
+    }
+    const certData: CertData = {
+      name: studentName.trim(),
+      course: selectedCourse?.title ?? "Trading Masterclass",
+      date: completionDate,
+      serial: serial.trim() || `GX-OFFICE-${Date.now().toString().slice(-6)}`,
+      hours: selectedCourse?.duration ?? "4 Weeks",
+    };
+
+    // Download the official PNG certificate directly
+    downloadCertificate(certData, publishedTeam);
+
+    // If an existing student account was linked, also grant enrollment & unlock on their online dashboard
+    if (linkedAccountId) {
+      admin.issueCertificate(linkedAccountId, courseId);
+    }
+
+    onClose();
+    alert(`Certificate for ${studentName} generated and downloaded successfully!`);
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Issue Office / Walk-in Certificate">
+      <form onSubmit={handleIssueAndDownload} className="space-y-4">
+        <p className="text-sm text-muted">
+          Directly generate and print/download an official GAMAT Fx Academy certificate for students who attend physical classes or register at the office.
+        </p>
+
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted">Student Full Name</label>
+          <input
+            type="text"
+            required
+            value={studentName}
+            onChange={(e) => setStudentName(e.target.value)}
+            placeholder="e.g. Samuel Adeyemi"
+            className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted">Course / Training Program</label>
+          <select
+            value={courseId}
+            onChange={(e) => setCourseId(e.target.value)}
+            className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
+          >
+            {COURSES.map((c) => (
+              <option key={c.id} value={c.id}>{c.title}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted">Date of Completion</label>
+            <input
+              type="text"
+              value={completionDate}
+              onChange={(e) => setCompletionDate(e.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted">Serial Number</label>
+            <input
+              type="text"
+              value={serial}
+              onChange={(e) => setSerial(e.target.value)}
+              className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted">Link to Online Student Account (Optional)</label>
+          <select
+            value={linkedAccountId}
+            onChange={(e) => {
+              setLinkedAccountId(e.target.value);
+              const found = admin.accounts.find((a) => a.id === e.target.value);
+              if (found && !studentName) {
+                setStudentName(`${found.firstName} ${found.lastName}`);
+              }
+            }}
+            className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
+          >
+            <option value="">— None (Walk-in without account) —</option>
+            {admin.accounts.map((a) => (
+              <option key={a.id} value={a.id}>{a.firstName} {a.lastName} ({a.email})</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted">
+            If selected, the certificate will also immediately unlock inside this student's online dashboard.
+          </p>
+        </div>
+
+        <div className="pt-2 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="btn-outline-dark !py-2.5">
+            Cancel
+          </button>
+          <button type="submit" className="btn-primary !py-2.5">
+            <Download className="h-4 w-4" /> Download Certificate PNG
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
 function StudentDetail({ account }: { account: Account }) {
-  const { admin } = useStore();
+  const { admin, publishedTeam } = useStore();
   const [courseId, setCourseId] = useState(COURSES[0].id);
   const enrollments = admin.enrollments.filter((e) => e.userId === account.id);
   const pays = admin.payments.filter((p) => p.userId === account.id);
@@ -373,18 +508,29 @@ function StudentDetail({ account }: { account: Account }) {
         </div>
       </div>
 
-      {/* Enrollments */}
+      {/* Enrollments & Certifications */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wide text-muted">Enrolled courses</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">Enrolled courses & Certifications</p>
+          <span className="text-xs text-muted">Physical academy or online</span>
+        </div>
         {enrollments.length ? (
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 space-y-2.5">
             {enrollments.map((e) => {
               const c = getCourse(e.courseId);
               const pct = c ? Math.round((e.completedLessons.length / totalLessons(c)) * 100) : 0;
+              const isCert = admin.isUserCertified(account.id, e.courseId);
               return (
-                <li key={e.id} className="flex items-center gap-3 rounded-xl border border-line p-3">
+                <li key={e.id} className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 rounded-xl border border-line p-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-ink">{c?.title ?? e.courseId}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-semibold text-ink">{c?.title ?? e.courseId}</p>
+                      {isCert && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                          <Award className="h-3 w-3 text-emerald-600" /> Certified
+                        </span>
+                      )}
+                    </div>
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
                         <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
@@ -392,7 +538,50 @@ function StudentDetail({ account }: { account: Account }) {
                       <span className="text-xs font-bold text-brand">{pct}%</span>
                     </div>
                   </div>
-                  <IconBtn danger title="Revoke" onClick={() => admin.removeEnrollment(e.id)}><Trash2 className="h-4 w-4" /></IconBtn>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isCert ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const certData: CertData = {
+                              name: `${account.firstName} ${account.lastName}`,
+                              course: c?.title ?? e.courseId,
+                              date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+                              serial: `GX-${e.courseId.slice(0, 4).toUpperCase()}-${account.id.slice(-5).toUpperCase()}`,
+                              hours: c?.duration,
+                            };
+                            downloadCertificate(certData, publishedTeam);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition"
+                          title="Download official Certificate PNG"
+                        >
+                          <Download className="h-3.5 w-3.5" /> Download PNG
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => admin.revokeCertificate(account.id, e.courseId)}
+                          className="text-xs text-muted hover:text-brand px-1"
+                          title="Revoke certificate"
+                        >
+                          Revoke
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => admin.issueCertificate(account.id, e.courseId)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-brand/10 px-2.5 py-1.5 text-xs font-bold text-brand hover:bg-brand/20 transition"
+                        title="Certify student directly (marks physical training complete and unlocks certificate)"
+                      >
+                        <Award className="h-3.5 w-3.5" /> Issue Certificate
+                      </button>
+                    )}
+                    <IconBtn danger title="Revoke Enrollment" onClick={() => admin.removeEnrollment(e.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </IconBtn>
+                  </div>
                 </li>
               );
             })}
