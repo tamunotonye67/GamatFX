@@ -15,6 +15,7 @@ const footerLinks: { title: string; items: FooterItem[] }[] = [
       { label: "About the Team", to: "/team" },
       { label: "Courses", to: "/courses" },
       { label: "Services", to: "/services" },
+      { label: "Store & Tools", to: "/store" },
     ],
   },
   {

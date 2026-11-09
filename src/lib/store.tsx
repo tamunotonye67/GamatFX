@@ -32,6 +32,7 @@ import {
   type Quiz, type Question,
 } from "./quizzes";
 import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
+import { loadStoredProducts, saveStoredProducts, type StoreProduct } from "./storeProducts";
 
 /* ================================ Types ================================ */
 
@@ -1278,6 +1279,14 @@ type Ctx = {
     threadsOf: (channelId: string) => ForumThread[];
   };
 
+  /* store products & trading tools */
+  storeProducts: StoreProduct[];
+  publishedStoreProducts: StoreProduct[];
+  saveStoreProduct: (p: Omit<StoreProduct, "id" | "createdAt" | "salesCount"> & { id?: string }) => { ok: boolean; error?: string };
+  deleteStoreProduct: (id: string) => void;
+  myStorePurchases: Payment[];
+  hasPurchasedProduct: (productId: string) => boolean;
+
   /* admin */
   admin: {
     accounts: Account[];
@@ -1308,6 +1317,9 @@ type Ctx = {
     issueCertificate: (userId: string, courseId: string) => void;
     revokeCertificate: (userId: string, courseId: string) => void;
     isUserCertified: (userId: string, courseId: string) => boolean;
+    storeProducts: StoreProduct[];
+    saveStoreProduct: (p: Omit<StoreProduct, "id" | "createdAt" | "salesCount"> & { id?: string }) => { ok: boolean; error?: string };
+    deleteStoreProduct: (id: string) => void;
     resetDemoData: () => void;
   };
 };
@@ -1353,8 +1365,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [reviews, setReviews] = useState<ReviewItem[]>(() => read<ReviewItem[]>("gamat_reviews_v1", SEED_REVIEWS));
   const [customQuizzes, setCustomQuizzes] = useState<Quiz[]>(() => read<Quiz[]>(K.customQuizzes, []));
+  const [storeProducts, setStoreProducts] = useState<StoreProduct[]>(() => loadStoredProducts());
 
   /* persist */
+  useEffect(() => saveStoredProducts(storeProducts), [storeProducts]);
   useEffect(() => write(K.accounts, accounts), [accounts]);
   useEffect(() => write(K.session, sessionId), [sessionId]);
   useEffect(() => write(K.enrollments, allEnrollments), [allEnrollments]);
@@ -2722,6 +2736,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return out;
   }, [payments]);
 
+  const publishedStoreProducts = useMemo(() => storeProducts.filter((p) => p.published), [storeProducts]);
+  const myStorePurchases = useMemo(
+    () => payments.filter((p) => p.userId === sessionId && p.courseId.startsWith("store-") && p.status === "paid"),
+    [payments, sessionId]
+  );
+  const hasPurchasedProduct = useCallback(
+    (productId: string) => myStorePurchases.some((p) => p.courseId === `store-${productId}`),
+    [myStorePurchases]
+  );
+
+  const saveStoreProduct: Ctx["saveStoreProduct"] = useCallback((p) => {
+    if (!p.title.trim()) return { ok: false, error: "Product title is required." };
+    if (!p.price || p.price <= 0) return { ok: false, error: "Please enter a valid price." };
+    const now = new Date().toISOString();
+    if (p.id) {
+      setStoreProducts((prev) =>
+        prev.map((item) => (item.id === p.id ? ({ ...item, ...p, updatedAt: now } as StoreProduct) : item))
+      );
+    } else {
+      const newProd: StoreProduct = {
+        ...p,
+        id: uid("prod"),
+        rating: 5.0,
+        reviewCount: 1,
+        salesCount: 0,
+        createdAt: now,
+      };
+      setStoreProducts((prev) => [newProd, ...prev]);
+    }
+    return { ok: true };
+  }, []);
+
+  const deleteStoreProduct: Ctx["deleteStoreProduct"] = useCallback((id: string) => {
+    setStoreProducts((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
   const admin: Ctx["admin"] = {
     accounts,
     enrollments: allEnrollments,
@@ -2851,6 +2901,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     isUserCertified: (userId, courseId) => {
       return attempts.some((a) => a.userId === userId && a.courseId === courseId && a.passed);
     },
+    storeProducts,
+    saveStoreProduct,
+    deleteStoreProduct,
     resetDemoData: () => {
       setAllEnrollments([]); setPayments([]); setRegistrations([]); setEnquiries([]);
       setEvents(DEFAULT_EVENTS); setCourseSettings({});
@@ -3137,6 +3190,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     activityNotifications,
     coupons, saveCoupon, deleteCoupon, validateCoupon,
     forum,
+    storeProducts,
+    publishedStoreProducts,
+    saveStoreProduct,
+    deleteStoreProduct,
+    myStorePurchases,
+    hasPurchasedProduct,
     admin,
   };
 

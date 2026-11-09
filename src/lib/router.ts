@@ -22,6 +22,7 @@ export const STATIC_ROUTES = [
   "/checkout",
   "/mentorship-survey",
   "/whiteboard",
+  "/store",
 ] as const;
 
 const ROUTE_SESSION_KEY = "gamat_fx_active_route";

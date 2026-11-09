@@ -48,6 +48,8 @@ import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
 import { AdminInvoices, AdminCompanyAssets } from "./pages/admin/AdminInvoicesAndAssets";
 import { AdminWhiteboard } from "./pages/admin/AdminWhiteboard";
 import WhiteboardPage from "./pages/WhiteboardPage";
+import StorePage from "./pages/StorePage";
+import { AdminStore } from "./pages/admin/AdminStore";
 import { useRoute, segments } from "./lib/router";
 
 export class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -129,6 +131,7 @@ const staticPages: Record<string, React.ComponentType> = {
   "/dashboard": DashboardPage,
   "/mentorship-survey": MentorshipSurveyPage,
   "/whiteboard": WhiteboardPage,
+  "/store": StorePage,
   "/admin": AdminDashboard,
   "/admin/analytics": AdminAnalytics,
   "/admin/students": AdminStudents,
@@ -138,6 +141,7 @@ const staticPages: Record<string, React.ComponentType> = {
   "/admin/invoices": AdminInvoices,
   "/admin/company-assets": AdminCompanyAssets,
   "/admin/coupons": AdminCoupons,
+  "/admin/store": AdminStore,
   "/admin/events": AdminEvents,
   "/admin/registrations": AdminRegistrations,
   "/admin/enquiries": AdminEnquiries,

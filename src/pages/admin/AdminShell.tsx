@@ -7,6 +7,7 @@ import {
   Ticket, Settings, LogOut, Menu, X, ShieldAlert, ArrowLeft, Search, Inbox,
   FileText, UserCog, Newspaper, Sun, Library, Gift, Contact, Award, Bell,
   Check, Tag, BarChart3, Receipt, FolderDown, Presentation, ArrowUpRight,
+  ShoppingBag,
 } from "lucide-react";
 
 /** Persist the Admin sidebar scroll position across route changes so clicking an item never jumps back to top. */
@@ -22,6 +23,7 @@ export const nav = [
   { to: "/admin/invoices", label: "Invoices & Receipts", icon: Receipt },
   { to: "/admin/company-assets", label: "Company Assets", icon: FolderDown },
   { to: "/admin/coupons", label: "Discount Coupons", icon: Tag },
+  { to: "/admin/store", label: "Store & Tools", icon: ShoppingBag },
   { to: "/admin/events", label: "Events", icon: CalendarDays },
   { to: "/admin/registrations", label: "Registrations", icon: Ticket },
   { to: "/admin/enquiries", label: "Enquiries", icon: Inbox },

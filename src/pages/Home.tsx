@@ -6,6 +6,7 @@ import Community from "../components/Community";
 import Courses from "../components/Courses";
 import MentorshipPricingSection from "../components/MentorshipPricingSection";
 import Services from "../components/Services";
+import StoreSection from "../components/StoreSection";
 import Testimonials from "../components/Testimonials";
 import Events from "../components/Events";
 
@@ -20,6 +21,7 @@ export default function Home() {
       <Courses />
       <MentorshipPricingSection />
       <Services />
+      <StoreSection />
       <Testimonials />
       <Events />
     </>
