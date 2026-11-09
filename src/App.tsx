@@ -245,7 +245,7 @@ export default function App() {
       <ErrorBoundary>
         <div className="flex min-h-screen flex-col bg-cream">
           <div className="flex-1">{content}</div>
-          <div className="border-t border-line bg-ink px-4 sm:px-6 py-4 text-center text-xs text-white/50">
+          <div className="border-t border-line bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50 whitespace-nowrap">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
           </div>
@@ -262,7 +262,7 @@ export default function App() {
           {content}
         </main>
         {slimFooter ? (
-          <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-xs text-white/50">
+          <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50 whitespace-nowrap">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
           </footer>

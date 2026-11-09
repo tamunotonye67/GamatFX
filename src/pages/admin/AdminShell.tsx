@@ -389,9 +389,10 @@ export function AdminShell({ title, subtitle, action, children }: {
           </main>
         </div>
 
-        <footer className="border-t border-line bg-white px-4 sm:px-6 py-4 text-center text-xs text-muted">
+        <footer className="border-t border-line bg-white px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-muted whitespace-nowrap">
           Copyright © {new Date().getFullYear()}{" "}
-          <span className="font-semibold text-ink">GAMAT Fx Academy</span>. All rights reserved. — Admin Console
+          <span className="font-semibold text-ink">GAMAT Fx Academy</span>. All rights reserved.
+          <span className="hidden sm:inline"> — Admin Console</span>
         </footer>
       </div>
     </div>
