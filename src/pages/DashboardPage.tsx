@@ -22,7 +22,7 @@ const baseTabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "courses", label: "My Courses", icon: BookOpen },
   { id: "certificates", label: "Certificates", icon: Award },
-  { id: "affiliate", label: "Affiliate & Card", icon: Share2 },
+  { id: "affiliate", label: "Invite & Earn", icon: Share2 },
   { id: "events", label: "My Events", icon: CalendarDays },
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "profile", label: "Profile", icon: UserIcon },
@@ -501,12 +501,12 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* The Pinterest & Medium-Style Shareable Card Component */}
+        {/* The Pinterest & Medium-Style Enrollment Share Card Component */}
         <AffiliateCard
           profile={profile}
           avatarUrl={user.avatar}
           onUpdateQuote={(quote) => store.updateMyAffiliateProfile({ personalQuote: quote })}
-          onUpdateBadge={(badge) => store.updateMyAffiliateProfile({ badgeTitle: badge })}
+          onUpdateCourseTitle={(title) => store.updateMyAffiliateProfile({ enrolledCourseTitle: title })}
         />
 
         {/* Withdrawal Modal */}

@@ -12,7 +12,17 @@ import {
   Loader2,
   Quote,
   Sliders,
+  CheckCircle2,
+  ArrowRight,
+  BookOpen,
 } from "lucide-react";
+import {
+  type AffiliateProfile,
+  DEFAULT_INVITE_MESSAGE,
+  PRESET_INVITE_MESSAGES,
+  getSignupReferralUrl,
+  exportAffiliateCardAsPng,
+} from "../lib/affiliate";
 
 function XIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -22,39 +32,36 @@ function XIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function LinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
+function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" {...props}>
-      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.64 1.64 0 1 0 0-3.28 1.64 1.64 0 0 0 0 3.28M7.86 18.5V10.13H5.07V18.5h2.79z" />
+      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
     </svg>
   );
 }
-import {
-  type AffiliateProfile,
-  PRESET_QUOTES,
-  PRESET_BADGES,
-  getSignupReferralUrl,
-  exportAffiliateCardAsPng,
-} from "../lib/affiliate";
 
 type Props = {
   profile: AffiliateProfile;
   avatarUrl?: string;
   onUpdateQuote?: (quote: string) => void;
-  onUpdateBadge?: (badge: string) => void;
+  onUpdateCourseTitle?: (title: string) => void;
 };
 
 export default function AffiliateCard({
   profile,
   avatarUrl,
   onUpdateQuote,
-  onUpdateBadge,
+  onUpdateCourseTitle,
 }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showCustomizer, setShowCustomizer] = useState(false);
-  const [customQuote, setCustomQuote] = useState(profile.personalQuote || PRESET_QUOTES[0]);
-  const [selectedBadge, setSelectedBadge] = useState(profile.badgeTitle || PRESET_BADGES[0]);
+  const [showOptions, setShowOptions] = useState(false);
+  const [inviteMessage, setInviteMessage] = useState(
+    profile.personalQuote || DEFAULT_INVITE_MESSAGE
+  );
+  const [courseTitle, setCourseTitle] = useState(
+    profile.enrolledCourseTitle || "Forex Foundations"
+  );
 
   const referralUrl = getSignupReferralUrl(profile.referralCode);
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(referralUrl)}`;
@@ -72,12 +79,12 @@ export default function AffiliateCard({
     try {
       const activeProfile: AffiliateProfile = {
         ...profile,
-        personalQuote: customQuote,
-        badgeTitle: selectedBadge,
+        personalQuote: inviteMessage,
+        enrolledCourseTitle: courseTitle,
       };
       const dataUrl = await exportAffiliateCardAsPng(activeProfile, avatarUrl);
       const link = document.createElement("a");
-      link.download = `GAMAT-Ambassador-${profile.referralCode}.png`;
+      link.download = `GAMAT-Enrollment-Invite-${profile.referralCode}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -87,9 +94,9 @@ export default function AffiliateCard({
     }
   };
 
-  const shareText = `Join me at GAMAT Fx Academy! Learn institutional price action, master risk, and get certified. Use my invite code "${profile.referralCode}" for VIP cohort access and 5% off:`;
+  const shareText = `${inviteMessage} 👉 ${referralUrl}`;
 
-  const initials = (profile.userName || "TR")
+  const initials = (profile.userName || "ST")
     .split(" ")
     .map((n) => n[0])
     .slice(0, 2)
@@ -98,20 +105,20 @@ export default function AffiliateCard({
 
   return (
     <div className="flex flex-col lg:flex-row items-start gap-8">
-      {/* Left / Center: The Pinterest / Medium-Style Card */}
-      <div className="w-full max-w-[460px] mx-auto shrink-0">
+      {/* ================= Left: The Pinterest / Medium Enrollment Card ================= */}
+      <div className="w-full max-w-[440px] mx-auto shrink-0">
         <div
-          id="affiliate-share-card"
-          className="relative overflow-hidden rounded-[2.2rem] bg-gradient-to-b from-[#090e17] via-[#0f172a] to-[#080c14] p-6 sm:p-7 text-white shadow-[0_25px_70px_-15px_rgba(0,0,0,0.7)] border border-white/10 ring-1 ring-white/5"
+          id="student-enrollment-card"
+          className="relative overflow-hidden rounded-[2rem] bg-gradient-to-b from-[#090d16] via-[#0f172a] to-[#070b12] p-6 sm:p-7 text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7)] border border-white/10 ring-1 ring-white/5"
         >
           {/* Subtle Ambient Radial Lighting */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-500/15 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
 
-          {/* Top Brand & Ambassador Tag */}
+          {/* Top Brand Header & Verified Enrollment Tag */}
           <div className="relative flex items-center justify-between border-b border-white/10 pb-4">
             <div className="flex items-center gap-2">
-              <span className="font-display text-lg font-black tracking-wider text-white">
+              <span className="font-display text-base font-black tracking-wider text-white">
                 GAMAT <span className="text-brand">FX</span>
               </span>
               <span className="text-[10px] uppercase font-bold tracking-widest text-white/50">
@@ -119,29 +126,29 @@ export default function AffiliateCard({
               </span>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-[11px] font-bold text-red-200">
-              <Sparkles className="h-3 w-3 text-amber-300" />
-              <span>AMBASSADOR</span>
+            <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-0.5 text-[10px] font-bold text-emerald-300">
+              <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+              <span>VERIFIED ENROLLMENT</span>
             </div>
           </div>
 
-          {/* Student Profile Spotlight Header */}
-          <div className="relative mt-5 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 backdrop-blur-md">
+          {/* Student Profile Row */}
+          <div className="relative mt-5 flex items-center gap-3.5">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={profile.userName}
-                className="h-16 w-16 rounded-2xl object-cover ring-2 ring-brand/60 shadow-lg"
+                className="h-14 w-14 rounded-full object-cover ring-2 ring-brand shadow-md"
               />
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-xl font-black text-white shadow-lg">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark font-display text-lg font-black text-white shadow-md">
                 {initials}
               </div>
             )}
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <h4 className="font-display text-lg font-extrabold text-white truncate">
+                <h4 className="font-display text-base font-extrabold text-white truncate">
                   {profile.userName}
                 </h4>
                 <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-sky-500 text-[10px] font-bold text-white">
@@ -149,55 +156,53 @@ export default function AffiliateCard({
                 </span>
               </div>
               <p className="text-xs font-semibold text-sky-400 truncate">
-                {selectedBadge}
+                Active Student • {courseTitle}
               </p>
-              <p className="mt-0.5 text-[11px] text-white/50 truncate">
-                Official Institutional Trading Cohort
+              <p className="text-[10px] text-white/50">
+                GAMAT Fx Academy Official Cohort
               </p>
             </div>
           </div>
 
-          {/* Medium / Pinterest Style Quote Box */}
-          <div className="relative mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm">
-            <Quote className="h-7 w-7 text-brand/40 mb-1" />
-            <p className="font-serif italic text-base sm:text-lg leading-relaxed text-slate-100">
-              "{customQuote}"
+          {/* Medium / Pinterest Style Giant Announcement Hook */}
+          <div className="relative mt-5 rounded-2xl border border-brand/40 bg-brand/10 p-5 backdrop-blur-md">
+            <Quote className="h-6 w-6 text-brand/60 mb-1" />
+            <p className="font-display font-extrabold text-lg sm:text-xl leading-snug text-white">
+              "{inviteMessage}"
             </p>
-            <div className="mt-4 flex items-center justify-between text-xs text-amber-400 font-semibold border-t border-white/5 pt-3">
-              <span>— {profile.userName}</span>
-              <span className="text-[11px] text-white/40">Price Action & Risk Edge</span>
+            <div className="mt-3.5 flex items-center justify-between text-xs text-emerald-400 font-bold border-t border-white/10 pt-2.5">
+              <span className="flex items-center gap-1">
+                <span>🎁</span> 100% Free Beginner Access
+              </span>
+              <span className="text-[11px] text-white/50 font-normal">No Fees Required</span>
             </div>
           </div>
 
-          {/* QR Code & Referral Code Footer */}
-          <div className="relative mt-5 rounded-2xl border border-brand/30 bg-gradient-to-br from-brand/10 to-brand/5 p-4">
-            <div className="flex items-center justify-between gap-4">
+          {/* Call To Action Box & Direct Referral Pill */}
+          <div className="relative mt-5 rounded-2xl bg-white p-4 text-slate-900 shadow-md">
+            <div className="flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-white/60">
-                  Unique Invite Code
+                <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+                  Join My Cohort Online
                 </p>
-                <p className="font-mono text-xl sm:text-2xl font-black text-white tracking-wider mt-0.5">
-                  {profile.referralCode}
+                <p className="font-mono text-sm sm:text-base font-black text-brand truncate mt-0.5">
+                  CODE: {profile.referralCode}
                 </p>
-                <p className="mt-2 text-xs font-medium text-emerald-400 flex items-center gap-1">
-                  <span>🎁</span> Scan or visit to claim 5% off
+                <p className="mt-1 text-[11px] text-slate-600 line-clamp-1">
+                  Scan QR code or click link to claim free access
                 </p>
-                <p className="mt-0.5 text-[11px] font-mono text-sky-300">
+                <p className="text-[11px] font-bold text-sky-600 font-mono">
                   gamatfxacademy.com
                 </p>
               </div>
 
-              {/* QR Code */}
-              <div className="shrink-0 rounded-xl bg-white p-2 shadow-md">
+              {/* Dynamic QR Code */}
+              <div className="shrink-0 rounded-xl bg-slate-50 p-1.5 border border-slate-200">
                 <img
                   src={qrApiUrl}
                   alt="Referral QR Code"
-                  className="h-24 w-24 object-contain"
+                  className="h-20 w-20 object-contain"
                   loading="lazy"
-                  onError={(e) => {
-                    // Fallback to stylized icon if offline
-                    e.currentTarget.style.display = "none";
-                  }}
                 />
               </div>
             </div>
@@ -206,241 +211,204 @@ export default function AffiliateCard({
           {/* Watermark Footer */}
           <div className="mt-4 text-center">
             <p className="text-[10px] text-white/40">
-              GAMAT Fx Academy Ltd. • Verified Student Ambassador Card
+              Share on WhatsApp Status, Instagram, Pinterest, or Twitter
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Column: Actions, Customization, & Social Sharing */}
+      {/* ================= Right: Sharing Toolbar & Invitation Controls ================= */}
       <div className="w-full flex-1 space-y-6">
-        {/* Card Header & Intro */}
+        {/* Main Action Header Card */}
         <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand">
-                <Sparkles className="h-3.5 w-3.5" />
-                Pinterest & Medium Style Share Card
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                Student Enrollment Invite Card
               </span>
               <h3 className="mt-2 font-display text-xl font-extrabold text-ink">
-                Your Ambassador Showcase Card
+                Invite Friends to Join Your Course
               </h3>
-              <p className="mt-1 text-sm text-muted">
-                Share this card on your social media status, Twitter, Pinterest, or WhatsApp. Anyone who scans or registers with your code earns you a <strong>15% commission</strong>.
+              <p className="mt-1 text-xs sm:text-sm text-muted leading-relaxed">
+                Share this card on WhatsApp, Instagram, Pinterest, or Twitter. When your friends click your link or scan your code to register, you earn a <strong>15% commission</strong> whenever they enroll in paid courses or purchase trading tools!
               </p>
             </div>
           </div>
 
-          {/* Quick Action Buttons */}
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={downloading}
-              className="flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-md hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
-            >
-              {downloading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating HD PNG...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4" />
-                  Download Card (PNG)
-                </>
-              )}
-            </button>
+          {/* Student's Direct Referral Link Bar */}
+          <div className="mt-5 rounded-xl border border-line bg-cream p-3 flex flex-col sm:flex-row items-center gap-3">
+            <div className="min-w-0 flex-1 text-left">
+              <p className="text-[10px] uppercase font-bold text-muted">Your Unique Invite Link</p>
+              <p className="font-mono text-xs font-bold text-ink truncate select-all">
+                {referralUrl}
+              </p>
+            </div>
 
             <button
               type="button"
               onClick={copyLink}
-              className="flex items-center justify-center gap-2 rounded-xl border border-line bg-cream px-5 py-3 text-sm font-bold text-ink hover:bg-slate-100 transition cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
             >
               {copied ? (
                 <>
-                  <Check className="h-4 w-4 text-emerald-600" />
-                  <span className="text-emerald-700">Invite Link Copied!</span>
+                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Link Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 text-muted" />
-                  Copy Invite Link
+                  <Copy className="h-3.5 w-3.5" />
+                  <span>Copy Link</span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Customize Card Button */}
-          <div className="mt-4 pt-4 border-t border-line flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => setShowCustomizer(!showCustomizer)}
-              className="inline-flex items-center gap-2 text-xs font-bold text-brand hover:text-brand-dark cursor-pointer"
-            >
-              <Sliders className="h-3.5 w-3.5" />
-              {showCustomizer ? "Hide Customization" : "Customize Quote & Badge on Card"}
-            </button>
-            <span className="text-xs text-muted">HD 1080×1520px Export</span>
+          {/* Quick 1-Click Social Sharing Buttons */}
+          <div className="mt-5 space-y-2">
+            <p className="text-xs font-bold text-ink">1-Click Share to Your Network:</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {/* WhatsApp — The #1 channel */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-sm"
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp
+              </a>
+
+              {/* X / Twitter */}
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl bg-black px-3.5 py-2.5 text-xs font-bold text-white hover:bg-slate-900 transition shadow-sm"
+              >
+                <XIcon className="h-4 w-4" />
+                X (Twitter)
+              </a>
+
+              {/* Telegram */}
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(inviteMessage)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#229ED9] px-3.5 py-2.5 text-xs font-bold text-white hover:opacity-95 transition shadow-sm"
+              >
+                <Send className="h-4 w-4" />
+                Telegram
+              </a>
+
+              {/* Facebook */}
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#1877F2] px-3.5 py-2.5 text-xs font-bold text-white hover:opacity-95 transition shadow-sm"
+              >
+                <FacebookIcon className="h-4 w-4" />
+                Facebook
+              </a>
+            </div>
           </div>
 
-          {/* Live Customizer Drawer */}
-          {showCustomizer && (
-            <div className="mt-4 space-y-4 rounded-xl border border-line bg-cream p-4">
+          {/* Download Image Card Action */}
+          <div className="mt-5 pt-4 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-white shadow hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
+            >
+              {downloading ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Generating High-Res Image...
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  Download Card Image (PNG)
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowOptions(!showOptions)}
+              className="text-xs font-bold text-brand hover:underline cursor-pointer"
+            >
+              {showOptions ? "Hide Card Options" : "Switch Course / Card Message"}
+            </button>
+          </div>
+
+          {/* Options Drawer */}
+          {showOptions && (
+            <div className="mt-4 space-y-4 rounded-xl border border-line bg-cream p-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-ink mb-1.5">
-                  Select Ambassador Badge
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {PRESET_BADGES.map((b) => (
+                <label className="block font-bold text-ink mb-1.5">Select Message Template:</label>
+                <div className="space-y-2">
+                  {PRESET_INVITE_MESSAGES.map((msg, idx) => (
                     <button
-                      key={b}
+                      key={idx}
                       type="button"
                       onClick={() => {
-                        setSelectedBadge(b);
-                        onUpdateBadge?.(b);
+                        setInviteMessage(msg);
+                        onUpdateQuote?.(msg);
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                        selectedBadge === b
-                          ? "bg-brand text-white shadow"
-                          : "bg-white border border-line text-ink hover:bg-slate-50"
+                      className={`w-full text-left p-2.5 rounded-lg transition cursor-pointer border ${
+                        inviteMessage === msg
+                          ? "border-brand bg-brand/5 text-ink font-bold"
+                          : "border-line bg-white text-muted hover:text-ink"
                       }`}
                     >
-                      {b}
+                      "{msg}"
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-ink mb-1.5">
-                  Select or Write Card Quote
-                </label>
-                <div className="space-y-2 mb-3">
-                  {PRESET_QUOTES.map((q, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        setCustomQuote(q);
-                        onUpdateQuote?.(q);
-                      }}
-                      className={`w-full text-left p-2.5 rounded-lg text-xs transition cursor-pointer border ${
-                        customQuote === q
-                          ? "border-brand bg-brand/5 text-ink font-medium"
-                          : "border-line bg-white text-muted hover:text-ink"
-                      }`}
-                    >
-                      "{q}"
-                    </button>
-                  ))}
-                </div>
-
+                <label className="block font-bold text-ink mb-1.5">Or Type Custom Card Note:</label>
                 <textarea
-                  value={customQuote}
+                  rows={2}
+                  value={inviteMessage}
                   onChange={(e) => {
-                    setCustomQuote(e.target.value);
+                    setInviteMessage(e.target.value);
                     onUpdateQuote?.(e.target.value);
                   }}
-                  rows={3}
-                  className="w-full rounded-xl border border-line bg-white p-3 text-xs text-ink placeholder:text-muted focus:border-brand focus:outline-none"
-                  placeholder="Or type your own personal trading quote/thesis..."
+                  className="w-full rounded-xl border border-line bg-white p-2.5 text-xs text-ink focus:border-brand focus:outline-none"
+                  placeholder="e.g. I just enrolled for Forex Foundational course with GAMAT at no costs at all. Click the link to join me"
                 />
               </div>
             </div>
           )}
         </div>
 
-        {/* 1-Click Social Sharing */}
-        <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
-          <h4 className="font-display text-sm font-bold text-ink flex items-center gap-2">
-            <Share2 className="h-4 w-4 text-brand" />
-            1-Click Social Share
-          </h4>
-          <p className="mt-1 text-xs text-muted">
-            Share directly with your followers and friends with pre-filled invitations.
-          </p>
-
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {/* WhatsApp */}
-            <a
-              href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${referralUrl}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition"
-            >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
-            </a>
-
-            {/* X / Twitter */}
-            <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${shareText} ${referralUrl}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-black px-3.5 py-2.5 text-xs font-bold text-white hover:bg-slate-900 transition"
-            >
-              <XIcon className="h-4 w-4" />
-              X (Twitter)
-            </a>
-
-            {/* Telegram */}
-            <a
-              href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#229ED9] px-3.5 py-2.5 text-xs font-bold text-white hover:opacity-95 transition"
-            >
-              <Send className="h-4 w-4" />
-              Telegram
-            </a>
-
-            {/* LinkedIn */}
-            <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl bg-[#0077b5] px-3.5 py-2.5 text-xs font-bold text-white hover:opacity-95 transition"
-            >
-              <LinkedinIcon className="h-4 w-4" />
-              LinkedIn
-            </a>
-          </div>
-        </div>
-
-        {/* How It Works Mini-Guide */}
+        {/* How It Works & Earnings Breakdown */}
         <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
           <h4 className="font-display text-sm font-bold text-ink">
-            How Student Affiliate Commissions Work
+            How You Earn with Your Invite Link:
           </h4>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="rounded-xl bg-cream p-3.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white mb-2">
-                1
-              </span>
-              <p className="text-xs font-bold text-ink">Share Your Card / Link</p>
-              <p className="mt-1 text-[11px] text-muted">
-                Post your visual card or link on WhatsApp, Pinterest, X, or Telegram.
+              <span className="font-bold text-brand block mb-1">1. Share Card / Link</span>
+              <p className="text-muted leading-relaxed">
+                Post your enrollment card to your WhatsApp status or send your link to friends.
               </p>
             </div>
-
             <div className="rounded-xl bg-cream p-3.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white mb-2">
-                2
-              </span>
-              <p className="text-xs font-bold text-ink">Friend Gets 5% Off</p>
-              <p className="mt-1 text-[11px] text-muted">
-                Your invite automatically applies a 5% discount for them at registration.
+              <span className="font-bold text-brand block mb-1">2. Friends Join Free</span>
+              <p className="text-muted leading-relaxed">
+                They register and take the Forex Foundations masterclass at zero tuition fee.
               </p>
             </div>
-
             <div className="rounded-xl bg-cream p-3.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white mb-2">
-                3
-              </span>
-              <p className="text-xs font-bold text-ink">Earn 15% Cash</p>
-              <p className="mt-1 text-[11px] text-muted">
-                Receive 15% instant commission into your balance, withdrawable to your bank or USDT.
+              <span className="font-bold text-emerald-700 block mb-1">3. You Get 15% Cash</span>
+              <p className="text-muted leading-relaxed">
+                When they purchase advanced courses, mentorship, or store bots, you get a 15% commission!
               </p>
             </div>
           </div>
