@@ -126,8 +126,8 @@ export default function MillionairePage() {
           subtitle="Fifteen forex questions. Three lifelines. Two safe havens. Climb the ladder from ₦5,000 to ₦10,000,000 — how far can your market knowledge take you?" />
 
         <section className="section bg-cream">
-          <div className="container-x grid gap-10 lg:grid-cols-[1fr_320px]">
-            <div className="rounded-3xl border border-line bg-white p-8 shadow-lg">
+          <div className="container-x grid gap-8 lg:gap-10 lg:grid-cols-[1fr_320px]">
+            <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-lg">
               <h2 className="font-display text-2xl font-extrabold text-ink">How to play</h2>
               <ul className="mt-6 space-y-4">
                 {[
@@ -136,7 +136,7 @@ export default function MillionairePage() {
                   { i: Timer, t: "45 seconds per question", d: "Run out of time and the game ends at your last safe haven." },
                   { i: Handshake, t: "Walk away anytime", d: "Bank your winnings before risking them on the next question." },
                 ].map((r) => (
-                  <li key={r.t} className="flex items-start gap-4">
+                  <li key={r.t} className="flex items-start gap-3.5 sm:gap-4">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
                       <r.i className="h-5 w-5" />
                     </span>
@@ -181,24 +181,24 @@ export default function MillionairePage() {
   if (phase !== "playing") {
     const won = phase === "won";
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink px-6 py-24">
-        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur">
+      <div className="flex min-h-screen items-center justify-center bg-ink px-4 sm:px-6 pb-16 pt-[calc(var(--header-h,104px)+1.5rem)] sm:py-24">
+        <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-10 text-center backdrop-blur">
           {won ? <Trophy className="mx-auto h-16 w-16 text-amber-400" />
             : phase === "banked" ? <Handshake className="mx-auto h-16 w-16 text-brand" />
             : <XCircle className="mx-auto h-16 w-16 text-brand" />}
 
-          <h1 className="mt-5 font-display text-3xl font-extrabold text-white">
+          <h1 className="mt-5 font-display text-2xl sm:text-3xl font-extrabold text-white">
             {won ? "You're a Millionaire Mind!" : phase === "banked" ? "You walked away" : "Game over"}
           </h1>
-          <p className="mt-2 text-white/70">
+          <p className="mt-2 text-sm sm:text-base text-white/70">
             {won ? "You answered all fifteen questions correctly." :
               phase === "banked" ? "Smart play — you banked your winnings." :
               "Better luck next time. Your safe haven protected you."}
           </p>
 
-          <div className="mt-7 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-6">
+          <div className="mt-7 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-5 sm:p-6">
             <p className="text-xs uppercase tracking-widest text-white/50">You take home</p>
-            <p className="mt-2 font-display text-4xl font-extrabold text-amber-400">{fmtNaira(banked)}</p>
+            <p className="mt-2 font-display text-3xl sm:text-4xl font-extrabold text-amber-400">{fmtNaira(banked)}</p>
             <p className="mt-2 text-xs text-white/40">Reached level {level + (won ? 1 : 0)} of 15</p>
           </div>
 
@@ -214,25 +214,25 @@ export default function MillionairePage() {
 
   /* ------------------------------ Playing ------------------------------ */
   return (
-    <div className="min-h-screen bg-ink pb-16 pt-28 text-white">
+    <div className="min-h-screen bg-ink pb-16 pt-[calc(var(--header-h,104px)+1rem)] sm:pt-32 text-white">
       <div className="container-x grid gap-8 lg:grid-cols-[1fr_300px]">
         <div>
           {/* HUD */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <span className="font-display text-lg font-extrabold text-amber-400">{fmtNaira(rung.prize)}</span>
-            <span className="text-sm text-white/60">Question {level + 1} of 15</span>
-            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold ${left <= 10 ? "animate-pulse bg-brand" : "bg-white/10"}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3.5 sm:p-4">
+            <span className="font-display text-base sm:text-lg font-extrabold text-amber-400">{fmtNaira(rung.prize)}</span>
+            <span className="text-xs sm:text-sm text-white/60">Question {level + 1} of 15</span>
+            <span className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-3 py-1 text-xs sm:text-sm font-bold ${left <= 10 ? "animate-pulse bg-brand" : "bg-white/10"}`}>
               <Timer className="h-4 w-4" /> {left}s
             </span>
           </div>
 
           {/* Lifelines */}
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-2 sm:gap-3">
             <Lifeline on={lifelines.fifty} icon={Split} label="50:50" onClick={useFifty} />
             <Lifeline on={lifelines.audience} icon={Users} label="Ask the Room" onClick={useAudience} />
             <Lifeline on={lifelines.phone} icon={PhoneCall} label="Call a Mentor" onClick={usePhone} />
             <button onClick={walkAway} disabled={locked}
-              className="ml-auto inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-2.5 text-sm font-bold transition hover:border-white hover:bg-white/10 disabled:opacity-40">
+              className="sm:ml-auto inline-flex items-center gap-2 rounded-full border border-white/25 px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition hover:border-white hover:bg-white/10 disabled:opacity-40">
               <Handshake className="h-4 w-4" /> Walk away
             </button>
           </div>
@@ -240,11 +240,11 @@ export default function MillionairePage() {
           {/* Question */}
           {q && (
             <div key={level} className="mt-6 animate-[riseIn_.5s_cubic-bezier(.22,1,.36,1)]">
-              <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.09] to-white/[0.03] p-8 text-center shadow-2xl">
+              <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.09] to-white/[0.03] p-5 sm:p-8 text-center shadow-2xl">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
                   <Zap className="h-3 w-3" /> {q.difficulty} · {q.topic}
                 </span>
-                <h2 className="mt-4 font-display text-xl font-extrabold leading-snug md:text-2xl">{q.q}</h2>
+                <h2 className="mt-4 font-display text-lg sm:text-xl font-extrabold leading-snug md:text-2xl">{q.q}</h2>
               </div>
 
               {hint && (

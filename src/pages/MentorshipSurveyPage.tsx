@@ -57,7 +57,7 @@ export default function MentorshipSurveyPage() {
       <section className="section bg-cream">
         <div className="container-x max-w-3xl space-y-8">
           {!isAuthed ? (
-            <div className="rounded-3xl border border-line bg-white p-8 sm:p-12 shadow-xl text-center">
+            <div className="rounded-3xl border border-line bg-white p-6 sm:p-12 shadow-xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-light text-brand">
                 <Lock className="h-8 w-8" />
               </div>
@@ -73,13 +73,13 @@ export default function MentorshipSurveyPage() {
           ) : (
             <>
               {/* Live Class Notice */}
-              <div className="rounded-3xl border border-line bg-white p-8 shadow-sm">
-                <div className="flex items-center gap-3">
+              <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-sm">
+                <div className="flex items-start sm:items-center gap-3.5">
                   <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shrink-0">
                     <Video className="h-6 w-6" />
                   </span>
                   <div>
-                    <h3 className="font-display text-lg font-bold text-ink">Live Interactive Classes (Zoom & Google Meet)</h3>
+                    <h3 className="font-display text-base sm:text-lg font-bold text-ink">Live Interactive Classes (Zoom & Google Meet)</h3>
                     <p className="text-xs text-muted mt-0.5 leading-relaxed">
                       Your mentorship package is conducted via <strong>Live Zoom & Google Meet Classes</strong>. Completing this intake survey helps lead mentors tailor your live masterclasses and 1-on-1 calls.
                     </p>
@@ -88,11 +88,11 @@ export default function MentorshipSurveyPage() {
               </div>
 
               {/* Survey Form */}
-              <div className="rounded-3xl border border-line bg-white p-8 sm:p-10 shadow-xl">
+              <div className="rounded-3xl border border-line bg-white p-5 sm:p-10 shadow-xl">
             <div className="border-b border-line pb-4 flex items-center justify-between">
               <div>
                 <span className="eyebrow">Student Intake Questionnaire</span>
-                <h2 className="font-display text-xl font-extrabold text-ink mt-1">
+                <h2 className="font-display text-lg sm:text-xl font-extrabold text-ink mt-1">
                   {planTitles[planId]}
                 </h2>
                 <p className="text-xs text-muted mt-0.5">

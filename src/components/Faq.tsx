@@ -60,9 +60,9 @@ export default function Faq() {
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
                   aria-expanded={isOpen}
-                  className="flex w-full items-center justify-between gap-6 px-6 py-5 text-left"
+                  className="flex w-full items-center justify-between gap-4 sm:gap-6 px-4 py-4 sm:px-6 sm:py-5 text-left"
                 >
-                  <span className="font-display text-base font-bold text-ink">
+                  <span className="font-display text-sm sm:text-base font-bold text-ink">
                     {f.q}
                   </span>
                   <span
@@ -81,7 +81,7 @@ export default function Faq() {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <p className="px-6 pb-6 text-sm leading-relaxed text-muted">
+                    <p className="px-4 pb-4 sm:px-6 sm:pb-6 text-sm leading-relaxed text-muted">
                       {f.a}
                     </p>
                   </div>

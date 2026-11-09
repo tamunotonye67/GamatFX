@@ -47,35 +47,35 @@ export default function ServiceDetailPage({ slug }: { slug: string }) {
           <div className="absolute inset-0 bg-[radial-gradient(55%_55%_at_85%_15%,rgba(220,53,69,0.32),transparent_60%)]" />
         </div>
 
-        <div className="container-x pb-20 pt-36 md:pb-24 md:pt-44">
-          <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-white/55">
+        <div className="container-x pb-14 pt-[calc(var(--header-h,104px)+1.5rem)] sm:pb-20 sm:pt-36 md:pb-24 md:pt-44">
+          <nav className="mb-4 sm:mb-6 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/55">
             <button onClick={() => navigate("/")} className="hover:text-white">Home</button>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
             <button onClick={() => navigate("/services")} className="hover:text-white">Services</button>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
             <span className="text-brand-light">{service.title}</span>
           </nav>
 
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand shadow-lg">
-            <Icon className="h-7 w-7" />
+          <span className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-brand shadow-lg">
+            <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
           </span>
-          <h1 className="mt-6 max-w-4xl font-display text-4xl font-extrabold leading-[1.1] md:text-5xl">
+          <h1 className="mt-5 sm:mt-6 max-w-4xl font-display text-3xl sm:text-4xl font-extrabold leading-[1.1] md:text-5xl">
             {service.title}
           </h1>
-          <p className="mt-5 max-w-2xl text-lg text-white/75">{service.short}</p>
+          <p className="mt-4 sm:mt-5 max-w-2xl text-base sm:text-lg text-white/75">{service.short}</p>
 
-          <div className="mt-9 flex flex-wrap gap-4">
+          <div className="mt-7 sm:mt-9 flex flex-wrap gap-3 sm:gap-4">
             <button onClick={() => goEnquire()} className="btn-primary">
               Request This Service <ArrowUpRight className="h-4 w-4" />
             </button>
             <button onClick={() => navigate("/contact")} className="btn-ghost">Talk to our team</button>
           </div>
 
-          <div className="mt-12 grid max-w-2xl grid-cols-3 gap-6 border-t border-white/10 pt-7">
+          <div className="mt-10 sm:mt-12 grid max-w-2xl grid-cols-3 gap-3 sm:gap-6 border-t border-white/10 pt-6 sm:pt-7">
             {service.stats.map((s) => (
               <div key={s.l}>
-                <p className="font-display text-2xl font-extrabold md:text-3xl">{s.v}</p>
-                <p className="mt-1 text-sm text-white/55">{s.l}</p>
+                <p className="font-display text-xl sm:text-2xl font-extrabold md:text-3xl">{s.v}</p>
+                <p className="mt-1 text-xs sm:text-sm text-white/55">{s.l}</p>
               </div>
             ))}
           </div>
@@ -84,7 +84,7 @@ export default function ServiceDetailPage({ slug }: { slug: string }) {
 
       {/* Intro */}
       <section className="section bg-cream">
-        <div className="container-x grid items-center gap-12 lg:grid-cols-2">
+        <div className="container-x grid items-center gap-10 lg:gap-12 lg:grid-cols-2">
           <div>
             <span className="eyebrow">Overview</span>
             <h2 className="section-title mt-4">What this service covers</h2>
@@ -106,7 +106,7 @@ export default function ServiceDetailPage({ slug }: { slug: string }) {
             <span className="eyebrow justify-center">What's included</span>
             <h2 className="section-title mt-4">Everything in this service</h2>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 sm:mt-12 grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {service.features.map((f, i) => (
               <div key={f.title} className={`card reveal ${visible ? "is-visible" : ""}`} style={{ transitionDelay: `${(i % 3) * 100}ms` }}>
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-light text-brand">
@@ -125,12 +125,12 @@ export default function ServiceDetailPage({ slug }: { slug: string }) {
         <div className="container-x">
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow justify-center text-brand-light">How it works</span>
-            <h2 className="mt-4 font-display text-3xl font-extrabold md:text-4xl">Our delivery process</h2>
+            <h2 className="mt-4 font-display text-2xl sm:text-3xl font-extrabold md:text-4xl">Our delivery process</h2>
           </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 sm:mt-12 grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
             {service.process.map((p) => (
-              <div key={p.step} className="relative rounded-2xl border border-white/10 bg-white/5 p-7 transition hover:-translate-y-1 hover:border-brand/50">
-                <span className="absolute right-6 top-5 font-display text-4xl font-extrabold text-white/5">{p.step}</span>
+              <div key={p.step} className="relative rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-7 transition hover:-translate-y-1 hover:border-brand/50">
+                <span className="absolute right-5 top-4 sm:right-6 sm:top-5 font-display text-4xl font-extrabold text-white/5">{p.step}</span>
                 <p className="font-display text-sm font-extrabold text-brand">{p.step}</p>
                 <h3 className="mt-3 font-display text-lg font-bold">{p.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/60">{p.body}</p>
@@ -148,13 +148,13 @@ export default function ServiceDetailPage({ slug }: { slug: string }) {
             <h2 className="section-title mt-4">Choose the level of support you need</h2>
             <p className="mt-4 text-muted">Every engagement is scoped individually — these are typical starting points.</p>
           </div>
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-10 sm:mt-12 grid gap-6 lg:grid-cols-3">
             {service.packages.map((p) => (
-              <div key={p.name} className={`flex flex-col rounded-3xl border bg-white p-8 shadow-[0_18px_50px_-30px_rgba(22,24,28,0.3)] transition hover:-translate-y-1.5 ${p.featured ? "border-brand ring-2 ring-brand/20" : "border-line"}`}>
+              <div key={p.name} className={`flex flex-col rounded-3xl border bg-white p-5 sm:p-8 shadow-[0_18px_50px_-30px_rgba(22,24,28,0.3)] transition hover:-translate-y-1.5 ${p.featured ? "border-brand ring-2 ring-brand/20" : "border-line"}`}>
                 {p.featured && <span className="mb-4 w-fit rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">{p.note}</span>}
                 {!p.featured && <span className="mb-4 w-fit rounded-full bg-cream px-3 py-1 text-xs font-bold text-muted">{p.note}</span>}
                 <h3 className="font-display text-xl font-bold text-ink">{p.name}</h3>
-                <p className="mt-2 font-display text-3xl font-extrabold text-brand">{p.price}</p>
+                <p className="mt-2 font-display text-2xl sm:text-3xl font-extrabold text-brand">{p.price}</p>
                 <ul className="mt-6 flex-1 space-y-3">
                   {p.items.map((it) => (
                     <li key={it} className="flex items-start gap-2.5 text-sm text-ink/80">
@@ -186,14 +186,14 @@ export default function ServiceDetailPage({ slug }: { slug: string }) {
               const open = openFaq === i;
               return (
                 <div key={f.q} className={`overflow-hidden rounded-2xl border bg-white transition-colors ${open ? "border-brand/40" : "border-line"}`}>
-                  <button onClick={() => setOpenFaq(open ? -1 : i)} className="flex w-full items-center justify-between gap-6 px-6 py-5 text-left">
-                    <span className="font-display text-base font-bold text-ink">{f.q}</span>
+                  <button onClick={() => setOpenFaq(open ? -1 : i)} className="flex w-full items-center justify-between gap-4 sm:gap-6 px-4 py-4 sm:px-6 sm:py-5 text-left">
+                    <span className="font-display text-sm sm:text-base font-bold text-ink">{f.q}</span>
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all ${open ? "rotate-45 bg-brand text-white" : "bg-brand-light text-brand"}`}>
                       <Plus className="h-4 w-4" />
                     </span>
                   </button>
                   <div className={`grid transition-all duration-300 ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-                    <div className="overflow-hidden"><p className="px-6 pb-6 text-sm leading-relaxed text-muted">{f.a}</p></div>
+                    <div className="overflow-hidden"><p className="px-4 pb-4 sm:px-6 sm:pb-6 text-sm leading-relaxed text-muted">{f.a}</p></div>
                   </div>
                 </div>
               );
@@ -268,10 +268,10 @@ function EnquiryForm({ service, pkg, setPkg }: {
 
   return (
     <section id="enquire" className="section bg-ink text-white">
-      <div className="container-x grid gap-12 lg:grid-cols-2 lg:items-center">
+      <div className="container-x grid gap-10 lg:gap-12 lg:grid-cols-2 lg:items-center">
         <div>
           <span className="eyebrow text-brand-light">Get started</span>
-          <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight md:text-4xl">
+          <h2 className="mt-4 font-display text-2xl sm:text-3xl font-extrabold leading-tight md:text-4xl">
             Request {service.title}
           </h2>
           <p className="mt-4 text-white/70">
@@ -288,15 +288,15 @@ function EnquiryForm({ service, pkg, setPkg }: {
         </div>
 
         {ref ? (
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-8 text-center backdrop-blur-sm">
             <CheckCircle2 className="mx-auto h-14 w-14 text-brand" />
             <h3 className="mt-5 font-display text-2xl font-bold">Enquiry received!</h3>
             <p className="mt-2 text-white/65">
               Thanks {f.name.split(" ")[0]} — our team will contact you at <strong className="text-white">{f.email}</strong> within 24 hours.
             </p>
-            <div className="mt-6 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-6">
+            <div className="mt-6 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-4 sm:p-6">
               <p className="text-xs uppercase tracking-widest text-white/50">Your reference</p>
-              <p className="mt-2 font-display text-3xl font-extrabold tracking-wider text-brand-light">{ref}</p>
+              <p className="mt-2 font-display text-2xl sm:text-3xl font-extrabold tracking-wider text-brand-light break-all">{ref}</p>
               <button onClick={() => { void navigator.clipboard?.writeText(ref); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white">
                 <Copy className="h-3.5 w-3.5" /> {copied ? "Copied!" : "Copy reference"}
@@ -310,7 +310,7 @@ function EnquiryForm({ service, pkg, setPkg }: {
             </div>
           </div>
         ) : (
-          <form onSubmit={submit} className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
+          <form onSubmit={submit} className="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-8 backdrop-blur-sm">
             {err && (
               <div className="flex items-start gap-3 rounded-xl border border-brand/40 bg-brand/15 p-4">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand-light" />

@@ -27,7 +27,7 @@ function transformFor(offset: number, total: number) {
   const dir = d > 0 ? 1 : -1;
   const mag = Math.abs(d);
   return {
-    transform: `translate3d(${dir * (46 + mag * 14)}px, ${mag * 10}px, ${-140 * mag}px) rotateY(${dir * -22}deg) scale(${1 - mag * 0.08})`,
+    transform: `translate3d(${dir * (26 + mag * 10)}px, ${mag * 8}px, ${-140 * mag}px) rotateY(${dir * -18}deg) scale(${1 - mag * 0.08})`,
     opacity: mag > 2 ? 0 : 0.55 - mag * 0.14,
     zIndex: 30 - mag,
     filter: `blur(${mag * 1.6}px) brightness(${1 - mag * 0.18})`,
@@ -62,26 +62,26 @@ export default function ServiceGallery() {
   const active = SLIDES[i];
 
   return (
-    <div className="w-full px-8 py-10 sm:px-12">
+    <div className="w-full px-4 py-6 sm:px-12 sm:py-10">
       <div
         ref={stage}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => { setPaused(false); setTilt({ x: 0, y: 0 }); }}
         onMouseMove={onMove}
-        className="relative mx-auto w-full max-w-[400px]"
+        className="relative mx-auto w-full max-w-[340px] sm:max-w-[400px]"
         style={{ perspective: "1400px" }}
       >
         {/* Ambient glow that shifts colour with the slide */}
         <div
-          className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] blur-3xl transition-all duration-1000"
+          className="pointer-events-none absolute -inset-6 sm:-inset-10 -z-10 rounded-[3rem] blur-3xl transition-all duration-1000"
           style={{ background: `radial-gradient(circle at 40% 30%, ${active.accent}38, transparent 65%)` }}
         />
 
         {/* Rotating dashed ring */}
-        <div className="pointer-events-none absolute -inset-6 -z-10 animate-[spinSlow_26s_linear_infinite] rounded-[2.5rem] border-2 border-dashed border-brand/20" />
+        <div className="pointer-events-none absolute -inset-3 sm:-inset-6 -z-10 animate-[spinSlow_26s_linear_infinite] rounded-[2.5rem] border-2 border-dashed border-brand/20" />
 
         {/* Vector dot grid */}
-        <svg className="pointer-events-none absolute -bottom-8 -left-9 h-24 w-24 text-brand/25" viewBox="0 0 96 96" aria-hidden="true">
+        <svg className="pointer-events-none absolute -bottom-6 -left-5 sm:-bottom-8 sm:-left-9 h-20 w-20 sm:h-24 sm:w-24 text-brand/25" viewBox="0 0 96 96" aria-hidden="true">
           {Array.from({ length: 4 }).flatMap((_, r) =>
             Array.from({ length: 4 }).map((__, c) => (
               <circle key={`${r}-${c}`} cx={10 + c * 25} cy={10 + r * 25} r="3.5" fill="currentColor"
@@ -92,7 +92,7 @@ export default function ServiceGallery() {
         </svg>
 
         {/* Corner accent */}
-        <div className="pointer-events-none absolute -right-5 -top-5 h-24 w-24 rounded-tr-[2rem] border-r-4 border-t-4 transition-colors duration-1000"
+        <div className="pointer-events-none absolute -right-3 -top-3 sm:-right-5 sm:-top-5 h-20 w-20 sm:h-24 sm:w-24 rounded-tr-[2rem] border-r-4 border-t-4 transition-colors duration-1000"
           style={{ borderColor: `${active.accent}66` }} />
 
         {/* ---------------- 3D stage ---------------- */}
@@ -134,7 +134,7 @@ export default function ServiceGallery() {
 
                 {/* Caption */}
                 {isActive && (
-                  <div key={`cap-${i}`} className="absolute inset-x-0 bottom-0 p-6">
+                  <div key={`cap-${i}`} className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
                     <span
                       className="inline-flex animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_both] items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white"
                       style={{ background: s.accent }}
@@ -142,12 +142,12 @@ export default function ServiceGallery() {
                       <Zap className="h-3 w-3" /> {s.tag}
                     </span>
                     <p
-                      className="mt-2.5 animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_.1s_both] font-display text-xl font-extrabold leading-tight text-white"
+                      className="mt-2 animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_.1s_both] font-display text-lg sm:text-xl font-extrabold leading-tight text-white"
                       style={{ textShadow: "0 2px 12px rgba(0,0,0,.5)" }}
                     >
                       {s.label}
                     </p>
-                    <span className="mt-3 flex animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_.2s_both] items-center gap-2 text-xs text-white/70">
+                    <span className="mt-2 sm:mt-3 flex animate-[riseIn_.7s_cubic-bezier(.22,1,.36,1)_.2s_both] items-center gap-2 text-xs text-white/70">
                       <s.icon className="h-4 w-4" style={{ color: s.accent }} />
                       GAMAT Fx Academy
                     </span>
@@ -159,8 +159,8 @@ export default function ServiceGallery() {
         </div>
 
         {/* Progress ring */}
-        <div className="pointer-events-none absolute -left-3 -top-3 z-40">
-          <svg width="54" height="54" viewBox="0 0 54 54" className="-rotate-90">
+        <div className="pointer-events-none absolute -left-2 -top-2 sm:-left-3 sm:-top-3 z-40">
+          <svg width="48" height="48" viewBox="0 0 54 54" className="-rotate-90 sm:h-[54px] sm:w-[54px]">
             <circle cx="27" cy="27" r="23" fill="rgba(22,24,28,.75)" stroke="rgba(255,255,255,.14)" strokeWidth="2" />
             <circle
               key={`ring-${i}-${paused}`}
@@ -178,22 +178,22 @@ export default function ServiceGallery() {
         </div>
 
         {/* Floating stat chips */}
-        <div className="pointer-events-none absolute -left-7 top-24 z-40 animate-[float_5s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-4 py-3 shadow-2xl">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white"><TrendingUp className="h-4 w-4" /></span>
+        <div className="pointer-events-none absolute -left-2 sm:-left-7 top-16 sm:top-24 z-40 animate-[float_5s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-3 py-2 sm:px-4 sm:py-3 shadow-2xl">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-brand text-white"><TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
             <div>
-              <p className="font-display text-base font-extrabold leading-none text-ink">4,000+</p>
-              <p className="text-[11px] text-muted">Trained</p>
+              <p className="font-display text-sm sm:text-base font-extrabold leading-none text-ink">4,000+</p>
+              <p className="text-[10px] sm:text-[11px] text-muted">Trained</p>
             </div>
           </div>
         </div>
 
-        <div className="pointer-events-none absolute -right-7 bottom-32 z-40 animate-[floatAlt_6s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-4 py-3 shadow-2xl">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white"><Briefcase className="h-4 w-4" /></span>
+        <div className="pointer-events-none absolute -right-2 sm:-right-7 bottom-24 sm:bottom-32 z-40 animate-[floatAlt_6s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-3 py-2 sm:px-4 sm:py-3 shadow-2xl">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-ink text-white"><Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
             <div>
-              <p className="font-display text-base font-extrabold leading-none text-ink">4</p>
-              <p className="text-[11px] text-muted">Core services</p>
+              <p className="font-display text-sm sm:text-base font-extrabold leading-none text-ink">4</p>
+              <p className="text-[10px] sm:text-[11px] text-muted">Core services</p>
             </div>
           </div>
         </div>

@@ -143,7 +143,7 @@ function Legal({
           </aside>
 
           {/* Body */}
-          <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)] md:p-12">
+          <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)] md:p-12">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-5">
               <p className="text-sm text-muted">Last updated: <strong className="text-ink">{updated}</strong></p>
               <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">
@@ -152,7 +152,7 @@ function Legal({
             </div>
 
             {showRisk && (
-              <div className="mt-6 flex gap-4 rounded-2xl border border-brand/25 bg-brand-light p-5">
+              <div className="mt-6 flex gap-3.5 sm:gap-4 rounded-2xl border border-brand/25 bg-brand-light p-4 sm:p-5">
                 <AlertTriangle className="h-6 w-6 shrink-0 text-brand" />
                 <p className="text-sm leading-relaxed text-ink/80">
                   <strong className="font-semibold text-ink">Risk warning:</strong> Trading

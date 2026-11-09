@@ -21,10 +21,10 @@ export default function PageCta({
   const red = tone === "red";
 
   return (
-    <section className={`pb-24 ${red ? "bg-white" : "bg-cream"}`}>
+    <section className={`pb-16 sm:pb-24 ${red ? "bg-white" : "bg-cream"}`}>
       <div className="container-x">
         <div
-          className={`relative overflow-hidden rounded-3xl px-8 py-14 text-center shadow-[0_22px_60px_-32px_rgba(22,24,28,0.4)] ${
+          className={`relative overflow-hidden rounded-2xl sm:rounded-3xl px-5 py-10 sm:px-8 sm:py-14 text-center shadow-[0_22px_60px_-32px_rgba(22,24,28,0.4)] ${
             red
               ? "bg-gradient-to-br from-brand to-brand-dark text-white"
               : "border border-line bg-white"
@@ -39,26 +39,26 @@ export default function PageCta({
 
           <div className="relative">
             <h2
-              className={`mx-auto max-w-2xl font-display text-3xl font-extrabold leading-tight md:text-4xl ${
+              className={`mx-auto max-w-2xl font-display text-2xl sm:text-3xl font-extrabold leading-tight md:text-4xl ${
                 red ? "text-white" : "text-ink"
               }`}
             >
               {title}
             </h2>
             <p
-              className={`mx-auto mt-4 max-w-xl ${
+              className={`mx-auto mt-3 sm:mt-4 max-w-xl text-sm sm:text-base ${
                 red ? "text-white/85" : "text-muted"
               }`}
             >
               {body}
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="mt-7 sm:mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => navigate(primaryTo)}
                 className={
                   red
-                    ? "inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-brand transition hover:-translate-y-0.5 hover:shadow-md"
+                    ? "inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-brand transition hover:-translate-y-0.5 hover:shadow-md"
                     : "btn-primary"
                 }
               >
@@ -70,7 +70,7 @@ export default function PageCta({
                 rel="noreferrer"
                 className={
                   red
-                    ? "inline-flex items-center justify-center gap-2 rounded-full border border-white/35 px-7 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+                    ? "inline-flex items-center justify-center gap-2 rounded-full border border-white/35 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
                     : "btn-outline-dark"
                 }
               >

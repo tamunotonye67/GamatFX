@@ -112,14 +112,14 @@ export default function MentorshipPricingSection() {
         </div>
 
         {/* Pricing Cards Grid with 3D Stacked Layering: Starter & Elite stacked behind Pro Trader */}
-        <div className="mt-12 grid gap-6 lg:grid-cols-3 items-center relative py-4">
+        <div className="mt-10 sm:mt-12 grid gap-7 lg:gap-6 lg:grid-cols-3 items-center relative py-2 sm:py-4">
           {plans.map((p, idx) => {
             const price = annual ? p.annualPrice : p.monthlyPrice;
             const isPro = p.popular;
 
             let stackStyles = "";
             if (isPro) {
-              stackStyles = "bg-slate-950 text-white border-2 border-brand shadow-[0_35px_90px_-15px_rgba(220,53,69,0.6)] lg:scale-105 z-20 relative";
+              stackStyles = "bg-slate-950 text-white border-2 border-brand shadow-[0_35px_90px_-15px_rgba(220,53,69,0.6)] lg:scale-105 z-20 relative mt-2 lg:mt-0";
             } else if (idx === 0) {
               // Starter (Left) stacked behind Pro
               stackStyles = "bg-white text-ink border border-line shadow-md lg:scale-95 z-10 lg:-mr-10 opacity-95 hover:opacity-100 hover:scale-100 hover:z-30";
@@ -131,11 +131,11 @@ export default function MentorshipPricingSection() {
             return (
               <div
                 key={p.id}
-                className={`flex flex-col justify-between rounded-3xl p-7 transition-all duration-500 ${stackStyles}`}
+                className={`flex flex-col justify-between rounded-3xl p-5 sm:p-7 transition-all duration-500 ${stackStyles}`}
               >
                 {/* Popular Badge */}
                 {isPro && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-4 py-1 text-xs font-black uppercase tracking-wider text-white shadow-lg">
                       <Zap className="h-3.5 w-3.5" /> Popular Plan
                     </span>

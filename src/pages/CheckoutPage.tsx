@@ -225,15 +225,15 @@ export default function CheckoutPage({ id }: { id: string }) {
     }
 
     return (
-      <section className="flex min-h-screen items-center justify-center bg-cream px-6 py-20">
-        <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-10 text-center shadow-[0_22px_60px_-32px_rgba(22,24,28,0.4)]">
-          <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-light">
-            <CheckCircle2 className="h-11 w-11 text-brand" />
+      <section className="flex min-h-screen items-center justify-center bg-cream px-4 py-12 sm:px-6 sm:py-20">
+        <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-6 sm:p-10 text-center shadow-[0_22px_60px_-32px_rgba(22,24,28,0.4)]">
+          <span className="mx-auto flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-brand-light">
+            <CheckCircle2 className="h-9 w-9 sm:h-11 sm:w-11 text-brand" />
           </span>
-          <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Payment successful!</h1>
-          <p className="mt-3 text-muted">You're now enrolled in <strong className="text-ink">{course.title}</strong>. A receipt has been sent to {user?.email}.</p>
+          <h1 className="mt-6 font-display text-2xl sm:text-3xl font-extrabold text-ink">Payment successful!</h1>
+          <p className="mt-3 text-sm sm:text-base text-muted">You're now enrolled in <strong className="text-ink">{course.title}</strong>. A receipt has been sent to {user?.email}.</p>
 
-          <div className="mt-7 rounded-2xl bg-cream p-5 text-left text-sm">
+          <div className="mt-7 rounded-2xl bg-cream p-4 sm:p-5 text-left text-sm">
             <Row l="Course" v={course.title} />
             <Row l="Amount paid" v={naira(total)} />
             <Row l="Lessons unlocked" v={`${totalLessons(course)}`} />
@@ -253,27 +253,27 @@ export default function CheckoutPage({ id }: { id: string }) {
 
   /* ----------------------------- Checkout ----------------------------- */
   return (
-    <section className="min-h-screen bg-cream px-6 py-10">
+    <section className="min-h-screen bg-cream px-4 py-6 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-5xl">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <Logo />
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-muted">
-            <ShieldCheck className="h-4 w-4 text-brand" /> Secure checkout
+          <span className="inline-flex items-center gap-1.5 sm:gap-2 text-xs font-semibold text-muted">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-brand" /> Secure checkout
           </span>
         </div>
 
-        <button onClick={() => navigate(`/courses/${course.id}`)} className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-brand">
+        <button onClick={() => navigate(`/courses/${course.id}`)} className="mt-6 sm:mt-8 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-brand">
           <ArrowLeft className="h-4 w-4" /> Back to course
         </button>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+        <div className="mt-5 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-[1.3fr_1fr]">
           {/* Payment form */}
-          <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
-            <h1 className="font-display text-2xl font-extrabold text-ink">Complete your enrollment</h1>
-            <p className="mt-1.5 text-sm text-muted">Signed in as {user?.email}</p>
+          <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-ink">Complete your enrollment</h1>
+            <p className="mt-1.5 text-xs sm:text-sm text-muted truncate">Signed in as {user?.email}</p>
 
             {/* Method */}
-            <p className="mt-7 text-xs font-semibold uppercase tracking-wide text-muted">Payment method</p>
+            <p className="mt-6 sm:mt-7 text-xs font-semibold uppercase tracking-wide text-muted">Payment method</p>
             
             {isMentorship ? (
               <div className="mt-3 rounded-2xl border border-brand/40 bg-amber-50/80 p-4 text-xs">
@@ -303,7 +303,7 @@ export default function CheckoutPage({ id }: { id: string }) {
                 <>
                   <Field label="Cardholder name" ph="Jane Doe" />
                   <Field label="Card number" ph="4242 4242 4242 4242" inputMode="numeric" />
-                  <div className="grid grid-cols-2 gap-5">
+                  <div className="grid grid-cols-2 gap-4 sm:gap-5">
                     <Field label="Expiry" ph="MM / YY" />
                     <Field label="CVV" ph="123" inputMode="numeric" />
                   </div>
@@ -311,22 +311,22 @@ export default function CheckoutPage({ id }: { id: string }) {
               )}
 
               {(method === "transfer" || isMentorship) && (
-                <div className="rounded-2xl border border-line bg-cream p-5 text-sm space-y-3">
-                  <div className="flex items-center justify-between border-b border-line/60 pb-3">
+                <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5 text-sm space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-3">
                     <p className="font-extrabold text-ink text-xs uppercase tracking-wider">Official Mentorship Account Details</p>
                     <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">Verified Account</span>
                   </div>
                   
                   <div className="space-y-2 text-xs text-muted">
-                    <div className="flex justify-between py-1 border-b border-line/30">
+                    <div className="flex flex-wrap justify-between gap-1 py-1.5 border-b border-line/30">
                       <span>Bank Name:</span>
                       <strong className="text-ink font-bold">Providus Bank Plc / Zenith Bank</strong>
                     </div>
-                    <div className="flex justify-between py-1 border-b border-line/30">
+                    <div className="flex flex-wrap justify-between gap-1 py-1.5 border-b border-line/30">
                       <span>Account Number:</span>
                       <strong className="text-brand font-black text-sm tracking-wider">1301234567</strong>
                     </div>
-                    <div className="flex justify-between py-1">
+                    <div className="flex flex-wrap justify-between gap-1 py-1.5">
                       <span>Account Name:</span>
                       <strong className="text-ink font-bold">GAMAT Fx Academy Ltd</strong>
                     </div>
@@ -352,9 +352,9 @@ export default function CheckoutPage({ id }: { id: string }) {
               )}
 
               {!isMentorship && method === "ussd" && (
-                <div className="rounded-2xl border border-line bg-cream p-5 text-center">
+                <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5 text-center">
                   <p className="text-sm text-muted">Dial this code on your registered phone:</p>
-                  <p className="mt-3 font-display text-3xl font-extrabold text-brand">*737*000*{String(total).slice(0, 4)}#</p>
+                  <p className="mt-3 font-display text-2xl sm:text-3xl font-extrabold text-brand break-all">*737*000*{String(total).slice(0, 4)}#</p>
                   <p className="mt-3 text-xs text-muted">Then click confirm below.</p>
                 </div>
               )}
@@ -374,7 +374,7 @@ export default function CheckoutPage({ id }: { id: string }) {
 
           {/* Summary */}
           <aside className="lg:sticky lg:top-8 lg:self-start">
-            <div className="rounded-3xl border border-line bg-white p-7 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+            <div className="rounded-3xl border border-line bg-white p-5 sm:p-7 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
               <h2 className="font-display text-lg font-bold text-ink">Order summary</h2>
 
               <div className="mt-5 flex gap-4">

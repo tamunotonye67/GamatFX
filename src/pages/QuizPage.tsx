@@ -53,16 +53,16 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   /* ------------------------------ Result ------------------------------ */
   if (result) {
     return (
-      <div className="min-h-screen bg-cream px-5 py-10">
+      <div className="min-h-screen bg-cream px-4 sm:px-5 py-8 sm:py-10">
         <div className="mx-auto max-w-3xl">
           <Logo />
-          <div className={`mt-8 overflow-hidden rounded-3xl border bg-white shadow-lg ${result.passed ? "border-emerald-300" : "border-brand/40"}`}>
-            <div className={`p-10 text-center text-white ${result.passed ? "bg-gradient-to-br from-emerald-600 to-emerald-700" : "bg-gradient-to-br from-brand to-brand-dark"}`}>
-              {result.passed ? <Trophy className="mx-auto h-16 w-16" /> : <RotateCcw className="mx-auto h-16 w-16" />}
-              <h1 className="mt-5 font-display text-3xl font-extrabold">
+          <div className={`mt-6 sm:mt-8 overflow-hidden rounded-3xl border bg-white shadow-lg ${result.passed ? "border-emerald-300" : "border-brand/40"}`}>
+            <div className={`p-6 sm:p-10 text-center text-white ${result.passed ? "bg-gradient-to-br from-emerald-600 to-emerald-700" : "bg-gradient-to-br from-brand to-brand-dark"}`}>
+              {result.passed ? <Trophy className="mx-auto h-14 w-14 sm:h-16 sm:w-16" /> : <RotateCcw className="mx-auto h-14 w-14 sm:h-16 sm:w-16" />}
+              <h1 className="mt-4 sm:mt-5 font-display text-2xl sm:text-3xl font-extrabold">
                 {result.passed ? "Congratulations — you passed!" : "Not quite there yet"}
               </h1>
-              <p className="mt-2 text-white/85">
+              <p className="mt-2 text-sm sm:text-base text-white/85">
                 You scored <strong>{result.score}%</strong> ({result.correct}/{result.total} correct).
                 Pass mark is {quiz.passMark}%.
               </p>
@@ -71,7 +71,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               </div>
             </div>
 
-            <div className="p-8">
+            <div className="p-5 sm:p-8">
               {result.passed ? (
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
                   <Award className="mx-auto h-8 w-8 text-emerald-700" />
@@ -97,7 +97,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                   const given = result.answers[q.id];
                   const ok = given === q.answer;
                   return (
-                    <div key={q.id} className={`rounded-2xl border p-5 ${ok ? "border-emerald-200 bg-emerald-50/50" : "border-brand/30 bg-brand-light/40"}`}>
+                    <div key={q.id} className={`rounded-2xl border p-4 sm:p-5 ${ok ? "border-emerald-200 bg-emerald-50/50" : "border-brand/30 bg-brand-light/40"}`}>
                       <div className="flex items-start gap-3">
                         {ok ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" /> : <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand" />}
                         <div className="min-w-0">
@@ -140,12 +140,12 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   /* ------------------------------ Intro ------------------------------ */
   if (!started) {
     return (
-      <div className="min-h-screen bg-cream px-5 py-10">
+      <div className="min-h-screen bg-cream px-4 sm:px-5 py-8 sm:py-10">
         <div className="mx-auto max-w-2xl">
           <Logo />
-          <div className="mt-8 rounded-3xl border border-line bg-white p-10 shadow-lg">
+          <div className="mt-6 sm:mt-8 rounded-3xl border border-line bg-white p-6 sm:p-10 shadow-lg">
             <span className="chip">Final assessment</span>
-            <h1 className="mt-4 font-display text-3xl font-extrabold text-ink">{quiz.title}</h1>
+            <h1 className="mt-4 font-display text-2xl sm:text-3xl font-extrabold text-ink">{quiz.title}</h1>
             <p className="mt-3 text-muted">
               Pass this assessment to earn your certificate for <strong className="text-ink">{course.title}</strong>.
             </p>
@@ -163,16 +163,16 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               </div>
             )}
 
-            <div className="mt-7 grid gap-4 sm:grid-cols-3">
+            <div className="mt-7 grid grid-cols-3 gap-3 sm:gap-4">
               {[
                 { icon: ListChecks, v: `${quiz.questions.length}`, l: "Questions" },
                 { icon: Flag, v: `${quiz.passMark}%`, l: "Pass mark" },
                 { icon: Clock, v: `${quiz.timeLimitMins} min`, l: "Time limit" },
               ].map((s) => (
-                <div key={s.l} className="rounded-2xl bg-cream p-5 text-center">
+                <div key={s.l} className="rounded-2xl bg-cream p-3.5 sm:p-5 text-center">
                   <s.icon className="mx-auto h-5 w-5 text-brand" />
-                  <p className="mt-2 font-display text-xl font-extrabold text-ink">{s.v}</p>
-                  <p className="text-xs text-muted">{s.l}</p>
+                  <p className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink">{s.v}</p>
+                  <p className="text-[11px] sm:text-xs text-muted">{s.l}</p>
                 </div>
               ))}
             </div>
@@ -222,11 +222,11 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   return (
     <div className="min-h-screen bg-cream">
       <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-4xl items-center justify-between gap-4 px-5">
+        <div className="mx-auto flex h-[72px] max-w-4xl items-center justify-between gap-4 px-4 sm:px-5">
           <Logo />
           <div className="flex items-center gap-4">
             <span className="hidden text-sm text-muted sm:inline">{answeredCount}/{quiz.questions.length} answered</span>
-            <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${low ? "animate-pulse bg-brand text-white" : "bg-cream text-ink"}`}>
+            <span className={`inline-flex items-center gap-2 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-sm font-bold ${low ? "animate-pulse bg-brand text-white" : "bg-cream text-ink"}`}>
               <Clock className="h-4 w-4" /> {mmss}
             </span>
           </div>
@@ -236,14 +236,14 @@ export default function QuizPage({ courseId }: { courseId: string }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-5 py-10">
+      <main className="mx-auto max-w-3xl px-4 sm:px-5 py-7 sm:py-10">
         {err && (
           <p className="mb-5 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">
             <AlertCircle className="h-4 w-4 text-brand" /> {err}
           </p>
         )}
 
-        <div className="rounded-3xl border border-line bg-white p-8 shadow-lg">
+        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-lg">
           <p className="text-xs font-bold uppercase tracking-wide text-brand">
             Question {idx + 1} of {quiz.questions.length}
           </p>

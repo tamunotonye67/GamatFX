@@ -94,21 +94,21 @@ export default function VideoPreview() {
           />
 
           {/* Play button */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="relative flex h-20 w-20 items-center justify-center rounded-full bg-brand text-white shadow-2xl transition-transform duration-300 group-hover:scale-110">
+          <div className="absolute inset-0 flex items-center justify-center pb-6 sm:pb-0">
+            <span className="relative flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-brand text-white shadow-2xl transition-transform duration-300 group-hover:scale-110">
               <span className="absolute inset-0 animate-ping rounded-full bg-brand/40" />
-              <Play className="relative ml-1 h-8 w-8 fill-white" />
+              <Play className="relative ml-0.5 sm:ml-1 h-6 w-6 sm:h-8 sm:w-8 fill-white" />
             </span>
           </div>
 
           {/* Caption bar */}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 bg-gradient-to-t from-ink to-transparent p-6">
-            <div>
-              <p className="font-display text-base font-bold">How GAMAT Fx Academy works</p>
-              <p className="mt-0.5 text-xs text-white/60">Full walkthrough · click to watch</p>
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-gradient-to-t from-ink via-ink/80 to-transparent p-3.5 sm:p-6">
+            <div className="min-w-0">
+              <p className="truncate font-display text-sm sm:text-base font-bold">How GAMAT Fx Academy works</p>
+              <p className="mt-0.5 text-[11px] sm:text-xs text-white/60">Full walkthrough · click to watch</p>
             </div>
-            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold backdrop-blur-sm">
-              <Clock className="h-3.5 w-3.5" /> 6 min
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs font-semibold backdrop-blur-sm">
+              <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> 6 min
             </span>
           </div>
         </div>

@@ -35,15 +35,17 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
   return (
     <div className={`overflow-hidden rounded-3xl border bg-white shadow-[0_18px_50px_-32px_rgba(22,24,28,0.35)] transition-all duration-300 hover:-translate-y-1.5 ${soldOut ? "border-line opacity-90" : "border-line"}`}>
       <div className="grid sm:grid-cols-[auto_1fr]">
-        <div className="flex flex-col items-center justify-center bg-ink px-8 py-7 text-white sm:px-10">
-          <span className="text-xs font-semibold uppercase tracking-widest text-brand-light">{e.month}</span>
-          <span className="font-display text-5xl font-extrabold leading-none">{e.day}</span>
-          <span className="text-sm text-white/60">{e.year}</span>
+        <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-3 bg-ink px-6 py-4 text-white sm:px-10 sm:py-7">
+          <div className="flex sm:flex-col items-baseline sm:items-center gap-2 sm:gap-0">
+            <span className="text-xs font-semibold uppercase tracking-widest text-brand-light">{e.month}</span>
+            <span className="font-display text-3xl sm:text-5xl font-extrabold leading-none">{e.day}</span>
+          </div>
+          <span className="text-xs sm:text-sm text-white/60">{e.year}</span>
         </div>
 
-        <div className="p-7">
+        <div className="p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wide ${typeStyles[e.type]}`}>
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 sm:px-4 sm:py-1.5 text-xs font-semibold uppercase tracking-wide ${typeStyles[e.type]}`}>
               {e.type === "Online" ? <Video className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}{e.type}
             </span>
             <span className="rounded-full bg-cream px-3 py-1 text-xs font-bold text-ink">
@@ -53,12 +55,12 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
             {mine && <span className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white"><CheckCircle2 className="h-3.5 w-3.5" /> Registered</span>}
           </div>
 
-          <h3 className="mt-3 font-display text-xl font-bold text-ink">{e.title}</h3>
+          <h3 className="mt-3 font-display text-lg sm:text-xl font-bold text-ink">{e.title}</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">{e.description}</p>
 
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted">
-            <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-brand" /> {e.location}</span>
-            <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand" /> {e.time}</span>
+            <span className="inline-flex items-start gap-1.5"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> <span>{e.location}</span></span>
+            <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 shrink-0 text-brand" /> {e.time}</span>
           </div>
 
           {/* Seats */}
@@ -85,7 +87,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
             </div>
           ) : (
             <button onClick={() => onRegister(e.id)} disabled={soldOut}
-              className="btn-primary mt-6 disabled:cursor-not-allowed disabled:opacity-50">
+              className="btn-primary mt-6 w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50">
               {soldOut ? <><Ban className="h-4 w-4" /> Fully Booked</> : <>Register Now <ArrowUpRight className="h-4 w-4" /></>}
             </button>
           )}
@@ -128,16 +130,16 @@ function RegistrationForm({ preset }: { preset: string }) {
 
   if (ticket) {
     return (
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-8 text-center backdrop-blur-sm">
         <CheckCircle2 className="mx-auto h-14 w-14 text-brand" />
         <h3 className="mt-5 font-display text-2xl font-bold">You're registered!</h3>
         <p className="mt-2 text-white/65">
           A confirmation has been sent to <strong className="text-white">{ticket.email}</strong>.
         </p>
 
-        <div className="mt-6 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-6">
+        <div className="mt-6 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-4 sm:p-6">
           <p className="text-xs uppercase tracking-widest text-white/50">Your ticket number</p>
-          <p className="mt-2 font-display text-3xl font-extrabold tracking-wider text-brand-light">{ticket.ticket}</p>
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-extrabold tracking-wider text-brand-light break-all">{ticket.ticket}</p>
           <button
             onClick={() => { void navigator.clipboard?.writeText(ticket.ticket); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
             className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 transition hover:text-white">
@@ -165,7 +167,7 @@ function RegistrationForm({ preset }: { preset: string }) {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm">
+    <form onSubmit={submit} className="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-8 backdrop-blur-sm">
       <div className="space-y-4">
         {error && (
           <div className="flex items-start gap-3 rounded-xl border border-brand/40 bg-brand/15 p-4">

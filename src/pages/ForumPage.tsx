@@ -257,8 +257,8 @@ export function ForumPage() {
               <h2 className="font-display text-2xl font-extrabold text-ink">Channels</h2>
               <p className="mt-1 text-sm text-muted">Pick a room and join the conversation.</p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
+            <div className="flex w-full sm:w-auto flex-wrap items-center gap-3">
+              <div className="relative flex-1 sm:flex-initial">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search discussions…"
                   className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-brand sm:w-64" />
@@ -324,7 +324,7 @@ export function ForumPage() {
           </div>
 
           {!isAuthed && (
-            <div className="mt-10 rounded-3xl bg-gradient-to-br from-brand to-brand-dark p-8 text-center text-white">
+            <div className="mt-10 rounded-3xl bg-gradient-to-br from-brand to-brand-dark p-6 sm:p-8 text-center text-white">
               <MessagesSquare className="mx-auto h-10 w-10" />
               <h3 className="mt-4 font-display text-2xl font-extrabold">Join the conversation</h3>
               <p className="mx-auto mt-2 max-w-md text-white/85">
@@ -355,7 +355,7 @@ function ThreadRow({ t }: { t: ForumThread }) {
   const replies = forum.repliesOf(t.id).length;
   return (
     <button onClick={() => navigate(`/forum/${t.channelId}/${t.id}`)}
-      className="flex w-full items-start gap-4 p-5 text-left transition hover:bg-cream/60">
+      className="flex w-full items-start gap-3.5 sm:gap-4 p-4 sm:p-5 text-left transition hover:bg-cream/60">
       <Avatar src={t.authorAvatar} name={t.authorName} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -363,7 +363,7 @@ function ThreadRow({ t }: { t: ForumThread }) {
           <span className="truncate font-display text-base font-bold text-ink">{t.title}</span>
         </div>
         <p className="mt-1 line-clamp-2 text-sm text-muted">{t.body}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted">
+        <div className="mt-2 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted">
           <span className="font-semibold text-ink">{t.authorName}</span>
           {t.authorRole === "admin" && <span className="rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold text-white">MENTOR</span>}
           <span>{timeAgo(t.createdAt)}</span>
@@ -399,19 +399,19 @@ export function ForumChannelPage({ channelId }: { channelId: string }) {
     <>
       <section className="relative isolate overflow-hidden bg-ink text-white">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_80%_10%,rgba(220,53,69,0.3),transparent_60%)]" />
-        <div className="container-x pb-14 pt-36 md:pt-44">
-          <nav className="mb-6 flex items-center gap-2 text-sm text-white/55">
+        <div className="container-x pb-12 sm:pb-14 pt-[calc(var(--header-h,104px)+1.5rem)] sm:pt-36 md:pt-44">
+          <nav className="mb-5 sm:mb-6 flex flex-wrap items-center gap-2 text-sm text-white/55">
             <button onClick={() => navigate("/")} className="hover:text-white">Home</button>
             <ChevronRight className="h-3.5 w-3.5" />
             <button onClick={() => navigate("/forum")} className="hover:text-white">Forum</button>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="text-brand-light">{channel.name}</span>
           </nav>
-          <div className="flex items-center gap-5">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand"><Icon className="h-7 w-7" /></span>
+          <div className="flex items-start sm:items-center gap-4 sm:gap-5">
+            <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-brand"><Icon className="h-6 w-6 sm:h-7 sm:w-7" /></span>
             <div>
-              <h1 className="font-display text-3xl font-extrabold md:text-4xl">{channel.name}</h1>
-              <p className="mt-1.5 text-white/70">{channel.description}</p>
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold md:text-4xl">{channel.name}</h1>
+              <p className="mt-1.5 text-sm sm:text-base text-white/70">{channel.description}</p>
             </div>
           </div>
         </div>
@@ -421,7 +421,7 @@ export function ForumChannelPage({ channelId }: { channelId: string }) {
         <div className="container-x">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted">{threads.length} discussion{threads.length === 1 ? "" : "s"}</p>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2.5 sm:gap-3">
               <button onClick={() => navigate("/forum")} className="btn-outline-dark !py-2.5"><ArrowLeft className="h-4 w-4" /> All channels</button>
               <button onClick={() => (isAuthed ? setComposing(true) : navigate(`/login?next=/forum/${channel.id}`))} className="btn-primary !py-2.5">
                 <Plus className="h-4 w-4" /> New Post
@@ -434,7 +434,7 @@ export function ForumChannelPage({ channelId }: { channelId: string }) {
               {threads.map((t) => <ThreadRow key={t.id} t={t} />)}
             </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-dashed border-line bg-white p-14 text-center">
+            <div className="mt-6 rounded-2xl border border-dashed border-line bg-white p-10 sm:p-14 text-center">
               <MessagesSquare className="mx-auto h-12 w-12 text-brand/35" />
               <h3 className="mt-5 font-display text-lg font-bold text-ink">No discussions yet</h3>
               <p className="mt-1.5 text-sm text-muted">Be the first to start a conversation here.</p>
@@ -498,7 +498,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
     <>
       <section className="relative isolate overflow-hidden bg-ink text-white">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_60%_at_80%_10%,rgba(220,53,69,0.28),transparent_60%)]" />
-        <div className="container-x pb-12 pt-36 md:pt-44">
+        <div className="container-x pb-10 sm:pb-12 pt-[calc(var(--header-h,104px)+1.5rem)] sm:pt-36 md:pt-44">
           <nav className="mb-5 flex flex-wrap items-center gap-2 text-sm text-white/55">
             <button onClick={() => navigate("/forum")} className="hover:text-white">Forum</button>
             <ChevronRight className="h-3.5 w-3.5" />
@@ -509,7 +509,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
               <Pin className="h-3.5 w-3.5" /> Pinned
             </span>
           )}
-          <h1 className="max-w-4xl font-display text-3xl font-extrabold leading-tight md:text-4xl">{thread.title}</h1>
+          <h1 className="max-w-4xl font-display text-2xl sm:text-3xl font-extrabold leading-tight md:text-4xl">{thread.title}</h1>
           <div className="mt-5 flex flex-wrap items-center gap-4 text-sm">
             <Avatar src={thread.authorAvatar} name={thread.authorName} size={40} />
             <div>
@@ -526,7 +526,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
       <section className="section bg-cream">
         <div className="container-x mx-auto max-w-3xl">
           {/* Original post */}
-          <article className="rounded-3xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+          <article className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
             {thread.body && (
               <p className="whitespace-pre-wrap text-[15px] leading-[1.85] text-ink/80">{renderTaggedText(thread.body)}</p>
             )}
@@ -535,7 +535,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
                 <img src={thread.image} alt="Attachment" className="max-h-[420px] w-full object-contain bg-cream" />
               </a>
             )}
-            <div className="mt-7 flex flex-wrap items-center gap-3 border-t border-line pt-5">
+            <div className="mt-7 flex flex-wrap items-center gap-2.5 sm:gap-3 border-t border-line pt-5">
               <button onClick={() => (isAuthed ? forum.toggleThreadLike(thread.id) : navigate("/login?next=/forum"))}
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${liked ? "bg-brand text-white" : "border border-line text-muted hover:border-brand hover:text-brand"}`}>
                 <Heart className={`h-4 w-4 ${liked ? "fill-white" : ""}`} /> {thread.likes.length}
@@ -550,7 +550,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
               )}
               {canModerate && (
                 <button onClick={() => { if (confirm("Delete this discussion and all replies?")) { forum.deleteThread(thread.id); navigate(`/forum/${thread.channelId}`); } }}
-                  className="ml-auto inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm text-muted transition hover:border-brand hover:text-brand">
+                  className="sm:ml-auto inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm text-muted transition hover:border-brand hover:text-brand">
                   <Trash2 className="h-4 w-4" /> Delete
                 </button>
               )}
@@ -567,9 +567,9 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
               const rLiked = user ? r.likes.includes(user.id) : false;
               const canDel = isAdmin || user?.id === r.authorId;
               return (
-                <div key={r.id} className="rounded-2xl border border-line bg-white p-6">
-                  <div className="flex items-start gap-4">
-                    <Avatar src={r.authorAvatar} name={r.authorName} size={40} />
+                <div key={r.id} className="rounded-2xl border border-line bg-white p-4 sm:p-6">
+                  <div className="flex items-start gap-3.5 sm:gap-4">
+                    <Avatar src={r.authorAvatar} name={r.authorName} size={36} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-display text-sm font-bold text-ink">{r.authorName}</span>
@@ -605,9 +605,11 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
 
           {/* Reply box */}
           {isAuthed ? (
-            <form onSubmit={post} className="mt-8 rounded-2xl border border-line bg-white p-6">
-              <div className="flex gap-4">
-                <Avatar src={user?.avatar} name={user?.nickname || `${user?.firstName} ${user?.lastName}`} size={40} />
+            <form onSubmit={post} className="mt-8 rounded-2xl border border-line bg-white p-4 sm:p-6">
+              <div className="flex gap-3 sm:gap-4">
+                <div className="hidden xs:block">
+                  <Avatar src={user?.avatar} name={user?.nickname || `${user?.firstName} ${user?.lastName}`} size={40} />
+                </div>
                 <div className="min-w-0 flex-1">
                   <MentionTextarea
                     rows={4}
@@ -627,7 +629,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
                   )}
                   {err && <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-brand"><AlertCircle className="h-3.5 w-3.5" /> {err}</p>}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <p className="text-xs text-muted">Posting as <strong className="text-ink">{user?.nickname || user?.firstName}</strong></p>
                       <button type="button" onClick={() => setBody((prev) => `${prev}${prev.endsWith(" ") || !prev ? "" : " "}@`)}
                         className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand">
@@ -640,13 +642,13 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
                       <input ref={replyFileRef} type="file" accept="image/*" className="hidden"
                         onChange={(e) => void attachReplyImage(e.target.files?.[0])} />
                     </div>
-                    <button type="submit" className="btn-primary !py-2.5"><Send className="h-4 w-4" /> Post Reply</button>
+                    <button type="submit" className="btn-primary !py-2.5 w-full sm:w-auto"><Send className="h-4 w-4" /> Post Reply</button>
                   </div>
                 </div>
               </div>
             </form>
           ) : (
-            <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-8 text-center">
+            <div className="mt-8 rounded-2xl border border-dashed border-line bg-white p-6 sm:p-8 text-center">
               <p className="text-muted">Log in to join this discussion.</p>
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <button onClick={() => navigate("/login?next=/forum")} className="btn-outline-dark">Log in</button>
@@ -692,12 +694,12 @@ function Composer({ defaultChannel, onClose }: { defaultChannel?: string; onClos
 
   return (
     <div className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center">
-      <form onSubmit={submit} className="w-full max-w-2xl rounded-3xl border border-line bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+      <form onSubmit={submit} className="my-auto w-full max-w-2xl rounded-3xl border border-line bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-line px-5 sm:px-6 py-4">
           <h3 className="font-display text-lg font-bold text-ink">Start a discussion</h3>
           <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-muted transition hover:bg-cream hover:text-brand"><X className="h-5 w-5" /></button>
         </div>
-        <div className="space-y-4 p-6">
+        <div className="space-y-4 p-5 sm:p-6">
           {err && (
             <div className="flex items-start gap-3 rounded-xl border border-brand/30 bg-brand-light p-4">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand" />

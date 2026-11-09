@@ -45,23 +45,23 @@ export default function Footer() {
   return (
     <footer className="bg-ink text-white">
       {/* Final CTA */}
-      <div className="container-x py-20">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-brand-dark px-8 py-14 text-center shadow-xl md:px-16">
+      <div className="container-x py-14 sm:py-20">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-brand to-brand-dark px-5 py-10 sm:px-8 sm:py-14 text-center shadow-xl md:px-16">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
           <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/10" />
           <div className="relative">
-            <h2 className="mx-auto max-w-2xl font-display text-3xl font-extrabold leading-tight md:text-4xl">
+            <h2 className="mx-auto max-w-2xl font-display text-2xl sm:text-3xl font-extrabold leading-tight md:text-4xl">
               Ready to become a consistently profitable trader?
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-white/85">
+            <p className="mx-auto mt-3 sm:mt-4 max-w-xl text-sm sm:text-base text-white/85">
               Join thousands of traders learning, growing, and winning with GAMAT Fx
               Academy. Your journey starts today.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-7 sm:mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => navigate("/courses")}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-brand transition hover:-translate-y-0.5 hover:shadow-md"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-brand transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 Get Started <ArrowUpRight className="h-4 w-4" />
               </button>
@@ -69,7 +69,7 @@ export default function Footer() {
                 href={CONTACT.telegram}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-7 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
               >
                 <Send className="h-4 w-4" /> Join Telegram
               </a>
@@ -80,25 +80,25 @@ export default function Footer() {
 
       {/* Footer body */}
       <div className="border-t border-white/10">
-        <div className="container-x grid gap-12 py-14 md:grid-cols-2 lg:grid-cols-5">
-          <div className="lg:col-span-2">
+        <div className="container-x grid grid-cols-2 gap-8 sm:gap-10 py-12 sm:py-14 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="col-span-2 sm:col-span-3 lg:col-span-2">
             <Logo variant="light" />
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/60">
+            <p className="mt-4 sm:mt-5 max-w-sm text-sm leading-relaxed text-white/60">
               A hub for financial education and digital empowerment — building elite
               traders through high-quality forex education and results-driven
               mentorship.
             </p>
-            <div className="mt-6 space-y-3 text-sm text-white/70">
-              <p className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 shrink-0 text-brand-light" />
+            <div className="mt-5 sm:mt-6 space-y-2.5 sm:space-y-3 text-sm text-white/70">
+              <p className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-light" />
                 <span>{CONTACT.city}</span>
               </p>
               <p className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-brand-light" />
-                <a href={`mailto:${CONTACT.email}`} className="transition hover:text-white">{CONTACT.email}</a>
+                <Mail className="h-4 w-4 shrink-0 text-brand-light" />
+                <a href={`mailto:${CONTACT.email}`} className="truncate transition hover:text-white">{CONTACT.email}</a>
               </p>
               <p className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-brand-light" />
+                <Phone className="h-4 w-4 shrink-0 text-brand-light" />
                 <a href={CONTACT.phoneHref} className="transition hover:text-white">{CONTACT.phone}</a>
               </p>
             </div>
@@ -106,10 +106,10 @@ export default function Footer() {
 
           {footerLinks.map((col) => (
             <div key={col.title}>
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-white/90">
+              <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-white/90">
                 {col.title}
               </h4>
-              <ul className="mt-4 space-y-3">
+              <ul className="mt-3 sm:mt-4 space-y-2.5 sm:space-y-3">
                 {col.items.map((item) => (
                   <li key={`${col.title}-${item.label}`}>
                     <button

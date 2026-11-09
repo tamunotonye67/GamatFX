@@ -237,10 +237,10 @@ export default function ClubBuilderPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-6 rounded-3xl border border-line bg-white p-8 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-4 sm:gap-6 rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-sm">
               <div>
                 <span className="chip">No active club</span>
-                <h3 className="mt-2 font-display text-xl font-bold text-ink">You haven't joined a Trading Club yet</h3>
+                <h3 className="mt-2 font-display text-lg sm:text-xl font-bold text-ink">You haven't joined a Trading Club yet</h3>
                 <p className="mt-1 text-xs text-muted max-w-xl">
                   Join an existing club below or start your own 10-person trading syndicate to collaborate with peers.
                 </p>
@@ -251,7 +251,7 @@ export default function ClubBuilderPage() {
                   if (!isAuthed) navigate("/signup?next=/fun/clubs");
                   else setShowCreateModal(true);
                 }}
-                className="btn-primary"
+                className="btn-primary w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4" /> Create a Club
               </button>
@@ -270,15 +270,15 @@ export default function ClubBuilderPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
+            <div className="flex w-full sm:w-auto flex-wrap items-center gap-3">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input
                   type="text"
                   placeholder="Search clubs or leads…"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  className="w-56 rounded-full border border-line bg-white pl-9 pr-4 py-2 text-xs text-ink placeholder-muted outline-none focus:border-brand"
+                  className="w-full sm:w-56 rounded-full border border-line bg-white pl-9 pr-4 py-2 text-xs text-ink placeholder-muted outline-none focus:border-brand"
                 />
               </div>
 
@@ -301,7 +301,7 @@ export default function ClubBuilderPage() {
           </div>
 
           {/* Grid of Clubs */}
-          <div className="mt-8 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-6 sm:gap-7 md:grid-cols-2 xl:grid-cols-3">
             {filteredClubs.map((club, idx) => {
               const isMember = userClub?.id === club.id;
               const isFull = club.members.length >= 10;
@@ -315,7 +315,7 @@ export default function ClubBuilderPage() {
                   }`}
                   style={{ transitionDelay: `${(idx % 3) * 100}ms` }}
                 >
-                  <div className="p-6">
+                  <div className="p-5 sm:p-6">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div
@@ -334,7 +334,7 @@ export default function ClubBuilderPage() {
                         </div>
                       </div>
 
-                      <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold uppercase ${lvl.tone}`}>
+                      <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold uppercase shrink-0 ${lvl.tone}`}>
                         Lvl {lvl.level}
                       </span>
                     </div>
@@ -379,7 +379,7 @@ export default function ClubBuilderPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-line bg-cream/50 px-6 py-4">
+                  <div className="flex items-center justify-between border-t border-line bg-cream/50 px-5 sm:px-6 py-4">
                     <button
                       onClick={() => setActiveModalClub(club)}
                       className="text-xs font-bold text-muted hover:text-ink"
@@ -414,11 +414,11 @@ export default function ClubBuilderPage() {
 
       {/* CREATE CLUB MODAL */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-white p-7 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/70 p-4 backdrop-blur-sm">
+          <div className="relative my-auto w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-white p-5 sm:p-7 shadow-2xl">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <h3 className="font-display text-xl font-bold text-ink">Create a Trading Club</h3>
+                <h3 className="font-display text-lg sm:text-xl font-bold text-ink">Create a Trading Club</h3>
                 <p className="text-xs text-muted">You will automatically become the Team Lead.</p>
               </div>
               <button
@@ -487,7 +487,7 @@ export default function ClubBuilderPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 border-t border-line pt-4">
+              <div className="flex flex-wrap justify-end gap-2.5 sm:gap-3 border-t border-line pt-4">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}

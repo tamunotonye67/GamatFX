@@ -167,28 +167,28 @@ export default function LiveChartPage() {
       <section className="section bg-cream">
         <div className="container-x">
           {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-white p-4 shadow-sm">
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 rounded-2xl border border-line bg-white p-3.5 sm:p-4 shadow-sm">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {PAIRS.map((p, i) => (
                 <button key={p.s} onClick={() => setPairIdx(i)}
-                  className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                  className={`rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold transition ${
                     i === pairIdx ? "bg-brand text-white" : "border border-line text-ink/70 hover:border-brand hover:text-brand"
                   }`}>{p.s}</button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
               {[1, 2, 4].map((s) => (
                 <button key={s} onClick={() => setSpeed(s)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                  className={`rounded-lg px-2.5 sm:px-3 py-1.5 text-xs font-bold transition ${
                     speed === s ? "bg-ink text-white" : "border border-line text-muted hover:border-brand hover:text-brand"
                   }`}>{s}×</button>
               ))}
               <button onClick={() => setRunning((r) => !r)} title={running ? "Pause simulator" : "Play simulator"}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition hover:border-brand hover:text-brand">
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-line text-muted transition hover:border-brand hover:text-brand">
                 {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               </button>
               <button onClick={() => reset()} title="Reset chart"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition hover:border-brand hover:text-brand">
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-line text-muted transition hover:border-brand hover:text-brand">
                 <RotateCcw className="h-4 w-4" />
               </button>
             </div>
@@ -204,10 +204,10 @@ export default function LiveChartPage() {
                   : "rounded-3xl border border-white/10"
               }`}
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="font-display text-lg font-extrabold text-white">{pair.s}</span>
-                  <span className={`font-display text-2xl font-extrabold tabular-nums transition-colors duration-150 ${
+              <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 border-b border-white/10 px-4 sm:px-5 py-3.5 sm:py-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="font-display text-base sm:text-lg font-extrabold text-white">{pair.s}</span>
+                  <span className={`font-display text-xl sm:text-2xl font-extrabold tabular-nums transition-colors duration-150 ${
                     flash === "up" ? "text-emerald-400" : flash === "down" ? "text-brand" : "text-white"
                   }`}>
                     {price.toFixed(pair.dp)}
@@ -217,8 +217,8 @@ export default function LiveChartPage() {
                     <ArrowDownRight className={`absolute h-4 w-4 text-brand transition-all duration-150 ${flash === "down" ? "opacity-100 scale-110" : "opacity-0 scale-95"}`} />
                   </span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold ${
                     running ? "bg-emerald-500/15 text-emerald-400" : "bg-white/10 text-white/50"
                   }`}>
                     <span className={`h-2 w-2 rounded-full ${running ? "animate-pulse bg-emerald-400" : "bg-white/40"}`} />
@@ -227,24 +227,24 @@ export default function LiveChartPage() {
                   <button
                     onClick={toggleFullscreen}
                     title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-bold text-white transition hover:border-white/50 hover:bg-white/20 active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 sm:px-3.5 py-1 text-[11px] sm:text-xs font-bold text-white transition hover:border-white/50 hover:bg-white/20 active:scale-95"
                   >
                     {isFullscreen ? (
                       <>
                         <Minimize2 className="h-3.5 w-3.5" />
-                        <span>Exit Fullscreen</span>
+                        <span className="hidden xs:inline">Exit Fullscreen</span>
                       </>
                     ) : (
                       <>
                         <Maximize2 className="h-3.5 w-3.5" />
-                        <span>Fullscreen</span>
+                        <span className="hidden xs:inline">Fullscreen</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
 
-              <svg viewBox={`0 0 ${W} ${H}`} className="w-full bg-[#0d0f12]" preserveAspectRatio="none" style={{ height: isFullscreen ? "calc(100vh - 180px)" : 340 }}>
+              <svg viewBox={`0 0 ${W} ${H}`} className={`w-full bg-[#0d0f12] ${isFullscreen ? "" : "h-[240px] sm:h-[340px]"}`} preserveAspectRatio="xMidYMid slice" style={isFullscreen ? { height: "calc(100vh - 180px)" } : undefined}>
                 {/* Grid */}
                 {Array.from({ length: 5 }).map((_, i) => (
                   <line key={i} x1="0" x2={W} y1={(H / 4) * i} y2={(H / 4) * i} stroke="rgba(255,255,255,.05)" strokeWidth="1" />

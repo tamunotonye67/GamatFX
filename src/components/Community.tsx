@@ -45,10 +45,10 @@ export default function Community() {
           - left photo fills the full height of the right 2x2 card grid
           - tops and bottoms of both columns align exactly
         */}
-        <div className="mt-14 grid gap-6 lg:grid-cols-2 lg:items-stretch">
+        <div className="mt-10 sm:mt-14 grid gap-6 lg:grid-cols-2 lg:items-stretch">
           {/* Image + CTA — stretches to match the cards column */}
           <div
-            className={`reveal ${visible ? "is-visible" : ""} relative flex min-h-[480px] overflow-hidden rounded-3xl shadow-xl lg:min-h-full`}
+            className={`reveal ${visible ? "is-visible" : ""} relative flex min-h-[360px] sm:min-h-[480px] overflow-hidden rounded-3xl shadow-xl lg:min-h-full`}
           >
             <img
               src="/images/community.jpg"
@@ -57,11 +57,11 @@ export default function Community() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
             {/* Spacer keeps the column height while the content stays pinned to the bottom */}
-            <div className="relative mt-auto w-full p-7 text-white sm:p-8">
+            <div className="relative mt-auto w-full p-5 text-white sm:p-8">
               <div className="flex items-center gap-2 text-sm font-semibold text-brand-light">
                 <Send className="h-4 w-4" /> Official Channel
               </div>
-              <h3 className="mt-2 max-w-sm font-display text-xl font-bold leading-snug sm:text-2xl">
+              <h3 className="mt-2 max-w-sm font-display text-lg font-bold leading-snug sm:text-2xl">
                 Join our official Telegram community and enjoy exclusive forex trading
                 updates
               </h3>
@@ -86,7 +86,7 @@ export default function Community() {
             {markets.map((m, i) => (
               <div
                 key={m.title}
-                className={`card reveal ${visible ? "is-visible" : ""} flex h-full min-h-[180px] flex-col !p-6`}
+                className={`card reveal ${visible ? "is-visible" : ""} flex h-full min-h-[150px] sm:min-h-[180px] flex-col !p-5 sm:!p-6`}
                 style={{ transitionDelay: `${i * 90}ms` }}
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-light text-brand">

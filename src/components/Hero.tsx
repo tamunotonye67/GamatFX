@@ -27,20 +27,20 @@ export default function Hero() {
         <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_10%,rgba(220,53,69,0.35),transparent_60%)]" />
       </div>
 
-      <div className="container-x flex min-h-screen flex-col justify-center pb-16 pt-32 text-white">
+      <div className="container-x flex min-h-[calc(100svh-1rem)] flex-col justify-center pb-14 pt-[calc(var(--header-h,104px)+1.5rem)] sm:min-h-screen sm:pb-16 sm:pt-36 text-white">
         {/* Animated Synced Latest Event Announcement */}
         <div
           data-aos-delay="100"
-          className="mb-8 inline-flex w-fit items-center gap-3 rounded-full border border-white/15 bg-white/5 py-2 pl-2 pr-4 backdrop-blur-sm"
+          className="mb-6 sm:mb-8 inline-flex max-w-full w-fit items-center gap-2 sm:gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-1.5 pr-3 sm:py-2 sm:pl-2 sm:pr-4 backdrop-blur-sm"
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-3 py-1 text-xs font-semibold text-white shadow-md animate-pulse shrink-0">
-            <Zap className="h-3.5 w-3.5" /> New
+          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-white shadow-md animate-pulse shrink-0">
+            <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> New
           </span>
 
           {/* Gliding Event Line moving out of the slim white terminal cursor and disappearing before Register button */}
-          <div className="relative flex items-center overflow-hidden max-w-[280px] sm:max-w-[360px] md:max-w-[440px] [mask-image:linear-gradient(to_right,rgba(0,0,0,1)_82%,rgba(0,0,0,0)_100%)]">
+          <div className="relative flex min-w-0 flex-1 items-center overflow-hidden max-w-[185px] xs:max-w-[230px] sm:max-w-[360px] md:max-w-[440px] [mask-image:linear-gradient(to_right,rgba(0,0,0,1)_82%,rgba(0,0,0,0)_100%)]">
             <span className="inline-block h-3.5 w-[2px] bg-white animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.9)] mr-2 shrink-0 z-10" />
-            <div className="whitespace-nowrap animate-cursor-ticker text-sm text-white/85">
+            <div className="whitespace-nowrap animate-cursor-ticker text-xs sm:text-sm text-white/85">
               <span className="font-semibold text-white">{latestEvent.month} {latestEvent.day}</span> · {latestEvent.title} — seats filling fast.
             </div>
           </div>
@@ -59,17 +59,17 @@ export default function Hero() {
           <span className="eyebrow text-brand-light">
             Financial education &amp; digital empowerment
           </span>
-          <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="mt-3 sm:mt-4 font-display text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
             Build elite traders through{" "}
             <span className="text-brand">high-quality forex education</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-white/75">
+          <p className="mt-4 sm:mt-6 max-w-xl text-base sm:text-lg text-white/75">
             We build elite traders through high-quality forex education, actionable
             market insights, and a results-driven mentorship system designed for real,
             consistent profitability.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center gap-4">
+          <div className="mt-7 sm:mt-9 flex flex-wrap items-center gap-3 sm:gap-4">
             <button type="button" onClick={() => navigate("/courses")} className="btn-primary">
               Explore Courses <ArrowUpRight className="h-4 w-4" />
             </button>
@@ -85,13 +85,13 @@ export default function Hero() {
         </div>
 
           {/* Live market-session clock */}
-          <div className="mt-10 flex justify-center lg:mt-0 lg:justify-end lg:translate-x-4 xl:translate-x-8">
+          <div className="mt-6 flex justify-center sm:mt-10 lg:mt-0 lg:justify-end lg:translate-x-4 xl:translate-x-8">
             <MarketClock />
           </div>
         </div>
 
         {/* Stats strip */}
-        <div className="mt-16 grid max-w-3xl grid-cols-2 gap-6 border-t border-white/10 pt-8 sm:grid-cols-4">
+        <div className="mt-12 sm:mt-16 grid max-w-3xl grid-cols-2 gap-4 sm:gap-6 border-t border-white/10 pt-6 sm:pt-8 sm:grid-cols-4">
           {[
             { value: 4000, suffix: "+", label: "Students Trained" },
             { value: 40000, suffix: "+", label: "Telegram Members" },
@@ -99,7 +99,7 @@ export default function Hero() {
             { value: 4.9, suffix: "/5", label: "Avg. Rating", decimal: true },
           ].map((s) => (
             <div key={s.label}>
-              <div className="font-display text-3xl font-extrabold text-white sm:text-4xl">
+              <div className="font-display text-2xl font-extrabold text-white sm:text-3xl md:text-4xl">
                 {s.decimal ? (
                   <span>
                     {s.value}
@@ -109,7 +109,7 @@ export default function Hero() {
                   <Counter end={s.value} suffix={s.suffix} />
                 )}
               </div>
-              <p className="mt-1 text-sm text-white/60">{s.label}</p>
+              <p className="mt-1 text-xs sm:text-sm text-white/60">{s.label}</p>
             </div>
           ))}
         </div>

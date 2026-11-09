@@ -158,24 +158,24 @@ export default function QuizArcadePage() {
   /* ------------------------------ Results ------------------------------ */
   if (over) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-cream px-6 py-24">
-        <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-10 text-center shadow-xl">
-          <Trophy className="mx-auto h-16 w-16 text-brand" />
-          <h1 className="mt-5 font-display text-3xl font-extrabold text-ink">
+      <div className="flex min-h-screen items-center justify-center bg-cream px-4 sm:px-6 pb-16 pt-[calc(var(--header-h,104px)+1.5rem)] sm:py-24">
+        <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-6 sm:p-10 text-center shadow-xl">
+          <Trophy className="mx-auto h-14 w-14 sm:h-16 sm:w-16 text-brand" />
+          <h1 className="mt-5 font-display text-2xl sm:text-3xl font-extrabold text-ink">
             {score >= best && score > 0 ? "New high score!" : "Game over"}
           </h1>
           <p className="mt-2 text-muted">Nice work — here's how you did.</p>
 
-          <div className="mt-7 grid grid-cols-2 gap-4">
+          <div className="mt-7 grid grid-cols-2 gap-3.5 sm:gap-4">
             {[
               { l: "Score", v: score, i: Zap },
               { l: "Answered", v: idx, i: Target },
               { l: "Best streak", v: bestStreak, i: Flame },
               { l: "Accuracy", v: `${accuracy}%`, i: Zap },
             ].map((s) => (
-              <div key={s.l} className="rounded-2xl bg-cream p-5">
+              <div key={s.l} className="rounded-2xl bg-cream p-4 sm:p-5">
                 <s.i className="mx-auto h-5 w-5 text-brand" />
-                <p className="mt-2 font-display text-2xl font-extrabold text-ink">{s.v}</p>
+                <p className="mt-2 font-display text-xl sm:text-2xl font-extrabold text-ink">{s.v}</p>
                 <p className="text-xs text-muted">{s.l}</p>
               </div>
             ))}
@@ -195,18 +195,18 @@ export default function QuizArcadePage() {
 
   /* ------------------------------ Playing ------------------------------ */
   return (
-    <div className="min-h-screen bg-cream pb-20 pt-28">
+    <div className="min-h-screen bg-cream pb-20 pt-[calc(var(--header-h,104px)+1rem)] sm:pt-32">
       <div className="container-x mx-auto max-w-3xl">
         {/* HUD */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-line bg-white p-3.5 sm:p-4 shadow-sm">
           <span className="inline-flex items-center gap-2 text-sm font-bold text-ink">
             <Zap className="h-4 w-4 text-brand" /> {score}
           </span>
-          <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold transition ${streak >= 3 ? "bg-brand text-white" : "text-muted"}`}>
+          <span className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-3 py-1 text-xs sm:text-sm font-bold transition ${streak >= 3 ? "bg-brand text-white" : "text-muted"}`}>
             <Flame className={`h-4 w-4 ${streak >= 3 ? "animate-pulse" : ""}`} /> {streak} streak
           </span>
           {mode === "timed" && (
-            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold ${left <= 10 ? "animate-pulse bg-brand text-white" : "bg-cream text-ink"}`}>
+            <span className={`inline-flex items-center gap-1.5 sm:gap-2 rounded-full px-3 py-1 text-xs sm:text-sm font-bold ${left <= 10 ? "animate-pulse bg-brand text-white" : "bg-cream text-ink"}`}>
               <Timer className="h-4 w-4" /> {left}s
             </span>
           )}
@@ -221,23 +221,23 @@ export default function QuizArcadePage() {
         </div>
 
         {/* Question */}
-        <div key={idx} className="mt-6 animate-[riseIn_.45s_cubic-bezier(.22,1,.36,1)] rounded-3xl border border-line bg-white p-8 shadow-lg">
+        <div key={idx} className="mt-5 sm:mt-6 animate-[riseIn_.45s_cubic-bezier(.22,1,.36,1)] rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-lg">
           <div className="flex flex-wrap items-center gap-2">
             <span className="chip">{q.topic}</span>
             <span className="rounded-full bg-cream px-3 py-1 text-[11px] font-bold uppercase text-muted">{q.difficulty}</span>
             <span className="ml-auto text-xs text-muted">Question {idx + 1}</span>
           </div>
 
-          <h2 className="mt-4 font-display text-xl font-bold leading-snug text-ink md:text-2xl">{q.q}</h2>
+          <h2 className="mt-4 font-display text-lg sm:text-xl font-bold leading-snug text-ink md:text-2xl">{q.q}</h2>
 
-          <div className="mt-7 space-y-3">
+          <div className="mt-6 sm:mt-7 space-y-3">
             {q.options.map((opt, i) => {
               const isRight = i === q.answer;
               const chosen = picked === i;
               const reveal = picked !== null;
               return (
                 <button key={i} onClick={() => choose(i)} disabled={reveal}
-                  className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
+                  className={`flex w-full items-center gap-3.5 sm:gap-4 rounded-2xl border p-3.5 sm:p-4 text-left transition ${
                     reveal && isRight ? "border-emerald-400 bg-emerald-50"
                       : reveal && chosen ? "border-brand bg-brand-light"
                       : reveal ? "border-line opacity-60"

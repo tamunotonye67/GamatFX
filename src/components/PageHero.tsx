@@ -25,9 +25,9 @@ export default function PageHero({
         <div className="absolute inset-0 bg-[radial-gradient(55%_55%_at_85%_15%,rgba(220,53,69,0.35),transparent_60%)]" />
       </div>
 
-      <div className="container-x pb-20 pt-36 text-white md:pb-28 md:pt-44">
+      <div className="container-x pb-14 pt-[calc(var(--header-h,104px)+1.5rem)] text-white sm:pb-20 sm:pt-36 md:pb-28 md:pt-44">
         {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-2 text-sm text-white/55">
+        <nav className="mb-4 sm:mb-6 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/55">
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -35,15 +35,15 @@ export default function PageHero({
           >
             Home
           </button>
-          <ChevronRight className="h-3.5 w-3.5" />
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
           <span className="font-medium text-brand-light">{crumb}</span>
         </nav>
 
         <span className="eyebrow text-brand-light">{eyebrow}</span>
-        <h1 className="mt-4 max-w-3xl font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
+        <h1 className="mt-3 sm:mt-4 max-w-3xl font-display text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
           {title}
         </h1>
-        <p className="mt-6 max-w-2xl text-lg text-white/75">{subtitle}</p>
+        <p className="mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-white/75">{subtitle}</p>
       </div>
     </section>
   );

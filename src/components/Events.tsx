@@ -29,34 +29,36 @@ export default function Events() {
         >
           <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_22px_60px_-30px_rgba(22,24,28,0.4)]">
             <div className="grid sm:grid-cols-[auto_1fr]">
-              <div className="flex flex-col items-center justify-center bg-ink px-8 py-7 text-white sm:px-10">
-                <span className="text-sm font-semibold uppercase tracking-widest text-brand-light">
-                  {event.month}
-                </span>
-                <span className="font-display text-5xl font-extrabold leading-none">
-                  {event.day}
-                </span>
-                <span className="text-sm text-white/60">{event.year}</span>
+              <div className="flex sm:flex-col items-center justify-between sm:justify-center gap-3 bg-ink px-6 py-4 text-white sm:px-10 sm:py-7">
+                <div className="flex sm:flex-col items-baseline sm:items-center gap-2 sm:gap-0">
+                  <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-brand-light">
+                    {event.month}
+                  </span>
+                  <span className="font-display text-3xl sm:text-5xl font-extrabold leading-none">
+                    {event.day}
+                  </span>
+                </div>
+                <span className="text-xs sm:text-sm text-white/60">{event.year}</span>
               </div>
 
-              <div className="p-7">
+              <div className="p-5 sm:p-7">
                 <span className="chip">{event.type}</span>
-                <h3 className="mt-3 font-display text-xl font-bold text-ink">
+                <h3 className="mt-3 font-display text-lg sm:text-xl font-bold text-ink">
                   {event.title}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{event.body}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-brand" /> {event.location}
+                  <span className="inline-flex items-start gap-1.5">
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> <span>{event.location}</span>
                   </span>
                   <span className="inline-flex items-center gap-1.5">
-                    <CalendarDays className="h-3.5 w-3.5 text-brand" /> Seats filling fast
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0 text-brand" /> Seats filling fast
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => navigate("/events")}
-                  className="btn-primary mt-6"
+                  className="btn-primary mt-6 w-full sm:w-auto"
                 >
                   Register Now <ArrowUpRight className="h-4 w-4" />
                 </button>

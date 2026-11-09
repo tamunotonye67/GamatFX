@@ -6004,7 +6004,7 @@ export default function WhiteboardPage() {
   /* -------------------------------------------------------------------------- */
   if (viewMode === "hub") {
     return (
-      <div className="fixed inset-0 h-screen w-screen bg-slate-50 text-ink font-sans flex overflow-hidden select-none">
+      <div className="fixed inset-0 h-[100dvh] w-screen bg-slate-50 text-ink font-sans flex flex-col md:flex-row overflow-y-auto md:overflow-hidden select-none">
         {/* Hidden file input for image insertion */}
       <input
         ref={imageInputRef}
@@ -6022,8 +6022,8 @@ export default function WhiteboardPage() {
         )}
 
         {/* ======================= LEFT NAVIGATION PANEL ======================= */}
-        <aside className="w-72 border-r border-line bg-white p-5 flex flex-col justify-between shrink-0 z-20 shadow-xs">
-          <div className="space-y-4">
+        <aside className="w-full md:w-72 border-b md:border-b-0 md:border-r border-line bg-white p-4 md:p-5 flex flex-col justify-between shrink-0 z-20 shadow-xs">
+          <div className="space-y-3 md:space-y-4">
             {/* GAMAT Brand Logo & Hub Header */}
             <div className="flex items-center justify-between">
               <Logo variant="dark" asDiv />
@@ -6057,28 +6057,29 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => handleCreateNewCanvasFromHub()}
-              className="w-full flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark text-white px-4 py-3 text-xs font-black shadow-lg shadow-brand/25 hover:shadow-xl hover:shadow-brand/35 transition transform active:scale-[0.98] group cursor-pointer"
+              className="w-full flex items-center justify-between gap-2 rounded-2xl bg-gradient-to-r from-brand to-brand-dark text-white px-4 py-2.5 md:py-3 text-xs font-black shadow-lg shadow-brand/25 hover:shadow-xl hover:shadow-brand/35 transition transform active:scale-[0.98] group cursor-pointer"
             >
               <span className="flex items-center gap-2">
                 <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
                 Create New Canvas
               </span>
-              <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded text-white/90">Ctrl+N</span>
+              <span className="hidden sm:inline text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded text-white/90">Ctrl+N</span>
             </button>
 
             {/* Navigation Menu List */}
-            <div className="space-y-0.5 pt-1">
-              <p className="px-2.5 py-1 text-[9px] font-black uppercase text-muted tracking-wider">Workspace</p>
+            <div className="pt-1">
+              <p className="hidden md:block px-2.5 py-1 text-[9px] font-black uppercase text-muted tracking-wider">Workspace</p>
 
+              <div className="flex md:flex-col gap-1.5 md:gap-0.5 overflow-x-auto pb-1 md:pb-0">
               {/* 1. Drafts */}
               <button
                 type="button"
                 onClick={() => setHubTab("drafts")}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
+                className={`flex shrink-0 md:w-full items-center justify-between gap-2 rounded-xl px-3 md:px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "drafts" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 whitespace-nowrap">
                   <FolderKanban className="h-3.5 w-3.5" /> Drafts & Files
                 </span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
@@ -6092,11 +6093,11 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => setHubTab("samples")}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
+                className={`flex shrink-0 md:w-full items-center justify-between gap-2 rounded-xl px-3 md:px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "samples" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 whitespace-nowrap">
                   <LayoutTemplate className="h-3.5 w-3.5" /> Samples & Templates
                 </span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
@@ -6110,11 +6111,11 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => setHubTab("resources")}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
+                className={`flex shrink-0 md:w-full items-center justify-between gap-2 rounded-xl px-3 md:px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "resources" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 whitespace-nowrap">
                   <BookOpen className="h-3.5 w-3.5" /> Resources & Guides
                 </span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
@@ -6128,11 +6129,11 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => setHubTab("trash")}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
+                className={`flex shrink-0 md:w-full items-center justify-between gap-2 rounded-xl px-3 md:px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "trash" ? "bg-rose-50 text-rose-700 shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 whitespace-nowrap">
                   <Trash2 className="h-3.5 w-3.5" /> Trash
                 </span>
                 {(hubSearch ? filteredTrash.length > 0 : trashedTabs.length > 0) && (
@@ -6143,17 +6144,17 @@ export default function WhiteboardPage() {
               </button>
 
               {/* Horizontal Divider */}
-              <div className="border-t border-line my-1.5" />
+              <div className="hidden md:block border-t border-line my-1.5" />
 
               {/* 5. Learn Workspace */}
               <button
                 type="button"
                 onClick={() => setHubTab("guide")}
-                className={`flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
+                className={`flex shrink-0 md:w-full items-center justify-between gap-2 rounded-xl px-3 md:px-2.5 py-2 text-[11.5px] font-bold transition cursor-pointer ${
                   hubTab === "guide" ? "bg-brand-light text-brand shadow-xs font-extrabold" : "text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 whitespace-nowrap">
                   <GraduationCap className="h-3.5 w-3.5 text-black" /> Learn Workspace
                 </span>
                 <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
@@ -6166,13 +6167,13 @@ export default function WhiteboardPage() {
               {/* 6. Admin Whiteboard Manager (Visible to Admins only) */}
               {isAdmin && (
                 <>
-                  <div className="border-t border-line my-1.5" />
+                  <div className="hidden md:block border-t border-line my-1.5" />
                   <button
                     type="button"
                     onClick={() => navigate("/admin/whiteboard")}
-                    className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-[11.5px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 transition cursor-pointer border border-amber-200 shadow-2xs"
+                    className="flex shrink-0 md:w-full items-center justify-between gap-2 rounded-xl px-3 md:px-2.5 py-2 text-[11.5px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 transition cursor-pointer border border-amber-200 shadow-2xs"
                   >
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 whitespace-nowrap">
                       <ShieldCheck className="h-3.5 w-3.5 text-amber-700" /> Admin Hub Manager
                     </span>
                     <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-900">
@@ -6181,11 +6182,12 @@ export default function WhiteboardPage() {
                   </button>
                 </>
               )}
+              </div>
             </div>
           </div>
 
           {/* Sidebar Bottom Quick Utilities */}
-          <div className="space-y-0.5 border-t border-line pt-2.5 text-[11.5px]">
+          <div className="hidden md:block space-y-0.5 border-t border-line pt-2.5 text-[11.5px]">
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
@@ -6207,18 +6209,18 @@ export default function WhiteboardPage() {
         </aside>
 
         {/* ===================== RIGHT MAIN PREVIEW AREA ===================== */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+        <div className="flex-1 flex flex-col md:overflow-hidden bg-slate-50 min-w-0">
           {/* Top Header Bar with Avatar at Top Right */}
-          <header className="h-16 border-b border-line bg-white px-8 flex items-center justify-between gap-4 shrink-0 z-20">
-            <div>
-              <h2 className="font-display font-black text-base text-ink">
+          <header className="min-h-[60px] py-2.5 md:py-0 md:h-16 border-b border-line bg-white px-4 sm:px-6 md:px-8 flex items-center justify-between gap-3 md:gap-4 shrink-0 z-20">
+            <div className="min-w-0">
+              <h2 className="font-display font-black text-sm sm:text-base text-ink truncate">
                 {hubTab === "drafts" && "Drafts & Workspaces"}
                 {hubTab === "samples" && "Interactive Samples & Lesson Templates"}
                 {hubTab === "resources" && "Trading Resources & Cheatsheets"}
                 {hubTab === "trash" && "Trash Bin"}
                 {hubTab === "guide" && "Learn Whiteboard Workspace"}
               </h2>
-              <p className="text-xs text-muted font-medium">
+              <p className="hidden sm:block text-xs text-muted font-medium truncate">
                 {hubTab === "drafts" && "Resume where you left off or start a fresh technical analysis canvas"}
                 {hubTab === "samples" && "Pre-built technical setups, Smart Money Concepts, and lesson chart models"}
                 {hubTab === "resources" && "Price action cheatsheets, risk calculation formulas, and quick references"}
@@ -6384,7 +6386,7 @@ export default function WhiteboardPage() {
           </header>
 
           {/* Main Gallery Area */}
-          <main className="flex-1 overflow-y-auto p-8 space-y-6">
+          <main className="flex-1 md:overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
             {/* Active Search Filter Status Banner */}
             {hubSearch.trim() && (
               <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-white border border-line shadow-xs">
@@ -10733,18 +10735,18 @@ export default function WhiteboardPage() {
 
       {/* Main Header Bar - Slim h-11 with Edge-to-Edge Full-Height Dividers */}
       {/* Main Header Bar - Restored h-16 Height with Edge-to-Edge Full-Height Dividers & Full-Cell Hover States */}
-      <header className="h-16 border-b border-line bg-white px-4 md:px-5 flex items-center justify-between gap-4 shrink-0 z-[60] relative shadow-xs">
+      <header className="h-14 sm:h-16 border-b border-line bg-white px-2.5 sm:px-4 md:px-5 flex items-center justify-between gap-2 sm:gap-4 shrink-0 z-[60] relative shadow-xs">
         {/* Left Section: GAMAT Logo & Board Title */}
-        <div className="flex items-center gap-3.5 shrink-0 h-full">
+        <div className="flex items-center gap-2 sm:gap-3.5 shrink-0 h-full">
           <Logo variant="dark" asDiv />
           <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
-          <span className="hidden md:inline text-[16px] font-extrabold text-slate-900 tracking-tight">
+          <span className="hidden lg:inline text-[16px] font-extrabold text-slate-900 tracking-tight">
             Technical Analysis Whiteboard
           </span>
         </div>
 
         {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
-        <div className="flex items-center gap-2.5 h-full shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 h-full shrink-0">
           {/* Compact Ash Grey Overlay Menu Bar */}
           <div ref={topMenubarRef} className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
             {/* 1. FILE MENU */}
@@ -10760,7 +10762,7 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center px-2 sm:px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
                   fileMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="File Operations"
@@ -10769,7 +10771,7 @@ export default function WhiteboardPage() {
               </button>
 
               {fileMenuOpen && (
-                <div className="absolute left-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-1 w-60 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
                   <button
                     type="button"
                     onClick={() => {
@@ -10890,7 +10892,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 2. EDIT MENU */}
-            <div className="relative h-full flex items-center">
+            <div className="relative h-full hidden md:flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -11064,7 +11066,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 3. VIEW MENU */}
-            <div className="relative h-full flex items-center">
+            <div className="relative h-full hidden md:flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -11195,7 +11197,7 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center px-2 sm:px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
                   insertMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Insert Tools, Shapes & Strategy"
@@ -11205,7 +11207,7 @@ export default function WhiteboardPage() {
 
               {/* Insert Popover */}
               {insertMenuOpen && (
-                <div className="absolute left-0 top-full mt-1 w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80vh] overflow-y-auto [scrollbar-width:thin]">
+                <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-1 w-64 sm:w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80vh] overflow-y-auto [scrollbar-width:thin]">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Trading & SMC Setups</p>
                   
                   <button
@@ -11393,7 +11395,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 5. THEME DROPDOWN */}
-            <div className="relative h-full flex items-center">
+            <div className="relative h-full hidden sm:flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -11438,7 +11440,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 6. SNAP BUTTON */}
-            <div className="h-full flex items-center">
+            <div className="h-full hidden sm:flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -11470,7 +11472,7 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full self-stretch flex items-center gap-1.5 px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-xs transition cursor-pointer shadow-xs rounded-none ${
+                className={`h-full self-stretch flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-xs transition cursor-pointer shadow-xs rounded-none ${
                   exportOpen ? "bg-brand-dark" : ""
                 }`}
                 title="Export Diagram (PNG, JPEG, SVG)"
@@ -11480,7 +11482,7 @@ export default function WhiteboardPage() {
               </button>
 
               {exportOpen && (
-                <div className="absolute right-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
+                <div className="absolute right-0 top-full mt-1 w-60 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Export Format</p>
 
                   {/* PNG Option */}
@@ -11541,10 +11543,10 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Vertical Divider */}
-            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5" />
+            <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5 hidden sm:inline" />
 
             {/* 8. FULLSCREEN TOGGLE */}
-            <div className="h-full flex items-center">
+            <div className="h-full hidden sm:flex items-center">
               <button
                 type="button"
                 onClick={toggleFullscreen}
@@ -13518,7 +13520,7 @@ export default function WhiteboardPage() {
               [panelKey]: { ...prev[panelKey], zIndex: newZ },
             }));
           }}
-          className="fixed w-80 max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
+          className="fixed w-80 max-w-[calc(100vw-2rem)] max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
         >
           {/* Draggable Titlebar */}
           <div
@@ -13576,7 +13578,7 @@ export default function WhiteboardPage() {
 
     {/* Docked Sidebar Panel */}
     {isInspectorOpen && (
-      <aside className="absolute right-10 top-0 bottom-0 w-84 border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-text">
+      <aside className="absolute right-10 top-0 bottom-0 w-84 max-w-[calc(100vw-2.5rem)] border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-text">
         {/* Panel Header */}
         <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           {/* Top Titlebar Controls */}

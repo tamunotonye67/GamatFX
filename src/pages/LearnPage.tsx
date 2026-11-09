@@ -91,7 +91,7 @@ export default function LearnPage({ id }: { id: string }) {
 
         {/* Left Sidebar: Lessons playlist (pinned, independent scroll) */}
         <aside
-          className={`fixed inset-y-0 left-0 top-16 z-30 w-80 shrink-0 border-r border-white/10 bg-[#101216] transition-transform duration-300 lg:static lg:h-full lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 top-16 z-30 w-80 max-w-[85vw] shrink-0 border-r border-white/10 bg-[#101216] transition-transform duration-300 lg:static lg:h-full lg:translate-x-0 ${
             sidebar ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -158,25 +158,25 @@ export default function LearnPage({ id }: { id: string }) {
             </div>
 
             {/* Controls */}
-            <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6">
+            <div className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3 border-t border-white/10 pt-6">
               <button onClick={() => go(-1)} disabled={index === 0}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold transition hover:border-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35">
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2.5 sm:px-5 text-sm font-semibold transition hover:border-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35">
                 <ChevronLeft className="h-4 w-4" /> Previous
               </button>
 
               <button onClick={() => toggleLesson(course.id, active.id)}
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition ${isDone ? "bg-white/10 text-white hover:bg-white/15" : "bg-white text-ink hover:-translate-y-0.5"}`}>
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 sm:px-5 text-sm font-semibold transition ${isDone ? "bg-white/10 text-white hover:bg-white/15" : "bg-white text-ink hover:-translate-y-0.5"}`}>
                 {isDone ? <><CheckCircle2 className="h-4 w-4 text-brand" /> Completed</> : <><Circle className="h-4 w-4" /> Mark complete</>}
               </button>
 
-              <button onClick={completeAndNext} disabled={index === lessons.length - 1 && isDone} className="btn-primary ml-auto disabled:opacity-40">
+              <button onClick={completeAndNext} disabled={index === lessons.length - 1 && isDone} className="btn-primary w-full justify-center sm:w-auto sm:ml-auto disabled:opacity-40">
                 {index === lessons.length - 1 ? "Finish Course" : "Complete & Continue"} <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
             {/* Completion banner */}
             {complete && (
-              <div className="mt-10 rounded-3xl bg-gradient-to-br from-brand to-brand-dark p-8 text-center">
+              <div className="mt-10 rounded-3xl bg-gradient-to-br from-brand to-brand-dark p-6 sm:p-8 text-center">
                 <Award className="mx-auto h-12 w-12" />
                 <h2 className="mt-4 font-display text-2xl font-extrabold">All lessons complete — one step to go!</h2>
                 <p className="mt-2 text-white/85">

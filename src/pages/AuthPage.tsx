@@ -53,8 +53,8 @@ function AuthShell({
   const isLogin = mode === "login";
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-cream">
-      <div className="grid h-full w-full lg:grid-cols-2">
+    <div className="min-h-[100dvh] lg:h-screen w-full lg:overflow-hidden bg-cream">
+      <div className="grid min-h-[100dvh] lg:h-full w-full lg:grid-cols-2">
         {/* Left — brand panel (FIXED & IMMOVABLE) */}
         <div className="relative hidden h-full w-full overflow-hidden bg-ink lg:block">
           <img
@@ -110,12 +110,12 @@ function AuthShell({
         </div>
 
         {/* Right — ONLY THIS PANEL SCROLLS */}
-        <div className="flex h-full w-full flex-col justify-between overflow-y-auto bg-cream px-6 py-10 lg:py-14">
+        <div className="flex min-h-[100dvh] lg:h-full w-full flex-col justify-between overflow-y-auto bg-cream px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
           <div className="mx-auto my-auto w-full max-w-md">
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-brand"
+              className="mb-5 sm:mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-brand"
             >
               <ArrowLeft className="h-4 w-4" /> Back to home
             </button>
@@ -123,7 +123,7 @@ function AuthShell({
           </div>
 
           {/* Right Div Anchored Copyright Footer */}
-          <div className="mt-10 pb-4 text-center text-xs text-muted">
+          <div className="mt-8 sm:mt-10 pb-2 sm:pb-4 text-center text-xs text-muted">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-ink">GAMAT Fx Academy</span>. All rights reserved.
           </div>
@@ -249,7 +249,7 @@ function PhoneInput({
           <select
             value={selectedCountry}
             onChange={(e) => onCountryChange(e.target.value)}
-            className="h-11 rounded-xl border border-line bg-white pl-3 pr-8 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer appearance-none"
+            className="h-[46px] rounded-xl border border-line bg-white pl-2.5 pr-7 sm:pl-3 sm:pr-8 text-xs sm:text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer appearance-none"
           >
             {COUNTRIES.map((c) => (
               <option key={c.name} value={c.name}>
@@ -257,19 +257,19 @@ function PhoneInput({
               </option>
             ))}
           </select>
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted">
+          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs text-muted">
             ▼
           </span>
         </div>
 
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <Phone className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             type="tel"
             value={value}
             onChange={(e) => onPhoneChange(e.target.value)}
             placeholder="801 234 5678"
-            className="w-full rounded-xl border border-line bg-white py-3 pl-10 pr-4 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
+            className="w-full rounded-xl border border-line bg-white py-3 pl-10 pr-3 sm:pr-4 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
           />
         </div>
       </div>
@@ -414,7 +414,7 @@ export function LoginPage() {
 
   return (
     <AuthShell mode="login">
-      <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+      <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
         {view === "sent" ? (
           <div className="text-center py-2">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/10 text-brand">
@@ -614,7 +614,7 @@ export function SignUpPage() {
 
   return (
     <AuthShell mode="signup">
-      <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+      <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
         <h1 className="font-display text-2xl font-extrabold text-ink">Create your free account</h1>
         <p className="mt-1.5 text-sm text-muted">
           Already registered?{" "}
@@ -731,7 +731,7 @@ export function ForgotPasswordPage() {
 
   return (
     <AuthShell mode="login">
-      <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+      <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
         {sent ? (
           <div className="text-center">
             <CheckCircle2 className="mx-auto h-14 w-14 text-brand" />
@@ -820,7 +820,7 @@ export function ResetPasswordPage() {
 
   return (
     <AuthShell mode="login">
-      <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+      <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
         {success ? (
           <div className="text-center">
             <CheckCircle2 className="mx-auto h-14 w-14 text-brand" />

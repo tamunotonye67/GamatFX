@@ -84,21 +84,21 @@ export default function CourseDetailPage({ id }: { id: string }) {
           <div className="absolute inset-0 bg-[radial-gradient(55%_55%_at_85%_15%,rgba(220,53,69,0.3),transparent_60%)]" />
         </div>
 
-        <div className="container-x grid gap-12 pb-20 pt-36 lg:grid-cols-[1.4fr_1fr] lg:pt-44">
+        <div className="container-x grid gap-10 pb-14 pt-[calc(var(--header-h,104px)+1.5rem)] sm:pb-20 sm:pt-36 lg:grid-cols-[1.4fr_1fr] lg:gap-12 lg:pt-44">
           <div>
-            <nav className="mb-6 flex items-center gap-2 text-sm text-white/55">
+            <nav className="mb-4 sm:mb-6 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/55">
               <button onClick={() => navigate("/")} className="hover:text-white">Home</button>
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
               <button onClick={() => navigate("/courses")} className="hover:text-white">Courses</button>
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
               <span className="text-brand-light">{course.tag}</span>
             </nav>
 
             <span className="chip">{course.tag}</span>
-            <h1 className="mt-4 font-display text-4xl font-extrabold leading-tight md:text-5xl">{course.title}</h1>
-            <p className="mt-5 max-w-2xl text-lg text-white/75">{course.short}</p>
+            <h1 className="mt-3 sm:mt-4 font-display text-3xl sm:text-4xl font-extrabold leading-tight md:text-5xl">{course.title}</h1>
+            <p className="mt-4 sm:mt-5 max-w-2xl text-base sm:text-lg text-white/75">{course.short}</p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+            <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-xs sm:text-sm">
               <span className="flex items-center gap-1.5">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                 <strong>{course.rating}</strong><span className="text-white/50">rating</span>
@@ -135,17 +135,17 @@ export default function CourseDetailPage({ id }: { id: string }) {
                   <source src={course.video} type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 flex items-center justify-center bg-ink/40 transition-colors group-hover:bg-ink/20">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand shadow-2xl transition-transform group-hover:scale-110">
-                    <Play className="ml-1 h-7 w-7 fill-white text-white" />
+                  <span className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-brand shadow-2xl transition-transform group-hover:scale-110">
+                    <Play className="ml-1 h-6 w-6 sm:h-7 sm:w-7 fill-white text-white" />
                   </span>
                 </div>
                 <span className="absolute bottom-3 left-3 rounded-md bg-ink/85 px-2.5 py-1 text-xs font-semibold text-white">Click to Preview Video</span>
               </div>
 
-              <div className="p-7">
-                <div className="flex items-end gap-3">
-                  <span className="font-display text-4xl font-extrabold text-ink">{naira(displayPrice)}</span>
-                  {course.oldPrice && <span className="mb-1 text-lg text-muted line-through">{naira(course.oldPrice)}</span>}
+              <div className="p-5 sm:p-7">
+                <div className="flex flex-wrap items-baseline gap-2.5 sm:gap-3">
+                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-ink">{naira(displayPrice)}</span>
+                  {course.oldPrice && <span className="text-base sm:text-lg text-muted line-through">{naira(course.oldPrice)}</span>}
                 </div>
                 {course.oldPrice && course.oldPrice > displayPrice && (
                   <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-brand">
@@ -180,15 +180,15 @@ export default function CourseDetailPage({ id }: { id: string }) {
 
       {/* Body */}
       <section className="section bg-cream">
-        <div className="container-x grid gap-12 lg:grid-cols-[1.4fr_1fr]">
-          <div className="space-y-10">
+        <div className="container-x grid gap-10 lg:gap-12 lg:grid-cols-[1.4fr_1fr]">
+          <div className="space-y-8 sm:space-y-10">
             <div className="card">
-              <h2 className="font-display text-2xl font-bold text-ink">About this course</h2>
+              <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">About this course</h2>
               <p className="mt-4 leading-relaxed text-muted">{course.desc}</p>
             </div>
 
             <div className="card">
-              <h2 className="font-display text-2xl font-bold text-ink">What you'll learn</h2>
+              <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">What you'll learn</h2>
               <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                 {course.outcomes.map((o) => (
                   <li key={o} className="flex items-start gap-2.5 text-sm text-ink/80">
@@ -200,19 +200,19 @@ export default function CourseDetailPage({ id }: { id: string }) {
 
             {/* Curriculum */}
             <div>
-              <div className="flex items-end justify-between">
-                <h2 className="font-display text-2xl font-bold text-ink">Curriculum</h2>
-                <p className="text-sm text-muted">{course.modules.length} modules · {lessons} lessons</p>
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <h2 className="font-display text-xl sm:text-2xl font-bold text-ink">Curriculum</h2>
+                <p className="text-xs sm:text-sm text-muted">{course.modules.length} modules · {lessons} lessons</p>
               </div>
               <div className="mt-5 space-y-3">
                 {course.modules.map((m, mi) => {
                   const open = openModule === mi;
                   return (
                     <div key={m.title} className={`overflow-hidden rounded-2xl border bg-white transition-colors ${open ? "border-brand/40" : "border-line"}`}>
-                      <button onClick={() => setOpenModule(open ? -1 : mi)} className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left">
-                        <span>
-                          <span className="font-display text-base font-bold text-ink">{m.title}</span>
-                          <span className="ml-3 text-xs text-muted">{m.lessons.length} lessons</span>
+                      <button onClick={() => setOpenModule(open ? -1 : mi)} className="flex w-full items-center justify-between gap-3 px-4 py-3.5 sm:px-6 sm:py-4 text-left">
+                        <span className="min-w-0">
+                          <span className="font-display text-sm sm:text-base font-bold text-ink">{m.title}</span>
+                          <span className="ml-2 sm:ml-3 inline-block text-xs text-muted">{m.lessons.length} lessons</span>
                         </span>
                         <ChevronDown className={`h-5 w-5 shrink-0 text-brand transition-transform ${open ? "rotate-180" : ""}`} />
                       </button>
@@ -220,20 +220,22 @@ export default function CourseDetailPage({ id }: { id: string }) {
                         <div className="overflow-hidden">
                           <ul className="divide-y divide-line border-t border-line">
                             {m.lessons.map((l) => (
-                              <li key={l.id} className="flex items-center gap-3 px-6 py-3.5">
+                              <li key={l.id} className="flex flex-wrap items-center gap-2.5 sm:gap-3 px-4 py-3 sm:px-6 sm:py-3.5">
                                 {enrolled || l.free
                                   ? <button onClick={() => l.free ? openPreview(l.title, (l as any).videoUrl || course.video) : onEnroll()} className="text-brand hover:scale-110 transition"><Play className="h-4 w-4 shrink-0 fill-brand text-brand" /></button>
                                   : <Lock className="h-4 w-4 shrink-0 text-muted" />}
-                                <span className="flex-1 text-sm font-medium text-ink/80">{l.title}</span>
-                                {l.free && !enrolled && (
-                                  <button
-                                    onClick={() => openPreview(l.title, (l as any).videoUrl || course.video)}
-                                    className="chip !px-2.5 !py-0.5 hover:bg-brand hover:text-white transition cursor-pointer"
-                                  >
-                                    Free Preview
-                                  </button>
-                                )}
-                                <span className="text-xs text-muted">{l.duration}</span>
+                                <span className="min-w-0 flex-1 text-sm font-medium text-ink/80">{l.title}</span>
+                                <div className="flex items-center gap-2 ml-auto">
+                                  {l.free && !enrolled && (
+                                    <button
+                                      onClick={() => openPreview(l.title, (l as any).videoUrl || course.video)}
+                                      className="chip !px-2.5 !py-0.5 !text-[10px] sm:!text-xs hover:bg-brand hover:text-white transition cursor-pointer"
+                                    >
+                                      Preview
+                                    </button>
+                                  )}
+                                  <span className="text-xs text-muted">{l.duration}</span>
+                                </div>
                               </li>
                             ))}
                           </ul>

@@ -110,6 +110,7 @@ export default function Navbar() {
   const route = useRoute();
   const moreRef = useRef<HTMLLIElement | null>(null);
   const userRef = useRef<HTMLDivElement | null>(null);
+  const barRef = useRef<HTMLDivElement | null>(null);
   const { user, isAuthed, isAdmin, logout, stats } = useStore();
   const requestedSolid = useNavbarForcedSolid();
 
@@ -120,12 +121,24 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    const el = barRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const update = () => {
+      document.documentElement.style.setProperty("--header-h", `${el.offsetHeight}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   /**
    * Pages that do NOT open with a full-bleed dark hero need a solid bar
    * immediately, otherwise white nav text sits on a light background.
    */
   const forceSolid = route.startsWith("/dashboard") || requestedSolid;
-  const scrolled = scrolledRaw || forceSolid;
+  const scrolled = scrolledRaw || forceSolid || open;
 
   // Close menus on route change
   useEffect(() => {
@@ -167,13 +180,14 @@ export default function Navbar() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-line bg-white/90 backdrop-blur-md shadow-[0_8px_30px_-18px_rgba(22,24,28,0.35)]"
+          ? "border-b border-line bg-white/95 backdrop-blur-md shadow-[0_8px_30px_-18px_rgba(22,24,28,0.35)]"
           : "bg-transparent"
       }`}
     >
-      <TopCouponBar />
-      <nav className="container-x flex h-[72px] items-center justify-between gap-4">
-        <Logo variant={scrolled ? "dark" : "light"} />
+      <div ref={barRef}>
+        <TopCouponBar />
+        <nav className="container-x flex h-16 sm:h-[72px] items-center justify-between gap-3 sm:gap-4">
+          <Logo variant={scrolled ? "dark" : "light"} />
 
         {/* Desktop links */}
         <ul className="hidden items-center gap-7 lg:flex">
@@ -524,12 +538,13 @@ export default function Navbar() {
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Mobile menu */}
       <div
         className={`overflow-y-auto border-t border-line bg-white transition-all duration-300 lg:hidden ${
-          open ? "max-h-[80vh]" : "max-h-0"
+          open ? "max-h-[calc(100dvh-108px)] opacity-100" : "max-h-0 opacity-0 border-t-0"
         }`}
       >
         <ul className="container-x flex flex-col gap-1 py-4">
@@ -538,7 +553,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => go(l.to)}
-                className={`block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                className={`block w-full rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${
                   l.to === route ? "bg-brand-light text-brand" : "text-ink/80 hover:bg-brand-light hover:text-brand"
                 }`}
               >
@@ -553,7 +568,7 @@ export default function Navbar() {
               type="button"
               onClick={() => setMobileMoreOpen((v) => !v)}
               aria-expanded={mobileMoreOpen}
-              className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+              className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${
                 moreActive ? "bg-brand-light text-brand" : "text-ink/80 hover:bg-brand-light hover:text-brand"
               }`}
             >
@@ -563,40 +578,49 @@ export default function Navbar() {
 
             <div className={`grid transition-all duration-300 ${mobileMoreOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
               <div className="overflow-hidden">
-                <ul className="mt-1 space-y-0.5 border-l-2 border-line pl-3">
-                  {moreGroups.flatMap((g) => g.items).map((item) => (
-                    <li key={item.to}>
-                      <button
-                        type="button"
-                        onClick={() => go(item.to)}
-                        className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                          item.to === route ? "bg-brand-light font-semibold text-brand" : "text-ink/70 hover:bg-cream hover:text-brand"
-                        }`}
-                      >
-                        <item.icon className="h-4 w-4 shrink-0 text-brand" />
-                        {item.label}
-                      </button>
-
-                      {item.to === "/fun" && (
-                        <div className="ml-6 my-1 space-y-1 border-l border-brand/40 pl-3">
-                          {funZoneSubGames.map((sub) => (
+                <div className="mt-1 space-y-3 border-l-2 border-line pl-3 py-1">
+                  {moreGroups.map((group) => (
+                    <div key={group.title}>
+                      <p className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted">
+                        {group.title}
+                      </p>
+                      <ul className="space-y-0.5">
+                        {group.items.map((item) => (
+                          <li key={item.to}>
                             <button
-                              key={sub.to}
                               type="button"
-                              onClick={() => go(sub.to)}
-                              className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition ${
-                                sub.to === route ? "bg-brand text-white font-bold" : "text-ink/70 hover:text-brand"
+                              onClick={() => go(item.to)}
+                              className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition ${
+                                item.to === route ? "bg-brand-light font-semibold text-brand" : "text-ink/75 hover:bg-cream hover:text-brand"
                               }`}
                             >
-                              <sub.icon className="h-3.5 w-3.5 shrink-0 text-brand" />
-                              {sub.label}
+                              <item.icon className="h-4 w-4 shrink-0 text-brand" />
+                              <span className="truncate">{item.label}</span>
                             </button>
-                          ))}
-                        </div>
-                      )}
-                    </li>
+
+                            {item.to === "/fun" && (
+                              <div className="ml-6 my-1 grid grid-cols-1 xs:grid-cols-2 gap-1 border-l border-brand/40 pl-2.5">
+                                {funZoneSubGames.map((sub) => (
+                                  <button
+                                    key={sub.to}
+                                    type="button"
+                                    onClick={() => go(sub.to)}
+                                    className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition ${
+                                      sub.to === route ? "bg-brand text-white font-bold" : "text-ink/70 hover:bg-cream hover:text-brand"
+                                    }`}
+                                  >
+                                    <sub.icon className={`h-3.5 w-3.5 shrink-0 ${sub.to === route ? "text-white" : "text-brand"}`} />
+                                    <span className="truncate">{sub.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             </div>
           </li>
@@ -604,29 +628,53 @@ export default function Navbar() {
           {isAuthed && user ? (
             <li className="mt-3 space-y-2 border-t border-line pt-4">
               <div className="flex items-center gap-3 rounded-xl bg-cream px-3 py-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
-                </span>
-                <div className="min-w-0">
+                {user.avatar ? (
+                  <img src={user.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+                    {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-ink">{user.firstName} {user.lastName}</p>
                   <p className="truncate text-xs text-muted">{user.email}</p>
                 </div>
               </div>
-              <button type="button" onClick={() => go("/dashboard")} className="btn-primary w-full">
-                <LayoutDashboard className="h-4 w-4" /> Dashboard
-              </button>
-              <button type="button" onClick={() => { logout(); navigate("/"); setOpen(false); }} className="btn-outline-dark w-full">
-                <LogOut className="h-4 w-4" /> Log out
-              </button>
+              {isAdmin && (
+                <button type="button" onClick={() => go("/admin")} className="btn-outline-dark w-full !border-ink !bg-ink !text-white">
+                  <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
+                </button>
+              )}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button type="button" onClick={() => go("/dashboard")} className="btn-primary w-full">
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </button>
+                <button type="button" onClick={() => { logout(); navigate("/"); setOpen(false); }} className="btn-outline-dark w-full">
+                  <LogOut className="h-4 w-4" /> Log out
+                </button>
+              </div>
             </li>
           ) : (
-            <li className="mt-3 grid grid-cols-2 gap-3 border-t border-line pt-4">
-              <button type="button" onClick={() => go("/login")} className="btn-outline-dark w-full">
-                <LogIn className="h-4 w-4" /> Login
-              </button>
-              <button type="button" onClick={() => go("/signup")} className="btn-primary w-full">
-                <UserPlus className="h-4 w-4" /> Sign Up
-              </button>
+            <li className="mt-3 space-y-2.5 border-t border-line pt-4">
+              <div className="grid grid-cols-2 gap-2.5">
+                <button type="button" onClick={() => go("/login")} className="btn-outline-dark w-full">
+                  <LogIn className="h-4 w-4" /> Login
+                </button>
+                <button type="button" onClick={() => go("/signup")} className="btn-primary w-full">
+                  <UserPlus className="h-4 w-4" /> Sign Up
+                </button>
+              </div>
+              <a
+                href={CONTACT.whatsappAiHref}
+                target="_blank"
+                rel="noreferrer"
+                className="ask-glow relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white"
+              >
+                <span className="ask-glow-spin" aria-hidden="true" />
+                <span className="relative z-[1] inline-flex items-center gap-1.5">
+                  <MessageCircle className="h-4 w-4" /> Ask Anything on WhatsApp
+                </span>
+              </a>
             </li>
           )}
         </ul>

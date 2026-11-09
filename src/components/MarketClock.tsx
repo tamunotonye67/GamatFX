@@ -62,7 +62,7 @@ export default function MarketClock() {
 
   return (
     <div
-      className="group/clock relative w-full max-w-[320px] cursor-pointer select-none transition-transform duration-500 ease-[cubic-bezier(.34,1.8,.5,1)] hover:scale-[1.07] sm:max-w-[340px] xl:max-w-[370px]"
+      className="group/clock relative w-full max-w-[260px] xs:max-w-[300px] cursor-pointer select-none transition-transform duration-500 ease-[cubic-bezier(.34,1.8,.5,1)] hover:scale-[1.07] sm:max-w-[340px] xl:max-w-[370px]"
     >
       {/* Glow */}
       <div

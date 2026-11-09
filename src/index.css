@@ -72,23 +72,23 @@ img, video, canvas {
 /* ============ Reusable component styles ============ */
 @layer components {
   .container-x {
-    @apply mx-auto w-full max-w-6xl px-6;
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
   .section {
-    @apply py-20 md:py-28;
+    @apply py-14 sm:py-20 md:py-28;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-7 py-3 text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
   }
 
   .btn-outline-dark {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 px-7 py-3 text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
   }
 
   .eyebrow {
@@ -96,16 +96,30 @@ img, video, canvas {
   }
 
   .section-title {
-    @apply font-display text-3xl font-extrabold leading-tight text-ink md:text-4xl;
+    @apply font-display text-2xl sm:text-3xl font-extrabold leading-tight text-ink md:text-4xl;
   }
 
   .card {
-    @apply rounded-2xl border border-line bg-white p-7 shadow-[0_10px_40px_-20px_rgba(22,24,28,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_-25px_rgba(22,24,28,0.35)];
+    @apply rounded-2xl border border-line bg-white p-5 sm:p-7 shadow-[0_10px_40px_-20px_rgba(22,24,28,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_-25px_rgba(22,24,28,0.35)];
   }
 
   .chip {
-    @apply inline-flex items-center gap-2 rounded-full bg-brand-light px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand;
+    @apply inline-flex items-center gap-2 rounded-full bg-brand-light px-3.5 py-1 sm:px-4 sm:py-1.5 text-xs font-semibold uppercase tracking-wide text-brand;
   }
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
 }
 
 @keyframes float {

@@ -70,18 +70,18 @@ function ExpandedMysteryCardModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-3xl overflow-hidden rounded-3xl border-2 ${t.border} ${t.bg} p-6 sm:p-8 text-white shadow-2xl animate-[scaleUp_.35s_cubic-bezier(0.16,1,0.3,1)] my-auto`}
+        className={`relative w-full max-w-3xl overflow-hidden rounded-3xl border-2 ${t.border} ${t.bg} p-5 sm:p-8 text-white shadow-2xl animate-[scaleUp_.35s_cubic-bezier(0.16,1,0.3,1)] my-auto`}
       >
         {/* Top Header Controls */}
-        <div className="flex items-center justify-between border-b border-white/15 pb-4">
-          <div className="flex items-center gap-2">
-            <span className={`font-display text-xl font-extrabold ${t.rankColor}`}>
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-white/15 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`font-display text-lg sm:text-xl font-extrabold ${t.rankColor}`}>
               {fact.cardRank}
             </span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+            <span className="rounded-full bg-white/10 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white">
               Mystery Card #{fact.cardNumber} · {fact.category}
             </span>
-            <span className="rounded-full bg-brand/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
+            <span className="rounded-full bg-brand/90 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white">
               {fact.era}
             </span>
           </div>
@@ -89,15 +89,15 @@ function ExpandedMysteryCardModal({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white/80 transition hover:bg-white/20 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 sm:px-3.5 py-1.5 text-xs font-bold text-white/80 transition hover:bg-white/20 hover:text-white"
           >
-            <RotateCw className="h-3.5 w-3.5" /> Flip Back to Deck
+            <RotateCw className="h-3.5 w-3.5" /> Flip Back
           </button>
         </div>
 
         {/* Historical Face / Event Banner Picture */}
         {fact.image && (
-          <div className="relative mt-5 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/20 shadow-2xl bg-black/40">
+          <div className="relative mt-4 sm:mt-5 aspect-[16/9] w-full overflow-hidden rounded-2xl border border-white/20 shadow-2xl bg-black/40">
             <img
               src={fact.image}
               alt={fact.title}
@@ -107,11 +107,11 @@ function ExpandedMysteryCardModal({
 
             {/* Key Historical Figure Badge */}
             {fact.keyFigure && (
-              <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center justify-between gap-2">
-                <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-black/85 px-4 py-2 text-xs font-bold text-amber-300 backdrop-blur shadow-lg">
-                  <User className="h-4 w-4 text-amber-400" /> Key Figure: {fact.keyFigure}
+              <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 flex flex-wrap items-center justify-between gap-2">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-amber-400/40 bg-black/85 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-amber-300 backdrop-blur shadow-lg">
+                  <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-amber-400" /> Key Figure: {fact.keyFigure}
                 </div>
-                <span className="rounded-full bg-black/60 px-3 py-1 text-[11px] font-semibold text-white/80 backdrop-blur">
+                <span className="rounded-full bg-black/60 px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-semibold text-white/80 backdrop-blur">
                   {fact.badge}
                 </span>
               </div>
@@ -120,8 +120,8 @@ function ExpandedMysteryCardModal({
         )}
 
         {/* Card Body & Story */}
-        <div className="mt-6 space-y-4">
-          <h2 className="font-display text-2xl font-extrabold leading-snug text-white sm:text-3xl">
+        <div className="mt-5 sm:mt-6 space-y-4">
+          <h2 className="font-display text-xl sm:text-3xl font-extrabold leading-snug text-white">
             {fact.title}
           </h2>
 
@@ -155,11 +155,11 @@ function ExpandedMysteryCardModal({
         </div>
 
         {/* Bottom Footer Controls */}
-        <div className="mt-6 flex items-center justify-between border-t border-white/15 pt-4">
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-4">
           <button
             type="button"
             onClick={() => onToggleLearned(fact.id)}
-            className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold transition shadow-md ${
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-4 sm:px-5 py-2.5 text-xs font-bold transition shadow-md ${
               isLearned
                 ? "bg-emerald-600 text-white"
                 : "bg-white/15 text-white hover:bg-white/25"
@@ -171,7 +171,7 @@ function ExpandedMysteryCardModal({
           <button
             type="button"
             onClick={onClose}
-            className="btn-primary !py-2.5 !px-6 text-xs font-bold"
+            className="btn-primary !py-2.5 !px-5 sm:!px-6 text-xs font-bold"
           >
             Flip Back to Deck <RotateCw className="h-3.5 w-3.5 ml-1" />
           </button>
@@ -265,15 +265,15 @@ export default function HistofactPage() {
       />
 
       {/* Control & Filter Bar */}
-      <section className="border-b border-line bg-white/95 py-6 sticky top-20 z-20 backdrop-blur-md">
-        <div className="container-x flex flex-wrap items-center justify-between gap-4">
+      <section className="border-b border-line bg-white/95 py-4 sm:py-6 sticky top-[var(--header-h,72px)] z-20 backdrop-blur-md">
+        <div className="container-x flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           {/* Category Tabs */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                className={`rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold transition ${
                   selectedCategory === cat
                     ? "bg-brand text-white shadow-md shadow-brand/20"
                     : "bg-cream text-ink/70 hover:bg-line/60 hover:text-ink"
@@ -288,31 +288,31 @@ export default function HistofactPage() {
           </div>
 
           {/* Search & Actions */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative">
+          <div className="flex w-full sm:w-auto flex-wrap items-center gap-2.5 sm:gap-3">
+            <div className="relative flex-1 sm:flex-initial">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text"
                 placeholder="Search mystery cards…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-52 rounded-full border border-line bg-cream pl-9 pr-4 py-2 text-xs text-ink placeholder-muted outline-none transition focus:border-brand focus:bg-white sm:w-60"
+                className="w-full rounded-full border border-line bg-cream pl-9 pr-4 py-2 text-xs text-ink placeholder-muted outline-none transition focus:border-brand focus:bg-white sm:w-60"
               />
             </div>
 
             <button
               onClick={flipRandom}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-4 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-brand-light hover:text-brand"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-3.5 sm:px-4 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-brand-light hover:text-brand"
             >
-              <Zap className="h-3.5 w-3.5 text-amber-500" /> Draw Random Card
+              <Zap className="h-3.5 w-3.5 text-amber-500" /> Draw Random
             </button>
 
             <button
               onClick={flipAllToggle}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-xs font-bold text-muted transition hover:text-ink"
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 sm:px-4 py-2 text-xs font-bold text-muted transition hover:text-ink"
             >
               {totalFlipped > 0 ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              {totalFlipped > 0 ? "Hide All Cards" : "Reveal All Deck"}
+              {totalFlipped > 0 ? "Hide All" : "Reveal All"}
             </button>
           </div>
         </div>

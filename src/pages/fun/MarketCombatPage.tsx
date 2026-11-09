@@ -322,26 +322,26 @@ function ScenarioModal({
 }) {
   const actual = outcomeOf(s);
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center">
-      <div className="w-full max-w-2xl rounded-3xl border border-line bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto bg-ink/60 p-3 sm:p-4 backdrop-blur-sm sm:items-center">
+      <div className="my-auto w-full max-w-2xl rounded-3xl border border-line bg-white shadow-2xl">
+        <div className="flex items-start justify-between gap-3 sm:gap-4 border-b border-line px-5 sm:px-6 py-4 sm:py-5">
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{s.pair}</span>
               <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${DIFF_TONE[s.difficulty]}`}>{s.difficulty}</span>
             </div>
-            <h3 className="mt-2 font-display text-xl font-extrabold text-ink">{s.title}</h3>
+            <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink">{s.title}</h3>
             <p className="mt-1 text-xs text-muted">{s.timeframe} · Entry reference {s.entry}</p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-2 text-muted hover:bg-cream hover:text-brand">✕</button>
         </div>
 
-        <div className="space-y-4 p-6">
-          <div className="rounded-2xl border border-line bg-cream p-5">
+        <div className="space-y-4 p-5 sm:p-6">
+          <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5">
             <p className="text-xs font-bold uppercase tracking-wide text-brand">Fundamental brief</p>
             <p className="mt-2 text-sm leading-relaxed text-ink/80">{s.fundamental}</p>
           </div>
-          <div className="rounded-2xl border border-line bg-cream p-5">
+          <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5">
             <p className="text-xs font-bold uppercase tracking-wide text-brand">Technical brief</p>
             <p className="mt-2 text-sm leading-relaxed text-ink/80">{s.technical}</p>
           </div>
@@ -354,13 +354,13 @@ function ScenarioModal({
               You already have an open call on this board. Wait for settlement.
             </p>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 grid-cols-2">
               <button type="button" onClick={() => onCall("up")}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-bold text-white transition hover:bg-emerald-500">
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 sm:px-5 py-3.5 sm:py-4 text-sm font-bold text-white transition hover:bg-emerald-500">
                 <TrendingUp className="h-5 w-5" /> Call UP
               </button>
               <button type="button" onClick={() => onCall("down")}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-4 text-sm font-bold text-white transition hover:bg-brand-dark">
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-4 sm:px-5 py-3.5 sm:py-4 text-sm font-bold text-white transition hover:bg-brand-dark">
                 <TrendingDown className="h-5 w-5" /> Call DOWN
               </button>
             </div>

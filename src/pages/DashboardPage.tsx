@@ -75,24 +75,24 @@ export default function DashboardPage() {
   const awaitingQuiz = completedCourses.filter((e) => !store.hasPassedQuiz(e.courseId));
 
   return (
-    <div className="min-h-screen bg-cream pt-[72px]">
+    <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
       {/* Header */}
-      <section className="bg-ink pb-24 pt-12 text-white">
-        <div className="container-x flex flex-wrap items-center justify-between gap-6">
-          <div className="flex items-center gap-5">
+      <section className="bg-ink pb-20 pt-8 sm:pb-24 sm:pt-12 text-white">
+        <div className="container-x flex flex-wrap items-center justify-between gap-5 sm:gap-6">
+          <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
             {user.avatar ? (
-              <img src={user.avatar} alt="" className="h-16 w-16 rounded-2xl object-cover shadow-lg ring-2 ring-brand/40" />
+              <img src={user.avatar} alt="" className="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl object-cover shadow-lg ring-2 ring-brand/40" />
             ) : (
-              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-xl font-extrabold shadow-lg">
+              <span className="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-lg sm:text-xl font-extrabold shadow-lg">
                 {initials}
               </span>
             )}
-            <div>
-              <p className="text-sm text-white/55">Welcome back,</p>
-              <h1 className="font-display text-2xl font-extrabold md:text-3xl">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-white/55">Welcome back,</p>
+              <h1 className="truncate font-display text-xl sm:text-2xl font-extrabold md:text-3xl">
                 {user.nickname || `${user.firstName} ${user.lastName}`}
               </h1>
-              <p className="mt-0.5 text-sm text-white/50">{user.email}</p>
+              <p className="mt-0.5 truncate text-xs sm:text-sm text-white/50">{user.email}</p>
               {user.birthday && (
                 <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-white/45">
                   <Cake className="h-3.5 w-3.5 text-brand" />
@@ -117,56 +117,56 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          <button onClick={() => navigate("/courses")} className="btn-primary">
+          <button onClick={() => navigate("/courses")} className="btn-primary w-full sm:w-auto">
             Browse Courses <ArrowUpRight className="h-4 w-4" />
           </button>
         </div>
       </section>
 
       {/* Stats */}
-      <div className="container-x -mt-16">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="container-x -mt-14 sm:-mt-16">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {[
             { icon: BookOpen, v: stats.enrolled, l: "Courses enrolled" },
             { icon: CheckCircle2, v: stats.lessonsDone, l: "Lessons completed" },
             { icon: Clock, v: `${stats.hours}h`, l: "Learning time" },
             { icon: Award, v: stats.completed, l: "Certificates earned" },
           ].map((s) => (
-            <div key={s.l} className="rounded-2xl border border-line bg-white p-6 shadow-[0_14px_45px_-25px_rgba(22,24,28,0.3)]">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
-                <s.icon className="h-5 w-5" />
+            <div key={s.l} className="rounded-2xl border border-line bg-white p-4 sm:p-6 shadow-[0_14px_45px_-25px_rgba(22,24,28,0.3)]">
+              <span className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
+                <s.icon className="h-4 w-4 sm:h-5 sm:w-5" />
               </span>
-              <p className="mt-4 font-display text-3xl font-extrabold text-ink">{s.v}</p>
-              <p className="mt-0.5 text-sm text-muted">{s.l}</p>
+              <p className="mt-3 sm:mt-4 font-display text-2xl sm:text-3xl font-extrabold text-ink">{s.v}</p>
+              <p className="mt-0.5 text-xs sm:text-sm text-muted">{s.l}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Tabs + content */}
-      <section className="container-x grid gap-8 py-12 lg:grid-cols-[240px_1fr]">
-        <aside>
-          <div className="sticky top-24 space-y-1 rounded-2xl border border-line bg-white p-3">
+      <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr]">
+        <aside className="min-w-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:sticky lg:top-24 lg:flex-col lg:items-stretch lg:space-y-1 lg:p-3">
             {tabs.map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${tab === t.id ? "bg-brand text-white" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
-                <t.icon className="h-4 w-4" /> {t.label}
+                className={`flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold whitespace-nowrap transition ${tab === t.id ? "bg-brand text-white" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
+                <t.icon className="h-4 w-4 shrink-0" /> {t.label}
               </button>
             ))}
             {isAdmin && (
               <button onClick={() => navigate("/admin")}
-                className="flex w-full items-center gap-3 rounded-xl bg-ink px-4 py-3 text-left text-sm font-semibold text-white transition hover:bg-ink/90">
-                <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
+                className="flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition hover:bg-ink/90">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-brand-light" /> Admin Panel
               </button>
             )}
             <button onClick={() => { logout(); navigate("/"); }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-muted transition hover:bg-cream hover:text-brand">
-              <LogOut className="h-4 w-4" /> Log out
+              className="flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand">
+              <LogOut className="h-4 w-4 shrink-0" /> Log out
             </button>
           </div>
         </aside>
 
-        <div>
+        <div className="min-w-0">
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
           {tab === "certificates" && <Certificates completed={certified.map((e) => e.courseId)} pending={awaitingQuiz.map((e) => e.courseId)} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
@@ -195,17 +195,17 @@ export default function DashboardPage() {
         {nextCourse ? (
           <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_18px_50px_-30px_rgba(22,24,28,0.3)]">
             <div className="grid sm:grid-cols-[240px_1fr]">
-              <img src={nextCourse.poster} alt="" className="h-full min-h-[160px] w-full object-cover" />
-              <div className="p-7">
+              <img src={nextCourse.poster} alt="" className="h-48 sm:h-full min-h-[160px] w-full object-cover" />
+              <div className="p-5 sm:p-7">
                 <span className="chip">Continue learning</span>
-                <h2 className="mt-3 font-display text-xl font-bold text-ink">{nextCourse.title}</h2>
+                <h2 className="mt-3 font-display text-lg sm:text-xl font-bold text-ink">{nextCourse.title}</h2>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-line">
                     <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${progressOf(nextCourse.id)}%` }} />
                   </div>
                   <span className="text-sm font-bold text-brand">{progressOf(nextCourse.id)}%</span>
                 </div>
-                <button onClick={() => navigate(`/learn/${nextCourse.id}`)} className="btn-primary mt-5">
+                <button onClick={() => navigate(`/learn/${nextCourse.id}`)} className="btn-primary mt-5 w-full sm:w-auto">
                   <PlayCircle className="h-4 w-4" /> Resume Course
                 </button>
               </div>
@@ -245,8 +245,8 @@ export default function DashboardPage() {
           return (
             <div key={c.id} className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_14px_45px_-28px_rgba(22,24,28,0.3)]">
               <div className="grid sm:grid-cols-[200px_1fr]">
-                <img src={c.poster} alt="" className="h-full min-h-[140px] w-full object-cover" />
-                <div className="p-6">
+                <img src={c.poster} alt="" className="h-44 sm:h-full min-h-[140px] w-full object-cover" />
+                <div className="p-5 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <span className="chip">{c.tag}</span>
@@ -291,12 +291,12 @@ export default function DashboardPage() {
           const best = store.bestAttempt(id);
           if (!c) return null;
           return (
-            <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-8">
-              <div className="flex flex-wrap items-center gap-5">
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand">
-                  <Lock className="h-7 w-7" />
+            <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-5 sm:p-8">
+              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">
+                  <Lock className="h-6 w-6 sm:h-7 sm:w-7" />
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-[200px] flex-1">
                   <p className="font-display text-lg font-bold text-ink">{c.title}</p>
                   <p className="mt-1 text-sm text-muted">
                     All lessons complete — pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate.
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                     </p>
                   )}
                 </div>
-                <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary">
+                <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary w-full sm:w-auto">
                   <ListChecks className="h-4 w-4" /> {best ? "Retake assessment" : "Take assessment"}
                 </button>
               </div>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
       <div className="space-y-4">
         {myRegistrations.map((r) => (
           <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-4 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
               <div className="min-w-0">
                 <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
                   {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
@@ -477,7 +477,7 @@ export default function DashboardPage() {
 
     if (editing) {
       return (
-        <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-xl font-bold text-ink">{editing.id ? "Edit article" : "New article"}</h2>
             <button onClick={() => { setEditing(null); setError(null); }} className="btn-outline-dark !py-2.5">Cancel</button>
@@ -531,7 +531,7 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-white p-5 sm:p-6">
           <div>
             <h2 className="font-display text-xl font-bold text-ink">My articles</h2>
             <p className="mt-1 text-sm text-muted">
@@ -550,9 +550,9 @@ export default function DashboardPage() {
         {list.length ? (
           <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
             {list.map((p) => (
-              <div key={p.id} className="flex flex-wrap items-center gap-4 p-5">
+              <div key={p.id} className="flex flex-wrap items-center gap-3 sm:gap-4 p-4 sm:p-5">
                 <FileText className="h-5 w-5 shrink-0 text-brand" />
-                <div className="min-w-0 flex-1">
+                <div className="min-w-[160px] flex-1">
                   <p className="truncate font-display text-base font-bold text-ink">{p.title || "Untitled"}</p>
                   <p className="mt-0.5 text-xs text-muted">
                     {p.category} · {p.authorName} · updated {new Date(p.updatedAt).toLocaleDateString()}
@@ -563,7 +563,7 @@ export default function DashboardPage() {
                     : p.status === "pending" ? "bg-amber-50 text-amber-700" : "bg-line/60 text-muted"}`}>
                   {p.status}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button onClick={() => open(p)} className="btn-outline-dark !py-2"><PenSquare className="h-4 w-4" /> Edit</button>
                   {canPublish && p.status !== "published" && (
                     <button onClick={() => store.setPostStatus(p.id, "published")} className="btn-primary !py-2">Publish</button>
@@ -580,7 +580,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-line bg-white p-14 text-center">
+          <div className="rounded-2xl border border-dashed border-line bg-white p-10 sm:p-14 text-center">
             <PenSquare className="mx-auto h-12 w-12 text-brand/35" />
             <h3 className="mt-5 font-display text-lg font-bold text-ink">No articles yet</h3>
             <p className="mt-1.5 text-sm text-muted">Write your first piece for the GAMAT blog.</p>
@@ -647,7 +647,7 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-6">
-        <div className="rounded-3xl border border-line bg-white p-8 shadow-sm">
+        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-sm">
           <h2 className="font-display text-xl font-bold text-ink">Team bio for the public site</h2>
           <p className="mt-2 text-sm text-muted">
             Upload your photo and bio for About the Team. Your picture updates your account immediately
@@ -842,7 +842,7 @@ export default function DashboardPage() {
     return (
       <form onSubmit={save} className="space-y-6">
         {/* Avatar + identity */}
-        <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
           <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
           <p className="mt-1 text-sm text-muted">Shown on your dashboard, certificates area and community profile.</p>
 
@@ -883,7 +883,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Details */}
-        <div className="rounded-3xl border border-line bg-white p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
           <h2 className="font-display text-xl font-bold text-ink">Personal details</h2>
           <p className="mt-1 text-sm text-muted">Update your information and how you appear to others.</p>
 
@@ -908,7 +908,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Birthday */}
-          <div className="mt-5 rounded-2xl border border-line bg-cream p-5">
+          <div className="mt-5 rounded-2xl border border-line bg-cream p-4 sm:p-5">
             <div className="flex items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
                 <Cake className="h-5 w-5" />
