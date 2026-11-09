@@ -3,6 +3,7 @@ import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
 import { signInWithGoogleSupabase, resetPasswordForEmailSupabase, updatePasswordSupabase } from "../lib/supabaseAuth";
+import { getActiveReferralCode } from "../lib/affiliate";
 import {
   AlertCircle,
   Mail,
@@ -568,6 +569,7 @@ export function LoginPage() {
 
 export function SignUpPage() {
   const { signup, isAuthed } = useStore();
+  const activeRef = getActiveReferralCode();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -626,6 +628,15 @@ export function SignUpPage() {
             Log in
           </button>
         </p>
+
+        {activeRef && (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3 text-xs font-semibold text-emerald-800">
+            <span className="text-base">🎁</span>
+            <span>
+              Invited by Ambassador <strong className="font-mono text-emerald-950 font-bold">{activeRef}</strong>. VIP welcome cohort access & 5% discount unlocked!
+            </span>
+          </div>
+        )}
 
         <div className="mt-7">
           <GoogleAuthButton label="Sign up with Google" />

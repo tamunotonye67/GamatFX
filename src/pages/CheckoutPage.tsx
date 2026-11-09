@@ -8,6 +8,7 @@ import {
   ShieldCheck, ArrowUpRight, Loader2, Tag, Video, MessagesSquare, Send, MessageSquare, Check,
 } from "lucide-react";
 import { payWithPaystack, generateTxRef } from "../lib/paystack";
+import { getActiveReferralCode } from "../lib/affiliate";
 
 type Method = "card" | "transfer" | "ussd";
 
@@ -42,10 +43,18 @@ export default function CheckoutPage({ id }: { id: string }) {
           setAppliedCode(res.coupon.code);
           setDiscount(res.discountPercent / 100);
           setCouponMsg(`Success! ${res.discountPercent}% discount applied (${res.coupon.code}).`);
+          return;
         }
       }
+
+      // Check if referred by an ambassador
+      const activeRef = getActiveReferralCode();
+      if (activeRef && !appliedCode && discount === 0) {
+        setDiscount(0.05);
+        setCouponMsg(`Ambassador invite "${activeRef}" active — 5% welcome discount applied!`);
+      }
     } catch {}
-  }, [validateCoupon, appliedCode]);
+  }, [validateCoupon, appliedCode, discount]);
 
   if (!course) {
     return (

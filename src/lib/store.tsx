@@ -33,6 +33,24 @@ import {
 } from "./quizzes";
 import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
 import { loadStoredProducts, saveStoredProducts, type StoreProduct } from "./storeProducts";
+import {
+  loadAffiliateProfiles,
+  saveAffiliateProfiles,
+  loadAffiliateCommissions,
+  saveAffiliateCommissions,
+  loadPayoutRequests,
+  savePayoutRequests,
+  loadAffiliateSettings,
+  saveAffiliateSettings,
+  generateReferralCode,
+  getActiveReferralCode,
+  PRESET_QUOTES,
+  PRESET_BADGES,
+  type AffiliateProfile,
+  type AffiliateCommission,
+  type PayoutRequest,
+  type AffiliateSettings,
+} from "./affiliate";
 
 /* ================================ Types ================================ */
 
@@ -1287,6 +1305,19 @@ type Ctx = {
   myStorePurchases: Payment[];
   hasPurchasedProduct: (productId: string) => boolean;
 
+  /* affiliate & ambassador engine */
+  affiliateProfiles: AffiliateProfile[];
+  payoutRequests: PayoutRequest[];
+  affiliateCommissions: AffiliateCommission[];
+  affiliateSettings: AffiliateSettings;
+  myAffiliateProfile: AffiliateProfile | null;
+  updateMyAffiliateProfile: (patch: Partial<AffiliateProfile>) => void;
+  requestPayout: (amount: number, method: "bank" | "usdt" | "paypal", details: string) => { ok: boolean; error?: string };
+  recordReferralClick: (code: string) => void;
+  approvePayoutRequest: (id: string, note?: string) => void;
+  rejectPayoutRequest: (id: string, note?: string) => void;
+  updateAffiliateSettings: (settings: AffiliateSettings) => void;
+
   /* admin */
   admin: {
     accounts: Account[];
@@ -1320,6 +1351,13 @@ type Ctx = {
     storeProducts: StoreProduct[];
     saveStoreProduct: (p: Omit<StoreProduct, "id" | "createdAt" | "salesCount"> & { id?: string }) => { ok: boolean; error?: string };
     deleteStoreProduct: (id: string) => void;
+    affiliateProfiles: AffiliateProfile[];
+    payoutRequests: PayoutRequest[];
+    affiliateCommissions: AffiliateCommission[];
+    affiliateSettings: AffiliateSettings;
+    approvePayoutRequest: (id: string, note?: string) => void;
+    rejectPayoutRequest: (id: string, note?: string) => void;
+    updateAffiliateSettings: (settings: AffiliateSettings) => void;
     resetDemoData: () => void;
   };
 };
@@ -1366,9 +1404,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [reviews, setReviews] = useState<ReviewItem[]>(() => read<ReviewItem[]>("gamat_reviews_v1", SEED_REVIEWS));
   const [customQuizzes, setCustomQuizzes] = useState<Quiz[]>(() => read<Quiz[]>(K.customQuizzes, []));
   const [storeProducts, setStoreProducts] = useState<StoreProduct[]>(() => loadStoredProducts());
+  const [affiliateProfiles, setAffiliateProfiles] = useState<AffiliateProfile[]>(() => loadAffiliateProfiles());
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>(() => loadPayoutRequests());
+  const [affiliateCommissions, setAffiliateCommissions] = useState<AffiliateCommission[]>(() => loadAffiliateCommissions());
+  const [affiliateSettings, setAffiliateSettings] = useState<AffiliateSettings>(() => loadAffiliateSettings());
 
   /* persist */
   useEffect(() => saveStoredProducts(storeProducts), [storeProducts]);
+  useEffect(() => saveAffiliateProfiles(affiliateProfiles), [affiliateProfiles]);
+  useEffect(() => savePayoutRequests(payoutRequests), [payoutRequests]);
+  useEffect(() => saveAffiliateCommissions(affiliateCommissions), [affiliateCommissions]);
+  useEffect(() => saveAffiliateSettings(affiliateSettings), [affiliateSettings]);
   useEffect(() => write(K.accounts, accounts), [accounts]);
   useEffect(() => write(K.session, sessionId), [sessionId]);
   useEffect(() => write(K.enrollments, allEnrollments), [allEnrollments]);
@@ -1630,6 +1676,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
     setSessionId(acc.id);
 
+    // Attribute referral signup if referral code exists
+    try {
+      const activeRef = getActiveReferralCode();
+      if (activeRef) {
+        setAffiliateProfiles((prev) =>
+          prev.map((a) =>
+            a.referralCode.trim().toUpperCase() === activeRef.trim().toUpperCase()
+              ? { ...a, totalSignups: (a.totalSignups || 0) + 1 }
+              : a
+          )
+        );
+      }
+    } catch {}
+
     return { ok: true };
   }, [accounts]);
 
@@ -1855,8 +1915,53 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       );
     }
 
+    // Affiliate Commission Attribution
+    try {
+      const activeRef = getActiveReferralCode();
+      if (activeRef) {
+        const affiliate = affiliateProfiles.find(
+          (a) => a.referralCode.trim().toUpperCase() === activeRef.trim().toUpperCase()
+        );
+        if (affiliate && affiliate.userId !== p.userId) {
+          const rate = (affiliateSettings.defaultCommissionPercent || 15) / 100;
+          const commissionAmt = Math.round(payment.amount * rate);
+          if (commissionAmt > 0) {
+            const comm: AffiliateCommission = {
+              id: uid("comm"),
+              affiliateUserId: affiliate.userId,
+              affiliateCode: affiliate.referralCode,
+              customerName: p.userName,
+              customerEmail: p.userEmail,
+              orderType: p.courseId.startsWith("store-") ? "store" : "course",
+              orderTitle: p.courseTitle,
+              orderAmount: payment.amount,
+              commissionRate: rate,
+              commissionAmount: commissionAmt,
+              status: "approved",
+              createdAt: new Date().toISOString(),
+            };
+            setAffiliateCommissions((prev) => [comm, ...prev]);
+            setAffiliateProfiles((prev) =>
+              prev.map((a) =>
+                a.userId === affiliate.userId
+                  ? {
+                      ...a,
+                      totalConversions: (a.totalConversions || 0) + 1,
+                      totalEarned: (a.totalEarned || 0) + commissionAmt,
+                      pendingBalance: (a.pendingBalance || 0) + commissionAmt,
+                    }
+                  : a
+              )
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Affiliate commission attribution error:", e);
+    }
+
     return payment;
-  }, []);
+  }, [affiliateProfiles, affiliateSettings]);
 
   const myPayments = useMemo(
     () => payments.filter((p) => p.userId === sessionId), [payments, sessionId]
@@ -2772,6 +2877,166 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setStoreProducts((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
+  /* ---------------------- Affiliate & Ambassador ---------------------- */
+
+  const myAffiliateProfile = useMemo(() => {
+    if (!user) return null;
+    const existing = affiliateProfiles.find((p) => p.userId === user.id);
+    if (existing) return existing;
+    return {
+      userId: user.id,
+      userName: `${user.firstName} ${user.lastName}`,
+      userEmail: user.email,
+      avatar: user.avatar,
+      referralCode: generateReferralCode(user.firstName),
+      badgeTitle: PRESET_BADGES[0],
+      personalQuote: PRESET_QUOTES[0],
+      totalClicks: 0,
+      totalSignups: 0,
+      totalConversions: 0,
+      totalEarned: 0,
+      pendingBalance: 0,
+      paidOut: 0,
+      joinedAt: user.joined || new Date().toISOString(),
+    };
+  }, [user, affiliateProfiles]);
+
+  const updateMyAffiliateProfile: Ctx["updateMyAffiliateProfile"] = useCallback((patch) => {
+    if (!user) return;
+    setAffiliateProfiles((prev) => {
+      const exists = prev.some((p) => p.userId === user.id);
+      if (exists) {
+        return prev.map((p) => (p.userId === user.id ? { ...p, ...patch } : p));
+      }
+      const newProf: AffiliateProfile = {
+        userId: user.id,
+        userName: `${user.firstName} ${user.lastName}`,
+        userEmail: user.email,
+        avatar: user.avatar,
+        referralCode: generateReferralCode(user.firstName),
+        badgeTitle: PRESET_BADGES[0],
+        personalQuote: PRESET_QUOTES[0],
+        totalClicks: 0,
+        totalSignups: 0,
+        totalConversions: 0,
+        totalEarned: 0,
+        pendingBalance: 0,
+        paidOut: 0,
+        joinedAt: user.joined || new Date().toISOString(),
+        ...patch,
+      };
+      return [...prev, newProf];
+    });
+  }, [user]);
+
+  const requestPayout: Ctx["requestPayout"] = useCallback((amount, method, details) => {
+    if (!user) return { ok: false, error: "Must be signed in to request withdrawal." };
+    const prof = affiliateProfiles.find((p) => p.userId === user.id);
+    const balance = prof ? prof.pendingBalance : 0;
+    if (amount < affiliateSettings.minimumPayoutAmount) {
+      return { ok: false, error: `Minimum payout request is ₦${affiliateSettings.minimumPayoutAmount.toLocaleString()}.` };
+    }
+    if (balance < amount) {
+      return { ok: false, error: "Insufficient available affiliate balance." };
+    }
+    if (!details.trim()) {
+      return { ok: false, error: "Please enter your bank account or crypto payout details." };
+    }
+
+    const req: PayoutRequest = {
+      id: uid("payout"),
+      affiliateUserId: user.id,
+      affiliateName: `${user.firstName} ${user.lastName}`,
+      affiliateEmail: user.email,
+      amount,
+      method,
+      details: details.trim(),
+      status: "pending",
+      requestedAt: new Date().toISOString(),
+    };
+
+    setPayoutRequests((prev) => [req, ...prev]);
+    setAffiliateProfiles((prev) =>
+      prev.map((p) =>
+        p.userId === user.id
+          ? {
+              ...p,
+              pendingBalance: p.pendingBalance - amount,
+              payoutMethod: method,
+              payoutDetails: details.trim(),
+            }
+          : p
+      )
+    );
+    return { ok: true };
+  }, [user, affiliateProfiles, affiliateSettings]);
+
+  const recordReferralClick: Ctx["recordReferralClick"] = useCallback((code) => {
+    if (!code) return;
+    const clean = code.trim().toUpperCase();
+    setAffiliateProfiles((prev) =>
+      prev.map((p) => (p.referralCode === clean ? { ...p, totalClicks: (p.totalClicks || 0) + 1 } : p))
+    );
+  }, []);
+
+  const approvePayoutRequest: Ctx["approvePayoutRequest"] = useCallback((id, note) => {
+    let reqAmount = 0;
+    let reqUserId = "";
+    setPayoutRequests((prev) =>
+      prev.map((r) => {
+        if (r.id === id) {
+          reqAmount = r.amount;
+          reqUserId = r.affiliateUserId;
+          return {
+            ...r,
+            status: "paid",
+            processedAt: new Date().toISOString(),
+            adminNote: note,
+          };
+        }
+        return r;
+      })
+    );
+    if (reqUserId && reqAmount > 0) {
+      setAffiliateProfiles((prev) =>
+        prev.map((p) =>
+          p.userId === reqUserId ? { ...p, paidOut: (p.paidOut || 0) + reqAmount } : p
+        )
+      );
+    }
+  }, []);
+
+  const rejectPayoutRequest: Ctx["rejectPayoutRequest"] = useCallback((id, note) => {
+    let reqAmount = 0;
+    let reqUserId = "";
+    setPayoutRequests((prev) =>
+      prev.map((r) => {
+        if (r.id === id) {
+          reqAmount = r.amount;
+          reqUserId = r.affiliateUserId;
+          return {
+            ...r,
+            status: "rejected",
+            processedAt: new Date().toISOString(),
+            adminNote: note,
+          };
+        }
+        return r;
+      })
+    );
+    if (reqUserId && reqAmount > 0) {
+      setAffiliateProfiles((prev) =>
+        prev.map((p) =>
+          p.userId === reqUserId ? { ...p, pendingBalance: (p.pendingBalance || 0) + reqAmount } : p
+        )
+      );
+    }
+  }, []);
+
+  const updateAffiliateSettings: Ctx["updateAffiliateSettings"] = useCallback((settings) => {
+    setAffiliateSettings(settings);
+  }, []);
+
   const admin: Ctx["admin"] = {
     accounts,
     enrollments: allEnrollments,
@@ -2904,6 +3169,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     storeProducts,
     saveStoreProduct,
     deleteStoreProduct,
+    affiliateProfiles,
+    payoutRequests,
+    affiliateCommissions,
+    affiliateSettings,
+    approvePayoutRequest,
+    rejectPayoutRequest,
+    updateAffiliateSettings,
     resetDemoData: () => {
       setAllEnrollments([]); setPayments([]); setRegistrations([]); setEnquiries([]);
       setEvents(DEFAULT_EVENTS); setCourseSettings({});
@@ -3196,6 +3468,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     deleteStoreProduct,
     myStorePurchases,
     hasPurchasedProduct,
+    affiliateProfiles,
+    payoutRequests,
+    affiliateCommissions,
+    affiliateSettings,
+    myAffiliateProfile,
+    updateMyAffiliateProfile,
+    requestPayout,
+    recordReferralClick,
+    approvePayoutRequest,
+    rejectPayoutRequest,
+    updateAffiliateSettings,
     admin,
   };
 

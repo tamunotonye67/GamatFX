@@ -50,6 +50,9 @@ import { AdminWhiteboard } from "./pages/admin/AdminWhiteboard";
 import WhiteboardPage from "./pages/WhiteboardPage";
 import StorePage from "./pages/StorePage";
 import { AdminStore } from "./pages/admin/AdminStore";
+import { AdminAffiliates } from "./pages/admin/AdminAffiliates";
+import { captureReferralFromUrl } from "./lib/affiliate";
+import { useStore } from "./lib/store";
 import { useRoute, segments } from "./lib/router";
 
 export class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -142,6 +145,7 @@ const staticPages: Record<string, React.ComponentType> = {
   "/admin/company-assets": AdminCompanyAssets,
   "/admin/coupons": AdminCoupons,
   "/admin/store": AdminStore,
+  "/admin/affiliates": AdminAffiliates,
   "/admin/events": AdminEvents,
   "/admin/registrations": AdminRegistrations,
   "/admin/enquiries": AdminEnquiries,
@@ -180,6 +184,14 @@ const SLIM_FOOTER = ["/fun", "/dashboard", "/mentorship-survey", "/forum"];
 export default function App() {
   const route = useRoute();
   const [first, second] = segments(route);
+  const { recordReferralClick } = useStore();
+
+  useEffect(() => {
+    const code = captureReferralFromUrl();
+    if (code) {
+      recordReferralClick(code);
+    }
+  }, [recordReferralClick]);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });

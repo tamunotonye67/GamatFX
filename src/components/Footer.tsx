@@ -30,6 +30,7 @@ const footerLinks: { title: string; items: FooterItem[] }[] = [
       { label: "Telegram Community", to: "/community" },
       { label: "Reviews", to: "/reviews" },
       { label: "Events & Intakes", to: "/events" },
+      { label: "Ambassador & Affiliate Program", to: "/dashboard" },
     ],
   },
   {
