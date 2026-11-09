@@ -57,10 +57,7 @@ export default function Hero() {
 
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,0.75fr)] lg:gap-14 xl:gap-20">
             <div className="max-w-3xl lg:max-w-none">
-              <span className="eyebrow text-brand-light">
-                Financial education &amp; digital empowerment
-              </span>
-              <h1 className="mt-3 sm:mt-4 font-display text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
+              <h1 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
                 Build elite traders through{" "}
                 <span className="text-brand">high-quality forex education</span>
               </h1>
@@ -70,16 +67,20 @@ export default function Hero() {
                 consistent profitability.
               </p>
 
-              <div className="mt-7 sm:mt-9 flex flex-wrap items-center gap-3 sm:gap-4">
-                <button type="button" onClick={() => navigate("/courses")} className="btn-primary">
-                  Explore Courses <ArrowUpRight className="h-4 w-4" />
+              <div className="mt-7 sm:mt-9 flex flex-nowrap items-center gap-2.5 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate("/courses")}
+                  className="btn-primary flex-1 justify-center whitespace-nowrap !px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                >
+                  Explore Courses <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/how-it-works")}
-                  className="btn-ghost group"
+                  className="btn-ghost group flex-1 justify-center whitespace-nowrap !px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
-                  <PlayCircle className="h-5 w-5 transition-transform group-hover:scale-110" />
+                  <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 transition-transform group-hover:scale-110" />
                   Watch How It Works
                 </button>
               </div>

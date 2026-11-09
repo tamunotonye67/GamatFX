@@ -64,39 +64,26 @@ export function MobileSessionDock() {
   const utcH = now.getUTCHours() + now.getUTCMinutes() / 60;
   const openSessions = SESSIONS.filter((x) => isOpen(x, utcH));
   const activeColor = openSessions.length > 0 ? openSessions[openSessions.length - 1].color : "#dc3545";
-  const statusLabel = openSessions.length > 0 ? openSessions.map((o) => o.short).join("·") : "UTC";
 
   return (
     <div className="lg:hidden">
-      {/* Right-edge dock trigger button */}
+      {/* Simple, minimal right-edge dock trigger */}
       <button
         type="button"
         onClick={() => setOpenDrawer(true)}
         aria-label="Open live market session clock"
         aria-expanded={openDrawer}
-        className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 flex flex-col items-center gap-1.5 rounded-l-2xl border border-r-0 border-white/20 bg-ink/95 px-2 py-3 text-white shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md transition-transform duration-300 ${
+        className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 flex items-center gap-1 rounded-l-xl border border-r-0 border-white/15 bg-ink/90 py-2 pl-2 pr-1.5 text-white shadow-lg backdrop-blur-md transition-transform duration-300 ${
           openDrawer ? "translate-x-full" : "translate-x-0 active:scale-95"
         }`}
       >
-        <ChevronLeft className="h-3.5 w-3.5 text-white/70" />
-        <span className="relative flex h-7 w-7 items-center justify-center rounded-xl bg-white/10">
+        <ChevronLeft className="h-3 w-3 text-white/60" />
+        <span className="relative flex items-center justify-center">
           <Clock className="h-4 w-4 text-brand-light" />
           <span
-            className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full ring-2 ring-ink animate-pulse"
+            className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full ring-1 ring-ink animate-pulse"
             style={{ backgroundColor: activeColor }}
           />
-        </span>
-        <span
-          className="text-[9px] font-extrabold uppercase tracking-widest text-white/85"
-          style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
-        >
-          Sessions
-        </span>
-        <span
-          className="rounded-md px-1 py-0.5 text-[8px] font-extrabold uppercase tracking-tight text-white"
-          style={{ backgroundColor: `${activeColor}cc` }}
-        >
-          {statusLabel}
         </span>
       </button>
 
@@ -105,34 +92,33 @@ export function MobileSessionDock() {
         <div className="fixed inset-0 z-[60] flex items-center justify-end">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 bg-black/65 backdrop-blur-sm animate-fade-in"
             onClick={() => setOpenDrawer(false)}
           />
 
-          {/* Docked Clock Panel */}
-          <div className="relative z-10 flex max-h-[92dvh] w-[min(92vw,350px)] flex-col overflow-y-auto rounded-l-3xl border border-r-0 border-white/15 bg-[#101216] p-5 text-white shadow-2xl">
-            <div className="mb-3 flex items-center justify-between border-b border-white/10 pb-3">
+          {/* Compact Docked Clock Panel */}
+          <div className="relative z-10 flex max-h-[88dvh] w-[min(84vw,290px)] flex-col overflow-y-auto rounded-l-2xl border border-r-0 border-white/15 bg-[#101216] p-4 text-white shadow-2xl">
+            <div className="mb-2.5 flex items-center justify-between border-b border-white/10 pb-2.5">
               <div className="flex items-center gap-2">
                 <span
-                  className="h-2.5 w-2.5 rounded-full animate-pulse"
+                  className="h-2 w-2 rounded-full animate-pulse"
                   style={{ backgroundColor: activeColor }}
                 />
-                <div>
-                  <h3 className="font-display text-sm font-bold text-white">Market Sessions</h3>
-                  <p className="text-[11px] text-white/55">Live 24h UTC Trading Clock</p>
-                </div>
+                <h3 className="font-display text-xs font-bold uppercase tracking-wider text-white">
+                  Market Sessions
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setOpenDrawer(false)}
                 aria-label="Close session clock"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/75 transition hover:bg-white/15 hover:text-white"
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/75 transition hover:bg-white/15 hover:text-white"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="flex justify-center py-1">
+            <div className="flex justify-center">
               <MarketClock />
             </div>
           </div>
@@ -166,7 +152,7 @@ export default function MarketClock() {
 
   return (
     <div
-      className="group/clock relative w-full max-w-[260px] xs:max-w-[290px] cursor-pointer select-none transition-transform duration-500 ease-[cubic-bezier(.34,1.8,.5,1)] lg:hover:scale-[1.07] sm:max-w-[320px] lg:max-w-[340px] xl:max-w-[370px]"
+      className="group/clock relative w-full max-w-[220px] cursor-pointer select-none transition-transform duration-500 ease-[cubic-bezier(.34,1.8,.5,1)] lg:hover:scale-[1.07] sm:max-w-[300px] lg:max-w-[340px] xl:max-w-[370px]"
     >
       {/* Glow */}
       <div
