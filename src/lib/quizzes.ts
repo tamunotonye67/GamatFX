@@ -11,9 +11,11 @@ export type Quiz = {
   courseId: string;
   title: string;
   passMark: number; // percent, e.g. 70
-  timeLimitMins: number;
+  timeLimitMins: number; // 60 minutes for 50 questions
   questions: Question[];
 };
+
+export const DEFAULT_EXAM_QUESTION_COUNT = 50;
 
 /**
  * Fisher-Yates array shuffle.
@@ -44,17 +46,16 @@ export function shuffleQuestionOptions(question: Question): Question {
 }
 
 /**
- * Static base quizzes for all courses.
- * IMPORTANT ANTI-GUESSING DESIGN:
- * Correct answers are intentionally concise and direct, while distractors are
- * equally detailed or longer so students can never guess by picking the longest sentence.
+ * Course-specific curated question banks.
+ * Anti-guessing design: Correct answers are concise and direct;
+ * distractors are equally detailed or longer so sentence length cannot be used to guess.
  */
 export const QUIZZES: Quiz[] = [
   {
     courseId: "fundamental-supply-demand",
     title: "Fundamental, Supply & Demand Assessment",
     passMark: 70,
-    timeLimitMins: 15,
+    timeLimitMins: 60,
     questions: [
       {
         id: "fsd-1",
@@ -182,7 +183,7 @@ export const QUIZZES: Quiz[] = [
     courseId: "forex-foundations",
     title: "Forex Foundations — Final Assessment",
     passMark: 70,
-    timeLimitMins: 20,
+    timeLimitMins: 60,
     questions: [
       {
         id: "ff-1",
@@ -310,7 +311,7 @@ export const QUIZZES: Quiz[] = [
     courseId: "price-action-mastery",
     title: "Price Action Mastery — Final Assessment",
     passMark: 75,
-    timeLimitMins: 25,
+    timeLimitMins: 60,
     questions: [
       {
         id: "pa-1",
@@ -438,7 +439,7 @@ export const QUIZZES: Quiz[] = [
     courseId: "risk-trade-management",
     title: "Risk & Trade Management — Final Assessment",
     passMark: 75,
-    timeLimitMins: 20,
+    timeLimitMins: 60,
     questions: [
       {
         id: "rm-1",
@@ -542,7 +543,7 @@ export const QUIZZES: Quiz[] = [
     courseId: "pro-trader-mentorship",
     title: "Pro Trader Mentorship — Final Assessment",
     passMark: 80,
-    timeLimitMins: 30,
+    timeLimitMins: 60,
     questions: [
       {
         id: "ptm-1",
@@ -646,7 +647,7 @@ export const QUIZZES: Quiz[] = [
     courseId: "funded-trader-prep",
     title: "Funded Trader Prep — Final Assessment",
     passMark: 80,
-    timeLimitMins: 25,
+    timeLimitMins: 60,
     questions: [
       {
         id: "ftp-1",
@@ -748,6 +749,496 @@ export const QUIZZES: Quiz[] = [
   },
 ];
 
+/* ============================================================================
+ * COMPREHENSIVE CROSS-DISCIPLINARY QUESTION BANK (35 Questions)
+ * Used to expand any assessment to 50 comprehensive certification questions.
+ * All options strictly adhere to the anti-guessing rule (concise correct answer,
+ * detailed distractors).
+ * ========================================================================== */
+
+export const SHARED_TRADING_QUESTIONS: Question[] = [
+  {
+    id: "sq-1",
+    q: "What does 'slippage' refer to during high-impact market events?",
+    options: [
+      "Getting filled at a price different from your order price",
+      "A software bug where trading terminal charts disconnect from the server",
+      "A penalty fee charged by liquidity providers for closing trades under one minute",
+      "The automatic reduction of account leverage applied during weekend rollover",
+    ],
+    answer: 0,
+    explain: "Slippage occurs when market volatility causes an execution fill price to deviate from the requested price.",
+  },
+  {
+    id: "sq-2",
+    q: "What does an inverted Treasury yield curve historically anticipate?",
+    options: [
+      "An upcoming economic recession",
+      "An immediate ten-year boom in equity markets worldwide",
+      "A permanent fixed peg between the US Dollar and Euro",
+      "A complete cessation of interbank foreign currency trading",
+    ],
+    answer: 0,
+    explain: "An inverted yield curve (where short-term yields exceed long-term yields) has historically signalled recession risk.",
+  },
+  {
+    id: "sq-3",
+    q: "What is an institutional Breaker Block?",
+    options: [
+      "A failed order block that was broken through and now acts as inverse support/resistance",
+      "An overnight limit on how many positions a retail trader can hold open simultaneously",
+      "A candlestick pattern consisting exclusively of four consecutive doji bars",
+      "A trading indicator combining the 50-day EMA with twenty-period Bollinger Bands",
+    ],
+    answer: 0,
+    explain: "A Breaker Block is an order block that was invalidated by a liquidity sweep and subsequently acts as inverted support/resistance.",
+  },
+  {
+    id: "sq-4",
+    q: "Why do professional traders avoid risking more than 1% to 2% on any single trade?",
+    options: [
+      "To survive inevitable losing streaks without emotional tilt",
+      "Because brokerage terms of service strictly prohibit risking more than two percent",
+      "Because prop firms close profitable accounts that take fewer than twenty trades",
+      "To keep their trading account locked inside the lowest retail tax bracket",
+    ],
+    answer: 0,
+    explain: "Conservative sizing ensures that even a string of 5–8 consecutive losses consumes under 10%–15% of equity.",
+  },
+  {
+    id: "sq-5",
+    q: "What is the primary driver of currency valuations over multi-month horizons?",
+    options: [
+      "Relative interest rate differentials between central banks",
+      "Retail sentiment surveys conducted on social media platforms",
+      "The volume of trading activity generated by cryptocurrency exchanges",
+      "The number of technical indicators pointing in the same direction on the hourly chart",
+    ],
+    answer: 0,
+    explain: "Capital flows toward currencies offering higher real yields and sounder monetary policy divergence.",
+  },
+  {
+    id: "sq-6",
+    q: "What does the 'Ask' price represent in a currency quote?",
+    options: [
+      "The price at which you buy from the market",
+      "The price at which you sell your position back to the broker",
+      "The average high price of the current daily candlestick session",
+      "The overnight financing rate debited from your trading account",
+    ],
+    answer: 0,
+    explain: "The Ask is the price sellers offer and buyers pay to enter long positions.",
+  },
+  {
+    id: "sq-7",
+    q: "What defines an institutional 'Discount' zone in a bullish dealing range?",
+    options: [
+      "Price trading below the 50% equilibrium of the range",
+      "A temporary reduction in broker commissions during the Asian session",
+      "Any price area where candlestick wicks exceed fifty pips in length",
+      "Price trading above the previous monthly high on heavy volume",
+    ],
+    answer: 0,
+    explain: "Buying below 50% equilibrium allows traders to purchase in discount relative to the current dealing range.",
+  },
+  {
+    id: "sq-8",
+    q: "Why is 'revenge trading' so damaging to long-term trader survival?",
+    options: [
+      "It trades emotional frustration rather than an edge, amplifying losses",
+      "It requires paying double commission on every trade entered within an hour",
+      "It causes charting software to delay execution feeds by several seconds",
+      "It forces brokers to automatically lower your leverage to 1:1 for the day",
+    ],
+    answer: 0,
+    explain: "Revenge trading happens when stress and anger bypass your trading plan, leading to oversized, unplanned positions.",
+  },
+  {
+    id: "sq-9",
+    q: "What is the primary role of a trading journal in professional development?",
+    options: [
+      "To track process adherence and quantify true statistical edge",
+      "To share screenshots of winning trades with friends on Telegram groups",
+      "To replace the requirement of using a stop loss on higher timeframe setups",
+      "To predict future economic calendar releases before governments publish them",
+    ],
+    answer: 0,
+    explain: "A detailed journal tracks setup types, emotional state, and R-multiples, diagnosing leaks in your execution.",
+  },
+  {
+    id: "sq-10",
+    q: "In currency trading, what does 'liquidity' mean?",
+    options: [
+      "How easily orders can be filled without moving the price",
+      "The total amount of cash a trader keeps in their physical bank account",
+      "The speed of an internet connection between the computer and broker server",
+      "A guaranteed daily payout offered by unregulated offshore brokers",
+    ],
+    answer: 0,
+    explain: "Liquidity is the volume of available resting buy/sell orders that allows rapid execution with minimal slippage.",
+  },
+  {
+    id: "sq-11",
+    q: "What occurs during the Asian session (Tokyo / Sydney) on major USD pairs?",
+    options: [
+      "Consolidation that builds liquidity above and below the range",
+      "The largest trending price expansions of the entire trading day",
+      "A complete freeze in interbank liquidity where spreads drop to zero",
+      "The release of all major United States employment and inflation data",
+    ],
+    answer: 0,
+    explain: "Asian session typically accumulates orders in a range, which the London open subsequently manipulates/sweeps.",
+  },
+  {
+    id: "sq-12",
+    q: "What does 'purchasing power parity' (PPP) attempt to measure?",
+    options: [
+      "Exchange rates that equalise prices of goods between countries",
+      "The maximum lot size an account can purchase given its leverage tier",
+      "The profit earned by central banks from daily overnight swap charges",
+      "The exact spread difference between retail brokers and prime liquidity pools",
+    ],
+    answer: 0,
+    explain: "PPP suggests exchange rates should adjust so that an identical basket of goods costs the same across countries.",
+  },
+  {
+    id: "sq-13",
+    q: "If an economic indicator prints 'Better than Expected' for EUR, what is the typical EUR/USD reaction?",
+    options: [
+      "Bullish EUR/USD rally",
+      "Sharp bearish collapse in EUR/USD due to immediate profit taking",
+      "Zero price movement because currency pairs only respond to US data",
+      "A complete freeze in spot trading until the New York session begins",
+    ],
+    answer: 0,
+    explain: "Positive economic data strengthens confidence in that economy's currency, lifting EUR/USD.",
+  },
+  {
+    id: "sq-14",
+    q: "What is the primary advantage of trading with a regulated broker?",
+    options: [
+      "Segregation of client funds and institutional oversight",
+      "A guarantee that every trade you place will achieve at least a 1:3 R:R",
+      "Free funded accounts with zero drawdown rules or restrictions",
+      "Exemption from all local and international tax reporting obligations",
+    ],
+    answer: 0,
+    explain: "Tier-1 regulated brokers keep client capital in segregated accounts and are audited by regulatory authorities.",
+  },
+  {
+    id: "sq-15",
+    q: "What does 'risk-on' sentiment describe in global financial markets?",
+    options: [
+      "Investors buying growth and higher-yielding assets like stocks and AUD",
+      "Global institutional investors liquidating all assets into physical gold",
+      "A complete ban on retail leverage imposed by international central banks",
+      "Traders widening their stop losses to survive unexpected headline spikes",
+    ],
+    answer: 0,
+    explain: "Risk-on sentiment occurs when confidence is high; capital flows out of safe havens into equities and commodity currencies.",
+  },
+  {
+    id: "sq-16",
+    q: "In Smart Money concepts, what does 'BOS' stand for?",
+    options: [
+      "Break of Structure",
+      "Balance of Settlement",
+      "Broker Order Stream",
+      "Base of Support",
+    ],
+    answer: 0,
+    explain: "Break of Structure (BOS) confirms the continuation of an established trend when price closes beyond a previous swing point.",
+  },
+  {
+    id: "sq-17",
+    q: "What is an 'Economic Calendar' used for by professional traders?",
+    options: [
+      "Scheduling risk around major macro releases and catalysts",
+      "Booking vacation days when forex markets are closed for holidays",
+      "Tracking the personal birthdays of global central bank governors",
+      "Predicting lottery numbers based on historical price closing digits",
+    ],
+    answer: 0,
+    explain: "Economic calendars map high-impact event release times so traders can avoid holding wide exposure into volatility spikes.",
+  },
+  {
+    id: "sq-18",
+    q: "What is 'overnight swap' (financing) in spot forex trading?",
+    options: [
+      "Interest earned or paid for holding a position past 5 PM New York",
+      "A commission fee charged by trading platforms for refreshing chart candles",
+      "A penalty applied when a trader changes the color palette of their charts",
+      "The exchange rate difference between demo accounts and real money accounts",
+    ],
+    answer: 0,
+    explain: "Swap is the interest rate differential between the two currencies held overnight at the daily 5:00 PM EST rollover.",
+  },
+  {
+    id: "sq-19",
+    q: "What is a 'Stop Loss' order designed to accomplish?",
+    options: [
+      "Cap maximum loss at a predetermined level if the trade fails",
+      "Guarantee that the broker will always execute your take profit first",
+      "Double your position size automatically when price begins to retrace",
+      "Prevent your trading platform from logging out during the night",
+    ],
+    answer: 0,
+    explain: "A stop loss acts as a safety invalidation mechanism, closing the trade if price moves against your thesis.",
+  },
+  {
+    id: "sq-20",
+    q: "What is the best way to handle a 3-trade losing streak?",
+    options: [
+      "Take a planned cool-off break and review logged execution against rules",
+      "Quadruple the risk on the fourth trade to make back all previous losses",
+      "Switch to an untested strategy downloaded from YouTube that afternoon",
+      "Open simultaneous positions on eight different exotic currency pairs",
+    ],
+    answer: 0,
+    explain: "Losing streaks are mathematically normal; stepping away protects emotional capital and prevents tilt.",
+  },
+  {
+    id: "sq-21",
+    q: "What does 'Carry Trade' mean?",
+    options: [
+      "Borrowing low-interest currency to invest in higher-yielding currency",
+      "Holding an open position for more than one year without closing it",
+      "Carrying your laptop to a physical trading office to place entries",
+      "Copying trades placed by another member of a Telegram chat group",
+    ],
+    answer: 0,
+    explain: "Traders profit from the yield spread between a high-rate currency and a low-rate funding currency.",
+  },
+  {
+    id: "sq-22",
+    q: "What does a 'Doji' candlestick indicate about market sentiment?",
+    options: [
+      "Indecision between buyers and sellers at that price",
+      "A guaranteed 100-pip trend continuation in the direction of the open",
+      "An immediate intervention by institutional liquidity providers",
+      "That the market has permanently closed for the weekend early",
+    ],
+    answer: 0,
+    explain: "A Doji has virtually equal opening and closing prices, showing that buyers and sellers ended in equilibrium.",
+  },
+  {
+    id: "sq-23",
+    q: "What happens to the spread during the 5:00 PM New York rollover window?",
+    options: [
+      "It widens significantly due to thin interbank liquidity",
+      "It shrinks to absolute zero on all retail broker accounts",
+      "It remains permanently frozen until the following Monday morning",
+      "It is replaced by a flat twenty-dollar government transaction fee",
+    ],
+    answer: 0,
+    explain: "During the 5:00 PM EST market rollover, New York closes and liquidity thins out, causing spreads to widen.",
+  },
+  {
+    id: "sq-24",
+    q: "What is 'FOMO' in trading psychology?",
+    options: [
+      "Fear of Missing Out, leading to emotional, late chase entries",
+      "Financial Order Market Operations managed by institutional dealers",
+      "A specialized candlestick pattern used exclusively on weekly charts",
+      "An automated hedging system built into MetaTrader 5 terminals",
+    ],
+    answer: 0,
+    explain: "Fear of Missing Out (FOMO) causes traders to jump into parabolic moves near the top, right before a reversal.",
+  },
+  {
+    id: "sq-25",
+    q: "Why are round psychological numbers (like 1.0500 or 1.3000) significant?",
+    options: [
+      "Large clusters of institutional limit and stop orders accumulate there",
+      "They are the only price levels where automated trading robots are legal",
+      "Central banks reset their interest rates each time price crosses them",
+      "Brokers charge zero spread whenever price trades within five pips of them",
+    ],
+    answer: 0,
+    explain: "Round numbers attract concentrated retail and institutional resting orders, creating natural support/resistance.",
+  },
+];
+
+/* ============================================================================
+ * INFINITE PROCEDURAL QUESTION BATCH GENERATOR
+ * Generates endless parameterized questions with randomized numbers, account
+ * balances, pairs, macro stats, and scenarios.
+ * ========================================================================== */
+
+function pickOne<T>(arr: T[], rng: () => number): T {
+  return arr[Math.floor(rng() * arr.length)];
+}
+
+function makeRng(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+export function generateProceduralBatch(courseId: string, count: number, startSeed: number): Question[] {
+  const list: Question[] = [];
+  const pairs = ["EUR/USD", "GBP/USD", "AUD/USD", "NZD/USD", "EUR/GBP", "USD/CAD", "USD/JPY"];
+  const balances = [5000, 10000, 25000, 50000, 100000, 200000];
+  const stopPipsList = [12, 15, 20, 25, 30, 40, 50];
+  const riskPcts = [0.5, 1.0, 1.5, 2.0];
+  const ddScenarios = [
+    { loss: 20, gain: 25 },
+    { loss: 25, gain: 33.3 },
+    { loss: 30, gain: 42.9 },
+    { loss: 40, gain: 66.7 },
+    { loss: 50, gain: 100 },
+    { loss: 60, gain: 150 },
+    { loss: 75, gain: 300 },
+  ];
+  const winRateList = [40, 45, 50, 55, 60];
+  const rrList = [2.0, 2.5, 3.0, 3.5, 4.0];
+
+  for (let i = 0; i < count; i++) {
+    const seed = startSeed + i * 37;
+    const rng = makeRng(seed);
+    const pair = pickOne(pairs, rng);
+    const type = i % 7;
+
+    if (type === 0) {
+      // Position sizing calculation
+      const balance = pickOne(balances, rng);
+      const riskPct = pickOne(riskPcts, rng);
+      const stopPips = pickOne(stopPipsList, rng);
+      const riskDollars = (balance * riskPct) / 100;
+      const lotSize = (riskDollars / (stopPips * 10)).toFixed(2);
+      const wrongLot1 = (Number(lotSize) * 2).toFixed(2);
+      const wrongLot2 = (Number(lotSize) * 0.5).toFixed(2);
+      const wrongLot3 = (Number(lotSize) + 1.25).toFixed(2);
+
+      list.push({
+        id: `gen-lot-${seed}-${i}`,
+        q: `On a $${balance.toLocaleString()} account risking ${riskPct}% ($${riskDollars.toLocaleString()}) with a ${stopPips}-pip stop on ${pair} ($10/pip/lot), what is your lot size?`,
+        options: [
+          `${lotSize} lots`,
+          `${wrongLot1} lots, doubling your standard pip allocation for faster recovery`,
+          `${wrongLot2} lots, reserving half of the margin for an unplanned hedge`,
+          `${wrongLot3} lots, using maximum available broker leverage on entry`,
+        ],
+        answer: 0,
+        explain: `Position Size = Risk Capital ($${riskDollars}) ÷ (Stop Pips ${stopPips} × $10/pip) = ${lotSize} standard lots.`,
+      });
+    } else if (type === 1) {
+      // Drawdown recovery calculation
+      const sc = pickOne(ddScenarios, rng);
+      list.push({
+        id: `gen-dd-${seed}-${i}`,
+        q: `If an account experiences a ${sc.loss}% drawdown, what percentage gain on the remaining balance is required to return to breakeven?`,
+        options: [
+          `+${sc.gain}%`,
+          `+${sc.loss}%, matching the exact percentage lost during the drawdown`,
+          `+${(sc.loss * 0.75).toFixed(1)}%, because required margin shrinks after losses`,
+          `+${(sc.gain * 1.5).toFixed(0)}%, assuming your reward-to-risk ratio remains fixed`,
+        ],
+        answer: 0,
+        explain: `Drawdown recovery = [Loss% / (100 - Loss%)] × 100. A ${sc.loss}% loss leaves ${100 - sc.loss}% capital, requiring +${sc.gain}% gain.`,
+      });
+    } else if (type === 2) {
+      // Mathematical expectancy
+      const wr = pickOne(winRateList, rng);
+      const rr = pickOne(rrList, rng);
+      const exp = ((wr / 100) * rr - ((100 - wr) / 100) * 1).toFixed(2);
+      list.push({
+        id: `gen-exp-${seed}-${i}`,
+        q: `A strategy has a ${wr}% win rate and averages 1:${rr} Risk-to-Reward (+${rr}R on wins, -1R on losses). What is its mathematical expectancy per trade?`,
+        options: [
+          `+${exp}R per trade`,
+          `-0.15R per trade because the win rate is below seventy percent`,
+          `+${(Number(exp) + 1.4).toFixed(2)}R per trade before factoring in spread costs`,
+          `0.00R breakeven because losing trades cancel out all statistical gains`,
+        ],
+        answer: 0,
+        explain: `Expectancy = (${wr / 100} × ${rr}R) - (${(100 - wr) / 100} × 1R) = +${exp}R per trade.`,
+      });
+    } else if (type === 3) {
+      // Prop firm daily loss buffer
+      const propBal = pickOne([25000, 50000, 100000, 200000], rng);
+      const dailyLimitPct = 5;
+      const dailyLimitUsd = (propBal * dailyLimitPct) / 100;
+      const tradeRiskPct = 0.5;
+      const tradeRiskUsd = (propBal * tradeRiskPct) / 100;
+      const tradesToDailyBreach = Math.floor(dailyLimitPct / tradeRiskPct);
+
+      list.push({
+        id: `gen-pf-${seed}-${i}`,
+        q: `On a $${propBal.toLocaleString()} prop firm account with a ${dailyLimitPct}% ($${dailyLimitUsd.toLocaleString()}) daily loss limit, how many consecutive full losses at ${tradeRiskPct}% ($${tradeRiskUsd.toLocaleString()}) each can you take before breaching?`,
+        options: [
+          `${tradesToDailyBreach} consecutive losses`,
+          `2 consecutive losses regardless of the lot size used on entries`,
+          `20 consecutive losses because daily limits reset every two hours`,
+          `1 single loss if the trade is held across the London market open`,
+        ],
+        answer: 0,
+        explain: `At ${tradeRiskPct}% risk per trade ($${tradeRiskUsd}), you can take ${tradesToDailyBreach} consecutive full losses before hitting the $${dailyLimitUsd} daily limit.`,
+      });
+    } else if (type === 4) {
+      // Dealing range discount & premium
+      const lowPrice = Number((1.05 + Math.floor(rng() * 20) * 0.01).toFixed(4));
+      const rangePips = pickOne([80, 100, 120, 160], rng);
+      const highPrice = Number((lowPrice + rangePips * 0.0001).toFixed(4));
+      const eqPrice = Number(((lowPrice + highPrice) / 2).toFixed(4));
+
+      list.push({
+        id: `gen-eq-${seed}-${i}`,
+        q: `In a dealing range between the low of ${lowPrice.toFixed(4)} and high of ${highPrice.toFixed(4)}, where is the discount zone for buying ${pair}?`,
+        options: [
+          `Below ${eqPrice.toFixed(4)}`,
+          `Above ${eqPrice.toFixed(4)} where price trades in deep premium pricing`,
+          `Only above ${highPrice.toFixed(4)} after three consecutive breakout candles`,
+          `Exactly at ${highPrice.toFixed(4)} before any pullback has developed`,
+        ],
+        answer: 0,
+        explain: `The 50% equilibrium is ${eqPrice.toFixed(4)}. Any price below ${eqPrice.toFixed(4)} is in discount for buying.`,
+      });
+    } else if (type === 5) {
+      // Macro CPI Surprise
+      const cpiCons = pickOne([2.8, 3.0, 3.2, 3.4], rng);
+      const cpiPrint = (cpiCons + 0.5).toFixed(1);
+
+      list.push({
+        id: `gen-cpi-${seed}-${i}`,
+        q: `United States CPI inflation prints at ${cpiPrint}% against an expected ${cpiCons}% consensus. What is the standard immediate macro reaction?`,
+        options: [
+          "Bullish USD (yields rise as rate cuts are priced out)",
+          "Bearish USD as traders expect immediate emergency rate cuts by the Fed",
+          "Neutral USD because consumer inflation never affects foreign exchange rates",
+          "Immediate trading freeze in EUR/USD until the next quarterly GDP release",
+        ],
+        answer: 0,
+        explain: `Hotter inflation (${cpiPrint}% vs ${cpiCons}%) forces yields higher and delays rate cuts, which strengthens the US Dollar.`,
+      });
+    } else {
+      // Pip units and notional leverage
+      const miniLots = pickOne([2, 3, 5, 8], rng);
+      const units = miniLots * 10000;
+      list.push({
+        id: `gen-unit-${seed}-${i}`,
+        q: `How many units of the base currency are controlled when trading 0.${miniLots}0 standard lots (${miniLots} mini lots) of ${pair}?`,
+        options: [
+          `${units.toLocaleString()} units`,
+          `${(units / 10).toLocaleString()} units on standard retail accounts`,
+          `${(units * 10).toLocaleString()} units during the London–New York overlap`,
+          `100,000 units regardless of the lot size specified in MetaTrader`,
+        ],
+        answer: 0,
+        explain: `1 standard lot = 100,000 units. 0.${miniLots}0 lots (${miniLots} mini lots) = ${units.toLocaleString()} units.`,
+      });
+    }
+  }
+
+  return list;
+}
+
+/* ============================================================================
+ * CUSTOM QUIZZES PERSISTENCE
+ * ========================================================================== */
+
 export const CUSTOM_QUIZZES_KEY = "gamat.customQuizzes.v1";
 
 export function getCustomQuizzes(): Quiz[] {
@@ -789,333 +1280,69 @@ export const getQuiz = (courseId: string): Quiz | undefined => {
 };
 
 /* ============================================================================
- * INFINITE PROCEDURAL & RANDOMIZED ASSESSMENT ENGINE
- * Every time a user takes or retakes an assessment:
- * 1. Fresh parameterized calculation & scenario questions are synthesized
- *    with unique numbers, pairs, macro prints, and risk parameters.
- * 2. Correct answers are kept concise while distractors are detailed & realistic
- *    (equal or longer length) so nobody can guess by picking the longest option.
- * 3. Both question order and all 4 option positions are Fisher-Yates shuffled.
+ * INFINITE 50-QUESTION ASSESSMENT GENERATOR
+ * Every attempt produces a full 50-question examination:
+ * 1. Combines core course questions + shared trading question bank + dynamic
+ *    parameterized procedural scenarios.
+ * 2. Every single question has its 4 options Fisher-Yates shuffled.
+ * 3. The overall 50-question paper is randomized and non-repeating.
  * ========================================================================== */
 
-function pickOne<T>(arr: T[], rng: () => number): T {
-  return arr[Math.floor(rng() * arr.length)];
-}
-
-function makeRng(seed: number): () => number {
-  let s = seed >>> 0;
-  return () => {
-    s = (s * 1664525 + 1013904223) >>> 0;
-    return s / 4294967296;
-  };
-}
-
-/**
- * Generates course-specific procedural questions with fresh numbers and scenarios.
- */
-function buildProceduralPool(courseId: string, seed: number): Question[] {
-  const rng = makeRng(seed);
-  const pairs = ["EUR/USD", "GBP/USD", "AUD/USD", "NZD/USD", "EUR/GBP", "USD/CAD"];
-  const pair1 = pickOne(pairs, rng);
-  const pair2 = pickOne(pairs.filter((p) => p !== pair1), rng);
-
-  // Randomized parameters
-  const acctBalances = [5000, 10000, 20000, 25000, 50000, 100000];
-  const balance = pickOne(acctBalances, rng);
-  const riskPct = pickOne([0.5, 1, 1.5, 2], rng);
-  const stopPips = pickOne([15, 20, 25, 40, 50], rng);
-  const riskDollars = (balance * riskPct) / 100;
-  const lotSize = (riskDollars / (stopPips * 10)).toFixed(2);
-  const wrongLot1 = (Number(lotSize) * 2).toFixed(2);
-  const wrongLot2 = (Number(lotSize) * 0.5).toFixed(2);
-  const wrongLot3 = (Number(lotSize) * 4).toFixed(2);
-
-  const ddList = [
-    { loss: 20, gain: 25 },
-    { loss: 25, gain: 33.3 },
-    { loss: 40, gain: 66.7 },
-    { loss: 50, gain: 100 },
-    { loss: 60, gain: 150 },
-    { loss: 75, gain: 300 },
-  ];
-  const dd = pickOne(ddList, rng);
-
-  const winRates = [40, 45, 50, 55, 60];
-  const winRate = pickOne(winRates, rng);
-  const rrMultiple = pickOne([2, 2.5, 3, 4], rng);
-  const expectancy = ((winRate / 100) * rrMultiple - ((100 - winRate) / 100) * 1).toFixed(2);
-
-  const cpiConsensus = pickOne([2.8, 3.0, 3.2, 3.4, 3.6], rng);
-  const cpiSurpriseHot = (cpiConsensus + 0.4).toFixed(1);
-  const cpiSurpriseCool = (cpiConsensus - 0.4).toFixed(1);
-
-  const nfpConsensus = pickOne([160, 180, 195, 210, 225], rng);
-  const nfpActualBeat = nfpConsensus + pickOne([65, 80, 95, 110], rng);
-
-  const propSize = pickOne([25000, 50000, 100000, 200000], rng);
-  const dailyDdPct = pickOne([4, 5], rng);
-  const maxDdPct = pickOne([8, 10], rng);
-  const dailyDdUsd = (propSize * dailyDdPct) / 100;
-  const maxDdUsd = (propSize * maxDdPct) / 100;
-
-  const dealLow = Number((1.05 + Math.floor(rng() * 20) * 0.01).toFixed(4));
-  const rangePips = pickOne([80, 100, 120, 160, 200], rng);
-  const dealHigh = Number((dealLow + rangePips * 0.0001).toFixed(4));
-  const dealEq = Number(((dealLow + dealHigh) / 2).toFixed(4));
-
-  const commonLotQ: Question = {
-    id: `proc-lot-${seed}`,
-    q: `On a $${balance.toLocaleString()} account risking ${riskPct}% ($${riskDollars.toLocaleString()}) with a ${stopPips}-pip stop on ${pair1} ($10/pip/lot), what is the correct lot size?`,
-    options: [
-      `${lotSize} lots`,
-      `${wrongLot1} lots, doubling the standard pip value to speed up recovery`,
-      `${wrongLot2} lots, reserving half the margin for an unplanned hedge`,
-      `${wrongLot3} lots, using maximum account leverage on the entry candle`,
-    ],
-    answer: 0,
-    explain: `Position size = $${riskDollars} risk ÷ (${stopPips} pips × $10/pip) = ${lotSize} standard lots.`,
-  };
-
-  const commonDdQ: Question = {
-    id: `proc-dd-${seed}`,
-    q: `If a trading account suffers a ${dd.loss}% drawdown, what percentage gain on the remaining capital is required to return to breakeven?`,
-    options: [
-      `+${dd.gain}%`,
-      `+${dd.loss}%, matching the exact percentage lost during the drawdown`,
-      `+${(dd.loss * 0.75).toFixed(1)}%, because margin requirements shrink on smaller balances`,
-      `+${(dd.gain * 2).toFixed(0)}%, assuming you cut your reward-to-risk ratio in half`,
-    ],
-    answer: 0,
-    explain: `Recovery % = [Loss% / (100 - Loss%)] × 100. A ${dd.loss}% loss leaves ${100 - dd.loss}% of capital, requiring +${dd.gain}% to recover.`,
-  };
-
-  const commonExpectancyQ: Question = {
-    id: `proc-exp-${seed}`,
-    q: `A strategy has a ${winRate}% win rate and averages +${rrMultiple}R on winners vs -1R on losers. What is its mathematical expectancy per trade?`,
-    options: [
-      `+${expectancy}R per trade`,
-      `-0.25R per trade because the win rate is below seventy percent`,
-      `+${(Number(expectancy) + 1.2).toFixed(2)}R per trade before deducting losing streaks`,
-      `0.00R breakeven unless the win rate exceeds sixty-five percent`,
-    ],
-    answer: 0,
-    explain: `Expectancy = (${winRate / 100} × ${rrMultiple}R) - (${(100 - winRate) / 100} × 1R) = +${expectancy}R per trade.`,
-  };
-
-  if (courseId === "fundamental-supply-demand") {
-    return [
-      {
-        id: `proc-fsd-cpi-${seed}`,
-        q: `US YoY CPI prints at ${cpiSurpriseHot}% against a ${cpiConsensus}% consensus forecast. What is the standard macro reaction?`,
-        options: [
-          "Bullish USD (hawkish rate repricing)",
-          "Bearish USD as bond markets immediately price in emergency Fed rate cuts",
-          "Neutral USD because inflation data only affects domestic equity indices",
-          "Immediate freeze in EUR/USD until the next monthly retail sales report",
-        ],
-        answer: 0,
-        explain: `A hotter-than-expected ${cpiSurpriseHot}% vs ${cpiConsensus}% CPI print signals sticky inflation, pushing yields and USD higher.`,
-      },
-      {
-        id: `proc-fsd-nfp-${seed}`,
-        q: `US Non-Farm Payrolls prints +${nfpActualBeat}K jobs versus +${nfpConsensus}K expected. If ${pair1} pulls back into a fresh USD Demand Zone, what is the high-probability play?`,
-        options: [
-          "Look for long USD setups aligned with the strong jobs beat",
-          "Fade the news immediately by shorting USD with triple your normal lot size",
-          "Ignore the Demand Zone and sell USD at market before New York closes",
-          "Place both a Buy Stop and Sell Stop five pips apart with no stop loss",
-        ],
-        answer: 0,
-        explain: `A +${nfpActualBeat}K vs +${nfpConsensus}K NFP beat is fundamentally bullish for USD; aligning that macro flow with a fresh Demand Zone creates high-probability entries.`,
-      },
-      {
-        id: `proc-fsd-zone-${seed}`,
-        q: `Price rallies from ${dealLow} to ${dealHigh} after forming a tight Drop-Base-Rally at ${dealLow}. What sits at ${dealLow}?`,
-        options: [
-          "A fresh Demand Zone",
-          "An exhausted Supply Zone where institutional sellers are trapped",
-          "A retail resistance ceiling that should be shorted on the first touch",
-          "An equilibrium premium zone where long entries are strictly invalid",
-        ],
-        answer: 0,
-        explain: `A Drop-Base-Rally (DBR) that launches an impulsive move from ${dealLow} to ${dealHigh} leaves an institutional Demand Zone at ${dealLow}.`,
-      },
-      commonLotQ,
-    ];
-  }
-
-  if (courseId === "forex-foundations") {
-    const unitsMini = pickOne([2, 3, 5, 7], rng);
-    return [
-      commonLotQ,
-      {
-        id: `proc-ff-units-${seed}`,
-        q: `If you open a position of 0.${unitsMini}0 standard lots (${unitsMini} mini lots) on ${pair1}, how many units of the base currency are you controlling?`,
-        options: [
-          `${(unitsMini * 10000).toLocaleString()} units`,
-          `${(unitsMini * 1000).toLocaleString()} units, matching a micro-lot contract structure`,
-          `${(unitsMini * 100000).toLocaleString()} units, matching full institutional standard lots`,
-          `100,000 units regardless of the decimal lot size entered in MT5`,
-        ],
-        answer: 0,
-        explain: `1.00 standard lot = 100,000 units, so 0.${unitsMini}0 lots (${unitsMini} mini lots) = ${(unitsMini * 10000).toLocaleString()} units.`,
-      },
-      {
-        id: `proc-ff-pips-${seed}`,
-        q: `If ${pair1} moves from ${dealLow.toFixed(4)} to ${dealHigh.toFixed(4)}, how many pips did price move?`,
-        options: [
-          `${rangePips} pips`,
-          `${rangePips * 10} pips, counting the fifth decimal pipette as a full pip`,
-          `${rangePips / 10} pips, dividing the fourth decimal movement by ten`,
-          `${rangePips + 50} pips, after adding the weekend opening spread adjustment`,
-        ],
-        answer: 0,
-        explain: `From ${dealLow.toFixed(4)} to ${dealHigh.toFixed(4)} is ${ (rangePips * 0.0001).toFixed(4) }, which equals ${rangePips} standard pips.`,
-      },
-      commonDdQ,
-    ];
-  }
-
-  if (courseId === "price-action-mastery") {
-    return [
-      {
-        id: `proc-pa-eq-${seed}`,
-        q: `In a bullish dealing range anchored from the swing low at ${dealLow.toFixed(4)} to the swing high at ${dealHigh.toFixed(4)}, where is the discount zone?`,
-        options: [
-          `Below ${dealEq.toFixed(4)} (the 50% equilibrium)`,
-          `Above ${dealEq.toFixed(4)} where price is trading in deep premium`,
-          `Only above ${dealHigh.toFixed(4)} after a three-candle breakout closes`,
-          `Exactly at ${dealHigh.toFixed(4)} before any retracement takes place`,
-        ],
-        answer: 0,
-        explain: `The 50% equilibrium of ${dealLow.toFixed(4)}–${dealHigh.toFixed(4)} is ${dealEq.toFixed(4)}. Anything below ${dealEq.toFixed(4)} is discount pricing for longs.`,
-      },
-      {
-        id: `proc-pa-sweep-${seed}`,
-        q: `During the London open, ${pair1} spikes 12 pips below the Asian low at ${dealLow.toFixed(4)}, then prints a bullish displacement candle with an FVG. What just occurred?`,
-        options: [
-          "A sell-side liquidity sweep and bullish reversal",
-          "A confirmed bearish breakdown that should be shorted at the bottom",
-          "A low-volume Asian continuation with zero institutional participation",
-          "An invalid chart pattern caused by widening interbank rollover spreads",
-        ],
-        answer: 0,
-        explain: `Sweeping the Asian session low (${dealLow.toFixed(4)}) and displacing higher with an FVG is a classic London Judas swing / sell-side liquidity raid.`,
-      },
-      commonExpectancyQ,
-      commonLotQ,
-    ];
-  }
-
-  if (courseId === "risk-trade-management") {
-    const corrCount = pickOne([3, 4], rng);
-    return [
-      commonLotQ,
-      commonDdQ,
-      commonExpectancyQ,
-      {
-        id: `proc-rm-corr-${seed}`,
-        q: `A trader opens ${corrCount} simultaneous USD-short positions (${pair1}, ${pair2}, etc.) risking ${riskPct}% on each. What is the effective portfolio risk if USD spikes?`,
-        options: [
-          `${(corrCount * riskPct).toFixed(1)}% concentrated USD risk`,
-          `${riskPct}% total risk because each setup is on a separate chart tab`,
-          `0.0% risk because trading multiple pairs automatically hedges USD`,
-          `${(riskPct / corrCount).toFixed(2)}% risk due to cross-pair diversification`,
-        ],
-        answer: 0,
-        explain: `${corrCount} correlated positions each risking ${riskPct}% against the US Dollar create ${(corrCount * riskPct).toFixed(1)}% combined exposure to a single USD move.`,
-      },
-    ];
-  }
-
-  if (courseId === "pro-trader-mentorship") {
-    return [
-      {
-        id: `proc-ptm-macro-${seed}`,
-        q: `US Core CPI cools to ${cpiSurpriseCool}% vs ${cpiConsensus}% expected while the ECB signals another 25 bps hike. Which directional bias aligns with macro flow on EUR/USD?`,
-        options: [
-          "Bullish EUR/USD on discount pullbacks",
-          "Bearish EUR/USD at market because cooler US inflation boosts the dollar",
-          "Short EUR/USD inside every higher-timeframe demand zone all month",
-          "No directional bias because central bank rates never affect spot forex",
-        ],
-        answer: 0,
-        explain: `Cooler US inflation (dovish Fed repricing) paired with a hawkish ECB creates a fundamental yield divergence favouring EUR/USD longs.`,
-      },
-      commonExpectancyQ,
-      commonLotQ,
-      commonDdQ,
-    ];
-  }
-
-  if (courseId === "funded-trader-prep") {
-    const safeRiskPct = 0.5;
-    const safeRiskUsd = (propSize * safeRiskPct) / 100;
-    const tradesToMaxBreach = Math.round(maxDdPct / safeRiskPct);
-    return [
-      {
-        id: `proc-ftp-buffer-${seed}`,
-        q: `On a $${propSize.toLocaleString()} prop account with a ${dailyDdPct}% ($${dailyDdUsd.toLocaleString()}) daily limit and ${maxDdPct}% ($${maxDdUsd.toLocaleString()}) max drawdown, how many consecutive ${safeRiskPct}% ($${safeRiskUsd.toLocaleString()}) losses would it take to breach max drawdown?`,
-        options: [
-          `${tradesToMaxBreach} consecutive losses`,
-          `2 consecutive losses regardless of the position size calculated`,
-          `50 consecutive losses because daily drawdown resets total drawdown`,
-          `1 single loss if the trade is held past the New York session close`,
-        ],
-        answer: 0,
-        explain: `At ${safeRiskPct}% ($${safeRiskUsd.toLocaleString()}) risk per trade, a ${maxDdPct}% ($${maxDdUsd.toLocaleString()}) max drawdown provides a ${tradesToMaxBreach}-trade buffer.`,
-      },
-      {
-        id: `proc-ftp-float-${seed}`,
-        q: `On a $${propSize.toLocaleString()} account with a ${dailyDdPct}% ($${dailyDdUsd.toLocaleString()}) equity-based trailing daily drawdown, your open trade reaches +$${dailyDdUsd.toLocaleString()} floating profit. At what equity level will the account breach for the day if you don't close?`,
-        options: [
-          `$${propSize.toLocaleString()} (your starting balance of the day)`,
-          `$${(propSize - dailyDdUsd).toLocaleString()}, because floating profit never affects daily limits`,
-          `$${(propSize - maxDdUsd).toLocaleString()}, matching the overall static drawdown floor`,
-          `$0, because an open trade in profit locks in immunity for the week`,
-        ],
-        answer: 0,
-        explain: `When equity trails intraday high-water mark (+$${dailyDdUsd.toLocaleString()} above $${propSize.toLocaleString()}), a $${dailyDdUsd.toLocaleString()} pullback back to $${propSize.toLocaleString()} triggers a ${dailyDdPct}% daily breach!`,
-      },
-      commonLotQ,
-      commonExpectancyQ,
-    ];
-  }
-
-  return [commonLotQ, commonDdQ, commonExpectancyQ];
-}
-
-/**
- * Generates a unique, randomized assessment question set for a student's attempt.
- * - Mixes dynamic procedural scenario/math questions with the course's question pool
- * - Shuffles question order and shuffles all 4 options per question so the correct
- *   option index and order change every single time an assessment is started.
- */
 export function generateAssessmentQuestions(
   courseId: string,
   baseQuiz: Quiz,
-  targetCount?: number
+  targetCount: number = DEFAULT_EXAM_QUESTION_COUNT
 ): Question[] {
   const seed = Date.now() + Math.floor(Math.random() * 1_000_000);
-  const desiredTotal = targetCount ?? baseQuiz.questions.length;
+  const needed = Math.max(10, targetCount);
 
-  // Build fresh procedural questions for this attempt
-  const procedural = buildProceduralPool(courseId, seed);
-  // Shuffle static pool
-  const staticPool = shuffleArray(baseQuiz.questions);
+  // 1. Course specific base questions
+  const courseBase = shuffleArray(baseQuiz.questions);
 
-  // Use up to 3 procedural questions + fill the rest from the static pool
-  const procCount = Math.min(3, procedural.length, Math.max(1, Math.floor(desiredTotal / 3)));
-  const selectedProc = shuffleArray(procedural).slice(0, procCount);
-  const selectedStatic = staticPool.slice(0, Math.max(0, desiredTotal - selectedProc.length));
+  // 2. Cross-disciplinary questions from the shared pool
+  const shared = shuffleArray(SHARED_TRADING_QUESTIONS);
 
-  // Combine, shuffle question order, and shuffle options on every single question
-  const combined = shuffleArray([...selectedStatic, ...selectedProc]).map((q, idx) =>
+  // 3. Generate dynamic procedural calculation & scenario questions
+  const proceduralNeeded = Math.max(15, needed - (courseBase.length + shared.length) + 10);
+  const procedural = generateProceduralBatch(courseId, proceduralNeeded, seed);
+
+  // 4. Combine into an exhaustive candidate pool
+  const candidatePool: Question[] = [
+    ...courseBase,
+    ...shared,
+    ...procedural,
+  ];
+
+  // 5. Deduplicate by question text
+  const seenTexts = new Set<string>();
+  const uniqueQuestions: Question[] = [];
+
+  for (const q of shuffleArray(candidatePool)) {
+    const stem = q.q.trim().toLowerCase();
+    if (!seenTexts.has(stem)) {
+      seenTexts.add(stem);
+      uniqueQuestions.push(q);
+    }
+    if (uniqueQuestions.length >= needed) break;
+  }
+
+  // If still needing more (rare), generate additional procedural questions
+  let extraCounter = 1;
+  while (uniqueQuestions.length < needed) {
+    const extra = generateProceduralBatch(courseId, 1, seed + extraCounter * 9999)[0];
+    const stem = extra.q.trim().toLowerCase();
+    if (!seenTexts.has(stem)) {
+      seenTexts.add(stem);
+      uniqueQuestions.push(extra);
+    }
+    extraCounter++;
+  }
+
+  // 6. Slice exact count, shuffle options on each question, and assign unique attempt IDs
+  return shuffleArray(uniqueQuestions.slice(0, needed)).map((q, idx) =>
     shuffleQuestionOptions({
       ...q,
       id: `${q.id}_s${seed}_${idx}`,
     })
   );
-
-  return combined;
 }

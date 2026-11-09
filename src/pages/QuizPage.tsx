@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Logo from "../components/Logo";
-import { getQuiz, generateAssessmentQuestions, type Question } from "../lib/quizzes";
+import { getQuiz, generateAssessmentQuestions, DEFAULT_EXAM_QUESTION_COUNT, type Question } from "../lib/quizzes";
 import { getCourse, asCourse } from "../lib/courses";
 import { useStore, type QuizAttempt } from "../lib/store";
 import { navigate } from "../lib/router";
 import {
   Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Award,
-  Lock, AlertCircle, RotateCcw, Flag, Trophy, ListChecks,
+  Lock, AlertCircle, RotateCcw, Flag, Trophy, ListChecks, Bookmark,
+  HelpCircle, Filter, Check,
 } from "lucide-react";
 
 export default function QuizPage({ courseId }: { courseId: string }) {
@@ -20,6 +21,10 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [flagged, setFlagged] = useState<Record<string, boolean>>({});
+  const [navFilter, setNavFilter] = useState<"all" | "unanswered" | "answered" | "flagged">("all");
+  const [reviewFilter, setReviewFilter] = useState<"all" | "incorrect" | "correct">("all");
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [result, setResult] = useState<QuizAttempt | null>(null);
   const [left, setLeft] = useState(0);
   const [err, setErr] = useState<string | null>(null);
@@ -37,7 +42,9 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   }, [started, left, result]);
 
   const activeQuestions = sessionQuestions.length ? sessionQuestions : (quiz?.questions ?? []);
+  const totalCount = activeQuestions.length || DEFAULT_EXAM_QUESTION_COUNT;
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
+  const flaggedCount = useMemo(() => Object.values(flagged).filter(Boolean).length, [flagged]);
 
   if (!quiz || !course) return <Fallback title="Assessment not found" cta="Back to Courses" to="/courses" />;
   if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${courseId}`} icon={Lock} />;
@@ -45,42 +52,58 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
   function startAssessment() {
     if (!quiz) return;
-    const fresh = generateAssessmentQuestions(courseId, quiz);
+    const fresh = generateAssessmentQuestions(courseId, quiz, DEFAULT_EXAM_QUESTION_COUNT);
     setSessionQuestions(fresh);
     setAnswers({});
+    setFlagged({});
     setIdx(0);
     setResult(null);
+    setShowSubmitModal(false);
     setStarted(true);
     setLeft(quiz.timeLimitMins * 60);
     window.scrollTo({ top: 0 });
   }
 
   function finish() {
+    setShowSubmitModal(false);
     const a = submitAttempt(courseId, answers, activeQuestions);
     setResult(a);
     setStarted(false);
     window.scrollTo({ top: 0 });
   }
 
-  const mmss = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+  const hours = Math.floor(left / 3600);
+  const mins = Math.floor((left % 3600) / 60);
+  const secs = left % 60;
+  const mmss = hours > 0
+    ? `${hours}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+    : `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 
-  /* ------------------------------ Result ------------------------------ */
+  /* ------------------------------ Result Screen ------------------------------ */
   if (result) {
+    const incorrectCount = result.total - result.correct;
+    const filteredReview = activeQuestions.filter((q) => {
+      const isCorrect = result.answers[q.id] === q.answer;
+      if (reviewFilter === "incorrect") return !isCorrect;
+      if (reviewFilter === "correct") return isCorrect;
+      return true;
+    });
+
     return (
       <div className="min-h-screen bg-cream px-4 sm:px-5 py-8 sm:py-10">
         <div className="mx-auto max-w-3xl">
           <Logo />
-          <div className={`mt-6 sm:mt-8 overflow-hidden rounded-3xl border bg-white shadow-lg ${result.passed ? "border-emerald-300" : "border-brand/40"}`}>
+          <div className={`mt-6 sm:mt-8 overflow-hidden rounded-3xl border bg-white shadow-xl ${result.passed ? "border-emerald-300" : "border-brand/40"}`}>
             <div className={`p-6 sm:p-10 text-center text-white ${result.passed ? "bg-gradient-to-br from-emerald-600 to-emerald-700" : "bg-gradient-to-br from-brand to-brand-dark"}`}>
               {result.passed ? <Trophy className="mx-auto h-14 w-14 sm:h-16 sm:w-16" /> : <RotateCcw className="mx-auto h-14 w-14 sm:h-16 sm:w-16" />}
               <h1 className="mt-4 sm:mt-5 font-display text-2xl sm:text-3xl font-extrabold">
-                {result.passed ? "Congratulations — you passed!" : "Not quite there yet"}
+                {result.passed ? "Congratulations — You Passed!" : "Exam Incomplete"}
               </h1>
-              <p className="mt-2 text-sm sm:text-base text-white/85">
-                You scored <strong>{result.score}%</strong> ({result.correct}/{result.total} correct).
-                Pass mark is {quiz.passMark}%.
+              <p className="mt-2 text-sm sm:text-base text-white/90">
+                You scored <strong>{result.score}%</strong> ({result.correct} out of {result.total} questions correct).
+                Passing grade is {quiz.passMark}%.
               </p>
-              <div className="mx-auto mt-6 h-3 max-w-sm overflow-hidden rounded-full bg-white/25">
+              <div className="mx-auto mt-6 h-3.5 max-w-sm overflow-hidden rounded-full bg-white/25">
                 <div className="h-full rounded-full bg-white transition-all duration-1000" style={{ width: `${result.score}%` }} />
               </div>
             </div>
@@ -88,41 +111,80 @@ export default function QuizPage({ courseId }: { courseId: string }) {
             <div className="p-5 sm:p-8">
               {result.passed ? (
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-                  <Award className="mx-auto h-8 w-8 text-emerald-700" />
-                  <p className="mt-2 font-display text-lg font-bold text-emerald-900">Certificate unlocked</p>
+                  <Award className="mx-auto h-9 w-9 text-emerald-700" />
+                  <p className="mt-2 font-display text-lg font-bold text-emerald-900">Official Certificate Unlocked</p>
                   <p className="mt-1 text-sm text-emerald-800">
-                    Your certificate for {course.title} is now available in your dashboard.
+                    Your official GAMAT Fx Academy certificate for <strong>{course.title}</strong> is now ready to download and print in your dashboard.
                   </p>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-brand/25 bg-brand-light p-5 text-center">
-                  <AlertCircle className="mx-auto h-8 w-8 text-brand" />
-                  <p className="mt-2 font-display text-lg font-bold text-ink">Review and try again</p>
+                  <AlertCircle className="mx-auto h-9 w-9 text-brand" />
+                  <p className="mt-2 font-display text-lg font-bold text-ink">Review & Try Again</p>
                   <p className="mt-1 text-sm text-muted">
-                    You need {quiz.passMark}% to earn your certificate. There's no limit on attempts.
+                    You need {quiz.passMark}% ({Math.ceil((quiz.passMark / 100) * result.total)} correct answers out of {result.total}) to earn your certificate. Unlimited retakes are allowed.
                   </p>
                 </div>
               )}
 
-              {/* Review */}
-              <h2 className="mt-8 font-display text-lg font-bold text-ink">Review your answers</h2>
-              <div className="mt-4 space-y-4">
-                {activeQuestions.map((q, i) => {
+              {/* Review Filter Tabs */}
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+                <h2 className="font-display text-lg font-bold text-ink">Exam Review ({result.total} Questions)</h2>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    onClick={() => setReviewFilter("all")}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${reviewFilter === "all" ? "bg-ink text-white" : "bg-cream text-muted hover:text-ink"}`}
+                  >
+                    All ({result.total})
+                  </button>
+                  <button
+                    onClick={() => setReviewFilter("incorrect")}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${reviewFilter === "incorrect" ? "bg-brand text-white" : "bg-cream text-brand hover:bg-brand-light"}`}
+                  >
+                    Incorrect ({incorrectCount})
+                  </button>
+                  <button
+                    onClick={() => setReviewFilter("correct")}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${reviewFilter === "correct" ? "bg-emerald-600 text-white" : "bg-cream text-emerald-700 hover:bg-emerald-50"}`}
+                  >
+                    Correct ({result.correct})
+                  </button>
+                </div>
+              </div>
+
+              {/* Questions Review List */}
+              <div className="mt-5 space-y-4 max-h-[600px] overflow-y-auto pr-1">
+                {filteredReview.map((q) => {
+                  const origIdx = activeQuestions.findIndex((aq) => aq.id === q.id);
                   const given = result.answers[q.id];
                   const ok = given === q.answer;
                   return (
-                    <div key={q.id} className={`rounded-2xl border p-4 sm:p-5 ${ok ? "border-emerald-200 bg-emerald-50/50" : "border-brand/30 bg-brand-light/40"}`}>
+                    <div key={q.id} className={`rounded-2xl border p-4 sm:p-5 ${ok ? "border-emerald-200 bg-emerald-50/40" : "border-brand/30 bg-brand-light/30"}`}>
                       <div className="flex items-start gap-3">
                         {ok ? <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" /> : <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand" />}
-                        <div className="min-w-0">
-                          <p className="font-semibold text-ink">{i + 1}. {q.q}</p>
-                          <p className="mt-2 text-sm text-muted">
-                            Your answer: <strong className={ok ? "text-emerald-700" : "text-brand"}>
-                              {given !== undefined ? q.options[given] : "Not answered"}
-                            </strong>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-ink text-sm sm:text-base">
+                            <span className="text-muted font-normal mr-1.5">Q{origIdx + 1}.</span> {q.q}
                           </p>
-                          {!ok && <p className="mt-1 text-sm text-muted">Correct: <strong className="text-emerald-700">{q.options[q.answer]}</strong></p>}
-                          <p className="mt-2 rounded-lg bg-white p-3 text-xs leading-relaxed text-muted">{q.explain}</p>
+                          <div className="mt-2.5 space-y-1 text-xs sm:text-sm">
+                            <p className="text-muted">
+                              Your answer:{" "}
+                              <strong className={ok ? "text-emerald-700 font-semibold" : "text-brand font-semibold"}>
+                                {given !== undefined ? `${String.fromCharCode(65 + given)}. ${q.options[given]}` : "Unanswered"}
+                              </strong>
+                            </p>
+                            {!ok && (
+                              <p className="text-muted">
+                                Correct answer:{" "}
+                                <strong className="text-emerald-700 font-semibold">
+                                  {String.fromCharCode(65 + q.answer)}. {q.options[q.answer]}
+                                </strong>
+                              </p>
+                            )}
+                          </div>
+                          <p className="mt-3 rounded-xl bg-white/90 p-3 text-xs leading-relaxed text-muted border border-line/60">
+                            <strong>Explanation:</strong> {q.explain}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -133,15 +195,15 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               <div className="mt-8 flex flex-wrap gap-3">
                 {result.passed ? (
                   <button onClick={() => navigate("/dashboard")} className="btn-primary">
-                    <Award className="h-4 w-4" /> View my certificate
+                    <Award className="h-4 w-4" /> View My Certificate
                   </button>
                 ) : (
                   <button onClick={startAssessment} className="btn-primary">
-                    <RotateCcw className="h-4 w-4" /> Retake assessment
+                    <RotateCcw className="h-4 w-4" /> Retake 50-Question Exam
                   </button>
                 )}
                 <button onClick={() => navigate(`/learn/${courseId}`)} className="btn-outline-dark">
-                  <ArrowLeft className="h-4 w-4" /> Back to course
+                  <ArrowLeft className="h-4 w-4" /> Back to Course
                 </button>
               </div>
             </div>
@@ -151,27 +213,27 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     );
   }
 
-  /* ------------------------------ Intro ------------------------------ */
+  /* ------------------------------ Intro Screen ------------------------------ */
   if (!started) {
     return (
       <div className="min-h-screen bg-cream px-4 sm:px-5 py-8 sm:py-10">
         <div className="mx-auto max-w-2xl">
           <Logo />
           <div className="mt-6 sm:mt-8 rounded-3xl border border-line bg-white p-6 sm:p-10 shadow-lg">
-            <span className="chip">Final assessment</span>
+            <span className="chip">Official Certification Examination</span>
             <h1 className="mt-4 font-display text-2xl sm:text-3xl font-extrabold text-ink">{quiz.title}</h1>
-            <p className="mt-3 text-muted">
-              Pass this assessment to earn your certificate for <strong className="text-ink">{course.title}</strong>.
+            <p className="mt-3 text-muted leading-relaxed">
+              Complete this comprehensive 50-question examination to earn your official GAMAT Fx Academy Certificate for <strong className="text-ink">{course.title}</strong>.
             </p>
 
             {best && (
               <div className={`mt-6 rounded-2xl border p-4 ${best.passed ? "border-emerald-200 bg-emerald-50" : "border-line bg-cream"}`}>
                 <p className="text-sm">
                   <strong className={best.passed ? "text-emerald-800" : "text-ink"}>
-                    Best score: {best.score}%
+                    Previous Best: {best.score}% ({best.correct}/{best.total} correct)
                   </strong>{" "}
                   <span className="text-muted">
-                    {best.passed ? "— passed, certificate unlocked." : `— ${quiz.passMark}% needed to pass.`}
+                    {best.passed ? "— Passed, certificate unlocked!" : `— ${quiz.passMark}% required to pass.`}
                   </span>
                 </p>
               </div>
@@ -179,48 +241,55 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
             <div className="mt-7 grid grid-cols-3 gap-3 sm:gap-4">
               {[
-                { icon: ListChecks, v: `${quiz.questions.length}`, l: "Questions" },
-                { icon: Flag, v: `${quiz.passMark}%`, l: "Pass mark" },
-                { icon: Clock, v: `${quiz.timeLimitMins} min`, l: "Time limit" },
+                { icon: ListChecks, v: `${DEFAULT_EXAM_QUESTION_COUNT}`, l: "Questions" },
+                { icon: Flag, v: `${quiz.passMark}%`, l: "Pass Mark" },
+                { icon: Clock, v: `${quiz.timeLimitMins} min`, l: "Time Limit" },
               ].map((s) => (
                 <div key={s.l} className="rounded-2xl bg-cream p-3.5 sm:p-5 text-center">
                   <s.icon className="mx-auto h-5 w-5 text-brand" />
                   <p className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink">{s.v}</p>
-                  <p className="text-[11px] sm:text-xs text-muted">{s.l}</p>
+                  <p className="text-[11px] sm:text-xs text-muted font-medium">{s.l}</p>
                 </div>
               ))}
             </div>
 
-            <ul className="mt-7 space-y-2.5">
-              {[
-                "Multiple choice — one correct answer per question.",
-                "You can move freely between questions before submitting.",
-                "The quiz auto-submits when the timer runs out.",
-                "Unlimited retakes — your best score counts.",
-                "You'll see full explanations for every answer afterwards.",
-              ].map((t) => (
-                <li key={t} className="flex items-start gap-2.5 text-sm text-ink/80">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> {t}
+            <div className="mt-7 rounded-2xl bg-cream/70 p-4 border border-line/60">
+              <p className="text-xs font-bold uppercase tracking-wide text-ink">Exam Guidelines</p>
+              <ul className="mt-3 space-y-2 text-sm text-ink/80">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  50 multiple-choice questions randomized on every attempt.
                 </li>
-              ))}
-            </ul>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  60 minutes total. You can move freely and bookmark questions to review before submitting.
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  Immediate grading with detailed step-by-step explanations for each question.
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  Unlimited retakes — valid for both online and physical academy students.
+                </li>
+              </ul>
+            </div>
 
             {progress < 100 && (
               <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <p className="text-sm text-amber-900">
-                  You've completed <strong>{progress}%</strong> of the lessons. We recommend finishing
-                  the course before attempting the assessment.
+                  Online video progress: <strong>{progress}%</strong>. You can take this exam directly at any time (recommended for physical academy students or experienced traders).
                 </p>
               </div>
             )}
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <button onClick={startAssessment} className="btn-primary">
-                Start Assessment <ArrowRight className="h-4 w-4" />
+              <button onClick={startAssessment} className="btn-primary !py-3 !px-7 font-bold text-sm">
+                Begin 50-Question Exam <ArrowRight className="h-4 w-4" />
               </button>
               <button onClick={() => navigate(`/learn/${courseId}`)} className="btn-outline-dark">
-                <ArrowLeft className="h-4 w-4" /> Back to course
+                <ArrowLeft className="h-4 w-4" /> Back to Course
               </button>
             </div>
           </div>
@@ -229,92 +298,276 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     );
   }
 
-  /* ------------------------------ Running ------------------------------ */
+  /* ------------------------------ Running Exam View ------------------------------ */
   const q = activeQuestions[idx] ?? activeQuestions[0];
-  const low = left <= 60;
+  const isFlagged = Boolean(flagged[q.id]);
+  const isWarningTime = left <= 300; // under 5 minutes
+
+  // Filtering navigator buttons
+  const navIndices = activeQuestions.map((_, i) => i).filter((i) => {
+    const qId = activeQuestions[i].id;
+    const hasAns = answers[qId] !== undefined;
+    const isFl = Boolean(flagged[qId]);
+    if (navFilter === "unanswered") return !hasAns;
+    if (navFilter === "answered") return hasAns;
+    if (navFilter === "flagged") return isFl;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-cream">
+      {/* Top Sticky Header */}
       <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-4xl items-center justify-between gap-4 px-4 sm:px-5">
+        <div className="mx-auto flex h-[72px] max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
           <Logo />
-          <div className="flex items-center gap-4">
-            <span className="hidden text-sm text-muted sm:inline">{answeredCount}/{activeQuestions.length} answered</span>
-            <span className={`inline-flex items-center gap-2 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-sm font-bold ${low ? "animate-pulse bg-brand text-white" : "bg-cream text-ink"}`}>
-              <Clock className="h-4 w-4" /> {mmss}
+          <div className="flex items-center gap-3 sm:gap-5">
+            <span className="hidden text-xs sm:text-sm font-semibold text-muted md:inline">
+              <strong className="text-ink">{answeredCount}</strong> / {activeQuestions.length} Answered
             </span>
+            <span
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold transition shadow-sm ${
+                isWarningTime ? "animate-pulse bg-brand text-white" : "bg-cream text-ink border border-line"
+              }`}
+            >
+              <Clock className="h-4 w-4 text-brand" /> {mmss}
+            </span>
+            <button
+              onClick={() => {
+                if (answeredCount < activeQuestions.length) {
+                  setShowSubmitModal(true);
+                } else {
+                  finish();
+                }
+              }}
+              className="btn-primary !py-2 !px-4 text-xs font-bold"
+            >
+              Finish Exam
+            </button>
           </div>
         </div>
-        <div className="h-1 bg-line">
-          <div className="h-full bg-brand transition-all" style={{ width: `${((idx + 1) / activeQuestions.length) * 100}%` }} />
+        {/* Progress Bar */}
+        <div className="h-1.5 bg-line">
+          <div
+            className="h-full bg-brand transition-all duration-300"
+            style={{ width: `${(answeredCount / activeQuestions.length) * 100}%` }}
+          />
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 sm:px-5 py-7 sm:py-10">
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-10">
         {err && (
           <p className="mb-5 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">
-            <AlertCircle className="h-4 w-4 text-brand" /> {err}
+            <AlertCircle className="h-4 w-4 text-brand shrink-0" /> {err}
           </p>
         )}
 
-        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-lg">
-          <p className="text-xs font-bold uppercase tracking-wide text-brand">
-            Question {idx + 1} of {activeQuestions.length}
-          </p>
-          <h2 className="mt-3 font-display text-xl font-bold leading-snug text-ink md:text-2xl">{q.q}</h2>
+        {/* Active Question Card */}
+        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-md">
+          <div className="flex items-center justify-between gap-3 border-b border-line/60 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-ink px-2.5 py-1 text-xs font-extrabold text-white">
+                Q{idx + 1} of {activeQuestions.length}
+              </span>
+              {answers[q.id] !== undefined ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                  <Check className="h-3.5 w-3.5" /> Answered
+                </span>
+              ) : (
+                <span className="text-xs text-muted">Unanswered</span>
+              )}
+            </div>
 
-          <div className="mt-7 space-y-3">
+            <button
+              type="button"
+              onClick={() => setFlagged({ ...flagged, [q.id]: !isFlagged })}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                isFlagged ? "bg-amber-100 text-amber-800" : "bg-cream text-muted hover:text-ink"
+              }`}
+            >
+              <Bookmark className="h-3.5 w-3.5" />
+              {isFlagged ? "Flagged for Review" : "Flag for Review"}
+            </button>
+          </div>
+
+          <h2 className="mt-5 font-display text-lg sm:text-xl font-bold leading-snug text-ink md:text-2xl">
+            {q.q}
+          </h2>
+
+          <div className="mt-6 space-y-3">
             {q.options.map((opt, i) => {
               const sel = answers[q.id] === i;
               return (
-                <button key={i} onClick={() => { setAnswers({ ...answers, [q.id]: i }); setErr(null); }}
-                  className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
-                    sel ? "border-brand bg-brand-light" : "border-line hover:border-brand/50 hover:bg-cream"
-                  }`}>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${sel ? "bg-brand text-white" : "bg-cream text-muted"}`}>
+                <button
+                  key={i}
+                  onClick={() => {
+                    setAnswers({ ...answers, [q.id]: i });
+                    setErr(null);
+                  }}
+                  className={`flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition ${
+                    sel ? "border-brand bg-brand-light/70 shadow-sm" : "border-line hover:border-brand/40 hover:bg-cream/60"
+                  }`}
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition ${
+                      sel ? "bg-brand text-white shadow-sm" : "bg-cream text-muted border border-line"
+                    }`}
+                  >
                     {String.fromCharCode(65 + i)}
                   </span>
-                  <span className={`text-sm ${sel ? "font-semibold text-ink" : "text-ink/80"}`}>{opt}</span>
+                  <span className={`text-sm leading-relaxed ${sel ? "font-semibold text-ink" : "text-ink/80"}`}>
+                    {opt}
+                  </span>
                 </button>
               );
             })}
           </div>
-        </div>
 
-        {/* Navigator */}
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          {activeQuestions.map((qq, i) => (
-            <button key={qq.id} onClick={() => setIdx(i)}
-              className={`h-9 w-9 rounded-lg text-xs font-bold transition ${
-                i === idx ? "bg-ink text-white" : answers[qq.id] !== undefined ? "bg-brand text-white" : "border border-line bg-white text-muted hover:border-brand"
-              }`}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0} className="btn-outline-dark disabled:opacity-40">
-            <ArrowLeft className="h-4 w-4" /> Previous
-          </button>
-          {idx < activeQuestions.length - 1 ? (
-            <button onClick={() => setIdx((i) => i + 1)} className="btn-primary ml-auto">
-              Next <ArrowRight className="h-4 w-4" />
-            </button>
-          ) : (
+          {/* Navigation Controls */}
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-line/60">
             <button
-              onClick={() => {
-                if (answeredCount < activeQuestions.length) {
-                  setErr(`Please answer all ${activeQuestions.length} questions before submitting.`);
-                  return;
-                }
-                finish();
-              }}
-              className="btn-primary ml-auto">
-              <Flag className="h-4 w-4" /> Submit Assessment
+              onClick={() => setIdx((i) => Math.max(0, i - 1))}
+              disabled={idx === 0}
+              className="btn-outline-dark !py-2 !px-4 text-xs font-bold disabled:opacity-30"
+            >
+              <ArrowLeft className="h-4 w-4" /> Previous
             </button>
-          )}
+
+            <span className="text-xs text-muted font-medium">
+              Question {idx + 1} / {activeQuestions.length}
+            </span>
+
+            {idx < activeQuestions.length - 1 ? (
+              <button
+                onClick={() => setIdx((i) => i + 1)}
+                className="btn-primary !py-2 !px-4 text-xs font-bold"
+              >
+                Next <ArrowRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  if (answeredCount < activeQuestions.length) {
+                    setShowSubmitModal(true);
+                  } else {
+                    finish();
+                  }
+                }}
+                className="btn-primary !py-2 !px-4 text-xs font-bold"
+              >
+                Submit Exam <Flag className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* 50-Question Quick Jump Navigator */}
+        <div className="mt-6 rounded-3xl border border-line bg-white p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
+            <p className="text-xs font-bold uppercase tracking-wide text-ink">
+              Question Navigator ({answeredCount}/{activeQuestions.length} Answered)
+            </p>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              <button
+                onClick={() => setNavFilter("all")}
+                className={`rounded px-2.5 py-1 font-bold ${navFilter === "all" ? "bg-ink text-white" : "bg-cream text-muted"}`}
+              >
+                All (50)
+              </button>
+              <button
+                onClick={() => setNavFilter("unanswered")}
+                className={`rounded px-2.5 py-1 font-bold ${navFilter === "unanswered" ? "bg-ink text-white" : "bg-cream text-muted"}`}
+              >
+                Unanswered ({activeQuestions.length - answeredCount})
+              </button>
+              <button
+                onClick={() => setNavFilter("answered")}
+                className={`rounded px-2.5 py-1 font-bold ${navFilter === "answered" ? "bg-ink text-white" : "bg-cream text-muted"}`}
+              >
+                Answered ({answeredCount})
+              </button>
+              <button
+                onClick={() => setNavFilter("flagged")}
+                className={`rounded px-2.5 py-1 font-bold ${navFilter === "flagged" ? "bg-ink text-white" : "bg-cream text-muted"}`}
+              >
+                Flagged ({flaggedCount})
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-5 sm:grid-cols-10 gap-2">
+            {navIndices.map((i) => {
+              const qq = activeQuestions[i];
+              const isCurrent = i === idx;
+              const hasAnswer = answers[qq.id] !== undefined;
+              const isFl = Boolean(flagged[qq.id]);
+
+              return (
+                <button
+                  key={qq.id}
+                  onClick={() => setIdx(i)}
+                  className={`relative flex h-9 items-center justify-center rounded-xl text-xs font-extrabold transition ${
+                    isCurrent
+                      ? "bg-ink text-white shadow-md ring-2 ring-brand"
+                      : hasAnswer
+                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                      : "border border-line bg-cream/50 text-muted hover:border-brand hover:text-ink"
+                  }`}
+                >
+                  {i + 1}
+                  {isFl && (
+                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2 ring-white" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted pt-3 border-t border-line/60">
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-600" /> Answered</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-line bg-cream" /> Unanswered</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-ink" /> Current Question</span>
+            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /> Flagged for review</span>
+          </div>
+        </div>
+
+        {/* Confirmation Modal for Incomplete Submissions */}
+        {showSubmitModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
+              <AlertCircle className="mx-auto h-12 w-12 text-amber-500" />
+              <h3 className="mt-3 text-center font-display text-xl font-bold text-ink">Incomplete Assessment</h3>
+              <p className="mt-2 text-center text-sm text-muted">
+                You have answered <strong>{answeredCount}</strong> of <strong>{activeQuestions.length}</strong> questions.
+                Unanswered questions will be scored as 0.
+              </p>
+              <div className="mt-6 flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    // Jump to first unanswered
+                    const firstUnans = activeQuestions.findIndex((aq) => answers[aq.id] === undefined);
+                    if (firstUnans >= 0) setIdx(firstUnans);
+                    setShowSubmitModal(false);
+                  }}
+                  className="btn-primary !py-2.5 text-xs font-bold"
+                >
+                  Jump to First Unanswered Question
+                </button>
+                <button
+                  onClick={finish}
+                  className="btn-outline-dark !py-2.5 text-xs font-bold"
+                >
+                  Submit Anyway
+                </button>
+                <button
+                  onClick={() => setShowSubmitModal(false)}
+                  className="text-xs text-muted hover:text-ink pt-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
