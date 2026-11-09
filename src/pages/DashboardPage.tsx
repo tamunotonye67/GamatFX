@@ -34,7 +34,23 @@ export default function DashboardPage() {
   const combatRank = rankForXp(combat.xp);
   const combatNext = nextRank(combat.xp);
   const combatPct = progressToNext(combat.xp);
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTabState] = useState<Tab>(() => {
+    try {
+      const saved = sessionStorage.getItem("gamat_fx_dashboard_tab") || localStorage.getItem("gamat_fx_dashboard_tab");
+      if (saved && ["overview", "courses", "certificates", "events", "billing", "posts", "team-bio", "profile"].includes(saved)) {
+        return saved as Tab;
+      }
+    } catch {}
+    return "overview";
+  });
+
+  const setTab = (nextTab: Tab) => {
+    setTabState(nextTab);
+    try {
+      sessionStorage.setItem("gamat_fx_dashboard_tab", nextTab);
+      localStorage.setItem("gamat_fx_dashboard_tab", nextTab);
+    } catch {}
+  };
 
   if (!isAuthed || !user) {
     return (

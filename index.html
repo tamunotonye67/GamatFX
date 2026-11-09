@@ -38,6 +38,7 @@
       (function () {
         function scrub() {
           document.querySelectorAll("a, button, div, span, iframe").forEach(function (el) {
+            if (el.id === "root" || (el.closest && el.closest("#root"))) return;
             var t = (el.textContent || "").toLowerCase();
             var h = ((el.getAttribute && el.getAttribute("href")) || "").toLowerCase();
             var s = ((el.getAttribute && el.getAttribute("src")) || "").toLowerCase();

@@ -1341,6 +1341,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const uid = userObj.id;
       const userEmail = (userObj.email || "").trim().toLowerCase();
 
+      if (userEmail === DEFAULT_ADMIN.email.toLowerCase()) {
+        setAccounts((prev) =>
+          prev.some((a) => a.id === DEFAULT_ADMIN.id) ? prev : [DEFAULT_ADMIN, ...prev]
+        );
+        setSessionId(DEFAULT_ADMIN.id);
+        return;
+      }
+
       // Check if user profile is already in local state
       setAccounts((prev) => {
         const found = prev.find((a) => a.id === uid || (userEmail && a.email.toLowerCase() === userEmail));

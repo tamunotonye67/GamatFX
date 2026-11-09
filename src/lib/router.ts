@@ -24,34 +24,92 @@ export const STATIC_ROUTES = [
   "/whiteboard",
 ] as const;
 
+const ROUTE_SESSION_KEY = "gamat_fx_active_route";
+const ROUTE_LOCAL_KEY = "gamat_fx_last_route";
+
+function getSavedRoute(): string | null {
+  try {
+    return sessionStorage.getItem(ROUTE_SESSION_KEY) || localStorage.getItem(ROUTE_LOCAL_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function persistRoute(fullRoute: string) {
+  try {
+    const normalized = fullRoute.startsWith("/") ? fullRoute : `/${fullRoute}`;
+    sessionStorage.setItem(ROUTE_SESSION_KEY, normalized);
+    localStorage.setItem(ROUTE_LOCAL_KEY, normalized);
+  } catch {}
+}
+
+function cleanRoutePath(raw: string): string {
+  const withoutQuery = raw.split("?")[0];
+  const clean = withoutQuery.replace(/\/+$/, "");
+  if (clean === "" || clean === "/index.html") return "/";
+  return clean.startsWith("/") ? clean : `/${clean}`;
+}
+
 function parse(): string {
   const hash = window.location.hash || "";
 
   // 1. Handle Supabase Auth password recovery redirect (#access_token=...&type=recovery or #reset-password)
   if (hash.includes("type=recovery") || hash.includes("reset-password")) {
+    persistRoute("/reset-password");
     return "/reset-password";
   }
 
   // 2. Handle Supabase Auth email confirmation or invite redirect
   if (hash.includes("access_token=") && (hash.includes("type=signup") || hash.includes("type=invite") || hash.includes("type=email_change"))) {
+    persistRoute("/dashboard");
     return "/dashboard";
   }
 
   // 3. Handle general OAuth login token redirect (#access_token=... with no subpath)
   if (hash.startsWith("#access_token=") && !hash.includes("/")) {
+    persistRoute("/dashboard");
     return "/dashboard";
   }
 
-  // 4. Standard hash route parsing
-  if (hash) {
-    const raw = hash.replace(/^#/, "").split("?")[0];
-    const clean = raw.replace(/\/+$/, "");
-    if (clean === "") return "/";
-    return clean.startsWith("/") ? clean : `/${clean}`;
+  // 4. Explicit hash route present in URL (e.g. "#/courses", "#/admin", "#/")
+  const rawHash = hash.replace(/^#/, "");
+  if (rawHash !== "") {
+    const fullRoute = rawHash.startsWith("/") ? rawHash : `/${rawHash}`;
+    persistRoute(fullRoute);
+    return cleanRoutePath(fullRoute);
   }
 
-  const pathname = window.location.pathname.replace(/\/+$/, "");
-  return pathname === "" ? "/" : pathname;
+  // 5. Direct pathname navigation (e.g. "/courses" or "/admin")
+  const rawPath = window.location.pathname || "/";
+  const cleanPath = cleanRoutePath(rawPath);
+  if (cleanPath !== "/") {
+    const fullRoute = `${cleanPath}${window.location.search || ""}`;
+    persistRoute(fullRoute);
+    try {
+      window.history.replaceState(null, "", `#${fullRoute}`);
+    } catch {}
+    return cleanPath;
+  }
+
+  // 6. Empty hash ("") on root "/" — happens on iframe/preview reload or when hash is stripped on refresh.
+  // Restore the user's last active route so refreshing a page never dumps them back onto the homepage.
+  const saved = getSavedRoute();
+  if (saved && saved !== "/") {
+    const restoredFull = saved.startsWith("/") ? saved : `/${saved}`;
+    try {
+      window.history.replaceState(null, "", `#${restoredFull}`);
+    } catch {}
+    return cleanRoutePath(restoredFull);
+  }
+
+  // 7. Default to homepage and ensure "#/" is in the URL so Back-button navigation to Home is explicit
+  persistRoute("/");
+  try {
+    if (window.location.hash !== "#/") {
+      window.history.replaceState(null, "", "#/");
+    }
+  } catch {}
+  return "/";
 }
 
 /** Current path, e.g. "/courses/price-action-mastery". */
@@ -61,7 +119,11 @@ export function useRoute(): string {
   useEffect(() => {
     const onChange = () => setRoute(parse());
     window.addEventListener("hashchange", onChange);
-    return () => window.removeEventListener("hashchange", onChange);
+    window.addEventListener("popstate", onChange);
+    return () => {
+      window.removeEventListener("hashchange", onChange);
+      window.removeEventListener("popstate", onChange);
+    };
   }, []);
 
   return route;
@@ -69,10 +131,14 @@ export function useRoute(): string {
 
 /** Navigate to a path and jump to the top of the page. */
 export function navigate(route: Route) {
-  if (parse() === route) {
+  const normalizedFull = route.startsWith("/") ? route : `/${route}`;
+  const targetPath = cleanRoutePath(normalizedFull);
+  persistRoute(normalizedFull);
+
+  if (parse() === targetPath && window.location.hash === `#${normalizedFull}`) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   } else {
-    window.location.hash = `#${route}`;
+    window.location.hash = `#${normalizedFull}`;
     window.scrollTo({ top: 0 });
   }
 }
@@ -89,6 +155,7 @@ export function goToSection(id: string) {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   if (parse() !== "/") {
+    persistRoute("/");
     window.location.hash = "#/";
     window.setTimeout(scroll, 80);
   } else {
