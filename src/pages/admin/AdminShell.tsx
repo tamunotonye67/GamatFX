@@ -139,71 +139,161 @@ export function AdminShell({ title, subtitle, action, children }: {
           <div className="relative">
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-cream text-ink transition hover:border-brand hover:bg-white"
+              className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition ${
+                notifOpen
+                  ? "border-brand bg-brand text-white shadow-md shadow-brand/20"
+                  : "border-line bg-cream text-ink hover:border-brand hover:bg-white"
+              }`}
               title="Activity Center Notifications"
+              aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[10px] font-black text-white shadow-md">
+                <span
+                  className={`absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black shadow-md ${
+                    notifOpen ? "bg-ink text-white" : "bg-brand text-white"
+                  }`}
+                >
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
 
-            {/* Floating Activity Notifications Panel */}
+            {/* Mobile Backdrop */}
             {notifOpen && (
-              <div className="absolute right-0 top-full mt-3 w-[calc(100vw-32px)] max-w-sm sm:w-96 rounded-2xl border border-line bg-white p-4 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="flex items-center justify-between border-b border-line pb-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-brand" />
-                    <h3 className="font-bold text-ink text-sm">Site Activity Notifications</h3>
+              <div
+                onClick={() => setNotifOpen(false)}
+                className="fixed inset-0 top-[72px] z-40 bg-ink/40 backdrop-blur-[2px] sm:hidden"
+              />
+            )}
+
+            {/* Modern Activity Notifications Panel */}
+            {notifOpen && (
+              <div className="fixed inset-x-3 top-[80px] z-50 flex max-h-[calc(100dvh-96px)] flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-[0_24px_60px_-15px_rgba(22,24,28,0.35)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:max-h-[460px] sm:w-[380px]">
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-line bg-ink px-4 py-3.5 text-white">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand/20 text-brand-light">
+                      <Bell className="h-4 w-4 text-brand" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-display text-sm font-bold text-white truncate">
+                          Activity Center
+                        </h3>
+                        {unreadCount > 0 && (
+                          <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold text-white">
+                            {unreadCount} new
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-white/55 truncate">
+                        Real-time student &amp; platform updates
+                      </p>
+                    </div>
                   </div>
-                  {unreadCount > 0 && (
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleMarkAllRead}
+                        className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 transition hover:bg-white/20"
+                      >
+                        <Check className="h-3 w-3 text-emerald-400" /> Read all
+                      </button>
+                    )}
                     <button
-                      onClick={handleMarkAllRead}
-                      className="text-[11px] font-semibold text-brand hover:underline flex items-center gap-1"
+                      type="button"
+                      onClick={() => setNotifOpen(false)}
+                      aria-label="Close notifications"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/75 transition hover:bg-white/20 hover:text-white"
                     >
-                      <Check className="h-3 w-3" /> Mark all read
+                      <X className="h-3.5 w-3.5" />
                     </button>
-                  )}
+                  </div>
                 </div>
 
-                <div className="max-h-80 overflow-y-auto divide-y divide-line pr-1 space-y-2">
+                {/* Notification List */}
+                <div className="flex-1 overflow-y-auto divide-y divide-line/70">
                   {notifs.length ? (
-                    notifs.slice(0, 10).map((item) => {
-                      const icon =
-                        item.type === "registration" ? Users :
-                        item.type === "payment" || item.type === "refund" ? CreditCard :
-                        item.type === "article" ? FileText :
-                        item.type === "team_bio" ? UserCog : Award;
-                      const IconComp = icon;
+                    notifs.slice(0, 12).map((item) => {
+                      const isUnread = new Date(item.timestamp).getTime() > readAllTimestamp;
+                      const IconComp =
+                        item.type === "registration"
+                          ? Users
+                          : item.type === "payment" || item.type === "refund"
+                          ? CreditCard
+                          : item.type === "article"
+                          ? FileText
+                          : item.type === "team_bio"
+                          ? UserCog
+                          : Award;
+
+                      const badgeTone =
+                        item.type === "registration"
+                          ? "bg-sky-500/10 text-sky-600"
+                          : item.type === "payment"
+                          ? "bg-emerald-500/10 text-emerald-600"
+                          : item.type === "refund"
+                          ? "bg-amber-500/10 text-amber-600"
+                          : item.type === "article"
+                          ? "bg-purple-500/10 text-purple-600"
+                          : "bg-brand-light text-brand";
 
                       return (
-                        <div
+                        <button
+                          type="button"
                           key={item.id}
                           onClick={() => {
                             setNotifOpen(false);
                             navigate(item.link);
                           }}
-                          className="group flex gap-3 p-2.5 rounded-xl transition hover:bg-cream cursor-pointer"
+                          className={`group flex w-full items-start gap-3 px-4 py-3.5 text-left transition hover:bg-cream/80 ${
+                            isUnread ? "bg-brand/[0.03]" : "bg-white"
+                          }`}
                         >
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand group-hover:bg-brand group-hover:text-white transition">
+                          <div
+                            className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105 ${badgeTone}`}
+                          >
                             <IconComp className="h-4 w-4" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
-                              <h4 className="text-xs font-bold text-ink truncate">{item.title}</h4>
-                              <span className="text-[10px] text-muted shrink-0">
-                                {new Date(item.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                              <h4
+                                className={`text-xs truncate ${
+                                  isUnread ? "font-extrabold text-ink" : "font-semibold text-ink/80"
+                                }`}
+                              >
+                                {item.title}
+                              </h4>
+                              <span className="flex items-center gap-1.5 text-[10px] font-medium text-muted shrink-0">
+                                {new Date(item.timestamp).toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                {isUnread && (
+                                  <span className="h-2 w-2 rounded-full bg-brand" />
+                                )}
                               </span>
                             </div>
-                            <p className="text-[11px] text-muted line-clamp-2 mt-0.5">{item.body}</p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-muted line-clamp-2">
+                              {item.body}
+                            </p>
                           </div>
-                        </div>
+                        </button>
                       );
                     })
                   ) : (
-                    <div className="py-6 text-center text-xs text-muted">No recent activity</div>
+                    <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cream text-muted">
+                        <Bell className="h-5 w-5" />
+                      </span>
+                      <p className="mt-3 text-xs font-bold text-ink">All caught up!</p>
+                      <p className="mt-1 text-[11px] text-muted">
+                        New registrations, payments, and updates will appear here.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
