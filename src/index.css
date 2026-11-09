@@ -65,6 +65,39 @@ img, video, canvas {
   animation: cursorTicker 14s linear infinite;
 }
 
+@keyframes marqueeLeft {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marqueeRight {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-marquee-left {
+  animation: marqueeLeft 28s linear infinite;
+}
+
+.animate-marquee-right {
+  animation: marqueeRight 28s linear infinite;
+}
+
+.animate-marquee-left:hover,
+.animate-marquee-left:active,
+.animate-marquee-right:hover,
+.animate-marquee-right:active {
+  animation-play-state: paused;
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);

@@ -1,16 +1,102 @@
 import { useReveal } from "../lib/useReveal";
 import { Star, Quote, Plus, MapPin } from "lucide-react";
 import { navigate } from "../lib/router";
-import { useStore } from "../lib/store";
+import { useStore, type ReviewItem } from "../lib/store";
+
+function ReviewCard({ r, compact = false }: { r: ReviewItem; compact?: boolean }) {
+  const initials = r.userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <figure
+      className={`card flex flex-col justify-between ${
+        compact ? "w-[275px] xs:w-[300px] shrink-0 !p-4" : ""
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between gap-2">
+          <Quote className={`${compact ? "h-5 w-5" : "h-6 w-6"} text-brand/30 shrink-0`} />
+          <span className="truncate max-w-[180px] rounded-full border border-line bg-cream px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-brand">
+            {r.targetTitle}
+          </span>
+        </div>
+
+        <blockquote
+          className={`mt-3 text-ink/80 leading-relaxed ${
+            compact ? "text-xs line-clamp-3" : "mt-4 text-sm"
+          }`}
+        >
+          “{r.comment}”
+        </blockquote>
+      </div>
+
+      <div>
+        <div className={`${compact ? "mt-3.5" : "mt-5"} flex items-center gap-1 text-amber-400`}>
+          {Array.from({ length: 5 }).map((_, k) => (
+            <Star
+              key={k}
+              className={`h-3.5 w-3.5 ${
+                k < r.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+
+        <figcaption
+          className={`${
+            compact ? "mt-3 pt-3" : "mt-4 pt-4"
+          } flex items-center gap-2.5 border-t border-line`}
+        >
+          {r.userAvatar ? (
+            <img
+              src={r.userAvatar}
+              alt={r.userName}
+              className={`${
+                compact ? "h-9 w-9" : "h-11 w-11"
+              } rounded-full object-cover border border-line shrink-0`}
+            />
+          ) : (
+            <span
+              className={`flex ${
+                compact ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
+              } items-center justify-center rounded-full bg-brand font-bold text-white shrink-0`}
+            >
+              {initials}
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className={`${compact ? "text-xs" : "text-sm"} font-semibold text-ink truncate`}>
+              {r.userName}
+            </p>
+            <p className="flex items-center gap-1 text-[11px] text-muted truncate">
+              <MapPin className="h-3 w-3 shrink-0 text-brand" /> {r.userLocation}
+            </p>
+          </div>
+        </figcaption>
+      </div>
+    </figure>
+  );
+}
 
 export default function Testimonials() {
   const { ref, visible } = useReveal<HTMLDivElement>();
   const { reviews } = useStore();
 
   const displayReviews = reviews.slice(0, 6);
+  const mid = Math.ceil(displayReviews.length / 2);
+  const firstHalf = displayReviews.slice(0, mid);
+  const secondHalf = displayReviews.slice(mid).length > 0 ? displayReviews.slice(mid) : firstHalf;
+
+  // Duplicate each row for a seamless 50% loop
+  const row1 = [...firstHalf, ...firstHalf];
+  const row2 = [...secondHalf, ...secondHalf];
 
   return (
-    <section id="reviews" className="section bg-white">
+    <section id="reviews" className="section overflow-hidden bg-white">
       <div ref={ref} className="container-x">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-2xl">
@@ -31,72 +117,37 @@ export default function Testimonials() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {displayReviews.map((r, i) => {
-            const initials = r.userName
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2);
+        {/* Mobile 2-line counter-scrolling marquee (< md) */}
+        <div className="mt-8 space-y-3.5 md:hidden -mx-4 overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+          {/* Line 1: Right to Left */}
+          <div className="flex w-max animate-marquee-left">
+            {row1.map((r, idx) => (
+              <ReviewCard key={`row1-${r.id}-${idx}`} r={r} compact />
+            ))}
+          </div>
 
-            return (
-              <figure
-                key={r.id}
-                className={`card reveal ${visible ? "is-visible" : ""} flex flex-col justify-between`}
-                style={{ transitionDelay: `${(i % 3) * 110}ms` }}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <Quote className="h-6 w-6 text-brand/30 shrink-0" />
-                    <span className="rounded-full border border-line bg-cream px-2.5 py-0.5 text-[11px] font-semibold text-brand">
-                      {r.targetTitle}
-                    </span>
-                  </div>
-
-                  <blockquote className="mt-4 text-sm leading-relaxed text-ink/80">
-                    “{r.comment}”
-                  </blockquote>
-                </div>
-
-                <div>
-                  <div className="mt-5 flex items-center gap-1 text-amber-400">
-                    {Array.from({ length: 5 }).map((_, k) => (
-                      <Star
-                        key={k}
-                        className={`h-3.5 w-3.5 ${
-                          k < r.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  <figcaption className="mt-4 flex items-center gap-3 border-t border-line pt-4">
-                    {r.userAvatar ? (
-                      <img
-                        src={r.userAvatar}
-                        alt={r.userName}
-                        className="h-11 w-11 rounded-full object-cover border border-line"
-                      />
-                    ) : (
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-sm font-bold text-white shrink-0">
-                        {initials}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-semibold text-ink truncate">{r.userName}</p>
-                      <p className="flex items-center gap-1 text-xs text-muted">
-                        <MapPin className="h-3 w-3 shrink-0 text-brand" /> {r.userLocation}
-                      </p>
-                    </div>
-                  </figcaption>
-                </div>
-              </figure>
-            );
-          })}
+          {/* Line 2: Left to Right */}
+          <div className="flex w-max animate-marquee-right">
+            {row2.map((r, idx) => (
+              <ReviewCard key={`row2-${r.id}-${idx}`} r={r} compact />
+            ))}
+          </div>
         </div>
 
-        <div className="mt-12 text-center">
+        {/* Tablet & Desktop Grid (>= md) */}
+        <div className="mt-12 hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-3">
+          {displayReviews.map((r, i) => (
+            <div
+              key={r.id}
+              className={`reveal ${visible ? "is-visible" : ""} flex`}
+              style={{ transitionDelay: `${(i % 3) * 110}ms` }}
+            >
+              <ReviewCard r={r} />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 md:mt-12 text-center">
           <button type="button" onClick={() => navigate("/reviews")} className="btn-outline-dark">
             View All Reviews & Submit Rating
           </button>
