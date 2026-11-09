@@ -189,7 +189,7 @@ export default function Navbar() {
     >
       <div ref={barRef}>
         <TopCouponBar />
-        <nav className="container-x flex h-16 sm:h-[72px] items-center justify-between gap-3 sm:gap-4">
+        <nav className="container-x flex min-h-[72px] pt-3 pb-1.5 sm:py-0 sm:h-[72px] items-center justify-between gap-3 sm:gap-4">
           <Logo variant={scrolled ? "dark" : "light"} />
 
         {/* Desktop links */}
