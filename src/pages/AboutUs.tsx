@@ -28,33 +28,58 @@ function Story() {
     <section className="section bg-cream">
       <div ref={ref} className="container-x grid items-center gap-14 lg:grid-cols-2">
         <div className={`reveal ${visible ? "is-visible" : ""}`}>
-          <span className="eyebrow">Our story</span>
+          <span className="eyebrow">Our story &amp; heritage</span>
           <h2 className="section-title mt-4">
             Built by traders, <span className="text-brand">for traders</span>
           </h2>
+
+          {/* Official Parent Organization Callout */}
+          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-brand/25 bg-brand-light/60 p-4">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+            <p className="text-xs sm:text-sm leading-relaxed text-ink/85">
+              <strong className="font-bold text-ink">Official Identity:</strong>{" "}
+              <span className="font-semibold text-brand">GAMAT Fx Academy</span> is the
+              dedicated financial-markets and forex education division of{" "}
+              <strong className="font-bold text-ink">
+                GAMAT (Growth and Mentorship Academy with Taylor)
+              </strong>
+              .
+            </p>
+          </div>
+
           <div className="mt-5 space-y-4 text-muted">
             <p>
-              GAMAT Fx Academy began with a simple frustration: too many aspiring
+              Born out of{" "}
+              <strong className="font-semibold text-ink">
+                GAMAT — Growth and Mentorship Academy with Taylor
+              </strong>
+              , GAMAT Fx Academy began with a simple frustration: too many aspiring
               traders were losing money to hype, signal-selling and shallow
-              &ldquo;get-rich-quick&rdquo; content. What the market lacked was a place
-              that taught traders to actually <em>think</em> — to read fundamentals,
-              understand institutional order flow, and manage risk like professionals.
+              &ldquo;get-rich-quick&rdquo; schemes. What the market lacked was a
+              legitimate, transparent institution that taught traders to actually{" "}
+              <em>think</em> — to read fundamentals, understand institutional order flow,
+              and manage risk like professionals.
             </p>
             <p>
-              So we built one. What started as a small mentorship circle has grown into
-              a full academy training thousands of students and supporting a community
-              of over 40,000 traders across Africa and beyond.
+              So we built one under the GAMAT umbrella. What started as a focused
+              mentorship circle with Tonye S. Taylor has grown into a full academy
+              training thousands of verified students and supporting a community of over
+              40,000 traders across Africa and beyond.
             </p>
             <p>
-              Today we are a hub for financial education and digital empowerment —
-              combining structured curricula, live market sessions and a
-              results-driven mentorship system that holds every trader accountable to
-              their own growth.
+              Today, as a core pillar of{" "}
+              <strong className="font-semibold text-ink">
+                Growth and Mentorship Academy with Taylor (GAMAT)
+              </strong>
+              , we operate as a trusted hub for financial education and digital
+              empowerment — combining structured curricula, live market sessions and an
+              accountable mentorship system that never manages student funds or sells
+              get-rich-quick promises.
             </p>
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            {["Fundamentals-first", "Risk-led", "Mentorship-driven", "Community-backed"].map(
+            {["Part of GAMAT", "Fundamentals-first", "Risk-led", "Mentorship-driven", "Community-backed"].map(
               (t) => (
                 <span key={t} className="chip">
                   <BadgeCheck className="h-3.5 w-3.5" /> {t}
@@ -102,12 +127,14 @@ function Founder() {
         <div className="relative min-h-[420px] overflow-hidden rounded-3xl shadow-2xl lg:min-h-full">
           <img
             src="/images/founder.jpg"
-            alt="Tonye S. Taylor — Founder & Lead Mentor of GAMAT Fx Academy"
+            alt="Tonye S. Taylor — Founder of GAMAT (Growth and Mentorship Academy with Taylor)"
             className="absolute inset-0 h-full w-full object-cover object-[center_20%]"
           />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink via-ink/70 to-transparent p-6">
             <p className="font-display text-lg font-bold">Tonye S. Taylor</p>
-            <p className="text-sm text-brand-light">Founder &amp; Lead Mentor</p>
+            <p className="text-sm text-brand-light">
+              Founder of GAMAT (Growth and Mentorship Academy with Taylor) &amp; Lead Mentor
+            </p>
           </div>
         </div>
 
@@ -122,13 +149,17 @@ function Founder() {
             traders who could stand on their own — people who understand
             <span className="text-white"> why </span>
             price moves, not just where to click. That is the whole point of
-            GAMAT.&rdquo;
+            GAMAT — Growth and Mentorship Academy with Taylor.&rdquo;
           </p>
           <p className="mt-5 text-sm leading-relaxed text-white/60">
             With over six years navigating currencies, indices and crypto through
-            multiple market cycles, Tonye S. Taylor has mentored thousands of traders and
-            built a curriculum grounded in fundamentals, supply &amp; demand, and
-            disciplined risk management.
+            multiple market cycles, Tonye S. Taylor founded{" "}
+            <strong className="text-white/85">
+              GAMAT (Growth and Mentorship Academy with Taylor)
+            </strong>{" "}
+            and its forex trading division, <strong className="text-white/85">GAMAT Fx Academy</strong>,
+            mentoring thousands of traders through a curriculum grounded in fundamentals,
+            supply &amp; demand, and disciplined risk management.
           </p>
 
           <div className="mt-8 grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
