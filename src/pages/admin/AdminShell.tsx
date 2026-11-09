@@ -87,12 +87,12 @@ export function AdminShell({ title, subtitle, action, children }: {
   };
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen w-full overflow-x-clip bg-cream">
       {/* Sidebar - Fixed to viewport */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-ink text-white transition-transform lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] overflow-y-auto bg-ink text-white transition-transform duration-300 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-[72px] items-center justify-between border-b border-white/10 px-5">
           <Logo variant="light" />
-          <button onClick={() => setOpen(false)} className="lg:hidden" aria-label="Close menu">
+          <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 text-white/80 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Close menu">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -106,7 +106,7 @@ export function AdminShell({ title, subtitle, action, children }: {
                 className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
                   active ? "bg-brand text-white shadow-lg shadow-brand/20" : "text-white/65 hover:bg-white/8 hover:text-white"
                 }`}>
-                <n.icon className="h-4 w-4" /> {n.label}
+                <n.icon className="h-4 w-4 shrink-0" /> <span className="truncate">{n.label}</span>
               </button>
             );
           })}
@@ -115,115 +115,116 @@ export function AdminShell({ title, subtitle, action, children }: {
         <div className="mt-8 space-y-1 border-t border-white/10 px-3 pt-5 pb-8">
           <button onClick={() => navigate("/")}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
-            <ArrowLeft className="h-4 w-4" /> Back to site
+            <ArrowLeft className="h-4 w-4 shrink-0" /> Back to site
           </button>
           <button onClick={() => { logout(); navigate("/"); }}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
-            <LogOut className="h-4 w-4" /> Log out
+            <LogOut className="h-4 w-4 shrink-0" /> Log out
           </button>
         </div>
       </aside>
 
-      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-ink/50 lg:hidden" />}
+      {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-ink/50 backdrop-blur-xs lg:hidden" />}
+
+      {/* Fixed Top Navigation Bar */}
+      <header className="fixed top-0 right-0 left-0 lg:left-64 z-30 flex h-[72px] items-center justify-between gap-3 border-b border-line bg-white/95 px-4 sm:px-5 backdrop-blur-md shadow-[0_4px_20px_-12px_rgba(22,24,28,0.2)] lg:px-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <button onClick={() => setOpen(true)} className="shrink-0 rounded-lg p-2 text-ink hover:bg-cream lg:hidden" aria-label="Open menu">
+            <Menu className="h-5 w-5" />
+          </button>
+          <h1 className="truncate font-display text-base sm:text-lg font-extrabold text-ink">{title}</h1>
+        </div>
+        <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-4">
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-cream text-ink transition hover:border-brand hover:bg-white"
+              title="Activity Center Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[10px] font-black text-white shadow-md">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Floating Activity Notifications Panel */}
+            {notifOpen && (
+              <div className="absolute right-0 top-full mt-3 w-[calc(100vw-32px)] max-w-sm sm:w-96 rounded-2xl border border-line bg-white p-4 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex items-center justify-between border-b border-line pb-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-brand" />
+                    <h3 className="font-bold text-ink text-sm">Site Activity Notifications</h3>
+                  </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-[11px] font-semibold text-brand hover:underline flex items-center gap-1"
+                    >
+                      <Check className="h-3 w-3" /> Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-80 overflow-y-auto divide-y divide-line pr-1 space-y-2">
+                  {notifs.length ? (
+                    notifs.slice(0, 10).map((item) => {
+                      const icon =
+                        item.type === "registration" ? Users :
+                        item.type === "payment" || item.type === "refund" ? CreditCard :
+                        item.type === "article" ? FileText :
+                        item.type === "team_bio" ? UserCog : Award;
+                      const IconComp = icon;
+
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            setNotifOpen(false);
+                            navigate(item.link);
+                          }}
+                          className="group flex gap-3 p-2.5 rounded-xl transition hover:bg-cream cursor-pointer"
+                        >
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand group-hover:bg-brand group-hover:text-white transition">
+                            <IconComp className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className="text-xs font-bold text-ink truncate">{item.title}</h4>
+                              <span className="text-[10px] text-muted shrink-0">
+                                {new Date(item.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-muted line-clamp-2 mt-0.5">{item.body}</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-6 text-center text-xs text-muted">No recent activity</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <span className="hidden rounded-full bg-brand-light px-3 py-1.5 text-xs font-bold text-brand sm:inline">
+            Admin
+          </span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+            {initials}
+          </span>
+        </div>
+      </header>
 
       {/* Main Content Area */}
-      <div className="flex min-h-screen min-w-0 flex-col justify-between lg:pl-64">
-        <div>
-          <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-line bg-white/90 px-5 backdrop-blur lg:px-8">
-            <button onClick={() => setOpen(true)} className="rounded-lg p-2 text-ink lg:hidden" aria-label="Open menu">
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="hidden min-w-0 lg:block">
-              <h1 className="truncate font-display text-lg font-extrabold text-ink">{title}</h1>
-            </div>
-            <div className="ml-auto flex items-center gap-4">
-              {/* Notification Bell */}
-              <div className="relative">
-                <button
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-line bg-cream text-ink transition hover:border-brand hover:bg-white"
-                  title="Activity Center Notifications"
-                >
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[10px] font-black text-white shadow-md animate-pulse">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </button>
-
-                {/* Floating Activity Notifications Panel */}
-                {notifOpen && (
-                  <div className="absolute right-0 top-full mt-3 w-[calc(100vw-32px)] max-w-sm sm:w-96 rounded-2xl border border-line bg-white p-4 shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="flex items-center justify-between border-b border-line pb-3 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Bell className="h-4 w-4 text-brand" />
-                        <h3 className="font-bold text-ink text-sm">Site Activity Notifications</h3>
-                      </div>
-                      {unreadCount > 0 && (
-                        <button
-                          onClick={handleMarkAllRead}
-                          className="text-[11px] font-semibold text-brand hover:underline flex items-center gap-1"
-                        >
-                          <Check className="h-3 w-3" /> Mark all read
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="max-h-80 overflow-y-auto divide-y divide-line pr-1 space-y-2">
-                      {notifs.length ? (
-                        notifs.slice(0, 10).map((item) => {
-                          const icon =
-                            item.type === "registration" ? Users :
-                            item.type === "payment" || item.type === "refund" ? CreditCard :
-                            item.type === "article" ? FileText :
-                            item.type === "team_bio" ? UserCog : Award;
-                          const IconComp = icon;
-
-                          return (
-                            <div
-                              key={item.id}
-                              onClick={() => {
-                                setNotifOpen(false);
-                                navigate(item.link);
-                              }}
-                              className="group flex gap-3 p-2.5 rounded-xl transition hover:bg-cream cursor-pointer"
-                            >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand group-hover:bg-brand group-hover:text-white transition">
-                                <IconComp className="h-4 w-4" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center justify-between gap-2">
-                                  <h4 className="text-xs font-bold text-ink truncate">{item.title}</h4>
-                                  <span className="text-[10px] text-muted shrink-0">
-                                    {new Date(item.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-                                  </span>
-                                </div>
-                                <p className="text-[11px] text-muted line-clamp-2 mt-0.5">{item.body}</p>
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="py-6 text-center text-xs text-muted">No recent activity</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <span className="hidden rounded-full bg-brand-light px-3 py-1.5 text-xs font-bold text-brand sm:inline">
-                Admin
-              </span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                {initials}
-              </span>
-            </div>
-          </header>
-
-          <main className="p-5 lg:p-8">
-            <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-              <div>
+      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-hidden pt-[72px] lg:pl-64">
+        <div className="min-w-0 w-full flex-1">
+          <main className="min-w-0 w-full p-4 sm:p-5 lg:p-8">
+            <div className="mb-6 sm:mb-7 flex flex-wrap items-end justify-between gap-4">
+              <div className="min-w-0">
                 <h2 className="font-display text-2xl font-extrabold text-ink lg:text-3xl">{title}</h2>
                 {subtitle && <p className="mt-1.5 text-sm text-muted">{subtitle}</p>}
               </div>
@@ -233,7 +234,7 @@ export function AdminShell({ title, subtitle, action, children }: {
           </main>
         </div>
 
-        <footer className="border-t border-line bg-white px-6 py-4 text-center text-xs text-muted">
+        <footer className="border-t border-line bg-white px-4 sm:px-6 py-4 text-center text-xs text-muted">
           Copyright © {new Date().getFullYear()}{" "}
           <span className="font-semibold text-ink">GAMAT Fx Academy</span>. All rights reserved. — Admin Console
         </footer>
@@ -246,7 +247,7 @@ export function AdminShell({ title, subtitle, action, children }: {
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-line bg-white shadow-[0_14px_45px_-30px_rgba(22,24,28,0.3)] ${className}`}>
+    <div className={`min-w-0 max-w-full rounded-2xl border border-line bg-white shadow-[0_14px_45px_-30px_rgba(22,24,28,0.3)] ${className}`}>
       {children}
     </div>
   );
