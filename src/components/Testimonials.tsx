@@ -11,31 +11,80 @@ function ReviewCard({ r, compact = false }: { r: ReviewItem; compact?: boolean }
     .toUpperCase()
     .slice(0, 2);
 
+  if (compact) {
+    return (
+      <div className="pr-5 shrink-0">
+        <figure className="flex h-full w-[290px] flex-col justify-between rounded-2xl border border-line bg-white p-5 shadow-[0_12px_32px_-18px_rgba(22,24,28,0.22)]">
+          {/* Header: Student profile + Stars */}
+          <div>
+            <figcaption className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {r.userAvatar ? (
+                  <img
+                    src={r.userAvatar}
+                    alt={r.userName}
+                    className="h-10 w-10 rounded-full object-cover border border-line shrink-0"
+                  />
+                ) : (
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-xs font-bold text-white shrink-0">
+                    {initials}
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-ink truncate">{r.userName}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted truncate">
+                    <MapPin className="h-3 w-3 shrink-0 text-brand" /> {r.userLocation}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-0.5 text-amber-400">
+                {Array.from({ length: 5 }).map((_, k) => (
+                  <Star
+                    key={k}
+                    className={`h-3.5 w-3.5 ${
+                      k < r.rating ? "fill-amber-400 text-amber-400" : "text-gray-200"
+                    }`}
+                  />
+                ))}
+              </div>
+            </figcaption>
+
+            {/* Quote */}
+            <blockquote className="mt-4 text-[13px] leading-relaxed text-ink/80 line-clamp-3">
+              “{r.comment}”
+            </blockquote>
+          </div>
+
+          {/* Footer badge */}
+          <div className="mt-4 flex items-center justify-between border-t border-line/80 pt-3.5">
+            <span className="truncate max-w-[210px] rounded-full bg-brand-light px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-brand">
+              {r.targetTitle}
+            </span>
+            <Quote className="h-4 w-4 text-brand/25 shrink-0" />
+          </div>
+        </figure>
+      </div>
+    );
+  }
+
   return (
-    <figure
-      className={`card flex flex-col justify-between ${
-        compact ? "w-[275px] xs:w-[300px] shrink-0 !p-4" : ""
-      }`}
-    >
+    <figure className="card w-full flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between gap-2">
-          <Quote className={`${compact ? "h-5 w-5" : "h-6 w-6"} text-brand/30 shrink-0`} />
-          <span className="truncate max-w-[180px] rounded-full border border-line bg-cream px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-brand">
+          <Quote className="h-6 w-6 text-brand/30 shrink-0" />
+          <span className="truncate max-w-[180px] rounded-full border border-line bg-cream px-2.5 py-0.5 text-[11px] font-semibold text-brand">
             {r.targetTitle}
           </span>
         </div>
 
-        <blockquote
-          className={`mt-3 text-ink/80 leading-relaxed ${
-            compact ? "text-xs line-clamp-3" : "mt-4 text-sm"
-          }`}
-        >
+        <blockquote className="mt-4 text-sm leading-relaxed text-ink/80">
           “{r.comment}”
         </blockquote>
       </div>
 
       <div>
-        <div className={`${compact ? "mt-3.5" : "mt-5"} flex items-center gap-1 text-amber-400`}>
+        <div className="mt-5 flex items-center gap-1 text-amber-400">
           {Array.from({ length: 5 }).map((_, k) => (
             <Star
               key={k}
@@ -46,33 +95,21 @@ function ReviewCard({ r, compact = false }: { r: ReviewItem; compact?: boolean }
           ))}
         </div>
 
-        <figcaption
-          className={`${
-            compact ? "mt-3 pt-3" : "mt-4 pt-4"
-          } flex items-center gap-2.5 border-t border-line`}
-        >
+        <figcaption className="mt-4 flex items-center gap-3 border-t border-line pt-4">
           {r.userAvatar ? (
             <img
               src={r.userAvatar}
               alt={r.userName}
-              className={`${
-                compact ? "h-9 w-9" : "h-11 w-11"
-              } rounded-full object-cover border border-line shrink-0`}
+              className="h-11 w-11 rounded-full object-cover border border-line shrink-0"
             />
           ) : (
-            <span
-              className={`flex ${
-                compact ? "h-9 w-9 text-xs" : "h-11 w-11 text-sm"
-              } items-center justify-center rounded-full bg-brand font-bold text-white shrink-0`}
-            >
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-sm font-bold text-white shrink-0">
               {initials}
             </span>
           )}
           <div className="min-w-0">
-            <p className={`${compact ? "text-xs" : "text-sm"} font-semibold text-ink truncate`}>
-              {r.userName}
-            </p>
-            <p className="flex items-center gap-1 text-[11px] text-muted truncate">
+            <p className="text-sm font-semibold text-ink truncate">{r.userName}</p>
+            <p className="flex items-center gap-1 text-xs text-muted truncate">
               <MapPin className="h-3 w-3 shrink-0 text-brand" /> {r.userLocation}
             </p>
           </div>
@@ -118,7 +155,7 @@ export default function Testimonials() {
         </div>
 
         {/* Mobile 2-line counter-scrolling marquee (< md) */}
-        <div className="mt-8 space-y-3.5 md:hidden -mx-4 overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+        <div className="mt-10 space-y-5 md:hidden -mx-4 overflow-hidden py-3">
           {/* Line 1: Right to Left */}
           <div className="flex w-max animate-marquee-left">
             {row1.map((r, idx) => (

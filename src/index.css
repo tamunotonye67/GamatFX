@@ -84,11 +84,11 @@ img, video, canvas {
 }
 
 .animate-marquee-left {
-  animation: marqueeLeft 28s linear infinite;
+  animation: marqueeLeft 38s linear infinite;
 }
 
 .animate-marquee-right {
-  animation: marqueeRight 28s linear infinite;
+  animation: marqueeRight 38s linear infinite;
 }
 
 .animate-marquee-left:hover,
