@@ -400,75 +400,40 @@ export default function StorePage() {
     { id: "tool", label: "Physical Journals", icon: Package },
   ];
 
-  // Category Intent Cards Definition
+  // Simple Category Cards Definition (Vector in a box + Button)
   const categoryCards: {
     id: StoreProductCategory;
     title: string;
-    badge: string;
-    intent: string;
-    description: string;
-    features: string[];
-    specs: string;
     diagram: React.ReactNode;
   }[] = [
     {
       id: "bot",
-      title: "AI Bots & Expert Advisors (EAs)",
-      badge: "Automated Algorithmic Execution",
-      intent: "I intend to automate my trades with quantitative, latency-free MT4/MT5 algorithms.",
-      description: "Hands-free automated trading systems designed for MT4 & MT5 with built-in prop-firm risk protection, trailing stop protocols, and zero emotional bias.",
-      features: ["MT4 / MT5 Compatible", "Prop-Firm Validated", "Trailing Stop & Equity Shield"],
-      specs: "Instant .ex4 / .ex5 File + Setup Manual",
+      title: "AI Bots & EAs",
       diagram: <BotVectorDiagram />,
     },
     {
       id: "indicator",
-      title: "Technical Indicators & Scripts",
-      badge: "Smart Money Radar & FVG",
-      intent: "I intend to spot institutional liquidity sweeps and order blocks directly on my charts.",
-      description: "Institutional volume heatmaps, real-time fair value gap radars, and multi-timeframe market structure indicators for TradingView and MT5.",
-      features: ["TradingView Pine Script", "Multi-Timeframe Alerts", "Liquidity Sweep Heatmaps"],
-      specs: "Protected Script Access + Case Studies",
+      title: "Indicators & Scripts",
       diagram: <IndicatorVectorDiagram />,
     },
     {
       id: "ebook",
-      title: "Forex Books, Playbooks & Manuals",
-      badge: "Institutional Order Flow Literature",
-      intent: "I intend to master central bank liquidity sweeps and institutional mechanics in depth.",
-      description: "Comprehensive 280-page manuals decoding volume imbalances, killzone entries, and emotional discipline with 120+ high-resolution chart case studies.",
-      features: ["High-Res Printable PDF", "120+ Annotated Case Studies", "Desk Cheatsheets Included"],
-      specs: "Instant Digital Download + Offline Copy",
+      title: "Books & Manuals",
       diagram: <BookVectorDiagram />,
     },
     {
       id: "strategy",
-      title: "Trade Strategy Blueprints",
-      badge: "Rule-Based Mechanical Execution",
-      intent: "I intend to follow a validated, step-by-step mechanical entry and risk system.",
-      description: "Systematic execution rulebooks covering London Open Judas Swings, New York AM killzone sessions, and high-probability 1:3 risk-to-reward continuation models.",
-      features: ["Backtested Edge", "Defined Entry / Exit Checklists", "Session Timeline Guides"],
-      specs: "Full Strategy PDF + Video Walkthrough",
+      title: "Strategy Blueprints",
       diagram: <StrategyVectorDiagram />,
     },
     {
       id: "tool",
-      title: "Physical Journals & Desk Utilities",
-      badge: "Disciplined Tracking & Calculations",
-      intent: "I intend to track my trades physically and calculate position sizes accurately.",
-      description: "Embossed hardcover trading journals, risk management calculator suites, and desk reference cards for disciplined trade execution.",
-      features: ["Leatherbound Hardcover", "Lot Size Calculator Suite", "Delivered to Doorstep"],
-      specs: "Physical Delivery + Digital Templates",
+      title: "Physical Journals & Tools",
       diagram: <ToolVectorDiagram />,
     },
     {
       id: "all",
-      title: "Complete Store & Tools Catalog",
-      badge: "All Categories Combined",
-      intent: "I want to browse every trading tool, bot, indicator, and book in one collection.",
-      description: "Explore our entire digital catalog of trading tools, automated EAs, indicators, and institutional playbooks in one unified view.",
-      features: ["All 5 Categories", "Amazon-Style Filters", "Instant Paystack Express Checkout"],
-      specs: "Complete Catalog (All Products)",
+      title: "All Products & Tools",
       diagram: <AllProductsVectorDiagram />,
     },
   ];
@@ -608,114 +573,63 @@ export default function StorePage() {
 
       {/* ================= STEP 1: CATEGORY INTENT SELECTION HUB ================= */}
       {pageStep === "intent" && (
-        <section className="container-x py-12 sm:py-16">
+        <section className="container-x py-10 sm:py-14">
           {/* Section Header */}
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 border border-brand/20 px-3.5 py-1 text-xs font-bold text-brand uppercase tracking-wider">
+          <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 border border-brand/20 px-3.5 py-1 text-xs font-bold text-brand uppercase tracking-wider">
               <Compass className="h-3.5 w-3.5" />
-              <span>Step 1: Choose Your Trading Intent</span>
-            </div>
-            <h2 className="mt-3 font-display text-2xl sm:text-4xl font-extrabold text-slate-950 tracking-tight">
-              What do you intend to explore today?
+              Store & Tools Categories
+            </span>
+            <h2 className="mt-3 font-display text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
+              Select a Category
             </h2>
-            <p className="mt-2 text-sm sm:text-base text-slate-600 leading-relaxed">
-              Select a category below to explore specialized quantitative trading systems, automated execution robots, or institutional literature tailored to your goals.
+            <p className="mt-2 text-xs sm:text-sm text-slate-500">
+              Choose a category to browse our specialized trading tools, robots, and literature.
             </p>
           </div>
 
-          {/* 6 Category Intent Cards with Vector Diagrams */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-            {categoryCards.map((cat) => {
-              const productCount = publishedStoreProducts.filter(
-                (p) => cat.id === "all" || p.category === cat.id
-              ).length;
-
-              return (
-                <div
-                  key={cat.id}
-                  onClick={() => selectCategoryFromCard(cat.id)}
-                  className="group relative flex flex-col justify-between rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer"
-                >
-                  <div>
-                    {/* Top Vector Diagram Header */}
-                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-950 p-2 border-b border-slate-200 group-hover:scale-[1.02] transition-transform duration-500">
-                      {cat.diagram}
-                      
-                      {/* Top badge overlay */}
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-black/70 backdrop-blur-md border border-white/15 px-2.5 py-0.5 text-[10px] font-black uppercase text-white shadow-sm">
-                          {cat.badge}
-                        </span>
-                      </div>
-
-                      <div className="absolute top-3 right-3">
-                        <span className="inline-flex items-center rounded-md bg-brand px-2 py-0.5 text-[10px] font-black text-white shadow-sm">
-                          {productCount} {productCount === 1 ? "Item" : "Items"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Body Details */}
-                    <div className="p-5 sm:p-6">
-                      <h3 className="font-display text-lg font-extrabold text-slate-900 group-hover:text-brand transition leading-snug">
-                        {cat.title}
-                      </h3>
-
-                      {/* Intent Quote Hook */}
-                      <p className="mt-2 text-xs font-bold text-sky-700 bg-sky-50 border border-sky-100 rounded-xl p-2.5 leading-relaxed">
-                        "{cat.intent}"
-                      </p>
-
-                      <p className="mt-3 text-xs text-slate-600 leading-relaxed line-clamp-3">
-                        {cat.description}
-                      </p>
-
-                      {/* Feature Pills */}
-                      <div className="mt-4 flex flex-wrap gap-1.5">
-                        {cat.features.map((f, i) => (
-                          <span
-                            key={i}
-                            className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
-                          >
-                            <CheckCheck className="h-3 w-3 text-emerald-600" />
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Card Bottom CTA */}
-                  <div className="p-5 sm:p-6 pt-0">
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[11px] font-mono font-semibold text-slate-500">
-                        {cat.specs}
-                      </span>
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white group-hover:bg-brand transition-colors shadow-sm"
-                      >
-                        <span>Select Category</span>
-                        <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                      </button>
-                    </div>
-                  </div>
+          {/* Simple Vector image in a box + Category name like a button */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {categoryCards.map((cat) => (
+              <div
+                key={cat.id}
+                onClick={() => selectCategoryFromCard(cat.id)}
+                className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
+              >
+                {/* Vector image in a box */}
+                <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-950 p-2 border border-slate-800 shadow-inner group-hover:scale-[1.01] transition-transform duration-200">
+                  {cat.diagram}
                 </div>
-              );
-            })}
+
+                {/* Category name like a button */}
+                <div className="mt-3.5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      selectCategoryFromCard(cat.id);
+                    }}
+                    className="w-full rounded-xl bg-slate-900 group-hover:bg-brand py-3 px-4 text-xs sm:text-sm font-bold text-white transition-colors duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                  >
+                    <span>{cat.title}</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Quick bypass link */}
-          <div className="mt-10 text-center">
+          <div className="mt-8 sm:mt-10 text-center">
             <button
               type="button"
               onClick={() => {
                 setSelectedCat("all");
                 setPageStep("showcase");
               }}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition underline underline-offset-4 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition underline underline-offset-4 cursor-pointer"
             >
-              <span>Already know what you need? Skip to the full product catalog</span>
+              <span>Skip to view all products directly</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
