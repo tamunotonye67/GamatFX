@@ -1,4 +1,5 @@
-import { ArrowUpRight, Send, Mail, MapPin, Phone, AlertTriangle } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, Send, Mail, MapPin, Phone, AlertTriangle, ChevronDown } from "lucide-react";
 import Logo from "./Logo";
 import { navigate, type Route } from "../lib/router";
 import { CONTACT } from "../lib/contact";
@@ -42,10 +43,17 @@ const footerLinks: { title: string; items: FooterItem[] }[] = [
 ];
 
 export default function Footer() {
+  const [openCol, setOpenCol] = useState<string | null>(null);
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+
+  const toggleCol = (title: string) => {
+    setOpenCol((prev) => (prev === title ? null : title));
+  };
+
   return (
     <footer className="bg-ink text-white">
       {/* Final CTA */}
-      <div className="container-x py-14 sm:py-20">
+      <div className="container-x py-12 sm:py-20">
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-brand to-brand-dark px-5 py-10 sm:px-8 sm:py-14 text-center shadow-xl md:px-16">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" />
           <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/10" />
@@ -80,8 +88,8 @@ export default function Footer() {
 
       {/* Footer body */}
       <div className="border-t border-white/10">
-        <div className="container-x grid grid-cols-2 gap-8 sm:gap-10 py-12 sm:py-14 sm:grid-cols-3 lg:grid-cols-5">
-          <div className="col-span-2 sm:col-span-3 lg:col-span-2">
+        <div className="container-x grid grid-cols-1 gap-8 sm:gap-10 py-10 sm:py-14 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="sm:col-span-3 lg:col-span-2">
             <Logo variant="light" />
             <p className="mt-4 sm:mt-5 max-w-sm text-sm leading-relaxed text-white/60">
               A hub for financial education and digital empowerment — building elite
@@ -104,8 +112,59 @@ export default function Footer() {
             </div>
           </div>
 
+          {/* Mobile Dropdowns (< sm) */}
+          <div className="divide-y divide-white/10 border-y border-white/10 sm:hidden">
+            {footerLinks.map((col) => {
+              const isOpen = openCol === col.title;
+              return (
+                <div key={col.title}>
+                  <button
+                    type="button"
+                    onClick={() => toggleCol(col.title)}
+                    aria-expanded={isOpen}
+                    className="flex w-full items-center justify-between py-3.5 text-left"
+                  >
+                    <span className="text-xs font-semibold uppercase tracking-wider text-white/90">
+                      {col.title}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 text-white/60 transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-brand-light" : ""
+                      }`}
+                    />
+                  </button>
+                  <div
+                    className={`grid transition-all duration-200 ${
+                      isOpen ? "grid-rows-[1fr] pb-3.5" : "grid-rows-[0fr]"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <ul className="space-y-2.5 pl-1">
+                        {col.items.map((item) => (
+                          <li key={`${col.title}-${item.label}`}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenCol(null);
+                                navigate(item.to);
+                              }}
+                              className="text-left text-sm text-white/65 transition hover:text-brand-light"
+                            >
+                              {item.label}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tablet & Desktop Columns (>= sm) */}
           {footerLinks.map((col) => (
-            <div key={col.title}>
+            <div key={col.title} className="hidden sm:block">
               <h4 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-white/90">
                 {col.title}
               </h4>
@@ -126,40 +185,66 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Risk disclaimer */}
-        <div className="container-x border-t border-white/10 py-8">
-          <div className="flex gap-4 rounded-2xl border border-brand/25 bg-brand/10 p-5">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-brand-light" />
-            <div className="text-xs leading-relaxed text-white/60">
-              <p className="font-bold uppercase tracking-wide text-white/85">
-                Risk disclaimer
-              </p>
-              <p className="mt-2">
-                Trading foreign exchange, CFDs, cryptocurrencies and synthetic indices carries a
-                high level of risk and may not be suitable for every investor. Leverage can work
-                against you as well as for you. You could sustain a total loss of your deposited
-                funds and should never trade with money you cannot afford to lose.
-              </p>
-              <p className="mt-2">
-                All content published by GAMAT Fx Academy — including courses, live sessions,
-                market commentary, articles and games — is strictly{" "}
-                <strong className="text-white/85">educational</strong> and does not constitute
-                financial, investment, tax or legal advice. We do not manage funds on behalf of
-                students and we do not sell trading signals. Past performance is never indicative
-                of future results. Any prices shown in our simulators are fictional and are not
-                live market data.
-              </p>
-              <p className="mt-2">
-                You are solely responsible for your own trading decisions. Please read our{" "}
-                <button type="button" onClick={() => navigate("/terms")} className="font-semibold text-brand-light underline underline-offset-2 hover:text-white">
-                  Terms of Service
-                </button>{" "}
-                and{" "}
-                <button type="button" onClick={() => navigate("/privacy")} className="font-semibold text-brand-light underline underline-offset-2 hover:text-white">
-                  Privacy Policy
-                </button>{" "}
-                before using our services.
-              </p>
+        {/* Collapsible & Expandable Risk Disclaimer */}
+        <div className="container-x border-t border-white/10 py-6 sm:py-8">
+          <div className="overflow-hidden rounded-2xl border border-brand/25 bg-brand/10">
+            <button
+              type="button"
+              onClick={() => setDisclaimerOpen((v) => !v)}
+              aria-expanded={disclaimerOpen}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 text-left transition hover:bg-brand/15"
+            >
+              <span className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-brand-light" />
+                <span className="text-xs font-bold uppercase tracking-wide text-white/90">
+                  Risk disclaimer
+                </span>
+                <span className="truncate text-[11px] text-white/50">
+                  {disclaimerOpen ? "Click to collapse" : "Click to read full notice"}
+                </span>
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${
+                  disclaimerOpen ? "rotate-180 text-brand-light" : ""
+                }`}
+              />
+            </button>
+
+            <div
+              className={`grid transition-all duration-200 ${
+                disclaimerOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="border-t border-brand/20 px-4 pb-4 pt-3 sm:px-5 sm:pb-5 text-xs leading-relaxed text-white/60">
+                  <p>
+                    Trading foreign exchange, CFDs, cryptocurrencies and synthetic indices carries a
+                    high level of risk and may not be suitable for every investor. Leverage can work
+                    against you as well as for you. You could sustain a total loss of your deposited
+                    funds and should never trade with money you cannot afford to lose.
+                  </p>
+                  <p className="mt-2">
+                    All content published by GAMAT Fx Academy — including courses, live sessions,
+                    market commentary, articles and games — is strictly{" "}
+                    <strong className="text-white/85">educational</strong> and does not constitute
+                    financial, investment, tax or legal advice. We do not manage funds on behalf of
+                    students and we do not sell trading signals. Past performance is never indicative
+                    of future results. Any prices shown in our simulators are fictional and are not
+                    live market data.
+                  </p>
+                  <p className="mt-2">
+                    You are solely responsible for your own trading decisions. Please read our{" "}
+                    <button type="button" onClick={() => navigate("/terms")} className="font-semibold text-brand-light underline underline-offset-2 hover:text-white">
+                      Terms of Service
+                    </button>{" "}
+                    and{" "}
+                    <button type="button" onClick={() => navigate("/privacy")} className="font-semibold text-brand-light underline underline-offset-2 hover:text-white">
+                      Privacy Policy
+                    </button>{" "}
+                    before using our services.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
