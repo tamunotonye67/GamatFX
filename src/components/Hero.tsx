@@ -1,11 +1,29 @@
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, PlayCircle, Zap } from "lucide-react";
 import Counter from "./Counter";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
-import MarketClock, { MobileSessionDock } from "./MarketClock";
+import MarketClock, { MobileSessionDockTrigger, MobileSessionDockModal } from "./MarketClock";
 
 export default function Hero() {
   const { allEvents, events } = useStore();
+  const [clockOpen, setClockOpen] = useState(false);
+  const [heroInView, setHeroInView] = useState(true);
+  const heroRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const checkScroll = () => {
+      const el = heroRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      // Hide docker once user scrolls down past the hero section
+      setHeroInView(rect.bottom > 120);
+    };
+    checkScroll();
+    window.addEventListener("scroll", checkScroll, { passive: true });
+    return () => window.removeEventListener("scroll", checkScroll);
+  }, []);
+
   const eventList = allEvents || events || [];
   const latestEvent = eventList.find((e) => e.status === "published") || eventList[0] || {
     title: "Forex Mentorship Class 2026",
@@ -15,7 +33,7 @@ export default function Hero() {
 
   return (
     <>
-      <section id="home" className="relative isolate overflow-hidden">
+      <section ref={heroRef} id="home" className="relative isolate overflow-hidden">
         {/* Background image + dark gradient overlay */}
         <div className="absolute inset-0 -z-10">
           <img
@@ -92,34 +110,46 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Stats strip */}
-          <div className="mt-10 sm:mt-14 grid max-w-3xl grid-cols-2 gap-4 sm:gap-6 border-t border-white/10 pt-6 sm:pt-8 sm:grid-cols-4">
-            {[
-              { value: 4000, suffix: "+", label: "Students Trained" },
-              { value: 40000, suffix: "+", label: "Telegram Members" },
-              { value: 6, suffix: "+", label: "Years Experience" },
-              { value: 4.9, suffix: "/5", label: "Avg. Rating", decimal: true },
-            ].map((s) => (
-              <div key={s.label}>
-                <div className="font-display text-2xl font-extrabold text-white sm:text-3xl md:text-4xl">
-                  {s.decimal ? (
-                    <span>
-                      {s.value}
-                      {s.suffix}
-                    </span>
-                  ) : (
-                    <Counter end={s.value} suffix={s.suffix} />
-                  )}
+          {/* Stats strip + Mobile right-edge session docker aligned beside 40,000+ & 4.9/5 */}
+          <div className="relative mt-10 sm:mt-14">
+            <div className="grid max-w-3xl grid-cols-2 gap-4 pr-8 sm:pr-0 sm:gap-6 border-t border-white/10 pt-6 sm:pt-8 sm:grid-cols-4">
+              {[
+                { value: 4000, suffix: "+", label: "Students Trained" },
+                { value: 40000, suffix: "+", label: "Telegram Members" },
+                { value: 6, suffix: "+", label: "Years Experience" },
+                { value: 4.9, suffix: "/5", label: "Avg. Rating", decimal: true },
+              ].map((s) => (
+                <div key={s.label}>
+                  <div className="font-display text-2xl font-extrabold text-white sm:text-3xl md:text-4xl">
+                    {s.decimal ? (
+                      <span>
+                        {s.value}
+                        {s.suffix}
+                      </span>
+                    ) : (
+                      <Counter end={s.value} suffix={s.suffix} />
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs sm:text-sm text-white/60">{s.label}</p>
                 </div>
-                <p className="mt-1 text-xs sm:text-sm text-white/60">{s.label}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Right-edge session clock docker positioned beside 40,000+ and 4.9/5 */}
+            <MobileSessionDockTrigger
+              open={clockOpen}
+              visible={heroInView}
+              onOpen={() => setClockOpen(true)}
+            />
           </div>
         </div>
       </section>
 
-      {/* Right-edge session clock docker for mobile & tablet */}
-      <MobileSessionDock />
+      {/* Full-viewport expanded Market Sessions modal for mobile & tablet */}
+      <MobileSessionDockModal
+        open={clockOpen}
+        onClose={() => setClockOpen(false)}
+      />
     </>
   );
 }

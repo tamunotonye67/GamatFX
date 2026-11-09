@@ -43,8 +43,15 @@ function isOpen(s: Session, utcH: number) {
  * Mobile & tablet right-edge docker that keeps the homepage compact
  * and reveals the live MarketClock drawer only when tapped.
  */
-export function MobileSessionDock() {
-  const [openDrawer, setOpenDrawer] = useState(false);
+export function MobileSessionDockTrigger({
+  onOpen,
+  open,
+  visible = true,
+}: {
+  onOpen: () => void;
+  open: boolean;
+  visible?: boolean;
+}) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -52,93 +59,111 @@ export function MobileSessionDock() {
     return () => window.clearInterval(t);
   }, []);
 
+  const utcH = now.getUTCHours() + now.getUTCMinutes() / 60;
+  const openSessions = SESSIONS.filter((x) => isOpen(x, utcH));
+  const activeColor = openSessions.length > 0 ? openSessions[openSessions.length - 1].color : "#dc3545";
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label="Open live market session clock"
+      aria-expanded={open}
+      className={`lg:hidden absolute -right-4 sm:-right-6 top-[calc(50%+12px)] z-30 -translate-y-1/2 flex flex-col items-center gap-1.5 rounded-l-xl border border-r-0 border-white/20 bg-ink/95 px-1.5 py-2.5 text-white shadow-[0_8px_25px_rgba(0,0,0,0.55)] backdrop-blur-md transition-all duration-300 ${
+        open || !visible
+          ? "translate-x-full opacity-0 pointer-events-none"
+          : "translate-x-0 opacity-100 active:scale-95"
+      }`}
+    >
+      <span className="relative flex items-center justify-center">
+        <Clock className="h-3.5 w-3.5 text-brand-light" />
+        <span
+          className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full ring-1 ring-ink animate-pulse"
+          style={{ backgroundColor: activeColor }}
+        />
+      </span>
+      <span
+        className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-white/90"
+        style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+      >
+        Sessions
+      </span>
+      <ChevronLeft className="h-3 w-3 text-white/55" />
+    </button>
+  );
+}
+
+export function MobileSessionDockModal({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [now, setNow] = useState(() => new Date());
+
   useEffect(() => {
-    if (!openDrawer) return;
+    if (!open) return;
+    const t = window.setInterval(() => setNow(new Date()), 10000);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenDrawer(false);
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [openDrawer]);
+    return () => {
+      window.clearInterval(t);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   const utcH = now.getUTCHours() + now.getUTCMinutes() / 60;
   const openSessions = SESSIONS.filter((x) => isOpen(x, utcH));
   const activeColor = openSessions.length > 0 ? openSessions[openSessions.length - 1].color : "#dc3545";
 
   return (
-    <div className="lg:hidden">
-      {/* Slim right-edge dock trigger with vertical SESSIONS label */}
-      <button
-        type="button"
-        onClick={() => setOpenDrawer(true)}
-        aria-label="Open live market session clock"
-        aria-expanded={openDrawer}
-        className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 flex flex-col items-center gap-1.5 rounded-l-xl border border-r-0 border-white/20 bg-ink/95 px-1.5 py-2.5 text-white shadow-[0_8px_25px_rgba(0,0,0,0.55)] backdrop-blur-md transition-transform duration-300 ${
-          openDrawer ? "translate-x-full" : "translate-x-0 active:scale-95"
-        }`}
-      >
-        <span className="relative flex items-center justify-center">
-          <Clock className="h-3.5 w-3.5 text-brand-light" />
+    <div className="fixed inset-0 z-[70] flex h-dvh w-full flex-col justify-between overflow-y-auto bg-[#0c0e12]/98 px-5 py-5 text-white backdrop-blur-xl animate-fade-in lg:hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center gap-2.5">
           <span
-            className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full ring-1 ring-ink animate-pulse"
+            className="h-2.5 w-2.5 rounded-full animate-pulse"
             style={{ backgroundColor: activeColor }}
           />
-        </span>
-        <span
-          className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-white/90"
-          style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
-        >
-          Sessions
-        </span>
-        <ChevronLeft className="h-3 w-3 text-white/55" />
-      </button>
-
-      {/* Full-viewport expanded Market Sessions overlay */}
-      {openDrawer && (
-        <div className="fixed inset-0 z-[70] flex h-dvh w-full flex-col justify-between overflow-y-auto bg-[#0c0e12]/98 px-5 py-5 text-white backdrop-blur-xl animate-fade-in">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="h-2.5 w-2.5 rounded-full animate-pulse"
-                style={{ backgroundColor: activeColor }}
-              />
-              <div>
-                <h3 className="font-display text-base font-extrabold tracking-tight text-white">
-                  Live Market Sessions
-                </h3>
-                <p className="text-xs text-white/55">
-                  24-Hour UTC Institutional Session Clock
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setOpenDrawer(false)}
-              aria-label="Close session clock"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Centered Clock */}
-          <div className="my-auto flex flex-col items-center justify-center py-6">
-            <MarketClock />
-          </div>
-
-          {/* Footer dismiss button */}
-          <div className="border-t border-white/10 pt-4">
-            <button
-              type="button"
-              onClick={() => setOpenDrawer(false)}
-              className="w-full rounded-full border border-white/15 bg-white/10 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/15 active:scale-[0.99]"
-            >
-              Close Session Clock
-            </button>
+          <div>
+            <h3 className="font-display text-base font-extrabold tracking-tight text-white">
+              Live Market Sessions
+            </h3>
+            <p className="text-xs text-white/55">
+              24-Hour UTC Institutional Session Clock
+            </p>
           </div>
         </div>
-      )}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close session clock"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Centered Clock */}
+      <div className="my-auto flex flex-col items-center justify-center py-6">
+        <MarketClock />
+      </div>
+
+      {/* Footer dismiss button */}
+      <div className="border-t border-white/10 pt-4">
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full rounded-full border border-white/15 bg-white/10 py-3 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-white/15 active:scale-[0.99]"
+        >
+          Close Session Clock
+        </button>
+      </div>
     </div>
   );
 }
