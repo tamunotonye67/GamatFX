@@ -228,10 +228,10 @@ export default function Navbar() {
             </button>
 
             <div
-              className={`absolute left-1/2 top-full z-50 mt-4 w-[min(56rem,calc(100vw-2rem))] -translate-x-1/2 origin-top overflow-visible rounded-2xl border border-line bg-white shadow-[0_30px_70px_-25px_rgba(22,24,28,0.45)] transition-all duration-200 ${
+              className={`absolute right-0 top-full z-50 mt-4 w-[min(56rem,calc(100vw-2rem))] origin-top-right overflow-visible rounded-2xl border border-line bg-white shadow-[0_30px_70px_-25px_rgba(22,24,28,0.45)] transition-all duration-200 ${
                 moreOpen
-                  ? "visible scale-100 opacity-100"
-                  : "invisible scale-95 opacity-0"
+                  ? "visible scale-100 opacity-100 pointer-events-auto"
+                  : "hidden opacity-0 pointer-events-none"
               }`}
             >
               <div className="grid grid-cols-1 gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -330,7 +330,7 @@ export default function Navbar() {
 
                               {/* Hover-Activated Arcade Sub-Games Menu (Only reveals when Fun Zone is hovered on) */}
                               {isFunZone && (
-                                <div className="absolute left-full top-0 ml-3 z-50 w-72 origin-top-left rounded-2xl border-2 border-amber-400/50 bg-slate-950/95 p-3 text-white shadow-[0_20px_60px_-15px_rgba(245,158,11,0.6)] backdrop-blur-xl transition-all duration-300 opacity-0 scale-95 pointer-events-none group-hover/funzone:opacity-100 group-hover/funzone:scale-100 group-hover/funzone:pointer-events-auto">
+                                <div className="absolute right-full top-0 mr-3 z-50 w-72 origin-top-right rounded-2xl border-2 border-amber-400/50 bg-slate-950/95 p-3 text-white shadow-[0_20px_60px_-15px_rgba(245,158,11,0.6)] backdrop-blur-xl transition-all duration-300 opacity-0 scale-95 pointer-events-none group-hover/funzone:opacity-100 group-hover/funzone:scale-100 group-hover/funzone:pointer-events-auto">
                                   {/* Arcade Flyout Header */}
                                   <div className="mb-2.5 flex items-center justify-between border-b border-amber-400/20 pb-2 px-1">
                                     <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-amber-300">
@@ -485,7 +485,7 @@ export default function Navbar() {
               </button>
 
               <div className={`absolute right-0 top-full mt-3 w-64 origin-top-right overflow-hidden rounded-2xl border border-line bg-white shadow-[0_30px_70px_-25px_rgba(22,24,28,0.45)] transition-all duration-200 ${
-                userOpen ? "visible scale-100 opacity-100" : "invisible scale-95 opacity-0"
+                userOpen ? "visible scale-100 opacity-100 pointer-events-auto" : "hidden opacity-0 pointer-events-none"
               }`}>
                 <div className="border-b border-line bg-cream px-5 py-4">
                   <p className="font-display text-sm font-bold text-ink">{user.firstName} {user.lastName}</p>

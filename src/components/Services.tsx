@@ -30,7 +30,7 @@ export default function Services() {
   const { ref, visible } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="services" className="section bg-cream">
+    <section id="services" className="section bg-cream overflow-hidden">
       <div ref={ref} className="container-x grid items-center gap-12 lg:grid-cols-2">
         {/* No `reveal` here — its transform would create a containing block
             and break the gallery's absolutely-positioned layers. */}

@@ -15,7 +15,9 @@
 }
 
 html {
-  overflow-x: clip;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
   scroll-behavior: smooth;
   scroll-padding-top: 84px;
 }
@@ -23,9 +25,16 @@ html {
 body {
   @apply bg-cream text-ink-soft antialiased;
   font-family: var(--font-sans);
-  overflow-x: clip;
+  overflow-x: hidden;
+  max-width: 100%;
   width: 100%;
   position: relative;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
 }
 
 img, video, canvas {

@@ -30,7 +30,7 @@ export default function Community() {
   const { ref, visible } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="community" className="section bg-cream">
+    <section id="community" className="section bg-cream overflow-hidden">
       <div ref={ref} className="container-x">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow justify-center">Our telegram community</span>

@@ -12,7 +12,7 @@ export default function About() {
   const { ref, visible } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="about" className="section bg-cream">
+    <section id="about" className="section bg-cream overflow-hidden">
       <div ref={ref} className="container-x grid items-center gap-10 lg:gap-14 lg:grid-cols-2">
         {/* Copy + stats */}
         <div className={`reveal ${visible ? "is-visible" : ""}`}>

@@ -14,7 +14,7 @@ export default function Courses() {
   );
 
   return (
-    <section id="courses" className="section bg-white">
+    <section id="courses" className="section bg-white overflow-hidden">
       <div ref={ref} className="container-x">
         <div className="max-w-2xl">
           <span className="eyebrow">What we teach</span>

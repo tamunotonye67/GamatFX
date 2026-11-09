@@ -53,7 +53,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-ink text-white">
+    <footer className="bg-ink text-white overflow-hidden">
       {/* Final CTA */}
       <div className="container-x py-12 sm:py-20">
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-brand to-brand-dark px-5 py-10 sm:px-8 sm:py-14 text-center shadow-xl md:px-16">

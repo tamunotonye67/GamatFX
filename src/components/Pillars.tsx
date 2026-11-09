@@ -23,7 +23,7 @@ export default function Pillars() {
   const { ref, visible } = useReveal<HTMLDivElement>();
 
   return (
-    <section className="section bg-white">
+    <section className="section bg-white overflow-hidden">
       <div ref={ref} className="container-x">
         <div className="max-w-2xl">
           <span className="eyebrow">Who we are</span>

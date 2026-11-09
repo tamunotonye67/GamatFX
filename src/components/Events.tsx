@@ -16,7 +16,7 @@ export default function Events() {
   const { ref, visible } = useReveal<HTMLDivElement>();
 
   return (
-    <section id="events" className="section bg-cream">
+    <section id="events" className="section bg-cream overflow-hidden">
       <div ref={ref} className="container-x">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow justify-center">Don't miss out</span>

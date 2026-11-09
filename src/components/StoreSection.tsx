@@ -16,7 +16,7 @@ export default function StoreSection() {
   const featured = publishedStoreProducts.slice(0, 3);
 
   return (
-    <section className="bg-slate-50/70 py-16 sm:py-24 border-t border-slate-200">
+    <section className="bg-slate-50/70 py-16 sm:py-24 border-t border-slate-200 overflow-hidden">
       <div className="container-x">
         {/* Amazon/Selar Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

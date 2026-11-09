@@ -24,7 +24,7 @@ export default function VideoPreview() {
   };
 
   return (
-    <section id="how-it-works" className="section bg-ink text-white">
+    <section id="how-it-works" className="section bg-ink text-white overflow-hidden">
       <div ref={ref} className="container-x grid items-center gap-12 lg:grid-cols-2">
         {/* Copy */}
         <div className={`reveal ${visible ? "is-visible" : ""}`}>
