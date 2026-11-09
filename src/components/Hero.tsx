@@ -75,13 +75,16 @@ export default function Hero() {
 
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,0.75fr)] lg:gap-14 xl:gap-20">
             <div className="max-w-3xl lg:max-w-none">
-              <h1 className="font-display text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
+              <h1 className="font-display text-[2.15rem] font-extrabold leading-[1.12] tracking-tight sm:text-5xl md:text-6xl">
                 Build elite traders through{" "}
                 <span className="text-brand">high-quality forex education</span>
               </h1>
-              <p className="mt-4 sm:mt-6 max-w-xl text-base sm:text-lg text-white/75">
-                We build elite traders through high-quality forex education, actionable
-                market insights, and a results-driven mentorship system designed for real,
+              <p className="mt-3.5 sm:mt-6 max-w-xl text-[13.5px] leading-relaxed text-white/70 sm:text-lg sm:text-white/75">
+                <span className="hidden sm:inline">
+                  We build elite traders through high-quality forex education,{" "}
+                </span>
+                <span className="capitalize sm:normal-case">actionable</span> market
+                insights and a results-driven mentorship system designed for real,
                 consistent profitability.
               </p>
 
