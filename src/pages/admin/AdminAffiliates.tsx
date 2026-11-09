@@ -18,7 +18,6 @@ import {
   Clock,
   Download,
   Sliders,
-  Sparkles,
   ExternalLink,
   Tag,
   ShieldCheck,
