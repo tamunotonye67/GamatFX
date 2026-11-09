@@ -548,7 +548,7 @@ export default function StorePage() {
               <h1 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.15]">
                 Institutional Trading Tools, E-Books & Bots
               </h1>
-              <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
+              <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
                 Proprietary software built by our quantitative desk. Instant digital download, license keys, and step-by-step installation guides directly to your email.
               </p>
 

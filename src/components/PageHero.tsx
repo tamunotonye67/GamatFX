@@ -43,7 +43,7 @@ export default function PageHero({
         <h1 className="mt-3 sm:mt-4 max-w-3xl font-display text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
           {title}
         </h1>
-        <p className="mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-white/75">{subtitle}</p>
+        <p className="mt-1.5 sm:mt-2.5 max-w-2xl text-base sm:text-lg text-white/75">{subtitle}</p>
       </div>
     </section>
   );

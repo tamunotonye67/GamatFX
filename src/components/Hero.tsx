@@ -79,7 +79,7 @@ export default function Hero() {
                 Build elite traders through{" "}
                 <span className="text-brand">high-quality forex education</span>
               </h1>
-              <p className="mt-2.5 sm:mt-4 max-w-xl text-[13.5px] leading-relaxed text-white/75 sm:text-lg">
+              <p className="mt-1.5 sm:mt-2 max-w-xl text-[13.5px] leading-relaxed text-white/75 sm:text-lg">
                 We build elite traders through high-quality forex education, actionable
                 market insights, and a results-driven mentorship system designed for real,
                 consistent profitability.
