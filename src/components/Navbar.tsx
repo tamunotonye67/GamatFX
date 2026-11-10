@@ -61,7 +61,6 @@ const moreGroups: { title: string; items: (NavLink & { icon: React.ElementType; 
     items: [
       { label: "Trading Whiteboard", to: "/whiteboard", icon: Pencil, desc: "Interactive technical analysis & teaching canvas" },
       { label: "Store & Trading Tools", to: "/store", icon: ShoppingBag, desc: "Books, AI bots, indicators & strategies" },
-      { label: "Blog", to: "/blog", icon: Newspaper, desc: "Forex articles & market insight" },
       { label: "Community", to: "/community", icon: Users, desc: "Join 2,000+ traders on Telegram" },
       { label: "Reviews", to: "/reviews", icon: Star, desc: "What our students say" },
       { label: "FAQ", to: "/faq", icon: HelpCircle, desc: "Answers to common questions" },
@@ -71,8 +70,8 @@ const moreGroups: { title: string; items: (NavLink & { icon: React.ElementType; 
   {
     title: "Fun & Trivia",
     items: [
-      { label: "Student Forum", to: "/forum", icon: MessagesSquare, desc: "Meet students & ask questions" },
       { label: "Fun Zone", to: "/fun", icon: Gamepad2, desc: "Four in one game" },
+      { label: "Student Forum", to: "/forum", icon: MessagesSquare, desc: "Meet students & ask questions" },
       { label: "Student of the Week", to: "/fun/student-of-the-week", icon: Award, desc: "Student spotlight & wall of fame" },
       { label: "Histofact Cards", to: "/fun/histofact", icon: History, desc: "Card flips on forex & crypto history" },
       { label: "Club Builder", to: "/fun/clubs", icon: Shield, desc: "Join and build a family of traders" },
@@ -81,6 +80,7 @@ const moreGroups: { title: string; items: (NavLink & { icon: React.ElementType; 
   {
     title: "Updates",
     items: [
+      { label: "Blog", to: "/blog", icon: Newspaper, desc: "Forex articles & market insight" },
       { label: "News Events", to: "/news", icon: Newspaper, desc: "Market headlines from the desk" },
       { label: "Daily Outlook", to: "/outlook", icon: Sun, desc: "Pair bias, levels & risk notes" },
       { label: "Giveaways", to: "/giveaways", icon: Gift, desc: "Student winners & special rewards" },
