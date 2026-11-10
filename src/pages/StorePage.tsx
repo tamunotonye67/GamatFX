@@ -47,6 +47,7 @@ import {
   BookMarked,
 } from "lucide-react";
 import { payWithPaystack, generateTxRef } from "../lib/paystack";
+import { payWithBachs, getBachsConfig } from "../lib/bachs";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "sales";
 
@@ -264,11 +265,11 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     setIsProcessing(true);
     const txRef = generateTxRef("STR");
 
-    setTimeout(() => {
-      const subtotal = checkoutProduct.price;
-      const discountAmount = couponDiscount > 0 ? Math.round((subtotal * couponDiscount) / 100) : 0;
-      const totalAmount = Math.max(0, subtotal - discountAmount);
+    const subtotal = checkoutProduct.price;
+    const discountAmount = couponDiscount > 0 ? Math.round((subtotal * couponDiscount) / 100) : 0;
+    const totalAmount = Math.max(0, subtotal - discountAmount);
 
+    const onFinishPayment = (finalTxRef: string, methodUsed: "card" | "transfer") => {
       recordPayment({
         userId: user?.id ?? `guest_${Date.now()}`,
         userName: buyerName.trim(),
@@ -279,14 +280,47 @@ export default function StorePage({ categoryParam }: StorePageProps) {
         discount: discountAmount,
         vat: 0,
         amount: totalAmount,
-        method: paymentMethod,
+        method: methodUsed,
         coupon: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       });
 
-      setPurchasedTxRef(txRef);
+      setPurchasedTxRef(finalTxRef);
       setPurchasedProduct(checkoutProduct);
       setCheckoutProduct(null);
       setIsProcessing(false);
+    };
+
+    if (paymentMethod === "card" && totalAmount > 0) {
+      const bachsConfig = getBachsConfig();
+      if (bachsConfig.activeGateway === "bachs") {
+        payWithBachs({
+          amount: totalAmount,
+          currency: "NGN",
+          email: buyerEmail.trim(),
+          name: buyerName.trim(),
+          phone: buyerPhone.trim(),
+          reference: txRef,
+          metadata: {
+            product_id: checkoutProduct.id,
+            product_title: checkoutProduct.title,
+            customer_name: buyerName.trim(),
+          },
+          onSuccess: (session) => {
+            onFinishPayment(session.reference || txRef, "card");
+          },
+          onClose: () => setIsProcessing(false),
+          onError: (err) => {
+            setIsProcessing(false);
+            alert(`Bachs Payment Error: ${err.message}`);
+          },
+        });
+        return;
+      }
+    }
+
+    // Direct Transfer fallback or completion
+    setTimeout(() => {
+      onFinishPayment(txRef, paymentMethod);
     }, 600);
   };
 
@@ -1141,8 +1175,8 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     }`}
                   >
                     <CreditCard className={`h-4 w-4 ${paymentMethod === "card" ? "text-brand" : "text-muted"}`} />
-                    <p className="mt-1 text-xs font-bold text-ink">Paystack / Card</p>
-                    <p className="text-[10px] text-muted">Instant activation</p>
+                    <p className="mt-1 text-xs font-bold text-ink">Bachs / Card</p>
+                    <p className="text-[10px] text-muted">Card, USSD & Bank</p>
                   </button>
                 </div>
               </div>
@@ -1176,17 +1210,17 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Processing Secure Order...</span>
+                      <span>{paymentMethod === "card" ? "Opening Bachs Checkout..." : "Processing Order..."}</span>
                     </>
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      <span>Complete Secure Purchase & Download</span>
+                      <span>{paymentMethod === "card" ? "Pay with Bachs Overlay" : "Confirm Direct Bank Transfer"}</span>
                     </>
                   )}
                 </button>
                 <p className="mt-2 text-center text-[11px] text-muted">
-                  🔒 256-bit encrypted checkout via Paystack / Card / Transfer
+                  🔒 Secured by Bachs.io • 256-bit encrypted checkout
                 </p>
               </div>
             </form>
