@@ -84,25 +84,33 @@ export function AdminNews() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Thumbnail</Th><Th>Title</Th><Th>Impact</Th><Th>Pair</Th><Th>Status</Th><Th>Published</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="w-16 whitespace-nowrap">Thumbnail</Th>
+                  <Th className="w-[40%] min-w-[260px]">Title</Th>
+                  <Th className="whitespace-nowrap">Impact</Th>
+                  <Th className="whitespace-nowrap">Pair</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th className="whitespace-nowrap">Published</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((n) => (
                   <tr key={n.id} className="transition hover:bg-cream/60">
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       {n.image ? (
-                        <img src={n.image} alt="" className="h-10 w-14 rounded-md object-cover border border-line" />
+                        <img src={n.image} alt="" className="h-10 w-14 shrink-0 aspect-[7/5] rounded-md object-cover border border-line" />
                       ) : (
-                        <div className="flex h-10 w-14 items-center justify-center rounded-md bg-line/60 text-muted">
+                        <div className="flex h-10 w-14 shrink-0 aspect-[7/5] items-center justify-center rounded-md bg-line/60 text-muted">
                           <Newspaper className="h-4 w-4" />
                         </div>
                       )}
                     </Td>
-                    <Td><span className="font-semibold text-ink">{n.title}</span></Td>
-                    <Td><Badge tone={n.impact === "high" ? "red" : n.impact === "medium" ? "amber" : "gray"}>{n.impact}</Badge></Td>
-                    <Td><span className="text-muted">{n.pair || "—"}</span></Td>
-                    <Td><Badge tone={n.status === "published" ? "green" : "gray"}>{n.status}</Badge></Td>
-                    <Td><span className="text-muted">{n.publishedAt ? fmtDate(n.publishedAt) : "—"}</span></Td>
+                    <Td className="min-w-[260px]"><span className="font-semibold text-ink line-clamp-2">{n.title}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={n.impact === "high" ? "red" : n.impact === "medium" ? "amber" : "gray"}>{n.impact}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{n.pair || "—"}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={n.status === "published" ? "green" : "gray"}>{n.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{n.publishedAt ? fmtDate(n.publishedAt) : "—"}</span></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="Edit" onClick={() => setEdit(n)}><Pencil className="h-4 w-4" /></IconBtn>
@@ -244,16 +252,23 @@ export function AdminOutlooks() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Date</Th><Th>Title</Th><Th>Bias</Th><Th>Pairs</Th><Th>Status</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="whitespace-nowrap">Date</Th>
+                  <Th className="w-[40%] min-w-[260px]">Title</Th>
+                  <Th className="whitespace-nowrap">Bias</Th>
+                  <Th className="min-w-[160px]">Pairs</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((o) => (
                   <tr key={o.id} className="transition hover:bg-cream/60">
-                    <Td><span className="font-semibold text-ink">{o.date}</span></Td>
-                    <Td><span className="text-ink/80">{o.title}</span></Td>
-                    <Td><Badge tone={o.bias === "bullish" ? "green" : o.bias === "bearish" ? "red" : o.bias === "mixed" ? "amber" : "gray"}>{o.bias}</Badge></Td>
-                    <Td><span className="text-xs text-muted">{o.pairs.join(", ") || "—"}</span></Td>
-                    <Td><Badge tone={o.status === "published" ? "green" : "gray"}>{o.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="font-semibold text-ink">{o.date}</span></Td>
+                    <Td className="min-w-[260px]"><span className="text-ink font-semibold line-clamp-2">{o.title}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={o.bias === "bullish" ? "green" : o.bias === "bearish" ? "red" : o.bias === "mixed" ? "amber" : "gray"}>{o.bias}</Badge></Td>
+                    <Td className="min-w-[160px]"><span className="text-xs text-muted">{o.pairs.join(", ") || "—"}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={o.status === "published" ? "green" : "gray"}>{o.status}</Badge></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="Edit" onClick={() => setEdit({ ...o, pairsText: o.pairs.join(", ") })}><Pencil className="h-4 w-4" /></IconBtn>

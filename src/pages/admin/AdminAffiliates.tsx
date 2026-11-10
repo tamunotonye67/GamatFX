@@ -278,18 +278,18 @@ export function AdminAffiliates() {
       {tab === "ambassadors" && (
         <div className="rounded-2xl border border-line bg-white overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[960px]">
               <thead className="border-b border-line bg-cream font-bold text-muted">
                 <tr>
-                  <th className="py-3 px-4">Ambassador</th>
-                  <th className="py-3 px-4">Invite Code</th>
-                  <th className="py-3 px-4">Clicks</th>
-                  <th className="py-3 px-4">Signups</th>
-                  <th className="py-3 px-4">Conversions</th>
-                  <th className="py-3 px-4">Total Earned</th>
-                  <th className="py-3 px-4">Balance</th>
-                  <th className="py-3 px-4">Payout Account</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th className="py-3 px-4 min-w-[220px]">Ambassador</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Invite Code</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Clicks</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Signups</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Conversions</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Total Earned</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Balance</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Payout Account</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -302,41 +302,41 @@ export function AdminAffiliates() {
                 ) : (
                   filteredProfiles.map((p) => (
                     <tr key={p.userId} className="hover:bg-slate-50/80 transition">
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 min-w-[220px]">
                         <div className="flex items-center gap-3">
                           {p.avatar ? (
-                            <img src={p.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-line" />
+                            <img src={p.avatar} alt="" className="h-8 w-8 shrink-0 aspect-square rounded-full object-cover ring-1 ring-line" />
                           ) : (
-                            <div className="h-8 w-8 rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center text-xs">
+                            <div className="h-8 w-8 shrink-0 aspect-square rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center text-xs">
                               {p.userName.slice(0, 2).toUpperCase()}
                             </div>
                           )}
-                          <div>
-                            <p className="font-bold text-ink">{p.userName}</p>
-                            <p className="text-[11px] text-muted">{p.userEmail}</p>
+                          <div className="min-w-0">
+                            <p className="font-bold text-ink truncate">{p.userName}</p>
+                            <p className="text-[11px] text-muted truncate">{p.userEmail}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-brand">
+                      <td className="py-3.5 px-4 font-mono font-bold text-brand whitespace-nowrap">
                         {p.referralCode}
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-ink">{p.totalClicks}</td>
-                      <td className="py-3.5 px-4 font-semibold text-ink">{p.totalSignups}</td>
-                      <td className="py-3.5 px-4 font-semibold text-emerald-600">
+                      <td className="py-3.5 px-4 font-semibold text-ink whitespace-nowrap">{p.totalClicks}</td>
+                      <td className="py-3.5 px-4 font-semibold text-ink whitespace-nowrap">{p.totalSignups}</td>
+                      <td className="py-3.5 px-4 font-semibold text-emerald-600 whitespace-nowrap">
                         {p.totalConversions}
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-ink">
+                      <td className="py-3.5 px-4 font-bold text-ink whitespace-nowrap">
                         {naira(p.totalEarned)}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
                           {naira(p.pendingBalance)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 max-w-[200px] truncate text-muted" title={p.payoutDetails || "None"}>
+                      <td className="py-3.5 px-4 max-w-[200px] truncate text-muted whitespace-nowrap" title={p.payoutDetails || "None"}>
                         {p.payoutDetails || "—"}
                       </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => setSelectedProfile(p)}
@@ -375,16 +375,16 @@ export function AdminAffiliates() {
 
           <div className="rounded-2xl border border-line bg-white overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[920px]">
                 <thead className="border-b border-line bg-cream font-bold text-muted">
                   <tr>
-                    <th className="py-3 px-4">Ambassador</th>
-                    <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Method</th>
-                    <th className="py-3 px-4">Disbursement Destination</th>
-                    <th className="py-3 px-4">Requested At</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-3 px-4 min-w-[200px]">Ambassador</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Amount</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Method</th>
+                    <th className="py-3 px-4 min-w-[200px]">Disbursement Destination</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Requested At</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -397,28 +397,28 @@ export function AdminAffiliates() {
                   ) : (
                     filteredPayouts.map((p) => (
                       <tr key={p.id} className="hover:bg-slate-50/80 transition">
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 min-w-[200px]">
                           <p className="font-bold text-ink">{p.affiliateName}</p>
                           <p className="text-[11px] text-muted">{p.affiliateEmail}</p>
                         </td>
-                        <td className="py-3.5 px-4 font-display text-sm font-extrabold text-ink">
+                        <td className="py-3.5 px-4 font-display text-sm font-extrabold text-ink whitespace-nowrap">
                           {naira(p.amount)}
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
                           <span className="uppercase text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                             {p.method}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-ink">
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-ink min-w-[200px]">
                           {p.details}
                           {p.adminNote && (
                             <p className="text-[10px] text-muted font-sans mt-0.5">{p.adminNote}</p>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-muted">
+                        <td className="py-3.5 px-4 text-muted whitespace-nowrap">
                           {new Date(p.requestedAt).toLocaleDateString()}
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
                           {p.status === "paid" && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
                               <CheckCircle2 className="h-3 w-3" /> Paid
@@ -473,16 +473,16 @@ export function AdminAffiliates() {
       {tab === "ledger" && (
         <div className="rounded-2xl border border-line bg-white overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[920px]">
               <thead className="border-b border-line bg-cream font-bold text-muted">
                 <tr>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Ambassador Code</th>
-                  <th className="py-3 px-4">Customer</th>
-                  <th className="py-3 px-4">Item Purchased</th>
-                  <th className="py-3 px-4">Order Value</th>
-                  <th className="py-3 px-4">Commission (15%)</th>
-                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Date</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Ambassador Code</th>
+                  <th className="py-3 px-4 min-w-[200px]">Customer</th>
+                  <th className="py-3 px-4 min-w-[220px]">Item Purchased</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Order Value</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Commission (15%)</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -495,29 +495,29 @@ export function AdminAffiliates() {
                 ) : (
                   affiliateCommissions.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/80 transition">
-                      <td className="py-3.5 px-4 text-muted">
+                      <td className="py-3.5 px-4 text-muted whitespace-nowrap">
                         {new Date(c.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-brand">
+                      <td className="py-3.5 px-4 font-mono font-bold text-brand whitespace-nowrap">
                         {c.affiliateCode}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 min-w-[200px]">
                         <p className="font-bold text-ink">{c.customerName}</p>
                         <p className="text-[11px] text-muted">{c.customerEmail}</p>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className="capitalize text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 mr-1.5">
+                      <td className="py-3.5 px-4 min-w-[220px]">
+                        <span className="capitalize text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 mr-1.5 whitespace-nowrap">
                           {c.orderType}
                         </span>
                         <span className="font-medium text-ink">{c.orderTitle}</span>
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-ink">
+                      <td className="py-3.5 px-4 font-bold text-ink whitespace-nowrap">
                         {naira(c.orderAmount)}
                       </td>
-                      <td className="py-3.5 px-4 font-display font-extrabold text-emerald-600">
+                      <td className="py-3.5 px-4 font-display font-extrabold text-emerald-600 whitespace-nowrap">
                         {naira(c.commissionAmount)}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <span className="capitalize px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700">
                           {c.status}
                         </span>

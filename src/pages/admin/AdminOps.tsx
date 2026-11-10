@@ -80,27 +80,36 @@ export function AdminPayments() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Reference</Th><Th>Student</Th><Th>Course / Mentorship</Th><Th>Amount</Th><Th>Method</Th><Th>Status</Th><Th>Date</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="whitespace-nowrap">Reference</Th>
+                  <Th className="w-[25%] min-w-[220px]">Student</Th>
+                  <Th className="w-[30%] min-w-[240px]">Course / Mentorship</Th>
+                  <Th className="whitespace-nowrap">Amount</Th>
+                  <Th className="whitespace-nowrap">Method</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th className="whitespace-nowrap">Date</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((p) => {
                   const isMentorship = p.courseId.startsWith("mentorship") || p.courseTitle.toLowerCase().includes("mentorship");
                   return (
                     <tr key={p.id} className="transition hover:bg-cream/60">
-                      <Td><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{p.ref}</code></Td>
-                      <Td><p className="font-semibold text-ink">{p.userName}</p><p className="text-xs text-muted">{p.userEmail}</p></Td>
-                      <Td>
+                      <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{p.ref}</code></Td>
+                      <Td className="min-w-[220px]"><p className="font-semibold text-ink">{p.userName}</p><p className="text-xs text-muted truncate">{p.userEmail}</p></Td>
+                      <Td className="min-w-[240px]">
                         <span className="text-ink/80 font-medium">{p.courseTitle}</span>
                         {isMentorship && (
-                          <span className="ml-2 inline-block rounded bg-purple-100 px-2 py-0.5 text-[10px] font-extrabold text-purple-700">
+                          <span className="ml-2 inline-block rounded bg-purple-100 px-2 py-0.5 text-[10px] font-extrabold text-purple-700 whitespace-nowrap">
                             Mentorship
                           </span>
                         )}
                       </Td>
-                      <Td><span className="font-bold text-ink">{naira(p.amount)}</span>{p.discount > 0 && <p className="text-xs text-brand">−{naira(p.discount)}</p>}</Td>
-                      <Td><span className="capitalize text-muted">{p.method}</span></Td>
-                      <Td><Badge tone={p.status === "paid" ? "green" : p.status === "refunded" ? "amber" : p.status === "failed" ? "red" : "gray"}>{p.status}</Badge></Td>
-                      <Td><span className="text-muted">{fmtDate(p.createdAt)}</span></Td>
+                      <Td className="whitespace-nowrap"><span className="font-bold text-ink">{naira(p.amount)}</span>{p.discount > 0 && <p className="text-xs text-brand">−{naira(p.discount)}</p>}</Td>
+                      <Td className="whitespace-nowrap"><span className="capitalize text-muted">{p.method}</span></Td>
+                      <Td className="whitespace-nowrap"><Badge tone={p.status === "paid" ? "green" : p.status === "refunded" ? "amber" : p.status === "failed" ? "red" : "gray"}>{p.status}</Badge></Td>
+                      <Td className="whitespace-nowrap"><span className="text-muted">{fmtDate(p.createdAt)}</span></Td>
                     <Td right>
                       <div className="flex flex-wrap items-center justify-end gap-2">
                         <button
@@ -381,21 +390,29 @@ export function AdminRegistrations() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Ticket</Th><Th>Attendee</Th><Th>Event</Th><Th>Date</Th><Th>Type</Th><Th>Status</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="whitespace-nowrap">Ticket</Th>
+                  <Th className="w-[30%] min-w-[220px]">Attendee</Th>
+                  <Th className="w-[35%] min-w-[220px]">Event</Th>
+                  <Th className="whitespace-nowrap">Date</Th>
+                  <Th className="whitespace-nowrap">Type</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((r) => (
                   <tr key={r.id} className="transition hover:bg-cream/60">
-                    <Td><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{r.ticket}</code></Td>
-                    <Td>
+                    <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{r.ticket}</code></Td>
+                    <Td className="min-w-[220px]">
                       <p className="font-semibold text-ink">{r.name}</p>
-                      <p className="text-xs text-muted">{r.email}</p>
-                      <p className="text-xs text-muted">{r.phone}</p>
+                      <p className="text-xs text-muted truncate">{r.email}</p>
+                      {r.phone && <p className="text-xs text-muted">{r.phone}</p>}
                     </Td>
-                    <Td><span className="text-ink/80">{r.eventTitle}</span></Td>
-                    <Td><span className="text-muted">{r.eventDate}</span></Td>
-                    <Td><Badge tone={r.userId ? "green" : "gray"}>{r.userId ? "member" : "guest"}</Badge></Td>
-                    <Td><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
+                    <Td className="min-w-[220px]"><span className="text-ink/80 font-medium">{r.eventTitle}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{r.eventDate}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={r.userId ? "green" : "gray"}>{r.userId ? "member" : "guest"}</Badge></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         {r.status === "confirmed" ? (

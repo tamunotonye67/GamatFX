@@ -58,22 +58,31 @@ export function AdminEnquiries() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Ref</Th><Th>Contact</Th><Th>Service</Th><Th>Package</Th><Th>Budget</Th><Th>Status</Th><Th>Date</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="whitespace-nowrap">Ref</Th>
+                  <Th className="w-[30%] min-w-[220px]">Contact</Th>
+                  <Th className="w-[25%] min-w-[200px]">Service</Th>
+                  <Th className="whitespace-nowrap">Package</Th>
+                  <Th className="whitespace-nowrap">Budget</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th className="whitespace-nowrap">Date</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((e) => (
                   <tr key={e.id} className={`transition hover:bg-cream/60 ${e.status === "new" ? "bg-brand-light/40" : ""}`}>
-                    <Td><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{e.ref}</code></Td>
-                    <Td>
+                    <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{e.ref}</code></Td>
+                    <Td className="min-w-[220px]">
                       <p className="font-semibold text-ink">{e.name}</p>
-                      <p className="text-xs text-muted">{e.email}</p>
+                      <p className="text-xs text-muted truncate">{e.email}</p>
                       {e.company && <p className="text-xs text-muted">{e.company}</p>}
                     </Td>
-                    <Td><span className="text-ink/80">{e.serviceTitle}</span></Td>
-                    <Td><span className="text-muted">{e.packageName ?? "—"}</span></Td>
-                    <Td><span className="text-muted">{e.budget ?? "—"}</span></Td>
-                    <Td><Badge tone={e.status === "new" ? "red" : e.status === "contacted" ? "amber" : "green"}>{e.status}</Badge></Td>
-                    <Td><span className="text-muted">{fmtDate(e.createdAt)}</span></Td>
+                    <Td className="min-w-[200px]"><span className="text-ink/80">{e.serviceTitle}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{e.packageName ?? "—"}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{e.budget ?? "—"}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={e.status === "new" ? "red" : e.status === "contacted" ? "amber" : "green"}>{e.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{fmtDate(e.createdAt)}</span></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="View" onClick={() => setView(e)}><Eye className="h-4 w-4" /></IconBtn>

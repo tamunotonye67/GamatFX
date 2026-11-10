@@ -164,7 +164,7 @@ export function AdminStudentOfTheWeek() {
 
                 {form.avatar && (
                   <div className="mt-3 flex items-center gap-3">
-                    <img src={form.avatar} alt="Preview" className="h-16 w-16 rounded-xl object-cover border border-line shadow-sm" />
+                    <img src={form.avatar} alt="Preview" className="h-16 w-16 shrink-0 aspect-square rounded-xl object-cover border border-line shadow-sm" />
                     <span className="text-xs text-muted">Photo preview</span>
                   </div>
                 )}

@@ -163,13 +163,13 @@ export function AdminInvoices() {
             <table className="w-full min-w-[920px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
-                  <Th>Invoice #</Th>
-                  <Th>Student / Billed To</Th>
-                  <Th>Course / Mentorship Item</Th>
-                  <Th>Total Amount</Th>
-                  <Th>Payment Status</Th>
-                  <Th>Date Issued</Th>
-                  <Th right>Official Documents</Th>
+                  <Th className="whitespace-nowrap">Invoice #</Th>
+                  <Th className="w-[25%] min-w-[220px]">Student / Billed To</Th>
+                  <Th className="w-[30%] min-w-[240px]">Course / Mentorship Item</Th>
+                  <Th className="whitespace-nowrap">Total Amount</Th>
+                  <Th className="whitespace-nowrap">Payment Status</Th>
+                  <Th className="whitespace-nowrap">Date Issued</Th>
+                  <Th right className="whitespace-nowrap">Official Documents</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -178,7 +178,7 @@ export function AdminInvoices() {
                   const recNo = `REC-${p.ref}`;
                   return (
                     <tr key={p.id} className="transition hover:bg-cream/60">
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <div className="space-y-0.5">
                           <code className="block rounded bg-cream px-2 py-0.5 text-xs font-bold text-brand">
                             {invNo}
@@ -188,25 +188,25 @@ export function AdminInvoices() {
                           </code>
                         </div>
                       </Td>
-                      <Td>
+                      <Td className="min-w-[220px]">
                         <p className="font-bold text-ink">{p.userName}</p>
-                        <p className="text-xs text-muted">{p.userEmail}</p>
+                        <p className="text-xs text-muted truncate">{p.userEmail}</p>
                       </Td>
-                      <Td>
+                      <Td className="min-w-[240px]">
                         <span className="font-semibold text-ink/90">{p.courseTitle}</span>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <span className="font-extrabold text-ink">{naira(p.amount)}</span>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <Badge tone={p.status === "paid" ? "green" : p.status === "refunded" ? "amber" : "gray"}>
                           {p.status.toUpperCase()}
                         </Badge>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <span className="text-muted text-xs">{fmtDate(p.createdAt)}</span>
                       </Td>
-                      <Td right>
+                      <Td right className="whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"

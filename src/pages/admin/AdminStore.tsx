@@ -141,12 +141,12 @@ export function AdminStore() {
             <table className="w-full min-w-[850px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
-                  <Th>Product</Th>
-                  <Th>Category</Th>
-                  <Th>Price</Th>
-                  <Th>Deliverable</Th>
-                  <Th>Status</Th>
-                  <Th>Sales</Th>
+                  <Th className="w-[30%] min-w-[260px]">Product</Th>
+                  <Th className="whitespace-nowrap">Category</Th>
+                  <Th className="whitespace-nowrap">Price</Th>
+                  <Th className="whitespace-nowrap">Deliverable</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th className="whitespace-nowrap">Sales</Th>
                   <Th right>Actions</Th>
                 </tr>
               </thead>
@@ -155,10 +155,10 @@ export function AdminStore() {
                   const CatIcon = categoryIcon(p.category);
                   return (
                     <tr key={p.id} className="transition hover:bg-cream/50">
-                      <Td>
+                      <Td className="min-w-[260px]">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cream border border-line text-brand">
-                            <CatIcon className="h-5 w-5" />
+                          <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
+                            <CatIcon className="h-5 w-5 shrink-0" />
                           </span>
                           <div className="min-w-0 max-w-xs">
                             <p className="truncate font-semibold text-ink">{p.title}</p>
@@ -166,10 +166,10 @@ export function AdminStore() {
                           </div>
                         </div>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <Badge tone="gray">{p.category.toUpperCase()}</Badge>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <div>
                           <p className="font-bold text-ink">{naira(p.price)}</p>
                           {p.originalPrice && (
@@ -177,17 +177,17 @@ export function AdminStore() {
                           )}
                         </div>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <span className="text-xs text-muted line-clamp-1 max-w-[200px]">
                           {p.deliverableType}
                         </span>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <Badge tone={p.published ? "green" : "amber"}>
                           {p.published ? "Published" : "Draft"}
                         </Badge>
                       </Td>
-                      <Td>
+                      <Td className="whitespace-nowrap">
                         <span className="font-semibold text-ink">{p.salesCount || 0}</span>
                       </Td>
                       <Td right>

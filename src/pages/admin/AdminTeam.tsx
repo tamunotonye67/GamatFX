@@ -138,30 +138,37 @@ export function AdminTeam() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-sm">
                 <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                  <tr><Th>Member</Th><Th>Role</Th><Th>Focus</Th><Th>Order</Th><Th>Status</Th><Th right>Actions</Th></tr>
+                  <tr>
+                    <Th className="w-[30%] min-w-[240px]">Member</Th>
+                    <Th className="whitespace-nowrap">Role</Th>
+                    <Th className="min-w-[160px]">Focus</Th>
+                    <Th className="whitespace-nowrap">Order</Th>
+                    <Th className="whitespace-nowrap">Status</Th>
+                    <Th right>Actions</Th>
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {rows.map((t) => (
                     <tr key={t.id} className="transition hover:bg-cream/60">
-                      <Td>
+                      <Td className="min-w-[240px]">
                         <div className="flex items-center gap-3">
                           {t.avatar ? (
-                            <img src={t.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
+                            <img src={t.avatar} alt="" className="h-9 w-9 shrink-0 aspect-square rounded-full object-cover" />
                           ) : (
-                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
+                            <span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
                               {t.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
                             </span>
                           )}
-                          <div>
-                            <p className="font-semibold text-ink">{t.name}</p>
-                            <p className="text-xs text-muted">/{t.slug}</p>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-ink truncate">{t.name}</p>
+                            <p className="text-xs text-muted truncate">/{t.slug}</p>
                           </div>
                         </div>
                       </Td>
-                      <Td><span className="text-ink/80">{t.role}</span></Td>
-                      <Td><span className="text-muted">{t.focus}</span></Td>
-                      <Td><span className="font-semibold text-ink">{t.order}</span></Td>
-                      <Td><Badge tone={t.published ? "green" : "gray"}>{t.published ? "published" : "hidden"}</Badge></Td>
+                      <Td className="whitespace-nowrap"><span className="text-ink/80">{t.role}</span></Td>
+                      <Td className="min-w-[160px]"><span className="text-muted">{t.focus}</span></Td>
+                      <Td className="whitespace-nowrap"><span className="font-semibold text-ink">{t.order}</span></Td>
+                      <Td className="whitespace-nowrap"><Badge tone={t.published ? "green" : "gray"}>{t.published ? "published" : "hidden"}</Badge></Td>
                       <Td right>
                         <div className="flex justify-end gap-1">
                           <IconBtn title="Edit" onClick={() => openEdit(t)}><Pencil className="h-4 w-4" /></IconBtn>
@@ -191,9 +198,9 @@ export function AdminTeam() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
                       {b.avatar ? (
-                        <img src={b.avatar} alt="" className="h-12 w-12 rounded-full object-cover" />
+                        <img src={b.avatar} alt="" className="h-12 w-12 shrink-0 aspect-square rounded-full object-cover" />
                       ) : (
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
+                        <span className="flex h-12 w-12 shrink-0 aspect-square items-center justify-center rounded-full bg-brand text-sm font-bold text-white">
                           {b.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
                         </span>
                       )}

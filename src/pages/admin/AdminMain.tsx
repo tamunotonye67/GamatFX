@@ -207,15 +207,20 @@ export function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Attendee</Th><Th>Event</Th><Th>Ticket</Th><Th>Status</Th></tr>
+                <tr>
+                  <Th className="w-[35%] min-w-[220px]">Attendee</Th>
+                  <Th className="min-w-[180px]">Event</Th>
+                  <Th className="whitespace-nowrap">Ticket</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {registrations.slice(0, 5).map((r) => (
                   <tr key={r.id}>
-                    <Td><span className="font-semibold text-ink">{r.name}</span><br /><span className="text-xs text-muted">{r.email}</span></Td>
-                    <Td>{r.eventTitle}</Td>
-                    <Td><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{r.ticket}</code></Td>
-                    <Td><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
+                    <Td className="min-w-[220px]"><span className="font-semibold text-ink">{r.name}</span><br /><span className="text-xs text-muted">{r.email}</span></Td>
+                    <Td className="min-w-[180px]">{r.eventTitle}</Td>
+                    <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{r.ticket}</code></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
                   </tr>
                 ))}
               </tbody>
@@ -285,14 +290,22 @@ export function AdminStudents() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Student</Th><Th>Role</Th><Th>Status</Th><Th>Courses</Th><Th>Spend</Th><Th>Joined</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="w-[30%] min-w-[260px]">Student</Th>
+                  <Th className="whitespace-nowrap">Role</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th className="whitespace-nowrap">Courses</Th>
+                  <Th className="whitespace-nowrap">Spend</Th>
+                  <Th className="whitespace-nowrap">Joined</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((a) => (
                   <tr key={a.id} className="transition hover:bg-cream/60">
-                    <Td>
+                    <Td className="min-w-[260px]">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+                        <span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
                           {(a.firstName[0] ?? "") + (a.lastName[0] ?? "")}
                         </span>
                         <div className="min-w-0">
@@ -301,11 +314,11 @@ export function AdminStudents() {
                         </div>
                       </div>
                     </Td>
-                    <Td><Badge tone={a.role === "admin" ? "ink" : "gray"}>{a.role}</Badge></Td>
-                    <Td><Badge tone={a.status === "active" ? "green" : "amber"}>{a.status}</Badge></Td>
-                    <Td><span className="font-semibold text-ink">{enrollmentsOf(a.id).length}</span></Td>
-                    <Td><span className="font-semibold text-ink">{naira(spendOf(a.id))}</span></Td>
-                    <Td><span className="text-muted">{fmtDate(a.joined)}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={a.role === "admin" ? "ink" : "gray"}>{a.role}</Badge></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={a.status === "active" ? "green" : "amber"}>{a.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="font-semibold text-ink">{enrollmentsOf(a.id).length}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="font-semibold text-ink">{naira(spendOf(a.id))}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{fmtDate(a.joined)}</span></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="View" onClick={() => setView(a)}><Eye className="h-4 w-4" /></IconBtn>
@@ -734,28 +747,37 @@ export function AdminCourses() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
             <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-              <tr><Th>Course</Th><Th>Level</Th><Th>Price</Th><Th>Lessons</Th><Th>Enrolled</Th><Th>Revenue</Th><Th>Status</Th><Th right>Actions</Th></tr>
+              <tr>
+                <Th className="w-[30%] min-w-[260px]">Course</Th>
+                <Th className="whitespace-nowrap">Level</Th>
+                <Th className="whitespace-nowrap">Price</Th>
+                <Th className="whitespace-nowrap">Lessons</Th>
+                <Th className="whitespace-nowrap">Enrolled</Th>
+                <Th className="whitespace-nowrap">Revenue</Th>
+                <Th className="whitespace-nowrap">Status</Th>
+                <Th right>Actions</Th>
+              </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {COURSES.map((c) => {
                 const published = courseSettings[c.id]?.published !== false;
                 return (
                   <tr key={c.id} className="transition hover:bg-cream/60">
-                    <Td>
+                    <Td className="min-w-[260px]">
                       <div className="flex items-center gap-3">
-                        <img src={c.poster} alt="" className="h-11 w-16 shrink-0 rounded-lg object-cover" />
+                        <img src={c.poster} alt="" className="h-11 w-16 shrink-0 aspect-[16/11] rounded-lg object-cover" />
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-ink">{c.title}</p>
                           <p className="text-xs text-muted">{c.tag}</p>
                         </div>
                       </div>
                     </Td>
-                    <Td><span className="text-muted">{c.level}</span></Td>
-                    <Td><span className="font-bold text-ink">{naira(priceOf(c.id))}</span></Td>
-                    <Td>{totalLessons(c)}</Td>
-                    <Td><span className="font-semibold text-ink">{enrollCount(c.id)}</span></Td>
-                    <Td><span className="font-semibold text-brand">{naira(revenue(c.id))}</span></Td>
-                    <Td><Badge tone={published ? "green" : "gray"}>{published ? "published" : "hidden"}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{c.level}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="font-bold text-ink">{naira(priceOf(c.id))}</span></Td>
+                    <Td className="whitespace-nowrap">{totalLessons(c)}</Td>
+                    <Td className="whitespace-nowrap"><span className="font-semibold text-ink">{enrollCount(c.id)}</span></Td>
+                    <Td className="whitespace-nowrap"><span className="font-semibold text-brand">{naira(revenue(c.id))}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={published ? "green" : "gray"}>{published ? "published" : "hidden"}</Badge></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="Edit price" onClick={() => { setEditing(c.id); setPrice(priceOf(c.id)); }}><Pencil className="h-4 w-4" /></IconBtn>

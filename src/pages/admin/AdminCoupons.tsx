@@ -122,21 +122,21 @@ export function AdminCoupons() {
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
-                  <Th>Coupon Code</Th>
-                  <Th>Discount</Th>
-                  <Th>Applicable Target</Th>
-                  <Th>Redemptions</Th>
-                  <Th>Expiry Date</Th>
-                  <Th>Status</Th>
+                  <Th className="whitespace-nowrap">Coupon Code</Th>
+                  <Th className="whitespace-nowrap">Discount</Th>
+                  <Th className="whitespace-nowrap">Applicable Target</Th>
+                  <Th className="whitespace-nowrap">Redemptions</Th>
+                  <Th className="whitespace-nowrap">Expiry Date</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
                   <Th right>Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((c) => (
                   <tr key={c.id} className="transition hover:bg-cream/60">
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <span className="rounded-lg bg-slate-950 font-mono text-xs font-bold text-amber-400 px-2.5 py-1 tracking-wider border border-amber-500/30">
+                        <span className="rounded-lg bg-slate-950 font-mono text-xs font-bold text-amber-400 px-2.5 py-1 tracking-wider border border-amber-500/30 whitespace-nowrap">
                           {c.code}
                         </span>
                         <button
@@ -148,25 +148,25 @@ export function AdminCoupons() {
                         </button>
                       </div>
                     </Td>
-                    <Td>
-                      <span className="font-extrabold text-brand text-base">{c.discountPercent}% OFF</span>
+                    <Td className="whitespace-nowrap">
+                      <span className="font-extrabold text-brand text-base whitespace-nowrap">{c.discountPercent}% OFF</span>
                     </Td>
-                    <Td>
-                      <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold capitalize text-ink">
+                    <Td className="whitespace-nowrap">
+                      <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold capitalize text-ink whitespace-nowrap">
                         {c.applicableTo}
                       </span>
                     </Td>
-                    <Td>
-                      <span className="text-xs font-semibold text-ink">
+                    <Td className="whitespace-nowrap">
+                      <span className="text-xs font-semibold text-ink whitespace-nowrap">
                         {c.usedCount} / {c.maxUses} used
                       </span>
                     </Td>
-                    <Td>
-                      <span className="text-xs text-muted flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" /> {c.expiryDate ? fmtDate(c.expiryDate) : "No Expiry"}
+                    <Td className="whitespace-nowrap">
+                      <span className="text-xs text-muted flex items-center gap-1 whitespace-nowrap">
+                        <Calendar className="h-3.5 w-3.5 shrink-0" /> {c.expiryDate ? fmtDate(c.expiryDate) : "No Expiry"}
                       </span>
                     </Td>
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       <Badge tone={c.status === "active" ? "green" : "gray"}>{c.status}</Badge>
                     </Td>
                     <Td right>

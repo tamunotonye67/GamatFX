@@ -137,33 +137,33 @@ export function AdminGiveaways() {
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
-                  <Th>Title</Th>
-                  <Th>Reward</Th>
-                  <Th>Winners</Th>
-                  <Th>Status</Th>
-                  <Th>Announced</Th>
+                  <Th className="w-[35%] min-w-[240px]">Title</Th>
+                  <Th className="w-[25%] min-w-[200px]">Reward</Th>
+                  <Th className="min-w-[180px]">Winners</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th className="whitespace-nowrap">Announced</Th>
                   <Th right>Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((g) => (
                   <tr key={g.id} className="transition hover:bg-cream/60">
-                    <Td><span className="font-semibold text-ink">{g.title}</span></Td>
-                    <Td><span className="text-muted">{g.reward}</span></Td>
-                    <Td>
+                    <Td className="min-w-[240px]"><span className="font-semibold text-ink line-clamp-2">{g.title}</span></Td>
+                    <Td className="min-w-[200px]"><span className="text-muted">{g.reward}</span></Td>
+                    <Td className="min-w-[180px]">
                       <div className="flex flex-wrap gap-1">
                         {g.winners.slice(0, 3).map((w) => (
-                          <span key={w.name} className="rounded-full bg-cream px-2 py-0.5 text-[11px] font-semibold text-ink">
+                          <span key={w.name} className="rounded-full bg-cream px-2 py-0.5 text-[11px] font-semibold text-ink whitespace-nowrap">
                             {w.nickname ? `@${w.nickname}` : w.name}
                           </span>
                         ))}
                         {g.winners.length > 3 && (
-                          <span className="text-[11px] text-muted">+{g.winners.length - 3}</span>
+                          <span className="text-[11px] text-muted whitespace-nowrap">+{g.winners.length - 3}</span>
                         )}
                       </div>
                     </Td>
-                    <Td><Badge tone={g.status === "published" ? "green" : "gray"}>{g.status}</Badge></Td>
-                    <Td><span className="text-muted">{g.announcedAt ? fmtDate(g.announcedAt) : "—"}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={g.status === "published" ? "green" : "gray"}>{g.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{g.announcedAt ? fmtDate(g.announcedAt) : "—"}</span></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="Edit" onClick={() => openEdit(g)}><Pencil className="h-4 w-4" /></IconBtn>

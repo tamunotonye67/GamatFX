@@ -89,16 +89,24 @@ export function AdminStaff() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr><Th>Worker</Th><Th>Job title</Th><Th>Role</Th><Th>Level</Th><Th>Articles</Th><Th>Status</Th><Th right>Actions</Th></tr>
+                <tr>
+                  <Th className="w-[30%] min-w-[240px]">Worker</Th>
+                  <Th className="whitespace-nowrap">Job title</Th>
+                  <Th className="whitespace-nowrap">Role</Th>
+                  <Th className="whitespace-nowrap">Level</Th>
+                  <Th className="whitespace-nowrap">Articles</Th>
+                  <Th className="whitespace-nowrap">Status</Th>
+                  <Th right>Actions</Th>
+                </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {staff.map((a) => (
                   <tr key={a.id} className="transition hover:bg-cream/60">
-                    <Td>
+                    <Td className="min-w-[240px]">
                       <div className="flex items-center gap-3">
                         {a.avatar
-                          ? <img src={a.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
-                          : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+                          ? <img src={a.avatar} alt="" className="h-9 w-9 shrink-0 aspect-square rounded-full object-cover" />
+                          : <span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
                               {(a.firstName[0] ?? "") + (a.lastName[0] ?? "")}
                             </span>}
                         <div className="min-w-0">
@@ -107,11 +115,11 @@ export function AdminStaff() {
                         </div>
                       </div>
                     </Td>
-                    <Td><span className="text-muted">{a.jobTitle || "—"}</span></Td>
-                    <Td><Badge tone={a.role === "admin" ? "ink" : "red"}>{a.role}</Badge></Td>
-                    <Td>{a.role === "admin" ? <span className="text-xs font-bold text-muted">Full access</span> : <Badge tone="amber">{a.staffLevel ?? "author"}</Badge>}</Td>
-                    <Td><span className="font-semibold text-ink">{postsBy(a.id)}</span></Td>
-                    <Td><Badge tone={a.status === "active" ? "green" : "amber"}>{a.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><span className="text-muted">{a.jobTitle || "—"}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={a.role === "admin" ? "ink" : "red"}>{a.role}</Badge></Td>
+                    <Td className="whitespace-nowrap">{a.role === "admin" ? <span className="text-xs font-bold text-muted">Full access</span> : <Badge tone="amber">{a.staffLevel ?? "author"}</Badge>}</Td>
+                    <Td className="whitespace-nowrap"><span className="font-semibold text-ink">{postsBy(a.id)}</span></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={a.status === "active" ? "green" : "amber"}>{a.status}</Badge></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
                         <IconBtn title="Edit role" onClick={() => setEdit(a)}><Key className="h-4 w-4" /></IconBtn>
