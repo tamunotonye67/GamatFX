@@ -40,327 +40,93 @@ import {
   Loader2,
   Compass,
   CheckCheck,
+  Layers,
+  Award,
+  Calculator,
+  BookMarked,
 } from "lucide-react";
 import { payWithPaystack, generateTxRef } from "../lib/paystack";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "sales";
 
 /* =========================================================================
-   VECTOR DIAGRAMS FOR CATEGORY INTENT CARDS
+   SIMPLE & MINIMALIST TRADING CATEGORY CONFIGURATION
    ========================================================================= */
 
-/** Vector Diagram 1: AI Bots & Expert Advisors */
-function BotVectorDiagram() {
-  return (
-    <svg viewBox="0 0 400 210" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="botBg" x1="0" y1="0" x2="400" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0a0f1d" />
-          <stop offset="1" stopColor="#040711" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="210" rx="14" fill="url(#botBg)" />
-
-      {/* Grid Pattern */}
-      <path d="M 0 35 H 400 M 0 70 H 400 M 0 105 H 400 M 0 140 H 400 M 0 175 H 400" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-      <path d="M 50 0 V 210 M 100 0 V 210 M 150 0 V 210 M 200 0 V 210 M 250 0 V 210 M 300 0 V 210 M 350 0 V 210" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-
-      {/* Input Tick Feed */}
-      <circle cx="35" cy="105" r="4" fill="#38bdf8" />
-      <path d="M 39 105 H 125" stroke="#38bdf8" strokeWidth="2" strokeDasharray="4 2" />
-      <text x="35" y="93" fill="#94a3b8" fontSize="9" fontFamily="monospace" fontWeight="bold">TICK FEED</text>
-
-      {/* Central Microprocessor Core */}
-      <rect x="130" y="55" width="140" height="100" rx="12" fill="#0f172a" stroke="#0284c7" strokeWidth="2" />
-      <rect x="140" y="65" width="120" height="80" rx="8" fill="#1e293b" />
-
-      {/* Processor Pins */}
-      <path d="M 155 47 V 55 M 175 47 V 55 M 195 47 V 55 M 215 47 V 55 M 235 47 V 55" stroke="#38bdf8" strokeWidth="2" />
-      <path d="M 155 155 V 163 M 175 155 V 163 M 195 155 V 163 M 215 155 V 163 M 235 155 V 163" stroke="#38bdf8" strokeWidth="2" />
-
-      {/* Core Labels */}
-      <text x="200" y="92" fill="#ffffff" fontSize="11" fontWeight="900" textAnchor="middle" fontFamily="monospace">GAMAT ALGO EA</text>
-      <text x="200" y="106" fill="#38bdf8" fontSize="8" fontWeight="bold" textAnchor="middle" fontFamily="monospace">NEURAL RISK CORE</text>
-      <rect x="155" y="116" width="90" height="18" rx="4" fill="#0284c7" fillOpacity="0.25" stroke="#38bdf8" strokeWidth="1" />
-      <text x="200" y="128" fill="#67e8f9" fontSize="8" fontWeight="bold" textAnchor="middle" fontFamily="monospace">0.2ms EXECUTION</text>
-
-      {/* Output Trade Signals */}
-      <path d="M 270 85 H 330 L 350 65" stroke="#10b981" strokeWidth="2" />
-      <circle cx="350" cy="65" r="5" fill="#10b981" />
-      <rect x="295" y="48" width="75" height="20" rx="5" fill="#065f46" stroke="#10b981" strokeWidth="1" />
-      <text x="332" y="62" fill="#a7f3d0" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">BUY: +42 PIPS</text>
-
-      <path d="M 270 125 H 330 L 350 145" stroke="#ef4444" strokeWidth="2" />
-      <circle cx="350" cy="145" r="5" fill="#ef4444" />
-      <rect x="295" y="142" width="75" height="20" rx="5" fill="#7f1d1d" stroke="#ef4444" strokeWidth="1" />
-      <text x="332" y="156" fill="#fecaca" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">EQUITY SHIELD</text>
-
-      {/* Platform Badges */}
-      <rect x="20" y="172" width="85" height="22" rx="6" fill="#1e293b" stroke="#334155" strokeWidth="1" />
-      <text x="62" y="187" fill="#cbd5e1" fontSize="9" fontWeight="bold" textAnchor="middle">MT4 / MT5 ROBOT</text>
-
-      <rect x="290" y="172" width="92" height="22" rx="6" fill="#1e293b" stroke="#334155" strokeWidth="1" />
-      <text x="336" y="187" fill="#34d399" fontSize="9" fontWeight="bold" textAnchor="middle">PROP-FIRM READY</text>
-    </svg>
-  );
+export interface TradingCategoryCard {
+  id: string;
+  catId: StoreProductCategory;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  searchQuery?: string;
 }
 
-/** Vector Diagram 2: Indicators & Scripts */
-function IndicatorVectorDiagram() {
-  return (
-    <svg viewBox="0 0 400 210" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="indBg" x1="0" y1="0" x2="400" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#081026" />
-          <stop offset="1" stopColor="#040817" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="210" rx="14" fill="url(#indBg)" />
-
-      {/* Grid */}
-      <line x1="25" y1="50" x2="375" y2="50" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-      <line x1="25" y1="100" x2="375" y2="100" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-      <line x1="25" y1="150" x2="375" y2="150" stroke="#1e293b" strokeWidth="0.8" strokeDasharray="3 3" />
-
-      {/* Order Block Shaded Box */}
-      <rect x="65" y="112" width="280" height="42" rx="5" fill="#0284c7" fillOpacity="0.18" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="4 2" />
-      <text x="75" y="127" fill="#38bdf8" fontSize="9" fontWeight="bold" fontFamily="monospace">INSTITUTIONAL ORDER BLOCK (H4)</text>
-
-      {/* Fair Value Gap (FVG) Shaded Box */}
-      <rect x="175" y="68" width="170" height="32" rx="5" fill="#10b981" fillOpacity="0.18" stroke="#34d399" strokeWidth="1.2" strokeDasharray="3 2" />
-      <text x="185" y="83" fill="#34d399" fontSize="9" fontWeight="bold" fontFamily="monospace">SMART MONEY RADAR FVG</text>
-
-      {/* Candlesticks */}
-      <line x1="45" y1="70" x2="45" y2="130" stroke="#ef4444" strokeWidth="1.5" />
-      <rect x="39" y="80" width="12" height="35" rx="2" fill="#ef4444" />
-
-      <line x1="75" y1="95" x2="75" y2="148" stroke="#ef4444" strokeWidth="1.5" />
-      <rect x="69" y="105" width="12" height="32" rx="2" fill="#ef4444" />
-
-      {/* Pinbar liquidity sweep */}
-      <line x1="105" y1="110" x2="105" y2="160" stroke="#10b981" strokeWidth="1.5" />
-      <rect x="99" y="114" width="12" height="16" rx="2" fill="#10b981" />
-      <circle cx="105" cy="160" r="3.5" fill="#fbbf24" />
-      <text x="105" y="176" fill="#fbbf24" fontSize="8" fontWeight="bold" textAnchor="middle" fontFamily="monospace">SWEEP</text>
-
-      {/* Impulse candle */}
-      <line x1="135" y1="55" x2="135" y2="125" stroke="#10b981" strokeWidth="1.5" />
-      <rect x="129" y="62" width="12" height="54" rx="2" fill="#10b981" />
-
-      {/* Retest candle */}
-      <line x1="165" y1="65" x2="165" y2="105" stroke="#ef4444" strokeWidth="1.5" />
-      <rect x="159" y="70" width="12" height="22" rx="2" fill="#ef4444" />
-
-      {/* Expansion candle */}
-      <line x1="195" y1="32" x2="195" y2="90" stroke="#10b981" strokeWidth="1.5" />
-      <rect x="189" y="40" width="12" height="42" rx="2" fill="#10b981" />
-
-      {/* Breakout Trendline */}
-      <line x1="40" y1="75" x2="170" y2="35" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3 3" />
-      <text x="240" y="42" fill="#f59e0b" fontSize="8" fontWeight="bold" fontFamily="monospace">STRUCTURE BREAK (BOS)</text>
-    </svg>
-  );
-}
-
-/** Vector Diagram 3: Books, Playbooks & Manuals */
-function BookVectorDiagram() {
-  return (
-    <svg viewBox="0 0 400 210" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="bookBg" x1="0" y1="0" x2="400" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#1a1528" />
-          <stop offset="1" stopColor="#0b0816" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="210" rx="14" fill="url(#bookBg)" />
-
-      {/* Left Page */}
-      <path d="M 55 40 Q 120 35 195 44 V 175 Q 120 167 55 173 Z" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="2" />
-      {/* Right Page */}
-      <path d="M 345 40 Q 280 35 205 44 V 175 Q 280 167 345 173 Z" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2" />
-
-      {/* Center Spine & Red Bookmark */}
-      <line x1="200" y1="42" x2="200" y2="177" stroke="#dc2626" strokeWidth="3" />
-      <path d="M 200 42 V 190 L 205 183 L 210 190 V 42" fill="#dc2626" />
-
-      {/* Left Page Schematics */}
-      <text x="70" y="60" fill="#0f172a" fontSize="8" fontWeight="bold" fontFamily="monospace">CH. 04: LIQUIDITY SWEEPS</text>
-      <line x1="70" y1="67" x2="180" y2="67" stroke="#e2e8f0" strokeWidth="1" />
-
-      <rect x="70" y="75" width="105" height="52" rx="4" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="0.8" />
-      <path d="M 80 114 L 100 95 L 115 107 L 140 85 L 160 93" stroke="#dc2626" strokeWidth="1.5" />
-      <line x1="80" y1="87" x2="165" y2="87" stroke="#0284c7" strokeWidth="1" strokeDasharray="2 2" />
-      <text x="122" y="83" fill="#0284c7" fontSize="7" fontWeight="bold" textAnchor="middle">BUY-SIDE LIQUIDITY</text>
-
-      <line x1="70" y1="138" x2="175" y2="138" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
-      <line x1="70" y1="146" x2="160" y2="146" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
-      <line x1="70" y1="154" x2="170" y2="154" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
-
-      {/* Right Page Checklists */}
-      <text x="220" y="60" fill="#0f172a" fontSize="8" fontWeight="bold" fontFamily="monospace">EXECUTION PLAYBOOK</text>
-      <line x1="220" y1="67" x2="330" y2="67" stroke="#e2e8f0" strokeWidth="1" />
-
-      <circle cx="228" cy="80" r="3.5" fill="#10b981" />
-      <text x="238" y="83" fill="#334155" fontSize="8" fontWeight="bold">Asian Range Swept</text>
-
-      <circle cx="228" cy="96" r="3.5" fill="#10b981" />
-      <text x="238" y="99" fill="#334155" fontSize="8" fontWeight="bold">Judas Swing Validated</text>
-
-      <circle cx="228" cy="112" r="3.5" fill="#10b981" />
-      <text x="238" y="115" fill="#334155" fontSize="8" fontWeight="bold">NY Killzone Entry Open</text>
-
-      {/* Official Stamp */}
-      <circle cx="295" cy="144" r="18" fill="none" stroke="#dc2626" strokeWidth="1.5" strokeDasharray="3 2" />
-      <text x="295" y="142" fill="#dc2626" fontSize="7" fontWeight="black" textAnchor="middle">GAMAT</text>
-      <text x="295" y="150" fill="#dc2626" fontSize="6" fontWeight="bold" textAnchor="middle">VERIFIED</text>
-
-      {/* Top Banner Tag */}
-      <rect x="25" y="14" width="110" height="20" rx="5" fill="#991b1b" stroke="#f87171" strokeWidth="1" />
-      <text x="80" y="27" fill="#ffffff" fontSize="8" fontWeight="bold" textAnchor="middle">280-PAGE HD PLAYBOOK</text>
-    </svg>
-  );
-}
-
-/** Vector Diagram 4: Strategy Blueprints */
-function StrategyVectorDiagram() {
-  return (
-    <svg viewBox="0 0 400 210" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="stratBg" x1="0" y1="0" x2="400" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#141419" />
-          <stop offset="1" stopColor="#09090c" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="210" rx="14" fill="url(#stratBg)" />
-
-      {/* Concentric Precision Radar Circles */}
-      <circle cx="120" cy="105" r="75" stroke="#334155" strokeWidth="1" strokeDasharray="4 3" />
-      <circle cx="120" cy="105" r="50" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3 2" />
-      <circle cx="120" cy="105" r="25" stroke="#10b981" strokeWidth="1.5" />
-
-      {/* Crosshairs */}
-      <line x1="25" y1="105" x2="215" y2="105" stroke="#475569" strokeWidth="1" />
-      <line x1="120" y1="15" x2="120" y2="195" stroke="#475569" strokeWidth="1" />
-
-      {/* Scanning Cone */}
-      <path d="M 120 105 L 180 55 A 75 75 0 0 0 120 30 Z" fill="#38bdf8" fillOpacity="0.15" />
-      <circle cx="120" cy="105" r="3.5" fill="#ef4444" />
-
-      {/* Session Timeline Cards */}
-      <rect x="225" y="30" width="155" height="42" rx="8" fill="#1e293b" stroke="#38bdf8" strokeWidth="1" />
-      <text x="235" y="47" fill="#38bdf8" fontSize="9" fontWeight="bold" fontFamily="monospace">PHASE 1: LONDON OPEN</text>
-      <text x="235" y="61" fill="#94a3b8" fontSize="8">Judas swing sweeps Asian high</text>
-
-      <rect x="225" y="82" width="155" height="42" rx="8" fill="#1e293b" stroke="#10b981" strokeWidth="1" />
-      <text x="235" y="99" fill="#10b981" fontSize="9" fontWeight="bold" fontFamily="monospace">PHASE 2: NY KILLZONE</text>
-      <text x="235" y="113" fill="#94a3b8" fontSize="8">FVG retest + 1:3 R:R execution</text>
-
-      <rect x="225" y="134" width="155" height="42" rx="8" fill="#1e293b" stroke="#f59e0b" strokeWidth="1" />
-      <text x="235" y="151" fill="#f59e0b" fontSize="9" fontWeight="bold" fontFamily="monospace">PHASE 3: TARGET SECURED</text>
-      <text x="235" y="165" fill="#94a3b8" fontSize="8">Profit locked + journal record</text>
-
-      <circle cx="155" cy="80" r="6" fill="#10b981" fillOpacity="0.3" stroke="#10b981" strokeWidth="1.5" />
-      <circle cx="155" cy="80" r="2.5" fill="#10b981" />
-      <text x="155" y="68" fill="#10b981" fontSize="7" fontWeight="bold" textAnchor="middle">ENTRY ZONE</text>
-    </svg>
-  );
-}
-
-/** Vector Diagram 5: Physical Journals & Desk Tools */
-function ToolVectorDiagram() {
-  return (
-    <svg viewBox="0 0 400 210" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="toolBg" x1="0" y1="0" x2="400" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0f172a" />
-          <stop offset="1" stopColor="#070c18" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="210" rx="14" fill="url(#toolBg)" />
-
-      {/* Hardcover Physical Journal Notebook */}
-      <rect x="45" y="30" width="165" height="150" rx="8" fill="#1e293b" stroke="#475569" strokeWidth="2" />
-      <rect x="55" y="40" width="145" height="130" rx="4" fill="#0f172a" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 2" />
-
-      <text x="127" y="70" fill="#fbbf24" fontSize="10" fontWeight="bold" textAnchor="middle" letterSpacing="2">GAMAT FX</text>
-      <text x="127" y="84" fill="#cbd5e1" fontSize="8" textAnchor="middle" letterSpacing="1">TRADER'S JOURNAL</text>
-
-      <line x1="70" y1="104" x2="185" y2="104" stroke="#334155" strokeWidth="1" />
-      <line x1="70" y1="118" x2="185" y2="118" stroke="#334155" strokeWidth="1" />
-      <line x1="70" y1="132" x2="185" y2="132" stroke="#334155" strokeWidth="1" />
-      <line x1="70" y1="146" x2="185" y2="146" stroke="#334155" strokeWidth="1" />
-
-      {/* Technical Drafting Pen */}
-      <path d="M 205 25 L 220 10 L 228 18 L 160 155 L 148 157 L 152 145 Z" fill="#f8fafc" stroke="#94a3b8" strokeWidth="1" />
-      <polygon points="148,157 142,163 152,155" fill="#dc2626" />
-
-      {/* Position Size & Risk Calculator Suite */}
-      <rect x="235" y="40" width="135" height="130" rx="10" fill="#0f172a" stroke="#38bdf8" strokeWidth="1.5" />
-      <rect x="245" y="50" width="115" height="22" rx="4" fill="#1e293b" />
-      <text x="302" y="65" fill="#38bdf8" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">LOT CALCULATOR</text>
-
-      <text x="248" y="90" fill="#94a3b8" fontSize="8">Account Balance:</text>
-      <text x="350" y="90" fill="#f8fafc" fontSize="8" fontWeight="bold" textAnchor="end">$10,000</text>
-
-      <text x="248" y="106" fill="#94a3b8" fontSize="8">Risk / Trade:</text>
-      <text x="350" y="106" fill="#34d399" fontSize="8" fontWeight="bold" textAnchor="end">1.0% ($100)</text>
-
-      <text x="248" y="122" fill="#94a3b8" fontSize="8">Stop Loss Size:</text>
-      <text x="350" y="122" fill="#f87171" fontSize="8" fontWeight="bold" textAnchor="end">12.5 Pips</text>
-
-      <rect x="245" y="134" width="115" height="24" rx="5" fill="#047857" />
-      <text x="302" y="150" fill="#ffffff" fontSize="9" fontWeight="bold" textAnchor="middle" fontFamily="monospace">CALCULATED: 0.80 LOT</text>
-    </svg>
-  );
-}
-
-/** Vector Diagram 6: Complete Store & Tools Catalog */
-function AllProductsVectorDiagram() {
-  return (
-    <svg viewBox="0 0 400 210" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="allBg" x1="0" y1="0" x2="400" y2="210" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0b1120" />
-          <stop offset="1" stopColor="#020617" />
-        </linearGradient>
-      </defs>
-      <rect width="400" height="210" rx="14" fill="url(#allBg)" />
-
-      {/* Central Trading Desk Monitor Hub */}
-      <rect x="130" y="35" width="140" height="90" rx="8" fill="#020617" stroke="#38bdf8" strokeWidth="2" />
-      <rect x="140" y="45" width="120" height="70" rx="4" fill="#0f172a" />
-
-      {/* Monitor Stand */}
-      <rect x="190" y="125" width="20" height="25" fill="#334155" />
-      <rect x="170" y="150" width="60" height="8" rx="4" fill="#475569" />
-
-      {/* Chart inside monitor */}
-      <path d="M 145 100 L 165 85 L 180 93 L 205 65 L 225 75 L 250 55" stroke="#10b981" strokeWidth="2" />
-      <rect x="195" y="60" width="15" height="15" rx="2" fill="#0284c7" fillOpacity="0.3" stroke="#38bdf8" strokeWidth="1" />
-
-      {/* 4 Connected Floating Ecosystem Nodes */}
-      <circle cx="60" cy="65" r="22" fill="#1e293b" stroke="#38bdf8" strokeWidth="1.5" />
-      <text x="60" y="69" fill="#38bdf8" fontSize="8" fontWeight="bold" textAnchor="middle">AI BOTS</text>
-      <line x1="82" y1="70" x2="130" y2="78" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3 2" />
-
-      <circle cx="340" cy="65" r="22" fill="#1e293b" stroke="#10b981" strokeWidth="1.5" />
-      <text x="340" y="69" fill="#10b981" fontSize="8" fontWeight="bold" textAnchor="middle">RADAR</text>
-      <line x1="318" y1="70" x2="270" y2="78" stroke="#10b981" strokeWidth="1" strokeDasharray="3 2" />
-
-      <circle cx="60" cy="145" r="22" fill="#1e293b" stroke="#dc2626" strokeWidth="1.5" />
-      <text x="60" y="149" fill="#f87171" fontSize="8" fontWeight="bold" textAnchor="middle">BOOKS</text>
-      <line x1="82" y1="140" x2="145" y2="125" stroke="#dc2626" strokeWidth="1" strokeDasharray="3 2" />
-
-      <circle cx="340" cy="145" r="22" fill="#1e293b" stroke="#f59e0b" strokeWidth="1.5" />
-      <text x="340" y="149" fill="#fbbf24" fontSize="8" fontWeight="bold" textAnchor="middle">TOOLS</text>
-      <line x1="318" y1="140" x2="255" y2="125" stroke="#f59e0b" strokeWidth="1" strokeDasharray="3 2" />
-
-      {/* Bottom Summary Bar */}
-      <rect x="110" y="172" width="180" height="24" rx="6" fill="#0f172a" stroke="#334155" strokeWidth="1" />
-      <text x="200" y="188" fill="#f8fafc" fontSize="9" fontWeight="bold" textAnchor="middle">EXPLORE ENTIRE STORE (ALL ITEMS)</text>
-    </svg>
-  );
-}
+export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
+  {
+    id: "bots",
+    catId: "bot",
+    title: "AI Bots & Expert Advisors",
+    icon: Bot,
+  },
+  {
+    id: "indicators",
+    catId: "indicator",
+    title: "Indicators & Chart Scripts",
+    icon: LineChart,
+  },
+  {
+    id: "smc",
+    catId: "indicator",
+    title: "Smart Money & SMC Radar",
+    icon: Layers,
+    searchQuery: "smart money",
+  },
+  {
+    id: "strategy",
+    catId: "strategy",
+    title: "Strategy Blueprints",
+    icon: Compass,
+  },
+  {
+    id: "ebooks",
+    catId: "ebook",
+    title: "Books & PDF Manuals",
+    icon: BookOpen,
+  },
+  {
+    id: "prop",
+    catId: "strategy",
+    title: "Prop Firm Passing",
+    icon: Award,
+    searchQuery: "prop",
+  },
+  {
+    id: "calculators",
+    catId: "strategy",
+    title: "Risk & Lot Calculators",
+    icon: Calculator,
+    searchQuery: "calculator",
+  },
+  {
+    id: "scalpers",
+    catId: "bot",
+    title: "Session Scalpers",
+    icon: Zap,
+    searchQuery: "judas",
+  },
+  {
+    id: "journals",
+    catId: "tool",
+    title: "Physical Journals & Tools",
+    icon: BookMarked,
+  },
+  {
+    id: "all",
+    catId: "all",
+    title: "All Products & Tools",
+    icon: LayoutGrid,
+  },
+];
 
 /* =========================================================================
    MAIN STORE & TOOLS COMPONENT
@@ -398,44 +164,6 @@ export default function StorePage() {
     { id: "ebook", label: "Books & Manuals", icon: BookOpen },
     { id: "strategy", label: "Strategy Blueprints", icon: Target },
     { id: "tool", label: "Physical Journals", icon: Package },
-  ];
-
-  // Simple Category Cards Definition (Vector in a box + Button)
-  const categoryCards: {
-    id: StoreProductCategory;
-    title: string;
-    diagram: React.ReactNode;
-  }[] = [
-    {
-      id: "bot",
-      title: "AI Bots & EAs",
-      diagram: <BotVectorDiagram />,
-    },
-    {
-      id: "indicator",
-      title: "Indicators & Scripts",
-      diagram: <IndicatorVectorDiagram />,
-    },
-    {
-      id: "ebook",
-      title: "Books & Manuals",
-      diagram: <BookVectorDiagram />,
-    },
-    {
-      id: "strategy",
-      title: "Strategy Blueprints",
-      diagram: <StrategyVectorDiagram />,
-    },
-    {
-      id: "tool",
-      title: "Physical Journals & Tools",
-      diagram: <ToolVectorDiagram />,
-    },
-    {
-      id: "all",
-      title: "All Products & Tools",
-      diagram: <AllProductsVectorDiagram />,
-    },
   ];
 
   // Filtered & Sorted products
@@ -526,8 +254,13 @@ export default function StorePage() {
     setActiveGalleryImg(prod.gallery?.[0] || prod.image);
   };
 
-  const selectCategoryFromCard = (catId: StoreProductCategory) => {
-    setSelectedCat(catId);
+  const selectCategoryFromCard = (card: TradingCategoryCard) => {
+    setSelectedCat(card.catId);
+    if (card.searchQuery) {
+      setQ(card.searchQuery);
+    } else {
+      setQ("");
+    }
     setPageStep("showcase");
     window.scrollTo({ top: 380, behavior: "smooth" });
   };
@@ -627,49 +360,33 @@ export default function StorePage() {
       {/* ================= STEP 1: CATEGORY INTENT SELECTION HUB ================= */}
       {pageStep === "intent" && (
         <section className="container-x py-10 sm:py-14">
-          {/* Section Header */}
-          <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 border border-brand/20 px-3.5 py-1 text-xs font-bold text-brand uppercase tracking-wider">
-              <Compass className="h-3.5 w-3.5" />
-              Store & Tools Categories
-            </span>
-            <h2 className="mt-3 font-display text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
-              Select a Category
+          {/* Section Header: Minimalist and clean like reference */}
+          <div className="mb-6 sm:mb-8">
+            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
+              Find tools & resources for every type of trading
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-500">
-              Choose a category to browse our specialized trading tools, robots, and literature.
-            </p>
           </div>
 
-          {/* Simple Vector image in a box + Category name like a button */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            {categoryCards.map((cat) => (
-              <div
-                key={cat.id}
-                onClick={() => selectCategoryFromCard(cat.id)}
-                className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 cursor-pointer"
-              >
-                {/* Vector image in a box */}
-                <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-950 p-2 border border-slate-800 shadow-inner group-hover:scale-[1.01] transition-transform duration-200">
-                  {cat.diagram}
-                </div>
-
-                {/* Category name like a button */}
-                <div className="mt-3.5">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      selectCategoryFromCard(cat.id);
-                    }}
-                    className="w-full rounded-xl bg-slate-900 group-hover:bg-brand py-3 px-4 text-xs sm:text-sm font-bold text-white transition-colors duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                  >
-                    <span>{cat.title}</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          {/* Simple & Minimalist Category Cards Grid (10 cards matching reference) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
+            {TRADING_CATEGORY_CARDS.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => selectCategoryFromCard(cat)}
+                  className="group flex flex-col justify-between h-36 sm:h-40 rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 text-left hover:border-emerald-500 hover:shadow-md transition-all duration-200 cursor-pointer"
+                >
+                  <div className="text-emerald-500 group-hover:scale-110 transition-transform">
+                    <Icon className="h-7 w-7 sm:h-8 sm:w-8 stroke-[1.75]" />
+                  </div>
+                  <span className="text-sm sm:text-base font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors leading-snug">
+                    {cat.title}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Quick bypass link */}
@@ -678,6 +395,7 @@ export default function StorePage() {
               type="button"
               onClick={() => {
                 setSelectedCat("all");
+                setQ("");
                 setPageStep("showcase");
               }}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition underline underline-offset-4 cursor-pointer"
