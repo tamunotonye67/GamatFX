@@ -13,26 +13,18 @@ import { getActiveReferralCode } from "../lib/affiliate";
 
 type Method = "card" | "transfer" | "ussd";
 
-const methods: { id: Method; label: string; icon: React.ElementType; hint: string }[] = [
-  { id: "card", label: "Debit / Credit Card", icon: CreditCard, hint: "Visa, Mastercard, Verve" },
-  { id: "transfer", label: "Bank Transfer", icon: Building2, hint: "Pay from any Nigerian bank" },
-  { id: "ussd", label: "USSD", icon: Smartphone, hint: "Dial a code to pay" },
-];
-
 export default function CheckoutPage({ id }: { id: string }) {
   const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon } = useStore();
   const builtIn = getCourse(id);
   const managed = managedCourses.find((c) => c.id === id && c.published);
   const course = builtIn ?? (managed ? asCourse(managed) : undefined);
   const isMentorship = course?.tag === "Mentorship" || course?.id.startsWith("mentorship-");
-  const [method, setMethod] = useState<Method>(isMentorship ? "transfer" : "card");
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
   const [coupon, setCoupon] = useState("");
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
-  const [transferRef, setTransferRef] = useState("");
 
   useEffect(() => {
     try {
@@ -165,7 +157,7 @@ export default function CheckoutPage({ id }: { id: string }) {
         vat: finalVat,
         discount: finalDiscountAmt,
         amount: finalTotal,
-        method,
+        method: "card",
         coupon: activeDiscount && activeCode ? activeCode : undefined,
       });
       try {
@@ -176,7 +168,7 @@ export default function CheckoutPage({ id }: { id: string }) {
       window.scrollTo({ top: 0 });
     };
 
-    if (method === "card" && finalTotal > 0) {
+    if (finalTotal > 0) {
       const bachsConfig = getBachsConfig();
       if (bachsConfig.activeGateway === "bachs") {
         payWithBachs({
@@ -213,7 +205,7 @@ export default function CheckoutPage({ id }: { id: string }) {
         });
       }
     } else {
-      setTimeout(completePayment, 1200);
+      setTimeout(completePayment, 600);
     }
   };
 
@@ -358,106 +350,108 @@ export default function CheckoutPage({ id }: { id: string }) {
         <div className="mt-5 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-[1.3fr_1fr]">
           {/* Payment form */}
           <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
-            <h1 className="font-display text-xl sm:text-2xl font-extrabold text-ink">Complete your enrollment</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-muted truncate">Signed in as {user?.email}</p>
-
-            {/* Method */}
-            <p className="mt-6 sm:mt-7 text-xs font-semibold uppercase tracking-wide text-muted">Payment method</p>
-            
-            {isMentorship ? (
-              <div className="mt-3 rounded-2xl border border-brand/40 bg-amber-50/80 p-4 text-xs">
-                <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
-                  <Building2 className="h-4 w-4 text-brand" /> Bank Transfer Only
-                </div>
-                <p className="mt-1 text-amber-800/90 leading-relaxed">
-                  Mentorship packages are processed exclusively via Bank Transfer for direct account verification & mentor onboarding.
-                </p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h1 className="font-display text-xl sm:text-2xl font-extrabold text-ink">Enrollment overview</h1>
+                <p className="mt-1 text-xs sm:text-sm text-muted">Review your student details before proceeding to payment.</p>
               </div>
-            ) : (
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                {methods.map((m) => (
-                  <button key={m.id} type="button" onClick={() => setMethod(m.id)}
-                    className={`rounded-2xl border p-4 text-left transition ${method === m.id ? "border-brand bg-brand-light" : "border-line hover:border-brand/50"}`}>
-                    <m.icon className={`h-5 w-5 ${method === m.id ? "text-brand" : "text-muted"}`} />
-                    <p className={`mt-2 text-sm font-semibold ${method === m.id ? "text-brand" : "text-ink"}`}>{m.label}</p>
-                    <p className="mt-0.5 text-[11px] text-muted">{m.hint}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Fields */}
-            <div className="mt-7 space-y-5">
-              {!isMentorship && method === "card" && (
-                <>
-                  <Field label="Cardholder name" ph="Jane Doe" />
-                  <Field label="Card number" ph="4242 4242 4242 4242" inputMode="numeric" />
-                  <div className="grid grid-cols-2 gap-4 sm:gap-5">
-                    <Field label="Expiry" ph="MM / YY" />
-                    <Field label="CVV" ph="123" inputMode="numeric" />
-                  </div>
-                </>
-              )}
-
-              {(method === "transfer" || isMentorship) && (
-                <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5 text-sm space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-3">
-                    <p className="font-extrabold text-ink text-xs uppercase tracking-wider">Official Mentorship Account Details</p>
-                    <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">Verified Account</span>
-                  </div>
-                  
-                  <div className="space-y-2 text-xs text-muted">
-                    <div className="flex flex-wrap justify-between gap-1 py-1.5 border-b border-line/30">
-                      <span>Bank Name:</span>
-                      <strong className="text-ink font-bold">Providus Bank Plc / Zenith Bank</strong>
-                    </div>
-                    <div className="flex flex-wrap justify-between gap-1 py-1.5 border-b border-line/30">
-                      <span>Account Number:</span>
-                      <strong className="text-brand font-black text-sm tracking-wider">1301234567</strong>
-                    </div>
-                    <div className="flex flex-wrap justify-between gap-1 py-1.5">
-                      <span>Account Name:</span>
-                      <strong className="text-ink font-bold">GAMAT Fx Academy Ltd</strong>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink">
-                      Sender Name / Transfer Ref / Receipt Note (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={transferRef}
-                      onChange={(e) => setTransferRef(e.target.value)}
-                      placeholder="e.g. John Doe - Zenith Bank Transfer"
-                      className="w-full rounded-xl border border-line bg-white px-3.5 py-2 text-xs text-ink placeholder-muted outline-none focus:border-brand"
-                    />
-                  </div>
-
-                  <p className="pt-1 text-[11px] text-muted leading-relaxed">
-                    Once your bank transfer is completed, click <strong>Complete Transfer Enrolment</strong> below.
-                  </p>
-                </div>
-              )}
-
-              {!isMentorship && method === "ussd" && (
-                <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5 text-center">
-                  <p className="text-sm text-muted">Dial this code on your registered phone:</p>
-                  <p className="mt-3 font-display text-2xl sm:text-3xl font-extrabold text-brand break-all">*737*000*{String(total).slice(0, 4)}#</p>
-                  <p className="mt-3 text-xs text-muted">Then click confirm below.</p>
-                </div>
-              )}
+              <span className="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
+                <Check className="h-3.5 w-3.5" /> Verified Account
+              </span>
             </div>
 
-            <button type="submit" disabled={processing} className="btn-primary mt-8 w-full disabled:cursor-not-allowed disabled:opacity-70">
+            {/* Student Account Summary */}
+            <div className="mt-6 rounded-2xl border border-line bg-cream/70 p-4 sm:p-5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Student Account</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 text-xs">
+                <div>
+                  <span className="text-muted block text-[11px]">Full Name</span>
+                  <span className="font-bold text-ink text-sm">{user?.firstName} {user?.lastName}</span>
+                </div>
+                <div>
+                  <span className="text-muted block text-[11px]">Enrolled Email</span>
+                  <span className="font-bold text-ink text-sm break-all">{user?.email}</span>
+                </div>
+              </div>
+              <div className="mt-3.5 pt-3.5 border-t border-line/60 flex items-center justify-between text-xs">
+                <span className="text-muted">Course Access:</span>
+                <span className="font-bold text-brand">
+                  {isMentorship ? "Live Mentorship Access" : "Immediate Lifetime Access"}
+                </span>
+              </div>
+            </div>
+
+            {/* Supported Payment Channels */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Accepted Payment Channels</p>
+                <span className="text-[11px] text-muted flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Bank-grade security
+                </span>
+              </div>
+
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-brand/40">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                    <CreditCard className="h-4 w-4" />
+                  </div>
+                  <p className="mt-2.5 text-xs font-bold text-ink">Debit / Credit Card</p>
+                  <p className="mt-0.5 text-[10px] text-muted leading-relaxed">Visa, Mastercard, Verve</p>
+                </div>
+
+                <div className="rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-brand/40">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                    <Building2 className="h-4 w-4" />
+                  </div>
+                  <p className="mt-2.5 text-xs font-bold text-ink">Bank Transfer</p>
+                  <p className="mt-0.5 text-[10px] text-muted leading-relaxed">Instant automated transfer</p>
+                </div>
+
+                <div className="rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-brand/40">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                    <Smartphone className="h-4 w-4" />
+                  </div>
+                  <p className="mt-2.5 text-xs font-bold text-ink">USSD & Mobile</p>
+                  <p className="mt-0.5 text-[10px] text-muted leading-relaxed">Fast bank dial codes</p>
+                </div>
+              </div>
+
+              <div className="mt-3.5 rounded-xl bg-brand-light/60 border border-brand/20 p-3 text-xs text-muted flex items-start gap-2.5">
+                <ShieldCheck className="h-4 w-4 text-brand shrink-0 mt-0.5" />
+                <p className="text-[11px] leading-relaxed text-ink/80">
+                  When you click <strong>Pay {naira(total)}</strong>, our secure checkout window will open. You can select your preferred payment channel (Card, Bank Transfer, or USSD) and complete your payment safely.
+                </p>
+              </div>
+            </div>
+
+            {/* Security Badges */}
+            <div className="mt-6 rounded-2xl border border-line/60 bg-cream/40 p-3.5">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-1">
+                  <p className="text-[11px] font-bold text-ink">256-Bit SSL</p>
+                  <p className="text-[10px] text-muted">Bank-grade security</p>
+                </div>
+                <div className="border-x border-line/60 p-1">
+                  <p className="text-[11px] font-bold text-ink">Instant Access</p>
+                  <p className="text-[10px] text-muted">Immediate enrollment</p>
+                </div>
+                <div className="p-1">
+                  <p className="text-[11px] font-bold text-ink">Official Receipt</p>
+                  <p className="text-[10px] text-muted">Sent to your email</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pay Button */}
+            <button type="submit" disabled={processing} className="btn-primary mt-7 w-full disabled:cursor-not-allowed disabled:opacity-70 shadow-lg shadow-brand/20">
               {processing ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Verifying Transfer…</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Launching Secure Checkout…</>
               ) : (
-                <><Lock className="h-4 w-4" /> {isMentorship ? "Complete Transfer Enrolment" : `Pay ${naira(total)}`}</>
+                <><Lock className="h-4 w-4" /> Pay {naira(total)}</>
               )}
             </button>
-            <p className="mt-3 text-center text-xs text-muted">
-              This is a demo checkout — no real payment is taken.
+            <p className="mt-3 text-center text-[11px] text-muted">
+              🔒 Encrypted 256-bit secure checkout · Instant course access upon confirmation.
             </p>
           </form>
 
@@ -546,16 +540,6 @@ function Row({ l, v, accent, last }: { l: string; v: string; accent?: boolean; l
     <div className={`flex items-center justify-between ${last ? "" : "mb-1.5"}`}>
       <span className="text-muted">{l}</span>
       <span className={`font-semibold ${accent ? "text-brand" : "text-ink"}`}>{v}</span>
-    </div>
-  );
-}
-
-function Field({ label, ph, inputMode }: { label: string; ph: string; inputMode?: "numeric" }) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">{label}</label>
-      <input required placeholder={ph} inputMode={inputMode}
-        className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white" />
     </div>
   );
 }
