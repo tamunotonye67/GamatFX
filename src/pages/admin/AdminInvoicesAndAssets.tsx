@@ -236,167 +236,13 @@ export function AdminInvoices() {
         )}
       </Card>
 
-      {/* ------------------------ INVOICE DOCUMENT MODAL ------------------------ */}
-      <Modal open={!!activeInvoice} onClose={() => setActiveInvoice(null)} title="Official Tax Invoice">
-        {activeInvoice && (
-          <div className="space-y-6 text-ink">
-            {/* Printable Document Container */}
-            <div id="printable-invoice" className="rounded-2xl border border-line bg-white p-6 shadow-sm font-sans space-y-6">
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Logo variant="dark" asDiv />
-                  </div>
-                  <p className="mt-1 text-xs text-muted">RC No: 1849204 · Tax ID: 29402948-001</p>
-                  <p className="text-xs text-muted">12 Institutional Way, Victoria Island, Lagos, Nigeria</p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-block rounded-lg bg-brand/10 px-3 py-1 text-xs font-black uppercase text-brand tracking-widest">
-                    Tax Invoice
-                  </span>
-                  <p className="mt-1 font-mono text-sm font-bold text-ink">INV-{activeInvoice.ref}</p>
-                  <p className="text-xs text-muted">Date: {fmtDate(activeInvoice.createdAt)}</p>
-                </div>
-              </div>
-
-              {/* Billed To */}
-              <div className="grid sm:grid-cols-2 gap-4 rounded-xl bg-cream p-4 text-xs">
-                <div>
-                  <p className="font-bold text-muted uppercase tracking-wider text-[10px]">Billed To (Student):</p>
-                  <p className="mt-1 font-extrabold text-ink text-sm">{activeInvoice.userName}</p>
-                  <p className="text-muted">{activeInvoice.userEmail}</p>
-                </div>
-                <div className="text-right sm:text-right">
-                  <p className="font-bold text-muted uppercase tracking-wider text-[10px]">Payment Terms:</p>
-                  <p className="mt-1 font-bold text-ink">Bank Transfer / Card</p>
-                  <Badge tone={activeInvoice.status === "paid" ? "green" : "amber"}>{activeInvoice.status.toUpperCase()}</Badge>
-                </div>
-              </div>
-
-              {/* Items Table */}
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-line bg-cream/70 text-muted uppercase tracking-wider">
-                    <th className="p-2.5">Item Description</th>
-                    <th className="p-2.5 text-right">Subtotal</th>
-                    <th className="p-2.5 text-right">Discount</th>
-                    <th className="p-2.5 text-right">VAT (7.5%)</th>
-                    <th className="p-2.5 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-line/60">
-                    <td className="p-2.5 font-bold text-ink">{activeInvoice.courseTitle}</td>
-                    <td className="p-2.5 text-right">{naira(activeInvoice.subtotal)}</td>
-                    <td className="p-2.5 text-right text-brand">{activeInvoice.discount ? `−${naira(activeInvoice.discount)}` : "—"}</td>
-                    <td className="p-2.5 text-right">{naira(activeInvoice.vat)}</td>
-                    <td className="p-2.5 text-right font-black text-ink">{naira(activeInvoice.amount)}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              {/* Invoice Totals */}
-              <div className="flex justify-end pt-2">
-                <div className="w-full max-w-xs space-y-1.5 text-xs text-right">
-                  <div className="flex justify-between border-t border-line pt-2">
-                    <span className="font-bold text-ink">Total Due:</span>
-                    <span className="font-extrabold text-brand text-base">{naira(activeInvoice.amount)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Print Action */}
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="btn-primary w-full !py-3 text-xs font-bold flex items-center justify-center gap-2"
-              >
-                <Printer className="h-4 w-4" /> Print / Save Official Invoice PDF
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* ------------------------ RECEIPT DOCUMENT MODAL ------------------------ */}
-      <Modal open={!!activeReceipt} onClose={() => setActiveReceipt(null)} title="Official Payment Receipt">
-        {activeReceipt && (
-          <div className="space-y-6 text-ink">
-            <div id="printable-receipt" className="rounded-2xl border-2 border-emerald-500/30 bg-white p-6 shadow-sm font-sans space-y-6 relative overflow-hidden">
-              {/* Background Seal Watermark */}
-              <div className="absolute right-4 bottom-4 opacity-5 pointer-events-none">
-                <ShieldCheck className="h-48 w-48 text-emerald-950" />
-              </div>
-
-              {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Logo variant="dark" asDiv />
-                  </div>
-                  <p className="mt-1 text-xs text-muted">Official Payment Receipt & Proof of Enrolment</p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-block rounded-lg bg-emerald-100 px-3 py-1 text-xs font-black uppercase text-emerald-800 tracking-widest">
-                    Official Receipt
-                  </span>
-                  <p className="mt-1 font-mono text-sm font-bold text-ink">REC-{activeReceipt.ref}</p>
-                  <p className="text-xs text-muted">Paid Date: {fmtDate(activeReceipt.createdAt)}</p>
-                </div>
-              </div>
-
-              {/* Student & Payment Summary */}
-              <div className="rounded-xl bg-emerald-50/60 border border-emerald-200 p-4 text-xs space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted">Received From:</span>
-                  <strong className="text-ink font-extrabold">{activeReceipt.userName} ({activeReceipt.userEmail})</strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Item / Description:</span>
-                  <strong className="text-ink font-bold">{activeReceipt.courseTitle}</strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Payment Method:</span>
-                  <strong className="text-ink uppercase font-bold">{activeReceipt.method}</strong>
-                </div>
-                <div className="flex justify-between border-t border-emerald-200 pt-2 text-sm">
-                  <span className="font-bold text-emerald-900">Total Amount Paid:</span>
-                  <strong className="font-black text-emerald-700 text-base">{naira(activeReceipt.amount)}</strong>
-                </div>
-              </div>
-
-              {/* Seal & Signature */}
-              <div className="flex items-end justify-between pt-6 border-t border-line">
-                <div className="flex items-center gap-2 text-emerald-700">
-                  <ShieldCheck className="h-7 w-7 text-emerald-600" />
-                  <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Verified Payment Seal</p>
-                    <p className="text-[9px] text-muted">GAMAT FX Official Finance Portal</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-script text-lg text-ink italic font-bold">Tonye Taylor</p>
-                  <p className="text-[10px] font-bold text-muted border-t border-ink/20 pt-1">Authorized Director</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Print Action */}
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="btn-primary w-full !bg-emerald-600 hover:!bg-emerald-700 !py-3 text-xs font-bold flex items-center justify-center gap-2"
-              >
-                <Printer className="h-4 w-4" /> Print / Save Official Receipt PDF
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      {/* ------------------------ INVOICE / RECEIPT DOCUMENT VIEWERS ------------------------ */}
+      {activeInvoice && (
+        <BillingDocument kind="invoice" payment={activeInvoice} onClose={() => setActiveInvoice(null)} onPrint={handlePrint} />
+      )}
+      {activeReceipt && (
+        <BillingDocument kind="receipt" payment={activeReceipt} onClose={() => setActiveReceipt(null)} onPrint={handlePrint} />
+      )}
 
       {/* ------------------------ CUSTOM INVOICE CREATION MODAL ------------------------ */}
       <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Issue Custom Client Invoice">
@@ -933,5 +779,137 @@ export function AdminCompanyAssets() {
         </div>
       )}
     </AdminShell>
+  );
+}
+
+/* ========================================================================== */
+/*                  SHARED MODERN INVOICE / RECEIPT DOCUMENT                  */
+/* ========================================================================== */
+
+const METHOD_LABEL: Record<string, string> = {
+  card: "Card · Bachs",
+  transfer: "Bank transfer · Bachs",
+  crypto: "Crypto · Bachs",
+};
+
+function BillingDocument({ kind, payment: p, onClose, onPrint }: {
+  kind: "invoice" | "receipt";
+  payment: Payment;
+  onClose: () => void;
+  onPrint: () => void;
+}) {
+  const isReceipt = kind === "receipt";
+  const docNo = `${isReceipt ? "REC" : "INV"}-${p.ref}`;
+  const method = METHOD_LABEL[p.method] ?? `${String(p.method || "Bachs").replace(/^\w/, (c) => c.toUpperCase())}`;
+
+  const statusTone =
+    p.status === "paid"
+      ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15"
+      : p.status === "pending"
+      ? "bg-amber-50 text-amber-700 ring-amber-600/15"
+      : "bg-line/70 text-muted ring-ink/10";
+
+  const rows: { label: string; value: string; tone?: string }[] = [
+    { label: "Subtotal", value: naira(p.subtotal ?? p.amount) },
+    ...(p.discount ? [{ label: `Discount${p.coupon ? ` (${p.coupon})` : ""}`, value: `−${naira(p.discount)}`, tone: "text-brand" }] : []),
+    { label: "VAT (7.5%)", value: naira(p.vat ?? 0) },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        {/* Document */}
+        <div
+          id={isReceipt ? "printable-receipt" : "printable-invoice"}
+          className="overflow-hidden rounded-3xl bg-white text-ink shadow-[0_30px_80px_-30px_rgba(22,24,28,0.55)]"
+        >
+          {/* Brand header */}
+          <div className="relative flex items-center justify-between gap-3 bg-ink px-6 py-5">
+            <Logo variant="light" asDiv />
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/50">
+                {isReceipt ? "Receipt" : "Invoice"}
+              </p>
+              <p className="mt-0.5 font-mono text-xs font-semibold text-white">{docNo}</p>
+            </div>
+            <span className="absolute inset-x-0 bottom-0 h-[3px] bg-brand" />
+          </div>
+
+          {/* Amount hero */}
+          <div className="px-6 pt-6 text-center">
+            <p className="text-xs font-medium text-muted">{isReceipt ? "Amount paid" : "Amount due"}</p>
+            <p className="mt-1 font-display text-3xl font-extrabold tracking-tight tabular-nums">{naira(p.amount)}</p>
+            <div className="mt-3 flex items-center justify-center gap-2 text-[11px]">
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-bold uppercase tracking-wide ring-1 ${statusTone}`}>
+                {p.status === "paid" && <CheckCircle2 className="h-3 w-3" />}
+                {p.status}
+              </span>
+              <span className="text-muted">{fmtDate(p.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* Parties & meta */}
+          <div className="mx-6 mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-cream p-4 text-xs ring-1 ring-line">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">{isReceipt ? "Received from" : "Billed to"}</p>
+              <p className="mt-1 truncate font-semibold text-ink">{p.userName}</p>
+              <p className="truncate text-muted">{p.userEmail}</p>
+            </div>
+            <div className="min-w-0 text-right">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Payment method</p>
+              <p className="mt-1 truncate font-semibold text-ink">{method}</p>
+              <p className="truncate text-muted">Ref {p.ref}</p>
+            </div>
+          </div>
+
+          {/* Line item */}
+          <div className="px-6 pt-6">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Item</p>
+            <div className="mt-2 flex items-start justify-between gap-4">
+              <p className="text-sm font-semibold leading-snug text-ink">{p.courseTitle}</p>
+              <p className="shrink-0 text-sm font-semibold tabular-nums">{naira(p.subtotal ?? p.amount)}</p>
+            </div>
+
+            <div className="mt-4 space-y-2 border-t border-dashed border-line pt-4 text-xs">
+              {rows.map((r) => (
+                <div key={r.label} className="flex justify-between">
+                  <span className="text-muted">{r.label}</span>
+                  <span className={`tabular-nums font-medium ${r.tone ?? "text-ink"}`}>{r.value}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+              <span className="text-sm font-bold">{isReceipt ? "Total paid" : "Total due"}</span>
+              <span className="font-display text-lg font-extrabold tabular-nums text-brand">{naira(p.amount)}</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-6 flex items-center gap-3 border-t border-line bg-cream/60 px-6 py-4">
+            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isReceipt ? "bg-emerald-50 text-emerald-600" : "bg-brand-light text-brand"}`}>
+              {isReceipt ? <ShieldCheck className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+            </span>
+            <p className="text-[11px] leading-relaxed text-muted">
+              {isReceipt
+                ? "Payment verified and processed securely via Bachs. Thank you for learning with GAMAT Fx Academy."
+                : "Pay securely via Bachs — card, bank transfer or crypto. Questions? support@gamatfx.com"}
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-4 flex gap-3">
+          <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5">
+            <X className="h-4 w-4" /> Close
+          </button>
+          <button type="button" onClick={onPrint} className="btn-primary flex-1">
+            <Printer className="h-4 w-4" /> {isReceipt ? "Print receipt" : "Print invoice"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
