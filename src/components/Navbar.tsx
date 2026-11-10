@@ -191,7 +191,7 @@ export default function Navbar() {
     >
       <div ref={barRef}>
         <TopCouponBar />
-        <nav className="container-x flex min-h-[72px] pt-3 pb-1.5 sm:py-0 sm:h-[72px] items-center justify-between gap-3 sm:gap-4">
+        <nav className="container-x relative flex min-h-[72px] pt-3 pb-1.5 sm:py-0 sm:h-[72px] items-center justify-between gap-3 sm:gap-4">
           <Logo variant={scrolled ? "dark" : "light"} />
 
         {/* Desktop links */}
@@ -212,7 +212,7 @@ export default function Navbar() {
           ))}
 
           {/* More dropdown */}
-          <li ref={moreRef} className="relative">
+          <li ref={moreRef}>
             <button
               type="button"
               onClick={() => setMoreOpen((v) => !v)}
@@ -228,7 +228,7 @@ export default function Navbar() {
             </button>
 
             <div
-              className={`absolute right-0 top-full z-50 mt-4 w-[min(56rem,calc(100vw-2rem))] origin-top-right overflow-visible rounded-2xl border border-line bg-white shadow-[0_30px_70px_-25px_rgba(22,24,28,0.45)] transition-all duration-200 ${
+              className={`absolute left-1/2 top-full z-50 mt-3 w-[min(56rem,calc(100vw-2rem))] -translate-x-1/2 origin-top overflow-visible rounded-2xl border border-line bg-white shadow-[0_30px_70px_-25px_rgba(22,24,28,0.45)] transition-all duration-200 ${
                 moreOpen
                   ? "visible scale-100 opacity-100 pointer-events-auto"
                   : "hidden opacity-0 pointer-events-none"
