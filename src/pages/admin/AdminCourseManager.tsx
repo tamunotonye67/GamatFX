@@ -66,8 +66,11 @@ function IconPreview({ name, color }: { name?: string; color?: string }) {
   const found = ICON_OPTIONS.find((o) => o.v === name) ?? ICON_OPTIONS[0];
   const I = found.Icon;
   return (
-    <span className="flex h-11 w-11 items-center justify-center rounded-xl text-white" style={{ background: color || "#dc3545" }}>
-      <I className="h-5 w-5" />
+    <span
+      className="flex h-11 w-11 shrink-0 aspect-square items-center justify-center rounded-xl text-white shadow-xs"
+      style={{ background: color || "#dc3545" }}
+    >
+      <I className="h-5 w-5 shrink-0" />
     </span>
   );
 }
@@ -384,12 +387,12 @@ export function AdminCourseManager() {
             <table className="w-full min-w-[1040px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
-                  <Th>Course</Th>
-                  <Th>Tag</Th>
-                  <Th>Curriculum</Th>
-                  <Th>Exam Questions</Th>
-                  <Th>Price</Th>
-                  <Th>Status</Th>
+                  <Th className="w-[30%] min-w-[280px]">Course</Th>
+                  <Th className="min-w-[120px]">Tag</Th>
+                  <Th className="min-w-[170px]">Curriculum</Th>
+                  <Th className="min-w-[160px]">Exam Questions</Th>
+                  <Th className="min-w-[110px]">Price</Th>
+                  <Th className="min-w-[120px]">Status</Th>
                   <Th right>Actions</Th>
                 </tr>
               </thead>
@@ -400,22 +403,26 @@ export function AdminCourseManager() {
                   const hasQ = !!(qz && qz.questions && qz.questions.length > 0);
                   return (
                     <tr key={c.id} className="transition hover:bg-cream/60">
-                      <Td>
-                        <div className="flex items-center gap-3">
+                      <Td className="min-w-[280px]">
+                        <div className="flex items-center gap-3.5">
                           <IconPreview name={c.icon} color={c.iconColor} />
-                          <div>
-                            <p className="font-semibold text-ink">{c.title}</p>
-                            <p className="text-xs text-muted">{c.level} · {c.duration}</p>
+                          <div className="min-w-0">
+                            <p className="font-bold text-ink leading-snug">{c.title}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-muted whitespace-nowrap">
+                              <span className="font-semibold text-ink/75">{c.level}</span>
+                              <span className="text-line">•</span>
+                              <span>{c.duration}</span>
+                            </div>
                           </div>
                         </div>
                       </Td>
                       <Td><Badge tone="gray">{c.tag}</Badge></Td>
-                      <Td><span className="text-muted">{c.modules?.length ?? 0} modules · {lessons} lessons</span></Td>
+                      <Td><span className="text-muted whitespace-nowrap">{c.modules?.length ?? 0} modules · {lessons} lessons</span></Td>
                       <Td>
                         <button
                           type="button"
                           onClick={() => openExam(c)}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition border cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition border cursor-pointer whitespace-nowrap ${
                             hasQ
                               ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                               : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
@@ -435,9 +442,9 @@ export function AdminCourseManager() {
                           )}
                         </button>
                       </Td>
-                      <Td><span className="font-bold text-ink">{naira(c.price)}</span></Td>
+                      <Td><span className="font-bold text-ink whitespace-nowrap">{naira(c.price)}</span></Td>
                       <Td>
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-1.5 whitespace-nowrap">
                           <Badge tone={c.published ? "green" : "gray"}>{c.published ? "published" : "hidden"}</Badge>
                           {c.featured && <Badge tone="red">featured</Badge>}
                         </div>

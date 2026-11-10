@@ -791,11 +791,11 @@ export function AdminCourses() {
 
 /* ============================ Table helpers ============================ */
 
-export function Th({ children, right }: { children: React.ReactNode; right?: boolean }) {
-  return <th className={`whitespace-nowrap px-5 py-3 font-bold ${right ? "text-right" : ""}`}>{children}</th>;
+export function Th({ children, right, className = "" }: { children: React.ReactNode; right?: boolean; className?: string }) {
+  return <th className={`whitespace-nowrap px-5 py-3 font-bold ${right ? "text-right" : ""} ${className}`}>{children}</th>;
 }
-export function Td({ children, right }: { children: React.ReactNode; right?: boolean }) {
-  return <td className={`px-5 py-3.5 align-middle ${right ? "text-right" : ""}`}>{children}</td>;
+export function Td({ children, right, className = "" }: { children: React.ReactNode; right?: boolean; className?: string }) {
+  return <td className={`px-5 py-3.5 align-middle ${right ? "text-right" : ""} ${className}`}>{children}</td>;
 }
 export function IconBtn({ children, onClick, title, danger }: {
   children: React.ReactNode; onClick: () => void; title: string; danger?: boolean;
