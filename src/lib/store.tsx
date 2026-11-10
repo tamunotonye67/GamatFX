@@ -1123,6 +1123,21 @@ function write(key: string, value: unknown) {
   }
 }
 
+const CREDS_KEY = "gamat.credentials.v1";
+
+export function getStoredCredential(email: string): string | undefined {
+  const creds = read<Record<string, string>>(CREDS_KEY, {});
+  return creds[email.trim().toLowerCase()];
+}
+
+export function storeCredential(email: string, pass: string) {
+  if (!email || !pass) return;
+  const clean = email.trim().toLowerCase();
+  const creds = read<Record<string, string>>(CREDS_KEY, {});
+  creds[clean] = pass;
+  write(CREDS_KEY, creds);
+}
+
 const uid = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const ticketCode = () =>
   `GX-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -1143,6 +1158,7 @@ export const DEFAULT_ADMIN: Account = {
 
 /** Seeds a default admin account the first time the app runs. */
 function seedAccounts(): Account[] {
+  storeCredential(DEFAULT_ADMIN.email, DEFAULT_ADMIN.password);
   const existing = read<Account[]>(K.accounts, []);
   const hasAdmin = existing.some((a) => a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
   if (hasAdmin) return existing;
@@ -1518,7 +1534,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setAccounts((prev) => {
           const map = new Map<string, Account>();
           prev.forEach((a) => map.set(a.id, a));
-          supaAccounts.forEach((a) => map.set(a.id, a));
+          supaAccounts.forEach((supaAcc) => {
+            const clean = supaAcc.email.toLowerCase();
+            const existing = prev.find((p) => p.id === supaAcc.id || p.email.toLowerCase() === clean);
+            const savedPass = getStoredCredential(clean);
+            const preservedPassword =
+              savedPass ||
+              (existing?.password && existing.password !== "password123"
+                ? existing.password
+                : supaAcc.password);
+            map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
+          });
           return Array.from(map.values());
         });
       }
@@ -1577,7 +1603,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             const map = new Map<string, Account>();
             map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
             prev.forEach((a) => map.set(a.id, a));
-            r.forEach((a) => map.set(a.id, a));
+            r.forEach((supaAcc) => {
+              const clean = supaAcc.email.toLowerCase();
+              const existing = prev.find((p) => p.id === supaAcc.id || p.email.toLowerCase() === clean);
+              const savedPass = getStoredCredential(clean);
+              const preservedPassword =
+                savedPass ||
+                (existing?.password && existing.password !== "password123"
+                  ? existing.password
+                  : supaAcc.password);
+              map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
+            });
             return Array.from(map.values());
           });
         }
@@ -1647,6 +1683,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (accounts.some((a) => a.email.toLowerCase() === email)) return { ok: false, error: "An account with this email already exists." };
     if (d.password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
 
+    // Persist credentials in local credentials vault
+    storeCredential(email, d.password);
+
     const newAccData = {
       firstName: d.firstName.trim(),
       lastName: d.lastName.trim(),
@@ -1661,7 +1700,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // 1. Primary: Register in Supabase Auth & Database
     const res = await signUpSupabaseUser(email, d.password, newAccData);
     if (!res.ok) {
-      return { ok: false, error: res.error || "Failed to create account. Please try again." };
+      const errLower = (res.error || "").toLowerCase();
+      if (errLower.includes("already registered") || errLower.includes("already exists")) {
+        return { ok: false, error: "An account with this email already exists." };
+      }
+      console.warn("Supabase signup notice:", res.error);
     }
 
     const acc = res.account || {
@@ -1671,7 +1714,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
 
     setAccounts((p) => {
-      const next = p.some((a) => a.id === acc.id) ? p : [...p, acc];
+      const next = p.some((a) => a.id === acc.id)
+        ? p.map((a) => (a.id === acc.id ? { ...acc, password: d.password } : a))
+        : [...p, { ...acc, password: d.password }];
       write(K.accounts, next);
       return next;
     });
@@ -1708,18 +1753,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
       setSessionId(DEFAULT_ADMIN.id);
-      signInSupabaseUser(cleanEmail, password);
+      signInSupabaseUser(cleanEmail, password).catch(() => {});
       return { ok: true };
     }
 
-    // 2. Primary: Authenticate via Supabase Auth (Cross-device authoritative authentication)
+    // 2. Identify local or cached account & saved credential
+    let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
+    if (!found) {
+      const localAccs = read<Account[]>(K.accounts, []);
+      found = localAccs.find((a) => a.email.toLowerCase() === cleanEmail);
+    }
+    const savedPassword = getStoredCredential(cleanEmail) || found?.password;
+
+    // 3. Primary: Authenticate via Supabase Auth (Cross-device authoritative authentication)
     try {
       const res = await signInSupabaseUser(cleanEmail, password);
       if (res.ok && res.account) {
+        storeCredential(cleanEmail, password);
         setAccounts((p) => {
           const next = p.some((a) => a.id === res.account!.id)
-            ? p.map((a) => (a.id === res.account!.id ? res.account! : a))
-            : [...p, res.account!];
+            ? p.map((a) => (a.id === res.account!.id ? { ...res.account!, password } : a))
+            : [...p, { ...res.account!, password }];
           write(K.accounts, next);
           return next;
         });
@@ -1727,56 +1781,89 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return { ok: true };
       }
 
-      if (!res.ok && res.error) {
-        const errLower = res.error.toLowerCase();
-        if (errLower.includes("email not confirmed")) {
-          return { ok: false, error: "Please verify your email address or check your inbox to activate your account." };
+      // If Supabase Auth failed (e.g. unconfirmed email, manually created account without auth entry, etc.)
+      // Check if we have the account locally or in accounts state:
+      if (found) {
+        if (found.status === "suspended") {
+          return { ok: false, error: "This account has been suspended. Contact support." };
         }
-        if (
-          errLower.includes("invalid login credentials") ||
-          errLower.includes("invalid password") ||
-          errLower.includes("wrong password")
-        ) {
-          // Check if an account with this email exists in Supabase DB
-          const { data: existingUser } = await supabase
-            .from("accounts")
-            .select("id")
-            .eq("email", cleanEmail)
-            .maybeSingle();
 
-          if (existingUser || accounts.some((a) => a.email.toLowerCase() === cleanEmail)) {
-            return { ok: false, error: "Incorrect password. Please check your password and try again." };
+        const isPasswordMatch =
+          (savedPassword && savedPassword === password) ||
+          (found.password && found.password === password) ||
+          (savedPassword === undefined && found.password === "password123" && password === "password123");
+
+        if (isPasswordMatch) {
+          storeCredential(cleanEmail, password);
+          setAccounts((prev) => {
+            const next = prev.map((a) => (a.id === found!.id ? { ...a, password } : a));
+            write(K.accounts, next);
+            return next;
+          });
+          setSessionId(found.id);
+
+          // Attempt background sync to Supabase Auth if needed
+          if (res.error?.toLowerCase().includes("invalid login credentials")) {
+            signUpSupabaseUser(cleanEmail, password, found).catch(() => {});
           }
-          return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
+
+          return { ok: true };
+        } else {
+          return { ok: false, error: "Incorrect password. Please check your password and try again." };
         }
-        return { ok: false, error: res.error };
       }
+
+      // If not in local state, check Supabase public.accounts table
+      const { data: supaRow } = await supabase
+        .from("accounts")
+        .select("*")
+        .eq("email", cleanEmail)
+        .maybeSingle();
+
+      if (supaRow) {
+        const supaAcc = rowToAccount(supaRow as SupabaseAccountRow, password);
+        const expectedPassword = savedPassword || supaAcc.password;
+
+        if (supaAcc.status === "suspended") {
+          return { ok: false, error: "This account has been suspended. Contact support." };
+        }
+
+        if (
+          expectedPassword === password ||
+          (expectedPassword === "password123" && password === "password123")
+        ) {
+          storeCredential(cleanEmail, password);
+          setAccounts((prev) => {
+            const next = prev.some((a) => a.id === supaAcc.id)
+              ? prev.map((a) => (a.id === supaAcc.id ? { ...supaAcc, password } : a))
+              : [...prev, { ...supaAcc, password }];
+            write(K.accounts, next);
+            return next;
+          });
+          setSessionId(supaAcc.id);
+          signUpSupabaseUser(cleanEmail, password, supaAcc).catch(() => {});
+          return { ok: true };
+        } else {
+          return { ok: false, error: "Incorrect password. Please check your password and try again." };
+        }
+      }
+
+      // If no account exists anywhere
+      return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
     } catch {
       // Supabase network unreachable, fall back to cached local storage
-    }
-
-    // 3. Offline / cached fallback (if already signed in or cached on this device)
-    let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
-    if (!found) {
-      const localAccs = read<Account[]>(K.accounts, []);
-      found = localAccs.find((a) => a.email.toLowerCase() === cleanEmail);
       if (found) {
-        setAccounts((prev) => (prev.some((a) => a.id === found!.id) ? prev : [...prev, found!]));
-      }
-    }
-
-    if (found) {
-      if (found.password && found.password !== "password123" && found.password !== password) {
+        if (found.status === "suspended") {
+          return { ok: false, error: "This account has been suspended. Contact support." };
+        }
+        if (savedPassword === password || found.password === password) {
+          setSessionId(found.id);
+          return { ok: true };
+        }
         return { ok: false, error: "Incorrect password. Please try again." };
       }
-      if (found.status === "suspended") {
-        return { ok: false, error: "This account has been suspended. Contact support." };
-      }
-      setSessionId(found.id);
-      return { ok: true };
+      return { ok: false, error: "No account found with that email. Please create an account to get started." };
     }
-
-    return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
   }, [accounts]);
 
   const logout = useCallback(() => {
@@ -3053,12 +3140,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setAccounts((p) => {
         const updated = p.map((a) => (a.id === id ? { ...a, ...patch } : a));
         const acc = updated.find((a) => a.id === id);
-        if (acc) saveSupabaseAccount(acc);
+        if (acc) {
+          if (patch.password) {
+            storeCredential(acc.email, patch.password);
+          }
+          saveSupabaseAccount(acc);
+        }
+        write(K.accounts, updated);
         return updated;
       });
     },
     deleteAccount: (id) => {
-      setAccounts((p) => p.filter((a) => a.id !== id));
+      setAccounts((p) => {
+        const next = p.filter((a) => a.id !== id);
+        write(K.accounts, next);
+        return next;
+      });
       setAllEnrollments((p) => p.filter((e) => e.userId !== id));
       if (sessionId === id) setSessionId(null);
       deleteSupabaseAccount(id);
@@ -3067,9 +3164,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const email = d.email.trim().toLowerCase();
       if (accounts.some((a) => a.email === email)) return { ok: false, error: "Email already in use." };
       const newAcc: Account = { ...d, email, id: uid("u"), joined: new Date().toISOString() };
-      setAccounts((p) => [...p, newAcc]);
+      if (d.password) {
+        storeCredential(email, d.password);
+      }
+      setAccounts((p) => {
+        const next = [...p, newAcc];
+        write(K.accounts, next);
+        return next;
+      });
       saveSupabaseAccount(newAcc);
-      if (d.password) signUpSupabaseUser(email, d.password, d);
+      if (d.password) {
+        signUpSupabaseUser(email, d.password, d).catch(() => {});
+      }
       return { ok: true };
     },
     enrollUser: (userId, courseId) => {

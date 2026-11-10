@@ -44,13 +44,26 @@ export function accountToRow(acc: Account): SupabaseAccountRow {
 
 /** Converts a Supabase database row into a frontend Account object. */
 export function rowToAccount(row: SupabaseAccountRow, defaultPassword?: string): Account {
+  let knownPassword = defaultPassword;
+  if (!knownPassword && typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem("gamat.credentials.v1");
+      if (raw) {
+        const creds = JSON.parse(raw);
+        if (creds && typeof creds === "object" && creds[row.email.toLowerCase()]) {
+          knownPassword = creds[row.email.toLowerCase()];
+        }
+      }
+    } catch {}
+  }
+
   return {
     id: row.id,
     firstName: row.first_name,
     middleName: row.middle_name ?? undefined,
     lastName: row.last_name,
     email: row.email,
-    password: defaultPassword || "password123",
+    password: knownPassword || "password123",
     phone: row.phone ?? undefined,
     country: row.country ?? undefined,
     bio: row.bio ?? undefined,
@@ -74,6 +87,17 @@ export async function signUpSupabaseUser(
   try {
     const cleanEmail = email.trim().toLowerCase();
     const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : undefined;
+
+    // Cache credential immediately in persistent vault
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("gamat.credentials.v1");
+        const creds = raw ? JSON.parse(raw) : {};
+        creds[cleanEmail] = pass;
+        localStorage.setItem("gamat.credentials.v1", JSON.stringify(creds));
+      } catch {}
+    }
+
     // 1. Register in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: cleanEmail,
@@ -103,11 +127,12 @@ export async function signUpSupabaseUser(
       ...accData,
       email: cleanEmail,
       id: userId,
+      password: pass,
       joined: new Date().toISOString(),
     };
 
     // 2. Save user profile to Supabase `accounts` table
-    const row = accountToRow(newAccount);
+    const row = accountToRow(newAccount, pass);
     const { error: dbError } = await supabase.from("accounts").upsert(row, { onConflict: "id" });
     if (dbError) {
       console.warn("Supabase accounts insert error:", dbError.message);
