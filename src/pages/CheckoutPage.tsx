@@ -369,68 +369,25 @@ export default function CheckoutPage({ id }: { id: string }) {
               </span>
             </div>
 
-            {/* Bachs Payment Gateway Notice */}
-            <div className="mt-7 rounded-2xl border border-line bg-gradient-to-b from-cream/50 via-white to-cream/20 p-5 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3.5 border-b border-line/60">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 items-center justify-center rounded-xl bg-white px-3 py-1 border border-line shadow-xs">
-                    <img
-                      src="/images/bachs-logo.png"
-                      alt="Bachs"
-                      className="h-5 w-auto object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-extrabold text-ink">Bachs Checkout</span>
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
-                        Official Partner
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted">
-                      Payment will be processed securely via the official Bachs interface.
-                    </p>
-                  </div>
+            {/* Minimalist & Modern Bachs Payment Card */}
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4.5 py-3.5 text-xs shadow-2xs">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-8 items-center justify-center rounded-xl bg-cream/80 px-2.5 shrink-0 border border-line/60">
+                  <img
+                    src="/images/bachs-logo.png"
+                    alt="Bachs"
+                    className="h-3.5 w-auto object-contain"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-ink">Bachs Secure Checkout</p>
+                  <p className="text-[11px] text-muted">Direct Cards, Instant Bank Transfer & Crypto</p>
                 </div>
               </div>
 
-              {/* Accepted Channels Summary */}
-              <div className="mt-3.5">
-                <p className="text-[11px] font-semibold text-muted mb-2.5">
-                  Select your preferred channel directly on Bachs:
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="flex items-center gap-2 rounded-xl border border-line bg-white/90 p-2.5 shadow-xs">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-light text-brand shrink-0">
-                      <CreditCard className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="block text-xs font-bold text-ink truncate">Cards</span>
-                      <span className="block text-[10px] text-muted truncate">Visa & Master</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 rounded-xl border border-line bg-white/90 p-2.5 shadow-xs">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-light text-brand shrink-0">
-                      <Building2 className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="block text-xs font-bold text-ink truncate">Transfer</span>
-                      <span className="block text-[10px] text-muted truncate">Instant Bank</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 rounded-xl border border-line bg-white/90 p-2.5 shadow-xs">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 shrink-0">
-                      <Coins className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="block text-xs font-bold text-ink truncate">Crypto</span>
-                      <span className="block text-[10px] text-muted truncate">USDT & BTC</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <span className="inline-flex shrink-0 items-center gap-1 self-start sm:self-auto rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
+                <ShieldCheck className="h-3 w-3" /> 256-Bit SSL Secured
+              </span>
             </div>
 
             {/* Pay Button */}

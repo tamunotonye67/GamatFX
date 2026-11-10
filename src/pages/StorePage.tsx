@@ -1143,42 +1143,25 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 {couponError && <p className="mt-1 text-[11px] font-bold text-rose-600">{couponError}</p>}
               </div>
 
-              {/* Bachs Payment Provider Banner */}
-              <div className="rounded-2xl border border-line bg-gradient-to-b from-cream/50 via-white to-cream/20 p-3.5 shadow-xs">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 items-center justify-center rounded-xl bg-white px-2.5 py-1 border border-line shadow-xs shrink-0">
-                    <img
-                      src="/images/bachs-logo.png"
-                      alt="Bachs"
-                      className="h-4.5 w-auto object-contain"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-ink">Bachs Secure Checkout</span>
-                      <span className="rounded-full bg-emerald-50 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
-                        Official Partner
-                      </span>
+              {/* Minimalist Bachs Payment Notice */}
+              <div className="rounded-2xl border border-line bg-white px-4 py-3 text-xs shadow-2xs">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex h-7 items-center justify-center rounded-lg bg-cream/80 px-2 shrink-0 border border-line/60">
+                      <img
+                        src="/images/bachs-logo.png"
+                        alt="Bachs"
+                        className="h-3 w-auto object-contain"
+                      />
                     </div>
-                    <p className="text-[10px] text-muted leading-tight mt-0.5">
-                      Payment will be processed via Bachs with Cards, Bank Transfer, or Crypto.
-                    </p>
+                    <div className="min-w-0">
+                      <p className="font-bold text-ink truncate">Bachs Secure Payment</p>
+                      <p className="text-[10px] text-muted truncate">Cards, Bank Transfer & Crypto</p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="mt-2.5 pt-2 border-t border-line/60 grid grid-cols-3 gap-1.5 text-center">
-                  <div className="flex items-center justify-center gap-1 rounded-lg bg-white/80 py-1 px-1.5 border border-line/60 text-[10px] font-bold text-ink">
-                    <CreditCard className="h-3 w-3 text-brand shrink-0" />
-                    <span>Cards</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-1 rounded-lg bg-white/80 py-1 px-1.5 border border-line/60 text-[10px] font-bold text-ink">
-                    <Building2 className="h-3 w-3 text-brand shrink-0" />
-                    <span>Transfer</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-1 rounded-lg bg-white/80 py-1 px-1.5 border border-line/60 text-[10px] font-bold text-ink">
-                    <Coins className="h-3 w-3 text-amber-500 shrink-0" />
-                    <span>Crypto</span>
-                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
+                    <ShieldCheck className="h-3 w-3" /> Secure
+                  </span>
                 </div>
               </div>
 
