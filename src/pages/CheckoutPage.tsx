@@ -361,9 +361,14 @@ export default function CheckoutPage({ id }: { id: string }) {
             </div>
 
             {/* Student Account Summary */}
-            <div className="mt-6 rounded-2xl border border-line bg-cream/70 p-4 sm:p-5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Student Account</p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2 text-xs">
+            <div className="mt-5 rounded-2xl border border-line bg-cream/70 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2.5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Student Account</p>
+                <span className="text-xs font-bold text-brand">
+                  {isMentorship ? "Live Mentorship Access" : "Immediate Lifetime Access"}
+                </span>
+              </div>
+              <div className="mt-2.5 grid gap-3 sm:grid-cols-2 text-xs">
                 <div>
                   <span className="text-muted block text-[11px]">Full Name</span>
                   <span className="font-bold text-ink text-sm">{user?.firstName} {user?.lastName}</span>
@@ -373,85 +378,79 @@ export default function CheckoutPage({ id }: { id: string }) {
                   <span className="font-bold text-ink text-sm break-all">{user?.email}</span>
                 </div>
               </div>
-              <div className="mt-3.5 pt-3.5 border-t border-line/60 flex items-center justify-between text-xs">
-                <span className="text-muted">Course Access:</span>
-                <span className="font-bold text-brand">
-                  {isMentorship ? "Live Mentorship Access" : "Immediate Lifetime Access"}
-                </span>
-              </div>
             </div>
 
             {/* Supported Payment Channels */}
-            <div className="mt-6">
+            <div className="mt-5">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Accepted Payment Channels</p>
-                <span className="text-[11px] text-muted flex items-center gap-1">
-                  <ShieldCheck className="h-3.5 w-3.5 text-brand" /> Bank-grade security
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Payment Channels Available</p>
+                <span className="text-[11px] font-medium text-emerald-700 flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Bank-grade security
                 </span>
               </div>
 
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-brand/40">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+              <div className="mt-2.5 grid gap-2.5 sm:grid-cols-3">
+                <div className="rounded-xl border border-line bg-white p-3 text-left">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                     <CreditCard className="h-4 w-4" />
                   </div>
-                  <p className="mt-2.5 text-xs font-bold text-ink">Debit / Credit Card</p>
-                  <p className="mt-0.5 text-[10px] text-muted leading-relaxed">Visa, Mastercard, Verve</p>
+                  <p className="mt-2 text-xs font-bold text-ink">Debit / Credit Card</p>
+                  <p className="text-[10px] text-muted">Visa, Mastercard, Verve</p>
                 </div>
 
-                <div className="rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-brand/40">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                <div className="rounded-xl border border-line bg-white p-3 text-left">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                     <Building2 className="h-4 w-4" />
                   </div>
-                  <p className="mt-2.5 text-xs font-bold text-ink">Bank Transfer</p>
-                  <p className="mt-0.5 text-[10px] text-muted leading-relaxed">Instant automated transfer</p>
+                  <p className="mt-2 text-xs font-bold text-ink">Bank Transfer</p>
+                  <p className="text-[10px] text-muted">Direct transfer verification</p>
                 </div>
 
-                <div className="rounded-2xl border border-line bg-white p-3.5 text-left transition hover:border-brand/40">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                <div className="rounded-xl border border-line bg-white p-3 text-left">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                     <Smartphone className="h-4 w-4" />
                   </div>
-                  <p className="mt-2.5 text-xs font-bold text-ink">USSD & Mobile</p>
-                  <p className="mt-0.5 text-[10px] text-muted leading-relaxed">Fast bank dial codes</p>
+                  <p className="mt-2 text-xs font-bold text-ink">USSD & Mobile</p>
+                  <p className="text-[10px] text-muted">Instant bank dial codes</p>
                 </div>
               </div>
 
-              <div className="mt-3.5 rounded-xl bg-brand-light/60 border border-brand/20 p-3 text-xs text-muted flex items-start gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-brand shrink-0 mt-0.5" />
-                <p className="text-[11px] leading-relaxed text-ink/80">
-                  When you click <strong>Pay {naira(total)}</strong>, our secure checkout window will open. You can select your preferred payment channel (Card, Bank Transfer, or USSD) and complete your payment safely.
+              <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-xs text-slate-700 flex items-start gap-2.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] leading-relaxed text-slate-600">
+                  Clicking <strong>Pay {naira(total)}</strong> opens the secure gateway popup where you can choose Card, Bank Transfer, or USSD to complete your enrollment.
                 </p>
               </div>
             </div>
 
-            {/* Security Badges */}
-            <div className="mt-6 rounded-2xl border border-line/60 bg-cream/40 p-3.5">
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-1">
+            {/* Security Guarantee Strip */}
+            <div className="mt-4 rounded-xl border border-line/70 bg-cream/50 p-2.5">
+              <div className="grid grid-cols-3 gap-1 text-center">
+                <div>
                   <p className="text-[11px] font-bold text-ink">256-Bit SSL</p>
-                  <p className="text-[10px] text-muted">Bank-grade security</p>
+                  <p className="text-[10px] text-muted">Bank encryption</p>
                 </div>
-                <div className="border-x border-line/60 p-1">
+                <div className="border-x border-line/70">
                   <p className="text-[11px] font-bold text-ink">Instant Access</p>
-                  <p className="text-[10px] text-muted">Immediate enrollment</p>
+                  <p className="text-[10px] text-muted">Instant enrollment</p>
                 </div>
-                <div className="p-1">
+                <div>
                   <p className="text-[11px] font-bold text-ink">Official Receipt</p>
-                  <p className="text-[10px] text-muted">Sent to your email</p>
+                  <p className="text-[10px] text-muted">Sent to email</p>
                 </div>
               </div>
             </div>
 
             {/* Pay Button */}
-            <button type="submit" disabled={processing} className="btn-primary mt-7 w-full disabled:cursor-not-allowed disabled:opacity-70 shadow-lg shadow-brand/20">
+            <button type="submit" disabled={processing} className="btn-primary mt-6 w-full !py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-70 shadow-lg shadow-brand/20">
               {processing ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Launching Secure Checkout…</>
               ) : (
                 <><Lock className="h-4 w-4" /> Pay {naira(total)}</>
               )}
             </button>
-            <p className="mt-3 text-center text-[11px] text-muted">
-              🔒 Encrypted 256-bit secure checkout · Instant course access upon confirmation.
+            <p className="mt-2.5 text-center text-[11px] text-muted">
+              🔒 100% Secure Checkout · Instant automated course activation.
             </p>
           </form>
 
