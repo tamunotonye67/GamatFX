@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { useStore, type Account } from "../../lib/store";
 import { COURSES, getCourse, totalLessons, naira, compactNaira } from "../../lib/courses";
 import { downloadCertificate, type CertData } from "../../lib/certificate";
@@ -237,7 +237,7 @@ export function AdminDashboard() {
 
 export function AdminStudents() {
   const { admin } = useStore();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [roleFilter, setRoleFilter] = useState("all");
   const [view, setView] = useState<Account | null>(null);
   const [edit, setEdit] = useState<Account | null>(null);

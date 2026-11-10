@@ -124,15 +124,31 @@ img, video, canvas {
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
   }
 
   .btn-outline-dark {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
+  }
+
+  /* Well-padded dropdown selects with clean modern chevron icon */
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.15rem 1.15rem;
+    padding-left: 1rem !important;
+    padding-right: 2.35rem !important;
+    cursor: pointer;
+  }
+  select:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23dc3545' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.75' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
   }
 
   .eyebrow {

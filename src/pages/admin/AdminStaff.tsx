@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import {
   useStore, LEVEL_PERMISSIONS, LEVEL_LABELS, ALL_PERMISSIONS,
@@ -264,7 +264,7 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
 
 export function AdminPosts() {
   const { admin, setPostStatus, deletePost } = useStore();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [status, setStatus] = useState("all");
   const [view, setView] = useState<typeof admin.posts[number] | null>(null);
 

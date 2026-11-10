@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type EventItem, type Payment } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
@@ -12,7 +12,7 @@ import {
 
 export function AdminPayments() {
   const { admin } = useStore();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [status, setStatus] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [view, setView] = useState<Payment | null>(null);
@@ -350,7 +350,7 @@ function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventI
 
 export function AdminRegistrations() {
   const { admin, allEvents } = useStore();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [evFilter, setEvFilter] = useState("all");
 
   const rows = useMemo(() => admin.registrations.filter((r) => {

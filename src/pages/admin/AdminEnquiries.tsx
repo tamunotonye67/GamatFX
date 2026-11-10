@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate } from "./AdminShell";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type ServiceEnquiry } from "../../lib/store";
 import { SERVICES } from "../../lib/services";
@@ -9,7 +9,7 @@ import {
 
 export function AdminEnquiries() {
   const { admin } = useStore();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [status, setStatus] = useState("all");
   const [svc, setSvc] = useState("all");
   const [view, setView] = useState<ServiceEnquiry | null>(null);

@@ -542,12 +542,12 @@ export default function StorePage({ categoryParam }: StorePageProps) {
               {/* Sort Dropdown & Layout Mode */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted">
-                  <ArrowUpDown className="h-3.5 w-3.5 text-muted" />
+                  <ArrowUpDown className="h-3.5 w-3.5 text-muted ml-0.5 shrink-0" />
                   <span className="hidden sm:inline">Sort:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
-                    className="rounded-xl border border-line bg-white px-3 py-2 text-xs font-bold text-ink focus:border-brand focus:outline-none cursor-pointer"
+                    className="rounded-xl border border-line bg-white pl-3.5 pr-8 py-2 text-xs font-bold text-ink focus:border-brand focus:outline-none cursor-pointer"
                   >
                     <option value="featured">Featured & Best Selling</option>
                     <option value="price-asc">Price: Low to High</option>

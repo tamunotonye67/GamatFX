@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate } from "./AdminShell";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td } from "./AdminMain";
 import { useStore, type Payment } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
@@ -16,7 +16,7 @@ import { uploadCompanyAsset } from "../../lib/supabaseStorage";
 
 export function AdminInvoices() {
   const { admin, recordPayment } = useStore();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [status, setStatus] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   

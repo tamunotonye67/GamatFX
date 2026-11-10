@@ -218,10 +218,10 @@ export default function Navbar() {
               onClick={() => setMoreOpen((v) => !v)}
               aria-expanded={moreOpen}
               aria-haspopup="true"
-              className={`relative flex items-center gap-1 text-sm font-medium transition-colors ${linkTone(moreActive)}`}
+              className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${linkTone(moreActive)}`}
             >
-              More
-              <ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
+              <span>More</span>
+              <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
               {moreActive && (
                 <span className="absolute -bottom-1.5 left-0 h-0.5 w-full rounded-full bg-brand" />
               )}
@@ -467,7 +467,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setUserOpen((v) => !v)}
                 aria-expanded={userOpen}
-                className={`flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-3 transition ${
+                className={`flex items-center gap-2.5 rounded-full py-1.5 pl-2.5 pr-3.5 transition ${
                   scrolled ? "hover:bg-cream" : "hover:bg-white/10"
                 }`}
               >

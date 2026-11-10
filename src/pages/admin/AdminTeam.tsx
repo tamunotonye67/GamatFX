@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Empty, exportCsv, fmtDate } from "./AdminShell";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type TeamProfile, type TeamBioSubmission } from "../../lib/store";
 import {
@@ -37,7 +37,7 @@ export function AdminTeam() {
     teamBios, reviewTeamBio, deleteTeamBio,
   } = useStore();
 
-  const [q, setQ] = useState("");
+  const [q, setQ] = useAdminSearchTarget();
   const [edit, setEdit] = useState<Draft | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<"profiles" | "submissions">("profiles");

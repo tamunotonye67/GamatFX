@@ -706,11 +706,12 @@ export const SEED_REVIEWS: ReviewItem[] = [
 
 export type ActivityNotification = {
   id: string;
-  type: "registration" | "payment" | "refund" | "article" | "team_bio" | "certificate";
+  type: "registration" | "payment" | "refund" | "article" | "team_bio" | "certificate" | "enquiry" | "event_reg";
   title: string;
   body: string;
   timestamp: string;
   link: string;
+  targetQuery?: string;
   read: boolean;
 };
 
@@ -3224,6 +3225,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         body: `${a.firstName} ${a.lastName} (${a.email}) created an account.`,
         timestamp: a.joined,
         link: "/admin/students",
+        targetQuery: a.email || `${a.firstName} ${a.lastName}`,
         read: false,
       });
     });
@@ -3238,6 +3240,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         body: `${p.userName} paid ₦${p.amount.toLocaleString()} for ${p.courseTitle}.`,
         timestamp: p.createdAt,
         link: "/admin/payments",
+        targetQuery: p.ref || p.userName,
         read: false,
       });
     });
@@ -3251,6 +3254,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         body: `"${p.title}" by ${p.authorName}.`,
         timestamp: p.createdAt,
         link: "/admin/posts",
+        targetQuery: p.title,
         read: false,
       });
     });
@@ -3264,13 +3268,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         body: `${b.name} submitted bio draft for review.`,
         timestamp: b.createdAt,
         link: "/admin/team",
+        targetQuery: b.name,
+        read: false,
+      });
+    });
+
+    // 5. Service Enquiries
+    enquiries.forEach((e) => {
+      list.push({
+        id: `notif_enq_${e.id}`,
+        type: "enquiry",
+        title: "New Service Enquiry",
+        body: `${e.name} submitted an enquiry for ${e.serviceTitle}.`,
+        timestamp: e.createdAt,
+        link: "/admin/enquiries",
+        targetQuery: e.ref || e.name || e.email,
+        read: false,
+      });
+    });
+
+    // 6. Event Registrations
+    registrations.forEach((r) => {
+      list.push({
+        id: `notif_evreg_${r.id}`,
+        type: "event_reg",
+        title: "New Event Registration",
+        body: `${r.userName} registered for ${r.eventTitle}.`,
+        timestamp: r.registeredAt,
+        link: "/admin/registrations",
+        targetQuery: r.ref || r.userName || r.userEmail,
         read: false,
       });
     });
 
     // Sort by timestamp descending
     return list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [accounts, payments, posts, teamBios]);
+  }, [accounts, payments, posts, teamBios, enquiries, registrations]);
 
   const sendClubMessage: Ctx["sendClubMessage"] = useCallback(({ clubId, content, image, replyToId, replyToName }) => {
     if (!sessionId || !user) return { ok: false, error: "Sign in required to chat." };

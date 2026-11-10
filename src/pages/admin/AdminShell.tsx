@@ -1,7 +1,7 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
 import Logo from "../../components/Logo";
 import { navigate, useRoute } from "../../lib/router";
-import { useStore } from "../../lib/store";
+import { useStore, type ActivityNotification } from "../../lib/store";
 import {
   LayoutDashboard, Users, BookOpen, CreditCard, CalendarDays,
   Ticket, Settings, LogOut, Menu, X, ShieldAlert, ArrowLeft, Search, Inbox,
@@ -66,6 +66,23 @@ export function AdminShell({ title, subtitle, action, children }: {
     }
   });
 
+  const [readNotifIds, setReadNotifIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem("admin_notifs_read_ids");
+      return raw ? new Set<string>(JSON.parse(raw)) : new Set<string>();
+    } catch {
+      return new Set<string>();
+    }
+  });
+
+  const isNotifUnread = useCallback(
+    (item: ActivityNotification) => {
+      if (readNotifIds.has(item.id)) return false;
+      return new Date(item.timestamp).getTime() > readAllTimestamp;
+    },
+    [readNotifIds, readAllTimestamp]
+  );
+
   if (!isAdmin) {
     return (
       <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
@@ -89,26 +106,42 @@ export function AdminShell({ title, subtitle, action, children }: {
 
   const initials = `${user?.firstName[0] ?? ""}${user?.lastName[0] ?? ""}`.toUpperCase();
   const notifs = activityNotifications || [];
-  const unreadNotifs = notifs.filter(
-    (item) => new Date(item.timestamp).getTime() > readAllTimestamp
-  );
+  const unreadNotifs = notifs.filter(isNotifUnread);
   const unreadCount = unreadNotifs.length;
 
-  const filteredNotifs = notifs.filter((item) => {
-    if (notifFilter === "unread") {
-      return new Date(item.timestamp).getTime() > readAllTimestamp;
+  const handleNotificationClick = (item: ActivityNotification) => {
+    // 1. Mark this notification as read immediately in state and persistent storage
+    setReadNotifIds((prev) => {
+      const next = new Set(prev);
+      next.add(item.id);
+      try {
+        localStorage.setItem("admin_notifs_read_ids", JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+
+    // 2. Set target query in sessionStorage for destination page
+    if (item.targetQuery) {
+      try {
+        sessionStorage.setItem("admin_target_query", item.targetQuery);
+      } catch {}
     }
-    if (notifFilter === "registration") {
-      return item.type === "registration";
+
+    // 3. Close the notification panel
+    setNotifOpen(false);
+
+    // 4. Navigate directly to that activity
+    navigate(item.link);
+
+    // 5. Fire custom event for instant filtering if already on that page
+    if (item.targetQuery) {
+      window.dispatchEvent(
+        new CustomEvent("admin_search_target", {
+          detail: { query: item.targetQuery, link: item.link },
+        })
+      );
     }
-    if (notifFilter === "payment") {
-      return item.type === "payment" || item.type === "refund";
-    }
-    if (notifFilter === "content") {
-      return item.type !== "registration" && item.type !== "payment" && item.type !== "refund";
-    }
-    return true;
-  });
+  };
 
   const handleMarkAllRead = () => {
     const now = Date.now();
@@ -116,7 +149,31 @@ export function AdminShell({ title, subtitle, action, children }: {
     try {
       localStorage.setItem("admin_notifs_read_at", String(now));
     } catch {}
+    setReadNotifIds((prev) => {
+      const next = new Set(prev);
+      notifs.forEach((n) => next.add(n.id));
+      try {
+        localStorage.setItem("admin_notifs_read_ids", JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
   };
+
+  const filteredNotifs = notifs.filter((item) => {
+    if (notifFilter === "unread") {
+      return isNotifUnread(item);
+    }
+    if (notifFilter === "registration") {
+      return item.type === "registration" || item.type === "event_reg";
+    }
+    if (notifFilter === "payment") {
+      return item.type === "payment" || item.type === "refund";
+    }
+    if (notifFilter === "content") {
+      return item.type === "article" || item.type === "team_bio" || item.type === "enquiry";
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen w-full overflow-x-clip bg-cream">
@@ -289,7 +346,7 @@ export function AdminShell({ title, subtitle, action, children }: {
                 <Card className="divide-y divide-line overflow-hidden">
                   {filteredNotifs.length ? (
                     filteredNotifs.map((item) => {
-                      const isUnread = new Date(item.timestamp).getTime() > readAllTimestamp;
+                      const isUnread = isNotifUnread(item);
                       const IconComp =
                         item.type === "registration"
                           ? Users
@@ -299,6 +356,10 @@ export function AdminShell({ title, subtitle, action, children }: {
                           ? FileText
                           : item.type === "team_bio"
                           ? UserCog
+                          : item.type === "enquiry"
+                          ? Inbox
+                          : item.type === "event_reg"
+                          ? Ticket
                           : Award;
 
                       const badgeTone =
@@ -310,16 +371,17 @@ export function AdminShell({ title, subtitle, action, children }: {
                           ? "bg-amber-500/10 text-amber-600"
                           : item.type === "article"
                           ? "bg-purple-500/10 text-purple-600"
+                          : item.type === "enquiry"
+                          ? "bg-indigo-500/10 text-indigo-600"
+                          : item.type === "event_reg"
+                          ? "bg-rose-500/10 text-rose-600"
                           : "bg-brand-light text-brand";
 
                       return (
                         <button
                           type="button"
                           key={item.id}
-                          onClick={() => {
-                            setNotifOpen(false);
-                            navigate(item.link);
-                          }}
+                          onClick={() => handleNotificationClick(item)}
                           className={`group flex w-full items-start justify-between gap-3.5 p-4 sm:p-5 text-left transition hover:bg-cream/70 ${
                             isUnread ? "bg-brand/[0.02]" : "bg-white"
                           }`}
@@ -653,3 +715,30 @@ export function exportCsv(filename: string, rows: Record<string, unknown>[]) {
 
 export const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+/** Hook to automatically listen for deep-linked search targets (e.g. from notifications). */
+export function useAdminSearchTarget(initialQ = ""): [string, (q: string) => void] {
+  const [q, setQ] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem("admin_target_query");
+      if (stored) {
+        sessionStorage.removeItem("admin_target_query");
+        return stored;
+      }
+    } catch {}
+    return initialQ;
+  });
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ query: string }>;
+      if (custom.detail?.query) {
+        setQ(custom.detail.query);
+      }
+    };
+    window.addEventListener("admin_search_target", handler as EventListener);
+    return () => window.removeEventListener("admin_search_target", handler as EventListener);
+  }, []);
+
+  return [q, setQ];
+}
