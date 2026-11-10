@@ -6,9 +6,7 @@ import { naira, compactNaira } from "../../lib/courses";
 import {
   Wallet, CreditCard, RotateCcw, Trash2, Download, Plus, Pencil, Ticket,
   CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Database, Eye,
-  ShieldCheck, EyeOff, RefreshCw, ExternalLink, Zap, Key, Check,
 } from "lucide-react";
-import { getBachsConfig, saveBachsConfig, testBachsConnection, type BachsConfig } from "../../lib/bachs";
 
 /* =============================== Payments =============================== */
 
@@ -446,290 +444,67 @@ export function AdminSettings() {
   const [f, setF] = useState({ firstName: user?.firstName ?? "", lastName: user?.lastName ?? "", phone: user?.phone ?? "" });
   const [saved, setSaved] = useState(false);
 
-  // Bachs payment gateway configuration state
-  const [bachs, setBachs] = useState<BachsConfig>(() => getBachsConfig());
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [testingKey, setTestingKey] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
-  const [bachsSaved, setBachsSaved] = useState(false);
-
-  const handleSaveBachs = (e: React.FormEvent) => {
-    e.preventDefault();
-    const updated = saveBachsConfig(bachs);
-    setBachs(updated);
-    setBachsSaved(true);
-    setTimeout(() => setBachsSaved(false), 2500);
-  };
-
-  const handleTestBachs = async () => {
-    setTestingKey(true);
-    setTestResult(null);
-    try {
-      const res = await testBachsConnection(bachs.apiKey);
-      setTestResult(res);
-    } catch (err: any) {
-      setTestResult({ ok: false, message: err.message || "Failed to reach Bachs servers." });
-    } finally {
-      setTestingKey(false);
-    }
-  };
-
-  const isSandbox = bachs.apiKey.startsWith("sk_sandbox_");
-
   return (
-    <AdminShell title="Settings" subtitle="Manage your payment gateways, admin profile and platform data.">
-      <div className="space-y-6">
-        {/* ================= PAYMENT GATEWAYS & BACHS CONFIGURATION ================= */}
-        <Card className="overflow-hidden p-6 sm:p-8 border-brand/40">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-md">
-                <CreditCard className="h-6 w-6" />
-              </span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-display text-xl font-bold text-ink">Payment Gateway & Bachs.io</h3>
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-                    Active Gateway
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted">
-                  Configure real-time payments for course enrolments and digital store purchases.
-                </p>
-              </div>
+    <AdminShell title="Settings" subtitle="Manage your admin profile and platform data.">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-7">
+          <h3 className="font-display text-lg font-bold text-ink">Admin profile</h3>
+          <p className="mt-1 text-sm text-muted">Update your own account details.</p>
+          <form onSubmit={(e) => { e.preventDefault(); updateProfile(f); setSaved(true); setTimeout(() => setSaved(false), 2500); }} className="mt-6 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="First name" value={f.firstName} onChange={(v) => setF({ ...f, firstName: v })} />
+              <Field label="Last name" value={f.lastName} onChange={(v) => setF({ ...f, lastName: v })} />
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-                isSandbox ? "bg-amber-100 text-amber-800 border border-amber-300" : "bg-emerald-100 text-emerald-800 border border-emerald-300"
-              }`}>
-                <span className={`h-2 w-2 rounded-full ${isSandbox ? "bg-amber-500 animate-pulse" : "bg-emerald-500"}`} />
-                {isSandbox ? "Sandbox Environment" : "Live Production"}
-              </span>
-              <a
-                href="https://bachs.io"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-semibold text-ink hover:text-brand transition"
-              >
-                Bachs Portal <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-
-          <form onSubmit={handleSaveBachs} className="mt-6 space-y-6">
-            {/* Gateway Selection */}
+            <Field label="Phone" value={f.phone} onChange={(v) => setF({ ...f, phone: v })} />
             <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-ink">
-                Active Payment Engine
-              </label>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {[
-                  {
-                    id: "bachs" as const,
-                    name: "Bachs.io",
-                    tag: "Primary (Active)",
-                    desc: "Cards, Virtual Accounts, USSD & Instant Transfer overlay modal",
-                  },
-                  {
-                    id: "paystack" as const,
-                    name: "Paystack",
-                    tag: "Alternative",
-                    desc: "Nigerian card payments and mobile money gateway",
-                  },
-                  {
-                    id: "transfer" as const,
-                    name: "Bank Transfer Only",
-                    tag: "Direct",
-                    desc: "Manual bank transfers with receipt submission & admin verification",
-                  },
-                ].map((gw) => (
-                  <button
-                    key={gw.id}
-                    type="button"
-                    onClick={() => setBachs({ ...bachs, activeGateway: gw.id })}
-                    className={`rounded-2xl border p-4 text-left transition cursor-pointer ${
-                      bachs.activeGateway === gw.id
-                        ? "border-brand bg-brand-light/40 shadow-sm"
-                        : "border-line bg-white hover:border-brand/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-display text-sm font-bold text-ink">{gw.name}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        bachs.activeGateway === gw.id ? "bg-brand text-white" : "bg-cream text-muted"
-                      }`}>
-                        {gw.tag}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-muted leading-relaxed">{gw.desc}</p>
-                  </button>
-                ))}
-              </div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Email</label>
+              <input disabled value={user?.email ?? ""} className="w-full cursor-not-allowed rounded-xl border border-line bg-line/40 px-4 py-2.5 text-sm text-muted" />
             </div>
-
-            {/* API Key Configuration */}
-            <div className="rounded-2xl border border-line bg-cream/50 p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-                    <Key className="h-4 w-4 text-brand" /> Bachs API Secret Key
-                  </h4>
-                  <p className="text-xs text-muted mt-0.5">
-                    Starts with <code>sk_sandbox_</code> for testing or <code>sk_live_</code> for live payments.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleTestBachs}
-                  disabled={testingKey || !bachs.apiKey.trim()}
-                  className="btn-outline-dark !py-1.5 !px-3.5 !text-xs disabled:opacity-50"
-                >
-                  {testingKey ? (
-                    <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Verifying Key…</>
-                  ) : (
-                    <><Zap className="h-3.5 w-3.5 text-brand" /> Test API Connection</>
-                  )}
-                </button>
-              </div>
-
-              {/* API Key Input with Eye Toggle */}
-              <div className="relative">
-                <input
-                  type={showApiKey ? "text" : "password"}
-                  value={bachs.apiKey}
-                  onChange={(e) => {
-                    const val = e.target.value.trim();
-                    setBachs({
-                      ...bachs,
-                      apiKey: val,
-                      environment: val.startsWith("sk_live_") ? "production" : "sandbox",
-                    });
-                    setTestResult(null);
-                  }}
-                  placeholder="sk_sandbox_..."
-                  className="w-full font-mono rounded-xl border border-line bg-white px-4 py-2.5 pr-11 text-xs text-ink placeholder-muted focus:border-brand focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-ink transition cursor-pointer"
-                  title={showApiKey ? "Hide Key" : "Show Key"}
-                >
-                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-
-              {/* Live Test Result Banner */}
-              {testResult && (
-                <div className={`rounded-xl p-3 text-xs flex items-center gap-2 ${
-                  testResult.ok ? "bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold" : "bg-rose-50 text-rose-800 border border-rose-200"
-                }`}>
-                  {testResult.ok ? <Check className="h-4 w-4 shrink-0 text-emerald-600" /> : <XCircle className="h-4 w-4 shrink-0 text-rose-600" />}
-                  <span>{testResult.message}</span>
-                </div>
-              )}
-
-              {/* Webhook Secret */}
-              <div>
-                <label className="mb-1 block text-xs font-semibold text-ink">
-                  Webhook Secret (For signature verification)
-                </label>
-                <input
-                  type="text"
-                  value={bachs.webhookSecret || ""}
-                  onChange={(e) => setBachs({ ...bachs, webhookSecret: e.target.value.trim() })}
-                  placeholder="whsec_..."
-                  className="w-full font-mono rounded-xl border border-line bg-white px-4 py-2 text-xs text-ink placeholder-muted focus:border-brand focus:outline-none"
-                />
-              </div>
-
-              {/* Webhook Endpoint Info */}
-              <div className="rounded-xl border border-line/60 bg-white p-3 text-xs space-y-1">
-                <span className="font-bold text-ink">Bachs Webhook URL (Paste in Bachs Dashboard):</span>
-                <div className="flex items-center justify-between gap-2">
-                  <code className="text-brand font-mono text-[11px] select-all">
-                    https://gamatfx.com/api/webhooks/bachs
-                  </code>
-                  <span className="text-[10px] text-muted">Events: checkout.completed, collection.succeeded</span>
-                </div>
-              </div>
-            </div>
-
             <div className="flex items-center gap-3">
-              <button type="submit" className="btn-primary !py-2.5">
-                <Save className="h-4 w-4" /> Save Gateway Settings
-              </button>
-              {bachsSaved && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-                  <Check className="h-3.5 w-3.5" /> Gateway Settings Saved!
-                </span>
-              )}
+              <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save</button>
+              {saved && <span className="text-sm font-semibold text-brand">Saved!</span>}
             </div>
           </form>
         </Card>
 
-        {/* ================= PROFILE & PLATFORM DATA ================= */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
           <Card className="p-7">
-            <h3 className="font-display text-lg font-bold text-ink">Admin profile</h3>
-            <p className="mt-1 text-sm text-muted">Update your own account details.</p>
-            <form onSubmit={(e) => { e.preventDefault(); updateProfile(f); setSaved(true); setTimeout(() => setSaved(false), 2500); }} className="mt-6 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="First name" value={f.firstName} onChange={(v) => setF({ ...f, firstName: v })} />
-                <Field label="Last name" value={f.lastName} onChange={(v) => setF({ ...f, lastName: v })} />
-              </div>
-              <Field label="Phone" value={f.phone} onChange={(v) => setF({ ...f, phone: v })} />
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Email</label>
-                <input disabled value={user?.email ?? ""} className="w-full cursor-not-allowed rounded-xl border border-line bg-line/40 px-4 py-2.5 text-sm text-muted" />
-              </div>
-              <div className="flex items-center gap-3">
-                <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save</button>
-                {saved && <span className="text-sm font-semibold text-brand">Saved!</span>}
-              </div>
-            </form>
+            <h3 className="font-display text-lg font-bold text-ink">Platform summary</h3>
+            <div className="mt-5 grid grid-cols-2 gap-4">
+              {[
+                { l: "Accounts", v: admin.accounts.length },
+                { l: "Enrollments", v: admin.enrollments.length },
+                { l: "Payments", v: admin.payments.length },
+                { l: "Registrations", v: admin.registrations.length },
+              ].map(s => (
+                <div key={s.l} className="rounded-xl bg-cream p-4">
+                  <p className="font-display text-xl font-extrabold text-ink">{s.v}</p>
+                  <p className="text-xs text-muted">{s.l}</p>
+                </div>
+              ))}
+            </div>
           </Card>
 
-          <div className="space-y-6">
-            <Card className="p-7">
-              <h3 className="font-display text-lg font-bold text-ink">Platform summary</h3>
-              <div className="mt-5 grid grid-cols-2 gap-4">
-                {[
-                  { l: "Accounts", v: admin.accounts.length },
-                  { l: "Enrollments", v: admin.enrollments.length },
-                  { l: "Payments", v: admin.payments.length },
-                  { l: "Registrations", v: admin.registrations.length },
-                ].map(s => (
-                  <div key={s.l} className="rounded-xl bg-cream p-4">
-                    <p className="font-display text-xl font-extrabold text-ink">{s.v}</p>
-                    <p className="text-xs text-muted">{s.l}</p>
-                  </div>
-                ))}
+          <Card className="border-brand/30 p-7">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
+                <Database className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-bold text-ink">Danger zone</h3>
+                <p className="text-sm text-muted">Irreversible data operations.</p>
               </div>
-            </Card>
-
-            <Card className="border-brand/30 p-7">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
-                  <Database className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="font-display text-lg font-bold text-ink">Danger zone</h3>
-                  <p className="text-sm text-muted">Irreversible data operations.</p>
-                </div>
-              </div>
-              <p className="mt-5 text-sm text-muted">
-                Reset removes all students, enrollments, payments, registrations and custom pricing,
-                restoring the default events. Admin accounts are preserved.
-              </p>
-              <button
-                onClick={() => { if (confirm("Reset ALL platform data? This cannot be undone.")) admin.resetDemoData(); }}
-                className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark">
-                <AlertTriangle className="h-4 w-4" /> Reset all data
-              </button>
-            </Card>
-          </div>
+            </div>
+            <p className="mt-5 text-sm text-muted">
+              Reset removes all students, enrollments, payments, registrations and custom pricing,
+              restoring the default events. Admin accounts are preserved.
+            </p>
+            <button
+              onClick={() => { if (confirm("Reset ALL platform data? This cannot be undone.")) admin.resetDemoData(); }}
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark">
+              <AlertTriangle className="h-4 w-4" /> Reset all data
+            </button>
+          </Card>
         </div>
       </div>
     </AdminShell>

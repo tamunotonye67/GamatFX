@@ -311,7 +311,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
           onClose: () => setIsProcessing(false),
           onError: (err) => {
             setIsProcessing(false);
-            alert(`Bachs Payment Error: ${err.message}`);
+            alert(`Payment could not be completed: ${err.message}`);
           },
         });
         return;
@@ -1175,8 +1175,8 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     }`}
                   >
                     <CreditCard className={`h-4 w-4 ${paymentMethod === "card" ? "text-brand" : "text-muted"}`} />
-                    <p className="mt-1 text-xs font-bold text-ink">Bachs / Card</p>
-                    <p className="text-[10px] text-muted">Card, USSD & Bank</p>
+                    <p className="mt-1 text-xs font-bold text-ink">Debit / Credit Card</p>
+                    <p className="text-[10px] text-muted">Instant activation</p>
                   </button>
                 </div>
               </div>
@@ -1210,17 +1210,17 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>{paymentMethod === "card" ? "Opening Bachs Checkout..." : "Processing Order..."}</span>
+                      <span>{paymentMethod === "card" ? "Processing Checkout..." : "Processing Order..."}</span>
                     </>
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      <span>{paymentMethod === "card" ? "Pay with Bachs Overlay" : "Confirm Direct Bank Transfer"}</span>
+                      <span>{paymentMethod === "card" ? "Complete Secure Purchase & Download" : "Confirm Direct Bank Transfer"}</span>
                     </>
                   )}
                 </button>
                 <p className="mt-2 text-center text-[11px] text-muted">
-                  🔒 Secured by Bachs.io • 256-bit encrypted checkout
+                  🔒 256-bit encrypted checkout via Card & Transfer
                 </p>
               </div>
             </form>

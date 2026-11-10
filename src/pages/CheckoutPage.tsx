@@ -14,7 +14,7 @@ import { getActiveReferralCode } from "../lib/affiliate";
 type Method = "card" | "transfer" | "ussd";
 
 const methods: { id: Method; label: string; icon: React.ElementType; hint: string }[] = [
-  { id: "card", label: "Card & Bachs Checkout", icon: CreditCard, hint: "Visa, Mastercard, Verve" },
+  { id: "card", label: "Debit / Credit Card", icon: CreditCard, hint: "Visa, Mastercard, Verve" },
   { id: "transfer", label: "Bank Transfer", icon: Building2, hint: "Pay from any Nigerian bank" },
   { id: "ussd", label: "USSD", icon: Smartphone, hint: "Dial a code to pay" },
 ];
@@ -393,9 +393,9 @@ export default function CheckoutPage({ id }: { id: string }) {
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shadow-sm">
                     <CreditCard className="h-6 w-6" />
                   </div>
-                  <h3 className="mt-3 font-display text-base font-bold text-ink">Bachs.io Digital Checkout</h3>
+                  <h3 className="mt-3 font-display text-base font-bold text-ink">Secure Card & Digital Checkout</h3>
                   <p className="mt-1 text-xs text-muted max-w-sm mx-auto">
-                    Click <strong>Pay {naira(total)} with Bachs</strong> below to open the secure overlay. Supports Visa, Mastercard, Verve, USSD, and direct bank transfers.
+                    Click <strong>Pay {naira(total)}</strong> below to complete your payment securely with Visa, Mastercard, Verve, USSD, or direct bank transfer.
                   </p>
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200">
@@ -460,15 +460,13 @@ export default function CheckoutPage({ id }: { id: string }) {
 
             <button type="submit" disabled={processing} className="btn-primary mt-8 w-full disabled:cursor-not-allowed disabled:opacity-70">
               {processing ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> {method === "card" ? "Opening Bachs Checkout…" : "Verifying Transfer…"}</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> {method === "card" ? "Processing Checkout…" : "Verifying Transfer…"}</>
               ) : (
-                <><Lock className="h-4 w-4" /> {isMentorship ? "Complete Transfer Enrolment" : method === "card" ? `Pay ${naira(total)} with Bachs` : `Confirm ${naira(total)}`}</>
+                <><Lock className="h-4 w-4" /> {isMentorship ? "Complete Transfer Enrolment" : `Pay ${naira(total)}`}</>
               )}
             </button>
             <p className="mt-3 text-center text-xs text-muted">
-              {getBachsConfig().environment === "sandbox"
-                ? "Bachs Sandbox Gateway Active (Test Mode) · Real-time verification"
-                : "Secured by Bachs.io · Real-time verification"}
+              🔒 256-bit SSL encrypted payment · Instant automated activation
             </p>
           </form>
 

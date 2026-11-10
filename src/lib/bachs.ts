@@ -292,7 +292,7 @@ export async function payWithBachs(params: PayWithBachsParams): Promise<void> {
           clearInterval(checkTimer);
           // Prompt user confirmation if payment succeeded
           const confirmed = window.confirm(
-            "Did your Bachs payment complete successfully? Click OK to confirm your enrollment/order."
+            "Did your payment complete successfully? Click OK to confirm your enrollment/order."
           );
           if (confirmed) {
             params.onSuccess({ reference: session.reference, status: "completed", checkoutId: session.checkout_id });
@@ -306,7 +306,7 @@ export async function payWithBachs(params: PayWithBachsParams): Promise<void> {
     if (params.onError) {
       params.onError(err);
     } else {
-      alert(`Bachs Checkout Error: ${err.message || "Failed to initialize checkout."}`);
+      alert(`Checkout Error: ${err.message || "Failed to initialize checkout."}`);
     }
     params.onClose?.();
   }
