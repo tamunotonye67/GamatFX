@@ -4,8 +4,6 @@ import { type StoreProduct, type StoreProductCategory } from "../lib/storeProduc
 import { naira } from "../lib/courses";
 import { navigate } from "../lib/router";
 import PageHero from "../components/PageHero";
-import PageCta from "../components/PageCta";
-import Faq from "../components/Faq";
 import {
   ShoppingBag,
   Bot,
@@ -318,7 +316,7 @@ export default function StorePage() {
       />
 
       {/* ================= CATEGORY INTENT HUB (Matches Reference Image) ================= */}
-      <section className="section bg-white border-b border-line">
+      <section className="py-8 sm:py-12 bg-white border-b border-line">
         <div className="container-x">
           {/* Section Header: Minimalist and clean like reference */}
           <div className="max-w-2xl">
@@ -1220,18 +1218,6 @@ export default function StorePage() {
           </div>
         </div>
       )}
-
-      {/* ================= FAQ SECTION ================= */}
-      <Faq />
-
-      {/* ================= PAGE CLOSING CTA ================= */}
-      <PageCta
-        title="Need a custom trading algorithm or strategy coded?"
-        body="Our quantitative development desk can program your private trading strategy into an automated MT4/MT5 bot or Pine Script indicator."
-        primaryLabel="Speak With Our Desk"
-        primaryTo="/contact"
-        tone="red"
-      />
     </div>
   );
 }
