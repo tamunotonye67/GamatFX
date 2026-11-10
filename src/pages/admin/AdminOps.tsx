@@ -78,7 +78,7 @@ export function AdminPayments() {
 
         {rows.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[1100px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
                   <Th className="whitespace-nowrap">Reference</Th>
@@ -88,7 +88,7 @@ export function AdminPayments() {
                   <Th className="whitespace-nowrap">Method</Th>
                   <Th className="whitespace-nowrap">Status</Th>
                   <Th className="whitespace-nowrap">Date</Th>
-                  <Th right>Actions</Th>
+                  <Th right className="whitespace-nowrap w-[240px] min-w-[240px]">Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -110,60 +110,61 @@ export function AdminPayments() {
                       <Td className="whitespace-nowrap"><span className="capitalize text-muted">{p.method}</span></Td>
                       <Td className="whitespace-nowrap"><Badge tone={p.status === "paid" ? "green" : p.status === "refunded" ? "amber" : p.status === "failed" ? "red" : "gray"}>{p.status}</Badge></Td>
                       <Td className="whitespace-nowrap"><span className="text-muted">{fmtDate(p.createdAt)}</span></Td>
-                    <Td right>
-                      <div className="flex flex-wrap items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setView(p)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
-                        >
-                          <Eye className="h-3.5 w-3.5" /> Receipt
-                        </button>
-                        {p.status === "paid" && (
+                      <Td right className="whitespace-nowrap w-[240px] min-w-[240px]">
+                        <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                           <button
                             type="button"
-                            onClick={() => {
-                              if (confirm(
-                                `Mark ${naira(p.amount)} for ${p.userName} as MANUALLY REFUNDED?\n\n` +
-                                `This will automatically REVOKE ${p.userName}'s access to "${p.courseTitle}".`
-                              )) admin.setPaymentStatus(p.id, "refunded");
-                            }}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-amber-600"
+                            onClick={() => setView(p)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand whitespace-nowrap shrink-0"
                           >
-                            <RotateCcw className="h-3.5 w-3.5" /> Refund
+                            <Eye className="h-3.5 w-3.5 shrink-0" /> Receipt
                           </button>
-                        )}
-                        {p.status === "refunded" && (
+                          {p.status === "paid" && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(
+                                  `Mark ${naira(p.amount)} for ${p.userName} as MANUALLY REFUNDED?\n\n` +
+                                  `This will automatically REVOKE ${p.userName}'s access to "${p.courseTitle}".`
+                                )) admin.setPaymentStatus(p.id, "refunded");
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-amber-600 whitespace-nowrap shrink-0"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 shrink-0" /> Refund
+                            </button>
+                          )}
+                          {p.status === "refunded" && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm("Undo refund status and mark this payment as paid again?")) {
+                                  admin.setPaymentStatus(p.id, "paid");
+                                }
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand whitespace-nowrap shrink-0"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Undo refund
+                            </button>
+                          )}
+                          {p.status !== "paid" && p.status !== "refunded" && (
+                            <button
+                              type="button"
+                              onClick={() => admin.setPaymentStatus(p.id, "paid")}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-500 whitespace-nowrap shrink-0"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Mark paid
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() => {
-                              if (confirm("Undo refund status and mark this payment as paid again?")) {
-                                admin.setPaymentStatus(p.id, "paid");
-                              }
-                            }}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
+                            title="Delete transaction record"
+                            onClick={() => { if (confirm("Delete this transaction record?")) admin.deletePayment(p.id); }}
+                            className="inline-flex items-center justify-center h-8 w-8 shrink-0 rounded-full border border-line bg-white text-xs font-bold text-muted transition hover:border-red-400 hover:text-red-600"
                           >
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Undo refund
+                            <Trash2 className="h-3.5 w-3.5 shrink-0" />
                           </button>
-                        )}
-                        {p.status !== "paid" && p.status !== "refunded" && (
-                          <button
-                            type="button"
-                            onClick={() => admin.setPaymentStatus(p.id, "paid")}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-500"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Mark paid
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => { if (confirm("Delete this transaction record?")) admin.deletePayment(p.id); }}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-muted transition hover:border-brand hover:text-brand"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </Td>
+                        </div>
+                      </Td>
                   </tr>
                 );
               })}
@@ -397,7 +398,7 @@ export function AdminRegistrations() {
                   <Th className="whitespace-nowrap">Date</Th>
                   <Th className="whitespace-nowrap">Type</Th>
                   <Th className="whitespace-nowrap">Status</Th>
-                  <Th right>Actions</Th>
+                  <Th right className="whitespace-nowrap w-[120px] min-w-[120px]">Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -413,7 +414,7 @@ export function AdminRegistrations() {
                     <Td className="whitespace-nowrap"><span className="text-muted">{r.eventDate}</span></Td>
                     <Td className="whitespace-nowrap"><Badge tone={r.userId ? "green" : "gray"}>{r.userId ? "member" : "guest"}</Badge></Td>
                     <Td className="whitespace-nowrap"><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
-                    <Td right>
+                    <Td right className="whitespace-nowrap w-[120px] min-w-[120px]">
                       <div className="flex justify-end gap-1">
                         {r.status === "confirmed" ? (
                           <IconBtn title="Cancel" onClick={() => admin.setRegistrationStatus(r.id, "cancelled")}><XCircle className="h-4 w-4" /></IconBtn>

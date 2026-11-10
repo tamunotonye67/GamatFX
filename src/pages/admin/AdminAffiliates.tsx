@@ -289,7 +289,7 @@ export function AdminAffiliates() {
                   <th className="py-3 px-4 whitespace-nowrap">Total Earned</th>
                   <th className="py-3 px-4 whitespace-nowrap">Balance</th>
                   <th className="py-3 px-4 whitespace-nowrap">Payout Account</th>
-                  <th className="py-3 px-4 text-right whitespace-nowrap">Action</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap w-[120px] min-w-[120px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -336,11 +336,11 @@ export function AdminAffiliates() {
                       <td className="py-3.5 px-4 max-w-[200px] truncate text-muted whitespace-nowrap" title={p.payoutDetails || "None"}>
                         {p.payoutDetails || "—"}
                       </td>
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap w-[120px] min-w-[120px]">
                         <button
                           type="button"
                           onClick={() => setSelectedProfile(p)}
-                          className="px-2.5 py-1 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-100 transition cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-100 transition cursor-pointer whitespace-nowrap"
                         >
                           View Card
                         </button>
@@ -375,7 +375,7 @@ export function AdminAffiliates() {
 
           <div className="rounded-2xl border border-line bg-white overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs min-w-[920px]">
+              <table className="w-full text-left text-xs min-w-[1020px]">
                 <thead className="border-b border-line bg-cream font-bold text-muted">
                   <tr>
                     <th className="py-3 px-4 min-w-[200px]">Ambassador</th>
@@ -384,7 +384,7 @@ export function AdminAffiliates() {
                     <th className="py-3 px-4 min-w-[200px]">Disbursement Destination</th>
                     <th className="py-3 px-4 whitespace-nowrap">Requested At</th>
                     <th className="py-3 px-4 whitespace-nowrap">Status</th>
-                    <th className="py-3 px-4 text-right whitespace-nowrap">Actions</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap w-[180px] min-w-[180px]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -435,14 +435,14 @@ export function AdminAffiliates() {
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-right">
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap w-[180px] min-w-[180px]">
                           {p.status === "pending" ? (
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                               <button
                                 type="button"
                                 disabled={processingId === p.id}
                                 onClick={() => handleApprove(p)}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition cursor-pointer"
+                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition cursor-pointer whitespace-nowrap shrink-0"
                               >
                                 Mark Paid
                               </button>
@@ -450,13 +450,13 @@ export function AdminAffiliates() {
                                 type="button"
                                 disabled={processingId === p.id}
                                 onClick={() => handleReject(p)}
-                                className="px-2.5 py-1 rounded-lg border border-line text-xs font-bold text-red-600 hover:bg-red-50 transition cursor-pointer"
+                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-line text-xs font-bold text-red-600 hover:bg-red-50 transition cursor-pointer whitespace-nowrap shrink-0"
                               >
                                 Reject
                               </button>
                             </div>
                           ) : (
-                            <span className="text-xs text-muted">Processed</span>
+                            <span className="text-xs text-muted font-medium whitespace-nowrap">Processed</span>
                           )}
                         </td>
                       </tr>
@@ -643,7 +643,7 @@ export function AdminAffiliates() {
             <div className="mt-4 space-y-3 text-xs">
               <div className="rounded-2xl bg-ink p-5 text-white">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-brand text-white font-extrabold flex items-center justify-center text-sm">
+                  <div className="h-12 w-12 shrink-0 aspect-square rounded-xl bg-brand text-white font-extrabold flex items-center justify-center text-sm">
                     {selectedProfile.userName.slice(0, 2).toUpperCase()}
                   </div>
                   <div>

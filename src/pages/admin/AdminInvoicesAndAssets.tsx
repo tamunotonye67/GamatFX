@@ -169,7 +169,7 @@ export function AdminInvoices() {
                   <Th className="whitespace-nowrap">Total Amount</Th>
                   <Th className="whitespace-nowrap">Payment Status</Th>
                   <Th className="whitespace-nowrap">Date Issued</Th>
-                  <Th right className="whitespace-nowrap">Official Documents</Th>
+                  <Th right className="whitespace-nowrap w-[200px] min-w-[200px]">Official Documents</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -206,22 +206,22 @@ export function AdminInvoices() {
                       <Td className="whitespace-nowrap">
                         <span className="text-muted text-xs">{fmtDate(p.createdAt)}</span>
                       </Td>
-                      <Td right className="whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-2">
+                      <Td right className="whitespace-nowrap w-[200px] min-w-[200px]">
+                        <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => setActiveInvoice(p)}
-                            className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
+                            className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-bold text-ink transition hover:border-brand hover:text-brand whitespace-nowrap shrink-0"
                           >
-                            <FileText className="h-3.5 w-3.5 text-blue-600" /> Invoice
+                            <FileText className="h-3.5 w-3.5 text-blue-600 shrink-0" /> Invoice
                           </button>
                           
                           <button
                             type="button"
                             onClick={() => setActiveReceipt(p)}
-                            className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
+                            className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-bold text-ink transition hover:border-brand hover:text-brand whitespace-nowrap shrink-0"
                           >
-                            <Receipt className="h-3.5 w-3.5 text-emerald-600" /> Receipt
+                            <Receipt className="h-3.5 w-3.5 text-emerald-600 shrink-0" /> Receipt
                           </button>
                         </div>
                       </Td>
