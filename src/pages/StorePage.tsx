@@ -37,7 +37,7 @@ import {
   ThumbsUp,
   CreditCard,
   Building2,
-  Smartphone,
+  Coins,
   Loader2,
   Compass,
   CheckCheck,
@@ -46,8 +46,7 @@ import {
   Calculator,
   BookMarked,
 } from "lucide-react";
-import { payWithPaystack, generateTxRef } from "../lib/paystack";
-import { payWithBachs, getBachsConfig } from "../lib/bachs";
+import { payWithBachs, generateTxRef } from "../lib/bachs";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "sales";
 
@@ -193,7 +192,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("transfer");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer" | "crypto">("card");
   const [purchasedProduct, setPurchasedProduct] = useState<StoreProduct | null>(null);
   const [purchasedTxRef, setPurchasedTxRef] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -290,35 +289,32 @@ export default function StorePage({ categoryParam }: StorePageProps) {
       setIsProcessing(false);
     };
 
-    if (paymentMethod === "card" && totalAmount > 0) {
-      const bachsConfig = getBachsConfig();
-      if (bachsConfig.activeGateway === "bachs") {
-        payWithBachs({
-          amount: totalAmount,
-          currency: "NGN",
-          email: buyerEmail.trim(),
-          name: buyerName.trim(),
-          phone: buyerPhone.trim(),
-          reference: txRef,
-          metadata: {
-            product_id: checkoutProduct.id,
-            product_title: checkoutProduct.title,
-            customer_name: buyerName.trim(),
-          },
-          onSuccess: (session) => {
-            onFinishPayment(session.reference || txRef, "card");
-          },
-          onClose: () => setIsProcessing(false),
-          onError: (err) => {
-            setIsProcessing(false);
-            alert(`Payment could not be completed: ${err.message}`);
-          },
-        });
-        return;
-      }
+    if (totalAmount > 0) {
+      payWithBachs({
+        amount: totalAmount,
+        currency: "NGN",
+        email: buyerEmail.trim(),
+        name: buyerName.trim(),
+        phone: buyerPhone.trim(),
+        reference: txRef,
+        metadata: {
+          product_id: checkoutProduct.id,
+          product_title: checkoutProduct.title,
+          customer_name: buyerName.trim(),
+          preferred_channel: paymentMethod,
+        },
+        onSuccess: (session) => {
+          onFinishPayment(session.reference || txRef, paymentMethod);
+        },
+        onClose: () => setIsProcessing(false),
+        onError: (err) => {
+          setIsProcessing(false);
+          alert(`Payment could not be completed: ${err.message}`);
+        },
+      });
+      return;
     }
 
-    // Direct Transfer fallback or completion
     setTimeout(() => {
       onFinishPayment(txRef, paymentMethod);
     }, 600);
@@ -1150,33 +1146,47 @@ export default function StorePage({ categoryParam }: StorePageProps) {
               {/* Payment Method Selector */}
               <div>
                 <label className="block text-xs font-bold text-ink mb-1.5">Payment Method</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-2.5">
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("transfer")}
-                    className={`rounded-xl border p-3 text-left transition cursor-pointer ${
-                      paymentMethod === "transfer"
-                        ? "border-brand bg-brand-light/30"
-                        : "border-line bg-white hover:border-slate-300"
+                    onClick={() => setPaymentMethod("card")}
+                    className={`rounded-xl border p-2.5 text-center transition cursor-pointer ${
+                      paymentMethod === "card"
+                        ? "border-brand bg-brand-light/30 ring-1 ring-brand"
+                        : "border-line bg-white hover:border-brand/40"
                     }`}
                   >
-                    <Building2 className={`h-4 w-4 ${paymentMethod === "transfer" ? "text-brand" : "text-muted"}`} />
-                    <p className="mt-1 text-xs font-bold text-ink">Bank Transfer</p>
-                    <p className="text-[10px] text-muted">Direct to Moniepoint</p>
+                    <CreditCard className={`mx-auto h-4 w-4 ${paymentMethod === "card" ? "text-brand" : "text-muted"}`} />
+                    <p className="mt-1 text-xs font-bold text-ink">Card</p>
+                    <p className="text-[9px] text-muted truncate">Visa / MC</p>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("card")}
-                    className={`rounded-xl border p-3 text-left transition cursor-pointer ${
-                      paymentMethod === "card"
-                        ? "border-brand bg-brand-light/30"
-                        : "border-line bg-white hover:border-slate-300"
+                    onClick={() => setPaymentMethod("transfer")}
+                    className={`rounded-xl border p-2.5 text-center transition cursor-pointer ${
+                      paymentMethod === "transfer"
+                        ? "border-brand bg-brand-light/30 ring-1 ring-brand"
+                        : "border-line bg-white hover:border-brand/40"
                     }`}
                   >
-                    <CreditCard className={`h-4 w-4 ${paymentMethod === "card" ? "text-brand" : "text-muted"}`} />
-                    <p className="mt-1 text-xs font-bold text-ink">Debit / Credit Card</p>
-                    <p className="text-[10px] text-muted">Instant activation</p>
+                    <Building2 className={`mx-auto h-4 w-4 ${paymentMethod === "transfer" ? "text-brand" : "text-muted"}`} />
+                    <p className="mt-1 text-xs font-bold text-ink">Transfer</p>
+                    <p className="text-[9px] text-muted truncate">Bank</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("crypto")}
+                    className={`rounded-xl border p-2.5 text-center transition cursor-pointer ${
+                      paymentMethod === "crypto"
+                        ? "border-brand bg-brand-light/30 ring-1 ring-brand"
+                        : "border-line bg-white hover:border-brand/40"
+                    }`}
+                  >
+                    <Coins className={`mx-auto h-4 w-4 ${paymentMethod === "crypto" ? "text-amber-500" : "text-muted"}`} />
+                    <p className="mt-1 text-xs font-bold text-ink">Crypto</p>
+                    <p className="text-[9px] text-muted truncate">USDT / BTC</p>
                   </button>
                 </div>
               </div>
@@ -1215,12 +1225,12 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      <span>{paymentMethod === "transfer" ? "Confirm Direct Bank Transfer" : "Complete Secure Purchase & Download"}</span>
+                      <span>Complete Secure Purchase & Download</span>
                     </>
                   )}
                 </button>
                 <p className="mt-2 text-center text-[11px] text-muted">
-                  🔒 256-bit encrypted checkout via Card & Transfer
+                  🔒 256-bit encrypted checkout via Card, Bank Transfer, or Crypto
                 </p>
               </div>
             </form>

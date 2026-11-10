@@ -6,9 +6,18 @@
 export interface BachsConfig {
   apiKey: string;
   environment: "sandbox" | "production";
-  activeGateway: "bachs" | "paystack" | "transfer";
+  activeGateway: "bachs" | "transfer";
   webhookSecret?: string;
   businessName?: string;
+}
+
+/**
+ * Generates a unique transaction reference string for payments.
+ */
+export function generateTxRef(prefix = "GFX"): string {
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
+  return `${prefix}_${ts}_${rand}`;
 }
 
 const getEnvApiKey = () => ((import.meta as any).env?.VITE_BACHS_API_KEY || "").trim();
@@ -18,7 +27,7 @@ const getEnvActiveGateway = () => ((import.meta as any).env?.VITE_BACHS_ACTIVE_G
 export const DEFAULT_BACHS_CONFIG: BachsConfig = {
   apiKey: getEnvApiKey(),
   environment: getEnvApiKey().startsWith("sk_live_") ? "production" : "sandbox",
-  activeGateway: getEnvActiveGateway() as any,
+  activeGateway: (getEnvActiveGateway() === "transfer" ? "transfer" : "bachs"),
   webhookSecret: getEnvWebhookSecret(),
   businessName: "GAMAT FX Academy",
 };

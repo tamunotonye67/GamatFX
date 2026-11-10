@@ -7,8 +7,7 @@ import {
   ArrowLeft, Lock, CreditCard, Building2, Coins, CheckCircle2,
   ShieldCheck, ArrowUpRight, Loader2, Tag, Video, MessagesSquare, Send, MessageSquare, Check,
 } from "lucide-react";
-import { payWithPaystack, generateTxRef } from "../lib/paystack";
-import { payWithBachs, getBachsConfig } from "../lib/bachs";
+import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { getActiveReferralCode } from "../lib/affiliate";
 
 type Method = "card" | "transfer" | "crypto";
@@ -170,41 +169,26 @@ export default function CheckoutPage({ id }: { id: string }) {
     };
 
     if (finalTotal > 0) {
-      const bachsConfig = getBachsConfig();
-      if (bachsConfig.activeGateway === "bachs") {
-        payWithBachs({
-          amount: finalTotal,
-          currency: "NGN",
-          email: user!.email,
-          name: `${user!.firstName} ${user!.lastName}`.trim(),
-          phone: user!.phone,
-          reference: ref,
-          metadata: {
-            course_id: course.id,
-            student_id: user!.id,
-            course_title: course.title,
-          },
-          onSuccess: () => completePayment(),
-          onClose: () => setProcessing(false),
-          onError: (err) => {
-            setProcessing(false);
-            alert(`Payment could not be completed: ${err.message}`);
-          },
-        });
-      } else {
-        payWithPaystack({
-          key: "pk_test_gamatfx_public_key",
-          email: user!.email,
-          amountInKobo: finalTotal * 100,
-          ref,
-          metadata: {
-            course_id: course.id,
-            student_id: user!.id,
-          },
-          onSuccess: () => completePayment(),
-          onClose: () => setProcessing(false),
-        });
-      }
+      payWithBachs({
+        amount: finalTotal,
+        currency: "NGN",
+        email: user!.email,
+        name: `${user!.firstName} ${user!.lastName}`.trim(),
+        phone: user!.phone,
+        reference: ref,
+        metadata: {
+          course_id: course.id,
+          student_id: user!.id,
+          course_title: course.title,
+          preferred_channel: selectedMethod,
+        },
+        onSuccess: () => completePayment(),
+        onClose: () => setProcessing(false),
+        onError: (err) => {
+          setProcessing(false);
+          alert(`Payment could not be completed: ${err.message}`);
+        },
+      });
     } else {
       setTimeout(completePayment, 600);
     }
