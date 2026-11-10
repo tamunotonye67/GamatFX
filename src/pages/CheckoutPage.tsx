@@ -369,73 +369,84 @@ export default function CheckoutPage({ id }: { id: string }) {
               </span>
             </div>
 
-            {/* Payment Method Selector */}
-            <div className="mt-7">
-              <label className="block text-xs font-bold uppercase tracking-wider text-muted">
-                Select Payment Method
-              </label>
-
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedMethod("card")}
-                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
-                    selectedMethod === "card"
-                      ? "border-brand bg-brand-light/30 shadow-sm ring-1 ring-brand"
-                      : "border-line bg-white hover:border-brand/40 hover:bg-cream/40"
-                  }`}
-                >
-                  <CreditCard className={`h-6 w-6 transition ${selectedMethod === "card" ? "text-brand" : "text-muted group-hover:text-ink"}`} />
-                  <span className={`mt-2 text-xs font-bold ${selectedMethod === "card" ? "text-brand" : "text-ink"}`}>Card</span>
-                  <span className="text-[10px] text-muted">Visa, Mastercard</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedMethod("transfer")}
-                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
-                    selectedMethod === "transfer"
-                      ? "border-brand bg-brand-light/30 shadow-sm ring-1 ring-brand"
-                      : "border-line bg-white hover:border-brand/40 hover:bg-cream/40"
-                  }`}
-                >
-                  <Building2 className={`h-6 w-6 transition ${selectedMethod === "transfer" ? "text-brand" : "text-muted group-hover:text-ink"}`} />
-                  <span className={`mt-2 text-xs font-bold ${selectedMethod === "transfer" ? "text-brand" : "text-ink"}`}>Transfer</span>
-                  <span className="text-[10px] text-muted">Bank Transfer</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedMethod("crypto")}
-                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
-                    selectedMethod === "crypto"
-                      ? "border-brand bg-brand-light/30 shadow-sm ring-1 ring-brand"
-                      : "border-line bg-white hover:border-brand/40 hover:bg-cream/40"
-                  }`}
-                >
-                  <Coins className={`h-6 w-6 transition ${selectedMethod === "crypto" ? "text-amber-500" : "text-muted group-hover:text-amber-500"}`} />
-                  <span className={`mt-2 text-xs font-bold ${selectedMethod === "crypto" ? "text-brand" : "text-ink"}`}>Crypto</span>
-                  <span className="text-[10px] text-muted">USDT / BTC</span>
-                </button>
+            {/* Bachs Payment Gateway Notice */}
+            <div className="mt-7 rounded-2xl border border-line bg-gradient-to-b from-cream/50 via-white to-cream/20 p-5 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3.5 border-b border-line/60">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 items-center justify-center rounded-xl bg-white px-3 py-1 border border-line shadow-xs">
+                    <img
+                      src="/images/bachs-logo.png"
+                      alt="Bachs"
+                      className="h-5 w-auto object-contain"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-extrabold text-ink">Bachs Checkout</span>
+                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
+                        Official Partner
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted">
+                      Payment will be processed securely via the official Bachs interface.
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <p className="mt-3 text-center text-xs text-muted">
-                {selectedMethod === "card" && "Pay instantly with your Debit or Credit Card."}
-                {selectedMethod === "transfer" && "Receive an instant dedicated bank account to transfer."}
-                {selectedMethod === "crypto" && "Pay with USDT, Bitcoin, or other supported cryptocurrencies."}
-              </p>
+              {/* Accepted Channels Summary */}
+              <div className="mt-3.5">
+                <p className="text-[11px] font-semibold text-muted mb-2.5">
+                  Select your preferred channel directly on Bachs:
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex items-center gap-2 rounded-xl border border-line bg-white/90 p-2.5 shadow-xs">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-light text-brand shrink-0">
+                      <CreditCard className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-xs font-bold text-ink truncate">Cards</span>
+                      <span className="block text-[10px] text-muted truncate">Visa & Master</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-xl border border-line bg-white/90 p-2.5 shadow-xs">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-light text-brand shrink-0">
+                      <Building2 className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-xs font-bold text-ink truncate">Transfer</span>
+                      <span className="block text-[10px] text-muted truncate">Instant Bank</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 rounded-xl border border-line bg-white/90 p-2.5 shadow-xs">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 text-amber-600 shrink-0">
+                      <Coins className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-xs font-bold text-ink truncate">Crypto</span>
+                      <span className="block text-[10px] text-muted truncate">USDT & BTC</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Pay Button */}
             <button
               type="submit"
               disabled={processing}
-              className="btn-primary mt-7 w-full !py-4 text-base font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70"
+              className="btn-primary mt-7 w-full !py-4 text-base font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {processing ? (
-                <><Loader2 className="h-5 w-5 animate-spin" /> Launching Secure Checkout…</>
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" /> Launching Bachs Checkout…
+                </>
               ) : (
-                <><Lock className="h-4 w-4" /> Pay {naira(total)}</>
+                <>
+                  <Lock className="h-4 w-4" /> Pay {naira(total)} via Bachs
+                </>
               )}
             </button>
 
