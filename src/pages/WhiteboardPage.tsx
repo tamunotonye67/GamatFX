@@ -1666,7 +1666,7 @@ export default function WhiteboardPage() {
     id: "guest",
     firstName: "Guest",
     lastName: "Trader",
-    email: "guest@gamatfx.com",
+    email: "guest@gamatfxacademy.com",
     role: "student" as const,
     avatar: "",
   };
@@ -6300,7 +6300,7 @@ export default function WhiteboardPage() {
                         )}
                         <div className="min-w-0 flex-1">
                           <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
-                          <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfx.com"}</p>
+                          <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfxacademy.com"}</p>
                           <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
                             {currentUser.role || "student"}
                           </span>
@@ -11607,7 +11607,7 @@ export default function WhiteboardPage() {
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
-                      <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfx.com"}</p>
+                      <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfxacademy.com"}</p>
                       <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
                         {currentUser.role || "student"}
                       </span>

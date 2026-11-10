@@ -181,17 +181,6 @@ export function AdminPayments() {
           payment={view}
           onClose={() => setView(null)}
           onPrint={() => window.print()}
-          onRefund={() => {
-            if (
-              confirm(
-                `Mark ${naira(view.amount)} for ${view.userName} as MANUALLY REFUNDED?\n\n` +
-                `Process the real payout outside this app first, then confirm.`
-              )
-            ) {
-              admin.setPaymentStatus(view.id, "refunded");
-              setView({ ...view, status: "refunded" });
-            }
-          }}
         />
       )}
     </AdminShell>

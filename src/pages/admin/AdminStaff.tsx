@@ -196,7 +196,7 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
         <Field label="First name" value={f.firstName} onChange={(v) => setF({ ...f, firstName: v })} />
         <Field label="Last name" value={f.lastName} onChange={(v) => setF({ ...f, lastName: v })} />
       </div>
-      {!account && <Field label="Work email" type="email" value={f.email} onChange={(v) => setF({ ...f, email: v })} ph="writer@gamatfx.com" />}
+      {!account && <Field label="Work email" type="email" value={f.email} onChange={(v) => setF({ ...f, email: v })} ph="writer@gamatfxacademy.com" />}
       <Field label="Job title" value={f.jobTitle} onChange={(v) => setF({ ...f, jobTitle: v })} ph="Content Writer" />
 
       <div className="grid gap-4 sm:grid-cols-3">

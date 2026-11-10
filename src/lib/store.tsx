@@ -1132,7 +1132,7 @@ export const DEFAULT_ADMIN: Account = {
   id: "u_admin",
   firstName: "Tonye",
   lastName: "Taylor",
-  email: "admin@gamatfx.com",
+  email: "admin@gamatfxacademy.com",
   password: "admin123",
   role: "admin",
   status: "active",

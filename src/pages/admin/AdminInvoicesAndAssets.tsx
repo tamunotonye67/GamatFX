@@ -730,7 +730,7 @@ export function AdminCompanyAssets() {
                   <div className="text-right text-[10px] text-muted space-y-0.5">
                     <p className="font-bold text-ink">RC: 1849204</p>
                     <p>Tax ID: 29402948-001</p>
-                    <p>www.gamatfx.com</p>
+                    <p>www.gamatfxacademy.com</p>
                   </div>
                 </div>
 
@@ -771,7 +771,7 @@ export function AdminCompanyAssets() {
 
                 <div className="border-t border-line pt-3 flex flex-wrap items-center justify-between text-[10px] text-muted">
                   <p>📍 12 Institutional Way, Victoria Island, Lagos, Nigeria</p>
-                  <p>📞 +234 800 GAMAT FX · ✉️ support@gamatfx.com</p>
+                  <p>📞 +234 800 GAMAT FX · ✉️ support@gamatfxacademy.com</p>
                 </div>
               </div>
             </div>
@@ -792,12 +792,11 @@ const METHOD_LABEL: Record<string, string> = {
   crypto: "Crypto · Bachs",
 };
 
-export function BillingDocument({ kind, payment: p, onClose, onPrint, onRefund }: {
+export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
   kind: "invoice" | "receipt";
   payment: Payment;
   onClose: () => void;
   onPrint?: () => void;
-  onRefund?: () => void;
 }) {
   const isReceipt = kind === "receipt";
   const docNo = `${isReceipt ? "REC" : "INV"}-${p.ref}`;
@@ -899,35 +898,19 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint, onRefund }
             <p className="text-[11px] leading-relaxed text-muted">
               {isReceipt
                 ? "Payment verified and processed securely via Bachs. Thank you for learning with GAMAT Fx Academy."
-                : "Pay securely via Bachs — card, bank transfer or crypto. Questions? support@gamatfx.com"}
+                : "Pay securely via Bachs — card, bank transfer or crypto. Questions? support@gamatfxacademy.com"}
             </p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="mt-4 space-y-2">
-          <div className="flex gap-3">
-            <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5">
-              <X className="h-4 w-4" /> Close
-            </button>
-            <button type="button" onClick={onPrint ?? (() => window.print())} className="btn-primary flex-1">
-              <Printer className="h-4 w-4" /> {isReceipt ? "Print receipt" : "Print invoice"}
-            </button>
-          </div>
-          {onRefund && p.status === "paid" && (
-            <button
-              type="button"
-              onClick={onRefund}
-              className="btn-primary w-full !bg-amber-500 hover:!bg-amber-600 flex items-center justify-center gap-2 text-xs font-bold"
-            >
-              <RotateCcw className="h-4 w-4" /> Mark as manually refunded
-            </button>
-          )}
-          {p.status === "refunded" && (
-            <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-center text-xs font-semibold text-amber-300">
-              This payment is marked as manually refunded.
-            </p>
-          )}
+        <div className="mt-4 flex gap-3">
+          <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5">
+            <X className="h-4 w-4" /> Close
+          </button>
+          <button type="button" onClick={onPrint ?? (() => window.print())} className="btn-primary flex-1">
+            <Printer className="h-4 w-4" /> {isReceipt ? "Print receipt" : "Print invoice"}
+          </button>
         </div>
       </div>
     </div>
