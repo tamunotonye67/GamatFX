@@ -540,48 +540,63 @@ export function AdminWhiteboard() {
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-        <div className="flex items-center gap-2 p-1 rounded-2xl bg-white border border-line shadow-2xs">
-          <button
-            type="button"
-            onClick={() => { setActiveTab("samples"); setCategoryFilter("all"); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
-              activeTab === "samples"
-                ? "bg-brand text-white shadow-sm"
-                : "text-slate-600 hover:text-ink hover:bg-slate-50"
-            }`}
-          >
-            <LayoutTemplate className="h-4 w-4" />
-            <span>Samples & Templates ({samples.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setActiveTab("resources"); setCategoryFilter("all"); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
-              activeTab === "resources"
-                ? "bg-brand text-white shadow-sm"
-                : "text-slate-600 hover:text-ink hover:bg-slate-50"
-            }`}
-          >
-            <BookOpen className="h-4 w-4" />
-            <span>Resources & Guides ({resources.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setActiveTab("lessons"); setCategoryFilter("all"); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
-              activeTab === "lessons"
-                ? "bg-brand text-white shadow-sm"
-                : "text-slate-600 hover:text-ink hover:bg-slate-50"
-            }`}
-          >
-            <Library className="h-4 w-4" />
-            <span>Playbook Lessons ({lessons.length})</span>
-          </button>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 border-b border-line pb-4">
+        {/* Responsive Pill Tabs: Scrollable without breaking on mobile, responsive labels */}
+        <div className="w-full sm:w-auto overflow-x-auto no-scrollbar touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="inline-flex min-w-full sm:min-w-0 items-center gap-1 sm:gap-2 p-1 rounded-2xl bg-white border border-line shadow-2xs">
+            <button
+              type="button"
+              onClick={() => { setActiveTab("samples"); setCategoryFilter("all"); }}
+              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+                activeTab === "samples"
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-slate-600 hover:text-ink hover:bg-slate-50"
+              }`}
+            >
+              <LayoutTemplate className="h-4 w-4 shrink-0" />
+              <span>
+                <span className="sm:hidden">Templates</span>
+                <span className="hidden sm:inline">Samples & Templates</span>
+                <span className="ml-1 opacity-90">({samples.length})</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab("resources"); setCategoryFilter("all"); }}
+              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+                activeTab === "resources"
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-slate-600 hover:text-ink hover:bg-slate-50"
+              }`}
+            >
+              <BookOpen className="h-4 w-4 shrink-0" />
+              <span>
+                <span className="sm:hidden">Resources</span>
+                <span className="hidden sm:inline">Resources & Guides</span>
+                <span className="ml-1 opacity-90">({resources.length})</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setActiveTab("lessons"); setCategoryFilter("all"); }}
+              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+                activeTab === "lessons"
+                  ? "bg-brand text-white shadow-sm"
+                  : "text-slate-600 hover:text-ink hover:bg-slate-50"
+              }`}
+            >
+              <Library className="h-4 w-4 shrink-0" />
+              <span>
+                <span className="sm:hidden">Playbooks</span>
+                <span className="hidden sm:inline">Playbook Lessons</span>
+                <span className="ml-1 opacity-90">({lessons.length})</span>
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Global Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           {activeTab === "samples" && (
             <>
               <button
@@ -593,7 +608,7 @@ export function AdminWhiteboard() {
                     showToast("Restored templates to system defaults.");
                   }
                 }}
-                className="px-3 py-2 rounded-xl border border-line bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                className="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl border border-line bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                 title="Reset to initial factory templates"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> Reset Defaults
@@ -601,7 +616,7 @@ export function AdminWhiteboard() {
               <button
                 type="button"
                 onClick={openAddSampleModal}
-                className="btn-primary !py-2 !px-4 text-xs flex items-center gap-1.5 shadow-sm"
+                className="btn-primary flex-1 sm:flex-initial justify-center !py-2 !px-4 text-xs flex items-center gap-1.5 shadow-sm whitespace-nowrap"
               >
                 <Plus className="h-4 w-4" /> Add New Template
               </button>
@@ -619,14 +634,14 @@ export function AdminWhiteboard() {
                     showToast("Restored resources to system defaults.");
                   }
                 }}
-                className="px-3 py-2 rounded-xl border border-line bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                className="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl border border-line bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> Reset Defaults
               </button>
               <button
                 type="button"
                 onClick={openAddResourceModal}
-                className="btn-primary !py-2 !px-4 text-xs flex items-center gap-1.5 shadow-sm"
+                className="btn-primary flex-1 sm:flex-initial justify-center !py-2 !px-4 text-xs flex items-center gap-1.5 shadow-sm whitespace-nowrap"
               >
                 <Plus className="h-4 w-4" /> Add New Resource
               </button>
@@ -644,14 +659,14 @@ export function AdminWhiteboard() {
                     showToast("Restored lessons to system defaults.");
                   }
                 }}
-                className="px-3 py-2 rounded-xl border border-line bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                className="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl border border-line bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
                 <RotateCcw className="h-3.5 w-3.5" /> Reset Defaults
               </button>
               <button
                 type="button"
                 onClick={openAddLessonModal}
-                className="btn-primary !py-2 !px-4 text-xs flex items-center gap-1.5 shadow-sm"
+                className="btn-primary flex-1 sm:flex-initial justify-center !py-2 !px-4 text-xs flex items-center gap-1.5 shadow-sm whitespace-nowrap"
               >
                 <Plus className="h-4 w-4" /> Add Playbook Lesson
               </button>
@@ -661,8 +676,8 @@ export function AdminWhiteboard() {
       </div>
 
       {/* Search & Filter Bar */}
-      <Card className="mt-4 p-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+      <Card className="mt-4 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
           <SearchBar
             value={q}
             onChange={setQ}
@@ -678,7 +693,7 @@ export function AdminWhiteboard() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-bold text-ink outline-none focus:border-brand"
+              className="w-full sm:w-auto rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-bold text-ink outline-none focus:border-brand"
             >
               <option value="all">All Categories</option>
               {allCategories.map((c) => (
@@ -689,7 +704,7 @@ export function AdminWhiteboard() {
             </select>
           )}
         </div>
-        <span className="text-xs text-muted font-bold">
+        <span className="text-xs text-muted font-bold self-start sm:self-auto shrink-0">
           {activeTab === "samples"
             ? `${filteredSamples.length} template(s)`
             : activeTab === "resources"

@@ -467,11 +467,11 @@ export function AdminCompanyAssets() {
       title="Company Assets & Resources"
       subtitle="Official logos, letterhead templates, and brand assets for all team members and workers."
       action={
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setTab("logos")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap shrink-0 flex-1 sm:flex-initial text-center ${
               tab === "logos" ? "bg-brand text-white shadow-md" : "bg-white text-ink border border-line"
             }`}
           >
@@ -480,7 +480,7 @@ export function AdminCompanyAssets() {
           <button
             type="button"
             onClick={() => setTab("letterhead")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap shrink-0 flex-1 sm:flex-initial text-center ${
               tab === "letterhead" ? "bg-brand text-white shadow-md" : "bg-white text-ink border border-line"
             }`}
           >

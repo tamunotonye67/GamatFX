@@ -216,11 +216,11 @@ export function AdminAffiliates() {
 
       {/* Main Tabs Navigation */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar touch-pan-x pb-1 sm:pb-0">
           <button
             type="button"
             onClick={() => setTab("ambassadors")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
               tab === "ambassadors" ? "bg-ink text-white" : "bg-white border border-line text-ink hover:bg-slate-50"
             }`}
           >
@@ -229,7 +229,7 @@ export function AdminAffiliates() {
           <button
             type="button"
             onClick={() => setTab("payouts")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer relative ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer relative whitespace-nowrap shrink-0 ${
               tab === "payouts" ? "bg-ink text-white" : "bg-white border border-line text-ink hover:bg-slate-50"
             }`}
           >
@@ -243,7 +243,7 @@ export function AdminAffiliates() {
           <button
             type="button"
             onClick={() => setTab("ledger")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
               tab === "ledger" ? "bg-ink text-white" : "bg-white border border-line text-ink hover:bg-slate-50"
             }`}
           >
@@ -252,7 +252,7 @@ export function AdminAffiliates() {
           <button
             type="button"
             onClick={() => setTab("settings")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
               tab === "settings" ? "bg-ink text-white" : "bg-white border border-line text-ink hover:bg-slate-50"
             }`}
           >
