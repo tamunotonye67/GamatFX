@@ -139,7 +139,8 @@ export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
 
 export default function StorePage() {
   const { publishedStoreProducts, recordPayment, coupons, validateCoupon, user, isAuthed, myStorePurchases } = useStore();
-  const [selectedCardId, setSelectedCardId] = useState<string>("all");
+  const [selectedCardId, setSelectedCardId] = useState<string>("");
+  const [showShowcase, setShowShowcase] = useState(false);
   const [q, setQ] = useState("");
   const [selectedCat, setSelectedCat] = useState<StoreProductCategory>("all");
   const [sortBy, setSortBy] = useState<SortOption>("featured");
@@ -262,11 +263,9 @@ export default function StorePage() {
   };
 
   const selectCategoryFromCard = (card: TradingCategoryCard) => {
-    if (selectedCardId === card.id && card.id !== "all") {
-      // Toggle off back to all
-      setSelectedCardId("all");
-      setSelectedCat("all");
-      setQ("");
+    if (showShowcase && selectedCardId === card.id) {
+      // Toggle off back to categories
+      closeShowcase();
     } else {
       setSelectedCardId(card.id);
       setSelectedCat(card.catId);
@@ -275,10 +274,12 @@ export default function StorePage() {
       } else {
         setQ("");
       }
-    }
-
-    if (showcaseRef.current) {
-      showcaseRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      setShowShowcase(true);
+      setTimeout(() => {
+        if (showcaseRef.current) {
+          showcaseRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 60);
     }
   };
 
@@ -289,10 +290,16 @@ export default function StorePage() {
     setSelectedCardId(matchedCard ? matchedCard.id : (catId === "all" ? "all" : ""));
   };
 
-  const clearAllFilters = () => {
-    setSelectedCardId("all");
+  const closeShowcase = () => {
+    setShowShowcase(false);
+    setSelectedCardId("");
     setSelectedCat("all");
     setQ("");
+    window.scrollTo({ top: 380, behavior: "smooth" });
+  };
+
+  const clearAllFilters = () => {
+    closeShowcase();
   };
 
   return (
@@ -328,7 +335,7 @@ export default function StorePage() {
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
             {TRADING_CATEGORY_CARDS.map((cat) => {
               const Icon = cat.icon;
-              const isActive = selectedCardId === cat.id;
+              const isActive = showShowcase && selectedCardId === cat.id;
 
               return (
                 <button
@@ -361,11 +368,39 @@ export default function StorePage() {
               );
             })}
           </div>
+
+          {/* Under-grid Helper or Active Indicator */}
+          {!showShowcase ? (
+            <div className="mt-8 text-center">
+              <p className="text-xs sm:text-sm text-muted">
+                Click any category above to view our trading tools, bots, and resources.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-cream/70 px-4 py-2.5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                <span className="flex h-2 w-2 rounded-full bg-brand animate-pulse" />
+                <span>Active Category:</span>
+                <span className="font-bold text-brand">
+                  {TRADING_CATEGORY_CARDS.find((c) => c.id === selectedCardId)?.title || categories.find((c) => c.id === selectedCat)?.label || "Selected Category"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={closeShowcase}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-brand transition cursor-pointer"
+              >
+                <X className="h-3.5 w-3.5" />
+                <span>Hide Showcase</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* ================= PRODUCT SHOWCASE ================= */}
-      <section ref={showcaseRef} className="section bg-cream">
+      {/* ================= PRODUCT SHOWCASE (Only shown after category click) ================= */}
+      {showShowcase && (
+        <section ref={showcaseRef} className="section bg-cream animate-[fadeIn_0.3s_ease]">
         <div className="container-x">
           {/* Modern Orderly Header & Navigation Bar */}
           <div className="mb-6 rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
@@ -807,6 +842,7 @@ export default function StorePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ================= QUICK VIEW PRODUCT MODAL ================= */}
       {activeProduct && (
