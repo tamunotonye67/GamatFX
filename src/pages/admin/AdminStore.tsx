@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore } from "../../lib/store";
-import { naira } from "../../lib/courses";
+import { naira, compactNaira } from "../../lib/courses";
 import { type StoreProduct, type StoreProductCategory } from "../../lib/storeProducts";
 import {
   ShoppingBag, Plus, Pencil, Trash2, Eye, EyeOff, Bot, LineChart,
@@ -96,7 +96,13 @@ export function AdminStore() {
       {/* Top Stat Cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard icon={ShoppingBag} label="Total Products" value={products.length} sub={`${publishedCount} active in store`} />
-        <StatCard icon={DollarSign} label="Store Revenue" value={naira(storeRevenue)} sub={`${storePayments.length} purchases recorded`} />
+        <StatCard
+          icon={DollarSign}
+          label="Store Revenue"
+          value={compactNaira(storeRevenue)}
+          fullValue={naira(storeRevenue)}
+          sub={`${storePayments.length} purchases recorded`}
+        />
         <StatCard icon={Package} label="Units Delivered" value={totalSales} sub="Digital & physical downloads" />
         <StatCard icon={LayoutGrid} label="Active Categories" value={5} sub="Bots, indicators, books, etc." />
       </div>

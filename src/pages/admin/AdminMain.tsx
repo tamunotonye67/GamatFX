@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { useStore, type Account } from "../../lib/store";
-import { COURSES, getCourse, totalLessons, naira } from "../../lib/courses";
+import { COURSES, getCourse, totalLessons, naira, compactNaira } from "../../lib/courses";
 import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { navigate } from "../../lib/router";
 import {
@@ -48,12 +48,40 @@ export function AdminDashboard() {
 
   return (
     <AdminShell title="Dashboard" subtitle="A live overview of your academy's performance.">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <StatCard icon={Wallet} label="Total revenue" value={naira(kpis.revenue)} sub={`${payments.filter(p => p.status === "paid").length} paid orders`} />
-        <StatCard icon={GraduationCap} label="Mentorship Packages" value={naira(mentorshipRevenue)} sub={`${mentorshipEnrollments.length} mentorship student(s)`} />
-        <StatCard icon={Users} label="Registered students" value={kpis.students} sub={`${kpis.admins} admin account(s)`} />
-        <StatCard icon={BookOpen} label="Course enrollments" value={kpis.enrollments} sub={`Avg order ${naira(kpis.avgOrder)}`} />
-        <StatCard icon={Ticket} label="Event registrations" value={kpis.registrations} sub={`${kpis.events} events live`} />
+      <div className="grid gap-3.5 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <StatCard
+          icon={Wallet}
+          label="Total revenue"
+          value={compactNaira(kpis.revenue)}
+          fullValue={naira(kpis.revenue)}
+          sub={`${payments.filter((p) => p.status === "paid").length} paid orders`}
+        />
+        <StatCard
+          icon={GraduationCap}
+          label="Mentorship Packages"
+          value={compactNaira(mentorshipRevenue)}
+          fullValue={naira(mentorshipRevenue)}
+          sub={`${mentorshipEnrollments.length} mentorship student(s)`}
+        />
+        <StatCard
+          icon={Users}
+          label="Registered students"
+          value={kpis.students}
+          sub={`${kpis.admins} admin account(s)`}
+        />
+        <StatCard
+          icon={BookOpen}
+          label="Course enrollments"
+          value={kpis.enrollments}
+          sub={`Avg ${compactNaira(kpis.avgOrder)}`}
+          fullValue={`Average order: ${naira(kpis.avgOrder)}`}
+        />
+        <StatCard
+          icon={Ticket}
+          label="Event registrations"
+          value={kpis.registrations}
+          sub={`${kpis.events} events live`}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -693,7 +721,12 @@ export function AdminCourses() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={BookOpen} label="Total courses" value={COURSES.length} />
         <StatCard icon={GraduationCap} label="Total enrollments" value={admin.enrollments.length} />
-        <StatCard icon={CreditCard} label="Course revenue" value={naira(admin.payments.filter(p => p.status === "paid").reduce((s, p) => s + p.amount, 0))} />
+        <StatCard
+          icon={CreditCard}
+          label="Course revenue"
+          value={compactNaira(admin.payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0))}
+          fullValue={naira(admin.payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0))}
+        />
         <StatCard icon={ShieldCheck} label="Published" value={COURSES.filter(c => courseSettings[c.id]?.published !== false).length} />
       </div>
 

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type EventItem, type Payment } from "../../lib/store";
-import { naira } from "../../lib/courses";
+import { naira, compactNaira } from "../../lib/courses";
 import {
   Wallet, CreditCard, RotateCcw, Trash2, Download, Plus, Pencil, Ticket,
   CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Database, Eye,
@@ -44,8 +44,18 @@ export function AdminPayments() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={Wallet} label="Paid revenue" value={naira(sum("paid"))} />
-        <StatCard icon={RotateCcw} label="Manually refunded" value={naira(sum("refunded"))} />
+        <StatCard
+          icon={Wallet}
+          label="Paid revenue"
+          value={compactNaira(sum("paid"))}
+          fullValue={naira(sum("paid"))}
+        />
+        <StatCard
+          icon={RotateCcw}
+          label="Manually refunded"
+          value={compactNaira(sum("refunded"))}
+          fullValue={naira(sum("refunded"))}
+        />
         <StatCard icon={CreditCard} label="Transactions" value={admin.payments.length} />
         <StatCard icon={AlertTriangle} label="Pending / failed" value={admin.payments.filter(p => p.status === "pending" || p.status === "failed").length} />
       </div>

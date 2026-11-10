@@ -264,6 +264,24 @@ export function allLessons(course: Course): Lesson[] {
 
 export const naira = (n: number) => `₦${n.toLocaleString()}`;
 
+/** Compact currency formatter: e.g. ₦1,084,669 -> ₦1.08M, ₦703,049 -> ₦703k */
+export const compactNaira = (n: number): string => {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000_000) {
+    return `₦${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B`;
+  }
+  if (abs >= 1_000_000) {
+    return `₦${(n / 1_000_000).toFixed(abs >= 10_000_000 ? 1 : 2).replace(/\.00?$/, "")}M`;
+  }
+  if (abs >= 100_000) {
+    return `₦${Math.round(n / 1_000)}k`;
+  }
+  if (abs >= 10_000) {
+    return `₦${(n / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
+  }
+  return `₦${n.toLocaleString()}`;
+};
+
 /** Loose shape accepted from admin-managed courses. */
 export type AnyCourseInput = {
   id: string;

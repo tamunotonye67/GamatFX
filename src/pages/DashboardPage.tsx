@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "../lib/store";
 import { downloadCertificate, certificatePreview, type CertData } from "../lib/certificate";
-import { COURSES, getCourse, totalLessons, naira } from "../lib/courses";
+import { COURSES, getCourse, totalLessons, naira, compactNaira } from "../lib/courses";
 import { navigate } from "../lib/router";
 import {
   LayoutDashboard, BookOpen, Award, User as UserIcon, CalendarDays,
@@ -452,15 +452,18 @@ export default function DashboardPage() {
                 <Wallet className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline justify-between">
-              <span className="font-display text-2xl font-extrabold text-ink">
-                {naira(profile.pendingBalance)}
+            <div className="mt-3 flex items-baseline justify-between gap-2 min-w-0">
+              <span
+                className="font-display text-2xl font-extrabold text-ink tabular-nums truncate"
+                title={naira(profile.pendingBalance)}
+              >
+                {profile.pendingBalance >= 1_000_000 ? compactNaira(profile.pendingBalance) : naira(profile.pendingBalance)}
               </span>
               <button
                 type="button"
                 onClick={() => setPayoutModalOpen(true)}
                 disabled={profile.pendingBalance < (store.affiliateSettings.minimumPayoutAmount || 10000)}
-                className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer"
+                className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer shrink-0"
               >
                 Withdraw
               </button>
@@ -475,9 +478,12 @@ export default function DashboardPage() {
                 <Award className="h-5 w-5" />
               </div>
             </div>
-            <div className="mt-3">
-              <span className="font-display text-2xl font-extrabold text-ink">
-                {naira(profile.totalEarned)}
+            <div className="mt-3 min-w-0">
+              <span
+                className="font-display text-2xl font-extrabold text-ink tabular-nums truncate block"
+                title={naira(profile.totalEarned)}
+              >
+                {profile.totalEarned >= 1_000_000 ? compactNaira(profile.totalEarned) : naira(profile.totalEarned)}
               </span>
             </div>
             <p className="mt-1 text-xs text-muted">15% commission on all referred sales</p>
