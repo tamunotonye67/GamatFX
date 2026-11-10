@@ -186,43 +186,78 @@ export async function testBachsConnection(apiKey?: string): Promise<{ ok: boolea
 export async function createBachsCheckoutSession(
   params: BachsCheckoutSessionParams
 ): Promise<BachsCheckoutSessionResult> {
-  const config = getBachsConfig();
-  const baseUrl = getBachsBaseUrl(config.apiKey);
-
-  // Bachs strictly requires decimal strings for amount (e.g. "25000.00")
   const formattedAmount = params.amount.toFixed(2);
   const currency = params.currency || "NGN";
 
   const payload = {
-    pricing: {
-      amount: formattedAmount,
-      currency,
-    },
-    customer: {
-      email: params.email,
-      name: params.name,
-      ...(params.phone ? { phone: params.phone } : {}),
-    },
+    amount: formattedAmount,
+    currency,
+    email: params.email,
+    name: params.name,
+    phone: params.phone,
     reference: params.reference,
     metadata: params.metadata || {},
   };
 
-  const response = await fetch(`${baseUrl}/checkout-sessions`, {
+  // 1. Try serverless endpoint first (runs server-side on Vercel / dev server with zero CORS)
+  try {
+    const apiRes = await fetch("/api/create-checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.checkout_url) {
+        return {
+          checkout_id: data.checkout_id,
+          checkout_url: data.checkout_url,
+          amount: data.amount || formattedAmount,
+          currency: data.currency || currency,
+          reference: data.reference || params.reference,
+          status: data.status || "open",
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("Serverless checkout route failed, attempting direct fallback:", err);
+  }
+
+  // 2. Direct fallback
+  const config = getBachsConfig();
+  const baseUrl = getBachsBaseUrl(config.apiKey);
+
+  const directResponse = await fetch(`${baseUrl}/checkout-sessions`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${config.apiKey.trim()}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      pricing: {
+        amount: formattedAmount,
+        currency,
+      },
+      customer: {
+        email: params.email,
+        name: params.name,
+        ...(params.phone ? { phone: params.phone } : {}),
+      },
+      reference: params.reference,
+      metadata: params.metadata || {},
+    }),
   });
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => null);
-    const errorMsg = errorBody?.message || `Bachs API error (${response.status})`;
+  if (!directResponse.ok) {
+    const errorBody = await directResponse.json().catch(() => null);
+    const errorMsg = errorBody?.message || `Checkout error (${directResponse.status})`;
     throw new Error(errorMsg);
   }
 
-  const data = await response.json();
+  const data = await directResponse.json();
   return {
     checkout_id: data.checkout_id,
     checkout_url: data.checkout_url,
