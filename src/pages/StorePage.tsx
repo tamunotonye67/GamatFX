@@ -342,23 +342,23 @@ export default function StorePage() {
                   key={cat.id}
                   type="button"
                   onClick={() => selectCategoryFromCard(cat)}
-                  className={`group flex flex-col justify-between h-36 sm:h-40 rounded-2xl border p-5 sm:p-6 text-left transition-all duration-200 cursor-pointer ${
+                  className={`group flex flex-col justify-between min-h-[160px] sm:min-h-[175px] md:h-44 rounded-2xl border p-5 sm:p-6 text-left transition-all duration-200 cursor-pointer ${
                     isActive
                       ? "border-brand bg-brand-light/40 shadow-sm ring-2 ring-brand/20"
                       : "border-line bg-white hover:border-brand/70 hover:shadow-md"
                   }`}
                 >
                   <div
-                    className={`transition-transform duration-200 group-hover:scale-110 ${
+                    className={`transition-transform duration-200 group-hover:scale-105 ${
                       isActive ? "text-brand" : "text-brand"
                     }`}
                   >
-                    <Icon className="h-7 w-7 sm:h-8 sm:w-8 stroke-[1.75]" />
+                    <Icon className="h-8 w-8 sm:h-9 sm:w-9 stroke-[1.5]" />
                   </div>
                   <div>
                     <span
-                      className={`text-sm sm:text-base font-semibold leading-snug transition-colors ${
-                        isActive ? "text-brand font-bold" : "text-ink group-hover:text-brand"
+                      className={`text-base sm:text-lg lg:text-[19px] font-normal leading-snug tracking-tight transition-colors ${
+                        isActive ? "text-brand font-medium" : "text-ink group-hover:text-brand"
                       }`}
                     >
                       {cat.title}
