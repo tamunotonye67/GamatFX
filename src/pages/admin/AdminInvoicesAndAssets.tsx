@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td } from "./AdminMain";
 import { useStore, type Payment } from "../../lib/store";
-import { naira } from "../../lib/courses";
+import { naira, compactNaira } from "../../lib/courses";
 import Logo from "../../components/Logo";
 import {
   Receipt, Download, Printer, Plus, FileText, CheckCircle2, ShieldCheck,
@@ -121,9 +121,9 @@ export function AdminInvoices() {
     >
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
-        <StatCard icon={Receipt} label="Total Issued Value" value={naira(totalIssued)} />
-        <StatCard icon={CheckCircle2} label="Paid Receipts" value={naira(paidTotal)} />
-        <StatCard icon={AlertTriangle} label="Pending Invoices" value={naira(pendingTotal)} />
+        <StatCard icon={Receipt} label="Total Issued Value" value={compactNaira(totalIssued)} fullValue={naira(totalIssued)} />
+        <StatCard icon={CheckCircle2} label="Paid Receipts" value={compactNaira(paidTotal)} fullValue={naira(paidTotal)} />
+        <StatCard icon={AlertTriangle} label="Pending Invoices" value={compactNaira(pendingTotal)} fullValue={naira(pendingTotal)} />
         <StatCard icon={Wallet} label="Total Documents" value={payments.length} />
       </div>
 

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { AdminShell, Card, StatCard, Badge, exportCsv } from "./AdminShell";
 import { useStore, type Payment } from "../../lib/store";
-import { COURSES, totalLessons, naira } from "../../lib/courses";
+import { COURSES, totalLessons, naira, compactNaira } from "../../lib/courses";
 import {
   BarChart3, Users, CreditCard, BookOpen, Zap, Swords,
   MessageSquare, Calendar, Download, Tag, Activity, Target,
@@ -167,10 +167,22 @@ export function AdminAnalytics() {
     >
       {/* KPI Top Cards Grid */}
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
-        <StatCard icon={CreditCard} label="Total Gross Revenue" value={naira(totalRevenue)} sub="Verified completed sales" />
+        <StatCard
+          icon={CreditCard}
+          label="Total Gross Revenue"
+          value={compactNaira(totalRevenue)}
+          fullValue={naira(totalRevenue)}
+          sub="Verified completed sales"
+        />
         <StatCard icon={Users} label="Registered Students" value={accounts.length} sub="Active learner profiles" />
         <StatCard icon={BookOpen} label="Total Enrollments" value={enrollments.length} sub="Across all courses & mentorships" />
-        <StatCard icon={Activity} label="Avg Order Value" value={naira(avgOrderValue)} sub="Per transaction" />
+        <StatCard
+          icon={Activity}
+          label="Avg Order Value"
+          value={compactNaira(avgOrderValue)}
+          fullValue={naira(avgOrderValue)}
+          sub="Per transaction"
+        />
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">

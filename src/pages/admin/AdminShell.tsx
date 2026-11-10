@@ -412,6 +412,94 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
   );
 }
 
+function autoFormatCompact(val: string | number): { display: string; full: string } {
+  if (typeof val === "number") {
+    const abs = Math.abs(val);
+    if (abs >= 1_000_000_000) {
+      return {
+        display: `${(val / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B`,
+        full: val.toLocaleString(),
+      };
+    }
+    if (abs >= 1_000_000) {
+      return {
+        display: `${(val / 1_000_000).toFixed(abs >= 10_000_000 ? 1 : 2).replace(/\.00?$/, "")}M`,
+        full: val.toLocaleString(),
+      };
+    }
+    if (abs >= 10_000) {
+      return {
+        display: `${(val / 1_000).toFixed(abs >= 100_000 ? 0 : 1).replace(/\.0$/, "")}K`,
+        full: val.toLocaleString(),
+      };
+    }
+    return { display: val.toLocaleString(), full: val.toLocaleString() };
+  }
+
+  const str = String(val).trim();
+  // Check if string is already compacted like "₦1.2M" or "25k"
+  if (/[kKmMbB]$/.test(str)) {
+    return { display: str, full: str };
+  }
+
+  // If it's a naira currency string like "₦1,250,000" or "₦ 1250000"
+  if (str.startsWith("₦")) {
+    const numericPart = str.replace(/[^\d.-]/g, "");
+    const rawNum = parseFloat(numericPart);
+    if (!isNaN(rawNum)) {
+      const abs = Math.abs(rawNum);
+      if (abs >= 1_000_000_000) {
+        return {
+          display: `₦${(rawNum / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B`,
+          full: str,
+        };
+      }
+      if (abs >= 1_000_000) {
+        return {
+          display: `₦${(rawNum / 1_000_000).toFixed(abs >= 10_000_000 ? 1 : 2).replace(/\.00?$/, "")}M`,
+          full: str,
+        };
+      }
+      if (abs >= 10_000) {
+        return {
+          display: `₦${(rawNum / 1_000).toFixed(abs >= 100_000 ? 0 : 1).replace(/\.0$/, "")}K`,
+          full: str,
+        };
+      }
+    }
+    return { display: str, full: str };
+  }
+
+  // Plain numeric string with commas e.g. "125,000"
+  const cleanStr = str.replace(/,/g, "");
+  if (/^-?\d+(\.\d+)?$/.test(cleanStr)) {
+    const rawNum = parseFloat(cleanStr);
+    if (!isNaN(rawNum)) {
+      const abs = Math.abs(rawNum);
+      if (abs >= 1_000_000_000) {
+        return {
+          display: `${(rawNum / 1_000_000_000).toFixed(1).replace(/\.0$/, "")}B`,
+          full: str,
+        };
+      }
+      if (abs >= 1_000_000) {
+        return {
+          display: `${(rawNum / 1_000_000).toFixed(abs >= 10_000_000 ? 1 : 2).replace(/\.00?$/, "")}M`,
+          full: str,
+        };
+      }
+      if (abs >= 10_000) {
+        return {
+          display: `${(rawNum / 1_000).toFixed(abs >= 100_000 ? 0 : 1).replace(/\.0$/, "")}K`,
+          full: str,
+        };
+      }
+    }
+  }
+
+  return { display: str, full: str };
+}
+
 export function StatCard({
   icon: Icon,
   label,
@@ -429,7 +517,11 @@ export function StatCard({
   fullValue?: string;
   className?: string;
 }) {
-  const str = String(value);
+  const formatted = autoFormatCompact(value);
+  const displayVal = formatted.display;
+  const resolvedFullValue = fullValue || formatted.full;
+
+  const str = String(displayVal);
   // Fluid font scaling according to length so digits never spiral outside the card
   const textClass =
     str.length > 10
@@ -444,10 +536,10 @@ export function StatCard({
         <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
       </span>
       <p
-        title={fullValue || (typeof value === "string" ? value : undefined)}
+        title={resolvedFullValue}
         className={`mt-3 sm:mt-4 font-display font-extrabold tracking-tight text-ink tabular-nums truncate ${textClass}`}
       >
-        {value}
+        {displayVal}
       </p>
       <p className="mt-0.5 text-xs sm:text-sm text-muted font-medium truncate" title={label}>
         {label}
