@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStore } from "../lib/store";
 import { type StoreProduct, type StoreProductCategory } from "../lib/storeProducts";
 import { naira } from "../lib/courses";
@@ -45,14 +45,13 @@ import {
   Award,
   Calculator,
   BookMarked,
-  Sparkles,
 } from "lucide-react";
 import { payWithPaystack, generateTxRef } from "../lib/paystack";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "sales";
 
 /* =========================================================================
-   CATEGORY CARDS HUB CONFIGURATION (Matches Reference Image Layout)
+   CATEGORY CARDS HUB CONFIGURATION
    ========================================================================= */
 
 export interface TradingCategoryCard {
@@ -61,7 +60,7 @@ export interface TradingCategoryCard {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   searchQuery?: string;
-  countLabel?: string;
+  desc?: string;
 }
 
 export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
@@ -70,12 +69,14 @@ export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
     catId: "bot",
     title: "AI Bots & Expert Advisors",
     icon: Bot,
+    desc: "Proprietary algorithmic trading robots for MT4 and MT5.",
   },
   {
     id: "indicators",
     catId: "indicator",
     title: "Indicators & Chart Scripts",
     icon: LineChart,
+    desc: "TradingView invite-only scripts and MT5 custom indicators.",
   },
   {
     id: "smc",
@@ -83,18 +84,21 @@ export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
     title: "Smart Money & SMC Radar",
     icon: Layers,
     searchQuery: "smart money",
+    desc: "Fair Value Gap (FVG) and institutional liquidity radars.",
   },
   {
     id: "strategy",
     catId: "strategy",
     title: "Strategy Blueprints",
     icon: Compass,
+    desc: "Execution frameworks and institutional risk models.",
   },
   {
     id: "ebooks",
     catId: "ebook",
     title: "Books & PDF Manuals",
     icon: BookOpen,
+    desc: "High-resolution annotated playbooks and trade markups.",
   },
   {
     id: "prop",
@@ -102,6 +106,7 @@ export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
     title: "Prop Firm Passing",
     icon: Award,
     searchQuery: "prop",
+    desc: "Drawdown insulation blueprints and lot-size consistency tools.",
   },
   {
     id: "calculators",
@@ -109,6 +114,7 @@ export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
     title: "Risk & Lot Calculators",
     icon: Calculator,
     searchQuery: "calculator",
+    desc: "Interactive risk calculators and position sizing models.",
   },
   {
     id: "scalpers",
@@ -116,38 +122,67 @@ export const TRADING_CATEGORY_CARDS: TradingCategoryCard[] = [
     title: "Session Scalpers",
     icon: Zap,
     searchQuery: "judas",
+    desc: "London and New York session sweep automation bots.",
   },
   {
     id: "journals",
     catId: "tool",
     title: "Physical Journals & Tools",
     icon: BookMarked,
+    desc: "Hardcover 90-day trader discipline planners and Notion logs.",
   },
   {
     id: "all",
     catId: "all",
     title: "All Products & Tools",
     icon: LayoutGrid,
+    desc: "Browse our entire repository of quantitative trading tools.",
   },
 ];
 
 /* =========================================================================
-   MAIN STORE & TOOLS COMPONENT
+   MAIN STORE & TOOLS COMPONENT (Dual View: Hub Page & Catalog Page)
    ========================================================================= */
 
-export default function StorePage() {
+interface StorePageProps {
+  categoryParam?: string;
+}
+
+export default function StorePage({ categoryParam }: StorePageProps) {
   const { publishedStoreProducts, recordPayment, coupons, validateCoupon, user, isAuthed, myStorePurchases } = useStore();
-  const [selectedCardId, setSelectedCardId] = useState<string>("");
-  const [showShowcase, setShowShowcase] = useState(false);
-  const [q, setQ] = useState("");
-  const [selectedCat, setSelectedCat] = useState<StoreProductCategory>("all");
+
+  // Determine initial page view: "hub" (category cards page) or "catalog" (products showcase page)
+  const isCatalogInitial = Boolean(categoryParam) || window.location.hash.includes("/store/catalog");
+  const [view, setView] = useState<"hub" | "catalog">(isCatalogInitial ? "catalog" : "hub");
+
+  // Matched category from categoryParam or default
+  const matchedInitial = TRADING_CATEGORY_CARDS.find(
+    (c) => c.id === categoryParam || c.catId === categoryParam
+  );
+
+  const [selectedCardId, setSelectedCardId] = useState<string>(matchedInitial ? matchedInitial.id : "all");
+  const [selectedCat, setSelectedCat] = useState<StoreProductCategory>(matchedInitial ? matchedInitial.catId : "all");
+  const [q, setQ] = useState(matchedInitial?.searchQuery || "");
   const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeProduct, setActiveProduct] = useState<StoreProduct | null>(null);
   const [activeGalleryImg, setActiveGalleryImg] = useState<string | null>(null);
   const [checkoutProduct, setCheckoutProduct] = useState<StoreProduct | null>(null);
 
-  const showcaseRef = useRef<HTMLDivElement>(null);
+  // Sync if categoryParam prop changes
+  useEffect(() => {
+    if (categoryParam) {
+      const match = TRADING_CATEGORY_CARDS.find(
+        (c) => c.id === categoryParam || c.catId === categoryParam
+      );
+      if (match) {
+        setSelectedCardId(match.id);
+        setSelectedCat(match.catId);
+        setQ(match.searchQuery || "");
+      }
+      setView("catalog");
+    }
+  }, [categoryParam]);
 
   // Checkout form state
   const [buyerName, setBuyerName] = useState(user ? `${user.firstName} ${user.lastName}` : "");
@@ -260,25 +295,21 @@ export default function StorePage() {
     setActiveGalleryImg(prod.gallery?.[0] || prod.image);
   };
 
-  const selectCategoryFromCard = (card: TradingCategoryCard) => {
-    if (showShowcase && selectedCardId === card.id) {
-      // Toggle off back to categories
-      closeShowcase();
-    } else {
-      setSelectedCardId(card.id);
-      setSelectedCat(card.catId);
-      if (card.searchQuery) {
-        setQ(card.searchQuery);
-      } else {
-        setQ("");
-      }
-      setShowShowcase(true);
-      setTimeout(() => {
-        if (showcaseRef.current) {
-          showcaseRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 60);
-    }
+  // Navigates from Category Hub Page to the Dedicated Products Page
+  const handleSelectCard = (cat: TradingCategoryCard) => {
+    setSelectedCardId(cat.id);
+    setSelectedCat(cat.catId);
+    setQ(cat.searchQuery || "");
+    setView("catalog");
+    navigate(cat.id === "all" ? "/store/catalog" : `/store/${cat.id}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Returns back to the Category Hub Page
+  const handleBackToHub = () => {
+    setView("hub");
+    navigate("/store");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCategoryPillSelect = (catId: StoreProductCategory) => {
@@ -288,128 +319,122 @@ export default function StorePage() {
     setSelectedCardId(matchedCard ? matchedCard.id : (catId === "all" ? "all" : ""));
   };
 
-  const closeShowcase = () => {
-    setShowShowcase(false);
-    setSelectedCardId("");
-    setSelectedCat("all");
-    setQ("");
-    window.scrollTo({ top: 380, behavior: "smooth" });
-  };
+  /* =========================================================================
+     PAGE 1: CATEGORY HUB (Shown when view === "hub")
+     ========================================================================= */
+  if (view === "hub") {
+    return (
+      <div className="min-h-screen bg-cream text-ink">
+        {/* ================= OFFICIAL PAGE HERO ================= */}
+        <PageHero
+          eyebrow="Official Store & Trading Tools"
+          title={
+            <>
+              Institutional Tools, <span className="text-brand">E-Books & Bots</span>
+            </>
+          }
+          subtitle="Battle-tested trading software, proprietary MT4/MT5 algorithms, institutional playbooks, and discipline journals engineered by GAMAT FX mentors."
+          image="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=2000&q=80"
+          crumb="Store & Trading Tools"
+        />
 
-  const clearAllFilters = () => {
-    closeShowcase();
-  };
+        {/* ================= CATEGORY SELECTION HUB ================= */}
+        <section className="py-10 sm:py-16 bg-white border-b border-line">
+          <div className="container-x">
+            {/* Header: Minimalist and clean matching reference */}
+            <div className="max-w-2xl">
+              <span className="eyebrow">Product Categories</span>
+              <h2 className="section-title mt-2">
+                Find tools & resources for every type of trading
+              </h2>
+              <p className="mt-3 text-muted text-sm sm:text-base">
+                Explore our quantitative algorithms, indicators, manuals, and trading journals engineered for serious market practitioners.
+              </p>
+            </div>
+
+            {/* Simple & Minimalist Category Cards Grid (10 cards matching reference) */}
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
+              {TRADING_CATEGORY_CARDS.map((cat) => {
+                const Icon = cat.icon;
+
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handleSelectCard(cat)}
+                    className="group flex flex-col justify-between min-h-[160px] sm:min-h-[175px] md:h-44 rounded-2xl border border-line bg-white p-5 sm:p-6 text-left hover:border-brand/70 hover:shadow-md transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="text-brand group-hover:scale-105 transition-transform duration-200">
+                      <Icon className="h-8 w-8 sm:h-9 sm:w-9 stroke-[1.5]" />
+                    </div>
+                    <div>
+                      <span className="text-base sm:text-lg lg:text-[19px] font-normal leading-snug tracking-tight text-ink group-hover:text-brand transition-colors">
+                        {cat.title}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-10 text-center">
+              <p className="text-xs sm:text-sm text-muted">
+                Click any category above to view our dedicated trading tools, bots, and resources.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  /* =========================================================================
+     PAGE 2: DEDICATED PRODUCTS SHOWCASE (Shown on separate page after click)
+     ========================================================================= */
+  const activeCategoryInfo =
+    TRADING_CATEGORY_CARDS.find((c) => c.id === selectedCardId) ||
+    TRADING_CATEGORY_CARDS.find((c) => c.catId === selectedCat);
+
+  const CurrentIcon = activeCategoryInfo?.icon || categories.find((c) => c.id === selectedCat)?.icon || LayoutGrid;
 
   return (
     <div className="min-h-screen bg-cream text-ink">
-      {/* ================= OFFICIAL PAGE HERO ================= */}
+      {/* ================= COMPACT HERO HEADER FOR CATALOG PAGE ================= */}
       <PageHero
-        eyebrow="Official Store & Trading Tools"
+        eyebrow="GAMAT FX Tools Catalog"
         title={
           <>
-            Institutional Tools, <span className="text-brand">E-Books & Bots</span>
+            Trading Tools, <span className="text-brand">E-Books & Bots</span>
           </>
         }
-        subtitle="Battle-tested trading software, proprietary MT4/MT5 algorithms, institutional playbooks, and discipline journals engineered by GAMAT FX mentors."
+        subtitle="Download verified trading algorithms, prop-firm passing tools, and institutional playbooks with instant digital delivery."
         image="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=2000&q=80"
-        crumb="Store & Trading Tools"
+        crumb="Store Catalog"
       />
 
-      {/* ================= CATEGORY INTENT HUB (Matches Reference Image) ================= */}
-      <section className="py-8 sm:py-12 bg-white border-b border-line">
+      {/* ================= DEDICATED CATALOG SHOWCASE SECTION ================= */}
+      <section className="py-8 sm:py-12 bg-cream">
         <div className="container-x">
-          {/* Section Header: Minimalist and clean like reference */}
-          <div className="max-w-2xl">
-            <span className="eyebrow">Product Categories</span>
-            <h2 className="section-title mt-2">
-              Find tools & resources for every type of trading
-            </h2>
-            <p className="mt-3 text-muted text-sm sm:text-base">
-              Explore our quantitative algorithms, indicators, manuals, and trading journals engineered for serious market practitioners.
-            </p>
-          </div>
-
-          {/* Simple & Minimalist Category Cards Grid (10 cards matching reference) */}
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5">
-            {TRADING_CATEGORY_CARDS.map((cat) => {
-              const Icon = cat.icon;
-              const isActive = showShowcase && selectedCardId === cat.id;
-
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => selectCategoryFromCard(cat)}
-                  className={`group flex flex-col justify-between min-h-[160px] sm:min-h-[175px] md:h-44 rounded-2xl border p-5 sm:p-6 text-left transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? "border-brand bg-brand-light/40 shadow-sm ring-2 ring-brand/20"
-                      : "border-line bg-white hover:border-brand/70 hover:shadow-md"
-                  }`}
-                >
-                  <div
-                    className={`transition-transform duration-200 group-hover:scale-105 ${
-                      isActive ? "text-brand" : "text-brand"
-                    }`}
-                  >
-                    <Icon className="h-8 w-8 sm:h-9 sm:w-9 stroke-[1.5]" />
-                  </div>
-                  <div>
-                    <span
-                      className={`text-base sm:text-lg lg:text-[19px] font-normal leading-snug tracking-tight transition-colors ${
-                        isActive ? "text-brand font-medium" : "text-ink group-hover:text-brand"
-                      }`}
-                    >
-                      {cat.title}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Under-grid Helper or Active Indicator */}
-          {!showShowcase ? (
-            <div className="mt-8 text-center">
-              <p className="text-xs sm:text-sm text-muted">
-                Click any category above to view our trading tools, bots, and resources.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-cream/70 px-4 py-2.5">
-              <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-                <span className="flex h-2 w-2 rounded-full bg-brand animate-pulse" />
-                <span>Active Category:</span>
-                <span className="font-bold text-brand">
-                  {TRADING_CATEGORY_CARDS.find((c) => c.id === selectedCardId)?.title || categories.find((c) => c.id === selectedCat)?.label || "Selected Category"}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={closeShowcase}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-brand transition cursor-pointer"
-              >
-                <X className="h-3.5 w-3.5" />
-                <span>Hide Showcase</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ================= PRODUCT SHOWCASE (Only shown after category click) ================= */}
-      {showShowcase && (
-        <section ref={showcaseRef} className="section bg-cream animate-[fadeIn_0.3s_ease]">
-        <div className="container-x">
-          {/* Modern Orderly Header & Navigation Bar */}
+          {/* Top Header Card (Matches User's Reference Screenshot) */}
           <div className="mb-6 rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
-            {/* Top row: Category Title & Counter */}
+            {/* Top row: Breadcrumb + Back Button + Counter */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3.5">
               <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleBackToHub}
+                  className="group inline-flex items-center gap-2 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand hover:text-white hover:border-brand transition-all cursor-pointer shadow-2xs"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                  <span>All Categories</span>
+                </button>
+
                 <div className="flex items-center gap-2 text-xs text-muted">
+                  <span>/</span>
                   <span className="font-semibold text-ink">Catalog</span>
                   <span>/</span>
                   <span className="font-bold text-brand">
-                    {categories.find((c) => c.id === selectedCat)?.label ?? "All Items"}
+                    {activeCategoryInfo?.title || categories.find((c) => c.id === selectedCat)?.label || "All Items"}
                   </span>
                   {q && (
                     <>
@@ -424,7 +449,11 @@ export default function StorePage() {
                 {(selectedCat !== "all" || q) && (
                   <button
                     type="button"
-                    onClick={clearAllFilters}
+                    onClick={() => {
+                      setSelectedCat("all");
+                      setSelectedCardId("all");
+                      setQ("");
+                    }}
                     className="inline-flex items-center gap-1 rounded-full bg-slate-100 hover:bg-slate-200 px-3 py-1 text-xs font-semibold text-ink transition cursor-pointer"
                   >
                     <X className="h-3 w-3" />
@@ -441,26 +470,22 @@ export default function StorePage() {
             <div className="pt-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-ink tracking-tight flex items-center gap-2.5">
-                  {(() => {
-                    const CurrentIcon = categories.find((c) => c.id === selectedCat)?.icon || LayoutGrid;
-                    return (
-                      <>
-                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
-                          <CurrentIcon className="h-4 w-4" />
-                        </span>
-                        <span>{categories.find((c) => c.id === selectedCat)?.label ?? "All Items"}</span>
-                      </>
-                    );
-                  })()}
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                    <CurrentIcon className="h-4 w-4" />
+                  </span>
+                  <span>
+                    {activeCategoryInfo?.title || categories.find((c) => c.id === selectedCat)?.label || "All Items"}
+                  </span>
                 </h3>
                 <p className="text-xs sm:text-sm text-muted mt-1">
-                  Proprietary trading robots, institutional scripts, strategy manuals, and accountability tools.
+                  {activeCategoryInfo?.desc ||
+                    "Proprietary trading robots, institutional scripts, strategy manuals, and accountability tools."}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Search, Filter & Utility Toolbar */}
+          {/* Search, Filter & Utility Toolbar (Matches User's Reference Screenshot) */}
           <div className="rounded-2xl border border-line bg-white p-4 shadow-sm mb-8">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               {/* Search Input */}
@@ -569,10 +594,21 @@ export default function StorePage() {
               <div className="mt-6 flex justify-center gap-3">
                 <button
                   type="button"
-                  onClick={clearAllFilters}
+                  onClick={() => {
+                    setSelectedCat("all");
+                    setSelectedCardId("all");
+                    setQ("");
+                  }}
                   className="rounded-xl bg-brand hover:bg-brand-dark px-4 py-2 text-xs font-bold text-white transition cursor-pointer"
                 >
                   View All Products
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBackToHub}
+                  className="rounded-xl border border-line px-4 py-2 text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Back to Categories Hub
                 </button>
               </div>
             </div>
@@ -763,7 +799,7 @@ export default function StorePage() {
                     </div>
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-line pt-3 sm:pt-0 sm:pl-6 shrink-0 gap-3">
-                      <div className="text-left sm:text-right">
+                      <div className="text-left sm:right">
                         <div className="font-display text-xl font-bold text-ink">{naira(prod.price)}</div>
                         {prod.originalPrice && (
                           <div className="text-xs text-muted line-through">{naira(prod.originalPrice)}</div>
@@ -840,7 +876,6 @@ export default function StorePage() {
           </div>
         </div>
       </section>
-      )}
 
       {/* ================= QUICK VIEW PRODUCT MODAL ================= */}
       {activeProduct && (

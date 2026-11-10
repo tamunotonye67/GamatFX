@@ -222,6 +222,8 @@ export default function App() {
     content = <QuizPage courseId={second} />;
   } else if (first === "learn" && second) {
     content = <LearnPage id={second} />;
+  } else if (first === "store") {
+    content = <StorePage categoryParam={second} />;
   } else {
     const Page = staticPages[route] ?? Home;
     content = <Page />;
