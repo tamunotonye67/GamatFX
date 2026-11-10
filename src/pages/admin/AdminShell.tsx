@@ -419,6 +419,7 @@ export function StatCard({
   sub,
   tone = "brand",
   fullValue,
+  className = "",
 }: {
   icon: React.ElementType;
   label: string;
@@ -426,24 +427,25 @@ export function StatCard({
   sub?: string;
   tone?: "brand" | "ink";
   fullValue?: string;
+  className?: string;
 }) {
   const str = String(value);
   // Fluid font scaling according to length so digits never spiral outside the card
   const textClass =
     str.length > 10
-      ? "text-lg sm:text-xl lg:text-xl"
+      ? "text-lg sm:text-xl lg:text-2xl"
       : str.length > 7
-      ? "text-xl sm:text-2xl lg:text-2xl"
-      : "text-2xl font-extrabold sm:text-3xl";
+      ? "text-xl sm:text-2xl lg:text-3xl"
+      : "text-2xl sm:text-3xl font-extrabold";
 
   return (
-    <Card className="p-4 sm:p-5 xl:p-6 transition-all duration-200">
+    <div className={`min-w-0 max-w-full rounded-2xl border border-line bg-white p-4 sm:p-6 shadow-[0_14px_45px_-25px_rgba(22,24,28,0.3)] transition-all duration-200 ${className}`}>
       <span className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl shrink-0 ${tone === "brand" ? "bg-brand-light text-brand" : "bg-ink text-white"}`}>
         <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
       </span>
       <p
         title={fullValue || (typeof value === "string" ? value : undefined)}
-        className={`mt-3 sm:mt-4 font-display font-black tracking-tight text-ink tabular-nums truncate ${textClass}`}
+        className={`mt-3 sm:mt-4 font-display font-extrabold tracking-tight text-ink tabular-nums truncate ${textClass}`}
       >
         {value}
       </p>
@@ -455,7 +457,7 @@ export function StatCard({
           {sub}
         </p>
       )}
-    </Card>
+    </div>
   );
 }
 

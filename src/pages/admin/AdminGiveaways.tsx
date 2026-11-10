@@ -120,7 +120,7 @@ export function AdminGiveaways() {
         </div>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Gift} label="Total giveaways" value={giveaways.length} />
         <StatCard icon={CheckCircle2} label="Published" value={giveaways.filter((g) => g.status === "published").length} />
         <StatCard icon={EyeOff} label="Drafts" value={giveaways.filter((g) => g.status === "draft").length} />

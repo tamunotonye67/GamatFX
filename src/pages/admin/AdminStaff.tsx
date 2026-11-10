@@ -51,7 +51,7 @@ export function AdminStaff() {
           <button onClick={() => setCreating(true)} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> Add Worker</button>
         </div>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={UserCog} label="Staff accounts" value={admin.accounts.filter(a => a.role === "staff").length} />
         <StatCard icon={Shield} label="Administrators" value={admin.accounts.filter(a => a.role === "admin").length} />
         <StatCard icon={PenSquare} label="Total articles" value={admin.posts.length} />
@@ -281,7 +281,7 @@ export function AdminPosts() {
           Status: p.status, Created: fmtDate(p.createdAt), Updated: fmtDate(p.updatedAt),
         })))} className="btn-outline-dark !py-2.5"><Download className="h-4 w-4" /> Export</button>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={FileText} label="Total articles" value={admin.posts.length} />
         <StatCard icon={CheckCircle2} label="Published" value={admin.posts.filter(p => p.status === "published").length} />
         <StatCard icon={Eye} label="Pending review" value={admin.posts.filter(p => p.status === "pending").length} />

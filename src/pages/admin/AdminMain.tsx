@@ -48,13 +48,14 @@ export function AdminDashboard() {
 
   return (
     <AdminShell title="Dashboard" subtitle="A live overview of your academy's performance.">
-      <div className="grid gap-3.5 sm:gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard
           icon={Wallet}
           label="Total revenue"
           value={compactNaira(kpis.revenue)}
           fullValue={naira(kpis.revenue)}
           sub={`${payments.filter((p) => p.status === "paid").length} paid orders`}
+          className="col-span-2 sm:col-span-1 xl:col-span-1"
         />
         <StatCard
           icon={GraduationCap}
@@ -731,7 +732,7 @@ export function AdminCourses() {
           <Download className="h-4 w-4" /> Export CSV
         </button>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={BookOpen} label="Total courses" value={COURSES.length} />
         <StatCard icon={GraduationCap} label="Total enrollments" value={admin.enrollments.length} />
         <StatCard

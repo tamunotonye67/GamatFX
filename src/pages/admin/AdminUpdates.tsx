@@ -68,7 +68,7 @@ export function AdminNews() {
           <button onClick={() => setEdit(blank())} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> New story</button>
         </div>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Newspaper} label="Total stories" value={list.length} />
         <StatCard icon={CheckCircle2} label="Published" value={list.filter(n => n.status === "published").length} />
         <StatCard icon={EyeOff} label="Drafts" value={list.filter(n => n.status === "draft").length} />
@@ -234,7 +234,7 @@ export function AdminOutlooks() {
           <button onClick={() => setEdit(blank())} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> New outlook</button>
         </div>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Sun} label="Total outlooks" value={outlooks.length} />
         <StatCard icon={CheckCircle2} label="Published" value={outlooks.filter(o => o.status === "published").length} />
         <StatCard icon={EyeOff} label="Drafts" value={outlooks.filter(o => o.status === "draft").length} />

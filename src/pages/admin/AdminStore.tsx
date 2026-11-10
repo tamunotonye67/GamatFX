@@ -94,7 +94,7 @@ export function AdminStore() {
       }
     >
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={ShoppingBag} label="Total Products" value={products.length} sub={`${publishedCount} active in store`} />
         <StatCard
           icon={DollarSign}

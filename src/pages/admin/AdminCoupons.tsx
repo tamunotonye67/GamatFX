@@ -100,7 +100,7 @@ export function AdminCoupons() {
         </div>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Tag} label="Total coupons" value={coupons.length} />
         <StatCard icon={CheckCircle2} label="Active coupons" value={coupons.filter((c) => c.status === "active").length} />
         <StatCard icon={Ticket} label="Total redemptions" value={totalRedemptions} />

@@ -32,7 +32,7 @@ export function AdminEnquiries() {
           <Download className="h-4 w-4" /> Export CSV
         </button>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Inbox} label="Total enquiries" value={admin.enquiries.length} />
         <StatCard icon={MailOpen} label="New / unread" value={count("new")} sub={count("new") ? "Needs attention" : undefined} />
         <StatCard icon={PhoneCall} label="Contacted" value={count("contacted")} />

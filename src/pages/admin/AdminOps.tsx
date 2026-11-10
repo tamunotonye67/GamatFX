@@ -43,7 +43,7 @@ export function AdminPayments() {
         below solely to mark a payment after you have processed the payout yourself outside this app.
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard
           icon={Wallet}
           label="Paid revenue"
@@ -250,7 +250,7 @@ export function AdminEvents() {
           <button onClick={() => setEditing(blankEvent())} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> New Event</button>
         </div>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={CalendarDays} label="Total events" value={allEvents.length} />
         <StatCard icon={CheckCircle2} label="Published" value={allEvents.filter(e => e.status === "published").length} />
         <StatCard icon={Ticket} label="Confirmed registrations" value={admin.registrations.filter(r => r.status === "confirmed").length} />
@@ -369,7 +369,7 @@ export function AdminRegistrations() {
           <Download className="h-4 w-4" /> Export CSV
         </button>
       }>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Ticket} label="Total registrations" value={admin.registrations.length} />
         <StatCard icon={CheckCircle2} label="Confirmed" value={admin.registrations.filter(r => r.status === "confirmed").length} />
         <StatCard icon={XCircle} label="Cancelled" value={admin.registrations.filter(r => r.status === "cancelled").length} />

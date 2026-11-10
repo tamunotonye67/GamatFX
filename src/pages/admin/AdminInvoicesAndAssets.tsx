@@ -120,7 +120,7 @@ export function AdminInvoices() {
       }
     >
       {/* Stat Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Receipt} label="Total Issued Value" value={naira(totalIssued)} />
         <StatCard icon={CheckCircle2} label="Paid Receipts" value={naira(paidTotal)} />
         <StatCard icon={AlertTriangle} label="Pending Invoices" value={naira(pendingTotal)} />

@@ -110,7 +110,7 @@ export function AdminTeam() {
         </div>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Users} label="Team profiles" value={teamProfiles.length} />
         <StatCard icon={CheckCircle2} label="Published" value={teamProfiles.filter((t) => t.published).length} />
         <StatCard icon={Zap} label="Pending bios" value={pending.length} sub={pending.length ? "Needs review" : undefined} />

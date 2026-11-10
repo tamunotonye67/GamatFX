@@ -370,7 +370,7 @@ export function AdminCourseManager() {
       <input ref={fileRef} type="file" accept="video/*,.mp4,.webm,.mov,.m4v" className="hidden"
         onChange={(e) => void onUpload(e.target.files?.[0])} />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={BookOpen} label="Managed courses" value={managedCourses.length} />
         <StatCard icon={CheckCircle2} label="Published" value={managedCourses.filter((c) => c.published).length} />
         <StatCard icon={FileQuestion} label="Exam questions" value={allCourseChoices.reduce((n, c) => n + (getCourseQuiz(c.id)?.questions.length ?? 0), 0)} />

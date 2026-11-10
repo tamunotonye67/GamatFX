@@ -166,7 +166,7 @@ export function AdminAnalytics() {
       }
     >
       {/* KPI Top Cards Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={CreditCard} label="Total Gross Revenue" value={naira(totalRevenue)} sub="Verified completed sales" />
         <StatCard icon={Users} label="Registered Students" value={accounts.length} sub="Active learner profiles" />
         <StatCard icon={BookOpen} label="Total Enrollments" value={enrollments.length} sub="Across all courses & mentorships" />
