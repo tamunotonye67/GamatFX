@@ -123,8 +123,12 @@ declare global {
 /**
  * Loads the official Bachs Overlay Checkout SDK script if not already present.
  */
-export function loadBachsScript(): Promise<boolean> {
+export function loadBachsScript(isSandbox: boolean = false): Promise<boolean> {
   return new Promise((resolve) => {
+    const scriptSrc = isSandbox
+      ? "https://sandbox-checkout.bachs.io/bachs.js"
+      : "https://checkout.bachs.io/bachs.js";
+
     if (window.Bachs && window.Bachs.Checkout) {
       resolve(true);
       return;
@@ -136,7 +140,7 @@ export function loadBachsScript(): Promise<boolean> {
       return;
     }
     const script = document.createElement("script");
-    script.src = "https://checkout.bachs.io/bachs.js";
+    script.src = scriptSrc;
     script.async = true;
     script.onload = () => resolve(true);
     script.onerror = () => resolve(false);
@@ -279,47 +283,69 @@ export interface PayWithBachsParams extends BachsCheckoutSessionParams {
  */
 export async function payWithBachs(params: PayWithBachsParams): Promise<void> {
   try {
-    // 1. Create the Bachs checkout session
+    // 1. Create the checkout session
     const session = await createBachsCheckoutSession(params);
 
-    // 2. Load the Bachs Overlay SDK
-    const scriptLoaded = await loadBachsScript();
+    const isSandbox = session.checkout_url.includes("sandbox-checkout.bachs.io");
+    const checkoutOrigin = isSandbox
+      ? "https://sandbox-checkout.bachs.io"
+      : "https://checkout.bachs.io";
+
+    // 2. Load the Overlay SDK matching the environment
+    const scriptLoaded = await loadBachsScript(isSandbox);
 
     if (scriptLoaded && window.Bachs && window.Bachs.Checkout) {
       let isCompleted = false;
 
-      // Open Bachs Modal Overlay directly on page
-      await window.Bachs.Checkout.open({
-        checkoutUrl: session.checkout_url,
-        onEvent: (event) => {
-          if (event.type === "checkout.completed") {
-            isCompleted = true;
-            params.onSuccess({
-              reference: event.data?.reference || session.reference,
-              status: event.data?.status || "completed",
-              checkoutId: session.checkout_id,
-            });
-            try {
-              window.Bachs?.Checkout.close();
-            } catch {}
-          } else if (event.type === "checkout.closed") {
-            if (!isCompleted && params.onClose) {
-              params.onClose();
-            }
-          } else if (event.type === "checkout.failed") {
-            if (params.onError) {
-              params.onError(new Error(event.data?.message || "Payment transaction was not completed."));
-            }
-          }
-        },
-      });
-    } else {
-      // Graceful fallback: Open the Bachs checkout URL in a dedicated secure tab
-      const checkoutWindow = window.open(session.checkout_url, "_blank", "width=600,height=750");
-      if (!checkoutWindow) {
-        window.location.href = session.checkout_url;
-        return;
+      // Initialize with the exact environment baseUrl so Bachs doesn't reject sandbox URLs
+      if (typeof window.Bachs.Initialize === "function") {
+        try {
+          window.Bachs.Initialize({
+            baseUrl: checkoutOrigin,
+          });
+        } catch (initErr) {
+          console.warn("Bachs.Initialize warning:", initErr);
+        }
       }
+
+      // Open Modal Overlay directly on page
+      try {
+        await window.Bachs.Checkout.open({
+          checkoutUrl: session.checkout_url,
+          onEvent: (event) => {
+            if (event.type === "checkout.completed") {
+              isCompleted = true;
+              params.onSuccess({
+                reference: event.data?.reference || session.reference,
+                status: event.data?.status || "completed",
+                checkoutId: session.checkout_id,
+              });
+              try {
+                window.Bachs?.Checkout.close();
+              } catch {}
+            } else if (event.type === "checkout.closed") {
+              if (!isCompleted && params.onClose) {
+                params.onClose();
+              }
+            } else if (event.type === "checkout.failed") {
+              if (params.onError) {
+                params.onError(new Error(event.data?.message || "Payment transaction was not completed."));
+              }
+            }
+          },
+        });
+        return;
+      } catch (overlayErr: any) {
+        console.warn("Overlay failed to mount, falling back to secure checkout tab:", overlayErr);
+      }
+    }
+
+    // Graceful fallback: Open the checkout URL in a dedicated secure tab
+    const checkoutWindow = window.open(session.checkout_url, "_blank", "width=600,height=750");
+    if (!checkoutWindow) {
+      window.location.href = session.checkout_url;
+      return;
+    }
 
       // Check if user finishes or closes the window
       const checkTimer = setInterval(() => {
@@ -336,7 +362,6 @@ export async function payWithBachs(params: PayWithBachsParams): Promise<void> {
           }
         }
       }, 1500);
-    }
   } catch (err: any) {
     if (params.onError) {
       params.onError(err);
