@@ -1210,12 +1210,12 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>{paymentMethod === "card" ? "Processing Checkout..." : "Processing Order..."}</span>
+                      <span>Processing Secure Order...</span>
                     </>
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      <span>{paymentMethod === "card" ? "Complete Secure Purchase & Download" : "Confirm Direct Bank Transfer"}</span>
+                      <span>{paymentMethod === "transfer" ? "Confirm Direct Bank Transfer" : "Complete Secure Purchase & Download"}</span>
                     </>
                   )}
                 </button>

@@ -389,23 +389,14 @@ export default function CheckoutPage({ id }: { id: string }) {
             {/* Fields */}
             <div className="mt-7 space-y-5">
               {!isMentorship && method === "card" && (
-                <div className="rounded-2xl border border-line bg-gradient-to-br from-cream via-white to-amber-50/40 p-5 text-center">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shadow-sm">
-                    <CreditCard className="h-6 w-6" />
+                <>
+                  <Field label="Cardholder name" ph="Jane Doe" />
+                  <Field label="Card number" ph="4242 4242 4242 4242" inputMode="numeric" />
+                  <div className="grid grid-cols-2 gap-4 sm:gap-5">
+                    <Field label="Expiry" ph="MM / YY" />
+                    <Field label="CVV" ph="123" inputMode="numeric" />
                   </div>
-                  <h3 className="mt-3 font-display text-base font-bold text-ink">Secure Card & Digital Checkout</h3>
-                  <p className="mt-1 text-xs text-muted max-w-sm mx-auto">
-                    Click <strong>Pay {naira(total)}</strong> below to complete your payment securely with Visa, Mastercard, Verve, USSD, or direct bank transfer.
-                  </p>
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                      <ShieldCheck className="h-3.5 w-3.5" /> 256-bit Bank-grade Encryption
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-800 border border-amber-200">
-                      Instant Enrolment
-                    </span>
-                  </div>
-                </div>
+                </>
               )}
 
               {(method === "transfer" || isMentorship) && (
@@ -460,13 +451,13 @@ export default function CheckoutPage({ id }: { id: string }) {
 
             <button type="submit" disabled={processing} className="btn-primary mt-8 w-full disabled:cursor-not-allowed disabled:opacity-70">
               {processing ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> {method === "card" ? "Processing Checkout…" : "Verifying Transfer…"}</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Verifying Transfer…</>
               ) : (
                 <><Lock className="h-4 w-4" /> {isMentorship ? "Complete Transfer Enrolment" : `Pay ${naira(total)}`}</>
               )}
             </button>
             <p className="mt-3 text-center text-xs text-muted">
-              🔒 256-bit SSL encrypted payment · Instant automated activation
+              This is a demo checkout — no real payment is taken.
             </p>
           </form>
 
