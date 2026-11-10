@@ -737,7 +737,7 @@ export type Payment = {
   vat: number;
   discount: number;
   amount: number;
-  method: "card" | "transfer" | "ussd" | "manual";
+  method: "card" | "transfer" | "crypto" | "ussd" | "manual";
   coupon?: string;
   status: "paid" | "pending" | "refunded" | "failed";
   createdAt: string;

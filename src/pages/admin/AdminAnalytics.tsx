@@ -58,10 +58,11 @@ export function AdminAnalytics() {
 
   // Revenue by Payment Method
   const methodBreakdown = useMemo(() => {
-    const map: Record<string, number> = { card: 0, transfer: 0, ussd: 0 };
+    const map: Record<string, number> = { card: 0, transfer: 0, crypto: 0 };
     filteredPayments.forEach((p: Payment) => {
       if (p.status === "paid") {
-        map[p.method] = (map[p.method] || 0) + p.amount;
+        const key = p.method === "ussd" ? "crypto" : p.method;
+        map[key] = (map[key] || 0) + p.amount;
       }
     });
     return map;
@@ -180,7 +181,7 @@ export function AdminAnalytics() {
               <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-brand" /> Revenue by Payment Method
               </h2>
-              <p className="text-xs text-muted">Distribution of sales across Card, Bank Transfer, and USSD.</p>
+              <p className="text-xs text-muted">Distribution of sales across Card, Bank Transfer, and Crypto.</p>
             </div>
             <Badge tone="green">Real-time</Badge>
           </div>
@@ -189,7 +190,7 @@ export function AdminAnalytics() {
             {[
               { label: "Debit / Credit Card", method: "card", color: "bg-brand", amount: methodBreakdown.card },
               { label: "Bank Transfer", method: "transfer", color: "bg-blue-600", amount: methodBreakdown.transfer },
-              { label: "USSD Code", method: "ussd", color: "bg-amber-500", amount: methodBreakdown.ussd },
+              { label: "Crypto (USDT / BTC)", method: "crypto", color: "bg-amber-500", amount: methodBreakdown.crypto },
             ].map((item) => {
               const pct = totalRevenue ? Math.round((item.amount / totalRevenue) * 100) : 0;
               return (

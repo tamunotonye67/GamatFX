@@ -4,14 +4,14 @@ import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import Logo from "../components/Logo";
 import {
-  ArrowLeft, Lock, CreditCard, Building2, Smartphone, CheckCircle2,
+  ArrowLeft, Lock, CreditCard, Building2, Coins, CheckCircle2,
   ShieldCheck, ArrowUpRight, Loader2, Tag, Video, MessagesSquare, Send, MessageSquare, Check,
 } from "lucide-react";
 import { payWithPaystack, generateTxRef } from "../lib/paystack";
 import { payWithBachs, getBachsConfig } from "../lib/bachs";
 import { getActiveReferralCode } from "../lib/affiliate";
 
-type Method = "card" | "transfer" | "ussd";
+type Method = "card" | "transfer" | "crypto";
 
 export default function CheckoutPage({ id }: { id: string }) {
   const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon } = useStore();
@@ -19,6 +19,7 @@ export default function CheckoutPage({ id }: { id: string }) {
   const managed = managedCourses.find((c) => c.id === id && c.published);
   const course = builtIn ?? (managed ? asCourse(managed) : undefined);
   const isMentorship = course?.tag === "Mentorship" || course?.id.startsWith("mentorship-");
+  const [selectedMethod, setSelectedMethod] = useState<Method>("card");
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
   const [coupon, setCoupon] = useState("");
@@ -157,7 +158,7 @@ export default function CheckoutPage({ id }: { id: string }) {
         vat: finalVat,
         discount: finalDiscountAmt,
         amount: finalTotal,
-        method: "card",
+        method: selectedMethod,
         coupon: activeDiscount && activeCode ? activeCode : undefined,
       });
       try {
@@ -349,109 +350,120 @@ export default function CheckoutPage({ id }: { id: string }) {
 
         <div className="mt-5 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-[1.3fr_1fr]">
           {/* Payment form */}
-          <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+          <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-6 sm:p-9 shadow-[0_20px_50px_-30px_rgba(22,24,28,0.25)]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h1 className="font-display text-xl sm:text-2xl font-extrabold text-ink">Enrollment overview</h1>
-                <p className="mt-1 text-xs sm:text-sm text-muted">Review your student details before proceeding to payment.</p>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-brand">Secure Checkout</span>
+                <h1 className="mt-1 font-display text-2xl font-extrabold text-ink sm:text-3xl">
+                  Complete Enrollment
+                </h1>
               </div>
-              <span className="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
-                <Check className="h-3.5 w-3.5" /> Verified Account
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Verified Student
               </span>
             </div>
 
-            {/* Student Account Summary */}
-            <div className="mt-5 rounded-2xl border border-line bg-cream/70 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Student Account</p>
-                <span className="text-xs font-bold text-brand">
-                  {isMentorship ? "Live Mentorship Access" : "Immediate Lifetime Access"}
-                </span>
-              </div>
-              <div className="mt-2.5 grid gap-3 sm:grid-cols-2 text-xs">
-                <div>
-                  <span className="text-muted block text-[11px]">Full Name</span>
-                  <span className="font-bold text-ink text-sm">{user?.firstName} {user?.lastName}</span>
+            <p className="mt-2 text-xs text-muted sm:text-sm">
+              Signed in as <strong className="text-ink font-semibold">{user?.firstName} {user?.lastName}</strong> ({user?.email})
+            </p>
+
+            {/* Course Access Badge */}
+            <div className="mt-6 flex items-center justify-between rounded-2xl border border-line bg-cream px-4 py-3.5 text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand shrink-0">
+                  <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="text-muted block text-[11px]">Enrolled Email</span>
-                  <span className="font-bold text-ink text-sm break-all">{user?.email}</span>
+                  <p className="font-bold text-ink">
+                    {isMentorship ? "VIP Live Mentorship Access" : "Full Lifetime Course Access"}
+                  </p>
+                  <p className="text-[11px] text-muted">Immediate curriculum access & certificate</p>
                 </div>
               </div>
+              <span className="rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-bold text-brand">
+                Lifetime
+              </span>
             </div>
 
-            {/* Supported Payment Channels */}
-            <div className="mt-5">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Payment Channels Available</p>
-                <span className="text-[11px] font-medium text-emerald-700 flex items-center gap-1">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Bank-grade security
-                </span>
+            {/* Payment Method Selector */}
+            <div className="mt-7">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted">
+                Select Payment Method
+              </label>
+
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("card")}
+                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
+                    selectedMethod === "card"
+                      ? "border-brand bg-brand-light/30 shadow-sm ring-1 ring-brand"
+                      : "border-line bg-white hover:border-brand/40 hover:bg-cream/40"
+                  }`}
+                >
+                  <CreditCard className={`h-6 w-6 transition ${selectedMethod === "card" ? "text-brand" : "text-muted group-hover:text-ink"}`} />
+                  <span className={`mt-2 text-xs font-bold ${selectedMethod === "card" ? "text-brand" : "text-ink"}`}>Card</span>
+                  <span className="text-[10px] text-muted">Visa, Mastercard</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("transfer")}
+                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
+                    selectedMethod === "transfer"
+                      ? "border-brand bg-brand-light/30 shadow-sm ring-1 ring-brand"
+                      : "border-line bg-white hover:border-brand/40 hover:bg-cream/40"
+                  }`}
+                >
+                  <Building2 className={`h-6 w-6 transition ${selectedMethod === "transfer" ? "text-brand" : "text-muted group-hover:text-ink"}`} />
+                  <span className={`mt-2 text-xs font-bold ${selectedMethod === "transfer" ? "text-brand" : "text-ink"}`}>Transfer</span>
+                  <span className="text-[10px] text-muted">Bank Transfer</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("crypto")}
+                  className={`group relative flex flex-col items-center justify-center rounded-2xl border p-4 text-center transition-all ${
+                    selectedMethod === "crypto"
+                      ? "border-brand bg-brand-light/30 shadow-sm ring-1 ring-brand"
+                      : "border-line bg-white hover:border-brand/40 hover:bg-cream/40"
+                  }`}
+                >
+                  <Coins className={`h-6 w-6 transition ${selectedMethod === "crypto" ? "text-amber-500" : "text-muted group-hover:text-amber-500"}`} />
+                  <span className={`mt-2 text-xs font-bold ${selectedMethod === "crypto" ? "text-brand" : "text-ink"}`}>Crypto</span>
+                  <span className="text-[10px] text-muted">USDT / BTC</span>
+                </button>
               </div>
 
-              <div className="mt-2.5 grid gap-2.5 sm:grid-cols-3">
-                <div className="rounded-xl border border-line bg-white p-3 text-left">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                    <CreditCard className="h-4 w-4" />
-                  </div>
-                  <p className="mt-2 text-xs font-bold text-ink">Debit / Credit Card</p>
-                  <p className="text-[10px] text-muted">Visa, Mastercard, Verve</p>
-                </div>
-
-                <div className="rounded-xl border border-line bg-white p-3 text-left">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                    <Building2 className="h-4 w-4" />
-                  </div>
-                  <p className="mt-2 text-xs font-bold text-ink">Bank Transfer</p>
-                  <p className="text-[10px] text-muted">Direct transfer verification</p>
-                </div>
-
-                <div className="rounded-xl border border-line bg-white p-3 text-left">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                    <Smartphone className="h-4 w-4" />
-                  </div>
-                  <p className="mt-2 text-xs font-bold text-ink">USSD & Mobile</p>
-                  <p className="text-[10px] text-muted">Instant bank dial codes</p>
-                </div>
-              </div>
-
-              <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-xs text-slate-700 flex items-start gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] leading-relaxed text-slate-600">
-                  Clicking <strong>Pay {naira(total)}</strong> opens the secure gateway popup where you can choose Card, Bank Transfer, or USSD to complete your enrollment.
-                </p>
-              </div>
-            </div>
-
-            {/* Security Guarantee Strip */}
-            <div className="mt-4 rounded-xl border border-line/70 bg-cream/50 p-2.5">
-              <div className="grid grid-cols-3 gap-1 text-center">
-                <div>
-                  <p className="text-[11px] font-bold text-ink">256-Bit SSL</p>
-                  <p className="text-[10px] text-muted">Bank encryption</p>
-                </div>
-                <div className="border-x border-line/70">
-                  <p className="text-[11px] font-bold text-ink">Instant Access</p>
-                  <p className="text-[10px] text-muted">Instant enrollment</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-bold text-ink">Official Receipt</p>
-                  <p className="text-[10px] text-muted">Sent to email</p>
-                </div>
-              </div>
+              <p className="mt-3 text-center text-xs text-muted">
+                {selectedMethod === "card" && "Pay instantly with your Debit or Credit Card."}
+                {selectedMethod === "transfer" && "Receive an instant dedicated bank account to transfer."}
+                {selectedMethod === "crypto" && "Pay with USDT, Bitcoin, or other supported cryptocurrencies."}
+              </p>
             </div>
 
             {/* Pay Button */}
-            <button type="submit" disabled={processing} className="btn-primary mt-6 w-full !py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-70 shadow-lg shadow-brand/20">
+            <button
+              type="submit"
+              disabled={processing}
+              className="btn-primary mt-7 w-full !py-4 text-base font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70"
+            >
               {processing ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Launching Secure Checkout…</>
+                <><Loader2 className="h-5 w-5 animate-spin" /> Launching Secure Checkout…</>
               ) : (
                 <><Lock className="h-4 w-4" /> Pay {naira(total)}</>
               )}
             </button>
-            <p className="mt-2.5 text-center text-[11px] text-muted">
-              🔒 100% Secure Checkout · Instant automated course activation.
-            </p>
+
+            {/* Trust Footer */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-6 border-t border-line/60 pt-4 text-[11px] text-muted">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" /> 256-Bit SSL Secured
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-brand" /> Instant Automated Activation
+              </span>
+            </div>
           </form>
 
           {/* Summary */}
