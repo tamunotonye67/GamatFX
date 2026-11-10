@@ -6,7 +6,7 @@ import { naira, compactNaira } from "../../lib/courses";
 import Logo from "../../components/Logo";
 import {
   Receipt, Download, Printer, Plus, FileText, CheckCircle2, ShieldCheck,
-  Image, AlertTriangle, Wallet, Upload, X
+  Image, AlertTriangle, Wallet, Upload, X, RotateCcw
 } from "lucide-react";
 import { uploadCompanyAsset } from "../../lib/supabaseStorage";
 
@@ -792,11 +792,12 @@ const METHOD_LABEL: Record<string, string> = {
   crypto: "Crypto · Bachs",
 };
 
-function BillingDocument({ kind, payment: p, onClose, onPrint }: {
+export function BillingDocument({ kind, payment: p, onClose, onPrint, onRefund }: {
   kind: "invoice" | "receipt";
   payment: Payment;
   onClose: () => void;
-  onPrint: () => void;
+  onPrint?: () => void;
+  onRefund?: () => void;
 }) {
   const isReceipt = kind === "receipt";
   const docNo = `${isReceipt ? "REC" : "INV"}-${p.ref}`;
@@ -805,6 +806,8 @@ function BillingDocument({ kind, payment: p, onClose, onPrint }: {
   const statusTone =
     p.status === "paid"
       ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15"
+      : p.status === "refunded"
+      ? "bg-amber-50 text-amber-700 ring-amber-600/15"
       : p.status === "pending"
       ? "bg-amber-50 text-amber-700 ring-amber-600/15"
       : "bg-line/70 text-muted ring-ink/10";
@@ -845,6 +848,7 @@ function BillingDocument({ kind, payment: p, onClose, onPrint }: {
             <div className="mt-3 flex items-center justify-center gap-2 text-[11px]">
               <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-bold uppercase tracking-wide ring-1 ${statusTone}`}>
                 {p.status === "paid" && <CheckCircle2 className="h-3 w-3" />}
+                {p.status === "refunded" && <RotateCcw className="h-3 w-3" />}
                 {p.status}
               </span>
               <span className="text-muted">{fmtDate(p.createdAt)}</span>
@@ -901,13 +905,29 @@ function BillingDocument({ kind, payment: p, onClose, onPrint }: {
         </div>
 
         {/* Actions */}
-        <div className="mt-4 flex gap-3">
-          <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5">
-            <X className="h-4 w-4" /> Close
-          </button>
-          <button type="button" onClick={onPrint} className="btn-primary flex-1">
-            <Printer className="h-4 w-4" /> {isReceipt ? "Print receipt" : "Print invoice"}
-          </button>
+        <div className="mt-4 space-y-2">
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5">
+              <X className="h-4 w-4" /> Close
+            </button>
+            <button type="button" onClick={onPrint ?? (() => window.print())} className="btn-primary flex-1">
+              <Printer className="h-4 w-4" /> {isReceipt ? "Print receipt" : "Print invoice"}
+            </button>
+          </div>
+          {onRefund && p.status === "paid" && (
+            <button
+              type="button"
+              onClick={onRefund}
+              className="btn-primary w-full !bg-amber-500 hover:!bg-amber-600 flex items-center justify-center gap-2 text-xs font-bold"
+            >
+              <RotateCcw className="h-4 w-4" /> Mark as manually refunded
+            </button>
+          )}
+          {p.status === "refunded" && (
+            <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-center text-xs font-semibold text-amber-300">
+              This payment is marked as manually refunded.
+            </p>
+          )}
         </div>
       </div>
     </div>

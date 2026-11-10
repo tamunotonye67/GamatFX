@@ -3,6 +3,7 @@ import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Emp
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type EventItem, type Payment } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
+import { BillingDocument } from "./AdminInvoicesAndAssets";
 import {
   Wallet, CreditCard, RotateCcw, Trash2, Download, Plus, Pencil, Ticket,
   CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Database, Eye,
@@ -174,51 +175,25 @@ export function AdminPayments() {
         ) : <Empty icon={CreditCard} title="No transactions" body="Payments will appear here as students enroll in courses." />}
       </Card>
 
-      <Modal open={!!view} onClose={() => setView(null)} title="Transaction receipt">
-        {view && (
-          <div className="space-y-4 text-sm">
-            <div className="rounded-2xl bg-cream p-5 text-center">
-              <p className="text-xs uppercase tracking-wide text-muted">Amount paid</p>
-              <p className="mt-1 font-display text-3xl font-extrabold text-brand">{naira(view.amount)}</p>
-              <Badge tone={view.status === "paid" ? "green" : "amber"}>{view.status}</Badge>
-            </div>
-            {[
-              ["Reference", view.ref], ["Student", view.userName], ["Email", view.userEmail],
-              ["Course", view.courseTitle], ["Subtotal", naira(view.subtotal)],
-              ["Discount", view.discount ? `− ${naira(view.discount)}` : "—"],
-              ["VAT", naira(view.vat)], ["Coupon", view.coupon || "—"],
-              ["Method", view.method], ["Date", new Date(view.createdAt).toLocaleString()],
-            ].map(([l, v]) => (
-              <div key={l} className="flex justify-between border-b border-line pb-2">
-                <span className="text-muted">{l}</span><span className="font-semibold text-ink">{v}</span>
-              </div>
-            ))}
-
-            {view.status === "paid" && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm(
-                    `Mark ${naira(view.amount)} for ${view.userName} as MANUALLY REFUNDED?\n\n` +
-                    `Process the real payout outside this app first, then confirm.`
-                  )) {
-                    admin.setPaymentStatus(view.id, "refunded");
-                    setView({ ...view, status: "refunded" });
-                  }
-                }}
-                className="btn-primary w-full !bg-amber-500 hover:!bg-amber-600"
-              >
-                <RotateCcw className="h-4 w-4" /> Mark as manually refunded
-              </button>
-            )}
-            {view.status === "refunded" && (
-              <p className="rounded-xl bg-amber-50 px-4 py-3 text-center text-xs font-semibold text-amber-800">
-                This payment is marked as manually refunded. No automatic payout was sent from the app.
-              </p>
-            )}
-          </div>
-        )}
-      </Modal>
+      {view && (
+        <BillingDocument
+          kind="receipt"
+          payment={view}
+          onClose={() => setView(null)}
+          onPrint={() => window.print()}
+          onRefund={() => {
+            if (
+              confirm(
+                `Mark ${naira(view.amount)} for ${view.userName} as MANUALLY REFUNDED?\n\n` +
+                `Process the real payout outside this app first, then confirm.`
+              )
+            ) {
+              admin.setPaymentStatus(view.id, "refunded");
+              setView({ ...view, status: "refunded" });
+            }
+          }}
+        />
+      )}
     </AdminShell>
   );
 }
