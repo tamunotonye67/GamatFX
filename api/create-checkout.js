@@ -25,10 +25,11 @@ export default async function handler(req, res) {
     const apiKey = (
       process.env.BACHS_API_KEY ||
       process.env.VITE_BACHS_API_KEY ||
-      "sk_sandbox_9f8fb85e_zfe4AAk2KQqAPiqlB8gA6d4vNua8k5ATdaBRsdBfkEw"
-    ).trim();
+      ""
+    ).trim() || "sk_sandbox_9f8fb85e_zfe4AAk2KQqAPiqlB8gA6d4vNua8k5ATdaBRsdBfkEw";
 
-    const baseUrl = apiKey.startsWith("sk_live_")
+    const isLive = apiKey.startsWith("sk_live_");
+    const baseUrl = isLive
       ? "https://api.bachs.io/v1"
       : "https://sandbox-api.bachs.io/v1";
 
