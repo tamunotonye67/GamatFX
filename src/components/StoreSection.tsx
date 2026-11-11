@@ -3,10 +3,6 @@ import { navigate } from "../lib/router";
 import {
   BookOpen,
   ArrowRight,
-  Bot,
-  LineChart,
-  Calculator,
-  Target,
   Sparkles,
   ShieldCheck,
   CheckCircle2,
@@ -14,16 +10,13 @@ import {
   X,
   Star,
   Layers,
-  ChevronRight,
   ExternalLink,
-  Package,
 } from "lucide-react";
 
 export default function StoreSection() {
   const [isHovered, setIsHovered] = useState(false);
   const [rotate, setRotate] = useState({ x: 8, y: -18 });
   const [showBookModal, setShowBookModal] = useState(false);
-  const [showToolsModal, setShowToolsModal] = useState(false);
   const bookRef = useRef<HTMLDivElement>(null);
 
   // Smooth mouse tilt tracking on the 3D book
@@ -270,68 +263,6 @@ export default function StoreSection() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
-
-              {/* COMPANION TRADING TOOLS GATEWAY (Access tools without crowding the homepage) */}
-              <div className="mt-10 pt-8 border-t border-white/10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-brand animate-pulse" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                      Companion Trading Tools &amp; Software
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowToolsModal(true)}
-                    className="text-xs font-semibold text-rose-300 hover:text-white transition flex items-center gap-1 cursor-pointer"
-                  >
-                    Quick Preview <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => navigate("/store/bots")}
-                    className="group flex flex-col items-start p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-brand/40 transition text-left cursor-pointer"
-                  >
-                    <Bot className="h-4 w-4 text-brand mb-1.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold text-white group-hover:text-rose-200 transition">AI Bots &amp; EAs</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">MT4 / MT5 Scalpers</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/store/indicators")}
-                    className="group flex flex-col items-start p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-brand/40 transition text-left cursor-pointer"
-                  >
-                    <LineChart className="h-4 w-4 text-sky-400 mb-1.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold text-white group-hover:text-sky-200 transition">SMC Indicators</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">TradingView &amp; MT5</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/store/calculators")}
-                    className="group flex flex-col items-start p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-brand/40 transition text-left cursor-pointer"
-                  >
-                    <Calculator className="h-4 w-4 text-amber-400 mb-1.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold text-white group-hover:text-amber-200 transition">Calculators</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Prop Firm Runway</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/store/strategy")}
-                    className="group flex flex-col items-start p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-brand/40 transition text-left cursor-pointer"
-                  >
-                    <Target className="h-4 w-4 text-emerald-400 mb-1.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold text-white group-hover:text-emerald-200 transition">Blueprints</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Execution Models</span>
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -417,122 +348,6 @@ export default function StoreSection() {
                   <span>Get Playbook on Store</span>
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 2: Quick Preview of Tools Suite without crowding the homepage */}
-      {showToolsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900 p-6 sm:p-8 text-white shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button
-              type="button"
-              onClick={() => setShowToolsModal(false)}
-              className="absolute top-5 right-5 rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="flex items-center gap-2 text-rose-300 text-xs font-bold uppercase tracking-wider">
-              <Package className="h-4 w-4 text-brand" />
-              <span>GAMAT Technical Tools Lab</span>
-            </div>
-
-            <h3 className="mt-2 font-display text-2xl font-black text-white">
-              Institutional Companion Tools Suite
-            </h3>
-            <p className="mt-1 text-xs text-slate-300">
-              Access algorithmic expert advisors, custom TradingView indicators, and prop firm risk models.
-            </p>
-
-            <div className="mt-6 space-y-3.5 border-t border-white/10 pt-5">
-              {/* Tool 1 */}
-              <div
-                onClick={() => {
-                  setShowToolsModal(false);
-                  navigate("/store/bots");
-                }}
-                className="group p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-brand/40 transition cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/20 text-brand">
-                    <Bot className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white group-hover:text-rose-200 transition">
-                      GAMAT Apex Trend Scalper EA (MT4 / MT5)
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Fully automated session expansion algorithm with hard-coded prop firm drawdown protection.
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:translate-x-1 group-hover:text-white transition shrink-0 ml-3" />
-              </div>
-
-              {/* Tool 2 */}
-              <div
-                onClick={() => {
-                  setShowToolsModal(false);
-                  navigate("/store/indicators");
-                }}
-                className="group p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-sky-400/40 transition cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                    <LineChart className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white group-hover:text-sky-200 transition">
-                      Smart Money FVG &amp; Order Block Radar Suite
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      TradingView invite script &amp; MT5 indicator highlighting institutional displacement &amp; zones in real time.
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:translate-x-1 group-hover:text-white transition shrink-0 ml-3" />
-              </div>
-
-              {/* Tool 3 */}
-              <div
-                onClick={() => {
-                  setShowToolsModal(false);
-                  navigate("/store/calculators");
-                }}
-                className="group p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-amber-400/40 transition cursor-pointer flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-                    <Calculator className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white group-hover:text-amber-200 transition">
-                      Prop Firm Passing Blueprint &amp; Risk Calculator
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Interactive runway sheets with mathematical drawdown insulation rules for FTMO, FundedNext &amp; 5%ers.
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:translate-x-1 group-hover:text-white transition shrink-0 ml-3" />
-              </div>
-            </div>
-
-            <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowToolsModal(false);
-                  navigate("/store");
-                }}
-                className="w-full sm:w-auto rounded-xl bg-slate-800 px-6 py-3 text-xs font-bold text-white hover:bg-slate-700 transition cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>Browse Complete Store Catalog</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
             </div>
           </div>
         </div>
