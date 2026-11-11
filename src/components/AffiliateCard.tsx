@@ -125,36 +125,33 @@ export default function AffiliateCard({
             <Share2 className="h-4 w-4 text-brand" />
             <span>Enrollment Proof Share Card</span>
           </div>
-          <span className="text-[11px] text-muted font-medium">Ready to post</span>
-        </div>
 
-        {/* Card Style Selector Tabs */}
-        <div className="flex items-center justify-between p-1.5 rounded-2xl bg-slate-100 border border-line">
-          <span className="text-[11px] font-bold text-muted ml-2">Card Style:</span>
-          <div className="flex items-center gap-1">
+          {/* Compact Theme Toggle Button */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCardTheme("red")}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer ${
-                cardTheme === "red"
-                  ? "bg-brand text-white shadow-xs"
-                  : "text-muted hover:text-ink hover:bg-white"
-              }`}
+              role="switch"
+              aria-checked={cardTheme === "dark"}
+              aria-label="Toggle card color theme"
+              onClick={() => setCardTheme(cardTheme === "red" ? "dark" : "red")}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-line bg-white shadow-xs hover:border-slate-300 transition cursor-pointer"
+              title={cardTheme === "red" ? "Switch to Dark" : "Switch to Red"}
             >
-              <span className="h-2.5 w-2.5 rounded-full bg-white shrink-0" />
-              <span>GAMAT Red (Default)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setCardTheme("dark")}
-              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer ${
-                cardTheme === "dark"
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "text-muted hover:text-ink hover:bg-white"
-              }`}
-            >
-              <span className="h-2.5 w-2.5 rounded-full bg-sky-400 shrink-0" />
-              <span>Obsidian Dark</span>
+              <span
+                className="relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out"
+                style={{
+                  backgroundColor: cardTheme === "red" ? "#dc3545" : "#0f172a",
+                }}
+              >
+                <span
+                  className={`pointer-events-none inline-flex h-3.5 w-3.5 transform items-center justify-center rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${
+                    cardTheme === "dark" ? "translate-x-3.5" : "translate-x-0"
+                  }`}
+                />
+              </span>
+              <span className="text-[11px] font-bold text-ink capitalize">
+                {cardTheme}
+              </span>
             </button>
           </div>
         </div>
@@ -531,19 +528,20 @@ export default function AffiliateCard({
             </div>
           </div>
 
-          {/* 1-Click Social Buttons */}
+          {/* 1-Click Social Circular Buttons */}
           <div>
-            <p className="text-xs font-bold text-ink mb-2">1-Click Share to Channels:</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <p className="text-xs font-bold text-ink mb-2.5">Share Directly to Channels:</p>
+            <div className="flex items-center gap-3">
               {/* WhatsApp */}
               <a
                 href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition shadow-sm"
+                title="Share on WhatsApp"
+                aria-label="Share on WhatsApp"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
               >
-                <MessageCircle className="h-4 w-4" />
-                <span>WhatsApp</span>
+                <MessageCircle className="h-5 w-5 stroke-[2.2]" />
               </a>
 
               {/* Telegram */}
@@ -551,10 +549,11 @@ export default function AffiliateCard({
                 href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#229ED9] px-3 py-2.5 text-xs font-bold text-white hover:opacity-95 transition shadow-sm"
+                title="Share on Telegram"
+                aria-label="Share on Telegram"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#229ED9] text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
               >
-                <Send className="h-4 w-4" />
-                <span>Telegram</span>
+                <Send className="h-4.5 w-4.5 stroke-[2.2] -translate-x-0.5 -translate-y-0.5" />
               </a>
 
               {/* X / Twitter */}
@@ -562,10 +561,11 @@ export default function AffiliateCard({
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-xl bg-black px-3 py-2.5 text-xs font-bold text-white hover:bg-slate-900 transition shadow-sm"
+                title="Share on X (Twitter)"
+                aria-label="Share on X"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
               >
-                <XIcon className="h-4 w-4" />
-                <span>X (Twitter)</span>
+                <XIcon className="h-4.5 w-4.5" />
               </a>
 
               {/* Facebook */}
@@ -573,10 +573,11 @@ export default function AffiliateCard({
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#1877F2] px-3 py-2.5 text-xs font-bold text-white hover:opacity-95 transition shadow-sm"
+                title="Share on Facebook"
+                aria-label="Share on Facebook"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
               >
-                <FacebookIcon className="h-4 w-4" />
-                <span>Facebook</span>
+                <FacebookIcon className="h-4.5 w-4.5" />
               </a>
             </div>
           </div>
