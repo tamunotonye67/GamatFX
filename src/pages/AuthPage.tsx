@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
-import { useStore } from "../lib/store";
+import { useStore, storeCredential } from "../lib/store";
+import { supabase } from "../lib/supabase";
 import { signInWithGoogleSupabase, resetPasswordForEmailSupabase, updatePasswordSupabase } from "../lib/supabaseAuth";
 import { getActiveReferralCode } from "../lib/affiliate";
 import {
@@ -805,8 +806,90 @@ export function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function recoverSession() {
+      try {
+        // 1. Direct check: Is a session already active in Supabase?
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        if (existingSession && mounted) {
+          setHasSession(true);
+          setSessionChecking(false);
+          return;
+        }
+
+        // 2. Extract tokens from URL hash (implicit flow / recovery link)
+        const hash = window.location.hash || "";
+        const tokenMatch = hash.match(/access_token=([^&]+)/);
+        const refreshMatch = hash.match(/refresh_token=([^&]+)/);
+        if (tokenMatch && refreshMatch) {
+          const accessToken = decodeURIComponent(tokenMatch[1]);
+          const refreshToken = decodeURIComponent(refreshMatch[1]);
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!error && data.session && mounted) {
+            setHasSession(true);
+            setSessionChecking(false);
+            return;
+          }
+        }
+
+        // 3. Extract authorization code from URL query params (PKCE flow)
+        const search = window.location.search || "";
+        const codeMatch = search.match(/code=([^&]+)/);
+        if (codeMatch) {
+          const authCode = decodeURIComponent(codeMatch[1]);
+          const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+          if (!error && data.session && mounted) {
+            setHasSession(true);
+            setSessionChecking(false);
+            return;
+          }
+        }
+
+        // 4. Listen for auth state change event (e.g. PASSWORD_RECOVERY or SIGNED_IN)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session && mounted) {
+            setHasSession(true);
+            setSessionChecking(false);
+          }
+        });
+
+        // 5. Short fallback before deciding whether a session exists
+        setTimeout(async () => {
+          if (!mounted) return;
+          const { data: { session } } = await supabase.auth.getSession();
+          if (mounted) {
+            setHasSession(Boolean(session));
+            setSessionChecking(false);
+          }
+        }, 1200);
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (err) {
+        console.warn("Password reset session recovery:", err);
+        if (mounted) {
+          setSessionChecking(false);
+        }
+      }
+    }
+
+    recoverSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -818,14 +901,37 @@ export function ResetPasswordPage() {
       setError("Passwords do not match. Please re-enter.");
       return;
     }
+
     setLoading(true);
     setError(null);
+
+    // Double check active session
+    let { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      const hash = window.location.hash || "";
+      const tokenMatch = hash.match(/access_token=([^&]+)/);
+      const refreshMatch = hash.match(/refresh_token=([^&]+)/);
+      if (tokenMatch && refreshMatch) {
+        const { data } = await supabase.auth.setSession({
+          access_token: decodeURIComponent(tokenMatch[1]),
+          refresh_token: decodeURIComponent(refreshMatch[1]),
+        });
+        session = data.session;
+      }
+    }
+
     const res = await updatePasswordSupabase(password);
     setLoading(false);
+
     if (!res.ok) {
       setError(res.error || "Failed to update password.");
       return;
     }
+
+    if (session?.user?.email) {
+      storeCredential(session.user.email, password);
+    }
+
     setSuccess(true);
   };
 
@@ -845,6 +951,28 @@ export function ResetPasswordPage() {
               className="btn-primary mt-8 w-full"
             >
               Log In Now
+            </button>
+          </div>
+        ) : sessionChecking ? (
+          <div className="py-10 text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+            <p className="mt-4 text-xs font-semibold text-muted">Verifying secure reset link…</p>
+          </div>
+        ) : !hasSession ? (
+          <div className="text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <h1 className="mt-4 font-display text-xl font-bold text-ink">Reset link expired or invalid</h1>
+            <p className="mt-2 text-xs text-muted leading-relaxed">
+              This password reset link is invalid, has already been used, or has expired. Please request a new password reset link.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="btn-primary mt-6 w-full"
+            >
+              Request New Reset Link
             </button>
           </div>
         ) : (

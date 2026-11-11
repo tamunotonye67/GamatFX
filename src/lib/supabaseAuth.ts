@@ -258,8 +258,8 @@ export async function signInWithGoogleSupabase(): Promise<{ ok: boolean; error?:
 /** Sends a password reset email via Supabase Auth. */
 export async function resetPasswordForEmailSupabase(email: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "";
-    const redirectTo = `${siteOrigin}/#reset-password`;
+    const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://gamatfxacademy.com";
+    const redirectTo = `${siteOrigin}/reset-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
     if (error) {
       if (error.message.toLowerCase().includes("rate limit") || error.message.toLowerCase().includes("rate_limit")) {
@@ -280,7 +280,15 @@ export async function resetPasswordForEmailSupabase(email: string): Promise<{ ok
 export async function updatePasswordSupabase(newPassword: string): Promise<{ ok: boolean; error?: string }> {
   try {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      if (error.message.toLowerCase().includes("auth session missing")) {
+        return {
+          ok: false,
+          error: "Your password reset session has expired or is invalid. Please request a new password reset link from the login page.",
+        };
+      }
+      return { ok: false, error: error.message };
+    }
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err.message || "Failed to update password" };

@@ -54,8 +54,11 @@ function cleanRoutePath(raw: string): string {
 function parse(): string {
   const hash = window.location.hash || "";
 
-  // 1. Handle Supabase Auth password recovery redirect (#access_token=...&type=recovery or #reset-password)
-  if (hash.includes("type=recovery") || hash.includes("reset-password")) {
+  const search = window.location.search || "";
+  const rawPath = window.location.pathname || "/";
+
+  // 1. Handle Supabase Auth password recovery redirect (#access_token=...&type=recovery, #reset-password, or /reset-password)
+  if (hash.includes("type=recovery") || hash.includes("reset-password") || rawPath.includes("reset-password")) {
     persistRoute("/reset-password");
     return "/reset-password";
   }
@@ -73,8 +76,11 @@ function parse(): string {
   }
 
   // 3b. Handle OAuth PKCE callback (?code=... in search params)
-  const search = window.location.search || "";
   if (search.includes("code=")) {
+    if (rawPath.includes("reset-password") || hash.includes("reset-password")) {
+      persistRoute("/reset-password");
+      return "/reset-password";
+    }
     persistRoute("/dashboard");
     return "/dashboard";
   }
@@ -88,13 +94,14 @@ function parse(): string {
   }
 
   // 5. Direct pathname navigation (e.g. "/courses" or "/admin")
-  const rawPath = window.location.pathname || "/";
   const cleanPath = cleanRoutePath(rawPath);
   if (cleanPath !== "/") {
-    const fullRoute = `${cleanPath}${window.location.search || ""}`;
+    const fullRoute = `${cleanPath}${search}`;
     persistRoute(fullRoute);
     try {
-      window.history.replaceState(null, "", `#${fullRoute}`);
+      if (!hash.includes("access_token") && !hash.includes("type=recovery") && !hash.includes("type=signup")) {
+        window.history.replaceState(null, "", `#${fullRoute}`);
+      }
     } catch {}
     return cleanPath;
   }
