@@ -111,7 +111,7 @@ export default function Hero() {
           </div>
 
           {/* Stats strip + Mobile right-edge session docker aligned beside 40,000+ & 4.9/5 */}
-          <div className="relative mt-10 sm:mt-14">
+          <div className="relative mt-6 sm:mt-8">
             <div className="grid max-w-3xl grid-cols-2 gap-4 pr-8 sm:pr-0 sm:gap-6 border-t border-white/10 pt-6 sm:pt-8 sm:grid-cols-4">
               {[
                 { value: 1000, suffix: "+", label: "Students Trained" },
