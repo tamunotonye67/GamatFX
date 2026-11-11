@@ -93,8 +93,19 @@ function parse(): string {
     return cleanRoutePath(fullRoute);
   }
 
-  // 5. Direct pathname navigation (e.g. "/courses" or "/admin")
+  // 4b. Dedicated /join referral route handling
   const cleanPath = cleanRoutePath(rawPath);
+  if (cleanPath === "/join") {
+    const ref = new URLSearchParams(search).get("ref") || "";
+    const fullRoute = ref ? `/signup?ref=${encodeURIComponent(ref)}` : "/signup";
+    persistRoute(fullRoute);
+    try {
+      window.history.replaceState(null, "", `#${fullRoute}`);
+    } catch {}
+    return "/signup";
+  }
+
+  // 5. Direct pathname navigation (e.g. "/courses" or "/admin")
   if (cleanPath !== "/") {
     const fullRoute = `${cleanPath}${search}`;
     persistRoute(fullRoute);
