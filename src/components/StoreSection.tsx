@@ -48,10 +48,9 @@ export default function StoreSection() {
       <div className="container-x relative">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-4 py-1.5 text-xs font-bold text-rose-300 uppercase tracking-widest backdrop-blur-md">
-            <BookOpen className="h-3.5 w-3.5 text-brand" />
-            <span>Official Desk Publication & Trading Suite</span>
-          </div>
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-rose-300">
+            BESTSELLING TRADING SUITE
+          </p>
           <h2 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
             Institutional Order Flow in <span className="text-brand">Print & Code</span>
           </h2>
