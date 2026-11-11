@@ -19,7 +19,7 @@ function devApiPlugin() {
           req.on("end", async () => {
             try {
               const body = JSON.parse(bodyStr || "{}");
-              const apiKey = (process.env.BACHS_API_KEY || process.env.VITE_BACHS_API_KEY || "").trim();
+              const apiKey = (process.env.BACHS_API_KEY || "").trim();
               const isSandbox = apiKey.startsWith("sk_sandbox_");
               const baseUrl = isSandbox
                 ? "https://sandbox-api.bachs.io/v1"

@@ -22,11 +22,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = (process.env.BACHS_API_KEY || process.env.VITE_BACHS_API_KEY || "").trim();
+    const apiKey = (process.env.BACHS_API_KEY || "").trim();
 
     if (!apiKey) {
       return res.status(500).json({
-        message: "Bachs API key is not configured. Please add BACHS_API_KEY to your environment variables.",
+        message: "Bachs API key is not configured. Please add BACHS_API_KEY to your Vercel Environment Variables.",
       });
     }
 

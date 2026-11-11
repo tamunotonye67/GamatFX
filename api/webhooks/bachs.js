@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: "Could not read request body" });
   }
 
-  const webhookSecret = process.env.BACHS_WEBHOOK_SECRET || process.env.VITE_BACHS_WEBHOOK_SECRET || "";
+  const webhookSecret = (process.env.BACHS_WEBHOOK_SECRET || "").trim();
 
   // Verify signature
   const isValid = verifyBachsSignature(rawBody, req.headers, webhookSecret);

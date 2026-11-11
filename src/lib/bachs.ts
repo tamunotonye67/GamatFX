@@ -20,15 +20,12 @@ export function generateTxRef(prefix = "GFX"): string {
   return `${prefix}_${ts}_${rand}`;
 }
 
-const getEnvApiKey = () => ((import.meta as any).env?.VITE_BACHS_API_KEY || "").trim();
-const getEnvWebhookSecret = () => ((import.meta as any).env?.VITE_BACHS_WEBHOOK_SECRET || "").trim();
 const getEnvActiveGateway = () => ((import.meta as any).env?.VITE_BACHS_ACTIVE_GATEWAY || "bachs");
 
 export const DEFAULT_BACHS_CONFIG: BachsConfig = {
-  apiKey: getEnvApiKey(),
-  environment: getEnvApiKey().startsWith("sk_live_") ? "production" : "sandbox",
+  apiKey: "",
+  environment: "production",
   activeGateway: (getEnvActiveGateway() === "transfer" ? "transfer" : "bachs"),
-  webhookSecret: getEnvWebhookSecret(),
   businessName: "GAMAT FX Academy",
 };
 
@@ -234,12 +231,19 @@ export async function createBachsCheckoutSession(
           status: data.status || "open",
         };
       }
+    } else {
+      const errData = await apiRes.json().catch(() => ({}));
+      throw new Error(errData.message || `Checkout session failed (${apiRes.status})`);
     }
-  } catch (err) {
+  } catch (err: any) {
+    const config = getBachsConfig();
+    if (!config.apiKey) {
+      throw err;
+    }
     console.warn("Serverless checkout route failed, attempting direct fallback:", err);
   }
 
-  // 2. Direct fallback
+  // 2. Direct fallback (only when local client key is provided)
   const config = getBachsConfig();
   const baseUrl = getBachsBaseUrl(config.apiKey);
 
