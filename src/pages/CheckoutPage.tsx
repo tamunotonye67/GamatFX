@@ -335,115 +335,40 @@ export default function CheckoutPage({ id }: { id: string }) {
         <div className="mt-5 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-[1.3fr_1fr]">
           {/* Payment form */}
           <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-6 sm:p-9 shadow-[0_20px_50px_-30px_rgba(22,24,28,0.25)]">
-            {/* Header with Student Identity Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-5 border-b border-line">
-              <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-widest text-brand">Secure Checkout</span>
-                <h1 className="mt-1 font-display text-2xl font-extrabold text-ink sm:text-3xl tracking-tight">
-                  Complete Enrollment
-                </h1>
-              </div>
-
-              {/* Verified Account Pill */}
-              <div className="flex items-center gap-2.5 rounded-2xl border border-line bg-cream/60 px-3.5 py-2 shrink-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white font-black text-xs shadow-xs shrink-0">
-                  {user?.firstName?.[0] || "U"}{user?.lastName?.[0] || ""}
-                </div>
-                <div className="text-left leading-tight min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-ink truncate max-w-[140px]">
-                      {user?.firstName} {user?.lastName}
-                    </span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
-                  </div>
-                  <span className="text-[10px] text-muted truncate max-w-[150px] block">
-                    {user?.email}
-                  </span>
-                </div>
-              </div>
+            {/* Simple, Modern Header */}
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-brand">Checkout</span>
+              <h1 className="mt-1 font-display text-2xl font-extrabold text-ink sm:text-3xl">
+                Complete Enrollment
+              </h1>
+              <p className="mt-2 text-xs text-muted sm:text-sm">
+                Enrolling as <strong className="text-ink font-semibold">{user?.firstName} {user?.lastName}</strong> ({user?.email})
+              </p>
             </div>
 
-            {/* Program Entitlement & Immediate Perks */}
-            <div className="mt-5 rounded-2xl border border-line bg-gradient-to-br from-cream/80 via-white to-cream/40 p-4 sm:p-5">
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-light text-brand shrink-0">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-ink">
-                    {isMentorship ? "VIP Live Mentorship Package" : "Institutional Course Access"}
-                  </span>
-                </div>
-                <span className="rounded-full bg-brand/10 px-2.5 py-0.5 text-[10px] font-extrabold text-brand tracking-wide shrink-0">
-                  Lifetime Pass
-                </span>
-              </div>
+            {/* Simple & Modern Payment Method Card */}
+            <div className="mt-7">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-2.5">
+                Payment Method
+              </label>
 
-              <div className="grid grid-cols-2 gap-2.5 text-[11px] text-ink/80 pt-3 border-t border-line/60">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <span className="font-medium truncate">Immediate Course Unlock</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <span className="font-medium truncate">Official Certificate</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <span className="font-medium truncate">Private VIP Community</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <span className="font-medium truncate">Full Trade Playbooks</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Official Bachs Gateway Section */}
-            <div className="mt-4 rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 items-center justify-center rounded-xl bg-slate-900 px-3 shrink-0 shadow-xs">
+              <div className="flex items-center justify-between rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-4 transition">
+                <div className="flex items-center gap-3.5">
+                  <div className="flex h-10 w-24 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2.5">
                     <img
-                      src="/images/bachs-logo-white.png"
+                      src="/images/bachs-logo.png"
                       alt="Bachs"
-                      className="h-3.5 w-auto object-contain"
+                      className="h-4.5 w-auto object-contain"
                     />
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-ink">Bachs Secure Gateway</span>
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
-                        Official Partner
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted truncate">
-                      Seamless checkout with instant automated confirmation
-                    </p>
+                  <div>
+                    <p className="text-sm font-bold text-ink">Bachs Checkout</p>
+                    <p className="text-xs text-muted">Card, Bank Transfer, or Crypto</p>
                   </div>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-1.5 text-muted shrink-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Bank-Grade</span>
-                  <Lock className="h-3.5 w-3.5 text-emerald-600" />
-                </div>
-              </div>
-
-              {/* Supported Payment Channels */}
-              <div className="mt-3.5 pt-3 border-t border-line/60 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
-                  Accepted Payment Methods:
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-line/80 bg-cream/60 px-2 py-1 text-[11px] font-semibold text-ink">
-                    <CreditCard className="h-3 w-3 text-brand" /> Cards
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-line/80 bg-cream/60 px-2 py-1 text-[11px] font-semibold text-ink">
-                    <Building2 className="h-3 w-3 text-brand" /> Transfer
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-lg border border-line/80 bg-cream/60 px-2 py-1 text-[11px] font-semibold text-ink">
-                    <Coins className="h-3 w-3 text-amber-500" /> Crypto
-                  </span>
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white shadow-xs">
+                  <Check className="h-3.5 w-3.5 stroke-[3]" />
                 </div>
               </div>
             </div>
@@ -452,7 +377,7 @@ export default function CheckoutPage({ id }: { id: string }) {
             <button
               type="submit"
               disabled={processing}
-              className="btn-primary mt-6 w-full !py-4 text-base font-bold shadow-xl shadow-brand/20 transition-all hover:shadow-brand/30 hover:scale-[1.005] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
+              className="btn-primary mt-8 w-full !py-4 text-base font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
             >
               {processing ? (
                 <>
@@ -460,25 +385,16 @@ export default function CheckoutPage({ id }: { id: string }) {
                 </>
               ) : (
                 <>
-                  <Lock className="h-4 w-4" /> Pay {naira(total)} via Bachs
+                  <Lock className="h-4 w-4" /> Pay {naira(total)}
                 </>
               )}
             </button>
 
-            {/* Trust Footer */}
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted">
-              <span className="inline-flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> 256-Bit SSL Encrypted
-              </span>
-              <span>•</span>
-              <span className="inline-flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5 text-brand" /> Instant Access
-              </span>
-              <span>•</span>
-              <span className="inline-flex items-center gap-1">
-                <Check className="h-3.5 w-3.5 text-emerald-600" /> Zero Hidden Fees
-              </span>
-            </div>
+            {/* Minimal Trust Indicator */}
+            <p className="mt-4 text-center text-xs text-muted flex items-center justify-center gap-1.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span>Payments are 256-bit encrypted and processed securely by Bachs</span>
+            </p>
           </form>
 
           {/* Summary */}
