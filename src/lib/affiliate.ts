@@ -79,13 +79,13 @@ export const DEFAULT_AFFILIATE_SETTINGS: AffiliateSettings = {
 };
 
 export const DEFAULT_INVITE_MESSAGE =
-  "I just enrolled for Forex Foundational course with GAMAT at no costs at all. Click the link to join me!";
+  "I just enrolled for Forex Foundational course at GAMAT Fx Academy! You can register at no cost using my link to join me:";
 
 export const PRESET_INVITE_MESSAGES = [
-  "I just enrolled for Forex Foundational course with GAMAT at no costs at all. Click the link to join me!",
-  "I'm learning institutional forex trading with GAMAT Fx Academy for free. Click the link to join me!",
-  "I just started the Forex Foundations masterclass with GAMAT. Zero cost to start — click my link to join me!",
-  "Building my trading edge and consistency at GAMAT Fx Academy. Join my cohort today at no cost at all!",
+  "I just enrolled for Forex Foundational course at GAMAT Fx Academy! You can register at no cost using my link to join me:",
+  "Join my institutional forex trading cohort at GAMAT Fx Academy! Register at no cost with my link:",
+  "Building my trading edge at GAMAT Fx Academy. You can register at no cost today — click my link to join:",
+  "I just started the Forex Foundations masterclass at GAMAT Fx Academy. Register at no cost and let's trade together:",
 ];
 
 // Presets export for compatibility with existing store state
@@ -363,8 +363,11 @@ export function clearActiveReferralCode() {
 /* ----------------- Medium / Pinterest Enrollment Card Canvas Renderer ----------------- */
 
 /**
- * Renders the High-Definition Pinterest / Medium-Style Enrollment Card directly onto an offscreen canvas:
- * "I just enrolled for Forex Foundational course with GAMAT at no costs at all. Click the link to join me"
+ * Renders the Centered, Minimalist, and Prestigious Official Student Share Card onto an offscreen canvas:
+ * Top Center: Logo & Brand + Student Avatar
+ * Under: Name + Enrolled Course
+ * Under: QR Code + Invitation to join & Invite code
+ * Price-free design.
  */
 export async function exportAffiliateCardAsPng(
   profile: AffiliateProfile,
@@ -381,62 +384,61 @@ export async function exportAffiliateCardAsPng(
   // 1. Deep Obsidian Background
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
   bgGrad.addColorStop(0, "#080c14");
-  bgGrad.addColorStop(0.5, "#0f172a");
-  bgGrad.addColorStop(1, "#070b12");
+  bgGrad.addColorStop(0.5, "#0d1322");
+  bgGrad.addColorStop(1, "#070a10");
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Radial ambient lighting
-  const glow1 = ctx.createRadialGradient(width * 0.85, height * 0.15, 20, width * 0.85, height * 0.15, 450);
-  glow1.addColorStop(0, "rgba(220, 53, 69, 0.25)");
-  glow1.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = glow1;
+  // 2. Radial ambient glows
+  const topGlow = ctx.createRadialGradient(width / 2, 280, 20, width / 2, 280, 500);
+  topGlow.addColorStop(0, "rgba(220, 53, 69, 0.22)");
+  topGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = topGlow;
   ctx.fillRect(0, 0, width, height);
 
-  const glow2 = ctx.createRadialGradient(width * 0.15, height * 0.85, 20, width * 0.15, height * 0.85, 450);
-  glow2.addColorStop(0, "rgba(16, 185, 129, 0.2)");
-  glow2.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = glow2;
+  const btmGlow = ctx.createRadialGradient(width / 2, 1000, 20, width / 2, 1000, 480);
+  btmGlow.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+  btmGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = btmGlow;
   ctx.fillRect(0, 0, width, height);
 
-  // 3. Card perimeter borders
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-  ctx.strokeRect(36, 36, width - 72, height - 72);
-
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = "rgba(220, 53, 69, 0.4)";
-  ctx.strokeRect(44, 44, width - 88, height - 88);
-
-  // 4. Header: GAMAT FX ACADEMY Logo & Verified Badge
-  ctx.textAlign = "left";
-  ctx.font = "900 32px sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText("GAMAT FX", 90, 125);
-
-  ctx.font = "700 22px sans-serif";
-  ctx.fillStyle = "#dc3545";
-  ctx.fillText("ACADEMY", 255, 125);
-
-  ctx.textAlign = "right";
-  ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
-  roundRect(ctx, width - 420, 92, 330, 48, 24);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(16, 185, 129, 0.5)";
+  // 3. Elegant outer perimeter borders
   ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  roundRect(ctx, 40, 40, width - 80, height - 80, 40);
   ctx.stroke();
 
-  ctx.font = "bold 16px sans-serif";
-  ctx.fillStyle = "#6ee7b7";
-  ctx.fillText("✓ VERIFIED STUDENT ENROLLMENT", width - 110, 123);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(220, 53, 69, 0.35)";
+  roundRect(ctx, 48, 48, width - 96, height - 96, 36);
+  ctx.stroke();
 
-  // 5. Student Profile Header (Avatar + Name)
-  ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
-  roundRect(ctx, 80, 180, width - 160, 160, 24);
+  // 4. TOP CENTER: Brand Logo & Verified Student Tag
+  ctx.textAlign = "center";
+  ctx.font = "900 38px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("GAMAT FX", width / 2 - 82, 125);
+
+  ctx.font = "800 38px sans-serif";
+  ctx.fillStyle = "#dc3545";
+  ctx.fillText("ACADEMY", width / 2 + 82, 125);
+
+  // Subtle Verified Student Pill
+  ctx.fillStyle = "rgba(16, 185, 129, 0.12)";
+  roundRect(ctx, width / 2 - 175, 148, 350, 36, 18);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
   ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillStyle = "#6ee7b7";
+  ctx.fillText("✓ VERIFIED STUDENT ENROLLMENT", width / 2, 171);
+
+  // 5. TOP CENTER: Student Profile Avatar
+  const avatarCenterX = width / 2;
+  const avatarCenterY = 300;
+  const avatarRadius = 80;
 
   let avatarLoaded = false;
   if (avatarUrl) {
@@ -451,16 +453,23 @@ export async function exportAffiliateCardAsPng(
 
       ctx.save();
       ctx.beginPath();
-      ctx.arc(170, 260, 55, 0, Math.PI * 2);
+      ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
       ctx.closePath();
       ctx.clip();
-      ctx.drawImage(img, 115, 205, 110, 110);
+      ctx.drawImage(
+        img,
+        avatarCenterX - avatarRadius,
+        avatarCenterY - avatarRadius,
+        avatarRadius * 2,
+        avatarRadius * 2
+      );
       ctx.restore();
 
+      // Outer brand ring
       ctx.beginPath();
-      ctx.arc(170, 260, 57, 0, Math.PI * 2);
+      ctx.arc(avatarCenterX, avatarCenterY, avatarRadius + 4, 0, Math.PI * 2);
       ctx.strokeStyle = "#dc3545";
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 5;
       ctx.stroke();
       avatarLoaded = true;
     } catch {
@@ -469,16 +478,27 @@ export async function exportAffiliateCardAsPng(
   }
 
   if (!avatarLoaded) {
-    const initGrad = ctx.createLinearGradient(115, 205, 225, 315);
+    const initGrad = ctx.createLinearGradient(
+      avatarCenterX - avatarRadius,
+      avatarCenterY - avatarRadius,
+      avatarCenterX + avatarRadius,
+      avatarCenterY + avatarRadius
+    );
     initGrad.addColorStop(0, "#dc3545");
     initGrad.addColorStop(1, "#8b1523");
     ctx.fillStyle = initGrad;
     ctx.beginPath();
-    ctx.arc(170, 260, 55, 0, Math.PI * 2);
+    ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
     ctx.fill();
 
+    ctx.beginPath();
+    ctx.arc(avatarCenterX, avatarCenterY, avatarRadius + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
     ctx.textAlign = "center";
-    ctx.font = "bold 44px sans-serif";
+    ctx.font = "bold 60px sans-serif";
     ctx.fillStyle = "#ffffff";
     const initials = (profile.userName || "ST")
       .split(" ")
@@ -486,106 +506,83 @@ export async function exportAffiliateCardAsPng(
       .slice(0, 2)
       .join("")
       .toUpperCase();
-    ctx.fillText(initials, 170, 276);
+    ctx.fillText(initials, avatarCenterX, avatarCenterY + 22);
   }
 
-  // Name & Status
-  ctx.textAlign = "left";
-  ctx.font = "900 38px sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(profile.userName, 255, 250);
-
-  ctx.font = "600 20px sans-serif";
-  ctx.fillStyle = "#38bdf8";
-  ctx.fillText(`Active Student • ${profile.enrolledCourseTitle || "Forex Foundations"}`, 255, 285);
-
-  // 6. Giant Medium / Pinterest Headline Card
-  ctx.fillStyle = "rgba(220, 53, 69, 0.08)";
-  roundRect(ctx, 80, 380, width - 160, 480, 32);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(220, 53, 69, 0.35)";
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-
-  // Quotation mark
-  ctx.font = "900 130px serif";
-  ctx.fillStyle = "rgba(220, 53, 69, 0.4)";
-  ctx.fillText("“", 120, 490);
-
-  // The Exact Social Hook Headline:
-  ctx.font = "900 46px sans-serif";
-  ctx.fillStyle = "#ffffff";
-  const headline = profile.personalQuote || DEFAULT_INVITE_MESSAGE;
-  wrapText(ctx, headline, 130, 540, width - 260, 68);
-
-  // Course Details Pill Box inside card
-  ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
-  roundRect(ctx, 130, 720, width - 260, 100, 18);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-
-  ctx.font = "bold 20px sans-serif";
-  ctx.fillStyle = "#6ee7b7";
-  ctx.fillText("TUITION: 100% FREE BEGINNER ACCESS", 160, 762);
-
-  ctx.font = "500 18px sans-serif";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-  ctx.fillText("Includes full video lessons, quizzes, & official certificate", 160, 796);
-
-  // 7. Call To Action & QR Section
-  ctx.fillStyle = "#ffffff";
-  roundRect(ctx, 80, 900, width - 160, 390, 32);
-  ctx.fill();
-
-  ctx.textAlign = "left";
-  ctx.font = "900 36px sans-serif";
-  ctx.fillStyle = "#0f172a";
-  ctx.fillText("Claim Your Free Spot & Join Me", 130, 970);
-
-  ctx.font = "500 22px sans-serif";
-  ctx.fillStyle = "#475569";
-  ctx.fillText("Scan the QR code or use my personal invite code below:", 130, 1015);
-
-  // Invite Code Pill
-  ctx.fillStyle = "#f1f5f9";
-  roundRect(ctx, 130, 1060, 460, 80, 18);
-  ctx.fill();
-  ctx.strokeStyle = "#cbd5e1";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.font = "bold 18px sans-serif";
-  ctx.fillStyle = "#64748b";
-  ctx.fillText("INVITE CODE:", 155, 1110);
-
-  ctx.font = "900 32px monospace";
-  ctx.fillStyle = "#dc3545";
-  ctx.fillText(profile.referralCode, 290, 1112);
-
-  ctx.font = "bold 24px sans-serif";
+  // Active checkmark badge overlay on avatar
+  ctx.beginPath();
+  ctx.arc(avatarCenterX + 56, avatarCenterY + 56, 22, 0, Math.PI * 2);
   ctx.fillStyle = "#0284c7";
-  ctx.fillText("gamatfxacademy.com", 130, 1200);
-
-  ctx.font = "500 18px sans-serif";
-  ctx.fillStyle = "#64748b";
-  ctx.fillText("No credit card required. Start learning immediately.", 130, 1240);
-
-  // Draw QR Code on the right side
-  const qrX = width - 360;
-  const qrY = 945;
-  const qrSize = 250;
-
-  ctx.fillStyle = "#ffffff";
-  roundRect(ctx, qrX, qrY, qrSize, qrSize, 20);
   ctx.fill();
-  ctx.strokeStyle = "#e2e8f0";
+  ctx.strokeStyle = "#080c14";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.font = "bold 20px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("✓", avatarCenterX + 56, avatarCenterY + 63);
+
+  // 6. Student Name & Enrolled Course (Directly Under Avatar)
+  ctx.textAlign = "center";
+  ctx.font = "900 44px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(profile.userName, width / 2, 435);
+
+  // Enrolled Course Badge Pill (Centered)
+  const courseName = profile.enrolledCourseTitle || "Forex Foundations";
+  ctx.font = "700 22px sans-serif";
+  const courseText = `Enrolled in: ${courseName}`;
+  const courseMetrics = ctx.measureText(courseText);
+  const pillW = Math.max(360, courseMetrics.width + 56);
+
+  ctx.fillStyle = "rgba(220, 53, 69, 0.12)";
+  roundRect(ctx, width / 2 - pillW / 2, 465, pillW, 50, 25);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(220, 53, 69, 0.4)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
+  ctx.fillStyle = "#fca5a5";
+  ctx.fillText(courseText, width / 2, 498);
+
+  // 7. Refined divider
+  const divGrad = ctx.createLinearGradient(width / 2 - 240, 550, width / 2 + 240, 550);
+  divGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+  divGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.2)");
+  divGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+  ctx.strokeStyle = divGrad;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(width / 2 - 240, 550);
+  ctx.lineTo(width / 2 + 240, 550);
+  ctx.stroke();
+
+  // 8. Invitation to Join (Centered, NO price mention whatsoever)
+  ctx.textAlign = "center";
+  ctx.font = "900 36px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("Join Me at GAMAT Fx Academy", width / 2, 615);
+
+  ctx.font = "500 20px sans-serif";
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillText("Scan the QR code below to connect with my cohort & learn together", width / 2, 660);
+
+  // 9. QR Code Card Container (Centered)
+  const qrCardW = 420;
+  const qrCardH = 420;
+  const qrCardX = width / 2 - qrCardW / 2;
+  const qrCardY = 705;
+
+  ctx.fillStyle = "#ffffff";
+  roundRect(ctx, qrCardX, qrCardY, qrCardW, qrCardH, 32);
+  ctx.fill();
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
   const targetUrl = getSignupReferralUrl(profile.referralCode);
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(targetUrl)}`;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=340x340&margin=8&data=${encodeURIComponent(targetUrl)}`;
 
   try {
     const qrImg = new Image();
@@ -595,19 +592,43 @@ export async function exportAffiliateCardAsPng(
       qrImg.onerror = () => reject();
       qrImg.src = qrApiUrl;
     });
-    ctx.drawImage(qrImg, qrX + 15, qrY + 15, qrSize - 30, qrSize - 30);
+    ctx.drawImage(qrImg, qrCardX + 40, qrCardY + 40, 340, 340);
   } catch {
     ctx.fillStyle = "#0f172a";
-    ctx.fillRect(qrX + 30, qrY + 30, 60, 60);
-    ctx.fillRect(qrX + qrSize - 90, qrY + 30, 60, 60);
-    ctx.fillRect(qrX + 30, qrY + qrSize - 90, 60, 60);
+    ctx.fillRect(qrCardX + 60, qrCardY + 60, 80, 80);
+    ctx.fillRect(qrCardX + qrCardW - 140, qrCardY + 60, 80, 80);
+    ctx.fillRect(qrCardX + 60, qrCardY + qrCardH - 140, 80, 80);
   }
 
-  // 8. Watermark Footer
-  ctx.textAlign = "center";
+  // 10. Invite Code Pill (Centered Under QR)
+  const codePillW = 500;
+  const codePillH = 74;
+  const codePillX = width / 2 - codePillW / 2;
+  const codePillY = 1170;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+  roundRect(ctx, codePillX, codePillY, codePillW, codePillH, 20);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.font = "bold 18px sans-serif";
+  ctx.fillStyle = "#94a3b8";
+  ctx.fillText("INVITE CODE:", width / 2 - 110, codePillY + 46);
+
+  ctx.font = "900 32px monospace";
+  ctx.fillStyle = "#dc3545";
+  ctx.fillText(profile.referralCode, width / 2 + 75, codePillY + 47);
+
+  // 11. Official Website URL & Footer Watermark
+  ctx.font = "bold 26px sans-serif";
+  ctx.fillStyle = "#38bdf8";
+  ctx.fillText("gamatfxacademy.com", width / 2, 1290);
+
   ctx.font = "500 16px sans-serif";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-  ctx.fillText("GAMAT Fx Academy • Official Student Share Card • gamatfxacademy.com", width / 2, height - 55);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+  ctx.fillText("GAMAT Fx Academy • Official Student Share Card", width / 2, 1350);
 
   return canvas.toDataURL("image/png");
 }

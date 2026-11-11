@@ -57,6 +57,7 @@ export default function AffiliateCard({
 }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedCaption, setCopiedCaption] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [inviteMessage, setInviteMessage] = useState(
     profile.personalQuote || DEFAULT_INVITE_MESSAGE
@@ -73,6 +74,14 @@ export default function AffiliateCard({
       navigator.clipboard.writeText(referralUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    } catch {}
+  };
+
+  const copyCaption = () => {
+    try {
+      navigator.clipboard.writeText(shareText);
+      setCopiedCaption(true);
+      setTimeout(() => setCopiedCaption(false), 2500);
     } catch {}
   };
 
@@ -96,7 +105,7 @@ export default function AffiliateCard({
     }
   };
 
-  const shareText = `${inviteMessage} 👉 ${referralUrl}`;
+  const shareText = `${inviteMessage} 👉 ${referralUrl} (Invite Code: ${profile.referralCode})`;
 
   const initials = (profile.userName || "ST")
     .split(" ")
@@ -107,7 +116,7 @@ export default function AffiliateCard({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      {/* ================= Left: The Pinterest / Medium Enrollment Card (5 Cols) ================= */}
+      {/* ================= Left: The Centered Student Enrollment Proof Card (5 Cols) ================= */}
       <div className="lg:col-span-5 w-full space-y-4">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2 text-xs font-bold text-ink">
@@ -117,110 +126,94 @@ export default function AffiliateCard({
           <span className="text-[11px] text-muted font-medium">Ready to post</span>
         </div>
 
-        {/* The Visual Social Card */}
+        {/* The Visual Social Card (Centered, Prestigious, Zero Price Mentions) */}
         <div
           id="student-enrollment-card"
-          className="relative overflow-hidden rounded-3xl bg-[#0c1017] p-6 text-white shadow-xl border border-slate-800"
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#080c14] via-[#0b1120] to-[#080c14] p-6 sm:p-7 text-white shadow-2xl border border-white/10"
         >
-          {/* Subtle Accent Glow */}
+          {/* Subtle Ambient Radial Glows */}
           <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand/20 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-sky-500/15 blur-3xl" />
 
-          {/* Top Brand Header & Verified Student Tag */}
-          <div className="relative flex items-center justify-between border-b border-white/10 pb-4">
-            <div className="flex items-center gap-2">
-              <span className="font-display text-sm font-black tracking-wider text-white">
+          {/* 1. Top Center: Brand Logo & Verified Student Tag */}
+          <div className="relative text-center flex flex-col items-center">
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="font-display text-base font-black tracking-wider text-white">
                 GAMAT <span className="text-brand">FX</span>
               </span>
-              <span className="text-[9px] uppercase font-bold tracking-widest text-white/50">
-                Academy
+              <span className="text-[11px] uppercase font-black tracking-widest text-brand">
+                ACADEMY
               </span>
             </div>
 
-            <div className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-[9px] font-bold text-emerald-300">
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-0.5 text-[9px] font-bold text-emerald-300">
               <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-              <span>VERIFIED ENROLLMENT</span>
+              <span>VERIFIED STUDENT ENROLLMENT</span>
             </div>
           </div>
 
-          {/* Student Profile Row */}
-          <div className="relative mt-4 flex items-center gap-3">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={profile.userName}
-                className="h-12 w-12 rounded-full object-cover ring-2 ring-brand shadow-sm"
-              />
-            ) : (
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark font-display text-sm font-black text-white shadow-sm">
-                {initials}
-              </div>
-            )}
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <h4 className="font-display text-sm font-bold text-white truncate">
-                  {profile.userName}
-                </h4>
-                <span className="inline-flex items-center justify-center h-3.5 w-3.5 rounded-full bg-sky-500 text-[9px] font-bold text-white">
-                  ✓
-                </span>
-              </div>
-              <p className="text-[11px] font-semibold text-sky-400 truncate">
-                Active Student • {courseTitle}
-              </p>
-              <p className="text-[9px] text-white/50">
-                GAMAT Fx Academy Official Cohort
-              </p>
-            </div>
-          </div>
-
-          {/* Medium / Pinterest Style Quote Box */}
-          <div className="relative mt-4 rounded-2xl border border-brand/30 bg-brand/10 p-4 backdrop-blur-md">
-            <Quote className="h-5 w-5 text-brand/70 mb-1" />
-            <p className="font-display font-bold text-base sm:text-lg leading-snug text-white">
-              "{inviteMessage}"
-            </p>
-            <div className="mt-3 flex items-center justify-between text-[11px] text-emerald-400 font-bold border-t border-white/10 pt-2">
-              <span>Tuition: 100% Free Beginner Access</span>
-              <span className="text-[10px] text-white/50 font-normal">Certificate Included</span>
-            </div>
-          </div>
-
-          {/* Call To Action Box & Direct Referral Pill */}
-          <div className="relative mt-4 rounded-2xl bg-white p-3.5 text-slate-900 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] uppercase font-bold tracking-wider text-slate-500">
-                  Scan to Join My Cohort
-                </p>
-                <p className="font-mono text-sm font-black text-brand truncate mt-0.5">
-                  INVITE: {profile.referralCode}
-                </p>
-                <p className="mt-0.5 text-[10px] text-slate-600 truncate">
-                  Zero cost • Free access link
-                </p>
-                <p className="text-[10px] font-bold text-sky-600 font-mono">
-                  gamatfxacademy.com
-                </p>
-              </div>
-
-              {/* Dynamic QR Code */}
-              <div className="shrink-0 rounded-lg bg-slate-50 p-1 border border-slate-200">
+          {/* 2. Top Center: Student Profile Avatar */}
+          <div className="relative mt-5 flex flex-col items-center">
+            <div className="relative">
+              {avatarUrl ? (
                 <img
-                  src={qrApiUrl}
-                  alt="Referral QR Code"
-                  className="h-16 w-16 object-contain"
-                  loading="lazy"
+                  src={avatarUrl}
+                  alt={profile.userName}
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-brand shadow-lg"
                 />
+              ) : (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-black text-white ring-4 ring-brand shadow-lg">
+                  {initials}
+                </div>
+              )}
+              {/* Checkmark overlay */}
+              <div className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 text-white ring-2 ring-[#080c14] text-xs font-black shadow-sm">
+                ✓
               </div>
+            </div>
+
+            {/* 3. Directly Under Avatar: Name & Enrolled Course */}
+            <h4 className="mt-3.5 font-display text-lg sm:text-xl font-black text-white text-center">
+              {profile.userName}
+            </h4>
+            <div className="mt-1.5 inline-flex items-center rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1 text-xs font-semibold text-rose-200">
+              Enrolled in: {courseTitle}
             </div>
           </div>
 
-          {/* Card Footer */}
-          <div className="mt-3 text-center">
-            <p className="text-[9px] text-white/40">
-              Share on WhatsApp Status, Instagram Story, or Pinterest
+          {/* 4. Elegant Tapering Divider */}
+          <div className="my-5 h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+          {/* 5. Centered Invitation & QR Code */}
+          <div className="relative flex flex-col items-center text-center">
+            <p className="font-display font-black text-base sm:text-lg text-white">
+              Join Me at GAMAT Fx Academy
+            </p>
+            <p className="mt-0.5 text-[11px] text-slate-400 max-w-xs">
+              Scan the QR code below to connect with my cohort & learn together
+            </p>
+
+            {/* QR Code Container */}
+            <div className="mt-3.5 rounded-2xl bg-white p-3 shadow-md border border-slate-200">
+              <img
+                src={qrApiUrl}
+                alt="Referral QR Code"
+                className="h-32 w-32 sm:h-36 sm:w-36 object-contain"
+                loading="lazy"
+              />
+            </div>
+
+            {/* Invite Code Pill */}
+            <div className="mt-3.5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-1.5 text-xs">
+              <span className="font-semibold text-slate-400 text-[11px]">INVITE CODE:</span>
+              <span className="font-mono font-black text-brand tracking-wider text-sm">
+                {profile.referralCode}
+              </span>
+            </div>
+
+            {/* Domain */}
+            <p className="mt-2 text-xs font-bold text-sky-400 font-mono tracking-wide">
+              gamatfxacademy.com
             </p>
           </div>
         </div>
@@ -252,14 +245,19 @@ export default function AffiliateCard({
             className="w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer shadow-sm"
           >
             <SlidersHorizontal className="h-3.5 w-3.5 text-muted" />
-            <span>{showOptions ? "Hide Options" : "Edit Message"}</span>
+            <span>{showOptions ? "Hide Caption" : "Customize Share Text"}</span>
           </button>
         </div>
 
         {/* Collapsible Message Editor */}
         {showOptions && (
           <div className="rounded-2xl border border-line bg-white p-4 shadow-sm text-xs space-y-3 animate-[fadeIn_.2s_ease]">
-            <p className="font-bold text-ink">Choose Announcement Message:</p>
+            <div>
+              <p className="font-bold text-ink">Choose Marketing Share Caption:</p>
+              <p className="text-[11px] text-muted mt-0.5">
+                This marketing text accompanies your card and referral link when sharing:
+              </p>
+            </div>
             <div className="space-y-1.5">
               {PRESET_INVITE_MESSAGES.map((msg, idx) => (
                 <button
@@ -269,7 +267,7 @@ export default function AffiliateCard({
                     setInviteMessage(msg);
                     onUpdateQuote?.(msg);
                   }}
-                  className={`w-full text-left p-2 rounded-lg transition cursor-pointer border text-[11px] leading-relaxed ${
+                  className={`w-full text-left p-2.5 rounded-lg transition cursor-pointer border text-[11px] leading-relaxed ${
                     inviteMessage === msg
                       ? "border-brand bg-brand/5 text-ink font-bold"
                       : "border-line bg-cream text-muted hover:text-ink hover:bg-slate-100"
@@ -281,7 +279,7 @@ export default function AffiliateCard({
             </div>
 
             <div>
-              <p className="font-bold text-ink mb-1">Or write your own custom invitation:</p>
+              <p className="font-bold text-ink mb-1">Or write your custom caption:</p>
               <textarea
                 rows={2}
                 value={inviteMessage}
@@ -290,7 +288,7 @@ export default function AffiliateCard({
                   onUpdateQuote?.(e.target.value);
                 }}
                 className="w-full rounded-xl border border-line bg-cream p-2 text-xs text-ink focus:border-brand focus:outline-none"
-                placeholder="e.g. I just enrolled for Forex Foundational course with GAMAT at no costs at all. Click the link to join me"
+                placeholder="e.g. I just enrolled for Forex Foundational course at GAMAT Fx Academy! You can register at no cost using my link:"
               />
             </div>
           </div>
@@ -307,14 +305,14 @@ export default function AffiliateCard({
               <span>Instant Social Sharing</span>
             </div>
             <h3 className="mt-2 font-display text-lg font-bold text-ink">
-              Share Your Link & Invite Students
+              Share Your Card & Invite Link
             </h3>
             <p className="mt-1 text-xs text-muted leading-relaxed">
-              When friends use your link or scan your code to enroll, they get 100% free access to the foundational course, and you earn a <strong>15% commission</strong> whenever they enroll in paid courses or purchase trading tools.
+              When friends use your link or scan your card code, they can register at no cost. You earn a <strong>15% commission</strong> whenever they enroll in paid courses or purchase trading tools.
             </p>
           </div>
 
-          {/* Quick Copy Link Box */}
+          {/* Quick Copy Link & Caption Box */}
           <div className="rounded-xl border border-line bg-cream p-3 flex flex-col sm:flex-row items-center gap-2.5">
             <div className="min-w-0 flex-1 text-left w-full sm:w-auto">
               <p className="text-[10px] uppercase font-bold text-muted">Your Unique Invite Link</p>
@@ -323,23 +321,44 @@ export default function AffiliateCard({
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={copyLink}
-              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>Link Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  <span>Copy Link</span>
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={copyLink}
+                className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={copyCaption}
+                title="Copy marketing caption and link together"
+                className="flex-1 sm:flex-initial px-3.5 py-2 rounded-lg border border-line bg-white text-ink font-bold text-xs hover:bg-slate-50 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0 shadow-sm"
+              >
+                {copiedCaption ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Copied Text!</span>
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="h-3.5 w-3.5 text-brand" />
+                    <span>Copy Text + Link</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* 1-Click Social Buttons */}
@@ -359,7 +378,7 @@ export default function AffiliateCard({
 
               {/* Telegram */}
               <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(inviteMessage)}`}
+                href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 rounded-xl bg-[#229ED9] px-3 py-2.5 text-xs font-bold text-white hover:opacity-95 transition shadow-sm"
@@ -408,9 +427,9 @@ export default function AffiliateCard({
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white mb-2">
                   1
                 </span>
-                <p className="font-bold text-ink">Share Card or Link</p>
+                <p className="font-bold text-ink">Share Card & Link</p>
                 <p className="mt-1 text-muted text-[11px] leading-relaxed">
-                  Post your enrollment card to your WhatsApp status, Instagram, or send your link directly.
+                  Post your enrollment card to your WhatsApp status, Instagram, or share your link directly.
                 </p>
               </div>
             </div>
@@ -420,9 +439,9 @@ export default function AffiliateCard({
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white mb-2">
                   2
                 </span>
-                <p className="font-bold text-ink">Friends Join Free</p>
+                <p className="font-bold text-ink">Friends Register</p>
                 <p className="mt-1 text-muted text-[11px] leading-relaxed">
-                  They register and take the Forex Foundations masterclass at zero tuition fee.
+                  They register using your link or QR code at no cost to start learning with you.
                 </p>
               </div>
             </div>
