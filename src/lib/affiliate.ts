@@ -311,12 +311,12 @@ export function generateReferralCode(name: string): string {
 
 export function getReferralUrl(referralCode: string): string {
   const base = typeof window !== "undefined" ? window.location.origin : "https://gamatfxacademy.com";
-  return `${base}/#/?ref=${encodeURIComponent(referralCode)}`;
+  return `${base}/join?ref=${encodeURIComponent(referralCode)}`;
 }
 
 export function getSignupReferralUrl(referralCode: string): string {
   const base = typeof window !== "undefined" ? window.location.origin : "https://gamatfxacademy.com";
-  return `${base}/#/signup?ref=${encodeURIComponent(referralCode)}`;
+  return `${base}/join?ref=${encodeURIComponent(referralCode)}`;
 }
 
 /* ----------------- Active Referral Tracking (Visitor) ----------------- */

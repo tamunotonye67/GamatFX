@@ -37,18 +37,29 @@ export default function handler(req, res) {
   <meta property="og:site_name" content="GAMAT Fx Academy" />
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
-  <meta property="og:image" content="${imageUrl}" />
-  <meta property="og:image:secure_url" content="${imageUrl}" />
+
+  <!-- Primary Landscape Card (1200x630) -->
+  <meta property="og:image" content="https://gamatfxacademy.com/images/og-share-card.png" />
+  <meta property="og:image:secure_url" content="https://gamatfxacademy.com/images/og-share-card.png" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="GAMAT Fx Academy Student Share Card" />
 
+  <!-- WhatsApp Status / Compact Square Card (800x800) -->
+  <meta property="og:image" content="https://gamatfxacademy.com/images/og-share-card-square.png" />
+  <meta property="og:image:secure_url" content="https://gamatfxacademy.com/images/og-share-card-square.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="800" />
+  <meta property="og:image:height" content="800" />
+
+  <link rel="image_src" href="https://gamatfxacademy.com/images/og-share-card.png" />
+
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
-  <meta name="twitter:image" content="${imageUrl}" />
+  <meta name="twitter:image" content="https://gamatfxacademy.com/images/og-share-card.png" />
 
   <!-- Instant Human Redirect -->
   <meta http-equiv="refresh" content="0;url=${redirectUrl}" />
