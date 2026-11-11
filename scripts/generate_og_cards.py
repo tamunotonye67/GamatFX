@@ -100,9 +100,9 @@ def render_exact_card(card_w, card_h):
     font_foot = ImageFont.truetype(sans_font_path, int(card_h * 0.016))
 
     # 1. Avatar (Top Center)
-    avatar_r = int(card_h * 0.080)
+    avatar_r = int(card_h * (82 / 1425))
     avatar_cx = card_w // 2
-    avatar_cy = int(card_h * 0.135)
+    avatar_cy = int(card_h * (200 / 1425))
 
     # Load cropped avatar if available
     try:
@@ -119,40 +119,39 @@ def render_exact_card(card_w, card_h):
         draw.text((avatar_cx, avatar_cy), "TD", font=font_name, fill=(255, 255, 255, 255), anchor="mm")
 
     # Avatar ring
-    draw.ellipse([avatar_cx - avatar_r - 3, avatar_cy - avatar_r - 3, avatar_cx + avatar_r + 3, avatar_cy + avatar_r + 3], outline=(255, 255, 255, 245), width=4)
+    draw.ellipse([avatar_cx - avatar_r - 3, avatar_cy - avatar_r - 3, avatar_cx + avatar_r + 3, avatar_cy + avatar_r + 3], outline=(255, 255, 255, 245), width=3)
 
     # Active Checkmark Badge overlay
     badge_r = int(avatar_r * 0.28)
-    badge_cx = int(avatar_cx + avatar_r * 0.72)
-    badge_cy = int(avatar_cy + avatar_r * 0.72)
+    badge_cx = int(avatar_cx + avatar_r * 0.71)
+    badge_cy = int(avatar_cy + avatar_r * 0.71)
     draw.ellipse([badge_cx - badge_r, badge_cy - badge_r, badge_cx + badge_r, badge_cy + badge_r], fill=(2, 132, 199, 255), outline=(131, 20, 31, 255), width=2)
-    font_check = ImageFont.truetype(bold_font_path, int(badge_r * 1.3))
+    font_check = ImageFont.truetype(bold_font_path, max(10, int(badge_r * 1.3)))
     draw.text((badge_cx, badge_cy - 1), "✓", font=font_check, fill=(255, 255, 255, 255), anchor="mm")
 
     # 2. Student Name
-    name_y = int(card_h * 0.245)
+    name_y = int(card_h * (345 / 1425))
     draw.text((avatar_cx, name_y), "Toe Doe", font=font_name, fill=(255, 255, 255, 255), anchor="mm")
 
     # 3. Enrolled Course (NO PILL LAYER)
-    course_y = int(card_h * 0.288)
+    course_y = int(card_h * (390 / 1425))
     draw.text((avatar_cx, course_y), "Enrolled in: Forex Foundations", font=font_course, fill=(254, 205, 211, 255), anchor="mm")
 
     # 4. Tapering Divider
-    div_y = int(card_h * 0.325)
+    div_y = int(card_h * (432 / 1425))
     div_w = int(card_w * 0.60)
     for x in range(div_w):
         t = x / div_w
-        # triangle opacity
         alpha = int(90 * (1.0 - abs(t - 0.5) * 2))
         px = (card_w - div_w) // 2 + x
         draw.point((px, div_y), fill=(255, 255, 255, alpha))
 
     # 5. "Join Me at"
-    join_y = int(card_h * 0.360)
+    join_y = int(card_h * (485 / 1425))
     draw.text((avatar_cx, join_y), "JOIN ME AT", font=font_join, fill=(255, 255, 255, 230), anchor="mm")
 
     # 6. Actual GAMAT Candlestick Logo Tile + Wordmark
-    tile_size = int(card_h * 0.052)
+    tile_size = int(card_h * (52 / 1425))
     gap = int(card_w * 0.025)
 
     gamat_bbox = draw.textbbox((0, 0), "GAMAT ", font=font_gamat)
@@ -160,7 +159,7 @@ def render_exact_card(card_w, card_h):
     wordmark_w = (gamat_bbox[2] - gamat_bbox[0]) + (fx_bbox[2] - fx_bbox[0])
     total_logo_w = tile_size + gap + wordmark_w
     logo_x = (card_w - total_logo_w) // 2
-    logo_y = int(card_h * 0.388)
+    logo_y = int(card_h * (520 / 1425))
 
     draw_candlestick_tile(draw, logo_x, logo_y, tile_size)
 
@@ -175,17 +174,17 @@ def render_exact_card(card_w, card_h):
     draw.text((text_x + 1, logo_y + tile_size * 0.82), acad_str, font=font_academy, fill=(255, 255, 255, 210), anchor="lm")
 
     # 7. Subtitle
-    sub_y = int(card_h * 0.470)
+    sub_y = int(card_h * (625 / 1425))
     draw.text((avatar_cx, sub_y), "Scan the QR code below to connect with my cohort & learn together", font=font_sub, fill=(255, 255, 255, 215), anchor="mm")
 
     # 8. QR Code Container
-    qr_card_size = int(card_h * 0.320)
+    qr_card_size = int(card_h * (400 / 1425))
     qr_card_x = (card_w - qr_card_size) // 2
-    qr_card_y = int(card_h * 0.505)
+    qr_card_y = int(card_h * (670 / 1425))
 
     draw.rounded_rectangle(
         [qr_card_x, qr_card_y, qr_card_x + qr_card_size, qr_card_y + qr_card_size],
-        radius=int(qr_card_size * 0.09),
+        radius=int(qr_card_size * 0.08),
         fill=(255, 255, 255, 255),
         outline=(255, 255, 255, 120),
         width=2
@@ -203,7 +202,7 @@ def render_exact_card(card_w, card_h):
         print("QR paste error:", e)
 
     # 9. Invite Code (NO PILL LAYER)
-    code_y = int(card_h * 0.865)
+    code_y = int(card_h * (1140 / 1425))
     label_text = "INVITE CODE:  "
     code_text = "GMT-TOE411"
     l_box = draw.textbbox((0, 0), label_text, font=font_invite)
@@ -217,29 +216,33 @@ def render_exact_card(card_w, card_h):
     draw.text((s_x + l_w, code_y), code_text, font=font_code, fill=(255, 255, 255, 255), anchor="lm")
 
     # 10. Official Domain
-    domain_y = int(card_h * 0.915)
+    domain_y = int(card_h * (1215 / 1425))
     draw.text((avatar_cx, domain_y), "gamatfxacademy.com", font=font_domain, fill=(254, 215, 170, 255), anchor="mm")
 
     # 11. Watermark Footer
-    foot_y = int(card_h * 0.960)
-    draw.text((avatar_cx, foot_y), "GAMAT Fx Academy • Official Student Share Card", font=font_foot, fill=(255, 255, 255, 130), anchor="mm")
+    foot_y = int(card_h * (1290 / 1425))
+    draw.text((avatar_cx, foot_y), "2.76 × 4.75 in • GAMAT Official Share Card", font=font_foot, fill=(255, 255, 255, 130), anchor="mm")
 
     return card
 
 def main():
-    print("Generating Square Thumbnail (800x800)...")
-    # In square 800x800, card fills canvas with elegant padding
-    square_card = render_exact_card(760, 760)
+    print("Generating Square Thumbnail (800x800) with exact 2.76 x 4.75 in card...")
+    # Exact 2.76 x 4.75 in card ratio inside 800x800 square
+    card_h = 760
+    card_w = int(card_h * (2.76 / 4.75))  # ~441px
+    square_card = render_exact_card(card_w, card_h)
     square_bg = create_gradient(800, 800, (110, 16, 25), (145, 28, 40), (60, 7, 13))
-    square_bg.paste(square_card, (20, 20), square_card)
+    square_bg = add_radial_glow(square_bg, 400, 400, 450, (255, 255, 255, 30))
+    square_bg = add_radial_glow(square_bg, 400, 400, 300, (220, 53, 69, 45))
+    card_x = (800 - card_w) // 2
+    card_y = (800 - card_h) // 2
+    square_bg.paste(square_card, (card_x, card_y), square_card)
     square_bg.save("public/images/og-share-card-square.png", "PNG", optimize=True)
     print("Saved public/images/og-share-card-square.png")
 
-    print("Generating Landscape 1200x630 Thumbnail...")
-    # In 1200x630 landscape: The exact card is centered on a website ambient red backdrop
-    # Card dimensions: 480x610 (proportional to 1080x1380), centered at (360, 10)
-    card_h = 610
-    card_w = int(card_h * (760 / 960))  # approx 482 px
+    print("Generating Landscape 1200x630 Thumbnail with exact 2.76 x 4.75 in card...")
+    card_h = 600
+    card_w = int(card_h * (2.76 / 4.75))  # ~348px
     inner_card = render_exact_card(card_w, card_h)
 
     # Ambient landscape background
@@ -248,9 +251,8 @@ def main():
     land_bg = add_radial_glow(land_bg, 200, 150, 300, (220, 53, 69, 50))
     land_bg = add_radial_glow(land_bg, 1000, 500, 350, (0, 0, 0, 90))
 
-    # Center card at (1200 - card_w) // 2 = ~359
     card_x = (1200 - card_w) // 2
-    card_y = 10
+    card_y = (630 - card_h) // 2
     land_bg.paste(inner_card, (card_x, card_y), inner_card)
 
     land_bg.save("public/images/og-share-card.png", "PNG", optimize=True)
