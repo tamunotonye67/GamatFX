@@ -1143,25 +1143,29 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 {couponError && <p className="mt-1 text-[11px] font-bold text-rose-600">{couponError}</p>}
               </div>
 
-              {/* Minimalist Bachs Payment Notice */}
-              <div className="rounded-2xl border border-line bg-white px-4 py-3 text-xs shadow-2xs">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex h-7 items-center justify-center rounded-lg bg-cream/80 px-2 shrink-0 border border-line/60">
+              {/* Simple & Modern Payment Method Card */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-2">
+                  Payment Method
+                </label>
+                <div className="flex items-center justify-between rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-3.5 transition">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-20 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2">
                       <img
                         src="/images/bachs-logo.png"
                         alt="Bachs"
-                        className="h-3 w-auto object-contain"
+                        className="h-4 w-auto object-contain"
                       />
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-ink truncate">Bachs Secure Payment</p>
-                      <p className="text-[10px] text-muted truncate">Cards, Bank Transfer & Crypto</p>
+                    <div>
+                      <p className="text-xs font-bold text-ink">Bachs Checkout</p>
+                      <p className="text-[11px] text-muted">Card, Bank Transfer, or Crypto</p>
                     </div>
                   </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-600/20">
-                    <ShieldCheck className="h-3 w-3" /> Secure
-                  </span>
+
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white shadow-xs">
+                    <Check className="h-3 w-3 stroke-[3]" />
+                  </div>
                 </div>
               </div>
 
@@ -1189,22 +1193,25 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="w-full rounded-xl bg-brand hover:bg-brand-dark py-3.5 px-6 text-sm font-bold text-white transition shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="btn-primary w-full !py-3.5 text-sm font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Processing Secure Order...</span>
+                      <span>Launching Bachs Checkout…</span>
                     </>
                   ) : (
                     <>
                       <Lock className="h-4 w-4" />
-                      <span>Complete Secure Purchase & Download</span>
+                      <span>
+                        Pay {naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))}
+                      </span>
                     </>
                   )}
                 </button>
-                <p className="mt-2 text-center text-[11px] text-muted">
-                  🔒 256-bit encrypted checkout via Card, Bank Transfer, or Crypto
+                <p className="mt-3 text-center text-xs text-muted flex items-center justify-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>Payments are 256-bit encrypted and processed securely by Bachs</span>
                 </p>
               </div>
             </form>
