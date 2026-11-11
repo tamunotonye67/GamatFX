@@ -51,7 +51,7 @@ export function getBachsConfig(): BachsConfig {
       };
     }
     const parsed = JSON.parse(raw);
-    const resolvedKey = (parsed.apiKey || envKey || "").trim();
+    const resolvedKey = (envKey.startsWith("sk_live_") ? envKey : (parsed.apiKey || envKey || "")).trim();
     return {
       apiKey: resolvedKey,
       environment: resolvedKey.startsWith("sk_live_") ? "production" : "sandbox",
