@@ -184,6 +184,26 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     }
   }, [categoryParam]);
 
+  // Support direct product deep linking (e.g. /store?product=gamat-playbook-v1)
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const prodId = url.searchParams.get("product") || url.searchParams.get("id");
+      if (prodId && publishedStoreProducts.length > 0) {
+        const found = publishedStoreProducts.find((p) => p.id === prodId);
+        if (found) {
+          setActiveProduct(found);
+          setView("catalog");
+          if (url.searchParams.get("checkout") === "true") {
+            setCheckoutProduct(found);
+          }
+        }
+      }
+    } catch {
+      // Ignore URL parse error
+    }
+  }, [publishedStoreProducts]);
+
   // Checkout form state
   const [buyerName, setBuyerName] = useState(user ? `${user.firstName} ${user.lastName}` : "");
   const [buyerEmail, setBuyerEmail] = useState(user?.email ?? "");
