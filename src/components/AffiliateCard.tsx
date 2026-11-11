@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import {
   type AffiliateProfile,
+  type AffiliateCardTheme,
   DEFAULT_INVITE_MESSAGE,
   PRESET_INVITE_MESSAGES,
   getSignupReferralUrl,
@@ -55,6 +56,7 @@ export default function AffiliateCard({
   onUpdateQuote,
   onUpdateCourseTitle,
 }: Props) {
+  const [cardTheme, setCardTheme] = useState<AffiliateCardTheme>("red");
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedCaption, setCopiedCaption] = useState(false);
@@ -93,9 +95,9 @@ export default function AffiliateCard({
         personalQuote: inviteMessage,
         enrolledCourseTitle: courseTitle,
       };
-      const dataUrl = await exportAffiliateCardAsPng(activeProfile, avatarUrl);
+      const dataUrl = await exportAffiliateCardAsPng(activeProfile, avatarUrl, cardTheme);
       const link = document.createElement("a");
-      link.download = `GAMAT-Enrollment-Invite-${profile.referralCode}.png`;
+      link.download = `GAMAT-Enrollment-Invite-${profile.referralCode}-${cardTheme}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -126,70 +128,224 @@ export default function AffiliateCard({
           <span className="text-[11px] text-muted font-medium">Ready to post</span>
         </div>
 
+        {/* Card Style Selector Tabs */}
+        <div className="flex items-center justify-between p-1.5 rounded-2xl bg-slate-100 border border-line">
+          <span className="text-[11px] font-bold text-muted ml-2">Card Style:</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setCardTheme("red")}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer ${
+                cardTheme === "red"
+                  ? "bg-brand text-white shadow-xs"
+                  : "text-muted hover:text-ink hover:bg-white"
+              }`}
+            >
+              <span className="h-2.5 w-2.5 rounded-full bg-white shrink-0" />
+              <span>GAMAT Red (Default)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardTheme("dark")}
+              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-bold transition cursor-pointer ${
+                cardTheme === "dark"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "text-muted hover:text-ink hover:bg-white"
+              }`}
+            >
+              <span className="h-2.5 w-2.5 rounded-full bg-sky-400 shrink-0" />
+              <span>Obsidian Dark</span>
+            </button>
+          </div>
+        </div>
+
         {/* The Visual Social Card (Centered, Prestigious, Zero Price Mentions) */}
         <div
           id="student-enrollment-card"
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#080c14] via-[#0b1120] to-[#080c14] p-6 sm:p-7 text-white shadow-2xl border border-white/10"
+          className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 text-white shadow-2xl transition-all duration-300 ${
+            cardTheme === "red"
+              ? "bg-gradient-to-b from-[#83141f] via-[#a52230] to-[#4e0911] border border-white/20"
+              : "bg-gradient-to-b from-[#080c14] via-[#0d1322] to-[#070a10] border border-white/10"
+          }`}
         >
-          {/* Subtle Ambient Radial Glows */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-sky-500/15 blur-3xl" />
+          {/* Ambient Glows */}
+          {cardTheme === "red" ? (
+            <>
+              <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-black/35 blur-3xl" />
+            </>
+          ) : (
+            <>
+              <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand/20 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-sky-500/15 blur-3xl" />
+            </>
+          )}
 
-          {/* 1. Top Center: Brand Logo & Verified Student Tag */}
-          <div className="relative text-center flex flex-col items-center">
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="font-display text-base font-black tracking-wider text-white">
-                GAMAT <span className="text-brand">FX</span>
-              </span>
-              <span className="text-[11px] uppercase font-black tracking-widest text-brand">
-                ACADEMY
-              </span>
-            </div>
-
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-0.5 text-[9px] font-bold text-emerald-300">
-              <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-              <span>VERIFIED STUDENT ENROLLMENT</span>
-            </div>
-          </div>
-
-          {/* 2. Top Center: Student Profile Avatar */}
-          <div className="relative mt-5 flex flex-col items-center">
+          {/* 1. TOP CENTER: Student Profile Avatar (NO top brand text or pills) */}
+          <div className="relative pt-1 flex flex-col items-center">
             <div className="relative">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={profile.userName}
-                  className="h-24 w-24 rounded-full object-cover ring-4 ring-brand shadow-lg"
+                  className={`h-24 w-24 rounded-full object-cover shadow-lg ${
+                    cardTheme === "red" ? "ring-4 ring-white/95" : "ring-4 ring-brand"
+                  }`}
                 />
               ) : (
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-black text-white ring-4 ring-brand shadow-lg">
+                <div
+                  className={`flex h-24 w-24 shrink-0 items-center justify-center rounded-full font-display text-2xl font-black text-white shadow-lg ${
+                    cardTheme === "red"
+                      ? "bg-gradient-to-br from-white/25 to-black/20 ring-4 ring-white/95"
+                      : "bg-gradient-to-br from-brand to-brand-dark ring-4 ring-brand"
+                  }`}
+                >
                   {initials}
                 </div>
               )}
               {/* Checkmark overlay */}
-              <div className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 text-white ring-2 ring-[#080c14] text-xs font-black shadow-sm">
+              <div
+                className={`absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 text-white text-xs font-black shadow-sm ${
+                  cardTheme === "red" ? "ring-2 ring-[#83141f]" : "ring-2 ring-[#080c14]"
+                }`}
+              >
                 ✓
               </div>
             </div>
 
-            {/* 3. Directly Under Avatar: Name & Enrolled Course */}
-            <h4 className="mt-3.5 font-display text-lg sm:text-xl font-black text-white text-center">
+            {/* 2. Student Name */}
+            <h4 className="mt-3.5 font-display text-xl sm:text-2xl font-black text-white text-center">
               {profile.userName}
             </h4>
-            <div className="mt-1.5 inline-flex items-center rounded-full border border-brand/40 bg-brand/10 px-3.5 py-1 text-xs font-semibold text-rose-200">
+
+            {/* 3. Enrolled Course (Clean text, NO pill layer) */}
+            <p
+              className={`mt-1 text-xs sm:text-sm font-semibold text-center ${
+                cardTheme === "red" ? "text-rose-200" : "text-sky-400"
+              }`}
+            >
               Enrolled in: {courseTitle}
-            </div>
+            </p>
           </div>
 
           {/* 4. Elegant Tapering Divider */}
-          <div className="my-5 h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div
+            className={`my-5 h-px w-full bg-gradient-to-r from-transparent to-transparent ${
+              cardTheme === "red" ? "via-white/30" : "via-white/20"
+            }`}
+          />
 
-          {/* 5. Centered Invitation & QR Code */}
+          {/* 5. "Join Me at" + Actual GAMAT Logo & Wordmark */}
           <div className="relative flex flex-col items-center text-center">
-            <p className="font-display font-black text-base sm:text-lg text-white">
-              Join Me at GAMAT Fx Academy
+            <p
+              className={`font-display font-bold text-xs uppercase tracking-wider ${
+                cardTheme === "red" ? "text-white/90" : "text-slate-300"
+              }`}
+            >
+              Join Me at
             </p>
-            <p className="mt-0.5 text-[11px] text-slate-400 max-w-xs">
+
+            {/* Actual GAMAT Candlestick Logo Tile + Wordmark */}
+            <div className="flex items-center justify-center gap-2.5 mt-2">
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm ${
+                  cardTheme === "red" ? "bg-white" : "bg-[#dc3545]"
+                }`}
+              >
+                <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                  <line
+                    x1="4"
+                    y1="26"
+                    x2="28"
+                    y2="26"
+                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
+                    strokeOpacity="0.3"
+                    strokeWidth="1"
+                  />
+                  <line
+                    x1="8.5"
+                    y1="7"
+                    x2="8.5"
+                    y2="24"
+                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
+                    strokeOpacity="0.75"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                  <rect
+                    x="6.2"
+                    y="10"
+                    width="4.6"
+                    height="10"
+                    rx="1"
+                    fill={cardTheme === "red" ? "#b02a37" : "white"}
+                    fillOpacity="0.6"
+                  />
+                  <line
+                    x1="16"
+                    y1="5"
+                    x2="16"
+                    y2="24"
+                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                  <rect
+                    x="13.4"
+                    y="9"
+                    width="5.2"
+                    height="12"
+                    rx="1.1"
+                    fill={cardTheme === "red" ? "#b02a37" : "white"}
+                  />
+                  <line
+                    x1="23.5"
+                    y1="9"
+                    x2="23.5"
+                    y2="24"
+                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
+                    strokeOpacity="0.8"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                  <rect
+                    x="21.2"
+                    y="13"
+                    width="4.6"
+                    height="8"
+                    rx="1"
+                    fill={cardTheme === "red" ? "#b02a37" : "white"}
+                    fillOpacity="0.8"
+                  />
+                  <path
+                    d="M5.5 21.5 C10 18.5, 13 14.5, 16.5 12.5 C20 10.5, 23 9.5, 27 8"
+                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
+                    strokeOpacity="0.45"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
+              </span>
+              <span className="flex flex-col items-start justify-center leading-none text-left">
+                <span className="block font-display font-black text-lg text-white">
+                  GAMAT<span className={cardTheme === "red" ? "text-rose-200" : "text-brand"}>&nbsp;Fx</span>
+                </span>
+                <span
+                  className={`block text-[9px] font-bold uppercase tracking-[0.22em] mt-0.5 ${
+                    cardTheme === "red" ? "text-white/80" : "text-white/70"
+                  }`}
+                >
+                  Academy
+                </span>
+              </span>
+            </div>
+
+            <p
+              className={`mt-3 text-[11px] max-w-xs ${
+                cardTheme === "red" ? "text-rose-100/90" : "text-slate-400"
+              }`}
+            >
               Scan the QR code below to connect with my cohort & learn together
             </p>
 
@@ -203,16 +359,30 @@ export default function AffiliateCard({
               />
             </div>
 
-            {/* Invite Code Pill */}
-            <div className="mt-3.5 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-1.5 text-xs">
-              <span className="font-semibold text-slate-400 text-[11px]">INVITE CODE:</span>
-              <span className="font-mono font-black text-brand tracking-wider text-sm">
+            {/* Invite Code (NO PILL LAYER - Clean text) */}
+            <div className="mt-3.5 flex items-center justify-center gap-1.5 text-xs">
+              <span
+                className={`text-[11px] font-semibold tracking-wider uppercase ${
+                  cardTheme === "red" ? "text-white/80" : "text-slate-400"
+                }`}
+              >
+                INVITE CODE:
+              </span>
+              <span
+                className={`font-mono text-base font-black ${
+                  cardTheme === "red" ? "text-white" : "text-brand"
+                }`}
+              >
                 {profile.referralCode}
               </span>
             </div>
 
             {/* Domain */}
-            <p className="mt-2 text-xs font-bold text-sky-400 font-mono tracking-wide">
+            <p
+              className={`mt-1 text-xs font-bold font-mono tracking-wide ${
+                cardTheme === "red" ? "text-rose-200" : "text-sky-400"
+              }`}
+            >
               gamatfxacademy.com
             </p>
           </div>

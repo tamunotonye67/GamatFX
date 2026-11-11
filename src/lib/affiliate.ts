@@ -369,9 +369,22 @@ export function clearActiveReferralCode() {
  * Under: QR Code + Invitation to join & Invite code
  * Price-free design.
  */
+export type AffiliateCardTheme = "red" | "dark";
+
+/**
+ * Renders the Centered, Minimalist, and Prestigious Official Student Share Card onto an offscreen canvas.
+ * - Top Center: Student Avatar (No top text header or verified pill)
+ * - Under Avatar: Student Name + Enrolled Course (Clean text, no pill layer)
+ * - Under: "Join Me at" + Actual GAMAT Candlestick Logo & Brand Wordmark
+ * - Under: High-Definition QR Code
+ * - Under: Personal Invite Code (Clean text, no pill layer) & Website Domain
+ * - Price-free design.
+ * - Supports "red" (Default website-matching red gradient) and "dark" (Obsidian Dark) themes.
+ */
 export async function exportAffiliateCardAsPng(
   profile: AffiliateProfile,
-  avatarUrl?: string
+  avatarUrl?: string,
+  theme: AffiliateCardTheme = "red"
 ): Promise<string> {
   const width = 1080;
   const height = 1440;
@@ -381,64 +394,68 @@ export async function exportAffiliateCardAsPng(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create canvas context");
 
-  // 1. Deep Obsidian Background
-  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-  bgGrad.addColorStop(0, "#080c14");
-  bgGrad.addColorStop(0.5, "#0d1322");
-  bgGrad.addColorStop(1, "#070a10");
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, width, height);
+  const isRed = theme === "red";
 
-  // 2. Radial ambient glows
-  const topGlow = ctx.createRadialGradient(width / 2, 280, 20, width / 2, 280, 500);
-  topGlow.addColorStop(0, "rgba(220, 53, 69, 0.22)");
-  topGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = topGlow;
-  ctx.fillRect(0, 0, width, height);
+  // 1. Background Gradient
+  if (isRed) {
+    const bgGrad = ctx.createLinearGradient(0, 0, width * 0.35, height);
+    bgGrad.addColorStop(0, "#83141f");
+    bgGrad.addColorStop(0.35, "#a52230");
+    bgGrad.addColorStop(0.7, "#dc3545");
+    bgGrad.addColorStop(1, "#4e0911");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
 
-  const btmGlow = ctx.createRadialGradient(width / 2, 1000, 20, width / 2, 1000, 480);
-  btmGlow.addColorStop(0, "rgba(56, 189, 248, 0.12)");
-  btmGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = btmGlow;
-  ctx.fillRect(0, 0, width, height);
+    // Subtle luxury radial highlight at top
+    const topGlow = ctx.createRadialGradient(width / 2, 220, 20, width / 2, 220, 520);
+    topGlow.addColorStop(0, "rgba(255, 255, 255, 0.16)");
+    topGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = topGlow;
+    ctx.fillRect(0, 0, width, height);
 
-  // 3. Elegant outer perimeter borders
+    // Bottom dark vignette
+    const btmGlow = ctx.createRadialGradient(width / 2, height - 100, 50, width / 2, height - 100, 600);
+    btmGlow.addColorStop(0, "rgba(0, 0, 0, 0.35)");
+    btmGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = btmGlow;
+    ctx.fillRect(0, 0, width, height);
+  } else {
+    const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+    bgGrad.addColorStop(0, "#080c14");
+    bgGrad.addColorStop(0.5, "#0d1322");
+    bgGrad.addColorStop(1, "#070a10");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Radial ambient glows
+    const topGlow = ctx.createRadialGradient(width / 2, 280, 20, width / 2, 280, 500);
+    topGlow.addColorStop(0, "rgba(220, 53, 69, 0.22)");
+    topGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = topGlow;
+    ctx.fillRect(0, 0, width, height);
+
+    const btmGlow = ctx.createRadialGradient(width / 2, 1000, 20, width / 2, 1000, 480);
+    btmGlow.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+    btmGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = btmGlow;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // 2. Elegant perimeter borders
   ctx.lineWidth = 2;
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.08)";
   roundRect(ctx, 40, 40, width - 80, height - 80, 40);
   ctx.stroke();
 
   ctx.lineWidth = 1.5;
-  ctx.strokeStyle = "rgba(220, 53, 69, 0.35)";
+  ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.08)" : "rgba(220, 53, 69, 0.35)";
   roundRect(ctx, 48, 48, width - 96, height - 96, 36);
   ctx.stroke();
 
-  // 4. TOP CENTER: Brand Logo & Verified Student Tag
-  ctx.textAlign = "center";
-  ctx.font = "900 38px sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText("GAMAT FX", width / 2 - 82, 125);
-
-  ctx.font = "800 38px sans-serif";
-  ctx.fillStyle = "#dc3545";
-  ctx.fillText("ACADEMY", width / 2 + 82, 125);
-
-  // Subtle Verified Student Pill
-  ctx.fillStyle = "rgba(16, 185, 129, 0.12)";
-  roundRect(ctx, width / 2 - 175, 148, 350, 36, 18);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.font = "bold 13px sans-serif";
-  ctx.fillStyle = "#6ee7b7";
-  ctx.fillText("✓ VERIFIED STUDENT ENROLLMENT", width / 2, 171);
-
-  // 5. TOP CENTER: Student Profile Avatar
+  // 3. TOP CENTER: Student Profile Avatar (Removed top header and verified pill)
   const avatarCenterX = width / 2;
-  const avatarCenterY = 300;
-  const avatarRadius = 80;
+  const avatarCenterY = 195;
+  const avatarRadius = 88;
 
   let avatarLoaded = false;
   if (avatarUrl) {
@@ -465,11 +482,11 @@ export async function exportAffiliateCardAsPng(
       );
       ctx.restore();
 
-      // Outer brand ring
+      // Outer ring
       ctx.beginPath();
       ctx.arc(avatarCenterX, avatarCenterY, avatarRadius + 4, 0, Math.PI * 2);
-      ctx.strokeStyle = "#dc3545";
-      ctx.lineWidth = 5;
+      ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.95)" : "#dc3545";
+      ctx.lineWidth = 6;
       ctx.stroke();
       avatarLoaded = true;
     } catch {
@@ -484,8 +501,13 @@ export async function exportAffiliateCardAsPng(
       avatarCenterX + avatarRadius,
       avatarCenterY + avatarRadius
     );
-    initGrad.addColorStop(0, "#dc3545");
-    initGrad.addColorStop(1, "#8b1523");
+    if (isRed) {
+      initGrad.addColorStop(0, "rgba(255, 255, 255, 0.25)");
+      initGrad.addColorStop(1, "rgba(0, 0, 0, 0.2)");
+    } else {
+      initGrad.addColorStop(0, "#dc3545");
+      initGrad.addColorStop(1, "#8b1523");
+    }
     ctx.fillStyle = initGrad;
     ctx.beginPath();
     ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
@@ -493,8 +515,8 @@ export async function exportAffiliateCardAsPng(
 
     ctx.beginPath();
     ctx.arc(avatarCenterX, avatarCenterY, avatarRadius + 4, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.95)" : "#dc3545";
+    ctx.lineWidth = 6;
     ctx.stroke();
 
     ctx.textAlign = "center";
@@ -511,73 +533,67 @@ export async function exportAffiliateCardAsPng(
 
   // Active checkmark badge overlay on avatar
   ctx.beginPath();
-  ctx.arc(avatarCenterX + 56, avatarCenterY + 56, 22, 0, Math.PI * 2);
+  ctx.arc(avatarCenterX + 62, avatarCenterY + 62, 24, 0, Math.PI * 2);
   ctx.fillStyle = "#0284c7";
   ctx.fill();
-  ctx.strokeStyle = "#080c14";
+  ctx.strokeStyle = isRed ? "#851320" : "#080c14";
   ctx.lineWidth = 4;
   ctx.stroke();
 
   ctx.textAlign = "center";
-  ctx.font = "bold 20px sans-serif";
+  ctx.font = "bold 22px sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("✓", avatarCenterX + 56, avatarCenterY + 63);
+  ctx.fillText("✓", avatarCenterX + 62, avatarCenterY + 70);
 
-  // 6. Student Name & Enrolled Course (Directly Under Avatar)
+  // 4. Student Name (Directly Under Avatar)
   ctx.textAlign = "center";
-  ctx.font = "900 44px sans-serif";
+  ctx.font = "900 48px sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(profile.userName, width / 2, 435);
+  ctx.fillText(profile.userName, width / 2, 345);
 
-  // Enrolled Course Badge Pill (Centered)
+  // 5. Enrolled Course (NO PILL LAYER - Clean typography)
   const courseName = profile.enrolledCourseTitle || "Forex Foundations";
-  ctx.font = "700 22px sans-serif";
-  const courseText = `Enrolled in: ${courseName}`;
-  const courseMetrics = ctx.measureText(courseText);
-  const pillW = Math.max(360, courseMetrics.width + 56);
+  ctx.font = "600 24px sans-serif";
+  ctx.fillStyle = isRed ? "#fecdd3" : "#38bdf8";
+  ctx.fillText(`Enrolled in: ${courseName}`, width / 2, 390);
 
-  ctx.fillStyle = "rgba(220, 53, 69, 0.12)";
-  roundRect(ctx, width / 2 - pillW / 2, 465, pillW, 50, 25);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(220, 53, 69, 0.4)";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  ctx.fillStyle = "#fca5a5";
-  ctx.fillText(courseText, width / 2, 498);
-
-  // 7. Refined divider
-  const divGrad = ctx.createLinearGradient(width / 2 - 240, 550, width / 2 + 240, 550);
+  // 6. Refined Divider
+  const divGrad = ctx.createLinearGradient(width / 2 - 240, 430, width / 2 + 240, 430);
   divGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
-  divGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.2)");
+  divGrad.addColorStop(0.5, isRed ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.2)");
   divGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
   ctx.strokeStyle = divGrad;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(width / 2 - 240, 550);
-  ctx.lineTo(width / 2 + 240, 550);
+  ctx.moveTo(width / 2 - 240, 430);
+  ctx.lineTo(width / 2 + 240, 430);
   ctx.stroke();
 
-  // 8. Invitation to Join (Centered, NO price mention whatsoever)
+  // 7. "Join Me at"
   ctx.textAlign = "center";
-  ctx.font = "900 36px sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText("Join Me at GAMAT Fx Academy", width / 2, 615);
+  ctx.font = "700 26px sans-serif";
+  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.9)" : "#ffffff";
+  ctx.fillText("Join Me at", width / 2, 485);
 
+  // 8. Actual GAMAT Logo & Brand Name (Under "Join Me at")
+  drawGamatLogo(ctx, width / 2, 515, theme);
+
+  // 9. QR Subtitle
+  ctx.textAlign = "center";
   ctx.font = "500 20px sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Scan the QR code below to connect with my cohort & learn together", width / 2, 660);
+  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.85)" : "#94a3b8";
+  ctx.fillText("Scan the QR code below to connect with my cohort & learn together", width / 2, 620);
 
-  // 9. QR Code Card Container (Centered)
+  // 10. QR Code Card Container (Centered)
   const qrCardW = 420;
   const qrCardH = 420;
   const qrCardX = width / 2 - qrCardW / 2;
-  const qrCardY = 705;
+  const qrCardY = 655;
 
   ctx.fillStyle = "#ffffff";
   roundRect(ctx, qrCardX, qrCardY, qrCardW, qrCardH, 32);
   ctx.fill();
-  ctx.strokeStyle = "#e2e8f0";
+  ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.4)" : "#e2e8f0";
   ctx.lineWidth = 3;
   ctx.stroke();
 
@@ -600,37 +616,162 @@ export async function exportAffiliateCardAsPng(
     ctx.fillRect(qrCardX + 60, qrCardY + qrCardH - 140, 80, 80);
   }
 
-  // 10. Invite Code Pill (Centered Under QR)
-  const codePillW = 500;
-  const codePillH = 74;
-  const codePillX = width / 2 - codePillW / 2;
-  const codePillY = 1170;
-
-  ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
-  roundRect(ctx, codePillX, codePillY, codePillW, codePillH, 20);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.font = "bold 18px sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("INVITE CODE:", width / 2 - 110, codePillY + 46);
+  // 11. Invite Code (NO PILL LAYER - Clean typography)
+  ctx.textAlign = "center";
+  const codeY = 1135;
+  ctx.font = "bold 20px sans-serif";
+  const inviteLabel = "INVITE CODE:  ";
+  const labelMetrics = ctx.measureText(inviteLabel);
 
   ctx.font = "900 32px monospace";
-  ctx.fillStyle = "#dc3545";
-  ctx.fillText(profile.referralCode, width / 2 + 75, codePillY + 47);
+  const codeMetrics = ctx.measureText(profile.referralCode);
 
-  // 11. Official Website URL & Footer Watermark
-  ctx.font = "bold 26px sans-serif";
-  ctx.fillStyle = "#38bdf8";
-  ctx.fillText("gamatfxacademy.com", width / 2, 1290);
+  const totalCodeW = labelMetrics.width + codeMetrics.width;
+  const startCodeX = width / 2 - totalCodeW / 2;
 
+  ctx.textAlign = "left";
+  ctx.font = "bold 20px sans-serif";
+  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.8)" : "#94a3b8";
+  ctx.fillText(inviteLabel, startCodeX, codeY);
+
+  ctx.font = "900 32px monospace";
+  ctx.fillStyle = isRed ? "#ffffff" : "#dc3545";
+  ctx.fillText(profile.referralCode, startCodeX + labelMetrics.width, codeY + 2);
+
+  // 12. Official Website URL
+  ctx.textAlign = "center";
+  ctx.font = "bold 24px sans-serif";
+  ctx.fillStyle = isRed ? "#fed7aa" : "#38bdf8";
+  ctx.fillText("gamatfxacademy.com", width / 2, 1195);
+
+  // 13. Watermark Footer
   ctx.font = "500 16px sans-serif";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-  ctx.fillText("GAMAT Fx Academy • Official Student Share Card", width / 2, 1350);
+  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.6)" : "rgba(255, 255, 255, 0.45)";
+  ctx.fillText("GAMAT Fx Academy • Official Student Share Card", width / 2, 1260);
 
   return canvas.toDataURL("image/png");
+}
+
+/**
+ * Draws the official GAMAT Candlestick Logo Mark and Wordmark lockup on Canvas
+ */
+function drawGamatLogo(
+  ctx: CanvasRenderingContext2D,
+  centerX: number,
+  y: number,
+  theme: "red" | "dark" = "red"
+) {
+  const isRed = theme === "red";
+  const tileSize = 54;
+  const gap = 14;
+
+  ctx.font = "900 30px sans-serif";
+  const gamatW = ctx.measureText("GAMAT ").width;
+  const fxW = ctx.measureText("Fx").width;
+  const wordmarkW = gamatW + fxW;
+  const totalW = tileSize + gap + wordmarkW;
+  const startX = centerX - totalW / 2;
+
+  // 1. Candlestick Logo Tile
+  ctx.save();
+  ctx.fillStyle = isRed ? "#ffffff" : "#dc3545";
+  roundRect(ctx, startX, y, tileSize, tileSize, 14);
+  ctx.fill();
+
+  const scale = tileSize / 32;
+  const candleColor = isRed ? "#b02a37" : "#ffffff";
+
+  ctx.translate(startX, y);
+
+  // Floor
+  ctx.beginPath();
+  ctx.moveTo(4 * scale, 26 * scale);
+  ctx.lineTo(28 * scale, 26 * scale);
+  ctx.strokeStyle = candleColor;
+  ctx.globalAlpha = 0.3;
+  ctx.lineWidth = 1 * scale;
+  ctx.stroke();
+
+  // Bearish candle (left)
+  ctx.beginPath();
+  ctx.moveTo(8.5 * scale, 7 * scale);
+  ctx.lineTo(8.5 * scale, 24 * scale);
+  ctx.globalAlpha = 0.75;
+  ctx.lineWidth = 1.4 * scale;
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.65;
+  ctx.fillStyle = candleColor;
+  roundRect(ctx, 6.2 * scale, 10 * scale, 4.6 * scale, 10 * scale, 1 * scale);
+  ctx.fill();
+
+  // Bullish candle (centre)
+  ctx.beginPath();
+  ctx.moveTo(16 * scale, 5 * scale);
+  ctx.lineTo(16 * scale, 24 * scale);
+  ctx.globalAlpha = 1.0;
+  ctx.lineWidth = 1.6 * scale;
+  ctx.stroke();
+
+  ctx.globalAlpha = 1.0;
+  roundRect(ctx, 13.4 * scale, 9 * scale, 5.2 * scale, 12 * scale, 1.1 * scale);
+  ctx.fill();
+
+  // Bullish candle (right)
+  ctx.beginPath();
+  ctx.moveTo(23.5 * scale, 9 * scale);
+  ctx.lineTo(23.5 * scale, 24 * scale);
+  ctx.globalAlpha = 0.8;
+  ctx.lineWidth = 1.4 * scale;
+  ctx.stroke();
+
+  ctx.globalAlpha = 0.8;
+  roundRect(ctx, 21.2 * scale, 13 * scale, 4.6 * scale, 8 * scale, 1 * scale);
+  ctx.fill();
+
+  // Trend line
+  ctx.beginPath();
+  ctx.moveTo(5.5 * scale, 21.5 * scale);
+  ctx.bezierCurveTo(
+    10 * scale, 18.5 * scale,
+    13 * scale, 14.5 * scale,
+    16.5 * scale, 12.5 * scale
+  );
+  ctx.bezierCurveTo(
+    20 * scale, 10.5 * scale,
+    23 * scale, 9.5 * scale,
+    27 * scale, 8 * scale
+  );
+  ctx.globalAlpha = 0.5;
+  ctx.lineWidth = 1.2 * scale;
+  ctx.stroke();
+
+  ctx.restore();
+
+  // 2. Wordmark
+  const wordmarkX = startX + tileSize + gap;
+  ctx.textAlign = "left";
+
+  // GAMAT
+  ctx.font = "900 30px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("GAMAT", wordmarkX, y + 32);
+
+  // Fx
+  ctx.fillStyle = isRed ? "#fed7aa" : "#dc3545";
+  ctx.fillText("Fx", wordmarkX + gamatW, y + 32);
+
+  // ACADEMY
+  ctx.font = "700 11px sans-serif";
+  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.85)" : "rgba(255, 255, 255, 0.65)";
+  const academyText = "ACADEMY";
+  let letterX = wordmarkX + 1;
+  for (let i = 0; i < academyText.length; i++) {
+    const ch = academyText[i];
+    ctx.fillText(ch, letterX, y + 49);
+    letterX += ctx.measureText(ch).width + 3.8;
+  }
 }
 
 /* --------------------------- Canvas Helpers --------------------------- */
