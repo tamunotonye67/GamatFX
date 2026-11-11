@@ -6,7 +6,8 @@ const supabaseKey = metaEnv.VITE_SUPABASE_ANON_KEY || "sb_publishable_FnEN-7WZtC
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    detectSessionInUrl: (_url, params) =>
-      Boolean(params.access_token || params.type === "recovery"),
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
   },
 });

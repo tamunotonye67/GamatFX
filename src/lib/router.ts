@@ -72,6 +72,13 @@ function parse(): string {
     return "/dashboard";
   }
 
+  // 3b. Handle OAuth PKCE callback (?code=... in search params)
+  const search = window.location.search || "";
+  if (search.includes("code=")) {
+    persistRoute("/dashboard");
+    return "/dashboard";
+  }
+
   // 4. Explicit hash route present in URL (e.g. "#/courses", "#/admin", "#/")
   const rawHash = hash.replace(/^#/, "");
   if (rawHash !== "") {
