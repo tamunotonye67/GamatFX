@@ -19,10 +19,11 @@ function devApiPlugin() {
           req.on("end", async () => {
             try {
               const body = JSON.parse(bodyStr || "{}");
-              const apiKey = process.env.VITE_BACHS_API_KEY || "sk_sandbox_9f8fb85e_zfe4AAk2KQqAPiqlB8gA6d4vNua8k5ATdaBRsdBfkEw";
-              const baseUrl = apiKey.startsWith("sk_live_")
-                ? "https://api.bachs.io/v1"
-                : "https://sandbox-api.bachs.io/v1";
+              const apiKey = (process.env.BACHS_API_KEY || process.env.VITE_BACHS_API_KEY || "").trim();
+              const isSandbox = apiKey.startsWith("sk_sandbox_");
+              const baseUrl = isSandbox
+                ? "https://sandbox-api.bachs.io/v1"
+                : "https://api.bachs.io/v1";
 
               const formattedAmount = Number(body.amount).toFixed(2);
               const payload = {

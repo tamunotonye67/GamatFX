@@ -22,16 +22,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const apiKey = (
-      process.env.BACHS_API_KEY ||
-      process.env.VITE_BACHS_API_KEY ||
-      ""
-    ).trim() || "sk_sandbox_9f8fb85e_zfe4AAk2KQqAPiqlB8gA6d4vNua8k5ATdaBRsdBfkEw";
+    const apiKey = (process.env.BACHS_API_KEY || process.env.VITE_BACHS_API_KEY || "").trim();
 
-    const isLive = apiKey.startsWith("sk_live_");
-    const baseUrl = isLive
-      ? "https://api.bachs.io/v1"
-      : "https://sandbox-api.bachs.io/v1";
+    if (!apiKey) {
+      return res.status(500).json({
+        message: "Bachs API key is not configured. Please add BACHS_API_KEY to your environment variables.",
+      });
+    }
+
+    const isSandbox = apiKey.startsWith("sk_sandbox_");
+    const baseUrl = isSandbox
+      ? "https://sandbox-api.bachs.io/v1"
+      : "https://api.bachs.io/v1";
 
     const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
     const { amount, currency = "NGN", email, name, phone, reference, metadata } = body;
