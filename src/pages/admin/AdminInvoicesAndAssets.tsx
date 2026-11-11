@@ -905,11 +905,11 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
 
         {/* Actions */}
         <div className="mt-4 flex gap-3">
-          <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5">
+          <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5 cursor-pointer">
             <X className="h-4 w-4" /> Close
           </button>
-          <button type="button" onClick={onPrint ?? (() => window.print())} className="btn-primary flex-1">
-            <Printer className="h-4 w-4" /> {isReceipt ? "Print receipt" : "Print invoice"}
+          <button type="button" onClick={onPrint ?? (() => window.print())} className="btn-primary flex-1 cursor-pointer">
+            <Printer className="h-4 w-4" /> {isReceipt ? "Print / Save PDF" : "Print / Save PDF"}
           </button>
         </div>
       </div>

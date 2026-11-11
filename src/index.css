@@ -453,4 +453,13 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+
+  /* Ensure modal backdrop and overlays are completely invisible and transparent when printing */
+  .fixed.inset-0,
+  .backdrop-blur-sm,
+  .backdrop-blur-xs {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
