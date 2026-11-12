@@ -8,7 +8,7 @@ import { uploadStoreFile, uploadStoreAsset } from "../../lib/supabaseStorage";
 import {
   ShoppingBag, Plus, Pencil, Trash2, Eye, EyeOff, Bot, LineChart,
   BookOpen, Target, Package, LayoutGrid, Download, CheckCircle2, DollarSign,
-  Clock, Gift, Upload, Image as ImageIcon, X, FileText, Loader2, Link2, ExternalLink
+  Clock, Gift, Upload, Image as ImageIcon, X, FileText, Loader2, Link2, ExternalLink, ArrowLeftRight
 } from "lucide-react";
 
 export function AdminStore() {
@@ -166,104 +166,19 @@ export function AdminStore() {
 
         {/* Product List */}
         {rows.length > 0 ? (
-          <>
-            {/* Mobile Card List (< md) */}
-            <div className="md:hidden divide-y divide-line">
-              {rows.map((p) => {
-                const CatIcon = categoryIcon(p.category);
-                return (
-                  <div key={p.id} className="p-4 space-y-3 transition hover:bg-cream/40">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 min-w-0">
-                        <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
-                          <CatIcon className="h-5 w-5 shrink-0" />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="font-bold text-ink text-sm leading-snug">{p.title}</p>
-                          <p className="text-xs text-muted truncate mt-0.5">{p.tagline}</p>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            <Badge tone="gray">{p.category.toUpperCase()}</Badge>
-                            <Badge tone={p.published ? "green" : "amber"}>
-                              {p.published ? "Published" : "Draft"}
-                            </Badge>
-                            {p.isPreorder && (
-                              <Badge tone="purple">
-                                <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
-                              </Badge>
-                            )}
-                            {(p.isFree || p.price === 0) && (
-                              <Badge tone="green">
-                                <Gift className="h-2.5 w-2.5 inline mr-0.5" /> FREE
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-line/60">
-                      <div>
-                        <span className="text-muted block text-[10px] uppercase font-semibold">Price</span>
-                        <span className="font-bold text-ink">
-                          {p.isFree || p.price === 0 ? (
-                            <span className="text-emerald-600 font-extrabold flex items-center gap-1">
-                              <Gift className="h-3 w-3" /> FREE
-                            </span>
-                          ) : (
-                            naira(p.price)
-                          )}
-                        </span>
-                        {p.originalPrice && (
-                          <span className="text-[10px] text-muted line-through ml-1.5">{naira(p.originalPrice)}</span>
-                        )}
-                      </div>
-
-                      <div className="text-right">
-                        <span className="text-muted block text-[10px] uppercase font-semibold">Sales</span>
-                        <span className="font-semibold text-ink">{p.salesCount || 0} units</span>
-                      </div>
-                    </div>
-
-                    {p.isPreorder && p.preorderReleaseDate && (
-                      <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-100">
-                        <Clock className="h-3 w-3 shrink-0" />
-                        <span>Releases: {p.preorderReleaseDate}</span>
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-[11px] text-muted truncate max-w-[180px]">
-                        {p.deliverableType}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <IconBtn
-                          title={p.published ? "Unpublish" : "Publish"}
-                          onClick={() => admin.saveStoreProduct({ ...p, published: !p.published })}
-                        >
-                          {p.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </IconBtn>
-                        <IconBtn title="Edit" onClick={() => setEditing(p)}>
-                          <Pencil className="h-4 w-4" />
-                        </IconBtn>
-                        <IconBtn
-                          danger
-                          title="Delete"
-                          onClick={() => {
-                            if (confirm(`Delete "${p.title}"?`)) admin.deleteStoreProduct(p.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </IconBtn>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          <div>
+            {/* Mobile Horizontal Scroll Hint */}
+            <div className="sm:hidden px-4 py-2.5 bg-cream/70 border-b border-line flex items-center justify-between text-[11px] text-muted">
+              <span className="flex items-center gap-1.5 font-semibold text-ink">
+                <ArrowLeftRight className="h-3.5 w-3.5 text-brand shrink-0" />
+                <span>Swipe left / right to scroll full table</span>
+              </span>
+              <span className="font-bold text-muted">{rows.length} item(s)</span>
             </div>
 
-            {/* Desktop Table (md+) */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[1080px] text-sm">
+            {/* Scrollable Table for All Devices (Mobile, Tablet, Desktop) */}
+            <div className="overflow-x-auto overscroll-x-contain">
+              <table className="w-full min-w-[1100px] text-sm">
                 <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                   <tr>
                     <Th className="min-w-[320px]">Product</Th>
@@ -369,7 +284,7 @@ export function AdminStore() {
                 </tbody>
               </table>
             </div>
-          </>
+          </div>
         ) : (
           <Empty icon={ShoppingBag} title="No products found" body="Create a new store product or adjust filters." />
         )}
