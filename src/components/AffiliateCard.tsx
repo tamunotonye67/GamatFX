@@ -540,22 +540,13 @@ export default function AffiliateCard({
       <div className="lg:col-span-7 space-y-6">
         {/* CARD 1: Interactive Card Personalization & Enrolled Course Selector */}
         <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-5">
-          <div className="flex items-center justify-between border-b border-line pb-4">
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand">
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                <span>Card Personalization Studio</span>
-              </div>
-              <h3 className="mt-2 font-display text-lg font-bold text-ink">
-                Customize What Appears on Your Card
-              </h3>
-              <p className="mt-0.5 text-xs text-muted">
-                Choose the exact name and course displayed on your official share card.
-              </p>
-            </div>
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-              <CheckCircle className="h-3 w-3" /> Real-Time Preview
-            </span>
+          <div className="border-b border-line pb-3.5">
+            <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
+              Card Details
+            </h3>
+            <p className="mt-0.5 text-xs text-muted">
+              Customize the name, course, and invite caption displayed on your official share card.
+            </p>
           </div>
 
           {/* 1. Name to Show on Card Input */}
@@ -563,7 +554,7 @@ export default function AffiliateCard({
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-brand" />
-                <span>Name to Show on Card</span>
+                <span>Name on Card</span>
               </label>
               {cardDisplayName !== profile.userName && (
                 <button
@@ -574,184 +565,104 @@ export default function AffiliateCard({
                   }}
                   className="text-[11px] font-semibold text-muted hover:text-brand flex items-center gap-1 transition cursor-pointer"
                 >
-                  <RotateCcw className="h-3 w-3" /> Reset to "{profile.userName}"
+                  <RotateCcw className="h-3 w-3" /> Reset
                 </button>
               )}
             </div>
-            <div className="relative">
-              <input
-                type="text"
-                value={cardDisplayName}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setCardDisplayName(val);
-                  onUpdateDisplayName?.(val);
-                }}
-                placeholder="e.g. Tonye Taylor or Lead Trader Tonye"
-                className="w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 outline-none transition focus:border-brand shadow-xs"
-              />
-            </div>
+            <input
+              type="text"
+              value={cardDisplayName}
+              onChange={(e) => {
+                const val = e.target.value;
+                setCardDisplayName(val);
+                onUpdateDisplayName?.(val);
+              }}
+              placeholder="e.g. Tonye Taylor"
+              className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition"
+            />
             <p className="text-[11px] text-muted">
-              You decide the full name, preferred name, or trading alias that prints on your official card.
+              Choose your full name, preferred name, or trading alias.
             </p>
           </div>
 
-          {/* 2. Enrolled & Paid Course Selection Section (Collapsible Dropdown) */}
-          <div className="space-y-2 pt-2 border-t border-line/70">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-ink flex items-center gap-1.5">
-                <BookOpen className="h-3.5 w-3.5 text-brand" />
-                <span>Enrolled &amp; Paid Courses</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setCourseDropdownOpen(!courseDropdownOpen)}
-                className="text-[11px] font-bold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
-              >
-                <span>{courseDropdownOpen ? "Collapse List" : "Change Course"}</span>
-                <ChevronDown
-                  className={`h-3 w-3 transition-transform duration-200 ${
-                    courseDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </div>
+          {/* 2. Enrolled & Paid Course Selection Section (Single Clean Dropdown) */}
+          <div className="space-y-1.5 pt-3 border-t border-line">
+            <label className="text-xs font-bold text-ink flex items-center gap-1.5">
+              <BookOpen className="h-3.5 w-3.5 text-brand" />
+              <span>Course on Card</span>
+            </label>
 
-            {/* Compact Selected Course Trigger Bar */}
-            <div
+            {/* Clean Dropdown Trigger */}
+            <button
+              type="button"
               onClick={() => setCourseDropdownOpen(!courseDropdownOpen)}
-              className="w-full flex items-center justify-between p-3 rounded-xl border border-line bg-cream/70 hover:bg-cream hover:border-brand/40 transition cursor-pointer text-left shadow-xs"
+              className="w-full flex items-center justify-between p-3 rounded-xl border border-line bg-cream/50 hover:bg-cream hover:border-brand/40 transition cursor-pointer text-left"
             >
               <div className="min-w-0 flex-1 pr-3">
-                <span className="text-[10px] uppercase font-bold text-muted block">Selected on Card:</span>
-                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                  <p className="font-bold text-xs sm:text-sm text-ink truncate">{courseTitle}</p>
+                <p className="font-bold text-xs sm:text-sm text-ink truncate">{courseTitle}</p>
+                <div className="flex items-center gap-2 mt-1">
                   {isCustomCourse ? (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
-                      CUSTOM TITLE
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                      Custom Title
                     </span>
                   ) : enrolledCourses.some(
                       (c) => c.title.toLowerCase() === courseTitle.toLowerCase() && c.isPaid
                     ) ? (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
-                      PAID ENROLLMENT
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                      Paid Enrollment
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                      ENROLLED
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                      Enrolled
                     </span>
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold text-brand shrink-0">
-                <span className="hidden sm:inline">{courseDropdownOpen ? "Close" : "Change"}</span>
+
+              <div className="flex items-center gap-1.5 text-xs font-bold text-muted shrink-0">
+                <span>{courseDropdownOpen ? "Done" : "Change"}</span>
                 <ChevronDown
                   className={`h-4 w-4 transition-transform duration-200 ${
-                    courseDropdownOpen ? "rotate-180" : ""
+                    courseDropdownOpen ? "rotate-180 text-brand" : ""
                   }`}
                 />
               </div>
-            </div>
+            </button>
 
-            {/* Collapsible Dropdown Options Container */}
+            {/* Dropdown Menu Options */}
             {courseDropdownOpen && (
-              <div className="rounded-2xl border border-line bg-white p-3 shadow-md space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
-                <div className="flex items-center justify-between px-1 pb-1.5 border-b border-line text-[11px] font-bold text-muted">
-                  <span>
-                    Select from your courses ({enrolledCourses.length > 0 ? enrolledCourses.length : "Catalog"}):
-                  </span>
-                  <span className="text-[10px] text-muted">Click to select &amp; collapse</span>
+              <div className="mt-2 rounded-xl border border-line bg-white p-2.5 shadow-sm space-y-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted px-1 py-0.5">
+                  Select a course:
+                </p>
+                <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
+                  {(enrolledCourses.length > 0 ? enrolledCourses : fallbackCatalogCourses).map((c) => {
+                    const isSelected =
+                      !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCourse(false);
+                          setCourseTitle(c.title);
+                          onUpdateCourseTitle?.(c.title);
+                          setCourseDropdownOpen(false);
+                        }}
+                        className={`w-full text-left p-2.5 rounded-lg border transition cursor-pointer flex items-center justify-between gap-2 ${
+                          isSelected
+                            ? "border-brand bg-brand/5 text-brand font-bold"
+                            : "border-transparent bg-white hover:bg-cream text-ink font-medium"
+                        }`}
+                      >
+                        <span className="truncate text-xs">{c.title}</span>
+                        {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-brand" />}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {enrolledCourses.length > 0 ? (
-                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                    {enrolledCourses.map((c) => {
-                      const isSelected =
-                        !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => {
-                            setIsCustomCourse(false);
-                            setCourseTitle(c.title);
-                            onUpdateCourseTitle?.(c.title);
-                            setCourseDropdownOpen(false);
-                          }}
-                          className={`w-full text-left p-2.5 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5 ${
-                            isSelected
-                              ? "border-brand bg-brand/5 shadow-xs ring-1 ring-brand/20"
-                              : "border-line bg-white hover:border-slate-300 hover:bg-slate-50"
-                          }`}
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-bold text-xs sm:text-sm text-ink truncate">{c.title}</p>
-                              {c.isPaid ? (
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
-                                  PAID ENROLLMENT
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                  ENROLLED
-                                </span>
-                              )}
-                            </div>
-                            {c.enrolledAt && (
-                              <p className="text-[10px] text-muted mt-0.5">
-                                Enrolled: {new Date(c.enrolledAt).toLocaleDateString()}
-                              </p>
-                            )}
-                          </div>
-
-                          <span
-                            className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition ${
-                              isSelected
-                                ? "border-brand bg-brand text-white"
-                                : "border-slate-300 bg-white"
-                            }`}
-                          >
-                            {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-amber-200/80 bg-amber-50/50 p-3 space-y-2">
-                    <p className="text-[11px] text-amber-900 font-medium">
-                      Select a program from our flagship catalog:
-                    </p>
-                    <div className="space-y-1.5">
-                      {fallbackCatalogCourses.map((c) => {
-                        const isSelected =
-                          !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => {
-                              setIsCustomCourse(false);
-                              setCourseTitle(c.title);
-                              onUpdateCourseTitle?.(c.title);
-                              setCourseDropdownOpen(false);
-                            }}
-                            className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center justify-between ${
-                              isSelected
-                                ? "border-brand bg-brand text-white shadow-xs"
-                                : "border-line bg-white text-ink hover:bg-slate-50"
-                            }`}
-                          >
-                            <span className="truncate">{c.title}</span>
-                            {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Course Name Option Inside Collapsible */}
+                {/* Custom Course Option */}
                 <div className="pt-2 border-t border-line">
                   {!isCustomCourse ? (
                     <button
@@ -760,37 +671,35 @@ export default function AffiliateCard({
                         setIsCustomCourse(true);
                         setCustomCourseText(courseTitle);
                       }}
-                      className="text-[11px] font-semibold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] font-semibold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer px-1"
                     >
-                      <Edit3 className="h-3 w-3" /> Or type a custom course title
+                      <Edit3 className="h-3 w-3" /> Type a custom title instead
                     </button>
                   ) : (
-                    <div className="w-full space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={customCourseText}
-                          onChange={(e) => {
-                            setCustomCourseText(e.target.value);
-                            setCourseTitle(e.target.value);
-                            onUpdateCourseTitle?.(e.target.value);
-                          }}
-                          placeholder="e.g. Institutional Order Flow &amp; Liquidity Playbook"
-                          className="flex-1 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink focus:border-brand outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsCustomCourse(false);
-                            const fallback = enrolledCourses[0]?.title || "Forex Foundations";
-                            setCourseTitle(fallback);
-                            onUpdateCourseTitle?.(fallback);
-                          }}
-                          className="text-xs font-bold text-muted hover:text-ink px-2.5 py-2 cursor-pointer"
-                        >
-                          Reset
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="text"
+                        value={customCourseText}
+                        onChange={(e) => {
+                          setCustomCourseText(e.target.value);
+                          setCourseTitle(e.target.value);
+                          onUpdateCourseTitle?.(e.target.value);
+                        }}
+                        placeholder="Enter course title"
+                        className="flex-1 rounded-lg border border-line bg-cream/50 px-3 py-1.5 text-xs font-semibold text-ink focus:bg-white focus:border-brand focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCourse(false);
+                          const fallback = enrolledCourses[0]?.title || "Forex Foundations";
+                          setCourseTitle(fallback);
+                          onUpdateCourseTitle?.(fallback);
+                        }}
+                        className="text-xs font-bold text-muted hover:text-ink px-2 py-1.5 cursor-pointer"
+                      >
+                        Reset
+                      </button>
                     </div>
                   )}
                 </div>
@@ -798,19 +707,19 @@ export default function AffiliateCard({
             )}
           </div>
 
-          {/* 3. Marketing Share Message / Hook (Collapsible Templates) */}
-          <div className="space-y-2 pt-2 border-t border-line/70">
+          {/* 3. Marketing Share Message / Hook */}
+          <div className="space-y-1.5 pt-3 border-t border-line">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <SlidersHorizontal className="h-3.5 w-3.5 text-brand" />
-                <span>Marketing Share Caption</span>
+                <span>Invite Caption</span>
               </label>
               <button
                 type="button"
                 onClick={() => setCaptionCollapsibleOpen(!captionCollapsibleOpen)}
-                className="text-[11px] font-bold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-semibold text-muted hover:text-brand inline-flex items-center gap-1 transition cursor-pointer"
               >
-                <span>{captionCollapsibleOpen ? "Hide Templates" : "Browse 4 Templates"}</span>
+                <span>{captionCollapsibleOpen ? "Hide Templates" : "Browse Templates (4)"}</span>
                 <ChevronDown
                   className={`h-3 w-3 transition-transform duration-200 ${
                     captionCollapsibleOpen ? "rotate-180" : ""
@@ -821,11 +730,11 @@ export default function AffiliateCard({
 
             {/* Collapsible Templates List */}
             {captionCollapsibleOpen && (
-              <div className="rounded-2xl border border-line bg-cream/70 p-3 space-y-2 animate-in fade-in duration-150">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
-                  Click any template to apply:
+              <div className="rounded-xl border border-line bg-cream/50 p-2.5 space-y-1.5 animate-in fade-in duration-150">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted px-1">
+                  Click a template to use:
                 </p>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                   {PRESET_INVITE_MESSAGES.map((msg, idx) => (
                     <button
                       key={idx}
@@ -835,10 +744,10 @@ export default function AffiliateCard({
                         onUpdateQuote?.(msg);
                         setCaptionCollapsibleOpen(false);
                       }}
-                      className={`w-full text-left p-2.5 rounded-xl transition cursor-pointer border text-[11px] leading-relaxed ${
+                      className={`w-full text-left p-2 rounded-lg transition cursor-pointer border text-xs leading-relaxed ${
                         inviteMessage === msg
-                          ? "border-brand bg-white text-ink font-bold shadow-xs ring-1 ring-brand/30"
-                          : "border-line bg-white text-muted hover:text-ink hover:border-slate-300"
+                          ? "border-brand bg-white text-ink font-bold shadow-xs"
+                          : "border-transparent bg-white/70 text-muted hover:text-ink hover:bg-white"
                       }`}
                     >
                       "{msg}"
@@ -855,23 +764,22 @@ export default function AffiliateCard({
                 setInviteMessage(e.target.value);
                 onUpdateQuote?.(e.target.value);
               }}
-              placeholder="Or write your own custom invitation hook..."
-              className="mt-1 w-full rounded-xl border border-line bg-cream p-2.5 text-xs text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:outline-none shadow-xs"
+              placeholder="Write your custom invitation message..."
+              className="w-full rounded-xl border border-line bg-cream/50 p-3 text-xs text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:outline-none transition leading-relaxed"
             />
+            <p className="text-[11px] text-muted">
+              Included automatically when sharing or copying your link.
+            </p>
           </div>
         </div>
 
         {/* CARD 2: 1-Click Sharing Suite & Unique Invite Link */}
         <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800">
-              <Share2 className="h-3.5 w-3.5 text-brand" />
-              <span>Instant Social Sharing</span>
-            </div>
-            <h3 className="mt-2 font-display text-lg font-bold text-ink">
-              Share Your Card &amp; Invite Link
+          <div className="border-b border-line pb-3.5">
+            <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
+              Share Your Card &amp; Link
             </h3>
-            <p className="mt-1 text-xs text-muted leading-relaxed">
+            <p className="mt-0.5 text-xs text-muted leading-relaxed">
               When friends use your link or scan your card code, they can register at no cost. You earn a <strong>{commissionPercent}% commission</strong> whenever they enroll in paid courses or purchase trading tools.
             </p>
           </div>
