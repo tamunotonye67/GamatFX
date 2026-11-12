@@ -27,12 +27,14 @@ export async function seedSupabaseDatabaseIfEmpty(initialData: {
       await supabase.from("courses").upsert(rows);
     }
 
-    // 2. Seed Accounts if table is empty
+    // 2. Seed Accounts if table is empty (ONLY seed administrator account to avoid resurrecting deleted students)
     const { count: accountCount } = await supabase.from("accounts").select("*", { count: "exact", head: true });
     if (accountCount === 0 || accountCount === null) {
-      console.log("⚡ Seeding Supabase database table: accounts...");
-      const rows = initialData.accounts.map(a => accountToRow(a));
-      await supabase.from("accounts").upsert(rows);
+      console.log("⚡ Seeding Supabase database table: accounts with admin account...");
+      const adminAcc = initialData.accounts.find(a => a.role === "admin" || a.email.toLowerCase().includes("admin")) || initialData.accounts[0];
+      if (adminAcc) {
+        await supabase.from("accounts").upsert([accountToRow(adminAcc)]);
+      }
     }
 
     // 3. Seed News if table is empty
@@ -86,7 +88,9 @@ export async function seedSupabaseDatabaseIfEmpty(initialData: {
  * Subscribes to Supabase Realtime changes across key tables.
  * When data changes in Supabase, triggers the provided callback.
  */
-export function subscribeToSupabaseRealtime(onTableChange: (tableName: string) => void) {
+export function subscribeToSupabaseRealtime(
+  onTableChange: (tableName: string, eventType?: string, payload?: any) => void
+) {
   const channel = supabase
     .channel("gamatfx-realtime-sync")
     .on(
@@ -94,7 +98,7 @@ export function subscribeToSupabaseRealtime(onTableChange: (tableName: string) =
       { event: "*", schema: "public" },
       (payload) => {
         if (payload.table) {
-          onTableChange(payload.table);
+          onTableChange(payload.table, payload.eventType, payload);
         }
       }
     )

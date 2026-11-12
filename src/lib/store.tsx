@@ -1145,6 +1145,7 @@ function write(key: string, value: unknown) {
 }
 
 const CREDS_KEY = "gamat.credentials.v1";
+const DELETED_ACCOUNTS_KEY = "gamat.deleted_accounts.v1";
 
 export function getStoredCredential(email: string): string | undefined {
   const creds = read<Record<string, string>>(CREDS_KEY, {});
@@ -1157,6 +1158,37 @@ export function storeCredential(email: string, pass: string) {
   const creds = read<Record<string, string>>(CREDS_KEY, {});
   creds[clean] = pass;
   write(CREDS_KEY, creds);
+}
+
+export function removeStoredCredential(email: string) {
+  if (!email) return;
+  const clean = email.trim().toLowerCase();
+  const creds = read<Record<string, string>>(CREDS_KEY, {});
+  if (creds[clean]) {
+    delete creds[clean];
+    write(CREDS_KEY, creds);
+  }
+}
+
+export function getDeletedAccountIds(): Set<string> {
+  const list = read<string[]>(DELETED_ACCOUNTS_KEY, []);
+  return new Set(list.map((s) => s.toLowerCase()));
+}
+
+export function recordDeletedAccount(id: string, email?: string) {
+  const existing = read<string[]>(DELETED_ACCOUNTS_KEY, []);
+  const set = new Set(existing.map((s) => s.toLowerCase()));
+  if (id) set.add(id.toLowerCase());
+  if (email) set.add(email.trim().toLowerCase());
+  write(DELETED_ACCOUNTS_KEY, Array.from(set));
+}
+
+export function unmarkDeletedAccount(id: string, email?: string) {
+  const existing = read<string[]>(DELETED_ACCOUNTS_KEY, []);
+  const idLower = id?.toLowerCase();
+  const emailLower = email?.trim().toLowerCase();
+  const next = existing.filter((s) => s !== idLower && s !== emailLower);
+  write(DELETED_ACCOUNTS_KEY, next);
 }
 
 const uid = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -1181,9 +1213,12 @@ export const DEFAULT_ADMIN: Account = {
 function seedAccounts(): Account[] {
   storeCredential(DEFAULT_ADMIN.email, DEFAULT_ADMIN.password);
   const existing = read<Account[]>(K.accounts, []);
-  const hasAdmin = existing.some((a) => a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
-  if (hasAdmin) return existing;
-  const next = [DEFAULT_ADMIN, ...existing.filter((a) => a.id !== DEFAULT_ADMIN.id)];
+  const deleted = getDeletedAccountIds();
+  const cleaned = existing.filter(
+    (a) => !deleted.has(a.id.toLowerCase()) && !deleted.has(a.email.toLowerCase())
+  );
+  const hasAdmin = cleaned.some((a) => a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
+  const next = hasAdmin ? cleaned : [DEFAULT_ADMIN, ...cleaned.filter((a) => a.id !== DEFAULT_ADMIN.id)];
   write(K.accounts, next);
   return next;
 }
@@ -1379,7 +1414,8 @@ type Ctx = {
     };
     revenueByMonth: { label: string; value: number }[];
     updateAccount: (id: string, patch: Partial<Account>) => void;
-    deleteAccount: (id: string) => void;
+    deleteAccount: (id: string) => void | Promise<void>;
+    refreshAccounts: () => Promise<void>;
     createAccount: (d: Omit<Account, "id" | "joined">) => { ok: boolean; error?: string };
     enrollUser: (userId: string, courseId: string) => void;
     removeEnrollment: (id: string) => void;
@@ -1500,6 +1536,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Check if user has been marked as deleted
+      const deleted = getDeletedAccountIds();
+      if (deleted.has(uid.toLowerCase()) || deleted.has(userEmail)) {
+        supabase.auth.signOut().catch(() => {});
+        setSessionId(null);
+        return;
+      }
+
       // Check if user profile is already in local state
       setAccounts((prev) => {
         const found = prev.find((a) => a.id === uid || (userEmail && a.email.toLowerCase() === userEmail));
@@ -1555,29 +1599,49 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  /* Load and sync accounts from Supabase database */
-  useEffect(() => {
-    fetchSupabaseAccounts().then((supaAccounts) => {
-      if (supaAccounts && supaAccounts.length > 0) {
-        setAccounts((prev) => {
-          const map = new Map<string, Account>();
-          prev.forEach((a) => map.set(a.id, a));
-          supaAccounts.forEach((supaAcc) => {
-            const clean = supaAcc.email.toLowerCase();
-            const existing = prev.find((p) => p.id === supaAcc.id || p.email.toLowerCase() === clean);
-            const savedPass = getStoredCredential(clean);
-            const preservedPassword =
-              savedPass ||
-              (existing?.password && existing.password !== "password123"
-                ? existing.password
-                : supaAcc.password);
-            map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
-          });
-          return Array.from(map.values());
-        });
-      }
+  /* Reconcile local accounts state with authoritative Supabase database records */
+  const reconcileAccountsWithSupabase = useCallback((supaAccounts: Account[]) => {
+    if (!Array.isArray(supaAccounts)) return;
+    const deleted = getDeletedAccountIds();
+
+    setAccounts((prev) => {
+      const map = new Map<string, Account>();
+      // Always guarantee default admin exists
+      map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
+
+      // AUTHORITATIVE SYNC: only accounts present in Supabase are preserved
+      supaAccounts.forEach((supaAcc) => {
+        const cleanEmail = supaAcc.email.trim().toLowerCase();
+
+        // If explicitly deleted, skip
+        if (deleted.has(supaAcc.id.toLowerCase()) || deleted.has(cleanEmail)) {
+          return;
+        }
+
+        // If default admin row, keep admin
+        if (cleanEmail === DEFAULT_ADMIN.email.toLowerCase()) {
+          map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
+          return;
+        }
+
+        const existing = prev.find((p) => p.id === supaAcc.id || p.email.toLowerCase() === cleanEmail);
+        const savedPass = getStoredCredential(cleanEmail);
+        const preservedPassword =
+          savedPass ||
+          (existing?.password && existing.password !== "password123"
+            ? existing.password
+            : supaAcc.password || "password123");
+
+        map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
+      });
+
+      const next = Array.from(map.values());
+      write(K.accounts, next);
+      return next;
     });
   }, []);
+
+  /* Load managed courses from Supabase database */
   useEffect(() => {
     fetchSupabaseCourses().then((supabaseCourses) => {
       if (supabaseCourses && supabaseCourses.length > 0) {
@@ -1625,28 +1689,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* Load all entities from Supabase database, auto-seed if empty & subscribe to Realtime events */
   useEffect(() => {
     const refreshAllFromSupabase = () => {
-      fetchSupabaseAccounts().then((r) => {
-        if (r.length) {
-          setAccounts((prev) => {
-            const map = new Map<string, Account>();
-            map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
-            prev.forEach((a) => map.set(a.id, a));
-            r.forEach((supaAcc) => {
-              const clean = supaAcc.email.toLowerCase();
-              const existing = prev.find((p) => p.id === supaAcc.id || p.email.toLowerCase() === clean);
-              const savedPass = getStoredCredential(clean);
-              const preservedPassword =
-                savedPass ||
-                (existing?.password && existing.password !== "password123"
-                  ? existing.password
-                  : supaAcc.password);
-              map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
-            });
-            return Array.from(map.values());
-          });
+      fetchSupabaseAccounts().then((res) => {
+        if (res.ok) {
+          reconcileAccountsWithSupabase(res.accounts);
         }
       });
-      fetchSupabaseEnrollments().then((r) => r.length && setAllEnrollments(r));
+      fetchSupabaseEnrollments().then((r) => {
+        if (Array.isArray(r)) setAllEnrollments(r);
+      });
       fetchSupabasePayments().then((r) => r.length && setPayments(r));
       fetchSupabaseEvents().then((r) => r.length && setEvents(r));
       fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
@@ -1685,14 +1735,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
 
     // 3. Subscribe to live Realtime database updates
-    const unsubscribe = subscribeToSupabaseRealtime((_table) => {
+    const unsubscribe = subscribeToSupabaseRealtime((table, eventType, payload) => {
+      if (table === "accounts" && eventType === "DELETE" && payload?.old?.id) {
+        const deletedId = payload.old.id;
+        recordDeletedAccount(deletedId);
+        setAccounts((prev) => {
+          const next = prev.filter((a) => a.id !== deletedId);
+          write(K.accounts, next);
+          return next;
+        });
+        setAllEnrollments((prev) => prev.filter((e) => e.userId !== deletedId));
+      }
       refreshAllFromSupabase();
     });
 
+    // 4. Refresh whenever tab regains focus or visibility
+    const onFocus = () => refreshAllFromSupabase();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
+    // 5. Periodic polling sync every 20 seconds
+    const interval = setInterval(refreshAllFromSupabase, 20000);
+
     return () => {
       unsubscribe();
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      clearInterval(interval);
     };
-  }, []);
+  }, [reconcileAccountsWithSupabase]);
 
   const account = useMemo(() => accounts.find((a) => a.id === sessionId) ?? null, [accounts, sessionId]);
   const user: User | null = useMemo(() => {
@@ -3428,20 +3499,58 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return updated;
       });
     },
-    deleteAccount: (id) => {
+    deleteAccount: async (id) => {
+      const target = accounts.find((a) => a.id === id || a.email.toLowerCase() === id.toLowerCase());
+      const targetId = target?.id || id;
+      const targetEmail = target?.email?.trim().toLowerCase();
+
+      // Record tombstone so this account is remembered as deleted
+      recordDeletedAccount(targetId, targetEmail);
+
+      // Remove from local accounts state immediately
       setAccounts((p) => {
-        const next = p.filter((a) => a.id !== id);
+        const next = p.filter(
+          (a) => a.id !== targetId && (!targetEmail || a.email.toLowerCase() !== targetEmail)
+        );
         write(K.accounts, next);
         return next;
       });
-      setAllEnrollments((p) => p.filter((e) => e.userId !== id));
-      if (sessionId === id) setSessionId(null);
-      deleteSupabaseAccount(id);
+
+      // Remove enrollments locally
+      setAllEnrollments((p) => p.filter((e) => e.userId !== targetId && e.userId !== id));
+
+      // Remove stored credentials
+      if (targetEmail) {
+        removeStoredCredential(targetEmail);
+      }
+
+      // Clear session if the deleted user is currently logged in
+      if (sessionId === targetId || sessionId === id) {
+        setSessionId(null);
+      }
+
+      // Authoritative delete from Supabase
+      try {
+        await deleteSupabaseAccount(targetId, targetEmail);
+      } catch (err) {
+        console.error("Failed to delete account from Supabase:", err);
+      }
+    },
+    refreshAccounts: async () => {
+      const res = await fetchSupabaseAccounts();
+      if (res.ok) {
+        reconcileAccountsWithSupabase(res.accounts);
+      }
+      const enrs = await fetchSupabaseEnrollments();
+      if (Array.isArray(enrs)) {
+        setAllEnrollments(enrs);
+      }
     },
     createAccount: (d) => {
       const email = d.email.trim().toLowerCase();
       if (accounts.some((a) => a.email === email)) return { ok: false, error: "Email already in use." };
       const newAcc: Account = { ...d, email, id: uid("u"), joined: new Date().toISOString() };
+      unmarkDeletedAccount(newAcc.id, email);
       if (d.password) {
         storeCredential(email, d.password);
       }

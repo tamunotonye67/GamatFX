@@ -205,14 +205,18 @@ export async function signOutSupabaseUser(): Promise<void> {
 }
 
 /** Fetches all user accounts from Supabase `accounts` table. */
-export async function fetchSupabaseAccounts(): Promise<Account[]> {
+export async function fetchSupabaseAccounts(): Promise<{ ok: boolean; accounts: Account[]; error?: string }> {
   try {
     const { data, error } = await supabase.from("accounts").select("*");
-    if (error || !data) return [];
-    return data.map((row) => rowToAccount(row as SupabaseAccountRow));
-  } catch (err) {
+    if (error) {
+      console.warn("Failed to fetch accounts from Supabase:", error.message);
+      return { ok: false, accounts: [], error: error.message };
+    }
+    const accounts = (data || []).map((row) => rowToAccount(row as SupabaseAccountRow));
+    return { ok: true, accounts };
+  } catch (err: any) {
     console.error("Failed to fetch accounts from Supabase:", err);
-    return [];
+    return { ok: false, accounts: [], error: err.message || "Network error" };
   }
 }
 
@@ -228,11 +232,37 @@ export async function saveSupabaseAccount(acc: Account): Promise<{ ok: boolean; 
   }
 }
 
-/** Deletes an account profile from Supabase `accounts` table. */
-export async function deleteSupabaseAccount(id: string): Promise<{ ok: boolean; error?: string }> {
+/** Deletes an account profile and associated enrollments from Supabase `accounts` and `enrollments` tables. */
+export async function deleteSupabaseAccount(id: string, email?: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const { error } = await supabase.from("accounts").delete().eq("id", id);
-    if (error) return { ok: false, error: error.message };
+    const cleanEmail = email?.trim().toLowerCase();
+
+    // 1. Delete associated enrollments for this user
+    try {
+      await supabase.from("enrollments").delete().eq("user_id", id);
+    } catch (e: any) {
+      console.warn("Could not delete enrollments for user in Supabase:", e);
+    }
+
+    // 2. Delete by ID from accounts table
+    const { error: errId } = await supabase.from("accounts").delete().eq("id", id);
+    if (errId) {
+      console.warn("Supabase account delete notice by id:", errId.message);
+    }
+
+    // 3. Delete by email from accounts table if provided
+    let errEmail: any = null;
+    if (cleanEmail) {
+      const res = await supabase.from("accounts").delete().eq("email", cleanEmail);
+      errEmail = res.error;
+      if (errEmail) {
+        console.warn("Supabase account delete notice by email:", errEmail.message);
+      }
+    }
+
+    if (errId && errEmail) {
+      return { ok: false, error: errId.message || errEmail.message };
+    }
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err.message || "Failed to delete account from Supabase" };

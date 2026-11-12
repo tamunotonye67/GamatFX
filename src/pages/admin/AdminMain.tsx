@@ -6,7 +6,7 @@ import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
-  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award,
+  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw,
 } from "lucide-react";
 
 /* ============================= Dashboard ============================= */
@@ -243,6 +243,16 @@ export function AdminStudents() {
   const [edit, setEdit] = useState<Account | null>(null);
   const [creating, setCreating] = useState(false);
   const [issuingCert, setIssuingCert] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await admin.refreshAccounts();
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const rows = useMemo(() => admin.accounts.filter((a) => {
     const matchQ = `${a.firstName} ${a.lastName} ${a.email}`.toLowerCase().includes(q.toLowerCase());
@@ -259,6 +269,9 @@ export function AdminStudents() {
       subtitle={`${admin.accounts.length} total accounts`}
       action={
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <button onClick={handleSync} disabled={syncing} className="btn-outline-dark !py-2.5" title="Pull latest student accounts from Supabase">
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin text-brand" : ""}`} /> Sync Database
+          </button>
           <button onClick={() => exportCsv("students.csv", rows.map(a => ({
             Name: `${a.firstName} ${a.lastName}`, Email: a.email, Role: a.role, Status: a.status,
             Phone: a.phone ?? "", Country: a.country ?? "", Joined: fmtDate(a.joined),
@@ -328,8 +341,10 @@ export function AdminStudents() {
                           onClick={() => admin.updateAccount(a.id, { status: a.status === "active" ? "suspended" : "active" })}>
                           {a.status === "active" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </IconBtn>
-                        <IconBtn danger title="Delete" onClick={() => {
-                          if (confirm(`Delete ${a.firstName} ${a.lastName}? This also removes their enrollments.`)) admin.deleteAccount(a.id);
+                        <IconBtn danger title="Delete" onClick={async () => {
+                          if (confirm(`Delete ${a.firstName} ${a.lastName}? This will permanently remove their record and enrollments from both the website and Supabase.`)) {
+                            await admin.deleteAccount(a.id);
+                          }
                         }}><Trash2 className="h-4 w-4" /></IconBtn>
                       </div>
                     </Td>

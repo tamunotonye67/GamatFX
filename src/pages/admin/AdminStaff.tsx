@@ -127,7 +127,7 @@ export function AdminStaff() {
                           onClick={() => admin.updateAccount(a.id, { status: a.status === "active" ? "suspended" : "active" })}>
                           {a.status === "active" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </IconBtn>
-                        <IconBtn danger title="Delete" onClick={() => { if (confirm(`Remove ${a.firstName}'s access?`)) admin.deleteAccount(a.id); }}>
+                        <IconBtn danger title="Delete" onClick={async () => { if (confirm(`Remove ${a.firstName}'s access?`)) await admin.deleteAccount(a.id); }}>
                           <Trash2 className="h-4 w-4" />
                         </IconBtn>
                       </div>
