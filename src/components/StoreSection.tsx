@@ -227,19 +227,31 @@ export default function StoreSection() {
                 Written by Chief Mentor Tonye and the GAMAT Senior Trading Desk, this comprehensive 280-page playbook decodes the exact algorithms institutions use to accumulate orders, trigger stop runs, and execute clean session continuations.
               </p>
 
-              {/* Key Highlights (Clean 3-Point Grid) */}
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-base font-black text-rose-300">280 Pages</p>
-                  <p className="mt-1 text-xs text-slate-400">Full color with 120+ annotated trade setups</p>
+              {/* Key Highlights (Clean 6-Point Grid) */}
+              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-3.5 backdrop-blur-sm">
+                  <p className="font-display text-sm sm:text-base font-black text-rose-300">280 Pages</p>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">Full color with 120+ annotated trade setups</p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-base font-black text-white">FVG &amp; OB Rules</p>
-                  <p className="mt-1 text-xs text-slate-400">Step-by-step smart money validation criteria</p>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-3.5 backdrop-blur-sm">
+                  <p className="font-display text-sm sm:text-base font-black text-white">FVG &amp; OB Rules</p>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">Step-by-step smart money validation criteria</p>
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-base font-black text-white">Cheatsheets</p>
-                  <p className="mt-1 text-xs text-slate-400">Printable desk reference cards for quick execution</p>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-3.5 backdrop-blur-sm">
+                  <p className="font-display text-sm sm:text-base font-black text-white">Session Killzones</p>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">London Judas swings &amp; NY continuation timing</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-3.5 backdrop-blur-sm">
+                  <p className="font-display text-sm sm:text-base font-black text-white">Liquidity Maps</p>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">Buy-side &amp; sell-side stop sweep identification</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-3.5 backdrop-blur-sm">
+                  <p className="font-display text-sm sm:text-base font-black text-white">Desk Cheatsheets</p>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">Quick multi-timeframe confirmation cards</p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-3.5 backdrop-blur-sm">
+                  <p className="font-display text-sm sm:text-base font-black text-white">Risk Protocol</p>
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-400 leading-snug">Institutional position sizing &amp; drawdown rules</p>
                 </div>
               </div>
 
