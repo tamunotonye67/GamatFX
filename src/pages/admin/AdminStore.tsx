@@ -196,27 +196,37 @@ export function AdminStore() {
                     return (
                       <tr key={p.id} className="transition hover:bg-cream/50">
                         <Td className="min-w-[320px]">
-                          <div className="flex items-center gap-3">
-                            <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
-                              <CatIcon className="h-5 w-5 shrink-0" />
-                            </span>
+                          <div className="flex items-start gap-3">
+                            {p.image ? (
+                              <img
+                                src={p.image}
+                                alt=""
+                                className="h-10 w-10 shrink-0 aspect-square rounded-xl object-cover border border-line bg-white mt-0.5"
+                              />
+                            ) : (
+                              <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand mt-0.5">
+                                <CatIcon className="h-5 w-5 shrink-0" />
+                              </span>
+                            )}
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="font-semibold text-ink">{p.title}</p>
+                                <span className="font-semibold text-ink leading-snug">{p.title}</span>
                                 {p.isPreorder && (
                                   <Badge tone="purple">
-                                    <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
+                                    <Clock className="h-3 w-3 shrink-0" />
+                                    <span>PRE-ORDER</span>
                                   </Badge>
                                 )}
                                 {(p.isFree || p.price === 0) && (
                                   <Badge tone="green">
-                                    <Gift className="h-2.5 w-2.5 inline mr-0.5" /> FREE
+                                    <Gift className="h-3 w-3 shrink-0" />
+                                    <span>FREE</span>
                                   </Badge>
                                 )}
                               </div>
-                              <p className="truncate text-xs text-muted">{p.tagline}</p>
+                              <p className="truncate text-xs text-muted mt-0.5">{p.tagline}</p>
                               {p.isPreorder && p.preorderReleaseDate && (
-                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 mt-0.5">
+                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1.5 mt-1">
                                   <Clock className="h-3 w-3 shrink-0" />
                                   <span>Releases: {p.preorderReleaseDate}</span>
                                 </p>
