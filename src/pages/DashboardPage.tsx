@@ -26,6 +26,7 @@ const baseTabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "certificates", label: "Certificates", icon: Award },
   { id: "affiliate", label: "Invite & Earn", icon: Share2 },
   { id: "wallet", label: "Wallet", icon: Wallet },
+  { id: "billing", label: "Billing", icon: Receipt },
   { id: "events", label: "My Events", icon: CalendarDays },
   { id: "profile", label: "Profile", icon: UserIcon },
 ];
@@ -76,8 +77,7 @@ export default function DashboardPage() {
   const [tab, setTabState] = useState<Tab>(() => {
     try {
       const saved = sessionStorage.getItem("gamat_fx_dashboard_tab") || localStorage.getItem("gamat_fx_dashboard_tab");
-      if (saved === "billing") return "wallet";
-      if (saved && ["overview", "courses", "certificates", "affiliate", "wallet", "events", "billing", "posts", "team-bio", "profile"].includes(saved)) {
+      if (saved && ["overview", "courses", "certificates", "affiliate", "wallet", "billing", "events", "posts", "team-bio", "profile"].includes(saved)) {
         return saved as Tab;
       }
     } catch {}
@@ -225,7 +225,8 @@ export default function DashboardPage() {
           {tab === "courses" && <MyCourses />}
           {tab === "certificates" && <Certificates completed={certified.map((e) => e.courseId)} pending={awaitingQuiz.map((e) => e.courseId)} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
           {tab === "affiliate" && <AffiliateSection />}
-          {(tab === "wallet" || tab === "billing") && <WalletSection />}
+          {tab === "wallet" && <WalletSection />}
+          {tab === "billing" && <BillingSection />}
           {tab === "events" && <MyEvents />}
           {tab === "posts" && <MyArticles />}
           {tab === "team-bio" && <TeamBioForm />}
@@ -1147,77 +1148,24 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Course Invoices & Payment Receipts */}
-        <div className="space-y-4 pt-4 border-t border-line">
-          <div>
-            <h3 className="font-display text-lg font-bold text-ink">
-              Course Purchase Receipts
-            </h3>
-            <p className="mt-0.5 text-xs text-muted">
-              Payment records and transaction reference numbers for your enrolled courses.
-            </p>
+        {/* Course Invoices & Billing Shortcut */}
+        <div className="rounded-2xl border border-line bg-cream/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-line text-ink shrink-0">
+              <Receipt className="h-4 w-4 text-brand" />
+            </div>
+            <div>
+              <p className="font-bold text-ink text-sm">Course Purchase Receipts &amp; Invoices</p>
+              <p className="text-[11px] text-muted">Looking for transaction references and invoices from courses you enrolled in?</p>
+            </div>
           </div>
-
-          {myPayments.length === 0 ? (
-            <div className="rounded-2xl border border-line bg-white p-8 text-center">
-              <Receipt className="mx-auto h-8 w-8 text-muted/30" />
-              <p className="mt-2 text-xs font-bold text-ink">No course payments yet</p>
-              <p className="mt-0.5 text-[11px] text-muted">Receipts will appear here when you purchase paid courses or mentorship.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[600px] text-xs">
-                    <thead className="bg-cream text-left font-bold text-muted border-b border-line">
-                      <tr>
-                        <th className="px-5 py-3">Reference</th>
-                        <th className="px-5 py-3">Course / Tool</th>
-                        <th className="px-5 py-3">Amount</th>
-                        <th className="px-5 py-3">Status</th>
-                        <th className="px-5 py-3">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                      {myPayments.map((p) => (
-                        <tr key={p.id} className="hover:bg-slate-50/80 transition">
-                          <td className="px-5 py-3.5"><code className="rounded bg-cream px-2 py-1 text-xs font-mono font-bold text-brand">{p.ref}</code></td>
-                          <td className="px-5 py-3.5 text-ink font-semibold">{p.courseTitle}</td>
-                          <td className="px-5 py-3.5 font-bold text-ink">{naira(p.amount)}</td>
-                          <td className="px-5 py-3.5">
-                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-                              p.status === "paid" ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : p.status === "refunded" ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                : "bg-line text-muted"
-                            }`}>
-                              {p.status === "refunded" ? "refunded (manual)" : p.status}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3.5 text-muted">{new Date(p.createdAt).toLocaleDateString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Refund notice */}
-              <div className="rounded-xl border border-line bg-white p-4 text-xs text-muted flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold text-ink">Need billing assistance or refund review?</p>
-                  <p className="mt-0.5 text-[11px] text-muted">Enrollments are generally non-refundable. Contact the team for exceptional reviews.</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <a href={CONTACT.whatsappHref} target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
-                    WhatsApp Support
-                  </a>
-                  <button type="button" onClick={() => navigate("/contact")} className="px-3 py-1.5 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer">
-                    Contact Form
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => setTab("billing")}
+            className="px-4 py-2 rounded-xl bg-white border border-line text-xs font-bold text-ink hover:border-brand hover:text-brand transition cursor-pointer shrink-0 self-start sm:self-center"
+          >
+            View Billing &amp; Invoices →
+          </button>
         </div>
 
         {/* Withdrawal Request Modal */}
@@ -1328,6 +1276,124 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ---------------------------- Billing panel ---------------------------- */
+
+  function BillingSection() {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-ink">Billing &amp; Invoices</h2>
+          <p className="mt-1 text-sm text-muted">
+            Payment records, transaction reference numbers, and receipts for your enrolled courses and tools.
+          </p>
+        </div>
+
+        {/* Shortcut to Wallet */}
+        <div className="rounded-2xl border border-line bg-cream/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-line text-ink shrink-0">
+              <Wallet className="h-4 w-4 text-brand" />
+            </div>
+            <div>
+              <p className="font-bold text-ink text-sm">Affiliate Commission &amp; Payout Wallet</p>
+              <p className="text-[11px] text-muted">Looking for your referral earnings, balance, or payout disbursement settings?</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setTab("wallet")}
+            className="px-4 py-2 rounded-xl bg-white border border-line text-xs font-bold text-ink hover:border-brand hover:text-brand transition cursor-pointer shrink-0 self-start sm:self-center"
+          >
+            Go to Wallet →
+          </button>
+        </div>
+
+        {myPayments.length === 0 ? (
+          <EmptyState
+            title="No payment records yet"
+            body="Your course purchase receipts and transaction references will appear here once you enroll in paid courses or trading tools."
+            cta="Browse Courses"
+            to="/courses"
+          />
+        ) : (
+          <div className="space-y-5">
+            <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-xs sm:text-sm">
+                  <thead className="bg-cream text-left font-bold text-muted border-b border-line">
+                    <tr>
+                      <th className="px-5 py-3">Reference</th>
+                      <th className="px-5 py-3">Course / Tool</th>
+                      <th className="px-5 py-3">Amount</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {myPayments.map((p) => (
+                      <tr key={p.id} className="hover:bg-slate-50/80 transition">
+                        <td className="px-5 py-3.5">
+                          <code className="rounded bg-cream px-2 py-1 text-xs font-mono font-bold text-brand">
+                            {p.ref}
+                          </code>
+                        </td>
+                        <td className="px-5 py-3.5 text-ink font-semibold">{p.courseTitle}</td>
+                        <td className="px-5 py-3.5 font-bold text-ink">{naira(p.amount)}</td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                              p.status === "paid"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : p.status === "refunded"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : "bg-line text-muted"
+                            }`}
+                          >
+                            {p.status === "refunded" ? "refunded (manual)" : p.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-muted">
+                          {new Date(p.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Refund & Billing Support notice */}
+            <div className="rounded-2xl border border-line bg-white p-5 text-xs text-muted flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="font-bold text-ink text-sm">Need billing assistance or refund review?</p>
+                <p className="mt-1 leading-relaxed">
+                  Enrollments are generally non-refundable. If you have exceptional circumstances (e.g. within 7 days of purchase without accessing materials), our support team can review your request.
+                </p>
+              </div>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <a
+                  href={CONTACT.whatsappHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-primary !py-2 !text-xs"
+                >
+                  Message Support
+                </a>
+                <button
+                  type="button"
+                  onClick={() => navigate("/contact")}
+                  className="btn-outline-dark !py-2 !text-xs cursor-pointer"
+                >
+                  Contact Form
+                </button>
+              </div>
             </div>
           </div>
         )}
