@@ -78,7 +78,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${rawId}`} icon={Lock} />;
   
   const hasEnrollment = isEnrolled(rawId) || isEnrolled(course.id) || (existingCourse && isEnrolled(existingCourse.id)) || user?.role === "admin";
-  if (!hasEnrollment) return <Fallback title="You're not enrolled in this course" cta="View Course" to={`/courses/${course.id}`} icon={Lock} />;
+  const courseUrl = hasEnrollment ? `/learn/${course.id}` : `/courses/${course.id}`;
 
   function startAssessment() {
     const fresh = generateAssessmentQuestions(rawId, quiz, DEFAULT_EXAM_QUESTION_COUNT);
@@ -231,7 +231,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     <RotateCcw className="h-4 w-4" /> Retake 50-Question Exam
                   </button>
                 )}
-                <button onClick={() => navigate(`/learn/${course.id}`)} className="btn-outline-dark">
+                <button onClick={() => navigate(courseUrl)} className="btn-outline-dark">
                   <ArrowLeft className="h-4 w-4" /> Back to Course
                 </button>
               </div>
@@ -317,7 +317,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               <button onClick={startAssessment} className="btn-primary !py-3 !px-7 font-bold text-sm">
                 Begin 50-Question Exam <ArrowRight className="h-4 w-4" />
               </button>
-              <button onClick={() => navigate(`/learn/${course.id}`)} className="btn-outline-dark">
+              <button onClick={() => navigate(courseUrl)} className="btn-outline-dark">
                 <ArrowLeft className="h-4 w-4" /> Back to Course
               </button>
             </div>

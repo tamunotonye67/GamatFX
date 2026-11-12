@@ -22,6 +22,7 @@ import {
   fetchSupabaseOutlooks, saveSupabaseOutlook, deleteSupabaseOutlook,
   fetchSupabaseEnquiries, saveSupabaseEnquiry,
   fetchSupabaseCoupons, saveSupabaseCoupon, deleteSupabaseCoupon,
+  fetchSupabaseAffiliateSettings, saveSupabaseAffiliateSettings,
   fetchSupabaseGiveaways,
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
@@ -1654,6 +1655,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
       fetchSupabaseSOTW().then((r) => r && setStudentOfTheWeek(r));
       fetchSupabaseReviews().then((r) => r.length && setReviews(r));
+      fetchSupabaseAffiliateSettings().then((s) => {
+        if (s) setAffiliateSettings(s);
+      });
     };
 
     // 1. Fetch initial records
@@ -2205,6 +2209,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setAttempts((p) => [attempt, ...p]);
+
+    // When student passes exam, ensure enrollment record exists with completed lessons
+    // so official certificate unlocks immediately in their dashboard
+    if (attempt.passed && sessionId && sessionId !== "anon") {
+      const course = getCourse(courseId);
+      const targetCourseId = course ? course.id : (COURSE_ALIASES[courseId] || courseId);
+      const allLessonIds = course ? course.curriculum.flatMap((m) => m.lessons.map((l) => l.id)) : [];
+      setAllEnrollments((prev) => {
+        const existing = prev.find(
+          (e) => e.userId === sessionId && (e.courseId === targetCourseId || e.courseId === courseId)
+        );
+        if (existing) {
+          const mergedLessons = Array.from(new Set([...existing.completedLessons, ...allLessonIds]));
+          const updated: Enrollment = { ...existing, completedLessons: mergedLessons };
+          saveSupabaseEnrollment(updated);
+          return prev.map((e) => (e.id === existing.id ? updated : e));
+        }
+        const newEnrollment: Enrollment = {
+          id: uid("enr"),
+          userId: sessionId,
+          courseId: targetCourseId,
+          enrolledAt: new Date().toISOString(),
+          completedLessons: allLessonIds,
+        };
+        saveSupabaseEnrollment(newEnrollment);
+        return [...prev, newEnrollment];
+      });
+    }
+
     return attempt;
   }, [sessionId, getCourseQuiz]);
 
@@ -2219,7 +2252,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [myAttempts]);
 
   const hasPassedQuiz: Ctx["hasPassedQuiz"] = useCallback(
-    (courseId) => myAttempts.some((a) => a.courseId === courseId && a.passed),
+    (courseId) => {
+      const canonical = COURSE_ALIASES[courseId] || courseId;
+      return myAttempts.some((a) => {
+        if (!a.passed) return false;
+        const aCanonical = COURSE_ALIASES[a.courseId] || a.courseId;
+        return a.courseId === courseId || aCanonical === canonical || aCanonical === courseId || a.courseId === canonical;
+      });
+    },
     [myAttempts]
   );
 
@@ -3185,6 +3225,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const updateAffiliateSettings: Ctx["updateAffiliateSettings"] = useCallback((settings) => {
     setAffiliateSettings(settings);
     saveAffiliateSettings(settings);
+    saveSupabaseAffiliateSettings(settings);
   }, []);
 
   const admin: Ctx["admin"] = {

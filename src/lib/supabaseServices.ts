@@ -16,6 +16,7 @@ import type {
   StudentOfTheWeek,
   ReviewItem,
 } from "./store";
+import type { AffiliateSettings } from "./affiliate";
 
 /* ============================================================================
  * 1. ENROLLMENTS & PAYMENTS
@@ -586,19 +587,21 @@ export async function fetchSupabaseCoupons(): Promise<Coupon[]> {
   try {
     const { data, error } = await supabase.from("coupons").select("*");
     if (error || !data) return [];
-    return data.map((r: any) => ({
-      id: r.id,
-      code: r.code,
-      discountPercent: Number(r.discount_percent || 10),
-      maxUses: Number(r.max_uses || 100),
-      usedCount: Number(r.used_count || 0),
-      expiryDate: r.expiry_date || undefined,
-      applicableTo: r.applicable_to || "all",
-      targetProductId: r.target_product_id || undefined,
-      targetProductTitle: r.target_product_title || undefined,
-      status: r.status || "active",
-      createdAt: r.created_at,
-    }));
+    return data
+      .filter((r: any) => r.id !== "sys_affiliate_settings" && r.code !== "SYS_AFFILIATE_SETTINGS")
+      .map((r: any) => ({
+        id: r.id,
+        code: r.code,
+        discountPercent: Number(r.discount_percent || 10),
+        maxUses: Number(r.max_uses || 100),
+        usedCount: Number(r.used_count || 0),
+        expiryDate: r.expiry_date || undefined,
+        applicableTo: r.applicable_to || "all",
+        targetProductId: r.target_product_id || undefined,
+        targetProductTitle: r.target_product_title || undefined,
+        status: r.status || "active",
+        createdAt: r.created_at,
+      }));
   } catch {
     return [];
   }
@@ -637,6 +640,42 @@ export async function deleteSupabaseCoupon(id: string): Promise<void> {
     await supabase.from("coupons").delete().eq("id", id);
   } catch (err) {
     console.warn("Supabase coupon delete notice:", err);
+  }
+}
+
+export async function fetchSupabaseAffiliateSettings(): Promise<AffiliateSettings | null> {
+  try {
+    const { data, error } = await supabase
+      .from("coupons")
+      .select("*")
+      .eq("id", "sys_affiliate_settings")
+      .maybeSingle();
+    if (error || !data) return null;
+    return {
+      defaultCommissionPercent: Number(data.discount_percent ?? 15),
+      minimumPayoutAmount: Number(data.max_uses ?? 10000),
+      affiliateDiscountPercent: Number(data.used_count ?? 5),
+      enabled: data.status !== "inactive",
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSupabaseAffiliateSettings(s: AffiliateSettings): Promise<void> {
+  try {
+    await supabase.from("coupons").upsert({
+      id: "sys_affiliate_settings",
+      code: "SYS_AFFILIATE_SETTINGS",
+      discount_percent: s.defaultCommissionPercent,
+      max_uses: s.minimumPayoutAmount,
+      used_count: s.affiliateDiscountPercent,
+      status: s.enabled ? "active" : "inactive",
+      applicable_to: "system",
+      created_at: new Date().toISOString(),
+    }, { onConflict: "id" });
+  } catch (err) {
+    console.warn("Supabase affiliate settings save notice:", err);
   }
 }
 
