@@ -184,24 +184,58 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     }
   }, [categoryParam]);
 
-  // Support direct product deep linking (e.g. /store?product=gamat-playbook-v1)
+  // Support direct product deep linking (e.g. /store?product=gamat-playbook-v1 or #/store?product=gamat-playbook-v1)
   useEffect(() => {
-    try {
-      const url = new URL(window.location.href);
-      const prodId = url.searchParams.get("product") || url.searchParams.get("id");
-      if (prodId && publishedStoreProducts.length > 0) {
-        const found = publishedStoreProducts.find((p) => p.id === prodId);
-        if (found) {
-          setActiveProduct(found);
-          setView("catalog");
-          if (url.searchParams.get("checkout") === "true") {
-            setCheckoutProduct(found);
+    const handleDeepLink = () => {
+      try {
+        const getParam = (key: string): string | null => {
+          // 1. Check window.location.search (?product=...)
+          const searchVal = new URLSearchParams(window.location.search).get(key);
+          if (searchVal) return searchVal;
+
+          // 2. Check window.location.hash (#/store?product=...)
+          const hash = window.location.hash || "";
+          if (hash.includes("?")) {
+            const hashQuery = hash.slice(hash.indexOf("?") + 1);
+            const hashVal = new URLSearchParams(hashQuery).get(key);
+            if (hashVal) return hashVal;
+          }
+
+          // 3. Check sessionStorage active route
+          try {
+            const saved = sessionStorage.getItem("gamat_fx_active_route") || "";
+            if (saved.includes("?")) {
+              const savedQuery = saved.slice(saved.indexOf("?") + 1);
+              const savedVal = new URLSearchParams(savedQuery).get(key);
+              if (savedVal) return savedVal;
+            }
+          } catch {}
+
+          return null;
+        };
+
+        const prodId = getParam("product") || getParam("id");
+        if (prodId && publishedStoreProducts.length > 0) {
+          const found = publishedStoreProducts.find((p) => p.id === prodId);
+          if (found) {
+            setActiveProduct(found);
+            setActiveGalleryImg(found.gallery?.[0] || found.image);
+            setView("catalog");
+            setSelectedCat(found.category || "all");
+            setSelectedCardId("all");
+            if (getParam("checkout") === "true") {
+              setCheckoutProduct(found);
+            }
           }
         }
+      } catch {
+        // Ignore URL parse error
       }
-    } catch {
-      // Ignore URL parse error
-    }
+    };
+
+    handleDeepLink();
+    window.addEventListener("hashchange", handleDeepLink);
+    return () => window.removeEventListener("hashchange", handleDeepLink);
   }, [publishedStoreProducts]);
 
   // Checkout form state

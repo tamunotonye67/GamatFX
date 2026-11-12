@@ -273,7 +273,7 @@ export default function StoreSection() {
               <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
                 <button
                   type="button"
-                  onClick={() => navigate("/store?product=gamat-playbook-v1&checkout=true")}
+                  onClick={() => navigate("/store?product=gamat-playbook-v1")}
                   className="rounded-xl bg-brand px-6 py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-brand/30 hover:bg-brand-dark transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Download className="h-4 w-4" />
@@ -394,7 +394,7 @@ export default function StoreSection() {
                     type="button"
                     onClick={() => {
                       setShowBookModal(false);
-                      navigate("/store?product=gamat-playbook-v1&checkout=true");
+                      navigate("/store?product=gamat-playbook-v1");
                     }}
                     className="w-full sm:w-auto rounded-xl bg-brand px-6 py-3 text-xs sm:text-sm font-bold text-white hover:bg-brand-dark transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-brand/30"
                   >

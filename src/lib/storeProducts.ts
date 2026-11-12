@@ -236,7 +236,20 @@ export function loadStoredProducts(): StoreProduct[] {
     const raw = localStorage.getItem(STORE_STORAGE_KEY);
     if (!raw) return SEED_STORE_PRODUCTS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_STORE_PRODUCTS;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Ensure seed products (like gamat-playbook-v1) are always present even if localStorage has older data
+      const existingIds = new Set(parsed.map((p: StoreProduct) => p.id));
+      const missingSeeds = SEED_STORE_PRODUCTS.filter((sp) => !existingIds.has(sp.id));
+      if (missingSeeds.length > 0) {
+        const merged = [...missingSeeds, ...parsed];
+        try {
+          localStorage.setItem(STORE_STORAGE_KEY, JSON.stringify(merged));
+        } catch {}
+        return merged;
+      }
+      return parsed;
+    }
+    return SEED_STORE_PRODUCTS;
   } catch {
     return SEED_STORE_PRODUCTS;
   }
