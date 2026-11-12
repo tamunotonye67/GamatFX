@@ -226,23 +226,23 @@ export default function AffiliateCard({
             </>
           )}
 
-          {/* 1. TOP CENTER: Student Profile Avatar */}
+          {/* 1. TOP CENTER: Student Profile Avatar (Enlarged) */}
           <div className="relative pt-1 flex flex-col items-center">
             <div className="relative">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={activeDisplayName}
-                  className={`h-20 w-20 rounded-full object-cover shadow-lg ${
-                    cardTheme === "red" ? "ring-4 ring-white/95" : "ring-4 ring-brand"
+                  className={`h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover shadow-xl ${
+                    cardTheme === "red" ? "ring-4 sm:ring-[5px] ring-white/95" : "ring-4 sm:ring-[5px] ring-brand"
                   }`}
                 />
               ) : (
                 <div
-                  className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full font-display text-xl font-black text-white shadow-lg ${
+                  className={`flex h-24 w-24 sm:h-28 sm:w-28 shrink-0 items-center justify-center rounded-full font-display text-2xl sm:text-3xl font-black text-white shadow-xl ${
                     cardTheme === "red"
-                      ? "bg-gradient-to-br from-white/25 to-black/20 ring-4 ring-white/95"
-                      : "bg-gradient-to-br from-brand to-brand-dark ring-4 ring-brand"
+                      ? "bg-gradient-to-br from-white/25 to-black/20 ring-4 sm:ring-[5px] ring-white/95"
+                      : "bg-gradient-to-br from-brand to-brand-dark ring-4 sm:ring-[5px] ring-brand"
                   }`}
                 >
                   {initials}
@@ -250,7 +250,7 @@ export default function AffiliateCard({
               )}
               {/* Checkmark overlay */}
               <div
-                className={`absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-sky-600 text-white text-[10px] font-black shadow-sm ${
+                className={`absolute bottom-0.5 right-0.5 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-sky-600 text-white text-xs sm:text-sm font-black shadow-md ${
                   cardTheme === "red" ? "ring-2 ring-[#83141f]" : "ring-2 ring-[#080c14]"
                 }`}
               >
@@ -258,8 +258,8 @@ export default function AffiliateCard({
               </div>
             </div>
 
-            {/* 2. Student Name on Card (Reflects Custom Display Name) */}
-            <h4 className="mt-2.5 font-display text-lg sm:text-xl font-black text-white text-center truncate max-w-[280px]">
+            {/* 2. Student Name on Card (Enlarged) */}
+            <h4 className="mt-2.5 font-display text-xl sm:text-2xl font-black text-white text-center truncate max-w-[300px] tracking-tight leading-tight">
               {activeDisplayName}
             </h4>
 
@@ -275,12 +275,12 @@ export default function AffiliateCard({
 
           {/* 4. Elegant Tapering Divider */}
           <div
-            className={`my-3 h-px w-full bg-gradient-to-r from-transparent to-transparent ${
+            className={`my-2 sm:my-2.5 h-px w-full bg-gradient-to-r from-transparent to-transparent ${
               cardTheme === "red" ? "via-white/30" : "via-white/20"
             }`}
           />
 
-          {/* 5. "Join Me at" + Actual GAMAT Logo & Wordmark */}
+          {/* 5. "Join Me at" + GAMAT Logo & Wordmark (Enlarged) */}
           <div className="relative flex flex-col items-center text-center">
             <p
               className={`font-display font-bold text-[10px] uppercase tracking-wider ${
@@ -290,14 +290,14 @@ export default function AffiliateCard({
               Join Me at
             </p>
 
-            {/* Actual GAMAT Candlestick Logo Tile + Wordmark */}
-            <div className="flex items-center justify-center gap-2 mt-1.5">
+            {/* Enlarged GAMAT Candlestick Logo Tile + Wordmark */}
+            <div className="flex items-center justify-center gap-2.5 mt-1.5">
               <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg shadow-sm ${
+                className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl shadow-md ${
                   cardTheme === "red" ? "bg-white" : "bg-[#dc3545]"
                 }`}
               >
-                <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
                   <line
                     x1="4"
                     y1="26"
@@ -373,11 +373,11 @@ export default function AffiliateCard({
                 </svg>
               </span>
               <span className="flex flex-col items-start justify-center leading-none text-left">
-                <span className="block font-display font-black text-base text-white">
+                <span className="block font-display font-black text-lg sm:text-xl text-white">
                   GAMAT<span className={cardTheme === "red" ? "text-rose-200" : "text-brand"}>&nbsp;Fx</span>
                 </span>
                 <span
-                  className={`block text-[8px] font-bold uppercase tracking-[0.22em] mt-0.5 ${
+                  className={`block text-[9.5px] sm:text-[10.5px] font-extrabold uppercase tracking-[0.25em] mt-0.5 ${
                     cardTheme === "red" ? "text-white/80" : "text-white/70"
                   }`}
                 >
@@ -394,20 +394,20 @@ export default function AffiliateCard({
               Scan the QR code below to connect with my cohort &amp; learn together
             </p>
 
-            {/* QR Code Container */}
-            <div className="mt-2.5 rounded-2xl bg-white p-2.5 shadow-md border border-slate-200">
+            {/* QR Code Container (Slightly Reduced as Requested) */}
+            <div className="mt-2 rounded-xl bg-white p-2 shadow-md border border-slate-200">
               <img
                 src={qrApiUrl}
                 alt="Referral QR Code"
-                className="h-28 w-28 sm:h-32 sm:w-32 object-contain"
+                className="h-20 w-20 sm:h-22 sm:w-22 object-contain"
                 loading="lazy"
               />
             </div>
 
             {/* Invite Code */}
-            <div className="mt-2.5 flex items-center justify-center gap-1.5 text-xs">
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-xs">
               <span
-                className={`text-[10px] font-semibold tracking-wider uppercase ${
+                className={`text-[10px] font-bold tracking-wider uppercase ${
                   cardTheme === "red" ? "text-white/80" : "text-slate-400"
                 }`}
               >
@@ -424,7 +424,7 @@ export default function AffiliateCard({
 
             {/* Domain */}
             <p
-              className={`mt-1 text-[11px] font-bold font-mono tracking-wide ${
+              className={`mt-0.5 text-[11px] font-bold font-mono tracking-wide ${
                 cardTheme === "red" ? "text-rose-200" : "text-sky-400"
               }`}
             >
