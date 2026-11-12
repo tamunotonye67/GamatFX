@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/join", "destination": "/api/join" },
+    { "source": "/qr.png", "destination": "/api/qr" },
+    { "source": "/qr", "destination": "/api/qr" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
