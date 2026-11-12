@@ -265,10 +265,13 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
       {/* Header */}
-      <section className="bg-ink pb-24 pt-8 sm:pb-28 sm:pt-12 text-white border-b border-white/5">
-        <div className="container-x flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* User Profile Block */}
-          <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+      <section className="relative overflow-hidden bg-ink pb-24 pt-8 sm:pb-28 sm:pt-12 text-white border-b border-white/5">
+        {/* Ambient subtle glow for laptops and large screens */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-[600px] rounded-full bg-brand/10 blur-3xl" />
+
+        <div className="container-x relative flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-8">
+          {/* 1. User Profile Block */}
+          <div className="flex items-center gap-4 sm:gap-5 min-w-0 lg:max-w-md">
             {user.avatar ? (
               <img
                 src={user.avatar}
@@ -312,38 +315,61 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right Side: Trader Rank Widget & CTA */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4 shrink-0">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 sm:px-4 sm:py-3 backdrop-blur-sm min-w-[240px] sm:min-w-[270px]">
+          {/* 2. Trader Rank Progress Card - Prominent, centered, and balanced on laptop/desktop */}
+          <div className="w-full lg:max-w-sm xl:max-w-md lg:mx-auto">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 sm:p-4 backdrop-blur-md shadow-xl transition-all hover:border-white/20">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <span
-                    className="h-2 w-2 rounded-full shrink-0"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-white shadow-xs"
                     style={{ background: combatRank.color }}
-                  />
-                  <span className="font-bold text-white text-xs tracking-wide">
-                    Lv.{combatRank.level} · {combatRank.title}
+                  >
+                    <TrendingUp className="h-3.5 w-3.5" />
                   </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-display text-xs sm:text-sm font-bold text-white tracking-wide truncate">
+                        Lv.{combatRank.level} · {combatRank.title}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-white/45 truncate hidden sm:block">
+                      {combatRank.blurb}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[11px] font-semibold text-white/50">
-                  {combat.xp} XP
-                </span>
+                <div className="text-right shrink-0">
+                  <div className="font-display text-xs sm:text-sm font-bold text-white">
+                    {combat.xp} <span className="text-[10px] font-normal text-white/50">XP</span>
+                  </div>
+                  <p className="text-[10px] text-white/45">
+                    {combatNext ? `${combatNext.minXp - combat.xp} to Lv.${combatNext.level}` : "Max rank"}
+                  </p>
+                </div>
               </div>
-              <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+
+              {/* Progress Bar */}
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/10 p-0.5">
                 <div
-                  className="h-full rounded-full transition-all duration-500"
+                  className="h-full rounded-full transition-all duration-500 shadow-xs"
                   style={{ width: `${combatPct}%`, background: combatRank.color }}
                 />
               </div>
-              <div className="mt-1.5 flex items-center justify-between text-[10px] text-white/40">
-                <span>Rank Progress</span>
-                <span>{combatNext ? `${combatNext.minXp - combat.xp} XP to next rank` : "Max rank"}</span>
+
+              <div className="mt-2 flex items-center justify-between text-[10px] sm:text-[11px] text-white/45">
+                <span className="flex items-center gap-1.5">
+                  <Award className="h-3 w-3 text-brand-light" />
+                  <span>Rank Progress</span>
+                </span>
+                <span className="font-semibold text-white/75">{Math.round(combatPct)}%</span>
               </div>
             </div>
+          </div>
 
+          {/* 3. CTA Action */}
+          <div className="shrink-0 flex items-center justify-start lg:justify-end">
             <button
               onClick={() => navigate("/courses")}
-              className="btn-primary whitespace-nowrap self-stretch sm:self-center shadow-md hover:shadow-lg transition-all"
+              className="btn-primary w-full sm:w-auto whitespace-nowrap shadow-md hover:shadow-lg transition-all"
             >
               Browse Courses <ArrowUpRight className="h-4 w-4" />
             </button>
