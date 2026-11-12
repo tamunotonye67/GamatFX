@@ -575,437 +575,198 @@ export default function Navbar() {
       </div>
     </header>
 
-    {/* Full-Viewport Modern Mobile Navigation Overlay */}
+    {/* Full-Viewport Simple Mobile Navigation Overlay */}
     <div
       id="mobile-navigation"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile Navigation Menu"
-      className={`fixed inset-0 z-[100] flex h-[100dvh] w-screen flex-col bg-white transition-all duration-300 lg:hidden ${
+      className={`fixed inset-0 z-[100] flex h-[100dvh] w-screen flex-col bg-white transition-all duration-200 lg:hidden ${
         open
           ? "visible opacity-100 pointer-events-auto"
           : "invisible opacity-0 pointer-events-none"
       }`}
     >
       {/* Top Header mirroring the navbar */}
-      <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line bg-white/95 px-5 backdrop-blur-md">
+      <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line bg-white px-5 sm:px-6">
         <Logo variant="dark" />
         <button
           type="button"
           aria-label="Close menu"
           onClick={() => setOpen(false)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-ink shadow-sm transition hover:bg-brand hover:text-white"
+          className="rounded-xl p-2 text-ink/80 hover:bg-cream hover:text-ink transition"
         >
-          <X className="h-5 w-5" />
+          <X className="h-6 w-6" />
         </button>
       </div>
 
-      {/* Scrollable Body */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-5 space-y-6 sm:px-6">
-        {/* User profile or Guest Auth card */}
-        {isAuthed && user ? (
-          <div className="rounded-2xl border border-line bg-gradient-to-br from-cream via-white to-cream/60 p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              {user.avatar ? (
-                <img src={user.avatar} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-brand/20" />
-              ) : (
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-bold text-white shadow-sm">
-                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
-                </span>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="truncate font-display text-base font-bold text-ink">
-                    {user.firstName} {user.lastName}
-                  </p>
-                  {isAdmin ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
-                      <ShieldCheck className="h-3 w-3" /> Admin
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-                      Student
-                    </span>
-                  )}
-                </div>
-                <p className="truncate text-xs text-muted">{user.email}</p>
-                <p className="mt-1 text-xs font-semibold text-brand">
-                  {stats.enrolled} {stats.enrolled === 1 ? "course" : "courses"} enrolled
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-line/60 pt-3">
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => go("/admin")}
-                  className="col-span-2 flex items-center justify-center gap-2 rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white transition hover:bg-ink/90"
-                >
-                  <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => go("/dashboard")}
-                className="flex items-center justify-center gap-2 rounded-xl bg-brand px-3 py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark"
-              >
-                <LayoutDashboard className="h-4 w-4" /> Dashboard
-              </button>
-              <button
-                type="button"
-                onClick={() => go("/courses")}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-bold text-ink transition hover:bg-cream"
-              >
-                <BookOpen className="h-4 w-4 text-brand" /> My Courses
-              </button>
-              <button
-                type="button"
-                onClick={() => { logout(); navigate("/"); setOpen(false); }}
-                className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-line/70 py-2 text-xs font-semibold text-muted transition hover:bg-red-50 hover:text-red-600"
-              >
-                <LogOut className="h-3.5 w-3.5" /> Log out
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-line bg-gradient-to-br from-cream via-white to-cream/60 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Welcome to GAMAT Fx</p>
-                <p className="font-display text-sm font-bold text-ink">Start Your Trading Journey</p>
-              </div>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              </span>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => go("/login")}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-bold text-ink shadow-sm transition hover:bg-cream"
-              >
-                <LogIn className="h-4 w-4 text-brand" /> Login
-              </button>
-              <button
-                type="button"
-                onClick={() => go("/signup")}
-                className="flex items-center justify-center gap-2 rounded-xl bg-brand px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-brand-dark"
-              >
-                <UserPlus className="h-4 w-4" /> Sign Up Free
-              </button>
-            </div>
-            <a
-              href={CONTACT.whatsappAiHref}
-              target="_blank"
-              rel="noreferrer"
-              className="ask-glow relative mt-2.5 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-ink px-4 py-2.5 text-xs font-bold text-white"
-            >
-              <span className="ask-glow-spin" aria-hidden="true" />
-              <span className="relative z-[1] inline-flex items-center gap-2">
-                <MessageCircle className="h-4 w-4 text-emerald-400" />
-                <span>Ask Anything on WhatsApp</span>
-                <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">Live</span>
-              </span>
-            </a>
-          </div>
-        )}
-
-        {/* Primary Navigation */}
+      {/* Clean, Simple Scrollable Navigation */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-5 flex flex-col justify-between">
         <div>
-          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
-            Main Navigation
-          </p>
-          <div className="space-y-1">
-            {primary.map((l) => {
-              const isActive = l.to === route;
-              const Icon = l.icon;
+          <nav className="divide-y divide-line/50">
+            {[
+              { label: "Home", to: "/" as Route },
+              { label: "About Us", to: "/about" as Route },
+              { label: "Courses", to: "/courses" as Route },
+              { label: "Services", to: "/services" as Route },
+              { label: "Events", to: "/events" as Route },
+              { label: "Store & Tools", to: "/store" as Route },
+              { label: "Trading Whiteboard", to: "/whiteboard" as Route },
+              { label: "Fun Zone", to: "/fun" as Route },
+              { label: "Student Forum", to: "/forum" as Route },
+              { label: "Contact Us", to: "/contact" as Route },
+            ].map((item) => {
+              const isActive = item.to === route;
               return (
                 <button
-                  key={l.to}
+                  key={item.to}
                   type="button"
-                  onClick={() => go(l.to)}
-                  className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition ${
+                  onClick={() => go(item.to)}
+                  className={`flex w-full items-center justify-between py-3.5 text-left transition ${
                     isActive
-                      ? "bg-brand text-white font-bold shadow-sm shadow-brand/25"
-                      : "text-ink/85 hover:bg-cream hover:text-brand"
+                      ? "text-brand font-bold text-base"
+                      : "text-ink/85 font-medium text-base hover:text-brand"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                        isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-cream text-brand group-hover:bg-brand/10"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="text-sm font-semibold">{l.label}</span>
-                    {l.badge && (
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          isActive
-                            ? "bg-white/25 text-white"
-                            : "bg-brand/10 text-brand"
-                        }`}
-                      >
-                        {l.badge}
-                      </span>
-                    )}
-                  </div>
+                  <span>{item.label}</span>
                   <ChevronRight
-                    className={`h-4 w-4 transition-transform group-hover:translate-x-0.5 ${
-                      isActive ? "text-white/80" : "text-muted"
+                    className={`h-4 w-4 transition-transform ${
+                      isActive ? "text-brand" : "text-muted/40"
                     }`}
                   />
                 </button>
               );
             })}
-          </div>
-        </div>
+          </nav>
 
-        {/* Trading Ecosystem (Store & Whiteboard) */}
-        <div>
-          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
-            Trading Ecosystem
-          </p>
-          <div className="space-y-2">
+          {/* Subtle Secondary Links */}
+          <div className="mt-5 pt-4 border-t border-line/60 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
             <button
               type="button"
-              onClick={() => go("/store")}
-              className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-brand/25 bg-gradient-to-r from-brand/5 via-cream to-white p-3.5 text-left transition hover:border-brand/50 hover:shadow-sm"
+              onClick={() => go("/reviews")}
+              className="hover:text-brand transition"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-sm shadow-brand/30">
-                  <ShoppingBag className="h-5 w-5" />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-display text-sm font-bold text-ink">Store & Trading Tools</p>
-                    <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-extrabold uppercase text-brand">Hot</span>
-                  </div>
-                  <p className="truncate text-xs text-muted">Bots, indicators, strategies & e-books</p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-brand transition-transform group-hover:translate-x-0.5" />
+              Reviews
             </button>
-
+            <span className="text-line">•</span>
             <button
               type="button"
-              onClick={() => go("/whiteboard")}
-              className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-ink p-3.5 text-left text-white shadow-sm transition hover:border-brand/60"
+              onClick={() => go("/faq")}
+              className="hover:text-brand transition"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-light">
-                  <Pencil className="h-5 w-5" />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-display text-sm font-bold text-white">Trading Whiteboard</p>
-                    <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold uppercase text-white">Live</span>
-                  </div>
-                  <p className="truncate text-xs text-white/70">Interactive TA & live teaching canvas</p>
-                </div>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-white/70 transition-transform group-hover:translate-x-0.5" />
+              FAQ
+            </button>
+            <span className="text-line">•</span>
+            <button
+              type="button"
+              onClick={() => go("/blog")}
+              className="hover:text-brand transition"
+            >
+              Blog
+            </button>
+            <span className="text-line">•</span>
+            <button
+              type="button"
+              onClick={() => go("/outlook")}
+              className="hover:text-brand transition"
+            >
+              Daily Outlook
+            </button>
+            <span className="text-line">•</span>
+            <button
+              type="button"
+              onClick={() => go("/giveaways")}
+              className="hover:text-brand transition"
+            >
+              Giveaways
             </button>
           </div>
         </div>
 
-        {/* Fun Zone Arcade */}
-        <div>
-          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
-            Games & Trivia
-          </p>
-          <div className="relative overflow-hidden rounded-2xl border border-brand/40 bg-slate-950 p-4 text-white shadow-md">
-            <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand/30 blur-2xl" />
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => go("/fun")}
-                className="flex items-center gap-2 text-left"
-              >
-                <Gamepad2 className="h-5 w-5 text-brand-light" />
-                <span className="font-display text-sm font-bold text-white">Fun Zone Arcade</span>
-                <span className="rounded-full bg-brand/30 px-2 py-0.5 text-[10px] font-bold text-brand-light">4 Games</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => go("/fun")}
-                className="text-xs font-semibold text-brand-light transition hover:text-white"
-              >
-                Open Hub &rarr;
-              </button>
-            </div>
+        {/* Clean Bottom Auth & Contact Actions */}
+        <div className="mt-8 pt-5 border-t border-line space-y-3">
+          {isAuthed && user ? (
+            <>
+              <div className="flex items-center gap-3">
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-line"
+                  />
+                ) : (
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                    {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-ink">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="truncate text-xs text-muted">{user.email}</p>
+                </div>
+              </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {funZoneSubGames.map((sub) => {
-                const SubIcon = sub.icon;
-                const isSubActive = sub.to === route;
-                return (
-                  <button
-                    key={sub.to}
-                    type="button"
-                    onClick={() => go(sub.to)}
-                    className={`flex flex-col gap-1 rounded-xl p-2.5 text-left transition ${
-                      isSubActive
-                        ? "bg-brand text-white shadow-sm shadow-brand/40"
-                        : "border border-white/10 bg-white/5 text-white/90 hover:border-brand/40 hover:bg-white/10"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <SubIcon className={`h-4 w-4 ${isSubActive ? "text-white" : "text-brand-light"}`} />
-                    </div>
-                    <p className="truncate text-xs font-bold leading-tight">{sub.label}</p>
-                    <p className={`line-clamp-1 text-[10px] ${isSubActive ? "text-white/80" : "text-white/50"}`}>{sub.desc}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-white/10 pt-3">
-              <button
-                type="button"
-                onClick={() => go("/fun/student-of-the-week")}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
-              >
-                <Award className="h-3 w-3 text-amber-400" /> Student Spotlight
-              </button>
-              <button
-                type="button"
-                onClick={() => go("/fun/histofact")}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
-              >
-                <History className="h-3 w-3 text-blue-400" /> Histofact Cards
-              </button>
-              <button
-                type="button"
-                onClick={() => go("/fun/clubs")}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
-              >
-                <Shield className="h-3 w-3 text-emerald-400" /> Club Builder
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Community & Market Desk */}
-        <div>
-          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
-            Community & Market Desk
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: "Student Forum", to: "/forum" as Route, icon: MessagesSquare },
-              { label: "Community", to: "/community" as Route, icon: Users },
-              { label: "Daily Outlook", to: "/outlook" as Route, icon: Sun },
-              { label: "Market News", to: "/news" as Route, icon: Newspaper },
-              { label: "Blog Articles", to: "/blog" as Route, icon: FileText },
-              { label: "Giveaways", to: "/giveaways" as Route, icon: Gift },
-            ].map((item) => {
-              const ItemIcon = item.icon;
-              const isAct = item.to === route;
-              return (
+              {isAdmin && (
                 <button
-                  key={item.to}
                   type="button"
-                  onClick={() => go(item.to)}
-                  className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-xs font-semibold transition ${
-                    isAct
-                      ? "border-brand bg-brand-light text-brand"
-                      : "border-line bg-cream/40 text-ink/80 hover:bg-cream hover:text-brand"
-                  }`}
+                  onClick={() => go("/admin")}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-ink py-2.5 text-xs font-bold text-white transition hover:bg-ink/90"
                 >
-                  <ItemIcon className="h-4 w-4 shrink-0 text-brand" />
-                  <span className="truncate">{item.label}</span>
+                  <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              )}
 
-        {/* Support & Legal */}
-        <div>
-          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
-            Support & Legal
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: "Reviews", to: "/reviews" as Route, icon: Star },
-              { label: "FAQ", to: "/faq" as Route, icon: HelpCircle },
-              { label: "Contact Us", to: "/contact" as Route, icon: MailOpen },
-              { label: "Terms of Service", to: "/terms" as Route, icon: FileText },
-              { label: "Privacy Policy", to: "/privacy" as Route, icon: ShieldCheck },
-            ].map((item) => {
-              const ItemIcon = item.icon;
-              const isAct = item.to === route;
-              return (
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
-                  key={item.to}
                   type="button"
-                  onClick={() => go(item.to)}
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-                    isAct
-                      ? "border-brand bg-brand-light text-brand"
-                      : "border-line bg-white text-muted hover:border-brand/40 hover:text-ink"
-                  }`}
+                  onClick={() => go("/dashboard")}
+                  className="w-full rounded-xl bg-brand py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark"
                 >
-                  <ItemIcon className="h-3.5 w-3.5 text-brand" />
-                  <span>{item.label}</span>
+                  Dashboard
                 </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Quick Contacts Footer */}
-        <div className="border-t border-line pt-5 pb-6 text-center">
-          <p className="text-xs font-bold text-ink mb-3">Direct Support Channels</p>
-          <div className="flex items-center justify-center gap-3">
-            <a
-              href={CONTACT.whatsappHref}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="WhatsApp"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-emerald-600 transition hover:bg-emerald-600 hover:text-white"
-            >
-              <MessageCircle className="h-5 w-5" />
-            </a>
-            <a
-              href={CONTACT.telegram}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Telegram"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-sky-500 transition hover:bg-sky-500 hover:text-white"
-            >
-              <Send className="h-4 w-4" />
-            </a>
-            <a
-              href={CONTACT.phoneHref}
-              aria-label="Call Us"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-brand transition hover:bg-brand hover:text-white"
-            >
-              <Phone className="h-4 w-4" />
-            </a>
-            <a
-              href={`mailto:${CONTACT.email}`}
-              aria-label="Email Us"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-ink transition hover:bg-ink hover:text-white"
-            >
-              <MailOpen className="h-4 w-4" />
-            </a>
-          </div>
-          <p className="mt-3 text-[11px] text-muted">
-            {CONTACT.addressShort}
-          </p>
-          <p className="mt-0.5 text-[11px] text-muted">
-            {CONTACT.hours}
-          </p>
-          <p className="mt-2 text-[10px] font-medium text-muted/60">
-            © {new Date().getFullYear()} GAMAT Fx Academy. All rights reserved.
-          </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    navigate("/");
+                    setOpen(false);
+                  }}
+                  className="w-full rounded-xl border border-line py-2.5 text-xs font-semibold text-muted hover:text-ink transition hover:bg-cream"
+                >
+                  Log out
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => go("/login")}
+                  className="w-full rounded-full border border-line py-2.5 text-sm font-semibold text-ink text-center hover:bg-cream transition"
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => go("/signup")}
+                  className="w-full rounded-full bg-brand py-2.5 text-sm font-semibold text-white text-center hover:bg-brand-dark transition shadow-sm"
+                >
+                  Sign Up
+                </button>
+              </div>
+              <a
+                href={CONTACT.whatsappAiHref}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 pt-1 text-xs font-medium text-muted hover:text-brand transition"
+              >
+                <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Questions? Chat with us on WhatsApp</span>
+              </a>
+            </>
+          )}
         </div>
       </div>
     </div>
