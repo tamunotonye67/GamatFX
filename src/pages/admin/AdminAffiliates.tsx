@@ -642,76 +642,109 @@ export function AdminAffiliates() {
         </div>
       )}
 
-      {/* Bottom-to-Top Flyout: Ambassador Details & Payout Inspector */}
+      {/* Bottom-to-Top Flyout: Ambassador Details */}
       {selectedProfile && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
-          {/* Dimmed backdrop with smooth fade */}
+          {/* Backdrop */}
           <div
             aria-hidden="true"
             onClick={() => setSelectedProfile(null)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300"
+            className="fixed inset-0 bg-ink/50 backdrop-blur-xs transition-opacity duration-300"
           />
 
-          {/* Flyout panel filling from left to right */}
-          <div className="relative z-10 w-full rounded-t-[32px] border-t border-line bg-white shadow-[0_-25px_60px_-15px_rgba(22,24,28,0.25)] flex flex-col max-h-[90vh] transition-transform duration-300 ease-out">
-            {/* Grab bar */}
+          {/* Bottom Sheet Flyout */}
+          <div className="relative z-10 w-full rounded-t-3xl border-t border-line bg-white shadow-[0_-20px_50px_-15px_rgba(22,24,28,0.25)] flex flex-col max-h-[85vh]">
+            {/* Grab handle */}
             <div className="pt-3 pb-1 flex justify-center">
-              <div className="w-12 h-1.5 rounded-full bg-slate-300/80" />
+              <div className="w-10 h-1 rounded-full bg-slate-300" />
             </div>
 
-            {/* Header */}
-            <div className="flex items-start justify-between border-b border-line px-5 sm:px-8 pb-4 pt-1">
-              <div>
-                <h4 className="font-display text-lg sm:text-xl font-bold text-ink">
-                  Ambassador Details
-                </h4>
-                <p className="text-xs text-muted mt-0.5">
-                  Profile, referral performance & disbursement account
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedProfile(null)}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-cream text-muted hover:text-ink hover:bg-slate-200 transition cursor-pointer"
-                aria-label="Close flyout"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Scrollable Content filling left to right */}
-            <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-5 space-y-5 text-xs max-w-5xl mx-auto w-full">
-              {/* Profile Card */}
-              <div className="rounded-2xl border border-line bg-cream/50 p-4 sm:p-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    {selectedProfile.avatar ? (
-                      <img
-                        src={selectedProfile.avatar}
-                        alt=""
-                        className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 aspect-square rounded-2xl object-cover ring-1 ring-line shadow-sm"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 aspect-square rounded-2xl bg-brand text-white font-extrabold flex items-center justify-center text-sm sm:text-base shadow-sm">
-                        {(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <h5 className="font-bold text-ink text-sm sm:text-base leading-snug truncate">
-                        {selectedProfile.cardDisplayName || selectedProfile.userName}
-                      </h5>
-                      <p className="text-[11px] sm:text-xs text-muted truncate">{selectedProfile.userEmail}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                        <span className="rounded-md bg-white border border-line px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-slate-700">
-                          {selectedProfile.enrolledCourseTitle || "Forex Foundations"}
-                        </span>
-                        <span className="text-[10px] sm:text-[11px] text-brand font-mono font-bold">
-                          Code: {selectedProfile.referralCode}
-                        </span>
-                      </div>
-                    </div>
+            {/* Header matching website style */}
+            <div className="flex items-center justify-between border-b border-line px-6 py-4">
+              <div className="flex items-center gap-3 min-w-0">
+                {selectedProfile.avatar ? (
+                  <img
+                    src={selectedProfile.avatar}
+                    alt=""
+                    className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-line"
+                  />
+                ) : (
+                  <div className="h-11 w-11 shrink-0 rounded-full bg-brand text-white font-bold flex items-center justify-center text-xs">
+                    {(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
                   </div>
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-display text-base font-bold text-ink truncate">
+                      {selectedProfile.cardDisplayName || selectedProfile.userName}
+                    </h4>
+                    <span className="rounded-full bg-cream border border-line px-2 py-0.5 text-[10px] font-semibold text-muted">
+                      {selectedProfile.enrolledCourseTitle || "Forex Foundations"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted truncate">{selectedProfile.userEmail}</p>
+                </div>
+              </div>
 
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = getSignupReferralUrl(selectedProfile.referralCode);
+                    navigator.clipboard.writeText(url);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-3 py-1.5 text-xs font-semibold text-ink hover:text-brand hover:border-brand transition cursor-pointer"
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied Link
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5 text-brand" /> Copy Link
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProfile(null)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Content matching website design */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-4xl mx-auto w-full">
+              {/* Financial Balances & Referral Code Strip */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-line bg-white p-4 shadow-xs">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Total Earned</p>
+                  <p className="font-display text-2xl font-extrabold text-ink mt-1">
+                    {naira(selectedProfile.totalEarned)}
+                  </p>
+                  <p className="text-[11px] text-muted mt-0.5">Accrued referral earnings</p>
+                </div>
+
+                <div className="rounded-2xl border border-line bg-white p-4 shadow-xs">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Available Balance</p>
+                  <p className="font-display text-2xl font-extrabold text-brand mt-1">
+                    {naira(selectedProfile.pendingBalance)}
+                  </p>
+                  <p className="text-[11px] text-muted mt-0.5">Pending disbursement</p>
+                </div>
+
+                <div className="rounded-2xl border border-line bg-cream p-4 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Referral Code</p>
+                    <p className="font-mono text-base font-bold text-ink mt-1">
+                      {selectedProfile.referralCode}
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -720,48 +753,34 @@ export function AdminAffiliates() {
                       setCopiedLink(true);
                       setTimeout(() => setCopiedLink(false), 2000);
                     }}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-bold text-ink hover:border-brand hover:text-brand transition cursor-pointer self-start sm:self-center shrink-0 shadow-sm"
+                    className="mt-2 sm:hidden inline-flex items-center justify-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-semibold text-ink"
                   >
-                    {copiedLink ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-emerald-600" /> Referral Link Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5 text-brand" /> Copy Referral Link
-                      </>
-                    )}
+                    {copiedLink ? "Copied!" : "Copy Link"}
                   </button>
                 </div>
-
-                {selectedProfile.personalQuote && (
-                  <blockquote className="mt-3.5 italic text-ink/80 border-l-2 border-brand pl-3 text-xs leading-relaxed bg-white/70 py-2 rounded-r-lg">
-                    "{selectedProfile.personalQuote}"
-                  </blockquote>
-                )}
               </div>
 
-              {/* Performance & Conversion Metrics Grid */}
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-widest text-muted mb-2">
+              {/* Performance Metrics: Clean 4-Column Bar */}
+              <div className="rounded-2xl border border-line bg-white p-4 shadow-xs">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted mb-3">
                   Referral Performance
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="rounded-2xl border border-line bg-white p-3.5 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Total Clicks</p>
-                    <p className="text-xl font-bold text-ink mt-0.5">{selectedProfile.totalClicks}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-line/70">
+                  <div className="pt-2 sm:pt-0 sm:px-3 text-center sm:text-left">
+                    <p className="text-xs text-muted">Total Clicks</p>
+                    <p className="font-display text-xl font-bold text-ink mt-1">{selectedProfile.totalClicks}</p>
                   </div>
-                  <div className="rounded-2xl border border-line bg-white p-3.5 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Signups</p>
-                    <p className="text-xl font-bold text-ink mt-0.5">{selectedProfile.totalSignups}</p>
+                  <div className="pt-2 sm:pt-0 sm:px-3 text-center sm:text-left">
+                    <p className="text-xs text-muted">Signups</p>
+                    <p className="font-display text-xl font-bold text-ink mt-1">{selectedProfile.totalSignups}</p>
                   </div>
-                  <div className="rounded-2xl border border-line bg-white p-3.5 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Paid Orders</p>
-                    <p className="text-xl font-bold text-emerald-600 mt-0.5">{selectedProfile.totalConversions}</p>
+                  <div className="pt-2 sm:pt-0 sm:px-3 text-center sm:text-left">
+                    <p className="text-xs text-muted">Paid Orders</p>
+                    <p className="font-display text-xl font-bold text-emerald-600 mt-1">{selectedProfile.totalConversions}</p>
                   </div>
-                  <div className="rounded-2xl border border-line bg-white p-3.5 text-center shadow-xs">
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Conv. Rate</p>
-                    <p className="text-xl font-bold text-brand mt-0.5">
+                  <div className="pt-2 sm:pt-0 sm:px-3 text-center sm:text-left">
+                    <p className="text-xs text-muted">Conversion Rate</p>
+                    <p className="font-display text-xl font-bold text-ink mt-1">
                       {selectedProfile.totalClicks > 0
                         ? `${((selectedProfile.totalConversions / selectedProfile.totalClicks) * 100).toFixed(1)}%`
                         : "0%"}
@@ -770,75 +789,56 @@ export function AdminAffiliates() {
                 </div>
               </div>
 
-              {/* Earnings Breakdown */}
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-widest text-muted mb-2">
-                  Financial Balances
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/50 p-4">
-                    <p className="text-emerald-800 text-xs font-semibold">Total Earned</p>
-                    <p className="text-2xl font-extrabold text-emerald-700 mt-0.5">
-                      {naira(selectedProfile.totalEarned)}
-                    </p>
+              {/* Payout Destination */}
+              <div className="rounded-2xl border border-line bg-white p-4 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-brand" />
+                    <p className="font-bold text-ink text-xs sm:text-sm">Disbursement Account Details</p>
                   </div>
-                  <div className="rounded-2xl border border-amber-200/70 bg-amber-50/50 p-4">
-                    <p className="text-amber-800 text-xs font-semibold">Available Balance for Payout</p>
-                    <p className="text-2xl font-extrabold text-amber-700 mt-0.5">
-                      {naira(selectedProfile.pendingBalance)}
-                    </p>
-                  </div>
+                  {selectedProfile.payoutDetails && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedProfile.payoutDetails || "");
+                        setCopiedDetails(true);
+                        setTimeout(() => setCopiedDetails(false), 2000);
+                      }}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline cursor-pointer"
+                    >
+                      {copiedDetails ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" /> Copy Details
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="font-mono text-xs sm:text-sm text-ink font-semibold bg-cream p-3 rounded-xl border border-line select-all">
+                  {selectedProfile.payoutDetails || "No payout method configured by student yet."}
                 </div>
               </div>
 
-              {/* Disbursement / Bank Details Card */}
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-widest text-muted mb-2">
-                  Payout Destination
-                </p>
-                <div className="rounded-2xl border border-line bg-slate-50 p-4 sm:p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-brand" />
-                      <p className="font-bold text-ink text-xs sm:text-sm">Disbursement Account Details</p>
-                    </div>
-                    {selectedProfile.payoutDetails && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(selectedProfile.payoutDetails || "");
-                          setCopiedDetails(true);
-                          setTimeout(() => setCopiedDetails(false), 2000);
-                        }}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
-                      >
-                        {copiedDetails ? (
-                          <>
-                            <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-3.5 w-3.5" /> Copy Details
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                  <div className="font-mono text-xs sm:text-sm text-ink font-semibold mt-1 bg-white p-3 rounded-xl border border-line select-all">
-                    {selectedProfile.payoutDetails || "No payout method configured by student yet."}
-                  </div>
+              {/* Quote if present */}
+              {selectedProfile.personalQuote && (
+                <div className="rounded-xl border border-line/60 bg-cream/30 p-3 text-center text-xs text-muted italic">
+                  "{selectedProfile.personalQuote}"
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Flyout Bottom Bar */}
-            <div className="border-t border-line bg-cream/40 px-5 sm:px-8 py-3.5 flex items-center justify-end">
+            {/* Bottom Bar */}
+            <div className="border-t border-line bg-cream px-6 py-3.5 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedProfile(null)}
-                className="rounded-full bg-ink px-6 py-2.5 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer transition shadow-sm"
+                className="rounded-full bg-ink px-6 py-2 text-xs font-bold text-white hover:bg-slate-800 transition cursor-pointer"
               >
-                Done
+                Close
               </button>
             </div>
           </div>
