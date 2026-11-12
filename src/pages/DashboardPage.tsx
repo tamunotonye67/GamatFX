@@ -70,6 +70,14 @@ const NIGERIAN_BANKS = [
 
 const CATEGORIES = ["Fundamentals", "Technical", "Psychology", "Risk", "News"];
 
+function shortCourseLevel(level?: string) {
+  if (!level) return "Exam";
+  if (/intermediate to advanced/i.test(level)) return "Inter – Adv";
+  if (/beginner to intermediate/i.test(level)) return "Beg – Inter";
+  if (/advanced \/ funded/i.test(level)) return "Adv / Funded";
+  return level;
+}
+
 export default function DashboardPage() {
   const store = useStore();
   const { user, isAuthed, enrollments, myRegistrations, myPayments, stats, progressOf, logout, isAdmin, combat } = store;
@@ -801,8 +809,9 @@ export default function DashboardPage() {
 
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="chip !text-[11px] !py-0.5 !px-2.5">
-                              {c.level || "Academy Exam"}
+                            <span className="chip !text-[11px] !py-0.5 !px-2.5 whitespace-nowrap">
+                              <span className="sm:hidden">{shortCourseLevel(c.level)}</span>
+                              <span className="hidden sm:inline">{c.level || "Academy Exam"}</span>
                             </span>
                             {isFreeCourse ? (
                               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
