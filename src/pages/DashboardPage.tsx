@@ -728,7 +728,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary shrink-0 w-full sm:w-auto">
-                        <ListChecks className="h-4 w-4" /> {best ? "Retake assessment" : "Take assessment"}
+                        <ListChecks className="h-4 w-4" /> Begin Exam
                       </button>
                     </div>
                   </div>
