@@ -501,22 +501,22 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
           {/* Question Navigator Column (Right, 4 cols on desktop, sticky) */}
           <aside className="lg:col-span-4 lg:sticky lg:top-[90px] w-full">
-            <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
-              <div className="flex items-center justify-between gap-2 border-b border-line pb-3">
+            <div className="rounded-2xl border border-line bg-white p-3.5 sm:p-4 shadow-xs">
+              <div className="flex items-center justify-between gap-2 border-b border-line pb-2.5">
                 <div>
-                  <h3 className="font-display text-sm font-bold text-ink">Question Navigator</h3>
+                  <h3 className="font-display text-xs font-bold uppercase tracking-wider text-ink">Question Navigator</h3>
                   <p className="text-[11px] text-muted">{answeredCount} of {activeQuestions.length} answered</p>
                 </div>
-                <span className="rounded-full bg-cream border border-line px-2.5 py-0.5 text-xs font-bold text-ink">
+                <span className="rounded-full bg-cream border border-line px-2 py-0.5 text-[11px] font-bold text-ink">
                   {Math.round((answeredCount / activeQuestions.length) * 100)}%
                 </span>
               </div>
 
-              {/* Filter Pills */}
-              <div className="mt-3 grid grid-cols-4 gap-1 p-1 rounded-xl bg-cream border border-line/60">
+              {/* Compact Filter Tabs */}
+              <div className="mt-2.5 flex items-center justify-between gap-1 p-0.5 rounded-lg bg-cream border border-line/60 text-[10px] font-bold">
                 <button
                   onClick={() => setNavFilter("all")}
-                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                  className={`flex-1 py-1 rounded transition text-center ${
                     navFilter === "all" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -524,7 +524,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                 </button>
                 <button
                   onClick={() => setNavFilter("unanswered")}
-                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                  className={`flex-1 py-1 rounded transition text-center ${
                     navFilter === "unanswered" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -532,7 +532,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                 </button>
                 <button
                   onClick={() => setNavFilter("answered")}
-                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                  className={`flex-1 py-1 rounded transition text-center ${
                     navFilter === "answered" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -540,7 +540,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                 </button>
                 <button
                   onClick={() => setNavFilter("flagged")}
-                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                  className={`flex-1 py-1 rounded transition text-center ${
                     navFilter === "flagged" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -548,8 +548,8 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                 </button>
               </div>
 
-              {/* Number Buttons Grid (5 Columns) */}
-              <div className="mt-3.5 grid grid-cols-5 gap-1.5 max-h-[360px] overflow-y-auto pr-0.5">
+              {/* Number Buttons Grid (10 Columns, fits 50 in 5 neat rows) */}
+              <div className="mt-2.5 grid grid-cols-10 gap-1">
                 {navIndices.map((i) => {
                   const qq = activeQuestions[i];
                   const isCurrent = i === idx;
@@ -563,7 +563,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                         setIdx(i);
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       }}
-                      className={`relative flex h-8 items-center justify-center rounded-lg text-xs font-bold transition ${
+                      className={`relative flex h-7 items-center justify-center rounded-md text-[11px] font-bold transition ${
                         isCurrent
                           ? "bg-ink text-white shadow-xs ring-2 ring-brand"
                           : hasAnswer
@@ -573,7 +573,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     >
                       {i + 1}
                       {isFl && (
-                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-400 ring-1.5 ring-white" />
+                        <span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-amber-400 ring-1 ring-white" />
                       )}
                     </button>
                   );
@@ -581,18 +581,18 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               </div>
 
               {/* Compact Legend */}
-              <div className="mt-3.5 grid grid-cols-2 gap-2 text-[11px] text-muted pt-3 border-t border-line/60">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded bg-emerald-600 shrink-0" /> Answered
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[10px] text-muted pt-2 border-t border-line/60">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded bg-emerald-600 shrink-0" /> Done
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded border border-line bg-cream shrink-0" /> Unanswered
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded border border-line bg-cream shrink-0" /> Left
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded bg-ink shrink-0" /> Current
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded bg-ink shrink-0" /> Current
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0" /> Flagged
+                <span className="flex items-center gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" /> Flagged
                 </span>
               </div>
 
@@ -605,7 +605,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     finish();
                   }
                 }}
-                className="mt-4 w-full btn-primary !py-2.5 text-xs font-bold"
+                className="mt-3 w-full btn-primary !py-2 text-xs font-bold"
               >
                 Submit Exam
               </button>
