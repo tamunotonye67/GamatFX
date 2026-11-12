@@ -399,8 +399,8 @@ export default function DashboardPage() {
 
       {/* Tabs + content */}
       <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr] items-start">
-        <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start z-10">
-          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:space-y-1 lg:p-3 shadow-xs lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto no-scrollbar">
+        <aside className="min-w-0 lg:sticky lg:top-[calc(var(--header-h,72px)+1.5rem)] lg:self-start z-20 transform-gpu will-change-transform [backface-visibility:hidden]">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:space-y-1 lg:p-3 shadow-xs lg:max-h-[calc(100vh-var(--header-h,72px)-3rem)] lg:overflow-y-auto no-scrollbar [overscroll-behavior:contain]">
             {tabs.map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer ${tab === t.id ? "bg-brand text-white shadow-xs" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
@@ -420,7 +420,7 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
           {tab === "certificates" && <Certificates completed={certifiedIds} pendingPayment={pendingPaymentCertIds} pending={awaitingQuizIds} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
