@@ -622,16 +622,16 @@ export default function DashboardPage() {
 
         {/* Link to Student Wallet */}
         <div className="pt-2">
-          <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
-                <Wallet className="h-6 w-6" />
+          <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+            <div className="flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1">
+              <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shrink-0 mt-0.5 shadow-xs border border-emerald-100/60">
+                <Wallet className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div>
-                <h4 className="font-display text-base font-bold text-ink">
+              <div className="min-w-0 flex-1">
+                <h4 className="font-display text-sm sm:text-base font-bold text-ink leading-snug">
                   Commission Ledger &amp; Preferred Payout Method
                 </h4>
-                <p className="mt-0.5 text-xs text-muted leading-relaxed">
+                <p className="mt-1 text-xs text-muted leading-relaxed">
                   Track your referral sales, monitor withdrawal payouts, and set your default bank or USDT account in your Wallet.
                 </p>
               </div>
@@ -639,7 +639,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setTab("wallet")}
-              className="px-4 py-2.5 rounded-xl bg-ink text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto"
+              className="px-4 py-2.5 rounded-xl bg-ink text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer shrink-0 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto shadow-xs"
             >
               <span>Open Student Wallet</span>
               <ArrowRight className="h-3.5 w-3.5" />
