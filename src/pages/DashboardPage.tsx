@@ -716,7 +716,7 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200 whitespace-nowrap">
                             <Check className="h-3 w-3 shrink-0" />
-                            <span className="sm:hidden">Exam Passed</span>
+                            <span className="sm:hidden">Exam Passed ({best?.score ?? 70}%)</span>
                             <span className="hidden sm:inline">Examination Passed ({best?.score ?? 70}%)</span>
                           </span>
                           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200 whitespace-nowrap">
