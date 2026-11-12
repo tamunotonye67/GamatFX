@@ -32,7 +32,7 @@ export default function CheckoutPage({ id }: { id: string }) {
     try {
       const claimed = sessionStorage.getItem("gamat_claimed_coupon");
       if (claimed && !appliedCode) {
-        const res = validateCoupon(claimed, "courses", course.id);
+        const res = validateCoupon(claimed, "courses", course?.id ?? targetId);
         if (res.ok && res.discountPercent && res.coupon) {
           setCoupon(res.coupon.code);
           setAppliedCode(res.coupon.code);

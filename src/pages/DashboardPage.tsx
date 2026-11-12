@@ -146,37 +146,8 @@ export default function DashboardPage() {
     window.scrollTo({ top: 380, behavior: "smooth" });
   };
 
-  if (!isAuthed || !user) {
-    return (
-      <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
-        <Lock className="h-14 w-14 text-brand" />
-        <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Sign in to view your dashboard</h1>
-        <p className="mt-3 max-w-sm text-muted">Track your courses, progress and certificates in one place.</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button onClick={() => navigate("/login")} className="btn-primary">Log In</button>
-          <button onClick={() => navigate("/signup")} className="btn-outline-dark">Create Account</button>
-        </div>
-      </section>
-    );
-  }
+  const [paymentModalCourseId, setPaymentModalCourseId] = useState<string | null>(null);
 
-  const initials = `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
-
-  // Writers get articles; staff/admin also get a team-bio submission tab.
-  const isTeamMember = user.role === "staff" || user.role === "admin";
-  let tabs = [...baseTabs];
-  if (store.can("posts:write")) {
-    const profileIdx = tabs.findIndex((t) => t.id === "profile");
-    tabs = [...tabs.slice(0, profileIdx), { id: "posts" as Tab, label: "My Articles", icon: PenSquare }, ...tabs.slice(profileIdx)];
-  }
-  if (isTeamMember) {
-    const profileIdx = tabs.findIndex((t) => t.id === "profile");
-    tabs = [
-      ...tabs.slice(0, profileIdx),
-      { id: "team-bio" as Tab, label: "Team Bio", icon: Users },
-      ...tabs.slice(profileIdx),
-    ];
-  }
   // All academy courses available for learning and certification assessments
   const allAvailableCourses = useMemo<Course[]>(() => {
     const list: Course[] = [];
@@ -213,6 +184,7 @@ export default function DashboardPage() {
 
   // Unique certified course IDs (unlocked and ready to view/download)
   const certifiedIds = useMemo(() => {
+    if (!isAuthed || !user) return [];
     const ids = new Set<string>();
     allAvailableCourses.forEach((c) => {
       if (store.isCertificateUnlocked(c.id)) ids.add(c.id);
@@ -229,10 +201,11 @@ export default function DashboardPage() {
       }
     });
     return Array.from(ids);
-  }, [allAvailableCourses, store.isCertificateUnlocked, store.attempts]);
+  }, [isAuthed, user, allAvailableCourses, store.isCertificateUnlocked, store.attempts]);
 
   // Courses where exam was passed, but ₦10,000 certificate fee is pending payment
   const pendingPaymentCertIds = useMemo(() => {
+    if (!isAuthed || !user) return [];
     const ids = new Set<string>();
     allAvailableCourses.forEach((c) => {
       if (store.isCertificatePendingPayment(c.id)) ids.add(c.id);
@@ -248,7 +221,7 @@ export default function DashboardPage() {
       }
     });
     return Array.from(ids);
-  }, [allAvailableCourses, store.isCertificatePendingPayment, store.attempts]);
+  }, [isAuthed, user, allAvailableCourses, store.isCertificatePendingPayment, store.attempts]);
 
   // Courses awaiting exam completion
   const awaitingQuizIds = useMemo(() => {
@@ -256,6 +229,38 @@ export default function DashboardPage() {
       .map((c) => c.id)
       .filter((id) => !certifiedIds.includes(id) && !pendingPaymentCertIds.includes(id));
   }, [allAvailableCourses, certifiedIds, pendingPaymentCertIds]);
+
+  if (!isAuthed || !user) {
+    return (
+      <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
+        <Lock className="h-14 w-14 text-brand" />
+        <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Sign in to view your dashboard</h1>
+        <p className="mt-3 max-w-sm text-muted">Track your courses, progress and certificates in one place.</p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button onClick={() => navigate("/login")} className="btn-primary">Log In</button>
+          <button onClick={() => navigate("/signup")} className="btn-outline-dark">Create Account</button>
+        </div>
+      </section>
+    );
+  }
+
+  const initials = `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
+
+  // Writers get articles; staff/admin also get a team-bio submission tab.
+  const isTeamMember = user.role === "staff" || user.role === "admin";
+  let tabs = [...baseTabs];
+  if (store.can("posts:write")) {
+    const profileIdx = tabs.findIndex((t) => t.id === "profile");
+    tabs = [...tabs.slice(0, profileIdx), { id: "posts" as Tab, label: "My Articles", icon: PenSquare }, ...tabs.slice(profileIdx)];
+  }
+  if (isTeamMember) {
+    const profileIdx = tabs.findIndex((t) => t.id === "profile");
+    tabs = [
+      ...tabs.slice(0, profileIdx),
+      { id: "team-bio" as Tab, label: "Team Bio", icon: Users },
+      ...tabs.slice(profileIdx),
+    ];
+  }
 
   return (
     <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
@@ -571,56 +576,6 @@ export default function DashboardPage() {
 
   function Certificates({ completed, pendingPayment = [], pending, name }: { completed: string[]; pendingPayment?: string[]; pending: string[]; name: string }) {
     const studentName = name.trim() || user?.nickname || `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "GAMAT FX Student";
-    const [paymentModalCourseId, setPaymentModalCourseId] = useState<string | null>(null);
-
-    const PendingList = () => (
-      <>
-        {pending.map((id) => {
-          const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
-          const quiz = store.getCourseQuiz(id) || getQuiz(id);
-          const best = store.bestAttempt(id);
-          if (!c) return null;
-          const isFreeCourse = store.isCourseEnrolledOrPaid(id);
-          return (
-            <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-5 sm:p-8">
-              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">
-                  <Lock className="h-6 w-6 sm:h-7 sm:w-7" />
-                </span>
-                <div className="min-w-[200px] flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-display text-lg font-bold text-ink">{c.title}</p>
-                    {isFreeCourse ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                        <Check className="h-3 w-3" /> Included Free with Course
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] font-bold text-brand">
-                        Direct Exam · ₦10,000 on passing
-                      </span>
-                    )}
-                    <span className="chip !text-[11px] !py-0.5 !px-2.5">
-                      {c.level || "Academy Exam"}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted">
-                    Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate ({isFreeCourse ? "included free with your course enrollment" : "₦10,000 official certificate fee applies upon passing for direct examinees"}).
-                  </p>
-                  {best && (
-                    <p className="mt-1.5 text-xs font-semibold text-brand">
-                      Best attempt: {best.score}% — {quiz ? Math.max(0, quiz.passMark - best.score) : 0}% short.
-                    </p>
-                  )}
-                </div>
-                <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary w-full sm:w-auto">
-                  <ListChecks className="h-4 w-4" /> {best ? "Retake assessment" : "Take assessment"}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </>
-    );
 
     if (!completed.length && !pendingPayment.length && !pending.length) {
       return (
@@ -725,7 +680,50 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="space-y-4">
-              <PendingList />
+              {pending.map((id) => {
+                const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
+                const quiz = store.getCourseQuiz(id) || getQuiz(id);
+                const best = store.bestAttempt(id);
+                if (!c) return null;
+                const isFreeCourse = store.isCourseEnrolledOrPaid(id);
+                return (
+                  <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-5 sm:p-8">
+                    <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                      <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">
+                        <Lock className="h-6 w-6 sm:h-7 sm:w-7" />
+                      </span>
+                      <div className="min-w-[200px] flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-display text-lg font-bold text-ink">{c.title}</p>
+                          {isFreeCourse ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                              <Check className="h-3 w-3" /> Included Free with Course
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] font-bold text-brand">
+                              Direct Exam · ₦10,000 on passing
+                            </span>
+                          )}
+                          <span className="chip !text-[11px] !py-0.5 !px-2.5">
+                            {c.level || "Academy Exam"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-muted">
+                          Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate ({isFreeCourse ? "included free with your course enrollment" : "₦10,000 official certificate fee applies upon passing for direct examinees"}).
+                        </p>
+                        {best && (
+                          <p className="mt-1.5 text-xs font-semibold text-brand">
+                            Best attempt: {best.score}% — {quiz ? Math.max(0, quiz.passMark - best.score) : 0}% short.
+                          </p>
+                        )}
+                      </div>
+                      <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary w-full sm:w-auto">
+                        <ListChecks className="h-4 w-4" /> {best ? "Retake assessment" : "Take assessment"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -784,11 +782,12 @@ export default function DashboardPage() {
 
   function AffiliateSection() {
     const profile = store.myAffiliateProfile;
+    const [copiedCode, setCopiedCode] = useState(false);
+
     if (!profile) return null;
 
     const commissionPercent = store.affiliateSettings?.defaultCommissionPercent || 15;
     const minPayout = store.affiliateSettings?.minimumPayoutAmount || 10000;
-    const [copiedCode, setCopiedCode] = useState(false);
 
     const handleCopyCode = async () => {
       try {

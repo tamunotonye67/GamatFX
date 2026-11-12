@@ -14,16 +14,24 @@ import CertificatePaymentModal from "../components/CertificatePaymentModal";
 export default function QuizPage({ courseId }: { courseId: string }) {
   const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz, user, isCourseEnrolledOrPaid, isCertificateUnlocked } = useStore();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
+  const [idx, setIdx] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [flagged, setFlagged] = useState<Record<string, boolean>>({});
+  const [navFilter, setNavFilter] = useState<"all" | "unanswered" | "answered" | "flagged">("all");
+  const [reviewFilter, setReviewFilter] = useState<"all" | "incorrect" | "correct">("all");
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [result, setResult] = useState<QuizAttempt | null>(null);
+  const [left, setLeft] = useState(0);
+  const [err, setErr] = useState<string | null>(null);
+
   const rawId = (courseId || "").trim();
   const lowerId = rawId.toLowerCase();
 
   const builtIn = getCourse(rawId);
   const managed = managedCourses.find((c) => c.id === rawId || c.id.toLowerCase() === lowerId);
   const existingCourse = builtIn ?? (managed ? asCourse(managed) : undefined);
-
-  if (!rawId) {
-    return <Fallback title="Assessment not found" cta="Back to Courses" to="/courses" />;
-  }
 
   const autoWords = rawId.replace(/[^a-zA-Z0-9]+/g, " ").trim().split(" ");
   const fallbackTitle = autoWords.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -48,20 +56,21 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
   const quiz: Quiz = getCourseQuiz(rawId) || getQuiz(rawId, `${course.title} — Final Assessment`);
 
-  const [started, setStarted] = useState(false);
-  const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
-  const [idx, setIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [flagged, setFlagged] = useState<Record<string, boolean>>({});
-  const [navFilter, setNavFilter] = useState<"all" | "unanswered" | "answered" | "flagged">("all");
-  const [reviewFilter, setReviewFilter] = useState<"all" | "incorrect" | "correct">("all");
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [result, setResult] = useState<QuizAttempt | null>(null);
-  const [left, setLeft] = useState(0);
-  const [err, setErr] = useState<string | null>(null);
-
   const best = bestAttempt(rawId) || (existingCourse ? bestAttempt(existingCourse.id) : undefined);
   const progress = progressOf(rawId) || (existingCourse ? progressOf(existingCourse.id) : 0);
+
+  const activeQuestions = sessionQuestions.length ? sessionQuestions : (quiz?.questions ?? []);
+  const totalCount = activeQuestions.length || DEFAULT_EXAM_QUESTION_COUNT;
+  const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
+  const flaggedCount = useMemo(() => Object.values(flagged).filter(Boolean).length, [flagged]);
+
+  function finish() {
+    setShowSubmitModal(false);
+    const a = submitAttempt(rawId, answers, activeQuestions);
+    setResult(a);
+    setStarted(false);
+    window.scrollTo({ top: 0 });
+  }
 
   /* countdown */
   useEffect(() => {
@@ -72,13 +81,12 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started, left, result]);
 
-  const activeQuestions = sessionQuestions.length ? sessionQuestions : (quiz?.questions ?? []);
-  const totalCount = activeQuestions.length || DEFAULT_EXAM_QUESTION_COUNT;
-  const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
-  const flaggedCount = useMemo(() => Object.values(flagged).filter(Boolean).length, [flagged]);
+  if (!rawId) {
+    return <Fallback title="Assessment not found" cta="Back to Courses" to="/courses" />;
+  }
 
   if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${rawId}`} icon={Lock} />;
-  
+
   const hasEnrollment = isEnrolled(rawId) || isEnrolled(course.id) || (existingCourse && isEnrolled(existingCourse.id)) || user?.role === "admin";
   const courseUrl = hasEnrollment ? `/learn/${course.id}` : `/courses/${course.id}`;
   const isFreeCert = isCourseEnrolledOrPaid(course.id) || isCertificateUnlocked(course.id);
@@ -93,14 +101,6 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     setShowSubmitModal(false);
     setStarted(true);
     setLeft(quiz.timeLimitMins * 60);
-    window.scrollTo({ top: 0 });
-  }
-
-  function finish() {
-    setShowSubmitModal(false);
-    const a = submitAttempt(rawId, answers, activeQuestions);
-    setResult(a);
-    setStarted(false);
     window.scrollTo({ top: 0 });
   }
 
