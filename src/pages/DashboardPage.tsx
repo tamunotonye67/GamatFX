@@ -1391,7 +1391,7 @@ export default function DashboardPage() {
                                 : "bg-line text-muted"
                             }`}
                           >
-                            {p.status === "refunded" ? "refunded (manual)" : p.status}
+                            {p.status}
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-muted">
