@@ -808,90 +808,73 @@ export default function AffiliateCard({
           </div>
         </div>
 
-        {/* CARD 2: Invite Code & Link */}
+        {/* CARD 2: 1-Click Sharing Suite & Unique Invite Link */}
         <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
           <div className="border-b border-line pb-3.5">
             <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
-              Your Invite Code &amp; Link
+              Share Your Card &amp; Link
             </h3>
             <p className="mt-0.5 text-xs text-muted leading-relaxed">
-              Click either the code or link to copy directly. Earn a <strong className="text-ink font-semibold">{commissionPercent}% cash commission</strong> whenever friends enroll.
+              When friends use your link or scan your card code, they can register at no cost. You earn a <strong>{commissionPercent}% commission</strong> whenever they enroll in paid courses or purchase trading tools.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-            {/* Invite Code - Click to Copy */}
-            <div className="sm:col-span-4">
-              <label className="block text-xs font-bold text-ink mb-1.5">
-                Invite Code
-              </label>
-              <button
-                type="button"
-                onClick={copyCode}
-                title="Click to copy invite code"
-                className="w-full flex items-center justify-between rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-mono font-bold text-ink hover:border-brand/50 hover:bg-white transition cursor-pointer group shadow-xs"
-              >
-                <span className="text-sm font-black text-brand tracking-wider">{profile.referralCode}</span>
-                {copiedCode ? (
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                    <Check className="h-3.5 w-3.5" />
-                    <span>Copied!</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[11px] font-medium text-muted group-hover:text-ink">
-                    <Copy className="h-3.5 w-3.5" />
-                    <span>Copy</span>
-                  </span>
-                )}
-              </button>
-            </div>
+          {/* Quick Copy Link & Caption Box */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-ink">
+              Your Referral Link
+            </label>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="relative flex-1 min-w-0">
+                <input
+                  type="text"
+                  readOnly
+                  value={referralUrl}
+                  onClick={() => copyLink()}
+                  title="Click to copy link"
+                  className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-mono font-semibold text-ink outline-none select-all truncate focus:bg-white focus:border-brand cursor-pointer transition"
+                />
+              </div>
 
-            {/* Referral Link - Click to Copy */}
-            <div className="sm:col-span-8">
-              <label className="block text-xs font-bold text-ink mb-1.5">
-                Referral Link
-              </label>
-              <button
-                type="button"
-                onClick={copyLink}
-                title="Click to copy invite link"
-                className="w-full flex items-center justify-between rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-mono font-semibold text-ink hover:border-brand/50 hover:bg-white transition cursor-pointer group min-w-0 shadow-xs"
-              >
-                <span className="truncate pr-2 text-left">{referralUrl}</span>
-                {copied ? (
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 shrink-0">
-                    <Check className="h-3.5 w-3.5" />
-                    <span>Copied!</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[11px] font-medium text-muted group-hover:text-ink shrink-0">
-                    <Copy className="h-3.5 w-3.5" />
-                    <span>Copy</span>
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="btn-primary !py-2.5 !px-4 !text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-sm flex-1 sm:flex-initial"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copy Link</span>
+                    </>
+                  )}
+                </button>
 
-          {/* Action Row */}
-          <div className="pt-3 flex items-center justify-end border-t border-line">
-            <button
-              type="button"
-              onClick={copyCaption}
-              className="btn-outline-dark !py-1.5 !px-3.5 !text-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              {copiedCaption ? (
-                <>
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Copied Caption!</span>
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="h-3.5 w-3.5 text-brand" />
-                  <span>Copy Caption + Link</span>
-                </>
-              )}
-            </button>
+                <button
+                  type="button"
+                  onClick={copyCaption}
+                  title="Copy ready-to-post message and invite link"
+                  className="btn-outline-dark !py-2.5 !px-3.5 !text-xs flex items-center justify-center gap-1.5 cursor-pointer flex-1 sm:flex-initial"
+                >
+                  {copiedCaption ? (
+                    <>
+                      <Check className="h-4 w-4 text-emerald-600" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="h-4 w-4 text-brand" />
+                      <span>Copy Message</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
