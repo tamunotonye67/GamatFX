@@ -13,7 +13,7 @@ import { getActiveReferralCode } from "../lib/affiliate";
 type Method = "card" | "transfer" | "crypto";
 
 export default function CheckoutPage({ id }: { id: string }) {
-  const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon } = useStore();
+  const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon, affiliateSettings } = useStore();
   const builtIn = getCourse(id);
   const managed = managedCourses.find((c) => c.id === id && c.published);
   const course = builtIn ?? (managed ? asCourse(managed) : undefined);
@@ -43,11 +43,14 @@ export default function CheckoutPage({ id }: { id: string }) {
       // Check if referred by an ambassador
       const activeRef = getActiveReferralCode();
       if (activeRef && !appliedCode && discount === 0) {
-        setDiscount(0.05);
-        setCouponMsg(`Ambassador invite "${activeRef}" active — 5% welcome discount applied!`);
+        const welcomePercent = affiliateSettings?.affiliateDiscountPercent ?? 5;
+        if (welcomePercent > 0) {
+          setDiscount(welcomePercent / 100);
+          setCouponMsg(`Ambassador invite "${activeRef}" active — ${welcomePercent}% welcome discount applied!`);
+        }
       }
     } catch {}
-  }, [validateCoupon, appliedCode, discount]);
+  }, [validateCoupon, appliedCode, discount, affiliateSettings]);
 
   if (!course) {
     return (

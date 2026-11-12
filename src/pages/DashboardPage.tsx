@@ -427,6 +427,9 @@ export default function DashboardPage() {
       }, 2000);
     };
 
+    const commissionPercent = store.affiliateSettings?.defaultCommissionPercent || 15;
+    const minPayout = store.affiliateSettings?.minimumPayoutAmount || 10000;
+
     return (
       <div className="space-y-8">
         {/* Top Header Bar */}
@@ -436,7 +439,7 @@ export default function DashboardPage() {
               Invite & Earn Commissions
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-muted">
-              Share your personal invite link or enrollment announcement card. Earn <strong>15% commission</strong> when friends enroll in paid programs or store tools.
+              Share your personal invite link or enrollment announcement card. Earn <strong>{commissionPercent}% commission</strong> when friends enroll in paid programs or store tools.
             </p>
           </div>
           <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm shrink-0 self-start sm:self-auto">
@@ -464,13 +467,13 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setPayoutModalOpen(true)}
-                disabled={profile.pendingBalance < (store.affiliateSettings.minimumPayoutAmount || 10000)}
+                disabled={profile.pendingBalance < minPayout}
                 className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer shrink-0"
               >
                 Withdraw
               </button>
             </div>
-            <p className="mt-1 text-xs text-muted">Min withdrawal: {naira(store.affiliateSettings.minimumPayoutAmount || 10000)}</p>
+            <p className="mt-1 text-xs text-muted">Min withdrawal: {naira(minPayout)}</p>
           </div>
 
           <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
@@ -488,7 +491,7 @@ export default function DashboardPage() {
                 {profile.totalEarned >= 1_000_000 ? compactNaira(profile.totalEarned) : naira(profile.totalEarned)}
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted">15% commission on all referred sales</p>
+            <p className="mt-1 text-xs text-muted">{commissionPercent}% commission on all referred sales</p>
           </div>
 
           <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
@@ -572,6 +575,8 @@ export default function DashboardPage() {
               avatarUrl={user.avatar}
               enrolledCourses={studentEnrolledCourses}
               availableCourses={COURSES.map((c) => ({ id: c.id, title: c.title, price: c.price }))}
+              commissionPercent={commissionPercent}
+              minimumPayoutAmount={minPayout}
               onUpdateQuote={(quote) => store.updateMyAffiliateProfile({ personalQuote: quote })}
               onUpdateCourseTitle={(title) => store.updateMyAffiliateProfile({ enrolledCourseTitle: title })}
               onUpdateDisplayName={(name) => store.updateMyAffiliateProfile({ cardDisplayName: name })}
@@ -706,7 +711,7 @@ export default function DashboardPage() {
                       <h4 className="font-display text-base font-bold text-ink leading-tight">
                         Referral Commissions
                       </h4>
-                      <p className="text-[11px] text-muted">15% on all student enrollments</p>
+                      <p className="text-[11px] text-muted">{commissionPercent}% on all student enrollments</p>
                     </div>
                   </div>
                   <span className="text-xs font-bold text-muted bg-cream px-3 py-1 rounded-full border border-line">
@@ -719,7 +724,7 @@ export default function DashboardPage() {
                     <Users className="mx-auto h-10 w-10 text-muted/30" />
                     <p className="mt-3 font-semibold text-ink text-sm">No referral commissions yet</p>
                     <p className="mt-1 text-xs text-muted max-w-xs mx-auto leading-relaxed">
-                      Share your card or invite link above to earn 15% cash commission whenever anyone enrolls.
+                      Share your card or invite link above to earn {commissionPercent}% cash commission whenever anyone enrolls.
                     </p>
                   </div>
                 ) : (

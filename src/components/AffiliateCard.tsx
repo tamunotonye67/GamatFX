@@ -64,6 +64,8 @@ type Props = {
   avatarUrl?: string;
   enrolledCourses?: EnrolledCourseItem[];
   availableCourses?: AvailableCourseItem[];
+  commissionPercent?: number;
+  minimumPayoutAmount?: number;
   onUpdateQuote?: (quote: string) => void;
   onUpdateCourseTitle?: (title: string) => void;
   onUpdateDisplayName?: (name: string) => void;
@@ -74,6 +76,8 @@ export default function AffiliateCard({
   avatarUrl,
   enrolledCourses = [],
   availableCourses = [],
+  commissionPercent = 15,
+  minimumPayoutAmount = 10000,
   onUpdateQuote,
   onUpdateCourseTitle,
   onUpdateDisplayName,
@@ -868,7 +872,7 @@ export default function AffiliateCard({
               Share Your Card &amp; Invite Link
             </h3>
             <p className="mt-1 text-xs text-muted leading-relaxed">
-              When friends use your link or scan your card code, they can register at no cost. You earn a <strong>15% commission</strong> whenever they enroll in paid courses or purchase trading tools.
+              When friends use your link or scan your card code, they can register at no cost. You earn a <strong>{commissionPercent}% commission</strong> whenever they enroll in paid courses or purchase trading tools.
             </p>
           </div>
 
@@ -922,12 +926,12 @@ export default function AffiliateCard({
           </div>
         </div>
 
-        {/* CARD 3: 3-Step 15% Commission Engine Explainer */}
+        {/* CARD 3: 3-Step Commission Engine Explainer */}
         <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Percent className="h-4 w-4 text-brand" />
             <h4 className="font-display text-sm font-bold text-ink">
-              How the 15% Commission Program Works
+              How the {commissionPercent}% Commission Program Works
             </h4>
           </div>
 
@@ -961,9 +965,9 @@ export default function AffiliateCard({
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white mb-2">
                   3
                 </span>
-                <p className="font-bold text-emerald-950">Earn 15% Cash</p>
+                <p className="font-bold text-emerald-950">Earn {commissionPercent}% Cash</p>
                 <p className="mt-1 text-emerald-800 text-[11px] leading-relaxed">
-                  When they purchase paid mentorship or store trading tools, you receive an instant 15% cash payout!
+                  When they purchase paid mentorship or store trading tools, you receive an instant {commissionPercent}% cash payout!
                 </p>
               </div>
             </div>
@@ -975,7 +979,7 @@ export default function AffiliateCard({
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               <span>Withdrawals paid via Nigerian Bank Transfer, USDT (TRC20), or PayPal</span>
             </span>
-            <span className="font-bold text-slate-700">Minimum Payout: ₦10,000</span>
+            <span className="font-bold text-slate-700">Minimum Payout: ₦{minimumPayoutAmount.toLocaleString()}</span>
           </div>
         </div>
       </div>

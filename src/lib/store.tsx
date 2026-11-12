@@ -3162,6 +3162,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const updateAffiliateSettings: Ctx["updateAffiliateSettings"] = useCallback((settings) => {
     setAffiliateSettings(settings);
+    saveAffiliateSettings(settings);
   }, []);
 
   const admin: Ctx["admin"] = {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminShell } from "./AdminShell";
 import { useStore } from "../../lib/store";
 import {
@@ -46,6 +46,10 @@ export function AdminAffiliates() {
   const [settingsForm, setSettingsForm] = useState<AffiliateSettings>(affiliateSettings);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSettingsForm(affiliateSettings);
+  }, [affiliateSettings]);
 
   // Stats calculations
   const totalAffiliateRevenue = affiliateCommissions.reduce((sum, c) => sum + (c.orderAmount || 0), 0);
@@ -312,8 +316,18 @@ export function AdminAffiliates() {
                             </div>
                           )}
                           <div className="min-w-0">
-                            <p className="font-bold text-ink truncate">{p.userName}</p>
+                            <p className="font-bold text-ink truncate">
+                              {p.cardDisplayName || p.userName}
+                              {p.cardDisplayName && p.cardDisplayName !== p.userName && (
+                                <span className="ml-1 text-[10px] font-normal text-muted">({p.userName})</span>
+                              )}
+                            </p>
                             <p className="text-[11px] text-muted truncate">{p.userEmail}</p>
+                            {p.enrolledCourseTitle && (
+                              <span className="inline-block mt-0.5 rounded bg-cream px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-line truncate max-w-[200px]">
+                                {p.enrolledCourseTitle}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -481,7 +495,7 @@ export function AdminAffiliates() {
                   <th className="py-3 px-4 min-w-[200px]">Customer</th>
                   <th className="py-3 px-4 min-w-[220px]">Item Purchased</th>
                   <th className="py-3 px-4 whitespace-nowrap">Order Value</th>
-                  <th className="py-3 px-4 whitespace-nowrap">Commission (15%)</th>
+                  <th className="py-3 px-4 whitespace-nowrap">Commission ({affiliateSettings.defaultCommissionPercent || 15}%)</th>
                   <th className="py-3 px-4 whitespace-nowrap">Status</th>
                 </tr>
               </thead>
@@ -629,7 +643,7 @@ export function AdminAffiliates() {
           <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between border-b border-line pb-3">
               <h4 className="font-display text-base font-bold text-ink">
-                Ambassador Card: {selectedProfile.userName}
+                Ambassador Card: {selectedProfile.cardDisplayName || selectedProfile.userName}
               </h4>
               <button
                 type="button"
@@ -642,17 +656,34 @@ export function AdminAffiliates() {
 
             <div className="mt-4 space-y-3 text-xs">
               <div className="rounded-2xl bg-ink p-5 text-white">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 shrink-0 aspect-square rounded-xl bg-brand text-white font-extrabold flex items-center justify-center text-sm">
-                    {selectedProfile.userName.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-white text-sm">{selectedProfile.userName}</h5>
-                    <p className="text-[11px] text-sky-400">{selectedProfile.badgeTitle}</p>
-                    <p className="text-[10px] text-white/50">Code: {selectedProfile.referralCode}</p>
+                <div className="flex items-center gap-3.5">
+                  {selectedProfile.avatar ? (
+                    <img
+                      src={selectedProfile.avatar}
+                      alt=""
+                      className="h-14 w-14 shrink-0 aspect-square rounded-2xl object-cover ring-2 ring-brand/40 shadow-sm"
+                    />
+                  ) : (
+                    <div className="h-14 w-14 shrink-0 aspect-square rounded-2xl bg-brand text-white font-extrabold flex items-center justify-center text-base shadow-sm">
+                      {(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h5 className="font-bold text-white text-base leading-snug truncate">
+                      {selectedProfile.cardDisplayName || selectedProfile.userName}
+                    </h5>
+                    {selectedProfile.cardDisplayName && selectedProfile.cardDisplayName !== selectedProfile.userName && (
+                      <p className="text-[11px] text-white/60 truncate">Account: {selectedProfile.userName}</p>
+                    )}
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-brand-light">
+                        {selectedProfile.enrolledCourseTitle || "Forex Foundations"}
+                      </span>
+                      <span className="text-[10px] text-white/50 font-mono">Code: {selectedProfile.referralCode}</span>
+                    </div>
                   </div>
                 </div>
-                <blockquote className="mt-3 italic text-white/90 border-l-2 border-brand pl-3">
+                <blockquote className="mt-3.5 italic text-white/90 border-l-2 border-brand pl-3 text-xs leading-relaxed">
                   "{selectedProfile.personalQuote}"
                 </blockquote>
               </div>
