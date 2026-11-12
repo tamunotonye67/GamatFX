@@ -378,7 +378,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Stats */}
-      <div className="container-x -mt-14 sm:-mt-16">
+      <div className="container-x relative z-10 -mt-14 sm:-mt-16">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {[
             { icon: BookOpen, v: stats.enrolled, l: "Courses enrolled" },
