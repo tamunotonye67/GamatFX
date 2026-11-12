@@ -609,6 +609,19 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               >
                 Submit Exam
               </button>
+
+              {/* Important Instructions */}
+              <div className="mt-3 rounded-xl border border-line/80 bg-cream/50 p-2.5 text-[11px] leading-relaxed text-muted space-y-1.5">
+                <p className="font-bold text-[10px] uppercase tracking-wider text-ink/70">Important Instructions</p>
+                <div className="flex items-start gap-1.5">
+                  <span className="mt-0.5 font-bold text-brand shrink-0">•</span>
+                  <span>Do not refresh or close this tab while the timer is running.</span>
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <span className="mt-0.5 font-bold text-emerald-600 shrink-0">•</span>
+                  <span>Review flagged and unanswered questions before submitting (70% pass mark).</span>
+                </div>
+              </div>
             </div>
           </aside>
         </div>
