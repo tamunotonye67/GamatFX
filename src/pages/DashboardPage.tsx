@@ -646,35 +646,33 @@ export default function DashboardPage() {
                 return (
                   <div key={id} className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        {c.poster ? (
-                          <img src={c.poster} alt={c.title} className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover shrink-0 border border-line" />
-                        ) : (
-                          <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
-                            <Award className="h-6 w-6" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                            <Check className="h-3 w-3" /> Examination Passed ({best?.score ?? 70}%)
                           </span>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-display text-base sm:text-lg font-bold text-ink">{c.title}</h3>
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                              <Check className="h-3 w-3" /> Passed ({best?.score ?? 70}%)
-                            </span>
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
-                              Fee: ₦10,000
-                            </span>
-                          </div>
-                          <p className="mt-1 text-xs sm:text-sm text-muted">
-                            Complete the ₦10,000 certificate fee to unlock your verified serial number and print-ready PNG download.
-                          </p>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
+                            Certificate Fee: ₦10,000
+                          </span>
                         </div>
+
+                        <h4 className="mt-2.5 font-display text-base sm:text-lg font-bold text-ink">
+                          {c.title}
+                        </h4>
+
+                        <p className="mt-1.5 text-xs text-muted">
+                          Complete the ₦10,000 certificate fee to unlock your official verified certificate with serial number.
+                        </p>
                       </div>
-                      <button
-                        onClick={() => setPaymentModalCourseId(id)}
-                        className="btn-primary shrink-0 w-full sm:w-auto flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
-                      </button>
+
+                      <div className="shrink-0 flex items-center">
+                        <button
+                          onClick={() => setPaymentModalCourseId(id)}
+                          className="btn-primary w-full sm:w-auto !py-2.5 !px-6 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -703,43 +701,51 @@ export default function DashboardPage() {
                 return (
                   <div key={id} className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm hover:border-brand/30 transition">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4 min-w-0 flex-1">
-                        {c.poster ? (
-                          <img src={c.poster} alt={c.title} className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover shrink-0 border border-line" />
-                        ) : (
-                          <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
-                            <ListChecks className="h-6 w-6" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="chip !text-[11px] !py-0.5 !px-2.5">
+                            {c.level || "Academy Exam"}
                           </span>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-display text-base sm:text-lg font-bold text-ink">{c.title}</p>
-                            <span className="chip !text-[11px] !py-0.5 !px-2.5">
-                              {c.level || "Academy Exam"}
+                          {isFreeCourse ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                              <Check className="h-3 w-3" /> Included with Course
                             </span>
-                            {isFreeCourse ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                                <Check className="h-3 w-3" /> Included with Course
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                              ₦10,000 on passing
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 className="mt-2.5 font-display text-base sm:text-lg font-bold text-ink">
+                          {c.title}
+                        </h4>
+
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+                          <span>50 Questions</span>
+                          <span>•</span>
+                          <span>60 Mins</span>
+                          <span>•</span>
+                          <span>{quiz?.passMark ?? 70}% pass mark</span>
+                          {best && (
+                            <>
+                              <span>•</span>
+                              <span className="font-semibold text-brand">
+                                Best attempt: {best.score}% ({Math.max(0, (quiz?.passMark ?? 70) - best.score)}% to pass)
                               </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
-                                ₦10,000 on passing
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-1 text-xs sm:text-sm text-muted">
-                            Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate.
-                            {best && (
-                              <span className="ml-2 font-semibold text-brand">
-                                Best attempt: {best.score}% — {quiz ? Math.max(0, quiz.passMark - best.score) : 0}% short.
-                              </span>
-                            )}
-                          </p>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary shrink-0 w-full sm:w-auto">
-                        <ListChecks className="h-4 w-4" /> Begin Exam
-                      </button>
+
+                      <div className="shrink-0 flex items-center">
+                        <button
+                          onClick={() => navigate(`/quiz/${id}`)}
+                          className="btn-primary w-full sm:w-auto !py-2.5 !px-6 text-sm font-semibold flex items-center justify-center gap-2"
+                        >
+                          <ListChecks className="h-4 w-4" /> Begin Exam
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
