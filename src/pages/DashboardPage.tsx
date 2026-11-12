@@ -17,6 +17,7 @@ import { rankForXp, progressToNext, nextRank } from "../lib/combat";
 import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
+import ImageCropModal from "../components/ImageCropModal";
 
 type Tab = "overview" | "courses" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
@@ -1628,29 +1629,26 @@ export default function DashboardPage() {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
+    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+
     const pickPhoto = (file?: File) => {
       if (!file) return;
       if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
-      if (file.size > 3 * 1024 * 1024) { setError("Image must be smaller than 3MB."); return; }
+      if (file.size > 8 * 1024 * 1024) { setError("Image must be smaller than 8MB."); return; }
       setError(null);
       const reader = new FileReader();
       reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const size = 400;
-          const cv = document.createElement("canvas");
-          cv.width = size; cv.height = size;
-          const ctx = cv.getContext("2d")!;
-          const s = Math.min(img.width, img.height);
-          ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-          const data = cv.toDataURL("image/jpeg", 0.88);
-          setPhoto(data);
-          // Immediately sync account + any linked team page.
-          updateProfile({ avatar: data });
-        };
-        img.src = reader.result as string;
+        if (typeof reader.result === "string") {
+          setCropImageSrc(reader.result);
+        }
       };
       reader.readAsDataURL(file);
+    };
+
+    const handleTeamCrop = (croppedBlob: Blob, croppedDataUrl: string) => {
+      setPhoto(croppedDataUrl);
+      updateProfile({ avatar: croppedDataUrl });
+      setCropImageSrc(null);
     };
 
     const submit = (e: React.FormEvent) => {
@@ -1666,6 +1664,13 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-6">
+        {cropImageSrc && (
+          <ImageCropModal
+            imageSrc={cropImageSrc}
+            onCrop={handleTeamCrop}
+            onCancel={() => setCropImageSrc(null)}
+          />
+        )}
         <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-sm">
           <h2 className="font-display text-xl font-bold text-ink">Team bio for the public site</h2>
           <p className="mt-2 text-sm text-muted">
@@ -1713,7 +1718,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-xs text-muted">JPG or PNG, square works best. Max 3MB. Shows on your team page, forum and dashboard.</p>
                 </div>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => pickPhoto(e.target.files?.[0])} />
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ""; }} />
               </div>
             </div>
 
@@ -1837,19 +1842,40 @@ export default function DashboardPage() {
       }, 500);
     };
 
+    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+
     const pick = async (file?: File) => {
       if (!file) return;
       if (!file.type.startsWith("image/")) { setErr("Please choose an image file."); return; }
-      if (file.size > 5 * 1024 * 1024) { setErr("Image must be smaller than 5MB."); return; }
+      if (file.size > 8 * 1024 * 1024) { setErr("Image must be smaller than 8MB."); return; }
       setErr(null);
 
-      const res = await uploadAvatar(user!.id, file);
-      if (res.ok && res.url) {
-        setAvatar(res.url);
-      } else {
-        const reader = new FileReader();
-        reader.onload = () => setAvatar(reader.result as string);
-        reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setCropImageSrc(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob, croppedDataUrl: string) => {
+      setAvatar(croppedDataUrl);
+      setCropImageSrc(null);
+
+      // Instantly save to user profile store so changes reflect across the app
+      store.updateProfile({ avatar: croppedDataUrl });
+
+      // Asynchronously attempt cloud upload if configured
+      try {
+        const croppedFile = new File([croppedBlob], `avatar_${user!.id}_${Date.now()}.jpg`, { type: "image/jpeg" });
+        const res = await uploadAvatar(user!.id, croppedFile);
+        if (res.ok && res.url) {
+          setAvatar(res.url);
+          store.updateProfile({ avatar: res.url });
+        }
+      } catch (e) {
+        console.warn("Avatar cloud upload fallback:", e);
       }
     };
 
@@ -1860,6 +1886,13 @@ export default function DashboardPage() {
 
     return (
       <form onSubmit={save} className="space-y-6">
+        {cropImageSrc && (
+          <ImageCropModal
+            imageSrc={cropImageSrc}
+            onCrop={handleCropComplete}
+            onCancel={() => setCropImageSrc(null)}
+          />
+        )}
         {/* Avatar + identity */}
         <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
           <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
@@ -1887,17 +1920,17 @@ export default function DashboardPage() {
                   <Camera className="h-4 w-4" /> {avatar ? "Change photo" : "Upload photo"}
                 </button>
                 {avatar && (
-                  <button type="button" onClick={() => setAvatar("")} className="btn-outline-dark !py-2.5">
+                  <button type="button" onClick={() => { setAvatar(""); store.updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2.5">
                     <Trash2 className="h-4 w-4" /> Remove
                   </button>
                 )}
               </div>
-              <p className="text-xs text-muted">JPG or PNG, square works best. Max 3MB.</p>
+              <p className="text-xs text-muted">Crop and position freely before saving. Max 8MB.</p>
               {err && <p className="text-xs font-semibold text-brand">{err}</p>}
             </div>
 
             <input ref={fileRef} type="file" accept="image/*" className="hidden"
-              onChange={(e) => pick(e.target.files?.[0])} />
+              onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
           </div>
         </div>
 
