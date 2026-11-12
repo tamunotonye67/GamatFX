@@ -181,7 +181,7 @@ export function AdminStore() {
               <table className="w-full min-w-[1100px] text-sm">
                 <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                   <tr>
-                    <Th className="min-w-[260px] sm:min-w-[320px]">Product</Th>
+                    <Th className="min-w-[320px]">Product</Th>
                     <Th className="whitespace-nowrap min-w-[120px]">Category</Th>
                     <Th className="whitespace-nowrap min-w-[120px]">Price</Th>
                     <Th className="whitespace-nowrap min-w-[200px]">Deliverable</Th>
@@ -195,16 +195,14 @@ export function AdminStore() {
                     const CatIcon = categoryIcon(p.category);
                     return (
                       <tr key={p.id} className="transition hover:bg-cream/50">
-                        <Td className="min-w-[260px] sm:min-w-[320px]">
+                        <Td className="min-w-[320px]">
                           <div className="flex items-center gap-3">
                             <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
                               <CatIcon className="h-5 w-5 shrink-0" />
                             </span>
-                            <div className="min-w-0 max-w-[210px] sm:max-w-[280px] md:max-w-md">
+                            <div className="min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="truncate font-semibold text-ink max-w-[190px] sm:max-w-xs md:max-w-none" title={p.title}>
-                                  {p.title}
-                                </p>
+                                <p className="font-semibold text-ink">{p.title}</p>
                                 {p.isPreorder && (
                                   <Badge tone="purple">
                                     <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
@@ -216,14 +214,9 @@ export function AdminStore() {
                                   </Badge>
                                 )}
                               </div>
-                              <p
-                                className="truncate text-xs text-muted max-w-[200px] sm:max-w-[260px] md:max-w-md"
-                                title={p.tagline}
-                              >
-                                {p.tagline}
-                              </p>
+                              <p className="truncate text-xs text-muted">{p.tagline}</p>
                               {p.isPreorder && p.preorderReleaseDate && (
-                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 mt-0.5 truncate max-w-[200px] sm:max-w-none">
+                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 mt-0.5">
                                   <Clock className="h-3 w-3 shrink-0" />
                                   <span>Releases: {p.preorderReleaseDate}</span>
                                 </p>
