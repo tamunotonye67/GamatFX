@@ -3,6 +3,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
   Users,
   Star,
   MessagesSquare,
@@ -26,6 +27,16 @@ import {
   Award,
   Pencil,
   ShoppingBag,
+  LayoutDashboard,
+  BookOpen,
+  LogOut,
+  Home,
+  Info,
+  GraduationCap,
+  Briefcase,
+  Calendar,
+  Phone,
+  Send,
 } from "lucide-react";
 import Logo from "./Logo";
 import TopCouponBar from "./TopCouponBar";
@@ -33,17 +44,16 @@ import { navigate, useRoute, type Route } from "../lib/router";
 import { useStore } from "../lib/store";
 import { useNavbarForcedSolid } from "../lib/chrome";
 import { CONTACT } from "../lib/contact";
-import { LayoutDashboard, BookOpen, LogOut } from "lucide-react";
 
-type NavLink = { label: string; to: Route };
+type NavLink = { label: string; to: Route; icon?: React.ElementType; badge?: string };
 
-/** Primary links shown inline on desktop. */
-const primary: NavLink[] = [
-  { label: "Home", to: "/" },
-  { label: "About Us", to: "/about" },
-  { label: "Courses", to: "/courses" },
-  { label: "Services", to: "/services" },
-  { label: "Events", to: "/events" },
+/** Primary links shown inline on desktop and in mobile menu. */
+const primary: (NavLink & { icon: React.ElementType })[] = [
+  { label: "Home", to: "/", icon: Home },
+  { label: "About Us", to: "/about", icon: Info },
+  { label: "Courses", to: "/courses", icon: GraduationCap, badge: "Popular" },
+  { label: "Services", to: "/services", icon: Briefcase },
+  { label: "Events", to: "/events", icon: Calendar },
 ];
 
 /** 4 sub-games nested under Fun Zone */
@@ -145,6 +155,17 @@ export default function Navbar() {
   const forceSolid = route.startsWith("/dashboard") || requestedSolid;
   const scrolled = scrolledRaw || forceSolid || open;
 
+  // Lock body scroll when full-viewport mobile menu is open
+  useEffect(() => {
+    if (open) {
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [open]);
+
   // Close menus on route change
   useEffect(() => {
     setOpen(false);
@@ -159,7 +180,11 @@ export default function Navbar() {
       if (userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setMoreOpen(false); setUserOpen(false); }
+      if (e.key === "Escape") {
+        setMoreOpen(false);
+        setUserOpen(false);
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -182,13 +207,14 @@ export default function Navbar() {
       : active ? "text-white" : "text-white/85 hover:text-white";
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-line bg-white/95 backdrop-blur-md shadow-[0_8px_30px_-18px_rgba(22,24,28,0.35)]"
-          : "bg-transparent"
-      }`}
-    >
+    <>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "border-b border-line bg-white/95 backdrop-blur-md shadow-[0_8px_30px_-18px_rgba(22,24,28,0.35)]"
+            : "bg-transparent"
+        }`}
+      >
       <div ref={barRef}>
         <TopCouponBar />
         <nav className="container-x relative flex min-h-[72px] pt-3 pb-1.5 sm:py-0 sm:h-[72px] items-center justify-between gap-3 sm:gap-4">
@@ -536,154 +562,453 @@ export default function Navbar() {
           )}
           <button
             type="button"
-            aria-label="Toggle menu"
+            aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}
-            className={`rounded-lg p-2 transition lg:hidden ${scrolled ? "text-ink" : "text-white"}`}
+            className={`rounded-xl p-2 transition lg:hidden hover:bg-black/5 ${
+              scrolled ? "text-ink" : "text-white"
+            }`}
           >
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
         </nav>
       </div>
+    </header>
 
-      {/* Mobile menu */}
-      <div
-        className={`overflow-y-auto border-t border-line bg-white transition-all duration-300 lg:hidden ${
-          open ? "max-h-[calc(100dvh-108px)] opacity-100" : "max-h-0 opacity-0 border-t-0"
-        }`}
-      >
-        <ul className="container-x flex flex-col gap-1 py-4">
-          {primary.map((l) => (
-            <li key={l.to}>
-              <button
-                type="button"
-                onClick={() => go(l.to)}
-                className={`block w-full rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${
-                  l.to === route ? "bg-brand-light text-brand" : "text-ink/80 hover:bg-brand-light hover:text-brand"
-                }`}
-              >
-                {l.label}
-              </button>
-            </li>
-          ))}
+    {/* Full-Viewport Modern Mobile Navigation Overlay */}
+    <div
+      id="mobile-navigation"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile Navigation Menu"
+      className={`fixed inset-0 z-[100] flex h-[100dvh] w-screen flex-col bg-white transition-all duration-300 lg:hidden ${
+        open
+          ? "visible opacity-100 pointer-events-auto"
+          : "invisible opacity-0 pointer-events-none"
+      }`}
+    >
+      {/* Top Header mirroring the navbar */}
+      <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line bg-white/95 px-5 backdrop-blur-md">
+        <Logo variant="dark" />
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-ink shadow-sm transition hover:bg-brand hover:text-white"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
-          {/* Mobile "More" accordion */}
-          <li>
-            <button
-              type="button"
-              onClick={() => setMobileMoreOpen((v) => !v)}
-              aria-expanded={mobileMoreOpen}
-              className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition ${
-                moreActive ? "bg-brand-light text-brand" : "text-ink/80 hover:bg-brand-light hover:text-brand"
-              }`}
-            >
-              More
-              <ChevronDown className={`h-4 w-4 transition-transform ${mobileMoreOpen ? "rotate-180" : ""}`} />
-            </button>
-
-            <div className={`grid transition-all duration-300 ${mobileMoreOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-              <div className="overflow-hidden">
-                <div className="mt-1 space-y-3 border-l-2 border-line pl-3 py-1">
-                  {moreGroups.map((group) => (
-                    <div key={group.title}>
-                      <p className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted">
-                        {group.title}
-                      </p>
-                      <ul className="space-y-0.5">
-                        {group.items.map((item) => (
-                          <li key={item.to}>
-                            <button
-                              type="button"
-                              onClick={() => go(item.to)}
-                              className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition ${
-                                item.to === route ? "bg-brand-light font-semibold text-brand" : "text-ink/75 hover:bg-cream hover:text-brand"
-                              }`}
-                            >
-                              <item.icon className="h-4 w-4 shrink-0 text-brand" />
-                              <span className="truncate">{item.label}</span>
-                            </button>
-
-                            {item.to === "/fun" && (
-                              <div className="ml-6 my-1 grid grid-cols-1 xs:grid-cols-2 gap-1 border-l border-brand/40 pl-2.5">
-                                {funZoneSubGames.map((sub) => (
-                                  <button
-                                    key={sub.to}
-                                    type="button"
-                                    onClick={() => go(sub.to)}
-                                    className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition ${
-                                      sub.to === route ? "bg-brand text-white font-bold" : "text-ink/70 hover:bg-cream hover:text-brand"
-                                    }`}
-                                  >
-                                    <sub.icon className={`h-3.5 w-3.5 shrink-0 ${sub.to === route ? "text-white" : "text-brand"}`} />
-                                    <span className="truncate">{sub.label}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+      {/* Scrollable Body */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-5 space-y-6 sm:px-6">
+        {/* User profile or Guest Auth card */}
+        {isAuthed && user ? (
+          <div className="rounded-2xl border border-line bg-gradient-to-br from-cream via-white to-cream/60 p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              {user.avatar ? (
+                <img src={user.avatar} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-brand/20" />
+              ) : (
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-bold text-white shadow-sm">
+                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-display text-base font-bold text-ink">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  {isAdmin ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
+                      <ShieldCheck className="h-3 w-3" /> Admin
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                      Student
+                    </span>
+                  )}
                 </div>
+                <p className="truncate text-xs text-muted">{user.email}</p>
+                <p className="mt-1 text-xs font-semibold text-brand">
+                  {stats.enrolled} {stats.enrolled === 1 ? "course" : "courses"} enrolled
+                </p>
               </div>
             </div>
-          </li>
 
-          {isAuthed && user ? (
-            <li className="mt-3 space-y-2 border-t border-line pt-4">
-              <div className="flex items-center gap-3 rounded-xl bg-cream px-3 py-3">
-                {user.avatar ? (
-                  <img src={user.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
-                ) : (
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                    {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
-                  </span>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-ink">{user.firstName} {user.lastName}</p>
-                  <p className="truncate text-xs text-muted">{user.email}</p>
-                </div>
-              </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-line/60 pt-3">
               {isAdmin && (
-                <button type="button" onClick={() => go("/admin")} className="btn-outline-dark w-full !border-ink !bg-ink !text-white">
+                <button
+                  type="button"
+                  onClick={() => go("/admin")}
+                  className="col-span-2 flex items-center justify-center gap-2 rounded-xl bg-ink px-3 py-2.5 text-xs font-bold text-white transition hover:bg-ink/90"
+                >
                   <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
                 </button>
               )}
-              <div className="grid grid-cols-2 gap-2.5">
-                <button type="button" onClick={() => go("/dashboard")} className="btn-primary w-full">
-                  <LayoutDashboard className="h-4 w-4" /> Dashboard
-                </button>
-                <button type="button" onClick={() => { logout(); navigate("/"); setOpen(false); }} className="btn-outline-dark w-full">
-                  <LogOut className="h-4 w-4" /> Log out
-                </button>
-              </div>
-            </li>
-          ) : (
-            <li className="mt-3 space-y-2.5 border-t border-line pt-4">
-              <div className="grid grid-cols-2 gap-2.5">
-                <button type="button" onClick={() => go("/login")} className="btn-outline-dark w-full">
-                  <LogIn className="h-4 w-4" /> Login
-                </button>
-                <button type="button" onClick={() => go("/signup")} className="btn-primary w-full">
-                  <UserPlus className="h-4 w-4" /> Sign Up
-                </button>
-              </div>
-              <a
-                href={CONTACT.whatsappAiHref}
-                target="_blank"
-                rel="noreferrer"
-                className="ask-glow relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white"
+              <button
+                type="button"
+                onClick={() => go("/dashboard")}
+                className="flex items-center justify-center gap-2 rounded-xl bg-brand px-3 py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark"
               >
-                <span className="ask-glow-spin" aria-hidden="true" />
-                <span className="relative z-[1] inline-flex items-center gap-1.5">
-                  <MessageCircle className="h-4 w-4" /> Ask Anything on WhatsApp
+                <LayoutDashboard className="h-4 w-4" /> Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/courses")}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-bold text-ink transition hover:bg-cream"
+              >
+                <BookOpen className="h-4 w-4 text-brand" /> My Courses
+              </button>
+              <button
+                type="button"
+                onClick={() => { logout(); navigate("/"); setOpen(false); }}
+                className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-line/70 py-2 text-xs font-semibold text-muted transition hover:bg-red-50 hover:text-red-600"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Log out
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-line bg-gradient-to-br from-cream via-white to-cream/60 p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Welcome to GAMAT Fx</p>
+                <p className="font-display text-sm font-bold text-ink">Start Your Trading Journey</p>
+              </div>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => go("/login")}
+                className="flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-bold text-ink shadow-sm transition hover:bg-cream"
+              >
+                <LogIn className="h-4 w-4 text-brand" /> Login
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/signup")}
+                className="flex items-center justify-center gap-2 rounded-xl bg-brand px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-brand-dark"
+              >
+                <UserPlus className="h-4 w-4" /> Sign Up Free
+              </button>
+            </div>
+            <a
+              href={CONTACT.whatsappAiHref}
+              target="_blank"
+              rel="noreferrer"
+              className="ask-glow relative mt-2.5 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-ink px-4 py-2.5 text-xs font-bold text-white"
+            >
+              <span className="ask-glow-spin" aria-hidden="true" />
+              <span className="relative z-[1] inline-flex items-center gap-2">
+                <MessageCircle className="h-4 w-4 text-emerald-400" />
+                <span>Ask Anything on WhatsApp</span>
+                <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">Live</span>
+              </span>
+            </a>
+          </div>
+        )}
+
+        {/* Primary Navigation */}
+        <div>
+          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+            Main Navigation
+          </p>
+          <div className="space-y-1">
+            {primary.map((l) => {
+              const isActive = l.to === route;
+              const Icon = l.icon;
+              return (
+                <button
+                  key={l.to}
+                  type="button"
+                  onClick={() => go(l.to)}
+                  className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition ${
+                    isActive
+                      ? "bg-brand text-white font-bold shadow-sm shadow-brand/25"
+                      : "text-ink/85 hover:bg-cream hover:text-brand"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-cream text-brand group-hover:bg-brand/10"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="text-sm font-semibold">{l.label}</span>
+                    {l.badge && (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          isActive
+                            ? "bg-white/25 text-white"
+                            : "bg-brand/10 text-brand"
+                        }`}
+                      >
+                        {l.badge}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronRight
+                    className={`h-4 w-4 transition-transform group-hover:translate-x-0.5 ${
+                      isActive ? "text-white/80" : "text-muted"
+                    }`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Trading Ecosystem (Store & Whiteboard) */}
+        <div>
+          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+            Trading Ecosystem
+          </p>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => go("/store")}
+              className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-brand/25 bg-gradient-to-r from-brand/5 via-cream to-white p-3.5 text-left transition hover:border-brand/50 hover:shadow-sm"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white shadow-sm shadow-brand/30">
+                  <ShoppingBag className="h-5 w-5" />
                 </span>
-              </a>
-            </li>
-          )}
-        </ul>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-display text-sm font-bold text-ink">Store & Trading Tools</p>
+                    <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-extrabold uppercase text-brand">Hot</span>
+                  </div>
+                  <p className="truncate text-xs text-muted">Bots, indicators, strategies & e-books</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-brand transition-transform group-hover:translate-x-0.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => go("/whiteboard")}
+              className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-ink p-3.5 text-left text-white shadow-sm transition hover:border-brand/60"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-light">
+                  <Pencil className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-display text-sm font-bold text-white">Trading Whiteboard</p>
+                    <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-extrabold uppercase text-white">Live</span>
+                  </div>
+                  <p className="truncate text-xs text-white/70">Interactive TA & live teaching canvas</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-white/70 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Fun Zone Arcade */}
+        <div>
+          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+            Games & Trivia
+          </p>
+          <div className="relative overflow-hidden rounded-2xl border border-brand/40 bg-slate-950 p-4 text-white shadow-md">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-brand/30 blur-2xl" />
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => go("/fun")}
+                className="flex items-center gap-2 text-left"
+              >
+                <Gamepad2 className="h-5 w-5 text-brand-light" />
+                <span className="font-display text-sm font-bold text-white">Fun Zone Arcade</span>
+                <span className="rounded-full bg-brand/30 px-2 py-0.5 text-[10px] font-bold text-brand-light">4 Games</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/fun")}
+                className="text-xs font-semibold text-brand-light transition hover:text-white"
+              >
+                Open Hub &rarr;
+              </button>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {funZoneSubGames.map((sub) => {
+                const SubIcon = sub.icon;
+                const isSubActive = sub.to === route;
+                return (
+                  <button
+                    key={sub.to}
+                    type="button"
+                    onClick={() => go(sub.to)}
+                    className={`flex flex-col gap-1 rounded-xl p-2.5 text-left transition ${
+                      isSubActive
+                        ? "bg-brand text-white shadow-sm shadow-brand/40"
+                        : "border border-white/10 bg-white/5 text-white/90 hover:border-brand/40 hover:bg-white/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <SubIcon className={`h-4 w-4 ${isSubActive ? "text-white" : "text-brand-light"}`} />
+                    </div>
+                    <p className="truncate text-xs font-bold leading-tight">{sub.label}</p>
+                    <p className={`line-clamp-1 text-[10px] ${isSubActive ? "text-white/80" : "text-white/50"}`}>{sub.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-white/10 pt-3">
+              <button
+                type="button"
+                onClick={() => go("/fun/student-of-the-week")}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
+              >
+                <Award className="h-3 w-3 text-amber-400" /> Student Spotlight
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/fun/histofact")}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
+              >
+                <History className="h-3 w-3 text-blue-400" /> Histofact Cards
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/fun/clubs")}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
+              >
+                <Shield className="h-3 w-3 text-emerald-400" /> Club Builder
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Community & Market Desk */}
+        <div>
+          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+            Community & Market Desk
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "Student Forum", to: "/forum" as Route, icon: MessagesSquare },
+              { label: "Community", to: "/community" as Route, icon: Users },
+              { label: "Daily Outlook", to: "/outlook" as Route, icon: Sun },
+              { label: "Market News", to: "/news" as Route, icon: Newspaper },
+              { label: "Blog Articles", to: "/blog" as Route, icon: FileText },
+              { label: "Giveaways", to: "/giveaways" as Route, icon: Gift },
+            ].map((item) => {
+              const ItemIcon = item.icon;
+              const isAct = item.to === route;
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => go(item.to)}
+                  className={`flex items-center gap-2.5 rounded-xl border p-2.5 text-left text-xs font-semibold transition ${
+                    isAct
+                      ? "border-brand bg-brand-light text-brand"
+                      : "border-line bg-cream/40 text-ink/80 hover:bg-cream hover:text-brand"
+                  }`}
+                >
+                  <ItemIcon className="h-4 w-4 shrink-0 text-brand" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Support & Legal */}
+        <div>
+          <p className="px-1 mb-2 text-[11px] font-extrabold uppercase tracking-widest text-muted">
+            Support & Legal
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: "Reviews", to: "/reviews" as Route, icon: Star },
+              { label: "FAQ", to: "/faq" as Route, icon: HelpCircle },
+              { label: "Contact Us", to: "/contact" as Route, icon: MailOpen },
+              { label: "Terms of Service", to: "/terms" as Route, icon: FileText },
+              { label: "Privacy Policy", to: "/privacy" as Route, icon: ShieldCheck },
+            ].map((item) => {
+              const ItemIcon = item.icon;
+              const isAct = item.to === route;
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => go(item.to)}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+                    isAct
+                      ? "border-brand bg-brand-light text-brand"
+                      : "border-line bg-white text-muted hover:border-brand/40 hover:text-ink"
+                  }`}
+                >
+                  <ItemIcon className="h-3.5 w-3.5 text-brand" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Quick Contacts Footer */}
+        <div className="border-t border-line pt-5 pb-6 text-center">
+          <p className="text-xs font-bold text-ink mb-3">Direct Support Channels</p>
+          <div className="flex items-center justify-center gap-3">
+            <a
+              href={CONTACT.whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-emerald-600 transition hover:bg-emerald-600 hover:text-white"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </a>
+            <a
+              href={CONTACT.telegram}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Telegram"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-sky-500 transition hover:bg-sky-500 hover:text-white"
+            >
+              <Send className="h-4 w-4" />
+            </a>
+            <a
+              href={CONTACT.phoneHref}
+              aria-label="Call Us"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-brand transition hover:bg-brand hover:text-white"
+            >
+              <Phone className="h-4 w-4" />
+            </a>
+            <a
+              href={`mailto:${CONTACT.email}`}
+              aria-label="Email Us"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream text-ink transition hover:bg-ink hover:text-white"
+            >
+              <MailOpen className="h-4 w-4" />
+            </a>
+          </div>
+          <p className="mt-3 text-[11px] text-muted">
+            {CONTACT.addressShort}
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted">
+            {CONTACT.hours}
+          </p>
+          <p className="mt-2 text-[10px] font-medium text-muted/60">
+            © {new Date().getFullYear()} GAMAT Fx Academy. All rights reserved.
+          </p>
+        </div>
       </div>
-    </header>
+    </div>
+  </>
   );
 }
