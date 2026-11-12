@@ -184,8 +184,49 @@ export const COURSES: Course[] = [
   },
 ];
 
+export const COURSE_ALIASES: Record<string, string> = {
+  "price-action": "price-action-mastery",
+  "priceaction": "price-action-mastery",
+  "pro-trader": "pro-trader-mentorship",
+  "pro-mentorship": "pro-trader-mentorship",
+  "fundamental": "fundamental-supply-demand",
+  "supply-demand": "fundamental-supply-demand",
+  "supply-and-demand": "fundamental-supply-demand",
+  "forex": "forex-foundations",
+  "forex-foundation": "forex-foundations",
+  "foundations": "forex-foundations",
+  "risk": "risk-trade-management",
+  "risk-management": "risk-trade-management",
+  "funded": "funded-trader-prep",
+  "funded-trader": "funded-trader-prep",
+  "prop-challenge": "funded-trader-prep",
+  "prop-firm": "funded-trader-prep",
+  "starter": "mentorship-starter",
+  "pro": "mentorship-pro",
+  "elite": "mentorship-elite",
+};
+
 export function getCourse(id: string): Course | undefined {
-  return COURSES.find((c) => c.id === id) || MENTORSHIP_PLANS[id];
+  if (!id) return undefined;
+  const raw = id.trim();
+  const lower = raw.toLowerCase();
+
+  const direct = COURSES.find((c) => c.id === raw || c.id.toLowerCase() === lower);
+  if (direct) return direct;
+
+  const directPlan = MENTORSHIP_PLANS[raw] || MENTORSHIP_PLANS[lower];
+  if (directPlan) return directPlan;
+
+  const mappedId = COURSE_ALIASES[lower];
+  if (mappedId) {
+    const aliasedCourse = COURSES.find((c) => c.id === mappedId) || MENTORSHIP_PLANS[mappedId];
+    if (aliasedCourse) return aliasedCourse;
+  }
+
+  const loose = COURSES.find((c) => c.id.toLowerCase().includes(lower) || lower.includes(c.id.toLowerCase()));
+  if (loose) return loose;
+
+  return undefined;
 }
 
 export const MENTORSHIP_PLANS: Record<string, Course> = {

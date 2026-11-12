@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "../lib/store";
 import { downloadCertificate, certificatePreview, type CertData } from "../lib/certificate";
-import { COURSES, getCourse, totalLessons, naira, compactNaira } from "../lib/courses";
+import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse } from "../lib/courses";
 import { navigate } from "../lib/router";
 import {
   LayoutDashboard, BookOpen, Award, User as UserIcon, CalendarDays,
@@ -343,8 +343,8 @@ export default function DashboardPage() {
     const PendingList = () => (
       <>
         {pending.map((id) => {
-          const c = getCourse(id);
-          const quiz = getQuiz(id);
+          const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
+          const quiz = store.getCourseQuiz(id) || getQuiz(id);
           const best = store.bestAttempt(id);
           if (!c) return null;
           return (
@@ -381,7 +381,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <PendingList />
         {completed.map((id) => {
-          const c = getCourse(id);
+          const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
           if (!c) return null;
           const enr = enrollments.find((e) => e.courseId === id);
           const issued = new Date(enr?.enrolledAt ?? Date.now());

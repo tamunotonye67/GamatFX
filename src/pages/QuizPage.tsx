@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Logo from "../components/Logo";
-import { getQuiz, generateAssessmentQuestions, DEFAULT_EXAM_QUESTION_COUNT, type Question } from "../lib/quizzes";
-import { getCourse, asCourse } from "../lib/courses";
+import { getQuiz, generateAssessmentQuestions, DEFAULT_EXAM_QUESTION_COUNT, createFallbackQuiz, type Question, type Quiz } from "../lib/quizzes";
+import { getCourse, asCourse, type Course } from "../lib/courses";
 import { useStore, type QuizAttempt } from "../lib/store";
 import { navigate } from "../lib/router";
 import {
@@ -11,11 +11,40 @@ import {
 } from "lucide-react";
 
 export default function QuizPage({ courseId }: { courseId: string }) {
-  const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz } = useStore();
-  const quiz = getCourseQuiz(courseId);
-  const builtIn = getCourse(courseId);
-  const managed = managedCourses.find((c) => c.id === courseId);
-  const course = builtIn ?? (managed ? asCourse(managed) : undefined);
+  const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz, user } = useStore();
+  const rawId = (courseId || "").trim();
+  const lowerId = rawId.toLowerCase();
+
+  const builtIn = getCourse(rawId);
+  const managed = managedCourses.find((c) => c.id === rawId || c.id.toLowerCase() === lowerId);
+  const existingCourse = builtIn ?? (managed ? asCourse(managed) : undefined);
+
+  if (!rawId) {
+    return <Fallback title="Assessment not found" cta="Back to Courses" to="/courses" />;
+  }
+
+  const autoWords = rawId.replace(/[^a-zA-Z0-9]+/g, " ").trim().split(" ");
+  const fallbackTitle = autoWords.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+  const course: Course = existingCourse ?? {
+    id: rawId,
+    title: fallbackTitle || "Trading Examination",
+    tag: "Assessment",
+    level: "All Levels",
+    short: "Official GAMAT Academy comprehensive trading assessment.",
+    desc: "Official GAMAT Academy comprehensive trading assessment.",
+    duration: "60 Mins",
+    enrolled: 1,
+    rating: 5.0,
+    price: 0,
+    featured: false,
+    poster: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
+    outcomes: ["Test your core market knowledge", "Validate your risk discipline"],
+    requirements: ["Basic forex concepts"],
+    modules: [{ title: "Assessment", lessons: [{ id: `${rawId}-exam`, title: "Final Assessment", duration: "60:00" }] }],
+  };
+
+  const quiz: Quiz = getCourseQuiz(rawId) || getQuiz(rawId, `${course.title} — Final Assessment`);
 
   const [started, setStarted] = useState(false);
   const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
@@ -29,8 +58,8 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   const [left, setLeft] = useState(0);
   const [err, setErr] = useState<string | null>(null);
 
-  const best = bestAttempt(courseId);
-  const progress = progressOf(courseId);
+  const best = bestAttempt(rawId) || (existingCourse ? bestAttempt(existingCourse.id) : undefined);
+  const progress = progressOf(rawId) || (existingCourse ? progressOf(existingCourse.id) : 0);
 
   /* countdown */
   useEffect(() => {
@@ -46,13 +75,13 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
   const flaggedCount = useMemo(() => Object.values(flagged).filter(Boolean).length, [flagged]);
 
-  if (!quiz || !course) return <Fallback title="Assessment not found" cta="Back to Courses" to="/courses" />;
-  if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${courseId}`} icon={Lock} />;
-  if (!isEnrolled(courseId)) return <Fallback title="You're not enrolled in this course" cta="View Course" to={`/courses/${courseId}`} icon={Lock} />;
+  if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${rawId}`} icon={Lock} />;
+  
+  const hasEnrollment = isEnrolled(rawId) || isEnrolled(course.id) || (existingCourse && isEnrolled(existingCourse.id)) || user?.role === "admin";
+  if (!hasEnrollment) return <Fallback title="You're not enrolled in this course" cta="View Course" to={`/courses/${course.id}`} icon={Lock} />;
 
   function startAssessment() {
-    if (!quiz) return;
-    const fresh = generateAssessmentQuestions(courseId, quiz, DEFAULT_EXAM_QUESTION_COUNT);
+    const fresh = generateAssessmentQuestions(rawId, quiz, DEFAULT_EXAM_QUESTION_COUNT);
     setSessionQuestions(fresh);
     setAnswers({});
     setFlagged({});
@@ -66,7 +95,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
   function finish() {
     setShowSubmitModal(false);
-    const a = submitAttempt(courseId, answers, activeQuestions);
+    const a = submitAttempt(rawId, answers, activeQuestions);
     setResult(a);
     setStarted(false);
     window.scrollTo({ top: 0 });
@@ -202,7 +231,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     <RotateCcw className="h-4 w-4" /> Retake 50-Question Exam
                   </button>
                 )}
-                <button onClick={() => navigate(`/learn/${courseId}`)} className="btn-outline-dark">
+                <button onClick={() => navigate(`/learn/${course.id}`)} className="btn-outline-dark">
                   <ArrowLeft className="h-4 w-4" /> Back to Course
                 </button>
               </div>
@@ -288,7 +317,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               <button onClick={startAssessment} className="btn-primary !py-3 !px-7 font-bold text-sm">
                 Begin 50-Question Exam <ArrowRight className="h-4 w-4" />
               </button>
-              <button onClick={() => navigate(`/learn/${courseId}`)} className="btn-outline-dark">
+              <button onClick={() => navigate(`/learn/${course.id}`)} className="btn-outline-dark">
                 <ArrowLeft className="h-4 w-4" /> Back to Course
               </button>
             </div>

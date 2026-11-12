@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { supabase } from "./supabase";
-import { COURSES, getCourse, totalLessons } from "./courses";
+import { COURSES, getCourse, totalLessons, COURSE_ALIASES } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
 import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount } from "./supabaseAuth";
 import {
@@ -1937,7 +1937,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [sessionId]);
 
   const isEnrolled: Ctx["isEnrolled"] = useCallback(
-    (courseId) => myEnrollments.some((e) => e.courseId === courseId), [myEnrollments]
+    (courseId) => {
+      if (!courseId) return false;
+      if (user?.role === "admin") return true;
+      const raw = courseId.trim();
+      const lower = raw.toLowerCase();
+      const alias = COURSE_ALIASES[lower] || lower;
+      return myEnrollments.some((e) => {
+        const eRaw = (e.courseId || "").trim();
+        const eLower = eRaw.toLowerCase();
+        const eAlias = COURSE_ALIASES[eLower] || eLower;
+        return eRaw === raw || eLower === lower || eAlias === alias || eLower === alias || eAlias === lower;
+      });
+    },
+    [myEnrollments, user]
   );
   const getEnrollment: Ctx["getEnrollment"] = useCallback(
     (courseId) => myEnrollments.find((e) => e.courseId === courseId), [myEnrollments]
@@ -2145,7 +2158,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* ---------------------------- Quizzes ---------------------------- */
 
   const getCourseQuiz: Ctx["getCourseQuiz"] = useCallback(
-    (courseId) => customQuizzes.find((q) => q.courseId === courseId) ?? getQuiz(courseId),
+    (courseId) => {
+      if (!courseId) return undefined;
+      const raw = courseId.trim();
+      const lower = raw.toLowerCase();
+      const alias = COURSE_ALIASES[lower] || lower;
+      const foundCustom = customQuizzes.find(
+        (q) => q.courseId === raw || q.courseId.toLowerCase() === lower || q.courseId.toLowerCase() === alias
+      );
+      return foundCustom ?? getQuiz(courseId);
+    },
     [customQuizzes]
   );
 

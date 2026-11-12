@@ -1,3 +1,5 @@
+import { COURSE_ALIASES } from "./courses";
+
 export type Question = {
   id: string;
   q: string;
@@ -747,6 +749,318 @@ export const QUIZZES: Quiz[] = [
       },
     ],
   },
+  {
+    courseId: "mentorship-starter",
+    title: "Mentorship: Starter Package — Final Assessment",
+    passMark: 70,
+    timeLimitMins: 60,
+    questions: [
+      {
+        id: "ms-1",
+        q: "What is the primary role of a stop loss order in professional trading?",
+        options: [
+          "To cap your maximum financial loss per trade",
+          "To ensure that every trade closes with at least twenty pips of positive profit",
+          "To automatically increase your position size when the market moves against you",
+          "To notify your broker that you intend to hold a position through weekend rollover",
+        ],
+        answer: 0,
+        explain: "A stop loss acts as an automated safety net to cap downside risk on any individual trade.",
+      },
+      {
+        id: "ms-2",
+        q: "On a standard $10,000 beginner account, what is the maximum recommended risk per trade?",
+        options: [
+          "1% ($100)",
+          "10% ($1,000) so you can double your account in under two weeks",
+          "5% to 8% to maximize your return on high probability news releases",
+          "20% ($2,000) whenever the setup aligns with daily chart moving averages",
+        ],
+        answer: 0,
+        explain: "Risking 1% or less preserves capital and allows a trader to withstand drawdowns without distress.",
+      },
+      {
+        id: "ms-3",
+        q: "What does the bid-ask spread represent in currency execution?",
+        options: [
+          "The broker transaction cost between buy and sell prices",
+          "The total daily percentage movement across all major G10 currency pairs",
+          "The overnight interest swap rate credited or debited by liquidity providers",
+          "A statutory government tax levied on all derivative retail foreign exchange contracts",
+        ],
+        answer: 0,
+        explain: "The spread is the difference between the bid and ask price, representing the immediate cost of entry.",
+      },
+      {
+        id: "ms-4",
+        q: "What is the primary advantage of trading higher timeframe charts (Daily/4-Hour) as a starter?",
+        options: [
+          "They filter out market noise and erratic intraday whipsaws",
+          "They guarantee an 85% win rate regardless of trade selection or risk parameters",
+          "They eliminate overnight financing fees charged by retail brokers",
+          "They allow positions to be opened without calculating lot sizes beforehand",
+        ],
+        answer: 0,
+        explain: "Higher timeframes present clearer structural direction by filtering out low-timeframe retail noise.",
+      },
+      {
+        id: "ms-5",
+        q: "When calculating position size on a trade, what must you establish FIRST?",
+        options: [
+          "The technical stop loss distance in pips based on chart structure",
+          "How much profit you desire to make on the upcoming weekend",
+          "The maximum leverage available on your broker's account setting",
+          "The number of lots your trading friends are currently executing",
+        ],
+        answer: 0,
+        explain: "Your stop loss distance in pips and your 1% account risk determine your mathematical lot size.",
+      },
+      {
+        id: "ms-6",
+        q: "What happens if a beginner trader experiences a series of 3 consecutive losses?",
+        options: [
+          "Stick to the plan and maintain normal 1% risk without revenge trading",
+          "Double the lot size on the next trade to quickly recover all lost capital",
+          "Switch to a brand new trading strategy found on social media immediately",
+          "Take 5 simultaneous trades on different pairs to diversify the losses",
+        ],
+        answer: 0,
+        explain: "Losing streaks are normal in trading; discipline and emotional calm prevent revenge-trading disasters.",
+      },
+      {
+        id: "ms-7",
+        q: "What is a major currency pair in foreign exchange markets?",
+        options: [
+          "Any pair that trades against the US Dollar with high liquidity",
+          "Pairs involving only emerging market currencies such as TRY, ZAR, and MXN",
+          "Any synthetic currency basket created by offshore prop firm algorithms",
+          "Cryptocurrency pairs quoted against stablecoins on decentralized platforms",
+        ],
+        answer: 0,
+        explain: "Majors are the most heavily traded pairs in the world, all featuring the US Dollar.",
+      },
+      {
+        id: "ms-8",
+        q: "What is the main objective during your first month of mentorship?",
+        options: [
+          "Mastering process, platform execution, and risk consistency",
+          "Quitting your day job to trade full-time with a small $500 balance",
+          "Flipping accounts by using 500:1 maximum margin on news candles",
+          "Predicting every top and bottom on 1-minute gold scalp charts",
+        ],
+        answer: 0,
+        explain: "Early consistency is built through strict rule execution, risk habituation, and trade logging.",
+      },
+    ],
+  },
+  {
+    courseId: "mentorship-pro",
+    title: "Mentorship: Pro Trader Package — Final Assessment",
+    passMark: 70,
+    timeLimitMins: 60,
+    questions: [
+      {
+        id: "mp-1",
+        q: "What defines an institutional order block on high-timeframe charts?",
+        options: [
+          "The last opposing candle before an aggressive displacement move",
+          "Any candle that has a wick longer than its body on the 5-minute timeframe",
+          "A 100-pip round psychological level where retail orders cluster overnight",
+          "A crossover between the 20-period and 50-period exponential moving averages",
+        ],
+        answer: 0,
+        explain: "An order block is the footprint of smart money accumulating orders prior to a strong imbalance.",
+      },
+      {
+        id: "mp-2",
+        q: "What is a Fair Value Gap (FVG) / Imbalance?",
+        options: [
+          "A 3-candle sequence where candle 1 wick and candle 3 wick do not overlap",
+          "The gap that occurs when the market closes on Friday and reopens Sunday evening",
+          "A widening of broker spreads by more than 5 pips during the Asian session",
+          "A discrepancy between spot currency prices and future contract prices on CME",
+        ],
+        answer: 0,
+        explain: "An FVG represents price inefficiency caused by one-sided buying or selling displacement.",
+      },
+      {
+        id: "mp-3",
+        q: "Why do institutional algorithms target liquidity resting above equal highs?",
+        options: [
+          "To match large buy orders against retail stop losses",
+          "To signal to retail indicators that a breakout has officially begun",
+          "To comply with international central banking volume quotas",
+          "To trigger automated server resets across major brokerage bridges",
+        ],
+        answer: 0,
+        explain: "Large institutions need the counterpart liquidity of resting buy stops to fill or exit large positions.",
+      },
+      {
+        id: "mp-4",
+        q: "What constitutes a valid Change of Character (CHoCH) in market structure?",
+        options: [
+          "A decisive body close through the most recent swing point opposing the trend",
+          "A single wick piercing above a swing high by 0.5 pips during London open",
+          "The RSI indicator crossing below the 30 oversold boundary on the 15-minute chart",
+          "Three consecutive bearish candles appearing during the Frankfurt session",
+        ],
+        answer: 0,
+        explain: "A valid CHoCH requires a structural candle close through the key swing point that created the recent extreme.",
+      },
+      {
+        id: "mp-5",
+        q: "How does a Pro trader manage an open position approaching a major high-timeframe target?",
+        options: [
+          "Take partial profits and trail the stop loss to protect accumulated gains",
+          "Add maximum leverage and quadruple lot size into the target level",
+          "Close the trading terminal and check back three days later without an exit order",
+          "Cancel the stop loss and let the trade run indefinitely into next month",
+        ],
+        answer: 0,
+        explain: "Scaling out and trailing stops secures capital while allowing runners to capture extended trends.",
+      },
+      {
+        id: "mp-6",
+        q: "What is multi-timeframe top-down analysis designed to achieve?",
+        options: [
+          "Align intraday entries with the prevailing higher-timeframe order flow",
+          "Find contradictory signals so you can avoid trading on all days of the week",
+          "Calculate the exact minute that the market will reverse direction tomorrow",
+          "Average out entry prices across five different timeframes simultaneously",
+        ],
+        answer: 0,
+        explain: "Top-down analysis ensures that lower-timeframe tactical entries trade in harmony with institutional directional bias.",
+      },
+      {
+        id: "mp-7",
+        q: "Why is a trade journal mandatory for pro mentorship students?",
+        options: [
+          "To identify recurring statistical edge patterns and behavioural blind spots",
+          "To prove to your broker that you are eligible for zero-commission account tiers",
+          "To show off winning trade screenshots on social media discussion groups",
+          "To memorize every single historical candlestick that printed over the past year",
+        ],
+        answer: 0,
+        explain: "Systematic journaling is the only reliable method to measure psychological discipline and true statistical edge.",
+      },
+      {
+        id: "mp-8",
+        q: "What is an institutional liquidity sweep (Stop Hunt)?",
+        options: [
+          "A temporary push beyond a key level that absorbs liquidity before reversing",
+          "A sudden technical server malfunction at the retail broker data center",
+          "An agreement between retail traders to collectively pump a currency pair",
+          "A guaranteed indicator signal showing that the trend will accelerate forever",
+        ],
+        answer: 0,
+        explain: "Sweeps engineer liquidity by triggering resting stop orders before price moves in the intended direction.",
+      },
+    ],
+  },
+  {
+    courseId: "mentorship-elite",
+    title: "Mentorship: Elite Package — Final Assessment",
+    passMark: 70,
+    timeLimitMins: 60,
+    questions: [
+      {
+        id: "me-1",
+        q: "In high-stakes prop firm evaluation, what is the single most critical rule?",
+        options: [
+          "Never violating the daily and maximum trailing drawdown limits",
+          "Hitting the profit target within the first 48 hours of challenge start",
+          "Trading exclusively on the 1-minute timeframe during New York news releases",
+          "Holding full-margin positions open through high-impact interest rate decisions",
+        ],
+        answer: 0,
+        explain: "Drawdown rules are hard constraints; violating them causes instant account termination regardless of profit.",
+      },
+      {
+        id: "me-2",
+        q: "If an elite funded account has a 5% maximum daily drawdown, how should risk be calibrated per trade?",
+        options: [
+          "0.5% to 1.0% maximum risk per trade",
+          "2.5% per trade so you only have to win two consecutive trades to pass",
+          "4.5% per trade with no stop loss to give the market room to fluctuate",
+          "Varying risk between 5% and 10% depending on your emotional confidence",
+        ],
+        answer: 0,
+        explain: "Risking 0.5% to 1.0% provides 5 to 10 consecutive loss buffers before reaching daily drawdown thresholds.",
+      },
+      {
+        id: "me-3",
+        q: "What is the High Water Mark on a funded account?",
+        options: [
+          "The highest peak balance the account has ever attained",
+          "The mandatory deposit required to unlock weekly payout privileges",
+          "The average daily turnover volume calculated over a rolling 30-day window",
+          "The highest leverage multiplier granted by the prop firm risk desk",
+        ],
+        answer: 0,
+        explain: "Trailing drawdown calculations often anchor to the high water mark as equity climbs.",
+      },
+      {
+        id: "me-4",
+        q: "When an elite trader enters a 3-trade drawdown streak, what is the best tactical response?",
+        options: [
+          "Cut risk per trade by 50% until positive momentum is restored",
+          "Increase lot sizes immediately to recover the drawdown on the next trade",
+          "Switch from major forex pairs to exotic pairs with wide spreads",
+          "Take trades outside your proven playbook to catch random market moves",
+        ],
+        answer: 0,
+        explain: "Reducing position size during drawdowns protects the account from approaching hard breach levels.",
+      },
+      {
+        id: "me-5",
+        q: "Why do professional portfolio managers enforce asymmetrical risk-to-reward (e.g. 1:3 RRR)?",
+        options: [
+          "It allows profitability even with a 35% to 40% win rate",
+          "It guarantees that no trade will ever hit your stop loss order",
+          "It eliminates the need to calculate spread and overnight rollover costs",
+          "It ensures the trade will always reach target within twenty minutes",
+        ],
+        answer: 0,
+        explain: "With 1:3 RRR, winning 4 out of 10 trades yields net positive growth (+8R win vs -6R loss = +2R net).",
+      },
+      {
+        id: "me-6",
+        q: "What is the primary risk of holding funded positions through major Tier-1 news releases (NFP, CPI, FOMC)?",
+        options: [
+          "Severe slippage, spread widening, and catastrophic execution gap beyond your stop",
+          "The broker automatically converting your account balance into another currency",
+          "The prop firm deducting a 50% penalty fee from your profit split",
+          "The exchange cancelling all previous profits earned earlier in the trading week",
+        ],
+        answer: 0,
+        explain: "Extreme liquidity gaps during Tier-1 news can cause fills far beyond your stop loss, risking instant breach.",
+      },
+      {
+        id: "me-7",
+        q: "How does an elite trader manage psychological capital during high-stake challenges?",
+        options: [
+          "Enforcing a daily maximum loss limit and walking away once reached",
+          "Staring at open P&L fluctuations continuously throughout the trading session",
+          "Trading while fatigued or emotionally stressed to build mental tolerance",
+          "Borrowing additional funds to open multiple challenge accounts simultaneously",
+        ],
+        answer: 0,
+        explain: "Hard daily boundaries prevent emotional tilt and protect decision quality.",
+      },
+      {
+        id: "me-8",
+        q: "What constitutes the foundation of sustainable long-term trading longevity?",
+        options: [
+          "Flawless capital preservation, emotional detachment, and disciplined execution",
+          "Finding a secret proprietary indicator that never produces a losing signal",
+          "Predicting geopolitical conflicts before they are broadcast on news networks",
+          "Taking 20 to 30 trades every day regardless of market conditions or setups",
+        ],
+        answer: 0,
+        explain: "Trading longevity is 100% determined by risk control, rule discipline, and mental composure.",
+      },
+    ],
+  },
 ];
 
 /* ============================================================================
@@ -1272,11 +1586,41 @@ export function deleteCustomQuiz(courseId: string): void {
   } catch {}
 }
 
-export const getQuiz = (courseId: string): Quiz | undefined => {
+export function createFallbackQuiz(courseId: string, customTitle?: string): Quiz {
+  const words = courseId.replace(/[^a-zA-Z0-9]+/g, " ").trim().split(" ");
+  const autoTitle = words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return {
+    courseId,
+    title: customTitle || `${autoTitle || "Trading"} — Final Assessment`,
+    passMark: 70,
+    timeLimitMins: 60,
+    questions: SHARED_TRADING_QUESTIONS.slice(0, 10),
+  };
+}
+
+export const getQuiz = (courseId: string, customTitle?: string): Quiz => {
+  if (!courseId) return createFallbackQuiz("general-trading", "GAMAT Trading Certification");
+  const raw = courseId.trim();
+  const lower = raw.toLowerCase();
+  const targetId = COURSE_ALIASES[lower] || lower;
+
   const custom = getCustomQuizzes();
-  const foundCustom = custom.find((q) => q.courseId === courseId);
+  const foundCustom = custom.find(
+    (q) => q.courseId === raw || q.courseId.toLowerCase() === lower || q.courseId.toLowerCase() === targetId
+  );
   if (foundCustom) return foundCustom;
-  return QUIZZES.find((q) => q.courseId === courseId);
+
+  const foundBuiltIn = QUIZZES.find(
+    (q) => q.courseId === raw || q.courseId.toLowerCase() === lower || q.courseId.toLowerCase() === targetId
+  );
+  if (foundBuiltIn) return foundBuiltIn;
+
+  const loose = QUIZZES.find(
+    (q) => q.courseId.toLowerCase().includes(lower) || lower.includes(q.courseId.toLowerCase())
+  );
+  if (loose) return loose;
+
+  return createFallbackQuiz(raw, customTitle);
 };
 
 /* ============================================================================
