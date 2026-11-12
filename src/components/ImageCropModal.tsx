@@ -36,6 +36,7 @@ export default function ImageCropModal({
 
   // Load natural dimensions of the image
   useEffect(() => {
+    setImageLoaded(false);
     const img = new Image();
     img.onload = () => {
       setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
@@ -45,31 +46,36 @@ export default function ImageCropModal({
       setOffset({ x: 0, y: 0 });
     };
     img.src = imageSrc;
+    if (img.complete && img.naturalWidth > 0) {
+      setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+      setImageLoaded(true);
+      setZoom(1);
+      setRotation(0);
+      setOffset({ x: 0, y: 0 });
+    }
   }, [imageSrc]);
 
-  // Compute base scale to cover the crop box at 1x zoom
+  // Compute base dimensions to cover the crop box at 1x zoom
   const isRotated90 = rotation % 180 !== 0;
   const effectiveW = isRotated90 ? naturalSize.height : naturalSize.width;
   const effectiveH = isRotated90 ? naturalSize.width : naturalSize.height;
 
-  const baseScale = effectiveW > 0 && effectiveH > 0
+  const scaleToCover = effectiveW > 0 && effectiveH > 0
     ? Math.max(CROP_BOX_SIZE / effectiveW, CROP_BOX_SIZE / effectiveH)
     : 1;
 
-  const currentScale = baseScale * zoom;
+  const baseW = naturalSize.width * scaleToCover;
+  const baseH = naturalSize.height * scaleToCover;
 
   // Clamp offset to ensure crop box is never empty
   const clampOffset = useCallback((x: number, y: number, currentZ: number, rot: number) => {
     const rotated = rot % 180 !== 0;
-    const effW = rotated ? naturalSize.height : naturalSize.width;
-    const effH = rotated ? naturalSize.width : naturalSize.height;
-    if (effW === 0 || effH === 0) return { x: 0, y: 0 };
+    const effectiveBaseW = rotated ? baseH : baseW;
+    const effectiveBaseH = rotated ? baseW : baseH;
+    if (effectiveBaseW === 0 || effectiveBaseH === 0) return { x: 0, y: 0 };
 
-    const bScale = Math.max(CROP_BOX_SIZE / effW, CROP_BOX_SIZE / effH);
-    const scale = bScale * currentZ;
-
-    const renderedW = effW * scale;
-    const renderedH = effH * scale;
+    const renderedW = effectiveBaseW * currentZ;
+    const renderedH = effectiveBaseH * currentZ;
 
     const maxX = Math.max(0, (renderedW - CROP_BOX_SIZE) / 2);
     const maxY = Math.max(0, (renderedH - CROP_BOX_SIZE) / 2);
@@ -78,13 +84,15 @@ export default function ImageCropModal({
       x: Math.max(-maxX, Math.min(maxX, x)),
       y: Math.max(-maxY, Math.min(maxY, y)),
     };
-  }, [naturalSize]);
+  }, [baseW, baseH]);
 
   // Handle pointer drag (Mouse & Touch)
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!imageLoaded) return;
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
     dragStartRef.current = {
       clientX: e.clientX,
       clientY: e.clientY,
@@ -108,9 +116,7 @@ export default function ImageCropModal({
     if (isDragging) {
       try {
         e.currentTarget.releasePointerCapture(e.pointerId);
-      } catch {
-        // ignore
-      }
+      } catch {}
       setIsDragging(false);
     }
   };
@@ -156,6 +162,7 @@ export default function ImageCropModal({
         img.onload = () => resolve();
         img.onerror = reject;
         img.src = imageSrc;
+        if (img.complete && img.naturalWidth > 0) resolve();
       });
 
       const canvas = document.createElement("canvas");
@@ -182,12 +189,10 @@ export default function ImageCropModal({
       // Rotate around center
       ctx.rotate((rotation * Math.PI) / 180);
 
-      // Scale to match view
-      const canvasScale = currentScale * ratio;
-      ctx.scale(canvasScale, canvasScale);
-
-      // Draw image centered
-      ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      // Draw image scaled to match on-screen view exactly
+      const canvasW = baseW * ratio * zoom;
+      const canvasH = baseH * ratio * zoom;
+      ctx.drawImage(img, -canvasW / 2, -canvasH / 2, canvasW, canvasH);
 
       const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
 
@@ -249,10 +254,14 @@ export default function ImageCropModal({
                 alt="Crop preview"
                 className="absolute pointer-events-none select-none max-w-none transition-transform duration-75 ease-out"
                 style={{
+                  width: `${baseW}px`,
+                  height: `${baseH}px`,
+                  maxWidth: "none",
+                  maxHeight: "none",
                   left: "50%",
                   top: "50%",
-                  transformOrigin: "0 0",
-                  transform: `translate(${offset.x}px, ${offset.y}px) rotate(${rotation}deg) scale(${currentScale}) translate(-50%, -50%)`,
+                  transformOrigin: "center center",
+                  transform: `translate(-50%, -50%) translate(${offset.x}px, ${offset.y}px) rotate(${rotation}deg) scale(${zoom})`,
                 }}
                 draggable={false}
               />
@@ -349,12 +358,16 @@ export default function ImageCropModal({
                 <img
                   src={imageSrc}
                   alt="Round preview"
-                  className="absolute max-w-none pointer-events-none"
+                  className="absolute pointer-events-none select-none"
                   style={{
+                    width: `${baseW * (44 / CROP_BOX_SIZE)}px`,
+                    height: `${baseH * (44 / CROP_BOX_SIZE)}px`,
+                    maxWidth: "none",
+                    maxHeight: "none",
                     left: "50%",
                     top: "50%",
-                    transformOrigin: "0 0",
-                    transform: `translate(${offset.x * (44 / CROP_BOX_SIZE)}px, ${offset.y * (44 / CROP_BOX_SIZE)}px) rotate(${rotation}deg) scale(${currentScale * (44 / CROP_BOX_SIZE)}) translate(-50%, -50%)`,
+                    transformOrigin: "center center",
+                    transform: `translate(-50%, -50%) translate(${offset.x * (44 / CROP_BOX_SIZE)}px, ${offset.y * (44 / CROP_BOX_SIZE)}px) rotate(${rotation}deg) scale(${zoom})`,
                   }}
                 />
               )}
@@ -366,12 +379,16 @@ export default function ImageCropModal({
                 <img
                   src={imageSrc}
                   alt="Card preview"
-                  className="absolute max-w-none pointer-events-none"
+                  className="absolute pointer-events-none select-none"
                   style={{
+                    width: `${baseW * (44 / CROP_BOX_SIZE)}px`,
+                    height: `${baseH * (44 / CROP_BOX_SIZE)}px`,
+                    maxWidth: "none",
+                    maxHeight: "none",
                     left: "50%",
                     top: "50%",
-                    transformOrigin: "0 0",
-                    transform: `translate(${offset.x * (44 / CROP_BOX_SIZE)}px, ${offset.y * (44 / CROP_BOX_SIZE)}px) rotate(${rotation}deg) scale(${currentScale * (44 / CROP_BOX_SIZE)}) translate(-50%, -50%)`,
+                    transformOrigin: "center center",
+                    transform: `translate(-50%, -50%) translate(${offset.x * (44 / CROP_BOX_SIZE)}px, ${offset.y * (44 / CROP_BOX_SIZE)}px) rotate(${rotation}deg) scale(${zoom})`,
                   }}
                 />
               )}
