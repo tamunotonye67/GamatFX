@@ -1195,32 +1195,26 @@ const uid = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toStr
 const ticketCode = () =>
   `GX-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-/** Default administrator account for GAMAT FX. */
-export const DEFAULT_ADMIN: Account = {
-  id: "u_admin",
-  firstName: "Tonye",
-  lastName: "Taylor",
-  email: "admin@gamatfxacademy.com",
-  password: "admin123",
-  role: "admin",
-  status: "active",
-  country: "Nigeria",
-  phone: "+234 806 194 9891",
-  joined: "2024-01-01T00:00:00.000Z",
-};
-
-/** Seeds a default admin account the first time the app runs. */
+/** Seeds accounts from local cache while stripping legacy demo admin and deleted accounts. */
 function seedAccounts(): Account[] {
-  storeCredential(DEFAULT_ADMIN.email, DEFAULT_ADMIN.password);
+  // Purge legacy demo admin credentials and tombstones
+  removeStoredCredential("admin@gamatfxacademy.com");
+  removeStoredCredential("admin@gamatfx.com");
+  recordDeletedAccount("u_admin", "admin@gamatfxacademy.com");
+  recordDeletedAccount("u_admin", "admin@gamatfx.com");
+
   const existing = read<Account[]>(K.accounts, []);
   const deleted = getDeletedAccountIds();
   const cleaned = existing.filter(
-    (a) => !deleted.has(a.id.toLowerCase()) && !deleted.has(a.email.toLowerCase())
+    (a) =>
+      !deleted.has(a.id.toLowerCase()) &&
+      !deleted.has(a.email.toLowerCase()) &&
+      a.email.toLowerCase() !== "admin@gamatfxacademy.com" &&
+      a.email.toLowerCase() !== "admin@gamatfx.com" &&
+      a.id !== "u_admin"
   );
-  const hasAdmin = cleaned.some((a) => a.email.toLowerCase() === DEFAULT_ADMIN.email.toLowerCase());
-  const next = hasAdmin ? cleaned : [DEFAULT_ADMIN, ...cleaned.filter((a) => a.id !== DEFAULT_ADMIN.id)];
-  write(K.accounts, next);
-  return next;
+  write(K.accounts, cleaned);
+  return cleaned;
 }
 
 /* ============================== Context ============================== */
@@ -1528,14 +1522,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const uid = userObj.id;
       const userEmail = (userObj.email || "").trim().toLowerCase();
 
-      if (userEmail === DEFAULT_ADMIN.email.toLowerCase()) {
-        setAccounts((prev) =>
-          prev.some((a) => a.id === DEFAULT_ADMIN.id) ? prev : [DEFAULT_ADMIN, ...prev]
-        );
-        setSessionId(DEFAULT_ADMIN.id);
-        return;
-      }
-
       // User is actively authenticating with Google / Supabase;
       // unmark any previous deletion tombstone so they can re-register or log in fresh
       unmarkDeletedAccount(uid, userEmail);
@@ -1602,21 +1588,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     setAccounts((prev) => {
       const map = new Map<string, Account>();
-      // Always guarantee default admin exists
-      map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
 
       // AUTHORITATIVE SYNC: only accounts present in Supabase are preserved
       supaAccounts.forEach((supaAcc) => {
         const cleanEmail = supaAcc.email.trim().toLowerCase();
 
-        // If explicitly deleted, skip
-        if (deleted.has(supaAcc.id.toLowerCase()) || deleted.has(cleanEmail)) {
-          return;
-        }
-
-        // If default admin row, keep admin
-        if (cleanEmail === DEFAULT_ADMIN.email.toLowerCase()) {
-          map.set(DEFAULT_ADMIN.id, DEFAULT_ADMIN);
+        // If explicitly deleted or legacy demo admin, skip
+        if (
+          deleted.has(supaAcc.id.toLowerCase()) ||
+          deleted.has(cleanEmail) ||
+          cleanEmail === "admin@gamatfxacademy.com" ||
+          cleanEmail === "admin@gamatfx.com" ||
+          supaAcc.id === "u_admin"
+        ) {
           return;
         }
 
@@ -1841,22 +1825,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const login: Ctx["login"] = useCallback(async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Check default admin account explicitly
-    if (cleanEmail === DEFAULT_ADMIN.email.toLowerCase()) {
-      if (password !== DEFAULT_ADMIN.password) {
-        return { ok: false, error: "Incorrect password. Please try again." };
-      }
-      setAccounts((prev) => {
-        const next = prev.some((a) => a.id === DEFAULT_ADMIN.id) ? prev : [DEFAULT_ADMIN, ...prev];
-        write(K.accounts, next);
-        return next;
-      });
-      setSessionId(DEFAULT_ADMIN.id);
-      signInSupabaseUser(cleanEmail, password).catch(() => {});
-      return { ok: true };
-    }
-
-    // 2. Identify local or cached account & saved credential
+    // 1. Identify local or cached account & saved credential
     let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
     if (!found) {
       const localAccs = read<Account[]>(K.accounts, []);

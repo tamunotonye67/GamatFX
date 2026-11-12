@@ -91,11 +91,6 @@ export function AdminShell({ title, subtitle, action, children }: {
         <p className="mt-3 max-w-md text-muted">
           You need an administrator account to view this area.
         </p>
-        <div className="mt-6 rounded-2xl border border-line bg-white p-5 text-left text-sm">
-          <p className="font-semibold text-ink">Demo admin credentials</p>
-          <p className="mt-2 text-muted">Email: <strong className="text-brand">admin@gamatfxacademy.com</strong></p>
-          <p className="text-muted">Password: <strong className="text-brand">admin123</strong></p>
-        </div>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button onClick={() => navigate("/login?next=/admin")} className="btn-primary">Log in as admin</button>
           <button onClick={() => navigate("/")} className="btn-outline-dark">Back to site</button>
