@@ -1,4 +1,4 @@
-import { useState, useRef, MouseEvent } from "react";
+import { useState, useRef, useEffect, MouseEvent } from "react";
 import { navigate } from "../lib/router";
 import {
   BookOpen,
@@ -17,6 +17,21 @@ export default function StoreSection() {
   const [rotate, setRotate] = useState({ x: 8, y: -18 });
   const [showBookModal, setShowBookModal] = useState(false);
   const bookRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll and handle Escape key when book modal is open
+  useEffect(() => {
+    if (!showBookModal) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowBookModal(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [showBookModal]);
 
   // Smooth mouse tilt tracking on the 3D book
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
@@ -279,58 +294,80 @@ export default function StoreSection() {
         </div>
       </div>
 
-      {/* MODAL 1: Book Overview & Chapter Details */}
+      {/* MODAL 1: Book Overview & Chapter Details (Modern Bottom-to-Top Flyout Sheet) */}
       {showBookModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900 p-6 sm:p-8 text-white shadow-2xl overflow-y-auto max-h-[90vh]">
-            <button
-              type="button"
-              onClick={() => setShowBookModal(false)}
-              className="absolute top-5 right-5 rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="flex items-center gap-2 text-brand text-xs font-bold uppercase tracking-wider">
-              <BookOpen className="h-4 w-4" />
-              <span>Flagship Desk Publication</span>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowBookModal(false);
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative w-full max-w-2xl sm:max-w-3xl rounded-t-[28px] sm:rounded-t-[36px] rounded-b-none border-t border-x border-white/20 bg-gradient-to-b from-slate-900 via-[#0e131d] to-slate-950 text-white shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.85)] max-h-[88vh] sm:max-h-[85vh] flex flex-col animate-fly-up overflow-hidden">
+            {/* Grab / Drag Handle */}
+            <div className="pt-3.5 pb-1 flex justify-center">
+              <div
+                className="h-1.5 w-12 rounded-full bg-white/25 hover:bg-white/40 transition cursor-pointer"
+                onClick={() => setShowBookModal(false)}
+                title="Close"
+              />
             </div>
 
-            <h3 className="mt-2 font-display text-2xl font-black text-white">
-              Institutional Order Flow &amp; Liquidity Playbook
-            </h3>
-            <p className="mt-1 text-xs text-rose-300 font-semibold">
-              By Chief Mentor Tonye &amp; GAMAT Senior Quant Research Desk
-            </p>
+            {/* Header */}
+            <div className="relative px-6 sm:px-8 pt-2 pb-4 border-b border-white/10 flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-brand text-xs font-bold uppercase tracking-wider">
+                  <BookOpen className="h-4 w-4" />
+                  <span>Flagship Desk Publication</span>
+                </div>
 
-            <div className="mt-5 space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-white/10 pt-4">
+                <h3 className="mt-1.5 font-display text-xl sm:text-2xl font-black text-white">
+                  Institutional Order Flow &amp; Liquidity Playbook
+                </h3>
+                <p className="mt-0.5 text-xs text-rose-300 font-semibold">
+                  By Chief Mentor Tonye &amp; GAMAT Senior Quant Research Desk
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowBookModal(false)}
+                className="rounded-full p-2 text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer shrink-0"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-5 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed overscroll-contain">
               <p>
                 The financial markets are engineered by central banks and institutional algorithms designed to exploit retail liquidity. This playbook strips away the retail noise and provides you with the exact mechanical rules institutional desks follow.
               </p>
 
-              <div className="mt-4 rounded-xl bg-white/5 p-4 border border-white/10">
-                <h4 className="font-bold text-white text-xs uppercase tracking-wider mb-2">
+              <div className="rounded-2xl bg-white/5 p-4 sm:p-5 border border-white/10 space-y-3">
+                <h4 className="font-bold text-white text-xs uppercase tracking-wider">
                   What is inside the 280 pages:
                 </h4>
-                <ul className="space-y-2 text-xs text-slate-300">
-                  <li className="flex items-start gap-2">
+                <ul className="space-y-2.5 text-xs text-slate-300">
+                  <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                     <span><strong>Module 1: The Liquidity Paradigm</strong> — Decoding Buy-Side (BSL) vs Sell-Side Liquidity (SSL) and why stop sweeps occur before explosive runs.</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                     <span><strong>Module 2: Imbalances &amp; Fair Value Gaps</strong> — High-probability FVG validation, consequent encroachment, and volume imbalance delivery.</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                     <span><strong>Module 3: Order Block Mechanics</strong> — Identifying true institutional mitigation vs false retail support/resistance traps.</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                     <span><strong>Module 4: Killzones &amp; Session Expansion</strong> — London Open Judas swings, New York AM continuation models, and Asian range sweeps.</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                     <span><strong>Cheatsheet Desk Bundle</strong> — Printable laminated execution cards for quick multi-timeframe confirmation.</span>
                   </li>
@@ -338,7 +375,8 @@ export default function StoreSection() {
               </div>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Anchored Bottom Action Bar */}
+            <div className="border-t border-white/10 bg-slate-950/95 backdrop-blur-md px-6 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
                 <span className="text-xs text-slate-400">Instant Download &amp; Lifetime Updates</span>
                 <p className="font-display text-2xl font-black text-white">
@@ -353,7 +391,7 @@ export default function StoreSection() {
                     setShowBookModal(false);
                     navigate("/store?product=gamat-playbook-v1&checkout=true");
                   }}
-                  className="w-full sm:w-auto rounded-xl bg-brand px-6 py-3 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-brand/30"
+                  className="w-full sm:w-auto rounded-xl bg-brand px-6 py-3 text-xs sm:text-sm font-bold text-white hover:bg-brand-dark transition cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-brand/30"
                 >
                   <Download className="h-4 w-4" />
                   <span>Get Playbook on Store</span>
