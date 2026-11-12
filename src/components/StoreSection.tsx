@@ -230,7 +230,7 @@ export default function StoreSection() {
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-1.5 rounded-md bg-white/5 border border-white/10 px-2.5 py-1 text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-                Hardcover Print Edition &amp; High-Res PDF
+                AVAILABLE IN HIGH-RES PDF
               </span>
 
               <h3 className="mt-4 font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
