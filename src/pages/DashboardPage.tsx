@@ -265,49 +265,89 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
       {/* Header */}
-      <section className="bg-ink pb-20 pt-8 sm:pb-24 sm:pt-12 text-white">
-        <div className="container-x flex flex-wrap items-center justify-between gap-5 sm:gap-6">
-          <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0">
+      <section className="bg-ink pb-24 pt-8 sm:pb-28 sm:pt-12 text-white border-b border-white/5">
+        <div className="container-x flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          {/* User Profile Block */}
+          <div className="flex items-center gap-4 sm:gap-5 min-w-0">
             {user.avatar ? (
-              <img src={user.avatar} alt="" className="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl object-cover shadow-lg ring-2 ring-brand/40" />
+              <img
+                src={user.avatar}
+                alt=""
+                className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl object-cover ring-2 ring-white/10 ring-offset-2 ring-offset-ink shadow-xl"
+              />
             ) : (
-              <span className="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-lg sm:text-xl font-extrabold shadow-lg">
+              <span className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand via-brand to-brand-dark font-display text-xl sm:text-2xl font-extrabold text-white ring-2 ring-white/10 ring-offset-2 ring-offset-ink shadow-xl">
                 {initials}
               </span>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm text-white/55">Welcome back,</p>
-              <h1 className="truncate font-display text-xl sm:text-2xl font-extrabold md:text-3xl">
-                {user.nickname || `${user.firstName} ${user.lastName}`}
-              </h1>
-              <p className="mt-0.5 truncate text-xs sm:text-sm text-white/50">{user.email}</p>
-              {user.birthday && (
-                <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-white/45">
-                  <Cake className="h-3.5 w-3.5 text-brand" />
-                  {new Date(user.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
-                  <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">year private</span>
-                </p>
-              )}
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold text-white"
-                  style={{ background: combatRank.color }}
-                >
-                  Lv.{combatRank.level} · {combatRank.title}
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-white/50">
+                  Welcome back
                 </span>
-                <span className="text-[11px] text-white/50">
-                  {combat.xp} XP
-                  {combatNext ? ` · ${combatNext.minXp - combat.xp} to next rank` : " · Max rank"}
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    user.role === "admin"
+                      ? "bg-brand/20 text-brand-light border border-brand/30"
+                      : user.role === "staff"
+                      ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                      : "bg-white/10 text-white/80 border border-white/10"
+                  }`}
+                >
+                  {user.role === "admin" ? "Admin" : user.role === "staff" ? "Staff" : "Student"}
                 </span>
               </div>
-              <div className="mt-2 h-1.5 w-48 max-w-full overflow-hidden rounded-full bg-white/15">
-                <div className="h-full rounded-full" style={{ width: `${combatPct}%`, background: combatRank.color }} />
+              <h1 className="truncate font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                {user.nickname || `${user.firstName} ${user.lastName}`}
+              </h1>
+              <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-white/50">
+                <span className="truncate">{user.email}</span>
+                {user.birthday && (
+                  <span className="inline-flex items-center gap-1 text-xs text-white/40">
+                    <Cake className="h-3.5 w-3.5 text-brand" />
+                    {new Date(user.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
+                  </span>
+                )}
               </div>
             </div>
           </div>
-          <button onClick={() => navigate("/courses")} className="btn-primary w-full sm:w-auto">
-            Browse Courses <ArrowUpRight className="h-4 w-4" />
-          </button>
+
+          {/* Right Side: Trader Rank Widget & CTA */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 sm:gap-4 shrink-0">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 sm:px-4 sm:py-3 backdrop-blur-sm min-w-[240px] sm:min-w-[270px]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ background: combatRank.color }}
+                  />
+                  <span className="font-bold text-white text-xs tracking-wide">
+                    Lv.{combatRank.level} · {combatRank.title}
+                  </span>
+                </div>
+                <span className="text-[11px] font-semibold text-white/50">
+                  {combat.xp} XP
+                </span>
+              </div>
+              <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${combatPct}%`, background: combatRank.color }}
+                />
+              </div>
+              <div className="mt-1.5 flex items-center justify-between text-[10px] text-white/40">
+                <span>Rank Progress</span>
+                <span>{combatNext ? `${combatNext.minXp - combat.xp} XP to next rank` : "Max rank"}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate("/courses")}
+              className="btn-primary whitespace-nowrap self-stretch sm:self-center shadow-md hover:shadow-lg transition-all"
+            >
+              Browse Courses <ArrowUpRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </section>
 
