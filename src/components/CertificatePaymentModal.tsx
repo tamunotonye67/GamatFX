@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Award, CheckCircle2, Lock, ShieldCheck, CreditCard, Building2, Loader2, Check, ArrowRight, X, Copy } from "lucide-react";
+import { Award, CheckCircle2, Lock, ShieldCheck, Loader2, Check, ArrowRight, X } from "lucide-react";
 import { useStore } from "../lib/store";
-import { getCourse, naira, asCourse, COURSE_ALIASES } from "../lib/courses";
+import { getCourse, naira, asCourse } from "../lib/courses";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
-import { CONTACT } from "../lib/contact";
 import { navigate } from "../lib/router";
 
 interface CertificatePaymentModalProps {
@@ -20,11 +19,8 @@ export default function CertificatePaymentModal({
   onSuccess,
 }: CertificatePaymentModalProps) {
   const { user, payCertificateFee, managedCourses, bestAttempt } = useStore();
-  const [method, setMethod] = useState<"card" | "transfer">("card");
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [copiedRef, setCopiedRef] = useState(false);
-  const [copiedAcct, setCopiedAcct] = useState(false);
 
   if (!isOpen) return null;
 
@@ -35,8 +31,11 @@ export default function CertificatePaymentModal({
   const fee = 10000;
   const txRef = generateTxRef("CERT");
 
-  const handlePayWithBachs = () => {
-    if (!user) return;
+  const handlePay = () => {
+    if (!user) {
+      navigate(`/login?next=/quiz/${courseId}`);
+      return;
+    }
     setProcessing(true);
 
     payWithBachs({
@@ -67,29 +66,18 @@ export default function CertificatePaymentModal({
     });
   };
 
-  const handleConfirmTransfer = async () => {
-    if (!user) return;
-    setProcessing(true);
-    await payCertificateFee(courseId, "transfer", txRef);
-    setProcessing(false);
-    setSuccess(true);
-    if (onSuccess) onSuccess();
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/75 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-white shadow-2xl">
-        {/* Top accent bar */}
-        <div className="h-2.5 w-full bg-gradient-to-r from-brand via-amber-500 to-brand" />
-
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-line bg-white shadow-2xl">
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-cream text-muted transition hover:bg-line hover:text-ink cursor-pointer"
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-cream text-muted transition hover:bg-line hover:text-ink cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-7">
           {success ? (
             <div className="text-center py-4">
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -99,14 +87,14 @@ export default function CertificatePaymentModal({
                 Certificate Unlocked!
               </h2>
               <p className="mt-2 text-sm text-muted">
-                Your official accredited certificate for <strong className="text-ink">{course?.title}</strong> is now verified and available for immediate download in your dashboard.
+                Your official accredited certificate for <strong className="text-ink">{course?.title}</strong> is now verified and ready in your dashboard.
               </p>
               <button
                 onClick={() => {
                   onClose();
                   navigate("/dashboard");
                 }}
-                className="btn-primary mt-6 w-full !py-3.5"
+                className="btn-primary mt-6 w-full !py-3.5 font-bold"
               >
                 View Certificate in Dashboard <ArrowRight className="h-4 w-4" />
               </button>
@@ -114,206 +102,100 @@ export default function CertificatePaymentModal({
           ) : (
             <>
               {/* Header */}
-              <div className="flex items-start gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">
-                  <Award className="h-6 w-6" />
-                </span>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
-                    Accredited Certification
-                  </span>
-                  <h2 className="font-display text-xl font-bold text-ink sm:text-2xl">
-                    Unlock Official Certificate
-                  </h2>
-                  <p className="mt-0.5 text-xs text-muted">
-                    {course?.title || "GAMAT Fx Academy"}
-                  </p>
-                </div>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-brand">Checkout</span>
+                <h2 className="mt-1 font-display text-2xl font-extrabold text-ink">
+                  Unlock Certificate
+                </h2>
+                <p className="mt-1 text-xs text-muted sm:text-sm">
+                  {course?.title || "GAMAT Fx Academy"}
+                </p>
               </div>
 
-              {/* Exam Passed Confirmation Badge */}
-              <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-white text-xs font-bold">
-                    <Check className="h-4 w-4" />
+              {/* Exam Passed pill */}
+              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                    <Check className="h-3 w-3 stroke-[3]" />
                   </span>
-                  <div>
-                    <p className="text-xs font-bold text-emerald-950">Examination Passed</p>
-                    <p className="text-[11px] text-emerald-700">
-                      Score: {best?.score ?? 70}% (Required: 70%)
-                    </p>
-                  </div>
+                  <p className="text-xs font-bold text-emerald-950">Examination Passed</p>
                 </div>
-                <span className="rounded-full bg-emerald-200/80 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-900">
-                  Qualified
+                <span className="text-xs font-semibold text-emerald-700">
+                  Score: {best?.score ?? 70}%
                 </span>
               </div>
 
-              {/* Pricing breakdown */}
+              {/* Order & Payment Summary */}
               <div className="mt-4 rounded-2xl border border-line bg-cream/70 p-4 space-y-2 text-xs">
                 <div className="flex justify-between text-muted">
-                  <span>Certificate Issuance & Accreditation:</span>
+                  <span>Accredited Certificate &amp; Serial:</span>
                   <span className="font-semibold text-ink">{naira(fee)}</span>
                 </div>
                 <div className="flex justify-between text-muted">
-                  <span>Anti-tamper Verification & Serial Number:</span>
-                  <span className="font-semibold text-emerald-700">Included (Free)</span>
+                  <span>Print-Ready High-Res Download:</span>
+                  <span className="font-semibold text-emerald-700">Included Free</span>
                 </div>
-                <div className="flex justify-between text-muted">
-                  <span>Print-Ready High-Res PNG Download:</span>
-                  <span className="font-semibold text-emerald-700">Included (Free)</span>
-                </div>
-                <div className="pt-2 border-t border-line flex justify-between text-sm font-extrabold text-ink">
-                  <span>Total Certification Fee:</span>
-                  <span className="text-brand text-base">{naira(fee)}</span>
+                <div className="pt-2 border-t border-line flex justify-between items-baseline text-sm font-extrabold text-ink">
+                  <span>Total Due:</span>
+                  <span className="text-brand font-display text-xl">{naira(fee)}</span>
                 </div>
               </div>
 
-              {/* Payment Method Selector */}
-              <div className="mt-5 space-y-2">
-                <label className="block text-xs font-bold text-ink uppercase tracking-wider">
-                  Select Payment Option
+              {/* Payment Method - Bachs (Matches CheckoutPage) */}
+              <div className="mt-5">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-muted mb-2">
+                  Payment Method
                 </label>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setMethod("card")}
-                    className={`flex items-center gap-2.5 rounded-xl border p-3 text-left transition cursor-pointer ${
-                      method === "card"
-                        ? "border-brand bg-brand-light text-brand font-bold"
-                        : "border-line bg-white text-muted hover:border-brand/40"
-                    }`}
-                  >
-                    <CreditCard className="h-4 w-4 shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold">Pay via Bachs</p>
-                      <p className="text-[10px] text-muted">Card, USSD, Crypto</p>
+                <div className="flex items-center justify-between rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-20 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2">
+                      <img
+                        src="/images/bachs-logo.png"
+                        alt="Bachs"
+                        className="h-4 w-auto object-contain"
+                      />
                     </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setMethod("transfer")}
-                    className={`flex items-center gap-2.5 rounded-xl border p-3 text-left transition cursor-pointer ${
-                      method === "transfer"
-                        ? "border-brand bg-brand-light text-brand font-bold"
-                        : "border-line bg-white text-muted hover:border-brand/40"
-                    }`}
-                  >
-                    <Building2 className="h-4 w-4 shrink-0" />
                     <div>
-                      <p className="text-xs font-bold">Bank Transfer</p>
-                      <p className="text-[10px] text-muted">Direct Academy Account</p>
+                      <p className="text-xs sm:text-sm font-bold text-ink">Bachs Checkout</p>
+                      <p className="text-[11px] text-muted">Card, Bank Transfer, or Crypto</p>
                     </div>
-                  </button>
+                  </div>
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white shadow-xs">
+                    <Check className="h-3 w-3 stroke-[3]" />
+                  </div>
                 </div>
               </div>
 
-              {/* Bank Transfer Details Box */}
-              {method === "transfer" && (
-                <div className="mt-4 rounded-2xl border border-line bg-amber-50/50 p-4 text-xs space-y-2.5">
-                  <p className="font-bold text-amber-950 flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-amber-800" /> Transfer to Official GAMAT Account:
-                  </p>
-                  <div className="bg-white rounded-xl border border-amber-200/80 p-3 space-y-1">
-                    <p className="text-muted">Bank Name: <strong className="text-ink">Moniepoint MFB</strong></p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-muted">
-                        Account No: <strong className="text-ink text-sm">8061949891</strong>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText("8061949891");
-                          setCopiedAcct(true);
-                          setTimeout(() => setCopiedAcct(false), 2000);
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-brand hover:underline"
-                      >
-                        <Copy className="h-3 w-3" /> {copiedAcct ? "Copied!" : "Copy"}
-                      </button>
-                    </div>
-                    <p className="text-muted">Account Name: <strong className="text-ink">GAMAT FX ACADEMY</strong></p>
-                    <div className="flex items-center justify-between pt-1 text-[11px]">
-                      <span className="text-muted">Payment Ref: <strong>{txRef}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(txRef);
-                          setCopiedRef(true);
-                          setTimeout(() => setCopiedRef(false), 2000);
-                        }}
-                        className="inline-flex items-center gap-1 font-bold text-brand hover:underline"
-                      >
-                        <Copy className="h-3 w-3" /> {copiedRef ? "Copied" : "Copy Ref"}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <a
-                      href={`https://wa.me/2348061949891?text=${encodeURIComponent(
-                        `Hi GAMAT Academy, I completed payment of ₦10,000 for my Certificate (${course?.title}). Ref: ${txRef}`
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[11px] font-bold text-emerald-700 hover:underline flex items-center gap-1"
-                    >
-                      Notify on WhatsApp (Instant Confirm)
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="mt-6 flex flex-col gap-2.5">
-                {method === "card" ? (
-                  <button
-                    type="button"
-                    onClick={handlePayWithBachs}
-                    disabled={processing}
-                    className="btn-primary w-full !py-3.5 font-bold shadow-lg shadow-brand/20 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Launching Checkout...
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="h-4 w-4" /> Pay {naira(fee)} & Unlock Certificate
-                      </>
-                    )}
-                  </button>
+              {/* Pay Button */}
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={processing}
+                className="btn-primary mt-6 w-full !py-3.5 text-sm font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {processing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Launching Bachs Checkout…
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={handleConfirmTransfer}
-                    disabled={processing}
-                    className="btn-primary w-full !py-3.5 font-bold shadow-lg shadow-brand/20 flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {processing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" /> Verifying...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4" /> I Have Sent {naira(fee)} (Unlock Certificate)
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <Lock className="h-4 w-4" /> Pay {naira(fee)} with Bachs
+                  </>
                 )}
+              </button>
 
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="btn-outline-dark w-full !py-2.5 text-xs"
-                >
-                  Close & Pay Later
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-2.5 w-full py-2 text-xs font-semibold text-muted hover:text-ink transition cursor-pointer text-center"
+              >
+                Close &amp; Pay Later
+              </button>
 
-              <p className="mt-3 text-center text-[10px] text-muted flex items-center justify-center gap-1">
-                <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                Verified & Accredited by GAMAT Fx Academy · 100% Guaranteed Issuance
+              {/* Minimal Trust Indicator */}
+              <p className="mt-3 text-center text-[11px] text-muted flex items-center justify-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                <span>256-bit encrypted and processed securely by Bachs</span>
               </p>
             </>
           )}
