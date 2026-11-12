@@ -52,7 +52,8 @@ export default function StoreSection() {
             BESTSELLING TRADING SUITE
           </p>
           <h2 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
-            Institutional Order Flow in <span className="text-brand">Print & Code</span>
+            Institutional Order <br />
+            Flow in <span className="text-brand">Print &amp; Code</span>
           </h2>
           <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
             Master smart money sweeps and liquidity imbalances with Chief Mentor Tonye's flagship hardcover playbook — backed by our institutional algorithmic trading suite.

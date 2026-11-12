@@ -50,7 +50,7 @@ export default function Hero() {
           {/* Animated Synced Latest Event Announcement */}
           <div
             data-aos-delay="100"
-            className="mb-6 sm:mb-8 inline-flex max-w-full w-fit items-center gap-2 sm:gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-1.5 pr-3 sm:py-2 sm:pl-2 sm:pr-4 backdrop-blur-sm"
+            className="mt-4 sm:mt-6 md:mt-8 mb-6 sm:mb-8 inline-flex max-w-full w-fit items-center gap-2 sm:gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-1.5 pr-3 sm:py-2 sm:pl-2 sm:pr-4 backdrop-blur-sm"
           >
             <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-white shadow-md animate-pulse shrink-0">
               <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> New
