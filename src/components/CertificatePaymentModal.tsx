@@ -118,7 +118,10 @@ export default function CertificatePaymentModal({
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold">
                     <Check className="h-3 w-3 stroke-[3]" />
                   </span>
-                  <p className="text-xs font-bold text-emerald-950">Examination Passed</p>
+                  <p className="text-xs font-bold text-emerald-950">
+                    <span className="sm:hidden">Exam Passed</span>
+                    <span className="hidden sm:inline">Examination Passed</span>
+                  </p>
                 </div>
                 <span className="text-xs font-semibold text-emerald-700">
                   Score: {best?.score ?? 70}%
