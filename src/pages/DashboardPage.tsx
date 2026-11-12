@@ -634,30 +634,34 @@ export default function DashboardPage() {
                 const best = store.bestAttempt(id);
                 if (!c) return null;
                 return (
-                  <div key={id} className="rounded-3xl border-2 border-amber-300 bg-gradient-to-r from-amber-50/70 via-white to-white p-5 sm:p-7 shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div key={id} className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-start gap-4">
-                        <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 shadow-xs">
-                          <Award className="h-6 w-6 sm:h-7 sm:w-7" />
-                        </span>
-                        <div>
+                        {c.poster ? (
+                          <img src={c.poster} alt={c.title} className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover shrink-0 border border-line" />
+                        ) : (
+                          <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-800 border border-amber-200">
+                            <Award className="h-6 w-6" />
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-display text-lg font-bold text-ink">{c.title}</h3>
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                            <h3 className="font-display text-base sm:text-lg font-bold text-ink">{c.title}</h3>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
                               <Check className="h-3 w-3" /> Passed ({best?.score ?? 70}%)
                             </span>
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200">
                               Fee: ₦10,000
                             </span>
                           </div>
                           <p className="mt-1 text-xs sm:text-sm text-muted">
-                            Accredited certificate ready for issuance. Complete the ₦10,000 fee to generate your verified serial number and print-ready PNG download.
+                            Complete the ₦10,000 certificate fee to unlock your verified serial number and print-ready PNG download.
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setPaymentModalCourseId(id)}
-                        className="btn-primary w-full sm:w-auto !py-3 !px-6 font-bold shadow-md shadow-brand/20 flex items-center justify-center gap-2 cursor-pointer"
+                        className="btn-primary shrink-0 w-full sm:w-auto flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
                       </button>
@@ -687,37 +691,43 @@ export default function DashboardPage() {
                 if (!c) return null;
                 const isFreeCourse = store.isCourseEnrolledOrPaid(id);
                 return (
-                  <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-5 sm:p-8">
-                    <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                      <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-light text-brand">
-                        <Lock className="h-6 w-6 sm:h-7 sm:w-7" />
-                      </span>
-                      <div className="min-w-[200px] flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-display text-lg font-bold text-ink">{c.title}</p>
-                          {isFreeCourse ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                              <Check className="h-3 w-3" /> Included Free with Course
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] font-bold text-brand">
-                              Direct Exam · ₦10,000 on passing
-                            </span>
-                          )}
-                          <span className="chip !text-[11px] !py-0.5 !px-2.5">
-                            {c.level || "Academy Exam"}
+                  <div key={id} className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm hover:border-brand/30 transition">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-start gap-4 min-w-0 flex-1">
+                        {c.poster ? (
+                          <img src={c.poster} alt={c.title} className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover shrink-0 border border-line" />
+                        ) : (
+                          <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
+                            <ListChecks className="h-6 w-6" />
                           </span>
-                        </div>
-                        <p className="mt-1 text-sm text-muted">
-                          Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate ({isFreeCourse ? "included free with your course enrollment" : "₦10,000 official certificate fee applies upon passing for direct examinees"}).
-                        </p>
-                        {best && (
-                          <p className="mt-1.5 text-xs font-semibold text-brand">
-                            Best attempt: {best.score}% — {quiz ? Math.max(0, quiz.passMark - best.score) : 0}% short.
-                          </p>
                         )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-display text-base sm:text-lg font-bold text-ink">{c.title}</p>
+                            <span className="chip !text-[11px] !py-0.5 !px-2.5">
+                              {c.level || "Academy Exam"}
+                            </span>
+                            {isFreeCourse ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                                <Check className="h-3 w-3" /> Included with Course
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                                ₦10,000 on passing
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs sm:text-sm text-muted">
+                            Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate.
+                            {best && (
+                              <span className="ml-2 font-semibold text-brand">
+                                Best attempt: {best.score}% — {quiz ? Math.max(0, quiz.passMark - best.score) : 0}% short.
+                              </span>
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary w-full sm:w-auto">
+                      <button onClick={() => navigate(`/quiz/${id}`)} className="btn-primary shrink-0 w-full sm:w-auto">
                         <ListChecks className="h-4 w-4" /> {best ? "Retake assessment" : "Take assessment"}
                       </button>
                     </div>
