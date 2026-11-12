@@ -712,16 +712,16 @@ export default function DashboardPage() {
                 return (
                   <div key={id} className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      {/* Extreme Left: Course Thumbnail + Info */}
-                      <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+                      {/* Course Thumbnail (Above on mobile, extreme left on desktop) + Info */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
                         {c.poster ? (
                           <img
                             src={c.poster}
                             alt={c.title}
-                            className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl object-cover border border-line shadow-xs"
+                            className="w-full h-36 sm:h-24 sm:w-36 shrink-0 rounded-xl object-cover border border-line shadow-xs"
                           />
                         ) : (
-                          <div className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                          <div className="w-full h-36 sm:h-24 sm:w-36 shrink-0 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
                             <Award className="h-6 w-6" />
                           </div>
                         )}
@@ -785,16 +785,16 @@ export default function DashboardPage() {
                 return (
                   <div key={id} className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-sm hover:border-brand/30 transition">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      {/* Extreme Left: Course Thumbnail + Info */}
-                      <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+                      {/* Course Thumbnail (Above on mobile, extreme left on desktop) + Info */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
                         {c.poster ? (
                           <img
                             src={c.poster}
                             alt={c.title}
-                            className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl object-cover border border-line shadow-xs"
+                            className="w-full h-36 sm:h-24 sm:w-36 shrink-0 rounded-xl object-cover border border-line shadow-xs"
                           />
                         ) : (
-                          <div className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                          <div className="w-full h-36 sm:h-24 sm:w-36 shrink-0 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
                             <BookOpen className="h-6 w-6" />
                           </div>
                         )}
