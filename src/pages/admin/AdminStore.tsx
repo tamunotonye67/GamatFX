@@ -208,7 +208,7 @@ export function AdminStore() {
                                 <CatIcon className="h-5 w-5 shrink-0" />
                               </span>
                             )}
-                            <div className="min-w-0">
+                            <div className="min-w-0 max-w-[280px] sm:max-w-[340px] md:max-w-[380px]">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className="font-semibold text-ink leading-snug">{p.title}</span>
                                 {p.isPreorder && (
@@ -224,9 +224,14 @@ export function AdminStore() {
                                   </Badge>
                                 )}
                               </div>
-                              <p className="truncate text-xs text-muted mt-0.5">{p.tagline}</p>
+                              <p
+                                className="truncate text-xs text-muted mt-0.5 max-w-[260px] sm:max-w-[320px] md:max-w-[360px]"
+                                title={p.tagline}
+                              >
+                                {p.tagline}
+                              </p>
                               {p.isPreorder && p.preorderReleaseDate && (
-                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1.5 mt-1">
+                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1.5 mt-1 truncate max-w-[260px] sm:max-w-[320px]">
                                   <Clock className="h-3 w-3 shrink-0" />
                                   <span>Releases: {p.preorderReleaseDate}</span>
                                 </p>
