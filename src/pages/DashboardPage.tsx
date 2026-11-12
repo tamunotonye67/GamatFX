@@ -710,28 +710,43 @@ export default function DashboardPage() {
                 const best = store.bestAttempt(id);
                 if (!c) return null;
                 return (
-                  <div key={id} className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
+                  <div key={id} className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200 whitespace-nowrap">
-                            <Check className="h-3 w-3 shrink-0" />
-                            <span className="sm:hidden">Exam Passed ({best?.score ?? 70}%)</span>
-                            <span className="hidden sm:inline">Examination Passed ({best?.score ?? 70}%)</span>
-                          </span>
-                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200 whitespace-nowrap">
-                            <span className="sm:hidden">Cert Fee: ₦10,000</span>
-                            <span className="hidden sm:inline">Certificate Fee: ₦10,000</span>
-                          </span>
+                      {/* Extreme Left: Course Thumbnail + Info */}
+                      <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+                        {c.poster ? (
+                          <img
+                            src={c.poster}
+                            alt={c.title}
+                            className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl object-cover border border-line shadow-xs"
+                          />
+                        ) : (
+                          <div className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                            <Award className="h-6 w-6" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                              <Check className="h-3 w-3 shrink-0" />
+                              <span className="sm:hidden">Exam Passed ({best?.score ?? 70}%)</span>
+                              <span className="hidden sm:inline">Examination Passed ({best?.score ?? 70}%)</span>
+                            </span>
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200 whitespace-nowrap">
+                              <span className="sm:hidden">Cert Fee: ₦10,000</span>
+                              <span className="hidden sm:inline">Certificate Fee: ₦10,000</span>
+                            </span>
+                          </div>
+
+                          <h4 className="mt-2 font-display text-base sm:text-lg font-bold text-ink">
+                            {c.title}
+                          </h4>
+
+                          <p className="mt-1 text-xs text-muted">
+                            Complete the ₦10,000 certificate fee to unlock your official verified certificate with serial number.
+                          </p>
                         </div>
-
-                        <h4 className="mt-2.5 font-display text-base sm:text-lg font-bold text-ink">
-                          {c.title}
-                        </h4>
-
-                        <p className="mt-1.5 text-xs text-muted">
-                          Complete the ₦10,000 certificate fee to unlock your official verified certificate with serial number.
-                        </p>
                       </div>
 
                       <div className="shrink-0 flex items-center">
@@ -768,42 +783,57 @@ export default function DashboardPage() {
                 if (!c) return null;
                 const isFreeCourse = store.isCourseEnrolledOrPaid(id);
                 return (
-                  <div key={id} className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm hover:border-brand/30 transition">
+                  <div key={id} className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-sm hover:border-brand/30 transition">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="chip !text-[11px] !py-0.5 !px-2.5">
-                            {c.level || "Academy Exam"}
-                          </span>
-                          {isFreeCourse ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                              <Check className="h-3 w-3" /> Included with Course
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
-                              ₦10,000 on passing
-                            </span>
-                          )}
-                        </div>
+                      {/* Extreme Left: Course Thumbnail + Info */}
+                      <div className="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
+                        {c.poster ? (
+                          <img
+                            src={c.poster}
+                            alt={c.title}
+                            className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl object-cover border border-line shadow-xs"
+                          />
+                        ) : (
+                          <div className="h-20 w-24 sm:h-24 sm:w-36 shrink-0 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+                            <BookOpen className="h-6 w-6" />
+                          </div>
+                        )}
 
-                        <h4 className="mt-2.5 font-display text-base sm:text-lg font-bold text-ink">
-                          {c.title}
-                        </h4>
-
-                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                          <span>50 Questions</span>
-                          <span>•</span>
-                          <span>60 Mins</span>
-                          <span>•</span>
-                          <span>{quiz?.passMark ?? 70}% pass mark</span>
-                          {best && (
-                            <>
-                              <span>•</span>
-                              <span className="font-semibold text-brand">
-                                Best attempt: {best.score}% ({Math.max(0, (quiz?.passMark ?? 70) - best.score)}% to pass)
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="chip !text-[11px] !py-0.5 !px-2.5">
+                              {c.level || "Academy Exam"}
+                            </span>
+                            {isFreeCourse ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                                <Check className="h-3 w-3" /> Included with Course
                               </span>
-                            </>
-                          )}
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                                ₦10,000 on passing
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="mt-2 font-display text-base sm:text-lg font-bold text-ink">
+                            {c.title}
+                          </h4>
+
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+                            <span>50 Questions</span>
+                            <span>•</span>
+                            <span>60 Mins</span>
+                            <span>•</span>
+                            <span>{quiz?.passMark ?? 70}% pass mark</span>
+                            {best && (
+                              <>
+                                <span>•</span>
+                                <span className="font-semibold text-brand">
+                                  Best attempt: {best.score}% ({Math.max(0, (quiz?.passMark ?? 70) - best.score)}% to pass)
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
 
