@@ -239,53 +239,89 @@ export default function AffiliateCard({
         </div>
 
         {/* The Visual Social Card (Exact 2.76 x 4.75 in Aspect Ratio) */}
+        {/* The Visual Social Card (Exact 2.76 x 4.75 in Aspect Ratio) */}
         <div
           id="student-enrollment-card"
           style={{ aspectRatio: "2.76 / 4.75" }}
-          className={`relative overflow-hidden rounded-3xl p-5 sm:p-6 text-white shadow-2xl transition-all duration-300 w-full max-w-[360px] mx-auto flex flex-col justify-between ${
+          className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 text-white shadow-2xl transition-all duration-300 w-full max-w-[360px] mx-auto flex flex-col justify-between ${
             cardTheme === "red"
-              ? "bg-gradient-to-b from-[#83141f] via-[#a52230] to-[#4e0911] border border-white/20"
+              ? "bg-gradient-to-b from-[#83141f] via-[#9e1c2b] to-[#450910] border border-white/20"
               : "bg-gradient-to-b from-[#080c14] via-[#0d1322] to-[#070a10] border border-white/10"
           }`}
         >
           {/* Ambient Glows */}
           {cardTheme === "red" ? (
             <>
-              <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-black/35 blur-3xl" />
+              <div className="pointer-events-none absolute -right-16 -top-16 h-60 w-60 rounded-full bg-white/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-16 -left-16 h-60 w-60 rounded-full bg-black/45 blur-3xl" />
             </>
           ) : (
             <>
-              <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brand/20 blur-3xl" />
-              <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-sky-500/15 blur-3xl" />
+              <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-brand/25 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-16 -left-16 h-52 w-52 rounded-full bg-sky-500/20 blur-3xl" />
             </>
           )}
 
-          {/* 1. TOP CENTER: Student Profile Avatar (Enlarged) */}
-          <div className="relative pt-1 flex flex-col items-center">
+          {/* 1. TOP HEADER: Modern Brand Lockup & Verified Status Badge */}
+          <div className="relative flex items-center justify-between w-full">
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md ${
+                  cardTheme === "red" ? "bg-white" : "bg-[#dc3545]"
+                }`}
+              >
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                  <line x1="4" y1="26" x2="28" y2="26" stroke={cardTheme === "red" ? "#b02a37" : "white"} strokeOpacity="0.3" strokeWidth="1" />
+                  <line x1="8.5" y1="7" x2="8.5" y2="24" stroke={cardTheme === "red" ? "#b02a37" : "white"} strokeOpacity="0.75" strokeWidth="1.4" strokeLinecap="round" />
+                  <rect x="6.2" y="10" width="4.6" height="10" rx="1" fill={cardTheme === "red" ? "#b02a37" : "white"} fillOpacity="0.6" />
+                  <line x1="16" y1="5" x2="16" y2="24" stroke={cardTheme === "red" ? "#b02a37" : "white"} strokeWidth="1.6" strokeLinecap="round" />
+                  <rect x="13.4" y="9" width="5.2" height="12" rx="1.1" fill={cardTheme === "red" ? "#b02a37" : "white"} />
+                  <line x1="23.5" y1="9" x2="23.5" y2="24" stroke={cardTheme === "red" ? "#b02a37" : "white"} strokeOpacity="0.8" strokeWidth="1.4" strokeLinecap="round" />
+                  <rect x="21.2" y="13" width="4.6" height="8" rx="1" fill={cardTheme === "red" ? "#b02a37" : "white"} fillOpacity="0.8" />
+                  <path d="M5.5 21.5 C10 18.5, 13 14.5, 16.5 12.5 C20 10.5, 23 9.5, 27 8" stroke={cardTheme === "red" ? "#b02a37" : "white"} strokeOpacity="0.45" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+                </svg>
+              </span>
+              <div className="leading-tight text-left">
+                <span className="block font-display font-black text-sm tracking-tight text-white">
+                  GAMAT<span className={cardTheme === "red" ? "text-rose-200" : "text-brand"}>&nbsp;Fx</span>
+                </span>
+                <span className="block text-[11px] font-bold uppercase tracking-widest text-white/70">
+                  Academy
+                </span>
+              </div>
+            </div>
+
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[11px] font-bold text-white shadow-xs backdrop-blur-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>OFFICIAL</span>
+            </span>
+          </div>
+
+          {/* 2. CENTER: Student Avatar & Enrolled Status */}
+          <div className="relative my-auto py-2 flex flex-col items-center text-center">
             <div className="relative">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
                   alt={activeDisplayName}
-                  className={`h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover shadow-xl ${
-                    cardTheme === "red" ? "ring-4 sm:ring-[5px] ring-white/95" : "ring-4 sm:ring-[5px] ring-brand"
+                  className={`h-22 w-22 sm:h-24 sm:w-24 rounded-full object-cover shadow-2xl ${
+                    cardTheme === "red" ? "ring-4 ring-white/95" : "ring-4 ring-brand"
                   }`}
                 />
               ) : (
                 <div
-                  className={`flex h-24 w-24 sm:h-28 sm:w-28 shrink-0 items-center justify-center rounded-full font-display text-2xl sm:text-3xl font-black text-white shadow-xl ${
+                  className={`flex h-22 w-22 sm:h-24 sm:w-24 shrink-0 items-center justify-center rounded-full font-display text-2xl sm:text-3xl font-black text-white shadow-2xl ${
                     cardTheme === "red"
-                      ? "bg-gradient-to-br from-white/25 to-black/20 ring-4 sm:ring-[5px] ring-white/95"
-                      : "bg-gradient-to-br from-brand to-brand-dark ring-4 sm:ring-[5px] ring-brand"
+                      ? "bg-gradient-to-br from-white/30 to-black/25 ring-4 ring-white/95"
+                      : "bg-gradient-to-br from-brand to-brand-dark ring-4 ring-brand"
                   }`}
                 >
                   {initials}
                 </div>
               )}
-              {/* Checkmark overlay */}
+              {/* Verified checkmark badge */}
               <div
-                className={`absolute bottom-0.5 right-0.5 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-sky-600 text-white text-xs sm:text-sm font-black shadow-md ${
+                className={`absolute bottom-0 right-0 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-sky-500 text-white text-xs font-black shadow-md ${
                   cardTheme === "red" ? "ring-2 ring-[#83141f]" : "ring-2 ring-[#080c14]"
                 }`}
               >
@@ -293,194 +329,54 @@ export default function AffiliateCard({
               </div>
             </div>
 
-            {/* 2. Student Name on Card (Enlarged) */}
-            <h4 className="mt-2.5 font-display text-xl sm:text-2xl font-black text-white text-center truncate max-w-[300px] tracking-tight leading-tight">
+            {/* Student Name */}
+            <h4 className="mt-3 font-display text-xl sm:text-2xl font-black text-white tracking-tight leading-tight max-w-[280px] truncate">
               {activeDisplayName}
             </h4>
 
-            {/* 3. Selected Enrolled Course */}
-            <p
-              className={`mt-0.5 text-xs font-semibold text-center truncate max-w-[280px] ${
-                cardTheme === "red" ? "text-rose-200" : "text-sky-400"
-              }`}
-            >
-              Enrolled in: {courseTitle}
-            </p>
-          </div>
-
-          {/* 4. Elegant Tapering Divider */}
-          <div
-            className={`my-2 sm:my-2.5 h-px w-full bg-gradient-to-r from-transparent to-transparent ${
-              cardTheme === "red" ? "via-white/30" : "via-white/20"
-            }`}
-          />
-
-          {/* 5. "Join Me at" + GAMAT Logo & Wordmark (Enlarged) */}
-          <div className="relative flex flex-col items-center text-center">
-            <p
-              className={`font-display font-bold text-[10px] uppercase tracking-wider ${
-                cardTheme === "red" ? "text-white/90" : "text-slate-300"
-              }`}
-            >
-              Join Me at
-            </p>
-
-            {/* Enlarged GAMAT Candlestick Logo Tile + Wordmark */}
-            <div className="flex items-center justify-center gap-2.5 mt-1.5">
-              <span
-                className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl shadow-md ${
-                  cardTheme === "red" ? "bg-white" : "bg-[#dc3545]"
-                }`}
-              >
-                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                  <line
-                    x1="4"
-                    y1="26"
-                    x2="28"
-                    y2="26"
-                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
-                    strokeOpacity="0.3"
-                    strokeWidth="1"
-                  />
-                  <line
-                    x1="8.5"
-                    y1="7"
-                    x2="8.5"
-                    y2="24"
-                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
-                    strokeOpacity="0.75"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                  />
-                  <rect
-                    x="6.2"
-                    y="10"
-                    width="4.6"
-                    height="10"
-                    rx="1"
-                    fill={cardTheme === "red" ? "#b02a37" : "white"}
-                    fillOpacity="0.6"
-                  />
-                  <line
-                    x1="16"
-                    y1="5"
-                    x2="16"
-                    y2="24"
-                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                  <rect
-                    x="13.4"
-                    y="9"
-                    width="5.2"
-                    height="12"
-                    rx="1.1"
-                    fill={cardTheme === "red" ? "#b02a37" : "white"}
-                  />
-                  <line
-                    x1="23.5"
-                    y1="9"
-                    x2="23.5"
-                    y2="24"
-                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
-                    strokeOpacity="0.8"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                  />
-                  <rect
-                    x="21.2"
-                    y="13"
-                    width="4.6"
-                    height="8"
-                    rx="1"
-                    fill={cardTheme === "red" ? "#b02a37" : "white"}
-                    fillOpacity="0.8"
-                  />
-                  <path
-                    d="M5.5 21.5 C10 18.5, 13 14.5, 16.5 12.5 C20 10.5, 23 9.5, 27 8"
-                    stroke={cardTheme === "red" ? "#b02a37" : "white"}
-                    strokeOpacity="0.45"
-                    strokeWidth="1.2"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-              </span>
-              <span className="flex flex-col items-start justify-center leading-none text-left">
-                <span className="block font-display font-black text-lg sm:text-xl text-white">
-                  GAMAT<span className={cardTheme === "red" ? "text-rose-200" : "text-brand"}>&nbsp;Fx</span>
-                </span>
-                <span
-                  className={`block text-[9.5px] sm:text-[10.5px] font-extrabold uppercase tracking-[0.25em] mt-0.5 ${
-                    cardTheme === "red" ? "text-white/80" : "text-white/70"
-                  }`}
-                >
-                  Academy
-                </span>
+            {/* Enrolled Course Badge */}
+            <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 max-w-[280px]">
+              <span className={`text-xs font-semibold truncate ${cardTheme === "red" ? "text-rose-100" : "text-sky-300"}`}>
+                Enrolled in: {courseTitle}
               </span>
             </div>
+          </div>
 
-            <p
-              className={`mt-2 text-[10px] max-w-[250px] leading-tight ${
-                cardTheme === "red" ? "text-rose-100/90" : "text-slate-400"
-              }`}
-            >
-              Scan the QR code below to connect with my cohort &amp; learn together
-            </p>
-
-            {/* QR Code Container (Slightly Reduced as Requested) */}
-            <div className="mt-2 rounded-xl bg-white p-2 shadow-md border border-slate-200">
+          {/* 3. LOWER SECTION: QR Code, Invite Code, Domain */}
+          <div className="relative flex flex-col items-center text-center space-y-2.5">
+            {/* QR Code Container */}
+            <div className="rounded-2xl bg-white p-2.5 shadow-xl border border-white/50">
               <img
                 src={qrApiUrl}
                 alt="Referral QR Code"
-                className="h-20 w-20 sm:h-22 sm:w-22 object-contain"
+                className="h-24 w-24 sm:h-28 sm:w-28 object-contain"
                 loading="lazy"
               />
             </div>
 
-            {/* Invite Code */}
+            {/* 1-Click Invite Code Pill */}
             <button
               type="button"
               onClick={copyCode}
               title="Click to copy invite code"
-              className="mt-2 flex items-center justify-center gap-1.5 text-xs cursor-pointer group transition"
+              className="w-full max-w-[260px] rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 py-2 px-3 flex items-center justify-center gap-2 transition cursor-pointer group shadow-xs backdrop-blur-xs"
             >
-              <span
-                className={`text-[10px] font-bold tracking-wider uppercase ${
-                  cardTheme === "red" ? "text-white/80" : "text-slate-400"
-                }`}
-              >
+              <span className="text-[11px] font-bold uppercase tracking-wider text-white/75">
                 INVITE CODE:
               </span>
-              <span
-                className={`font-mono text-sm sm:text-base font-black group-hover:underline ${
-                  cardTheme === "red" ? "text-white" : "text-brand"
-                }`}
-              >
+              <span className={`font-mono text-sm sm:text-base font-black tracking-wider ${cardTheme === "red" ? "text-white" : "text-brand"}`}>
                 {profile.referralCode}
               </span>
               {copiedCode ? (
                 <span className="text-[10px] font-bold text-emerald-300 ml-1 print:hidden">Copied!</span>
               ) : (
-                <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100 transition print:hidden" />
+                <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100 transition print:hidden text-white" />
               )}
             </button>
 
-            {/* Domain */}
-            <p
-              className={`mt-0.5 text-[11px] font-bold font-mono tracking-wide ${
-                cardTheme === "red" ? "text-rose-200" : "text-sky-400"
-              }`}
-            >
+            {/* Official Domain */}
+            <p className={`text-xs font-mono font-bold tracking-wider ${cardTheme === "red" ? "text-rose-200/90" : "text-sky-300"}`}>
               gamatfxacademy.com
-            </p>
-          </div>
-
-          {/* Watermark Footer */}
-          <div className="mt-2 text-center border-t border-white/10 pt-1.5">
-            <p className="text-[9px] text-white/50">
-              2.76 × 4.75 in • GAMAT Official Share Card
             </p>
           </div>
         </div>

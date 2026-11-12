@@ -447,16 +447,122 @@ export async function exportAffiliateCardAsPng(
     ctx.fillRect(0, 0, width, height);
   }
 
-  // 2. Subtle outer border (matching border-white/20, NO inner perimeter frames!)
+  // 2. Subtle outer border
   ctx.lineWidth = 3;
   ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.22)" : "rgba(255, 255, 255, 0.12)";
   roundRect(ctx, 1.5, 1.5, width - 3, height - 3, cardRadius);
   ctx.stroke();
 
-  // 3. TOP CENTER: Student Profile Avatar
+  // 3. TOP HEADER: Modern Brand Lockup & Verified Status Badge
+  const headerY = 70;
+  // Left: Brand Tile + Wordmark
+  const tileX = 60;
+  const tileSize = 60;
+  ctx.save();
+  ctx.fillStyle = isRed ? "#ffffff" : "#dc3545";
+  roundRect(ctx, tileX, headerY, tileSize, tileSize, 16);
+  ctx.fill();
+
+  const scale = tileSize / 32;
+  const candleColor = isRed ? "#b02a37" : "#ffffff";
+  ctx.translate(tileX, headerY);
+
+  // Candlestick graphics inside tile
+  ctx.beginPath();
+  ctx.moveTo(4 * scale, 26 * scale);
+  ctx.lineTo(28 * scale, 26 * scale);
+  ctx.strokeStyle = candleColor;
+  ctx.globalAlpha = 0.3;
+  ctx.lineWidth = 1 * scale;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(8.5 * scale, 7 * scale);
+  ctx.lineTo(8.5 * scale, 24 * scale);
+  ctx.globalAlpha = 0.75;
+  ctx.lineWidth = 1.4 * scale;
+  ctx.stroke();
+
+  ctx.fillStyle = candleColor;
+  roundRect(ctx, 6.2 * scale, 10 * scale, 4.6 * scale, 10 * scale, 1 * scale);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(16 * scale, 5 * scale);
+  ctx.lineTo(16 * scale, 24 * scale);
+  ctx.globalAlpha = 1.0;
+  ctx.lineWidth = 1.6 * scale;
+  ctx.stroke();
+
+  roundRect(ctx, 13.4 * scale, 9 * scale, 5.2 * scale, 12 * scale, 1.1 * scale);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(23.5 * scale, 9 * scale);
+  ctx.lineTo(23.5 * scale, 24 * scale);
+  ctx.globalAlpha = 0.8;
+  ctx.lineWidth = 1.4 * scale;
+  ctx.stroke();
+
+  roundRect(ctx, 21.2 * scale, 13 * scale, 4.6 * scale, 8 * scale, 1 * scale);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(5.5 * scale, 21.5 * scale);
+  ctx.bezierCurveTo(10 * scale, 18.5 * scale, 13 * scale, 14.5 * scale, 16.5 * scale, 12.5 * scale);
+  ctx.bezierCurveTo(20 * scale, 10.5 * scale, 23 * scale, 9.5 * scale, 27 * scale, 8 * scale);
+  ctx.globalAlpha = 0.5;
+  ctx.lineWidth = 1.2 * scale;
+  ctx.stroke();
+  ctx.restore();
+
+  // Wordmark next to tile
+  const brandTextX = tileX + tileSize + 14;
+  ctx.textAlign = "left";
+  ctx.font = "900 32px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("GAMAT", brandTextX, headerY + 32);
+
+  const gamatW = ctx.measureText("GAMAT ").width;
+  ctx.fillStyle = isRed ? "#fecdd3" : "#dc3545";
+  ctx.fillText("Fx", brandTextX + gamatW - 6, headerY + 32);
+
+  ctx.font = "800 13px sans-serif";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+  const academyWord = "ACADEMY";
+  let letterX = brandTextX + 1;
+  for (let i = 0; i < academyWord.length; i++) {
+    const ch = academyWord[i];
+    ctx.fillText(ch, letterX, headerY + 52);
+    letterX += ctx.measureText(ch).width + 5;
+  }
+
+  // Right: "OFFICIAL" Badge
+  const badgeW = 150;
+  const badgeH = 44;
+  const badgeRightX = width - 60 - badgeW;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+  roundRect(ctx, badgeRightX, headerY + 8, badgeW, badgeH, 22);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Green pulse dot
+  ctx.beginPath();
+  ctx.arc(badgeRightX + 24, headerY + 8 + badgeH / 2, 5, 0, Math.PI * 2);
+  ctx.fillStyle = "#34d399";
+  ctx.fill();
+
+  ctx.textAlign = "left";
+  ctx.font = "bold 15px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("OFFICIAL", badgeRightX + 38, headerY + 8 + badgeH / 2 + 5);
+
+  // 4. CENTER SECTION: Student Avatar, Name, Enrolled Course
   const avatarCenterX = width / 2;
-  const avatarCenterY = 190;
-  const avatarRadius = 110;
+  const avatarCenterY = 385;
+  const avatarRadius = 125;
 
   let avatarLoaded = false;
   if (avatarUrl) {
@@ -503,8 +609,8 @@ export async function exportAffiliateCardAsPng(
       avatarCenterY + avatarRadius
     );
     if (isRed) {
-      initGrad.addColorStop(0, "rgba(255, 255, 255, 0.25)");
-      initGrad.addColorStop(1, "rgba(0, 0, 0, 0.2)");
+      initGrad.addColorStop(0, "rgba(255, 255, 255, 0.28)");
+      initGrad.addColorStop(1, "rgba(0, 0, 0, 0.22)");
     } else {
       initGrad.addColorStop(0, "#dc3545");
       initGrad.addColorStop(1, "#8b1523");
@@ -521,7 +627,7 @@ export async function exportAffiliateCardAsPng(
     ctx.stroke();
 
     ctx.textAlign = "center";
-    ctx.font = "900 80px sans-serif";
+    ctx.font = "900 84px sans-serif";
     ctx.fillStyle = "#ffffff";
     const displayName = (profile.cardDisplayName?.trim() || profile.userName || "TT");
     const initials = displayName
@@ -531,13 +637,13 @@ export async function exportAffiliateCardAsPng(
       .slice(0, 2)
       .join("")
       .toUpperCase() || "TT";
-    ctx.fillText(initials, avatarCenterX, avatarCenterY + 28);
+    ctx.fillText(initials, avatarCenterX, avatarCenterY + 30);
   }
 
   // Active checkmark badge overlay on avatar
-  const badgeX = avatarCenterX + 78;
-  const badgeY = avatarCenterY + 78;
-  const badgeR = 28;
+  const badgeX = avatarCenterX + 86;
+  const badgeY = avatarCenterY + 86;
+  const badgeR = 30;
 
   ctx.beginPath();
   ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
@@ -548,65 +654,53 @@ export async function exportAffiliateCardAsPng(
   ctx.stroke();
 
   ctx.textAlign = "center";
-  ctx.font = "900 28px sans-serif";
+  ctx.font = "900 30px sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("✓", badgeX, badgeY + 10);
+  ctx.fillText("✓", badgeX, badgeY + 11);
 
-  // 4. Student Name (Directly Under Avatar)
+  // Student Name
   const resolvedDisplayName = (profile.cardDisplayName?.trim() || profile.userName || "Student Trader");
   ctx.textAlign = "center";
   ctx.font = "900 52px sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(resolvedDisplayName, width / 2, 360);
+  ctx.fillText(resolvedDisplayName, width / 2, 580);
 
-  // 5. Enrolled Course
+  // Enrolled Course Badge Pill
   const courseName = profile.enrolledCourseTitle || "Forex Foundations";
-  ctx.font = "600 25px sans-serif";
-  ctx.fillStyle = isRed ? "#fecdd3" : "#38bdf8";
-  ctx.fillText(`Enrolled in: ${courseName}`, width / 2, 405);
+  ctx.font = "600 24px sans-serif";
+  const courseLabel = `Enrolled in: ${courseName}`;
+  const courseTextWidth = ctx.measureText(courseLabel).width;
+  const pillPadding = 48;
+  const pillW = Math.min(courseTextWidth + pillPadding, width - 120);
+  const pillH = 52;
+  const pillX = width / 2 - pillW / 2;
+  const pillY = 612;
 
-  // 6. Refined Divider
-  const divGrad = ctx.createLinearGradient(width / 2 - 240, 442, width / 2 + 240, 442);
-  divGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
-  divGrad.addColorStop(0.5, isRed ? "rgba(255, 255, 255, 0.35)" : "rgba(255, 255, 255, 0.2)");
-  divGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-  ctx.strokeStyle = divGrad;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(width / 2 - 240, 442);
-  ctx.lineTo(width / 2 + 240, 442);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+  roundRect(ctx, pillX, pillY, pillW, pillH, 26);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // 7. "JOIN ME AT" (Uppercase matching live preview)
-  ctx.textAlign = "center";
-  ctx.font = "bold 21px sans-serif";
-  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.9)" : "#cbd5e1";
-  ctx.fillText("JOIN ME AT", width / 2, 495);
+  ctx.fillStyle = isRed ? "#fecdd3" : "#38bdf8";
+  ctx.fillText(courseLabel, width / 2, pillY + 34);
 
-  // 8. Actual GAMAT Logo & Brand Name
-  drawGamatLogo(ctx, width / 2, 525, theme);
-
-  // 9. QR Subtitle
-  ctx.textAlign = "center";
-  ctx.font = "500 20px sans-serif";
-  ctx.fillStyle = isRed ? "rgba(255, 228, 230, 0.9)" : "#94a3b8";
-  ctx.fillText("Scan the QR code below to connect with my cohort & learn together", width / 2, 655);
-
-  // 10. QR Code Card Container (300 x 300)
-  const qrCardW = 300;
-  const qrCardH = 300;
+  // 5. LOWER SECTION: QR Code Container, Invite Code Pill, Domain
+  const qrCardW = 320;
+  const qrCardH = 320;
   const qrCardX = width / 2 - qrCardW / 2;
-  const qrCardY = 690;
+  const qrCardY = 740;
 
   ctx.fillStyle = "#ffffff";
-  roundRect(ctx, qrCardX, qrCardY, qrCardW, qrCardH, 24);
+  roundRect(ctx, qrCardX, qrCardY, qrCardW, qrCardH, 28);
   ctx.fill();
   ctx.strokeStyle = isRed ? "rgba(255, 255, 255, 0.4)" : "#e2e8f0";
   ctx.lineWidth = 2;
   ctx.stroke();
 
   const targetUrl = getSignupReferralUrl(profile.referralCode);
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(targetUrl)}`;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=265x265&margin=8&data=${encodeURIComponent(targetUrl)}`;
 
   try {
     const qrImg = new Image();
@@ -616,7 +710,7 @@ export async function exportAffiliateCardAsPng(
       qrImg.onerror = () => reject();
       qrImg.src = qrApiUrl;
     });
-    ctx.drawImage(qrImg, qrCardX + 25, qrCardY + 25, 250, 250);
+    ctx.drawImage(qrImg, qrCardX + 27.5, qrCardY + 27.5, 265, 265);
   } catch {
     ctx.fillStyle = "#0f172a";
     ctx.fillRect(qrCardX + 40, qrCardY + 40, 60, 60);
@@ -624,14 +718,24 @@ export async function exportAffiliateCardAsPng(
     ctx.fillRect(qrCardX + 40, qrCardY + qrCardH - 100, 60, 60);
   }
 
-  // 11. Invite Code (Clean typography directly under QR container)
-  ctx.textAlign = "center";
-  const codeY = 1045;
+  // Invite Code Glassmorphic Pill
+  const codePillW = 540;
+  const codePillH = 74;
+  const codePillX = width / 2 - codePillW / 2;
+  const codePillY = 1120;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+  roundRect(ctx, codePillX, codePillY, codePillW, codePillH, 20);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.24)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
   ctx.font = "bold 22px sans-serif";
   const inviteLabel = "INVITE CODE:  ";
   const labelMetrics = ctx.measureText(inviteLabel);
 
-  ctx.font = "900 34px monospace";
+  ctx.font = "900 36px monospace";
   const codeMetrics = ctx.measureText(profile.referralCode);
 
   const totalCodeW = labelMetrics.width + codeMetrics.width;
@@ -639,34 +743,18 @@ export async function exportAffiliateCardAsPng(
 
   ctx.textAlign = "left";
   ctx.font = "bold 22px sans-serif";
-  ctx.fillStyle = isRed ? "rgba(255, 255, 255, 0.8)" : "#94a3b8";
-  ctx.fillText(inviteLabel, startCodeX, codeY);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+  ctx.fillText(inviteLabel, startCodeX, codePillY + 46);
 
-  ctx.font = "900 34px monospace";
+  ctx.font = "900 36px monospace";
   ctx.fillStyle = isRed ? "#ffffff" : "#dc3545";
-  ctx.fillText(profile.referralCode, startCodeX + labelMetrics.width, codeY + 2);
+  ctx.fillText(profile.referralCode, startCodeX + labelMetrics.width, codePillY + 47);
 
-  // 12. Official Website URL (Right under Invite Code)
+  // Official Domain
   ctx.textAlign = "center";
-  ctx.font = "bold 24px monospace";
+  ctx.font = "bold 26px monospace";
   ctx.fillStyle = isRed ? "#fecdd3" : "#38bdf8";
-  ctx.fillText("gamatfxacademy.com", width / 2, 1090);
-
-  // 13. Watermark Divider & Footer
-  const footerDivGrad = ctx.createLinearGradient(width / 2 - 200, 1340, width / 2 + 200, 1340);
-  footerDivGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
-  footerDivGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.15)");
-  footerDivGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-  ctx.strokeStyle = footerDivGrad;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(width / 2 - 200, 1340);
-  ctx.lineTo(width / 2 + 200, 1340);
-  ctx.stroke();
-
-  ctx.font = "500 18px sans-serif";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-  ctx.fillText("2.76 × 4.75 in • GAMAT Official Share Card", width / 2, 1375);
+  ctx.fillText("gamatfxacademy.com", width / 2, 1260);
 
   ctx.restore();
 
