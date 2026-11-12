@@ -13,7 +13,6 @@ import {
   BookOpen,
   SlidersHorizontal,
   ShieldCheck,
-  Percent,
   User,
   RotateCcw,
   Edit3,
@@ -835,59 +834,65 @@ export default function AffiliateCard({
         </div>
 
         {/* CARD 3: 3-Step Commission Engine Explainer */}
-        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <Percent className="h-4 w-4 text-brand" />
-            <h4 className="font-display text-sm font-bold text-ink">
+        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-5">
+          <div className="border-b border-line pb-3.5">
+            <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
               How the {commissionPercent}% Commission Program Works
-            </h4>
+            </h3>
+            <p className="mt-0.5 text-xs text-muted">
+              Three simple steps to earn cash commission on referred student enrollments.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="rounded-xl bg-cream p-4 border border-line flex flex-col justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="rounded-xl border border-line bg-cream/40 p-4 flex flex-col justify-between">
               <div>
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white mb-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white text-xs font-bold mb-2.5">
                   1
                 </span>
-                <p className="font-bold text-ink">Share Card &amp; Link</p>
-                <p className="mt-1 text-muted text-[11px] leading-relaxed">
-                  Post your enrollment card to your WhatsApp status, Instagram, or share your link directly.
+                <h4 className="font-bold text-ink text-xs sm:text-sm">Share Card &amp; Link</h4>
+                <p className="mt-1 text-[11px] text-muted leading-relaxed">
+                  Post your customized card to WhatsApp, Instagram, or share your invite link directly with friends.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-xl bg-cream p-4 border border-line flex flex-col justify-between">
+            <div className="rounded-xl border border-line bg-cream/40 p-4 flex flex-col justify-between">
               <div>
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-[11px] font-bold text-white mb-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white text-xs font-bold mb-2.5">
                   2
                 </span>
-                <p className="font-bold text-ink">Friends Register</p>
-                <p className="mt-1 text-muted text-[11px] leading-relaxed">
-                  They register using your link or QR code at no cost to start learning with you.
+                <h4 className="font-bold text-ink text-xs sm:text-sm">Friends Register</h4>
+                <p className="mt-1 text-[11px] text-muted leading-relaxed">
+                  They register using your invite code or link at zero cost to start their trading journey.
                 </p>
               </div>
             </div>
 
-            <div className="rounded-xl bg-emerald-50/60 p-4 border border-emerald-200/60 flex flex-col justify-between">
+            <div className="rounded-xl border border-line bg-cream/40 p-4 flex flex-col justify-between">
               <div>
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-[11px] font-bold text-white mb-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white text-xs font-bold mb-2.5">
                   3
                 </span>
-                <p className="font-bold text-emerald-950">Earn {commissionPercent}% Cash</p>
-                <p className="mt-1 text-emerald-800 text-[11px] leading-relaxed">
-                  When they purchase paid mentorship or store trading tools, you receive an instant {commissionPercent}% cash payout!
+                <h4 className="font-bold text-ink text-xs sm:text-sm">Earn {commissionPercent}% Cash</h4>
+                <p className="mt-1 text-[11px] text-muted leading-relaxed">
+                  Receive an instant {commissionPercent}% commission whenever they enroll in paid courses or trading tools.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Program Terms Pill */}
-          <div className="mt-4 rounded-xl bg-slate-50 p-3 border border-slate-200 text-[11px] text-muted flex flex-wrap items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 font-medium">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Withdrawals paid via Nigerian Bank Transfer, USDT (TRC20), or PayPal</span>
-            </span>
-            <span className="font-bold text-slate-700">Minimum Payout: ₦{minimumPayoutAmount.toLocaleString()}</span>
+          {/* Program Terms & Payout Info */}
+          <div className="pt-3.5 border-t border-line flex flex-wrap items-center justify-between gap-2.5 text-xs text-muted">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span className="text-[11px] sm:text-xs">
+                Payouts sent via Nigerian Bank Transfer, USDT (TRC-20), or PayPal
+              </span>
+            </div>
+            <div className="text-[11px] sm:text-xs font-semibold text-ink">
+              Min. Payout: <span className="font-bold text-brand">₦{minimumPayoutAmount.toLocaleString()}</span>
+            </div>
           </div>
         </div>
       </div>
