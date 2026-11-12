@@ -21,6 +21,8 @@ export function generateTxRef(prefix = "GFX"): string {
 }
 
 const getEnvActiveGateway = () => ((import.meta as any).env?.VITE_BACHS_ACTIVE_GATEWAY || "bachs");
+const getEnvApiKey = () => ((import.meta as any).env?.VITE_BACHS_API_KEY || "");
+const getEnvWebhookSecret = () => ((import.meta as any).env?.VITE_BACHS_WEBHOOK_SECRET || "");
 
 export const DEFAULT_BACHS_CONFIG: BachsConfig = {
   apiKey: "",
