@@ -9,7 +9,7 @@ import {
 import { supabase } from "./supabase";
 import { COURSES, getCourse, totalLessons, COURSE_ALIASES } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
-import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount } from "./supabaseAuth";
+import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount, rowToAccount, type SupabaseAccountRow } from "./supabaseAuth";
 import {
   fetchSupabaseEnrollments, saveSupabaseEnrollment, deleteSupabaseEnrollment,
   fetchSupabasePayments, saveSupabasePayment, deleteSupabasePayment,
@@ -1990,16 +1990,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [myEnrollments]);
 
   const stats = useMemo(() => {
-    let lessonsDone = 0, completed = 0, minutes = 0;
+    let lessonsDone = 0, minutes = 0;
+    const completedCourseIds = new Set<string>();
+
     myEnrollments.forEach((e) => {
       const c = getCourse(e.courseId);
       if (!c) return;
       lessonsDone += e.completedLessons.length;
       const isCertified = attempts.some((a) => a.userId === sessionId && a.courseId === e.courseId && a.passed);
-      if (e.completedLessons.length >= totalLessons(c) || isCertified) completed += 1;
+      if (e.completedLessons.length >= totalLessons(c) || isCertified) {
+        completedCourseIds.add(c.id);
+      }
       minutes += e.completedLessons.length * 18;
     });
-    return { enrolled: myEnrollments.length, completed, lessonsDone, hours: Math.round(minutes / 60) };
+
+    attempts.forEach((a) => {
+      if (a.userId === sessionId && a.passed) {
+        const canonical = COURSE_ALIASES[a.courseId] || a.courseId;
+        const c = getCourse(a.courseId) || getCourse(canonical);
+        if (c) completedCourseIds.add(c.id);
+        else completedCourseIds.add(canonical);
+      }
+    });
+
+    return {
+      enrolled: myEnrollments.length,
+      completed: completedCourseIds.size,
+      lessonsDone,
+      hours: Math.round(minutes / 60),
+    };
   }, [myEnrollments, attempts, sessionId]);
 
   /* ----------------------------- Pricing ----------------------------- */
@@ -2213,9 +2232,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // When student passes exam, ensure enrollment record exists with completed lessons
     // so official certificate unlocks immediately in their dashboard
     if (attempt.passed && sessionId && sessionId !== "anon") {
-      const course = getCourse(courseId);
+      const course = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);
       const targetCourseId = course ? course.id : (COURSE_ALIASES[courseId] || courseId);
-      const allLessonIds = course ? course.curriculum.flatMap((m) => m.lessons.map((l) => l.id)) : [];
+      const allLessonIds = course ? (course.modules ?? []).flatMap((m) => (m.lessons ?? []).map((l) => l.id)) : [];
       setAllEnrollments((prev) => {
         const existing = prev.find(
           (e) => e.userId === sessionId && (e.courseId === targetCourseId || e.courseId === courseId)
@@ -3329,8 +3348,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setCourseSettings((p) => ({ ...p, [courseId]: { ...p[courseId], ...patch } })),
     issueCertificate: (userId, courseId) => {
       // 1. Ensure user has enrollment with all lessons marked completed
-      const c = getCourse(courseId);
-      const allLIds = c ? c.sections.flatMap((s) => s.lessons.map((l) => l.id)) : [];
+      const c = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);
+      const allLIds = c ? (c.modules ?? []).flatMap((m) => (m.lessons ?? []).map((l) => l.id)) : [];
       setAllEnrollments((prev) => {
         const existing = prev.find((e) => e.userId === userId && e.courseId === courseId);
         if (existing) {
@@ -3502,10 +3521,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         id: `notif_evreg_${r.id}`,
         type: "event_reg",
         title: "New Event Registration",
-        body: `${r.userName} registered for ${r.eventTitle}.`,
-        timestamp: r.registeredAt,
+        body: `${r.name} registered for ${r.eventTitle}.`,
+        timestamp: r.createdAt,
         link: "/admin/registrations",
-        targetQuery: r.ref || r.userName || r.userEmail,
+        targetQuery: r.ticket || r.name || r.email,
         read: false,
       });
     });

@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useStore } from "../lib/store";
 import { downloadCertificate, certificatePreview, type CertData } from "../lib/certificate";
-import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse } from "../lib/courses";
+import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse, COURSE_ALIASES, type Course } from "../lib/courses";
 import { navigate } from "../lib/router";
 import {
   LayoutDashboard, BookOpen, Award, User as UserIcon, CalendarDays,
@@ -176,10 +176,87 @@ export default function DashboardPage() {
       ...tabs.slice(profileIdx),
     ];
   }
-  // A student qualifies for a certificate when they pass the official assessment
-  // (available to both physical office students and online students) or complete coursework.
-  const certified = enrollments.filter((e) => store.hasPassedQuiz(e.courseId));
-  const awaitingQuiz = enrollments.filter((e) => !store.hasPassedQuiz(e.courseId));
+  // All academy courses available for learning and certification assessments
+  const allAvailableCourses = useMemo<Course[]>(() => {
+    const list: Course[] = [];
+    const seen = new Set<string>();
+
+    // Prioritize courses the student is already enrolled in
+    enrollments.forEach((e) => {
+      const c = getCourse(e.courseId) || (store.managedCourses.find((m) => m.id === e.courseId) ? asCourse(store.managedCourses.find((m) => m.id === e.courseId)!) : undefined);
+      if (c && !seen.has(c.id)) {
+        seen.add(c.id);
+        list.push(c);
+      }
+    });
+
+    // Built-in courses
+    COURSES.forEach((c) => {
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        list.push(c);
+      }
+    });
+
+    // Admin managed courses
+    store.managedCourses.forEach((m) => {
+      const c = asCourse(m);
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        list.push(c);
+      }
+    });
+
+    return list;
+  }, [enrollments, store.managedCourses]);
+
+  // Check if a course has been certified (passed quiz OR completed coursework 100%)
+  const isCourseCertified = useCallback((courseId: string) => {
+    if (store.hasPassedQuiz(courseId)) return true;
+    const c = getCourse(courseId) || (store.managedCourses.find((m) => m.id === courseId) ? asCourse(store.managedCourses.find((m) => m.id === courseId)!) : undefined);
+    if (c) {
+      const total = totalLessons(c);
+      const enr = enrollments.find((e) => {
+        const canonical = COURSE_ALIASES[e.courseId] || e.courseId;
+        return e.courseId === courseId || canonical === courseId;
+      });
+      if (enr && total > 0 && enr.completedLessons.length >= total) return true;
+    }
+    return false;
+  }, [store.hasPassedQuiz, enrollments, store.managedCourses]);
+
+  // Unique certified course IDs (completed certificates)
+  const certifiedIds = useMemo(() => {
+    const ids = new Set<string>();
+    allAvailableCourses.forEach((c) => {
+      if (isCourseCertified(c.id)) ids.add(c.id);
+    });
+    // Any passed quiz attempt even if alias or taken directly
+    store.attempts.forEach((a) => {
+      if (a.passed) {
+        const canonical = COURSE_ALIASES[a.courseId] || a.courseId;
+        const c = getCourse(a.courseId) || getCourse(canonical);
+        if (c) ids.add(c.id);
+        else ids.add(canonical);
+      }
+    });
+    // Any enrollment where all lessons were completed
+    enrollments.forEach((e) => {
+      if (isCourseCertified(e.courseId)) {
+        const c = getCourse(e.courseId);
+        if (c) ids.add(c.id);
+        else ids.add(e.courseId);
+      }
+    });
+    return Array.from(ids);
+  }, [allAvailableCourses, isCourseCertified, store.attempts, enrollments]);
+
+  // Pending assessments accessible to the student
+  const awaitingQuizIds = useMemo(() => {
+    return allAvailableCourses
+      .map((c) => c.id)
+      .filter((id) => !certifiedIds.includes(id));
+  }, [allAvailableCourses, certifiedIds]);
 
   return (
     <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
@@ -276,7 +353,7 @@ export default function DashboardPage() {
         <div className="min-w-0">
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
-          {tab === "certificates" && <Certificates completed={certified.map((e) => e.courseId)} pending={awaitingQuiz.map((e) => e.courseId)} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
+          {tab === "certificates" && <Certificates completed={certifiedIds} pending={awaitingQuizIds} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
           {tab === "affiliate" && <AffiliateSection />}
           {tab === "wallet" && <WalletSection />}
           {tab === "billing" && <BillingSection />}
@@ -494,6 +571,8 @@ export default function DashboardPage() {
   }
 
   function Certificates({ completed, pending, name }: { completed: string[]; pending: string[]; name: string }) {
+    const studentName = name.trim() || user?.nickname || `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "GAMAT FX Student";
+
     const PendingList = () => (
       <>
         {pending.map((id) => {
@@ -501,6 +580,7 @@ export default function DashboardPage() {
           const quiz = store.getCourseQuiz(id) || getQuiz(id);
           const best = store.bestAttempt(id);
           if (!c) return null;
+          const isEnrolledInCourse = store.isEnrolled(id) || enrollments.some((e) => e.courseId === id || COURSE_ALIASES[e.courseId] === id);
           return (
             <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-5 sm:p-8">
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
@@ -508,9 +588,23 @@ export default function DashboardPage() {
                   <Lock className="h-6 w-6 sm:h-7 sm:w-7" />
                 </span>
                 <div className="min-w-[200px] flex-1">
-                  <p className="font-display text-lg font-bold text-ink">{c.title}</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-display text-lg font-bold text-ink">{c.title}</p>
+                    {isEnrolledInCourse ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
+                        <Check className="h-3 w-3" /> Enrolled
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] font-bold text-brand">
+                        Open Assessment
+                      </span>
+                    )}
+                    <span className="chip !text-[11px] !py-0.5 !px-2.5">
+                      {c.level || "Academy Exam"}
+                    </span>
+                  </div>
                   <p className="mt-1 text-sm text-muted">
-                    Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate (for both online and physical academy students).
+                    Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate (accessible to all students and direct examinees).
                   </p>
                   {best && (
                     <p className="mt-1.5 text-xs font-semibold text-brand">
@@ -529,25 +623,61 @@ export default function DashboardPage() {
     );
 
     if (!completed.length && !pending.length) {
-      return <EmptyState title="No certificates yet" body="Enroll in a course and pass the final assessment to earn your official certificate." cta="View My Courses" to="/dashboard" />;
+      return (
+        <EmptyState
+          title="No certificates yet"
+          body="Take any course assessment and pass with 70% or higher to unlock and download your official certificate."
+          cta="Browse Courses"
+          to="/courses"
+        />
+      );
     }
     return (
       <div className="space-y-8">
-        <PendingList />
-        {completed.map((id) => {
-          const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
-          if (!c) return null;
-          const enr = enrollments.find((e) => e.courseId === id);
-          const issued = new Date(enr?.enrolledAt ?? Date.now());
-          const data = {
-            name,
-            course: c.title,
-            date: issued.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
-            serial: `GX-${id.slice(0, 4).toUpperCase()}-${(user!.id).slice(-5).toUpperCase()}`,
-            hours: c.duration,
-          };
-          return <CertificateCard key={id} data={data} />;
-        })}
+        {completed.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="font-display text-xl font-bold text-ink flex items-center gap-2">
+                <Award className="h-5 w-5 text-brand" /> Earned Certificates ({completed.length})
+              </h2>
+              <p className="mt-0.5 text-xs sm:text-sm text-muted">
+                Official accredited certificates earned through verified assessments and completed coursework.
+              </p>
+            </div>
+            <div className="space-y-6">
+              {completed.map((id) => {
+                const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
+                if (!c) return null;
+                const enr = enrollments.find((e) => e.courseId === id || COURSE_ALIASES[e.courseId] === id);
+                const issued = new Date(enr?.enrolledAt ?? Date.now());
+                const data = {
+                  name: studentName,
+                  course: c.title,
+                  date: issued.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+                  serial: `GX-${id.slice(0, 4).toUpperCase()}-${(user!.id).slice(-5).toUpperCase()}`,
+                  hours: c.duration,
+                };
+                return <CertificateCard key={id} data={data} />;
+              })}
+            </div>
+          </div>
+        )}
+
+        {pending.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="font-display text-xl font-bold text-ink flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-brand" /> Certification Assessments ({pending.length})
+              </h2>
+              <p className="mt-0.5 text-xs sm:text-sm text-muted">
+                Assessments are accessible to everyone. Pass any assessment ({70}% pass mark required) to unlock your official verified certificate.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <PendingList />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
