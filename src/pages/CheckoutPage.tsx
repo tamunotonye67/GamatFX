@@ -13,9 +13,11 @@ import { getActiveReferralCode } from "../lib/affiliate";
 type Method = "card" | "transfer" | "crypto";
 
 export default function CheckoutPage({ id }: { id: string }) {
-  const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon, affiliateSettings } = useStore();
-  const builtIn = getCourse(id);
-  const managed = managedCourses.find((c) => c.id === id && c.published);
+  const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon, affiliateSettings, payCertificateFee, isCertificateUnlocked } = useStore();
+  const isCertCheckout = id.startsWith("cert-");
+  const targetId = isCertCheckout ? id.replace("cert-", "") : id;
+  const builtIn = getCourse(targetId);
+  const managed = managedCourses.find((c) => (c.id === targetId || c.id === id) && c.published);
   const course = builtIn ?? (managed ? asCourse(managed) : undefined);
   const isMentorship = course?.tag === "Mentorship" || course?.id.startsWith("mentorship-");
   const [selectedMethod, setSelectedMethod] = useState<Method>("card");
@@ -75,23 +77,31 @@ export default function CheckoutPage({ id }: { id: string }) {
     );
   }
 
-  if (isEnrolled(course.id) && !done) {
+  if (isCertCheckout ? isCertificateUnlocked(course.id) : (isEnrolled(course.id) && !done)) {
     return (
       <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
         <CheckCircle2 className="h-14 w-14 text-brand" />
-        <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">You already own this course</h1>
+        <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">
+          {isCertCheckout ? "Certificate already unlocked!" : "You already own this course"}
+        </h1>
+        <p className="mt-2 text-sm text-muted">
+          {isCertCheckout
+            ? "Your official accredited certificate is ready to download in your dashboard."
+            : `You have full lifetime access to ${course.title}.`}
+        </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <button onClick={() => navigate(`/learn/${course.id}`)} className="btn-primary">Continue Learning</button>
-          <button onClick={() => navigate("/dashboard")} className="btn-outline-dark">Go to Dashboard</button>
+          <button onClick={() => navigate("/dashboard")} className="btn-primary">
+            {isCertCheckout ? "Go to My Certificates" : "Continue Learning"}
+          </button>
         </div>
       </section>
     );
   }
 
-  const base = managed ? managed.price : priceOf(course.id);
+  const base = isCertCheckout ? 10000 : (managed ? managed.price : priceOf(course.id));
   const discountAmt = Math.round(base * discount);
   const discountedSubtotal = Math.max(0, base - discountAmt);
-  const vat = Math.round(discountedSubtotal * 0.075);
+  const vat = isCertCheckout ? 0 : Math.round(discountedSubtotal * 0.075);
   const total = discountedSubtotal + vat;
 
   const applyCoupon = (codeToApply = coupon) => {
@@ -149,20 +159,24 @@ export default function CheckoutPage({ id }: { id: string }) {
     const ref = generateTxRef("GFX");
 
     const completePayment = () => {
-      enroll(course.id);
-      recordPayment({
-        userId: user!.id,
-        userName: `${user!.firstName} ${user!.lastName}`,
-        userEmail: user!.email,
-        courseId: course.id,
-        courseTitle: course.title,
-        subtotal: base,
-        vat: finalVat,
-        discount: finalDiscountAmt,
-        amount: finalTotal,
-        method: selectedMethod,
-        coupon: activeDiscount && activeCode ? activeCode : undefined,
-      });
+      if (isCertCheckout) {
+        payCertificateFee(course.id, selectedMethod, ref);
+      } else {
+        enroll(course.id);
+        recordPayment({
+          userId: user!.id,
+          userName: `${user!.firstName} ${user!.lastName}`,
+          userEmail: user!.email,
+          courseId: course.id,
+          courseTitle: course.title,
+          subtotal: base,
+          vat: finalVat,
+          discount: finalDiscountAmt,
+          amount: finalTotal,
+          method: selectedMethod,
+          coupon: activeDiscount && activeCode ? activeCode : undefined,
+        });
+      }
       try {
         sessionStorage.removeItem("gamat_claimed_coupon");
       } catch {}
@@ -180,9 +194,10 @@ export default function CheckoutPage({ id }: { id: string }) {
         phone: user!.phone,
         reference: ref,
         metadata: {
-          course_id: course.id,
+          type: isCertCheckout ? "certificate_fee" : "course_enrollment",
+          course_id: isCertCheckout ? `cert-${course.id}` : course.id,
           student_id: user!.id,
-          course_title: course.title,
+          course_title: isCertCheckout ? `Official Certificate: ${course.title}` : course.title,
           preferred_channel: selectedMethod,
         },
         onSuccess: () => completePayment(),
@@ -288,6 +303,35 @@ export default function CheckoutPage({ id }: { id: string }) {
 
             {/* Embedded Onboarding Intake Survey */}
             <MentorshipSurveyCard user={user} courseId={course.id} />
+          </div>
+        </section>
+      );
+    }
+
+    if (isCertCheckout) {
+      return (
+        <section className="flex min-h-screen items-center justify-center bg-cream px-4 py-12 sm:px-6 sm:py-20">
+          <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-6 sm:p-10 text-center shadow-[0_22px_60px_-32px_rgba(22,24,28,0.4)]">
+            <span className="mx-auto flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <CheckCircle2 className="h-9 w-9 sm:h-11 sm:w-11" />
+            </span>
+            <h1 className="mt-6 font-display text-2xl sm:text-3xl font-extrabold text-ink">Certificate Unlocked!</h1>
+            <p className="mt-3 text-sm sm:text-base text-muted">
+              Your official accredited certificate for <strong className="text-ink">{course.title}</strong> has been issued and is ready to view and download in your dashboard.
+            </p>
+
+            <div className="mt-7 rounded-2xl bg-cream p-4 sm:p-5 text-left text-sm">
+              <Row l="Certificate" v={course.title} />
+              <Row l="Fee Paid" v={naira(total)} />
+              <Row l="Accreditation" v="Official GAMAT Fx Seal" />
+              <Row l="Format" v="High-Res PNG & Serial" last />
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3">
+              <button onClick={() => navigate("/dashboard")} className="btn-primary w-full">
+                View My Certificate <ArrowUpRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </section>
       );

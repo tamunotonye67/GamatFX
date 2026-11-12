@@ -18,6 +18,7 @@ import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
 import ImageCropModal from "../components/ImageCropModal";
+import CertificatePaymentModal from "../components/CertificatePaymentModal";
 
 type Tab = "overview" | "courses" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
@@ -210,53 +211,51 @@ export default function DashboardPage() {
     return list;
   }, [enrollments, store.managedCourses]);
 
-  // Check if a course has been certified (passed quiz OR completed coursework 100%)
-  const isCourseCertified = useCallback((courseId: string) => {
-    if (store.hasPassedQuiz(courseId)) return true;
-    const c = getCourse(courseId) || (store.managedCourses.find((m) => m.id === courseId) ? asCourse(store.managedCourses.find((m) => m.id === courseId)!) : undefined);
-    if (c) {
-      const total = totalLessons(c);
-      const enr = enrollments.find((e) => {
-        const canonical = COURSE_ALIASES[e.courseId] || e.courseId;
-        return e.courseId === courseId || canonical === courseId;
-      });
-      if (enr && total > 0 && enr.completedLessons.length >= total) return true;
-    }
-    return false;
-  }, [store.hasPassedQuiz, enrollments, store.managedCourses]);
-
-  // Unique certified course IDs (completed certificates)
+  // Unique certified course IDs (unlocked and ready to view/download)
   const certifiedIds = useMemo(() => {
     const ids = new Set<string>();
     allAvailableCourses.forEach((c) => {
-      if (isCourseCertified(c.id)) ids.add(c.id);
+      if (store.isCertificateUnlocked(c.id)) ids.add(c.id);
     });
-    // Any passed quiz attempt even if alias or taken directly
+    // Check any passed attempts where cert was unlocked
     store.attempts.forEach((a) => {
       if (a.passed) {
         const canonical = COURSE_ALIASES[a.courseId] || a.courseId;
-        const c = getCourse(a.courseId) || getCourse(canonical);
-        if (c) ids.add(c.id);
-        else ids.add(canonical);
-      }
-    });
-    // Any enrollment where all lessons were completed
-    enrollments.forEach((e) => {
-      if (isCourseCertified(e.courseId)) {
-        const c = getCourse(e.courseId);
-        if (c) ids.add(c.id);
-        else ids.add(e.courseId);
+        if (store.isCertificateUnlocked(a.courseId) || store.isCertificateUnlocked(canonical)) {
+          const c = getCourse(a.courseId) || getCourse(canonical);
+          if (c) ids.add(c.id);
+          else ids.add(canonical);
+        }
       }
     });
     return Array.from(ids);
-  }, [allAvailableCourses, isCourseCertified, store.attempts, enrollments]);
+  }, [allAvailableCourses, store.isCertificateUnlocked, store.attempts]);
 
-  // Pending assessments accessible to the student
+  // Courses where exam was passed, but ₦10,000 certificate fee is pending payment
+  const pendingPaymentCertIds = useMemo(() => {
+    const ids = new Set<string>();
+    allAvailableCourses.forEach((c) => {
+      if (store.isCertificatePendingPayment(c.id)) ids.add(c.id);
+    });
+    store.attempts.forEach((a) => {
+      if (a.passed) {
+        const canonical = COURSE_ALIASES[a.courseId] || a.courseId;
+        if (store.isCertificatePendingPayment(a.courseId) || store.isCertificatePendingPayment(canonical)) {
+          const c = getCourse(a.courseId) || getCourse(canonical);
+          if (c) ids.add(c.id);
+          else ids.add(canonical);
+        }
+      }
+    });
+    return Array.from(ids);
+  }, [allAvailableCourses, store.isCertificatePendingPayment, store.attempts]);
+
+  // Courses awaiting exam completion
   const awaitingQuizIds = useMemo(() => {
     return allAvailableCourses
       .map((c) => c.id)
-      .filter((id) => !certifiedIds.includes(id));
-  }, [allAvailableCourses, certifiedIds]);
+      .filter((id) => !certifiedIds.includes(id) && !pendingPaymentCertIds.includes(id));
+  }, [allAvailableCourses, certifiedIds, pendingPaymentCertIds]);
 
   return (
     <div className="min-h-screen bg-cream pt-[var(--header-h,72px)]">
@@ -353,7 +352,7 @@ export default function DashboardPage() {
         <div className="min-w-0">
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
-          {tab === "certificates" && <Certificates completed={certifiedIds} pending={awaitingQuizIds} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
+          {tab === "certificates" && <Certificates completed={certifiedIds} pendingPayment={pendingPaymentCertIds} pending={awaitingQuizIds} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
           {tab === "affiliate" && <AffiliateSection />}
           {tab === "wallet" && <WalletSection />}
           {tab === "billing" && <BillingSection />}
@@ -570,8 +569,9 @@ export default function DashboardPage() {
     );
   }
 
-  function Certificates({ completed, pending, name }: { completed: string[]; pending: string[]; name: string }) {
+  function Certificates({ completed, pendingPayment = [], pending, name }: { completed: string[]; pendingPayment?: string[]; pending: string[]; name: string }) {
     const studentName = name.trim() || user?.nickname || `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "GAMAT FX Student";
+    const [paymentModalCourseId, setPaymentModalCourseId] = useState<string | null>(null);
 
     const PendingList = () => (
       <>
@@ -580,7 +580,7 @@ export default function DashboardPage() {
           const quiz = store.getCourseQuiz(id) || getQuiz(id);
           const best = store.bestAttempt(id);
           if (!c) return null;
-          const isEnrolledInCourse = store.isEnrolled(id) || enrollments.some((e) => e.courseId === id || COURSE_ALIASES[e.courseId] === id);
+          const isFreeCourse = store.isCourseEnrolledOrPaid(id);
           return (
             <div key={id} className="rounded-3xl border-2 border-dashed border-brand/40 bg-white p-5 sm:p-8">
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
@@ -590,13 +590,13 @@ export default function DashboardPage() {
                 <div className="min-w-[200px] flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-display text-lg font-bold text-ink">{c.title}</p>
-                    {isEnrolledInCourse ? (
+                    {isFreeCourse ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                        <Check className="h-3 w-3" /> Enrolled
+                        <Check className="h-3 w-3" /> Included Free with Course
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-brand-light px-2.5 py-0.5 text-[11px] font-bold text-brand">
-                        Open Assessment
+                        Direct Exam · ₦10,000 on passing
                       </span>
                     )}
                     <span className="chip !text-[11px] !py-0.5 !px-2.5">
@@ -604,7 +604,7 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted">
-                    Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate (accessible to all students and direct examinees).
+                    Pass the final assessment ({quiz?.passMark ?? 70}% required) to unlock your certificate ({isFreeCourse ? "included free with your course enrollment" : "₦10,000 official certificate fee applies upon passing for direct examinees"}).
                   </p>
                   {best && (
                     <p className="mt-1.5 text-xs font-semibold text-brand">
@@ -622,7 +622,7 @@ export default function DashboardPage() {
       </>
     );
 
-    if (!completed.length && !pending.length) {
+    if (!completed.length && !pendingPayment.length && !pending.length) {
       return (
         <EmptyState
           title="No certificates yet"
@@ -663,6 +663,57 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {pendingPayment.length > 0 && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="font-display text-xl font-bold text-amber-950 flex items-center gap-2">
+                <Award className="h-5 w-5 text-amber-600" /> Passed Assessments — Certificate Fee Pending ({pendingPayment.length})
+              </h2>
+              <p className="mt-0.5 text-xs sm:text-sm text-muted">
+                You passed these examinations! Because you took the assessment directly without an online course enrollment, an official certification fee of ₦10,000 applies to issue your accredited certificate.
+              </p>
+            </div>
+            <div className="space-y-4">
+              {pendingPayment.map((id) => {
+                const c = getCourse(id) || (store.managedCourses.find((m) => m.id === id) ? asCourse(store.managedCourses.find((m) => m.id === id)!) : undefined);
+                const best = store.bestAttempt(id);
+                if (!c) return null;
+                return (
+                  <div key={id} className="rounded-3xl border-2 border-amber-300 bg-gradient-to-r from-amber-50/70 via-white to-white p-5 sm:p-7 shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-start gap-4">
+                        <span className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-800 shadow-xs">
+                          <Award className="h-6 w-6 sm:h-7 sm:w-7" />
+                        </span>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-display text-lg font-bold text-ink">{c.title}</h3>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                              <Check className="h-3 w-3" /> Passed ({best?.score ?? 70}%)
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+                              Fee: ₦10,000
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs sm:text-sm text-muted">
+                            Accredited certificate ready for issuance. Complete the ₦10,000 fee to generate your verified serial number and print-ready PNG download.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setPaymentModalCourseId(id)}
+                        className="btn-primary w-full sm:w-auto !py-3 !px-6 font-bold shadow-md shadow-brand/20 flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {pending.length > 0 && (
           <div className="space-y-4">
             <div>
@@ -670,13 +721,24 @@ export default function DashboardPage() {
                 <ListChecks className="h-5 w-5 text-brand" /> Certification Assessments ({pending.length})
               </h2>
               <p className="mt-0.5 text-xs sm:text-sm text-muted">
-                Assessments are accessible to everyone. Pass any assessment ({70}% pass mark required) to unlock your official verified certificate.
+                Assessments are accessible to everyone. Pass any assessment ({70}% pass mark required) to qualify for your official verified certificate.
               </p>
             </div>
             <div className="space-y-4">
               <PendingList />
             </div>
           </div>
+        )}
+
+        {paymentModalCourseId && (
+          <CertificatePaymentModal
+            courseId={paymentModalCourseId}
+            isOpen={true}
+            onClose={() => setPaymentModalCourseId(null)}
+            onSuccess={() => {
+              setPaymentModalCourseId(null);
+            }}
+          />
         )}
       </div>
     );

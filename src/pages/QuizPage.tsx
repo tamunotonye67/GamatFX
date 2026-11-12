@@ -7,11 +7,13 @@ import { navigate } from "../lib/router";
 import {
   Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Award,
   Lock, AlertCircle, RotateCcw, Flag, Trophy, ListChecks, Bookmark,
-  HelpCircle, Filter, Check,
+  HelpCircle, Filter, Check, ShieldCheck,
 } from "lucide-react";
+import CertificatePaymentModal from "../components/CertificatePaymentModal";
 
 export default function QuizPage({ courseId }: { courseId: string }) {
-  const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz, user } = useStore();
+  const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz, user, isCourseEnrolledOrPaid, isCertificateUnlocked } = useStore();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const rawId = (courseId || "").trim();
   const lowerId = rawId.toLowerCase();
 
@@ -79,6 +81,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   
   const hasEnrollment = isEnrolled(rawId) || isEnrolled(course.id) || (existingCourse && isEnrolled(existingCourse.id)) || user?.role === "admin";
   const courseUrl = hasEnrollment ? `/learn/${course.id}` : `/courses/${course.id}`;
+  const isFreeCert = isCourseEnrolledOrPaid(course.id) || isCertificateUnlocked(course.id);
 
   function startAssessment() {
     const fresh = generateAssessmentQuestions(rawId, quiz, DEFAULT_EXAM_QUESTION_COUNT);
@@ -139,13 +142,44 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
             <div className="p-5 sm:p-8">
               {result.passed ? (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-                  <Award className="mx-auto h-9 w-9 text-emerald-700" />
-                  <p className="mt-2 font-display text-lg font-bold text-emerald-900">Official Certificate Unlocked</p>
-                  <p className="mt-1 text-sm text-emerald-800">
-                    Your official GAMAT Fx Academy certificate for <strong>{course.title}</strong> is now ready to download and print in your dashboard.
-                  </p>
-                </div>
+                isFreeCert ? (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+                    <Award className="mx-auto h-9 w-9 text-emerald-700" />
+                    <p className="mt-2 font-display text-lg font-bold text-emerald-900">Official Certificate Unlocked</p>
+                    <p className="mt-1 text-sm text-emerald-800">
+                      Your official GAMAT Fx Academy certificate for <strong>{course.title}</strong> is now ready to download and print in your dashboard (Included 100% free with your course enrollment).
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border-2 border-brand/40 bg-gradient-to-br from-brand-light/60 to-white p-6 sm:p-7 text-center shadow-sm">
+                    <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-white shadow-md">
+                      <Award className="h-8 w-8" />
+                    </span>
+                    <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold text-emerald-800">
+                      <Check className="h-3.5 w-3.5" /> Examination Passed ({result.score}%)
+                    </span>
+                    <h3 className="mt-2 font-display text-xl sm:text-2xl font-bold text-ink">
+                      Claim Your Official Certificate
+                    </h3>
+                    <p className="mt-2 max-w-lg mx-auto text-xs sm:text-sm text-muted leading-relaxed">
+                      Congratulations! You passed the official final assessment. Because you took this examination directly without course enrollment, an official certification & verification fee of <strong className="text-brand font-bold">₦10,000</strong> applies to issue your accredited certificate with verification serial number and print-ready PNG.
+                    </p>
+                    <div className="mt-5 flex flex-wrap justify-center gap-3">
+                      <button
+                        onClick={() => setShowPaymentModal(true)}
+                        className="btn-primary !py-3 !px-7 font-bold shadow-lg shadow-brand/25 flex items-center gap-2 cursor-pointer"
+                      >
+                        <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                      </button>
+                      <button
+                        onClick={() => navigate("/dashboard")}
+                        className="btn-outline-dark !py-3 cursor-pointer"
+                      >
+                        Go to Dashboard
+                      </button>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div className="rounded-2xl border border-brand/25 bg-brand-light p-5 text-center">
                   <AlertCircle className="mx-auto h-9 w-9 text-brand" />
@@ -223,9 +257,15 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
               <div className="mt-8 flex flex-wrap gap-3">
                 {result.passed ? (
-                  <button onClick={() => navigate("/dashboard")} className="btn-primary">
-                    <Award className="h-4 w-4" /> View My Certificate
-                  </button>
+                  isFreeCert ? (
+                    <button onClick={() => navigate("/dashboard")} className="btn-primary">
+                      <Award className="h-4 w-4" /> View My Certificate
+                    </button>
+                  ) : (
+                    <button onClick={() => setShowPaymentModal(true)} className="btn-primary flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                    </button>
+                  )
                 ) : (
                   <button onClick={startAssessment} className="btn-primary">
                     <RotateCcw className="h-4 w-4" /> Retake 50-Question Exam
@@ -238,6 +278,16 @@ export default function QuizPage({ courseId }: { courseId: string }) {
             </div>
           </div>
         </div>
+
+        <CertificatePaymentModal
+          courseId={course.id}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            navigate("/dashboard");
+          }}
+        />
       </div>
     );
   }
@@ -255,16 +305,43 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               Complete this comprehensive 50-question examination to earn your official GAMAT Fx Academy Certificate for <strong className="text-ink">{course.title}</strong>.
             </p>
 
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {isFreeCert ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200">
+                  <Check className="h-3.5 w-3.5" /> Certificate Included Free with Course Enrollment
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand">
+                  Direct Exam · ₦10,000 fee on passing to issue certificate
+                </span>
+              )}
+            </div>
+
             {best && (
               <div className={`mt-6 rounded-2xl border p-4 ${best.passed ? "border-emerald-200 bg-emerald-50" : "border-line bg-cream"}`}>
-                <p className="text-sm">
-                  <strong className={best.passed ? "text-emerald-800" : "text-ink"}>
-                    Previous Best: {best.score}% ({best.correct}/{best.total} correct)
-                  </strong>{" "}
-                  <span className="text-muted">
-                    {best.passed ? "— Passed, certificate unlocked!" : `— ${quiz.passMark}% required to pass.`}
-                  </span>
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm">
+                    <strong className={best.passed ? "text-emerald-800" : "text-ink"}>
+                      Previous Best: {best.score}% ({best.correct}/{best.total} correct)
+                    </strong>{" "}
+                    <span className="text-muted">
+                      {best.passed
+                        ? isFreeCert
+                          ? "— Passed, certificate unlocked!"
+                          : "— Passed! ₦10,000 certificate fee pending."
+                        : `— ${quiz.passMark}% required to pass.`}
+                    </span>
+                  </p>
+                  {best.passed && !isFreeCert && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPaymentModal(true)}
+                      className="btn-primary !py-1.5 !px-3 text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" /> Unlock Certificate (₦10k)
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -323,6 +400,16 @@ export default function QuizPage({ courseId }: { courseId: string }) {
             </div>
           </div>
         </div>
+
+        <CertificatePaymentModal
+          courseId={course.id}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={() => {
+            setShowPaymentModal(false);
+            window.location.reload();
+          }}
+        />
       </div>
     );
   }

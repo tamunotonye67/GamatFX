@@ -52,6 +52,9 @@ import {
   type PayoutRequest,
   type AffiliateSettings,
 } from "./affiliate";
+import { generateTxRef } from "./bachs";
+
+export const CERTIFICATE_FEE = 10000;
 
 /* ================================ Types ================================ */
 
@@ -1239,6 +1242,13 @@ type Ctx = {
   bestAttempt: (courseId: string) => QuizAttempt | undefined;
   hasPassedQuiz: (courseId: string) => boolean;
 
+  /* certificates & fees */
+  certificateFee: number;
+  isCourseEnrolledOrPaid: (courseId: string) => boolean;
+  isCertificateUnlocked: (courseId: string) => boolean;
+  isCertificatePendingPayment: (courseId: string) => boolean;
+  payCertificateFee: (courseId: string, method?: "card" | "transfer" | "crypto", txRef?: string) => Promise<{ ok: boolean; error?: string }>;
+
   /* staff posts */
   posts: StaffPost[];
   myPosts: StaffPost[];
@@ -2229,36 +2239,52 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
     setAttempts((p) => [attempt, ...p]);
 
-    // When student passes exam, ensure enrollment record exists with completed lessons
-    // so official certificate unlocks immediately in their dashboard
+    // When student passes exam:
+    // If they already paid for/enrolled in the course, mark lessons completed to unlock cert immediately for free!
+    // If they have NOT paid/enrolled for the course (e.g. physical students or direct examinees),
+    // we save their passing attempt, but certificate requires ₦10,000 fee payment to unlock.
     if (attempt.passed && sessionId && sessionId !== "anon") {
-      const course = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);
-      const targetCourseId = course ? course.id : (COURSE_ALIASES[courseId] || courseId);
-      const allLessonIds = course ? (course.modules ?? []).flatMap((m) => (m.lessons ?? []).map((l) => l.id)) : [];
-      setAllEnrollments((prev) => {
-        const existing = prev.find(
-          (e) => e.userId === sessionId && (e.courseId === targetCourseId || e.courseId === courseId)
-        );
-        if (existing) {
-          const mergedLessons = Array.from(new Set([...existing.completedLessons, ...allLessonIds]));
-          const updated: Enrollment = { ...existing, completedLessons: mergedLessons };
-          saveSupabaseEnrollment(updated);
-          return prev.map((e) => (e.id === existing.id ? updated : e));
-        }
-        const newEnrollment: Enrollment = {
-          id: uid("enr"),
-          userId: sessionId,
-          courseId: targetCourseId,
-          enrolledAt: new Date().toISOString(),
-          completedLessons: allLessonIds,
-        };
-        saveSupabaseEnrollment(newEnrollment);
-        return [...prev, newEnrollment];
+      const canonical = COURSE_ALIASES[courseId] || courseId;
+      const isEnrolledInCourse = myEnrollments.some((e) => {
+        const eCanonical = COURSE_ALIASES[e.courseId] || e.courseId;
+        return (e.courseId === courseId || eCanonical === canonical) && !e.id.startsWith("enr_cert_");
       });
+      const hasCoursePayment = myPayments.some((p) => {
+        if (p.status !== "paid") return false;
+        if (p.courseId.startsWith("cert-")) return false;
+        const pCanonical = COURSE_ALIASES[p.courseId] || p.courseId;
+        return p.courseId === courseId || pCanonical === canonical || p.courseId === `mentorship-${canonical}`;
+      });
+
+      if (isEnrolledInCourse || hasCoursePayment || user?.role === "admin") {
+        const course = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);
+        const targetCourseId = course ? course.id : canonical;
+        const allLessonIds = course ? (course.modules ?? []).flatMap((m) => (m.lessons ?? []).map((l) => l.id)) : [];
+        setAllEnrollments((prev) => {
+          const existing = prev.find(
+            (e) => e.userId === sessionId && (e.courseId === targetCourseId || e.courseId === courseId)
+          );
+          if (existing) {
+            const mergedLessons = Array.from(new Set([...existing.completedLessons, ...allLessonIds]));
+            const updated: Enrollment = { ...existing, completedLessons: mergedLessons };
+            saveSupabaseEnrollment(updated);
+            return prev.map((e) => (e.id === existing.id ? updated : e));
+          }
+          const newEnrollment: Enrollment = {
+            id: uid("enr"),
+            userId: sessionId,
+            courseId: targetCourseId,
+            enrolledAt: new Date().toISOString(),
+            completedLessons: allLessonIds,
+          };
+          saveSupabaseEnrollment(newEnrollment);
+          return [...prev, newEnrollment];
+        });
+      }
     }
 
     return attempt;
-  }, [sessionId, getCourseQuiz]);
+  }, [sessionId, getCourseQuiz, myEnrollments, myPayments, user, managedCourses]);
 
   const myAttempts = useMemo(
     () => attempts.filter((a) => a.userId === sessionId), [attempts, sessionId]
@@ -2281,6 +2307,136 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     },
     [myAttempts]
   );
+
+  /* ------------------- Certificates & Certification Fees ------------------- */
+
+  const isCourseEnrolledOrPaid: Ctx["isCourseEnrolledOrPaid"] = useCallback((courseId) => {
+    if (!sessionId) return false;
+    if (user?.role === "admin") return true;
+
+    const canonical = COURSE_ALIASES[courseId] || courseId;
+
+    // 1. Check if user has a paid course payment (excluding standalone cert fees)
+    const hasCoursePayment = myPayments.some((p) => {
+      if (p.status !== "paid") return false;
+      if (p.courseId.startsWith("cert-")) return false;
+      const pCanonical = COURSE_ALIASES[p.courseId] || p.courseId;
+      return (
+        p.courseId === courseId ||
+        pCanonical === canonical ||
+        p.courseId === `mentorship-${canonical}` ||
+        pCanonical === `mentorship-${canonical}`
+      );
+    });
+    if (hasCoursePayment) return true;
+
+    // 2. Check if user has a genuine course enrollment (created prior to direct exam or with lesson progress)
+    const enr = myEnrollments.find((e) => {
+      const eCanonical = COURSE_ALIASES[e.courseId] || e.courseId;
+      return (e.courseId === courseId || eCanonical === canonical) && !e.id.startsWith("enr_cert_");
+    });
+    if (enr) {
+      if (enr.completedLessons.length > 0 || enr.lastLessonId) return true;
+      return true;
+    }
+
+    return false;
+  }, [sessionId, user, myPayments, myEnrollments]);
+
+  const isCertificateUnlocked: Ctx["isCertificateUnlocked"] = useCallback((courseId) => {
+    if (!sessionId) return false;
+    if (user?.role === "admin") return true;
+
+    const canonical = COURSE_ALIASES[courseId] || courseId;
+
+    // Must have passed quiz OR finished 100% course lessons
+    const passed = hasPassedQuiz(courseId);
+    const c = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);
+    const total = c ? totalLessons(c) : 0;
+    const enr = myEnrollments.find((e) => {
+      const eCanonical = COURSE_ALIASES[e.courseId] || e.courseId;
+      return e.courseId === courseId || eCanonical === canonical;
+    });
+    const finishedCourse = enr && total > 0 && enr.completedLessons.length >= total;
+
+    if (!passed && !finishedCourse) return false;
+
+    // A. Online students who paid for / enrolled in the course get it 100% FREE!
+    if (isCourseEnrolledOrPaid(courseId)) return true;
+
+    // B. Direct examinees who paid the ₦10,000 certification fee
+    const paidCertFee = myPayments.some((p) => {
+      if (p.status !== "paid") return false;
+      return p.courseId === `cert-${courseId}` || p.courseId === `cert-${canonical}`;
+    });
+    if (paidCertFee) return true;
+
+    // C. Physical students whose certificate was directly issued by admin in office
+    if (admin.isUserCertified(sessionId, courseId) || admin.isUserCertified(sessionId, canonical)) return true;
+
+    return false;
+  }, [sessionId, user, hasPassedQuiz, myEnrollments, managedCourses, isCourseEnrolledOrPaid, myPayments, admin]);
+
+  const isCertificatePendingPayment: Ctx["isCertificatePendingPayment"] = useCallback((courseId) => {
+    if (!sessionId) return false;
+    if (!hasPassedQuiz(courseId)) return false;
+    if (isCertificateUnlocked(courseId)) return false;
+    return true;
+  }, [sessionId, hasPassedQuiz, isCertificateUnlocked]);
+
+  const payCertificateFee: Ctx["payCertificateFee"] = useCallback(async (courseId, method = "card", txRef) => {
+    if (!sessionId || !user) return { ok: false, error: "Must be signed in" };
+
+    const c = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);
+    const canonical = c ? c.id : (COURSE_ALIASES[courseId] || courseId);
+    const title = c ? c.title : courseId;
+    const ref = txRef || generateTxRef("CERT");
+
+    // 1. Record payment for ₦10,000 certification fee
+    const payment: Payment = {
+      id: uid("pay"),
+      ref,
+      userId: user.id,
+      userName: `${user.firstName} ${user.lastName}`.trim(),
+      userEmail: user.email,
+      courseId: `cert-${canonical}`,
+      courseTitle: `Official Certificate: ${title}`,
+      subtotal: CERTIFICATE_FEE,
+      vat: 0,
+      discount: 0,
+      amount: CERTIFICATE_FEE,
+      method: method as any,
+      status: "paid",
+      createdAt: new Date().toISOString(),
+    };
+    setPayments((prev) => [payment, ...prev]);
+    saveSupabasePayment(payment);
+
+    // 2. Ensure enrollment record exists so certificate is fully recognized in Supabase
+    const allLessonIds = c ? (c.modules ?? []).flatMap((m) => (m.lessons ?? []).map((l) => l.id)) : [];
+    setAllEnrollments((prev) => {
+      const existing = prev.find(
+        (e) => e.userId === user.id && (e.courseId === canonical || e.courseId === courseId)
+      );
+      if (existing) {
+        const merged = Array.from(new Set([...existing.completedLessons, ...allLessonIds]));
+        const updated: Enrollment = { ...existing, completedLessons: merged };
+        saveSupabaseEnrollment(updated);
+        return prev.map((e) => (e.id === existing.id ? updated : e));
+      }
+      const newEnrollment: Enrollment = {
+        id: uid("enr_cert"),
+        userId: user.id,
+        courseId: canonical,
+        enrolledAt: new Date().toISOString(),
+        completedLessons: allLessonIds,
+      };
+      saveSupabaseEnrollment(newEnrollment);
+      return [...prev, newEnrollment];
+    });
+
+    return { ok: true };
+  }, [sessionId, user, managedCourses]);
 
   /* --------------------------- Staff posts --------------------------- */
 
@@ -3738,6 +3894,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     isStaff: user?.role === "staff",
     can, permissions,
     attempts: myAttempts, submitAttempt, bestAttempt, hasPassedQuiz,
+    certificateFee: CERTIFICATE_FEE, isCourseEnrolledOrPaid, isCertificateUnlocked, isCertificatePendingPayment, payCertificateFee,
     customQuizzes, getCourseQuiz, saveCourseQuiz, deleteCourseQuiz,
     posts, myPosts, publishedPosts, savePost, deletePost, setPostStatus,
     news, publishedNews, saveNews, deleteNews,
