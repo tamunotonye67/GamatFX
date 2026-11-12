@@ -874,14 +874,11 @@ export default function AffiliateCard({
           </div>
 
           {/* Action Row */}
-          <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-line text-xs text-muted">
-            <span className="text-[11px]">
-              Click either code or link to copy. Any referral signup is tracked to your wallet.
-            </span>
+          <div className="pt-3 flex items-center justify-end border-t border-line">
             <button
               type="button"
               onClick={copyCaption}
-              className="btn-outline-dark !py-1.5 !px-3 !text-xs flex items-center gap-1.5 cursor-pointer"
+              className="btn-outline-dark !py-1.5 !px-3.5 !text-xs flex items-center gap-1.5 cursor-pointer"
             >
               {copiedCaption ? (
                 <>
