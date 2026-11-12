@@ -198,23 +198,23 @@ export default function DashboardPage() {
       </div>
 
       {/* Tabs + content */}
-      <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr]">
-        <aside className="min-w-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:sticky lg:top-24 lg:flex-col lg:items-stretch lg:space-y-1 lg:p-3">
+      <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr] items-start">
+        <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start z-10">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:space-y-1 lg:p-3 shadow-xs lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto no-scrollbar">
             {tabs.map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold whitespace-nowrap transition ${tab === t.id ? "bg-brand text-white" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
+                className={`flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer ${tab === t.id ? "bg-brand text-white shadow-xs" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
                 <t.icon className="h-4 w-4 shrink-0" /> {t.label}
               </button>
             ))}
             {isAdmin && (
               <button onClick={() => navigate("/admin")}
-                className="flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition hover:bg-ink/90">
+                className="flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition hover:bg-ink/90 cursor-pointer">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-brand-light" /> Admin Panel
               </button>
             )}
             <button onClick={() => { logout(); navigate("/"); }}
-              className="flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand">
+              className="flex shrink-0 items-center gap-2 lg:gap-3 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-4 lg:py-3 text-left text-xs sm:text-sm font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand cursor-pointer">
               <LogOut className="h-4 w-4 shrink-0" /> Log out
             </button>
           </div>
