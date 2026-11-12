@@ -1433,7 +1433,6 @@ type Ctx = {
     approvePayoutRequest: (id: string, note?: string) => void;
     rejectPayoutRequest: (id: string, note?: string) => void;
     updateAffiliateSettings: (settings: AffiliateSettings) => void;
-    resetDemoData: () => void;
   };
 };
 
@@ -3625,17 +3624,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     approvePayoutRequest,
     rejectPayoutRequest,
     updateAffiliateSettings,
-    resetDemoData: () => {
-      setAllEnrollments([]); setPayments([]); setRegistrations([]); setEnquiries([]);
-      setEvents(DEFAULT_EVENTS); setCourseSettings({});
-      setThreads(SEED_THREADS); setReplies(SEED_REPLIES);
-      setAttempts([]); setPosts([]);
-      setNews(SEED_NEWS); setOutlooks(SEED_OUTLOOKS); setManagedCourses([]);
-      setGiveaways(SEED_GIVEAWAYS);
-      setTeamProfiles(SEED_TEAM);
-      setTeamBios([]);
-      setAccounts((p) => p.filter((a) => a.role === "admin"));
-    },
   };
 
   const saveStudentOfTheWeek: Ctx["saveStudentOfTheWeek"] = useCallback((s) => {

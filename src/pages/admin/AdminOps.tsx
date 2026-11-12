@@ -6,7 +6,7 @@ import { naira, compactNaira } from "../../lib/courses";
 import { BillingDocument } from "./AdminInvoicesAndAssets";
 import {
   Wallet, CreditCard, RotateCcw, Trash2, Download, Plus, Pencil, Ticket,
-  CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Database, Eye,
+  CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Eye,
 } from "lucide-react";
 
 /* =============================== Payments =============================== */
@@ -452,27 +452,6 @@ export function AdminSettings() {
                 </div>
               ))}
             </div>
-          </Card>
-
-          <Card className="border-brand/30 p-7">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
-                <Database className="h-5 w-5" />
-              </span>
-              <div>
-                <h3 className="font-display text-lg font-bold text-ink">Danger zone</h3>
-                <p className="text-sm text-muted">Irreversible data operations.</p>
-              </div>
-            </div>
-            <p className="mt-5 text-sm text-muted">
-              Reset removes all students, enrollments, payments, registrations and custom pricing,
-              restoring the default events. Admin accounts are preserved.
-            </p>
-            <button
-              onClick={() => { if (confirm("Reset ALL platform data? This cannot be undone.")) admin.resetDemoData(); }}
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark">
-              <AlertTriangle className="h-4 w-4" /> Reset all data
-            </button>
           </Card>
         </div>
       </div>
