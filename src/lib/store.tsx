@@ -2941,15 +2941,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const saveStoreProduct: Ctx["saveStoreProduct"] = useCallback((p) => {
     if (!p.title.trim()) return { ok: false, error: "Product title is required." };
-    if (!p.price || p.price <= 0) return { ok: false, error: "Please enter a valid price." };
+    const isFree = Boolean(p.isFree || p.price === 0);
+    if (!isFree && (p.price === undefined || p.price === null || isNaN(p.price) || p.price < 0)) {
+      return { ok: false, error: "Please enter a valid price in Naira, or mark the item as free." };
+    }
+    const finalPrice = isFree ? 0 : Number(p.price);
     const now = new Date().toISOString();
     if (p.id) {
       setStoreProducts((prev) =>
-        prev.map((item) => (item.id === p.id ? ({ ...item, ...p, updatedAt: now } as StoreProduct) : item))
+        prev.map((item) =>
+          item.id === p.id
+            ? ({
+                ...item,
+                ...p,
+                price: finalPrice,
+                isFree,
+                isPreorder: Boolean(p.isPreorder),
+                preorderReleaseDate: p.isPreorder ? p.preorderReleaseDate : undefined,
+                preorderNote: p.isPreorder ? p.preorderNote : undefined,
+                updatedAt: now,
+              } as StoreProduct)
+            : item
+        )
       );
     } else {
       const newProd: StoreProduct = {
         ...p,
+        price: finalPrice,
+        isFree,
+        isPreorder: Boolean(p.isPreorder),
+        preorderReleaseDate: p.isPreorder ? p.preorderReleaseDate : undefined,
+        preorderNote: p.isPreorder ? p.preorderNote : undefined,
         id: uid("prod"),
         rating: 5.0,
         reviewCount: 1,

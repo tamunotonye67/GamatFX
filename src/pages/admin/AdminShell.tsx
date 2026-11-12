@@ -621,6 +621,8 @@ const toneMap: Record<string, string> = {
   amber: "bg-amber-50 text-amber-700",
   gray: "bg-line/60 text-muted",
   ink: "bg-ink text-white",
+  purple: "bg-purple-50 text-purple-700",
+  blue: "bg-blue-50 text-blue-700",
 };
 
 export function Badge({ children, tone = "gray" }: { children: React.ReactNode; tone?: keyof typeof toneMap }) {

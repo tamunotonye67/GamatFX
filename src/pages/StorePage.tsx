@@ -45,6 +45,7 @@ import {
   Award,
   Calculator,
   BookMarked,
+  Gift,
 } from "lucide-react";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 
@@ -265,11 +266,16 @@ export default function StorePage({ categoryParam }: StorePageProps) {
   const filtered = useMemo(() => {
     let list = publishedStoreProducts.filter((p) => {
       const matchCat = selectedCat === "all" || p.category === selectedCat;
+      const qLower = q.toLowerCase();
       const matchSearch =
-        p.title.toLowerCase().includes(q.toLowerCase()) ||
-        p.tagline.toLowerCase().includes(q.toLowerCase()) ||
-        p.author.toLowerCase().includes(q.toLowerCase()) ||
-        p.deliverableType.toLowerCase().includes(q.toLowerCase());
+        !qLower ||
+        p.title.toLowerCase().includes(qLower) ||
+        p.tagline.toLowerCase().includes(qLower) ||
+        p.author.toLowerCase().includes(qLower) ||
+        p.deliverableType.toLowerCase().includes(qLower) ||
+        (qLower.includes("free") && (p.isFree || p.price === 0)) ||
+        (qLower.includes("preorder") && p.isPreorder) ||
+        (qLower.includes("pre-order") && p.isPreorder);
       return matchCat && matchSearch;
     });
 
@@ -726,12 +732,22 @@ export default function StorePage({ categoryParam }: StorePageProps) {
 
                         {/* Top Badges */}
                         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                          {prod.isPreorder && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-purple-600 px-2 py-0.5 text-[10px] font-black uppercase text-white shadow-md">
+                              <Clock className="h-3 w-3" /> PRE-ORDER
+                            </span>
+                          )}
+                          {(prod.isFree || prod.price === 0) && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] font-black uppercase text-white shadow-md">
+                              <Gift className="h-3 w-3" /> 100% FREE
+                            </span>
+                          )}
                           {prod.badge && (
                             <span className="inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-0.5 text-[10px] font-black uppercase text-slate-950 shadow-md">
                               ★ {prod.badge}
                             </span>
                           )}
-                          {discount && (
+                          {discount && !prod.isFree && prod.price > 0 && (
                             <span className="inline-flex items-center rounded-md bg-brand px-2 py-0.5 text-[10px] font-black text-white shadow-md">
                               Save {discount}%
                             </span>
@@ -775,6 +791,13 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                           {prod.tagline}
                         </p>
 
+                        {prod.isPreorder && prod.preorderReleaseDate && (
+                          <p className="mt-2 text-[11px] font-semibold text-purple-700 flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-md border border-purple-100">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span>Expected Release: {prod.preorderReleaseDate}</span>
+                          </p>
+                        )}
+
                         {/* Compatibility Badges */}
                         {prod.compatibility && (
                           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -795,23 +818,45 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     <div className="p-5 pt-0">
                       <div className="pt-3 border-t border-line flex items-center justify-between">
                         <div>
-                          <span className="font-display text-xl font-bold text-ink">
-                            {naira(prod.price)}
-                          </span>
-                          {prod.originalPrice && (
-                            <span className="ml-2 text-xs text-muted line-through">
-                              {naira(prod.originalPrice)}
-                            </span>
-                          )}
+                          <div className="font-display text-xl font-bold text-ink flex items-baseline">
+                            {prod.isFree || prod.price === 0 ? (
+                              <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                                <Gift className="h-4 w-4" /> FREE
+                              </span>
+                            ) : (
+                              naira(prod.price)
+                            )}
+                            {prod.originalPrice && (
+                              <span className="ml-2 text-xs text-muted line-through font-normal">
+                                {naira(prod.originalPrice)}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => setCheckoutProduct(prod)}
-                          className="rounded-xl bg-brand hover:bg-brand-dark text-white px-3.5 py-2 text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                          className={`rounded-xl text-white px-3.5 py-2 text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                            prod.isFree || prod.price === 0
+                              ? "bg-emerald-600 hover:bg-emerald-700"
+                              : prod.isPreorder
+                              ? "bg-purple-600 hover:bg-purple-700"
+                              : "bg-brand hover:bg-brand-dark"
+                          }`}
                         >
-                          <span>Get Access</span>
-                          <ArrowRight className="h-3 w-3" />
+                          <span>
+                            {prod.isFree || prod.price === 0
+                              ? "Get Free Access"
+                              : prod.isPreorder
+                              ? "Pre-Order"
+                              : "Get Access"}
+                          </span>
+                          {prod.isFree || prod.price === 0 ? (
+                            <Download className="h-3 w-3" />
+                          ) : (
+                            <ArrowRight className="h-3 w-3" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -839,11 +884,23 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         className="relative w-full sm:w-56 aspect-[16/10] sm:aspect-auto rounded-xl overflow-hidden bg-ink shrink-0 cursor-pointer"
                       >
                         <img src={prod.image} alt={prod.title} className="h-full w-full object-cover" loading="lazy" />
-                        {discount && (
-                          <span className="absolute top-2 left-2 rounded bg-brand px-2 py-0.5 text-[9px] font-black text-white">
-                            Save {discount}%
-                          </span>
-                        )}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          {prod.isPreorder && (
+                            <span className="rounded bg-purple-600 px-2 py-0.5 text-[9px] font-black uppercase text-white flex items-center gap-1 shadow-sm">
+                              <Clock className="h-2.5 w-2.5" /> Pre-Order
+                            </span>
+                          )}
+                          {(prod.isFree || prod.price === 0) && (
+                            <span className="rounded bg-emerald-600 px-2 py-0.5 text-[9px] font-black uppercase text-white flex items-center gap-1 shadow-sm">
+                              <Gift className="h-2.5 w-2.5" /> Free
+                            </span>
+                          )}
+                          {discount && !prod.isFree && prod.price > 0 && (
+                            <span className="rounded bg-brand px-2 py-0.5 text-[9px] font-black text-white shadow-sm">
+                              Save {discount}%
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -867,6 +924,13 @@ export default function StorePage({ categoryParam }: StorePageProps) {
 
                         <p className="mt-2 text-xs text-muted line-clamp-2">{prod.tagline}</p>
 
+                        {prod.isPreorder && prod.preorderReleaseDate && (
+                          <p className="mt-2 text-[11px] font-semibold text-purple-700 flex items-center gap-1">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span>Expected Release: {prod.preorderReleaseDate}</span>
+                          </p>
+                        )}
+
                         <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-muted">
                           <span className="inline-flex items-center gap-1">
                             <Package className="h-3.5 w-3.5 text-brand" />
@@ -883,11 +947,21 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     </div>
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-line pt-3 sm:pt-0 sm:pl-6 shrink-0 gap-3">
-                      <div className="text-left sm:right">
-                        <div className="font-display text-xl font-bold text-ink">{naira(prod.price)}</div>
-                        {prod.originalPrice && (
-                          <div className="text-xs text-muted line-through">{naira(prod.originalPrice)}</div>
-                        )}
+                      <div className="text-left sm:text-right">
+                        <div className="font-display text-xl font-bold text-ink flex items-baseline sm:justify-end">
+                          {prod.isFree || prod.price === 0 ? (
+                            <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                              <Gift className="h-4 w-4" /> FREE
+                            </span>
+                          ) : (
+                            naira(prod.price)
+                          )}
+                          {prod.originalPrice && (
+                            <span className="ml-2 text-xs text-muted line-through font-normal">
+                              {naira(prod.originalPrice)}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -901,10 +975,26 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         <button
                           type="button"
                           onClick={() => setCheckoutProduct(prod)}
-                          className="rounded-xl bg-brand hover:bg-brand-dark px-4 py-2 text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                            prod.isFree || prod.price === 0
+                              ? "bg-emerald-600 hover:bg-emerald-700"
+                              : prod.isPreorder
+                              ? "bg-purple-600 hover:bg-purple-700"
+                              : "bg-brand hover:bg-brand-dark"
+                          }`}
                         >
-                          <span>Get Access</span>
-                          <ArrowRight className="h-3.5 w-3.5" />
+                          <span>
+                            {prod.isFree || prod.price === 0
+                              ? "Get Free Access"
+                              : prod.isPreorder
+                              ? "Pre-Order"
+                              : "Get Access"}
+                          </span>
+                          {prod.isFree || prod.price === 0 ? (
+                            <Download className="h-3.5 w-3.5" />
+                          ) : (
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -1020,10 +1110,20 @@ export default function StorePage({ categoryParam }: StorePageProps) {
               {/* Product Info */}
               <div className="flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="rounded-md bg-brand-light px-2.5 py-0.5 text-[11px] font-bold text-brand uppercase">
                       {activeProduct.category}
                     </span>
+                    {activeProduct.isPreorder && (
+                      <span className="rounded-md bg-purple-600 text-white px-2.5 py-0.5 text-[11px] font-black uppercase flex items-center gap-1 shadow-sm">
+                        <Clock className="h-3 w-3" /> PRE-ORDER
+                      </span>
+                    )}
+                    {(activeProduct.isFree || activeProduct.price === 0) && (
+                      <span className="rounded-md bg-emerald-600 text-white px-2.5 py-0.5 text-[11px] font-black uppercase flex items-center gap-1 shadow-sm">
+                        <Gift className="h-3 w-3" /> 100% FREE
+                      </span>
+                    )}
                     {activeProduct.badge && (
                       <span className="rounded-md bg-amber-400/20 text-amber-800 px-2 py-0.5 text-[11px] font-bold">
                         ★ {activeProduct.badge}
@@ -1035,6 +1135,31 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     {activeProduct.title}
                   </h3>
                   <p className="mt-1 text-xs text-muted font-medium">{activeProduct.author}</p>
+
+                  {/* Pre-order or Free highlight card in modal */}
+                  {activeProduct.isPreorder && (
+                    <div className="mt-3 rounded-2xl bg-purple-50 border border-purple-200/90 p-3.5 text-xs text-purple-950">
+                      <p className="font-bold flex items-center gap-1.5 text-purple-900">
+                        <Clock className="h-4 w-4 text-purple-700 shrink-0" />
+                        <span>Pre-Order Tool {activeProduct.preorderReleaseDate ? `• Expected: ${activeProduct.preorderReleaseDate}` : ""}</span>
+                      </p>
+                      {activeProduct.preorderNote && (
+                        <p className="mt-1.5 text-purple-800 text-[11px] leading-relaxed">
+                          {activeProduct.preorderNote}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {(activeProduct.isFree || activeProduct.price === 0) && (
+                    <div className="mt-3 rounded-2xl bg-emerald-50 border border-emerald-200/90 p-3.5 text-xs text-emerald-950 flex items-center gap-2">
+                      <Gift className="h-4 w-4 text-emerald-700 shrink-0" />
+                      <div>
+                        <p className="font-bold text-emerald-900">100% Free Educational Download</p>
+                        <p className="text-[11px] text-emerald-800">No payment or card required. Instant 1-click access and permanent digital file.</p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-3 flex items-center gap-2">
                     <div className="flex text-amber-400">
@@ -1070,17 +1195,33 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 <div className="mt-6 pt-4 border-t border-line">
                   <div className="flex items-baseline justify-between mb-3">
                     <div>
-                      <span className="text-xs text-muted block">One-time payment</span>
-                      <span className="font-display text-2xl font-bold text-ink">
-                        {naira(activeProduct.price)}
+                      <span className="text-xs text-muted block">
+                        {activeProduct.isFree || activeProduct.price === 0
+                          ? "Access level"
+                          : activeProduct.isPreorder
+                          ? "Early-bird pre-order"
+                          : "One-time payment"}
                       </span>
-                      {activeProduct.originalPrice && (
-                        <span className="ml-2 text-xs text-muted line-through">
-                          {naira(activeProduct.originalPrice)}
-                        </span>
-                      )}
+                      <span className="font-display text-2xl font-bold text-ink flex items-baseline gap-1.5">
+                        {activeProduct.isFree || activeProduct.price === 0 ? (
+                          <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                            <Gift className="h-5 w-5" /> FREE
+                          </span>
+                        ) : (
+                          naira(activeProduct.price)
+                        )}
+                        {activeProduct.originalPrice && (
+                          <span className="text-xs text-muted line-through font-normal">
+                            {naira(activeProduct.originalPrice)}
+                          </span>
+                        )}
+                      </span>
                     </div>
-                    <span className="text-[11px] text-muted">Lifetime updates included</span>
+                    <span className="text-[11px] text-muted">
+                      {activeProduct.isPreorder
+                        ? (activeProduct.preorderReleaseDate ? `Releases ${activeProduct.preorderReleaseDate}` : "Upcoming release")
+                        : "Lifetime updates included"}
+                    </span>
                   </div>
 
                   <button
@@ -1090,10 +1231,30 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                       setActiveProduct(null);
                       setCheckoutProduct(p);
                     }}
-                    className="w-full rounded-xl bg-brand hover:bg-brand-dark py-3 px-6 text-sm font-bold text-white transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                    className={`w-full rounded-xl py-3 px-6 text-sm font-bold text-white transition flex items-center justify-center gap-2 shadow-md cursor-pointer ${
+                      activeProduct.isFree || activeProduct.price === 0
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : activeProduct.isPreorder
+                        ? "bg-purple-600 hover:bg-purple-700"
+                        : "bg-brand hover:bg-brand-dark"
+                    }`}
                   >
-                    <Lock className="h-4 w-4" />
-                    <span>Proceed to Instant Access</span>
+                    {activeProduct.isFree || activeProduct.price === 0 ? (
+                      <>
+                        <Download className="h-4 w-4" />
+                        <span>Claim Free Access</span>
+                      </>
+                    ) : activeProduct.isPreorder ? (
+                      <>
+                        <Clock className="h-4 w-4" />
+                        <span>Pre-Order Now • {naira(activeProduct.price)}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="h-4 w-4" />
+                        <span>Proceed to Instant Access</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1115,12 +1276,40 @@ export default function StorePage({ categoryParam }: StorePageProps) {
             </button>
 
             <div className="text-center">
-              <span className="rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand">
-                Instant Digital Checkout
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                checkoutProduct.isFree || checkoutProduct.price === 0
+                  ? "bg-emerald-100 text-emerald-800"
+                  : checkoutProduct.isPreorder
+                  ? "bg-purple-100 text-purple-800"
+                  : "bg-brand-light text-brand"
+              }`}>
+                {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                  <>
+                    <Gift className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Free Resource Access</span>
+                  </>
+                ) : checkoutProduct.isPreorder ? (
+                  <>
+                    <Clock className="h-3.5 w-3.5 text-purple-600" />
+                    <span>Pre-Order Reservation</span>
+                  </>
+                ) : (
+                  <span>Instant Digital Checkout</span>
+                )}
               </span>
-              <h3 className="mt-2 font-display text-xl font-bold text-ink">Complete Your Order</h3>
+              <h3 className="mt-2 font-display text-xl font-bold text-ink">
+                {checkoutProduct.isFree || checkoutProduct.price === 0
+                  ? "Claim Free Access"
+                  : checkoutProduct.isPreorder
+                  ? "Reserve Your Pre-Order"
+                  : "Complete Your Order"}
+              </h3>
               <p className="mt-1 text-xs text-muted">
-                Receive instant download link and license activation keys right after payment.
+                {checkoutProduct.isFree || checkoutProduct.price === 0
+                  ? "Enter your details to receive your instant digital download link."
+                  : checkoutProduct.isPreorder
+                  ? "Lock in early-bird launch pricing. Your license and files unlock on release."
+                  : "Receive instant download link and license activation keys right after payment."}
               </p>
             </div>
 
@@ -1134,9 +1323,32 @@ export default function StorePage({ categoryParam }: StorePageProps) {
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-ink truncate">{checkoutProduct.title}</p>
                 <p className="text-[11px] text-muted truncate">{checkoutProduct.deliverableType}</p>
-                <p className="text-xs font-bold text-brand mt-0.5">{naira(checkoutProduct.price)}</p>
+                <p className="text-xs font-bold mt-0.5">
+                  {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                    <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                      <Gift className="h-3.5 w-3.5" /> FREE
+                    </span>
+                  ) : (
+                    <span className="text-brand">{naira(checkoutProduct.price)}</span>
+                  )}
+                </p>
               </div>
             </div>
+
+            {/* Pre-order banner in checkout */}
+            {checkoutProduct.isPreorder && (
+              <div className="mt-3 rounded-2xl bg-purple-50 border border-purple-200/90 p-3.5 text-xs text-purple-950">
+                <p className="font-bold flex items-center gap-1.5 text-purple-900">
+                  <Clock className="h-4 w-4 text-purple-700 shrink-0" />
+                  <span>Pre-Order Item {checkoutProduct.preorderReleaseDate ? `• Expected: ${checkoutProduct.preorderReleaseDate}` : ""}</span>
+                </p>
+                {checkoutProduct.preorderNote && (
+                  <p className="mt-1 text-purple-800 text-[11px] leading-relaxed">
+                    {checkoutProduct.preorderNote}
+                  </p>
+                )}
+              </div>
+            )}
 
             <form onSubmit={handlePurchase} className="mt-5 space-y-4">
               <div>
@@ -1174,62 +1386,81 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 />
               </div>
 
-              {/* Coupon Code Input */}
-              <div>
-                <label className="block text-xs font-bold text-ink mb-1">Have a discount coupon?</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Enter coupon code"
-                    className="flex-1 rounded-xl border border-line bg-white px-3.5 py-2 text-xs uppercase text-ink focus:border-brand focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyCoupon}
-                    className="rounded-xl border border-line bg-cream hover:bg-slate-100 px-4 py-2 text-xs font-bold text-ink transition cursor-pointer"
-                  >
-                    Apply
-                  </button>
+              {/* Coupon Code Input (hide if already free) */}
+              {!(checkoutProduct.isFree || checkoutProduct.price === 0) && (
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">Have a discount coupon?</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="Enter coupon code"
+                      className="flex-1 rounded-xl border border-line bg-white px-3.5 py-2 text-xs uppercase text-ink focus:border-brand focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      className="rounded-xl border border-line bg-cream hover:bg-slate-100 px-4 py-2 text-xs font-bold text-ink transition cursor-pointer"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {couponMsg && <p className="mt-1 text-[11px] font-bold text-brand">{couponMsg}</p>}
+                  {couponError && <p className="mt-1 text-[11px] font-bold text-rose-600">{couponError}</p>}
                 </div>
-                {couponMsg && <p className="mt-1 text-[11px] font-bold text-brand">{couponMsg}</p>}
-                {couponError && <p className="mt-1 text-[11px] font-bold text-rose-600">{couponError}</p>}
-              </div>
+              )}
 
-              {/* Simple & Modern Payment Method Card */}
+              {/* Payment Method / Access Method Card */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-2">
-                  Payment Method
+                  {checkoutProduct.isFree || checkoutProduct.price === 0 ? "Access Channel" : "Payment Method"}
                 </label>
-                <div className="flex items-center justify-between rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-3.5 transition">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-20 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2">
-                      <img
-                        src="/images/bachs-logo.png"
-                        alt="Bachs"
-                        className="h-4 w-auto object-contain"
-                      />
+                {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                  <div className="flex items-center justify-between rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/50 p-3.5 transition">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                        <Gift className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-ink">100% Free Instant Download</p>
+                        <p className="text-[11px] text-emerald-800">No payment card required. Immediate 1-click access.</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-ink">Bachs Checkout</p>
-                      <p className="text-[11px] text-muted">Card, Bank Transfer, or Crypto</p>
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs">
+                      <Check className="h-3 w-3 stroke-[3]" />
                     </div>
                   </div>
+                ) : (
+                  <div className="flex items-center justify-between rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-3.5 transition">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-20 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2">
+                        <img
+                          src="/images/bachs-logo.png"
+                          alt="Bachs"
+                          className="h-4 w-auto object-contain"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-ink">Bachs Checkout</p>
+                        <p className="text-[11px] text-muted">Card, Bank Transfer, or Crypto</p>
+                      </div>
+                    </div>
 
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-                    <Check className="h-3 w-3 stroke-[3]" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white shadow-xs">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Price Breakdown */}
               <div className="rounded-xl bg-cream p-3 text-xs space-y-1.5">
                 <div className="flex justify-between text-muted">
                   <span>Subtotal</span>
-                  <span>{naira(checkoutProduct.price)}</span>
+                  <span>{checkoutProduct.isFree || checkoutProduct.price === 0 ? "FREE" : naira(checkoutProduct.price)}</span>
                 </div>
-                {couponDiscount > 0 && (
+                {couponDiscount > 0 && !(checkoutProduct.isFree || checkoutProduct.price === 0) && (
                   <div className="flex justify-between text-brand font-bold">
                     <span>Coupon Discount ({couponDiscount}%)</span>
                     <span>-{naira(Math.round((checkoutProduct.price * couponDiscount) / 100))}</span>
@@ -1238,7 +1469,13 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 <div className="flex justify-between text-sm font-bold text-ink pt-2 border-t border-line">
                   <span>Total Amount Due</span>
                   <span>
-                    {naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))}
+                    {checkoutProduct.isFree || checkoutProduct.price === 0 || (checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)) <= 0 ? (
+                      <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                        <Gift className="h-4 w-4" /> FREE (₦0)
+                      </span>
+                    ) : (
+                      naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))
+                    )}
                   </span>
                 </div>
               </div>
@@ -1247,12 +1484,36 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 <button
                   type="submit"
                   disabled={isProcessing}
-                  className="btn-primary w-full !py-3.5 text-sm font-bold shadow-xl shadow-brand/20 transition hover:shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
+                  className={`w-full !py-3.5 text-sm font-bold shadow-xl transition disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer rounded-xl text-white ${
+                    checkoutProduct.isFree || checkoutProduct.price === 0
+                      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 hover:shadow-emerald-600/30"
+                      : checkoutProduct.isPreorder
+                      ? "bg-purple-600 hover:bg-purple-700 shadow-purple-600/20 hover:shadow-purple-600/30"
+                      : "btn-primary shadow-brand/20 hover:shadow-brand/30"
+                  }`}
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Launching Bachs Checkout…</span>
+                      <span>
+                        {checkoutProduct.isFree || checkoutProduct.price === 0
+                          ? "Unlocking Free Access…"
+                          : checkoutProduct.isPreorder
+                          ? "Reserving Pre-Order…"
+                          : "Launching Bachs Checkout…"}
+                      </span>
+                    </>
+                  ) : checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                    <>
+                      <Download className="h-4 w-4" />
+                      <span>Claim Free Access Now</span>
+                    </>
+                  ) : checkoutProduct.isPreorder ? (
+                    <>
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        Complete Pre-Order ({naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))})
+                      </span>
                     </>
                   ) : (
                     <>
@@ -1265,7 +1526,11 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 </button>
                 <p className="mt-3 text-center text-xs text-muted flex items-center justify-center gap-1.5">
                   <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Payments are 256-bit encrypted and processed securely by Bachs</span>
+                  <span>
+                    {checkoutProduct.isFree || checkoutProduct.price === 0
+                      ? "Direct digital file link sent to your email immediately"
+                      : "Payments are 256-bit encrypted and processed securely by Bachs"}
+                  </span>
                 </p>
               </div>
             </form>
@@ -1277,14 +1542,44 @@ export default function StorePage({ categoryParam }: StorePageProps) {
       {purchasedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 text-center shadow-2xl">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand mb-4">
-              <CheckCircle2 className="h-8 w-8" />
+            <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl mb-4 ${
+              purchasedProduct.isFree || purchasedProduct.price === 0
+                ? "bg-emerald-100 text-emerald-700"
+                : purchasedProduct.isPreorder
+                ? "bg-purple-100 text-purple-700"
+                : "bg-brand-light text-brand"
+            }`}>
+              {purchasedProduct.isFree || purchasedProduct.price === 0 ? (
+                <Gift className="h-8 w-8" />
+              ) : purchasedProduct.isPreorder ? (
+                <Clock className="h-8 w-8" />
+              ) : (
+                <CheckCircle2 className="h-8 w-8" />
+              )}
             </div>
 
-            <h3 className="font-display text-xl font-bold text-ink">Payment Confirmed!</h3>
+            <h3 className="font-display text-xl font-bold text-ink">
+              {purchasedProduct.isFree || purchasedProduct.price === 0
+                ? "Free Access Unlocked!"
+                : purchasedProduct.isPreorder
+                ? "Pre-Order Confirmed!"
+                : "Payment Confirmed!"}
+            </h3>
             <p className="mt-1 text-xs text-muted">
               Transaction Reference: <span className="font-mono font-bold text-ink">{purchasedTxRef}</span>
             </p>
+
+            {purchasedProduct.isPreorder && (
+              <div className="mt-4 rounded-xl bg-purple-50 border border-purple-200 p-3 text-xs text-purple-900 text-left">
+                <p className="font-bold flex items-center gap-1.5">
+                  <Clock className="h-4 w-4 text-purple-600 shrink-0" />
+                  Pre-Order Successfully Reserved
+                </p>
+                <p className="mt-1 text-[11px] text-purple-700 leading-relaxed">
+                  Your pre-order has been logged with early-bird privileges. Full tool files and activation keys will unlock in your student portal on the release date {purchasedProduct.preorderReleaseDate ? `(${purchasedProduct.preorderReleaseDate})` : ""}.
+                </p>
+              </div>
+            )}
 
             {/* Direct Download Card */}
             <div className="mt-6 rounded-2xl border border-line bg-cream p-4 text-left">
@@ -1301,9 +1596,18 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   href={purchasedProduct.downloadUrl || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 rounded-xl bg-brand py-2.5 px-4 text-xs font-bold text-white hover:bg-brand-dark transition text-center flex items-center justify-center gap-2"
+                  className={`flex-1 rounded-xl py-2.5 px-4 text-xs font-bold text-white transition text-center flex items-center justify-center gap-2 ${
+                    purchasedProduct.isFree || purchasedProduct.price === 0
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : purchasedProduct.isPreorder
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : "bg-brand hover:bg-brand-dark"
+                  }`}
                 >
-                  <Download className="h-4 w-4" /> Download Files Now
+                  <Download className="h-4 w-4" />
+                  <span>
+                    {purchasedProduct.isPreorder ? "Download Pre-Order Pass" : "Download Files Now"}
+                  </span>
                 </a>
                 <button
                   type="button"
@@ -1319,7 +1623,9 @@ export default function StorePage({ categoryParam }: StorePageProps) {
             </div>
 
             <p className="mt-4 text-[11px] text-muted">
-              A copy of your license key and download instructions have also been sent to your email.
+              {purchasedProduct.isPreorder
+                ? "A pre-order receipt and release notification confirmation have also been sent to your email."
+                : "A copy of your license key and download instructions have also been sent to your email."}
             </p>
 
             <button

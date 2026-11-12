@@ -6,7 +6,8 @@ import { naira, compactNaira } from "../../lib/courses";
 import { type StoreProduct, type StoreProductCategory } from "../../lib/storeProducts";
 import {
   ShoppingBag, Plus, Pencil, Trash2, Eye, EyeOff, Bot, LineChart,
-  BookOpen, Target, Package, LayoutGrid, Download, CheckCircle2, DollarSign
+  BookOpen, Target, Package, LayoutGrid, Download, CheckCircle2, DollarSign,
+  Clock, Gift
 } from "lucide-react";
 
 export function AdminStore() {
@@ -34,6 +35,14 @@ export function AdminStore() {
     return products.filter((p) => p.published).length;
   }, [products]);
 
+  const preorderCount = useMemo(() => {
+    return products.filter((p) => p.isPreorder).length;
+  }, [products]);
+
+  const freeCount = useMemo(() => {
+    return products.filter((p) => p.isFree || p.price === 0).length;
+  }, [products]);
+
   const totalSales = useMemo(() => {
     return products.reduce((acc, p) => acc + (p.salesCount || 0), 0) + storePayments.length;
   }, [products, storePayments]);
@@ -42,7 +51,12 @@ export function AdminStore() {
     return products.filter((p) => {
       const matchQ = `${p.title} ${p.tagline} ${p.deliverableType}`.toLowerCase().includes(q.toLowerCase());
       const matchCat = catFilter === "all" || p.category === catFilter;
-      const matchStatus = statusFilter === "all" || (statusFilter === "published" ? p.published : !p.published);
+      const matchStatus =
+        statusFilter === "all" ||
+        (statusFilter === "published" && p.published) ||
+        (statusFilter === "draft" && !p.published) ||
+        (statusFilter === "preorder" && p.isPreorder) ||
+        (statusFilter === "free" && (p.isFree || p.price === 0));
       return matchQ && matchCat && matchStatus;
     });
   }, [products, q, catFilter, statusFilter]);
@@ -71,8 +85,11 @@ export function AdminStore() {
                   ID: p.id,
                   Title: p.title,
                   Category: p.category,
-                  Price: p.price,
+                  Price: p.isFree || p.price === 0 ? "FREE" : p.price,
                   OriginalPrice: p.originalPrice ?? "",
+                  IsFree: p.isFree || p.price === 0 ? "Yes" : "No",
+                  IsPreorder: p.isPreorder ? "Yes" : "No",
+                  PreorderReleaseDate: p.preorderReleaseDate ?? "",
                   SalesCount: p.salesCount,
                   Status: p.published ? "Published" : "Draft",
                   Deliverable: p.deliverableType,
@@ -103,8 +120,13 @@ export function AdminStore() {
           fullValue={naira(storeRevenue)}
           sub={`${storePayments.length} purchases recorded`}
         />
+        <StatCard
+          icon={Clock}
+          label="Pre-Orders & Free"
+          value={`${preorderCount} / ${freeCount}`}
+          sub={`${preorderCount} upcoming • ${freeCount} free tools`}
+        />
         <StatCard icon={Package} label="Units Delivered" value={totalSales} sub="Digital & physical downloads" />
-        <StatCard icon={LayoutGrid} label="Active Categories" value={5} sub="Bots, indicators, books, etc." />
       </div>
 
       <Card className="mt-8 overflow-hidden">
@@ -128,9 +150,11 @@ export function AdminStore() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
           >
-            <option value="all">All statuses</option>
+            <option value="all">All statuses & types</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
+            <option value="preorder">Pre-orders only</option>
+            <option value="free">Free items only</option>
           </select>
           <span className="ml-auto text-xs text-muted">{rows.length} item(s)</span>
         </div>
@@ -161,8 +185,26 @@ export function AdminStore() {
                             <CatIcon className="h-5 w-5 shrink-0" />
                           </span>
                           <div className="min-w-0 max-w-xs">
-                            <p className="truncate font-semibold text-ink">{p.title}</p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="truncate font-semibold text-ink">{p.title}</p>
+                              {p.isPreorder && (
+                                <Badge tone="purple">
+                                  <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
+                                </Badge>
+                              )}
+                              {(p.isFree || p.price === 0) && (
+                                <Badge tone="green">
+                                  <Gift className="h-2.5 w-2.5 inline mr-0.5" /> FREE
+                                </Badge>
+                              )}
+                            </div>
                             <p className="truncate text-xs text-muted">{p.tagline}</p>
+                            {p.isPreorder && p.preorderReleaseDate && (
+                              <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 mt-0.5">
+                                <Clock className="h-3 w-3 shrink-0" />
+                                <span>Releases: {p.preorderReleaseDate}</span>
+                              </p>
+                            )}
                           </div>
                         </div>
                       </Td>
@@ -171,7 +213,15 @@ export function AdminStore() {
                       </Td>
                       <Td className="whitespace-nowrap">
                         <div>
-                          <p className="font-bold text-ink">{naira(p.price)}</p>
+                          <p className="font-bold text-ink">
+                            {p.isFree || p.price === 0 ? (
+                              <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                                <Gift className="h-3.5 w-3.5" /> FREE
+                              </span>
+                            ) : (
+                              naira(p.price)
+                            )}
+                          </p>
                           {p.originalPrice && (
                             <p className="text-[11px] text-muted line-through">{naira(p.originalPrice)}</p>
                           )}
@@ -243,8 +293,12 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
     title: product?.title ?? "",
     tagline: product?.tagline ?? "",
     category: product?.category ?? "bot",
-    price: product?.price ? String(product.price) : "25000",
+    price: product?.isFree || product?.price === 0 ? "0" : (product?.price ? String(product.price) : "25000"),
     originalPrice: product?.originalPrice ? String(product.originalPrice) : "45000",
+    isFree: product?.isFree ?? (product?.price === 0),
+    isPreorder: product?.isPreorder ?? false,
+    preorderReleaseDate: product?.preorderReleaseDate ?? "",
+    preorderNote: product?.preorderNote ?? "",
     badge: product?.badge ?? "Best Seller",
     author: product?.author ?? "By GAMAT Institutional Research Desk",
     image: product?.image ?? "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
@@ -264,9 +318,10 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       setErr("Product title is required.");
       return;
     }
-    const numPrice = Number(f.price);
-    if (!numPrice || numPrice <= 0) {
-      setErr("Please enter a valid price in Naira.");
+    const isFree = f.isFree;
+    const numPrice = isFree ? 0 : Number(f.price);
+    if (!isFree && (!numPrice || numPrice <= 0)) {
+      setErr("Please enter a valid price in Naira, or check 'Set as 100% Free Item'.");
       return;
     }
 
@@ -282,6 +337,10 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       category: f.category as StoreProduct["category"],
       price: numPrice,
       originalPrice: f.originalPrice ? Number(f.originalPrice) : undefined,
+      isFree,
+      isPreorder: f.isPreorder,
+      preorderReleaseDate: f.isPreorder ? f.preorderReleaseDate.trim() : undefined,
+      preorderNote: f.isPreorder ? f.preorderNote.trim() : undefined,
       badge: f.badge.trim() || undefined,
       author: f.author.trim() || "By GAMAT Institutional Research Desk",
       image: f.image.trim() || "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
@@ -358,43 +417,148 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Category</label>
-            <select
-              value={f.category}
-              onChange={(e) => setF({ ...f, category: e.target.value as any })}
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
-            >
-              <option value="bot">AI Bots & EAs</option>
-              <option value="indicator">Indicators & Scripts</option>
-              <option value="ebook">E-Books & Playbooks</option>
-              <option value="strategy">Strategy Blueprints</option>
-              <option value="tool">Physical Journals & Tools</option>
-            </select>
-          </div>
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wide text-muted">Category</label>
+          <select
+            value={f.category}
+            onChange={(e) => setF({ ...f, category: e.target.value as any })}
+            className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+          >
+            <option value="bot">AI Bots & EAs</option>
+            <option value="indicator">Indicators & Scripts</option>
+            <option value="ebook">E-Books & Playbooks</option>
+            <option value="strategy">Strategy Blueprints</option>
+            <option value="tool">Physical Journals & Tools</option>
+          </select>
+        </div>
 
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Price (₦ Naira)</label>
-            <input
-              type="number"
-              required
-              value={f.price}
-              onChange={(e) => setF({ ...f, price: e.target.value })}
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
-            />
+        {/* 1. Item Pricing & Free Item Setting */}
+        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                id="isFree"
+                checked={f.isFree}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setF({
+                    ...f,
+                    isFree: checked,
+                    price: checked ? "0" : (f.price === "0" ? "25000" : f.price),
+                    badge: checked && (!f.badge || f.badge === "Best Seller") ? "Free Resource" : f.badge,
+                  });
+                }}
+                className="h-4 w-4 rounded accent-emerald-600 cursor-pointer"
+              />
+              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <Gift className="h-4 w-4 text-emerald-600" />
+                <span>Set as 100% Free Item (₦0)</span>
+              </span>
+            </label>
+            {f.isFree && (
+              <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                Free Download Active
+              </span>
+            )}
           </div>
+          <p className="text-[11px] text-muted">
+            Check this to let students and visitors access/download this tool without any payment. You can enter an Original Price to demonstrate its value (e.g. ₦15,000 struck through).
+          </p>
 
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Original Price (Strike-through)</label>
-            <input
-              type="number"
-              value={f.originalPrice}
-              onChange={(e) => setF({ ...f, originalPrice: e.target.value })}
-              placeholder="e.g. 50000"
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wide text-muted">
+                Price (₦ Naira) {f.isFree ? "(Free = ₦0)" : ""}
+              </label>
+              <input
+                type="number"
+                disabled={f.isFree}
+                required={!f.isFree}
+                value={f.isFree ? "0" : f.price}
+                onChange={(e) => setF({ ...f, price: e.target.value })}
+                placeholder={f.isFree ? "0 (Free)" : "e.g. 25000"}
+                className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wide text-muted">
+                Original / Value Price (Strike-through)
+              </label>
+              <input
+                type="number"
+                value={f.originalPrice}
+                onChange={(e) => setF({ ...f, originalPrice: e.target.value })}
+                placeholder="e.g. 45000"
+                className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* 2. Pre-Order Configuration Setting */}
+        <div className="rounded-2xl border border-purple-200/90 bg-purple-50/40 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                id="isPreorder"
+                checked={f.isPreorder}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setF({
+                    ...f,
+                    isPreorder: checked,
+                    badge: checked && (!f.badge || f.badge === "Best Seller") ? "Pre-Order" : f.badge,
+                  });
+                }}
+                className="h-4 w-4 rounded accent-purple-600 cursor-pointer"
+              />
+              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-purple-700" />
+                <span>Mark Tool / Product as Pre-Order</span>
+              </span>
+            </label>
+            {f.isPreorder && (
+              <span className="text-[11px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                Pre-Order Mode Enabled
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-muted">
+            Enable pre-orders for upcoming bots, indicators, or physical journals so students can reserve their copy before the official release.
+          </p>
+
+          {f.isPreorder && (
+            <div className="space-y-3 pt-2 border-t border-purple-100">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wide text-purple-950">
+                  Expected Release / Delivery Window
+                </label>
+                <input
+                  type="text"
+                  value={f.preorderReleaseDate}
+                  onChange={(e) => setF({ ...f, preorderReleaseDate: e.target.value })}
+                  placeholder="e.g. April 2026 or April 15, 2026"
+                  className="mt-1 w-full rounded-xl border border-purple-200 bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-purple-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wide text-purple-950">
+                  Pre-Order Notice & Early-Bird Incentive Note
+                </label>
+                <textarea
+                  rows={2}
+                  value={f.preorderNote}
+                  onChange={(e) => setF({ ...f, preorderNote: e.target.value })}
+                  placeholder="e.g. Pre-order now to lock in 50% early bird launch pricing. Software license and files delivered on release day."
+                  className="mt-1 w-full rounded-xl border border-purple-200 bg-white p-3 text-xs text-ink outline-none focus:border-purple-600"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

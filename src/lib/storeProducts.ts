@@ -5,8 +5,12 @@ export type StoreProduct = {
   title: string;
   tagline: string;
   category: "ebook" | "indicator" | "bot" | "strategy" | "tool";
-  price: number; // in Naira
+  price: number; // in Naira (0 for free items)
   originalPrice?: number;
+  isFree?: boolean; // Set as 100% Free tool / resource
+  isPreorder?: boolean; // Set as Pre-order tool / upcoming release
+  preorderReleaseDate?: string; // Estimated release window e.g. "April 2026"
+  preorderNote?: string; // Preorder notice or early-bird perks
   rating: number;
   reviewCount: number;
   badge?: string; // e.g. "Best Seller #1", "Prop-Firm Verified", "New Release"
@@ -226,6 +230,76 @@ export const SEED_STORE_PRODUCTS: StoreProduct[] = [
     fileSize: "Physical Courier / Notion Link",
     compatibility: ["Physical Book", "Notion App", "Printable PDF"],
     createdAt: "2026-01-05T08:00:00Z",
+  },
+  {
+    id: "gamat-smc-starter-kit",
+    title: "SMC Liquidity & Market Structure Starter Kit",
+    tagline: "Free 45-page cheat sheet, high-probability entry checklist, and Fair Value Gap identification guide for aspiring funded traders.",
+    category: "strategy",
+    price: 0,
+    originalPrice: 15000,
+    isFree: true,
+    rating: 4.9,
+    reviewCount: 420,
+    badge: "Free Resource",
+    author: "By GAMAT Academy Education Desk",
+    description: "Kickstart your institutional trading journey with our essential Smart Money Concepts (SMC) starter kit. Includes visual diagrams for liquidity sweeps, internal vs external market structure, and our pre-trade execution checklist.",
+    features: [
+      "45-page downloadable high-resolution visual PDF",
+      "FVG & Order Block mitigation visual checklist",
+      "Asian range & London Killzone timing cheat sheet",
+      "Printable desk markup guide for fast reference",
+      "Free lifetime community access",
+    ],
+    deliverableType: "Instant Free PDF Cheatsheet & Checklist",
+    downloadUrl: "https://gamatfxacademy.com/assets/downloads/GAMAT_SMC_Starter_Kit.pdf",
+    accessInstructions: "Instant 1-click download unlocked immediately.",
+    published: true,
+    salesCount: 650,
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "12 MB (PDF Guide)",
+    compatibility: ["PDF Reader", "Mobile", "Tablet", "Desktop"],
+    createdAt: "2026-02-10T08:00:00Z",
+  },
+  {
+    id: "gamat-quantum-orderflow-bot",
+    title: "GAMAT Quantum Order Flow Scalper EA (MT5)",
+    tagline: "Next-generation institutional volume profile and tick-level delta divergence algorithmic execution robot.",
+    category: "bot",
+    price: 49999,
+    originalPrice: 120000,
+    isPreorder: true,
+    preorderReleaseDate: "April 2026",
+    preorderNote: "Lock in 58% early-bird discount before public rollout. Includes 1-on-1 VPS setup & private launch webinar.",
+    rating: 5.0,
+    reviewCount: 34,
+    badge: "Pre-Order",
+    author: "By GAMAT Algorithmic Quant Team",
+    description: "The Quantum Order Flow EA combines live volume tick delta analysis with session liquidity sweeps. Engineered specifically for passing $100k-$200k prop firm accounts with strict automated equity protection.",
+    features: [
+      "MetaTrader 5 (MT5) exclusive tick-delta engine",
+      "Real-time volume imbalance sweep triggers",
+      "Pre-order early access build released April 2026",
+      "Automated hard equity stop-out protection",
+      "Includes lifetime license and private quant channel access",
+    ],
+    deliverableType: "Pre-order Access Pass + Compiled EA (April 2026)",
+    downloadUrl: "https://gamatfxacademy.com/assets/downloads/Quantum_EA_EarlyAccess_Pass.pdf",
+    accessInstructions: "Pre-order pass is delivered instantly. Your EA license key and installation guide will be unlocked in your dashboard on release day.",
+    published: true,
+    salesCount: 52,
+    image: "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=1000&q=80",
+    gallery: [
+      "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1000&q=80",
+    ],
+    fileSize: "Pre-order Pass (Instant)",
+    compatibility: ["MetaTrader 5", "Windows VPS"],
+    createdAt: "2026-03-01T10:00:00Z",
   },
 ];
 
