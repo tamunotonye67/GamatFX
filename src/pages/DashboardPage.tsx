@@ -8,7 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
-  TrendingUp, History, Copy, Building2, CreditCard, ArrowRight, Check,
+  TrendingUp, History, Copy, Building2, CreditCard, ArrowRight, Check, X,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -91,6 +91,58 @@ export default function DashboardPage() {
       sessionStorage.setItem("gamat_fx_dashboard_tab", nextTab);
       localStorage.setItem("gamat_fx_dashboard_tab", nextTab);
     } catch {}
+  };
+
+  /* Affiliate Ad Popup State & Periodic Reminder */
+  const [showAffiliateAd, setShowAffiliateAd] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthed || !user || tab === "affiliate") {
+      setShowAffiliateAd(false);
+      return;
+    }
+
+    const checkAndShow = () => {
+      if (tab === "affiliate") return;
+      try {
+        const last = sessionStorage.getItem("gamat_affiliate_ad_dismissed");
+        const lastTime = last ? Number(last) : 0;
+        const cooldown = 3 * 60 * 1000; // 3 minutes cooldown between reminder popups
+        if (!lastTime || Date.now() - lastTime > cooldown) {
+          setShowAffiliateAd(true);
+        }
+      } catch {
+        setShowAffiliateAd(true);
+      }
+    };
+
+    // Polite initial appearance after 4 seconds
+    const initialTimer = setTimeout(checkAndShow, 4000);
+
+    // Periodic check every 60 seconds to pop up once in a while if cooldown elapsed
+    const interval = setInterval(checkAndShow, 60000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [isAuthed, user, tab]);
+
+  const handleDismissAffiliateAd = () => {
+    setShowAffiliateAd(false);
+    try {
+      sessionStorage.setItem("gamat_affiliate_ad_dismissed", Date.now().toString());
+    } catch {}
+  };
+
+  const handleJoinAffiliateFromAd = () => {
+    setShowAffiliateAd(false);
+    try {
+      // 15-minute cooldown when student actively engages with CTA
+      sessionStorage.setItem("gamat_affiliate_ad_dismissed", (Date.now() + 15 * 60 * 1000).toString());
+    } catch {}
+    setTab("affiliate");
+    window.scrollTo({ top: 380, behavior: "smooth" });
   };
 
   if (!isAuthed || !user) {
@@ -234,6 +286,77 @@ export default function DashboardPage() {
           {tab === "profile" && <Profile />}
         </div>
       </section>
+
+      {/* Red Gradient Affiliate Program Pop-up Ad */}
+      {showAffiliateAd && tab !== "affiliate" && (
+        <aside
+          role="dialog"
+          aria-label="GAMAT Ambassador Program Advertisement"
+          className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2rem)] rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white p-5 sm:p-6 shadow-[0_20px_50px_-10px_rgba(196,21,28,0.55)] border border-white/20 transition-all duration-300 transform translate-y-0 opacity-100 overflow-hidden"
+        >
+          {/* Ambient Radial Highlights */}
+          <div className="absolute -top-14 -right-14 h-36 w-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-black/40 blur-2xl pointer-events-none" />
+
+          {/* Top Bar: Badge & Dismiss */}
+          <div className="relative flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-xs ring-1 ring-white/25 shadow-xs">
+              <Share2 className="h-3 w-3 text-amber-300" />
+              Ambassador Program
+            </span>
+            <button
+              type="button"
+              onClick={handleDismissAffiliateAd}
+              className="rounded-full bg-white/10 p-1.5 text-white/70 hover:bg-white/25 hover:text-white transition cursor-pointer"
+              aria-label="Close advertisement"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Headline & Pitch */}
+          <div className="relative mt-3.5">
+            <h3 className="font-display text-lg sm:text-xl font-black leading-snug text-white">
+              Earn {store.affiliateSettings?.defaultCommissionPercent || 15}% Cash Commission on Every Student Referral
+            </h3>
+            <p className="mt-2 text-xs sm:text-sm text-white/85 leading-relaxed">
+              Partner with GAMAT FX. Share your unique link with fellow traders or physical academy students and receive direct payouts to your bank or USDT wallet whenever they enroll.
+            </p>
+          </div>
+
+          {/* Quick Value Highlights */}
+          <div className="relative mt-3.5 flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/90">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-black/25 px-2.5 py-1 backdrop-blur-xs">
+              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Direct Bank &amp; USDT
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-lg bg-black/25 px-2.5 py-1 backdrop-blur-xs">
+              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Instant Tracking
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-lg bg-black/25 px-2.5 py-1 backdrop-blur-xs">
+              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> 5% Friend Discount
+            </span>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="relative mt-5 flex items-center justify-between gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleJoinAffiliateFromAd}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 font-display text-xs sm:text-sm font-black text-[#9e1016] shadow-lg hover:bg-cream hover:shadow-xl transition cursor-pointer active:scale-95"
+            >
+              <span>Join &amp; Get Referral Link</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleDismissAffiliateAd}
+              className="text-xs font-semibold text-white/70 hover:text-white transition px-2.5 py-2 cursor-pointer whitespace-nowrap"
+            >
+              Maybe later
+            </button>
+          </div>
+        </aside>
+      )}
     </div>
   );
 
