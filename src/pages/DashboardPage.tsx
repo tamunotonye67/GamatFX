@@ -287,75 +287,106 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Red Gradient Affiliate Program Pop-up Ad */}
+      {/* Centered Red Gradient Affiliate Modal with Blurred Backdrop */}
       {showAffiliateAd && tab !== "affiliate" && (
-        <aside
+        <div
           role="dialog"
-          aria-label="GAMAT Ambassador Program Advertisement"
-          className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2rem)] rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white p-5 sm:p-6 shadow-[0_20px_50px_-10px_rgba(196,21,28,0.55)] border border-white/20 transition-all duration-300 transform translate-y-0 opacity-100 overflow-hidden"
+          aria-modal="true"
+          aria-label="GAMAT Ambassador Program"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-300"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleDismissAffiliateAd();
+          }}
         >
-          {/* Ambient Radial Highlights */}
-          <div className="absolute -top-14 -right-14 h-36 w-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-14 -left-14 h-36 w-36 rounded-full bg-black/40 blur-2xl pointer-events-none" />
+          <div
+            className="relative w-full max-w-lg sm:max-w-2xl lg:max-w-3xl rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white shadow-[0_25px_70px_-15px_rgba(196,21,28,0.65)] border border-white/20 overflow-hidden animate-in zoom-in-95 duration-300"
+          >
+            {/* Ambient Radial Lights */}
+            <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 h-52 w-52 rounded-full bg-black/40 blur-3xl pointer-events-none" />
 
-          {/* Top Bar: Badge & Dismiss */}
-          <div className="relative flex items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-xs ring-1 ring-white/25 shadow-xs">
-              <Share2 className="h-3 w-3 text-amber-300" />
-              Ambassador Program
-            </span>
+            {/* Close Button top-right */}
             <button
               type="button"
               onClick={handleDismissAffiliateAd}
-              className="rounded-full bg-white/10 p-1.5 text-white/70 hover:bg-white/25 hover:text-white transition cursor-pointer"
+              className="absolute top-4 right-4 z-20 rounded-full bg-black/30 p-2 text-white/80 hover:bg-black/50 hover:text-white transition cursor-pointer backdrop-blur-xs ring-1 ring-white/20"
               aria-label="Close advertisement"
             >
               <X className="h-4 w-4" />
             </button>
-          </div>
 
-          {/* Headline & Pitch */}
-          <div className="relative mt-3.5">
-            <h3 className="font-display text-lg sm:text-xl font-black leading-snug text-white">
-              Earn {store.affiliateSettings?.defaultCommissionPercent || 15}% Cash Commission on Every Student Referral
-            </h3>
-            <p className="mt-2 text-xs sm:text-sm text-white/85 leading-relaxed">
-              Partner with GAMAT FX. Share your unique link with fellow traders or physical academy students and receive direct payouts to your bank or USDT wallet whenever they enroll.
-            </p>
-          </div>
+            <div className="grid sm:grid-cols-12 items-stretch">
+              {/* Left Column: Smiling Student with Backpack & Tablet */}
+              <div className="relative sm:col-span-5 h-52 sm:h-auto min-h-[220px] sm:min-h-full overflow-hidden bg-black/30">
+                <img
+                  src="/images/affiliate-modal-student.jpg"
+                  alt="GAMAT student trading with tablet and carrying backpack"
+                  className="h-full w-full object-cover object-top sm:object-center"
+                />
+                {/* Subtle gradient overlay on mobile & desktop edge */}
+                <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-transparent via-transparent to-[#9e1016]/80 sm:to-[#9e1016]" />
 
-          {/* Quick Value Highlights */}
-          <div className="relative mt-3.5 flex flex-wrap items-center gap-2 text-[11px] font-bold text-white/90">
-            <span className="inline-flex items-center gap-1 rounded-lg bg-black/25 px-2.5 py-1 backdrop-blur-xs">
-              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Direct Bank &amp; USDT
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-black/25 px-2.5 py-1 backdrop-blur-xs">
-              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Instant Tracking
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-lg bg-black/25 px-2.5 py-1 backdrop-blur-xs">
-              <CheckCircle2 className="h-3 w-3 text-emerald-400" /> 5% Friend Discount
-            </span>
-          </div>
+                {/* Small float badge on image */}
+                <div className="absolute bottom-3 left-3 z-10 rounded-xl bg-black/60 px-3 py-1.5 backdrop-blur-md border border-white/15">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-300">Student &amp; Ambassador</p>
+                  <p className="text-xs font-black text-white">GAMAT FX Academy</p>
+                </div>
+              </div>
 
-          {/* Action CTAs */}
-          <div className="relative mt-5 flex items-center justify-between gap-3 pt-1">
-            <button
-              type="button"
-              onClick={handleJoinAffiliateFromAd}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 font-display text-xs sm:text-sm font-black text-[#9e1016] shadow-lg hover:bg-cream hover:shadow-xl transition cursor-pointer active:scale-95"
-            >
-              <span>Join &amp; Get Referral Link</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleDismissAffiliateAd}
-              className="text-xs font-semibold text-white/70 hover:text-white transition px-2.5 py-2 cursor-pointer whitespace-nowrap"
-            >
-              Maybe later
-            </button>
+              {/* Right Column: Copy & CTAs */}
+              <div className="relative sm:col-span-7 p-6 sm:p-7 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-xs ring-1 ring-white/25 shadow-xs">
+                      <Share2 className="h-3 w-3 text-amber-300" />
+                      Ambassador Program
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3.5 font-display text-xl sm:text-2xl font-black leading-tight text-white">
+                    Earn {store.affiliateSettings?.defaultCommissionPercent || 15}% Cash Commission on Every Student Referral
+                  </h3>
+
+                  <p className="mt-2 text-xs sm:text-sm text-white/85 leading-relaxed">
+                    Partner with GAMAT FX. Share your unique link with fellow traders, course mates, or physical academy peers. Earn instant cash payouts directly to your bank or USDT wallet whenever they enroll.
+                  </p>
+
+                  {/* Highlights */}
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-bold text-white/90">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/25 px-2.5 py-1.5 backdrop-blur-xs border border-white/10">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Direct Bank &amp; USDT
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/25 px-2.5 py-1.5 backdrop-blur-xs border border-white/10">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Instant Tracking
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/25 px-2.5 py-1.5 backdrop-blur-xs border border-white/10 sm:col-span-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> 5% Welcome Discount for Your Friends
+                    </span>
+                  </div>
+                </div>
+
+                {/* CTAs */}
+                <div className="mt-6 flex flex-wrap items-center gap-3 pt-3 border-t border-white/15">
+                  <button
+                    type="button"
+                    onClick={handleJoinAffiliateFromAd}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-display text-xs sm:text-sm font-black text-[#9e1016] shadow-xl hover:bg-cream hover:shadow-2xl transition cursor-pointer active:scale-95 whitespace-nowrap"
+                  >
+                    <span>Join &amp; Get Referral Link</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDismissAffiliateAd}
+                    className="text-xs font-bold text-white/75 hover:text-white transition px-3 py-2 cursor-pointer"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </aside>
+        </div>
       )}
     </div>
   );
