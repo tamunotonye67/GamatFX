@@ -87,9 +87,10 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
   if (!isAuthed) return <Fallback title="Sign in to take the assessment" cta="Log In" to={`/login?next=/quiz/${rawId}`} icon={Lock} />;
 
-  const hasEnrollment = isEnrolled(rawId) || isEnrolled(course.id) || (existingCourse && isEnrolled(existingCourse.id)) || user?.role === "admin";
+  const hasEnrollment = isEnrolled(rawId) || isEnrolled(course.id) || (existingCourse && isEnrolled(existingCourse.id));
   const courseUrl = hasEnrollment ? `/learn/${course.id}` : `/courses/${course.id}`;
-  const isFreeCert = isCourseEnrolledOrPaid(course.id) || isCertificateUnlocked(course.id);
+  const isFreeCert = isCourseEnrolledOrPaid(course.id);
+  const isUnlocked = isCertificateUnlocked(course.id);
 
   function startAssessment() {
     const fresh = generateAssessmentQuestions(rawId, quiz, DEFAULT_EXAM_QUESTION_COUNT);
@@ -142,12 +143,12 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
             <div className="p-5 sm:p-8">
               {result.passed ? (
-                isFreeCert ? (
+                isFreeCert || isUnlocked ? (
                   <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
                     <Award className="mx-auto h-9 w-9 text-emerald-700" />
                     <p className="mt-2 font-display text-lg font-bold text-emerald-900">Official Certificate Unlocked</p>
                     <p className="mt-1 text-sm text-emerald-800">
-                      Your official GAMAT Fx Academy certificate for <strong>{course.title}</strong> is now ready to download and print in your dashboard (Included 100% free with your course enrollment).
+                      Your official GAMAT Fx Academy certificate for <strong>{course.title}</strong> is now ready to download and print in your dashboard{isFreeCert ? " (Included 100% free with your course enrollment)" : ""}.
                     </p>
                   </div>
                 ) : (
@@ -257,7 +258,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
               <div className="mt-8 flex flex-wrap gap-3">
                 {result.passed ? (
-                  isFreeCert ? (
+                  isFreeCert || isUnlocked ? (
                     <button onClick={() => navigate("/dashboard")} className="btn-primary">
                       <Award className="h-4 w-4" /> View My Certificate
                     </button>
@@ -326,13 +327,13 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     </strong>{" "}
                     <span className="text-muted">
                       {best.passed
-                        ? isFreeCert
+                        ? isFreeCert || isUnlocked
                           ? "— Passed, certificate unlocked!"
                           : "— Passed! ₦10,000 certificate fee pending."
                         : `— ${quiz.passMark}% required to pass.`}
                     </span>
                   </p>
-                  {best.passed && !isFreeCert && (
+                  {best.passed && !isFreeCert && !isUnlocked && (
                     <button
                       type="button"
                       onClick={() => setShowPaymentModal(true)}

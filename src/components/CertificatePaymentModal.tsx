@@ -4,6 +4,7 @@ import { useStore } from "../lib/store";
 import { getCourse, naira, asCourse, COURSE_ALIASES } from "../lib/courses";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { CONTACT } from "../lib/contact";
+import { navigate } from "../lib/router";
 
 interface CertificatePaymentModalProps {
   courseId: string;
@@ -103,11 +104,11 @@ export default function CertificatePaymentModal({
               <button
                 onClick={() => {
                   onClose();
-                  window.location.reload();
+                  navigate("/dashboard");
                 }}
                 className="btn-primary mt-6 w-full !py-3.5"
               >
-                View Certificate Now <ArrowRight className="h-4 w-4" />
+                View Certificate in Dashboard <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           ) : (
