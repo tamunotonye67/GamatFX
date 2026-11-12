@@ -533,21 +533,21 @@ export function AdminWhiteboard() {
 
       {/* Top Statistics Cards */}
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
-        <StatCard icon={LayoutTemplate} label="Active Templates" value={samples.length} />
-        <StatCard icon={BookOpen} label="Resource Blueprints" value={resources.length} />
-        <StatCard icon={Library} label="Playbook Guides" value={lessons.length} />
+        <StatCard icon={LayoutTemplate} label="Templates" value={samples.length} />
+        <StatCard icon={BookOpen} label="Resources" value={resources.length} />
+        <StatCard icon={Library} label="Playbook Lessons" value={lessons.length} />
         <StatCard icon={Layers} label="Pre-Drawn Shapes" value={totalShapes} />
       </div>
 
       {/* Navigation Sub-Tabs */}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 border-b border-line pb-4">
-        {/* Responsive Pill Tabs: Scrollable without breaking on mobile, responsive labels */}
+        {/* Responsive Pill Tabs */}
         <div className="w-full sm:w-auto overflow-x-auto no-scrollbar touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
           <div className="inline-flex min-w-full sm:min-w-0 items-center gap-1 sm:gap-2 p-1 rounded-2xl bg-white border border-line shadow-2xs">
             <button
               type="button"
               onClick={() => { setActiveTab("samples"); setCategoryFilter("all"); }}
-              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
                 activeTab === "samples"
                   ? "bg-brand text-white shadow-sm"
                   : "text-slate-600 hover:text-ink hover:bg-slate-50"
@@ -555,15 +555,14 @@ export function AdminWhiteboard() {
             >
               <LayoutTemplate className="h-4 w-4 shrink-0" />
               <span>
-                <span className="sm:hidden">Templates</span>
-                <span className="hidden sm:inline">Samples & Templates</span>
+                Templates
                 <span className="ml-1 opacity-90">({samples.length})</span>
               </span>
             </button>
             <button
               type="button"
               onClick={() => { setActiveTab("resources"); setCategoryFilter("all"); }}
-              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
                 activeTab === "resources"
                   ? "bg-brand text-white shadow-sm"
                   : "text-slate-600 hover:text-ink hover:bg-slate-50"
@@ -571,15 +570,14 @@ export function AdminWhiteboard() {
             >
               <BookOpen className="h-4 w-4 shrink-0" />
               <span>
-                <span className="sm:hidden">Resources</span>
-                <span className="hidden sm:inline">Resources & Guides</span>
+                Resources
                 <span className="ml-1 opacity-90">({resources.length})</span>
               </span>
             </button>
             <button
               type="button"
               onClick={() => { setActiveTab("lessons"); setCategoryFilter("all"); }}
-              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
+              className={`flex-1 sm:flex-initial shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer whitespace-nowrap ${
                 activeTab === "lessons"
                   ? "bg-brand text-white shadow-sm"
                   : "text-slate-600 hover:text-ink hover:bg-slate-50"
@@ -587,8 +585,7 @@ export function AdminWhiteboard() {
             >
               <Library className="h-4 w-4 shrink-0" />
               <span>
-                <span className="sm:hidden">Playbooks</span>
-                <span className="hidden sm:inline">Playbook Lessons</span>
+                Playbook Lessons
                 <span className="ml-1 opacity-90">({lessons.length})</span>
               </span>
             </button>

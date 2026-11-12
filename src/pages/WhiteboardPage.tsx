@@ -6098,7 +6098,7 @@ export default function WhiteboardPage() {
                 }`}
               >
                 <span className="flex items-center gap-2 whitespace-nowrap">
-                  <LayoutTemplate className="h-3.5 w-3.5" /> Samples & Templates
+                  <LayoutTemplate className="h-3.5 w-3.5" /> Templates
                 </span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "samples" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
@@ -6116,7 +6116,7 @@ export default function WhiteboardPage() {
                 }`}
               >
                 <span className="flex items-center gap-2 whitespace-nowrap">
-                  <BookOpen className="h-3.5 w-3.5" /> Resources & Guides
+                  <BookOpen className="h-3.5 w-3.5" /> Resources
                 </span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                   hubTab === "resources" ? "bg-brand text-white" : "bg-slate-100 text-slate-600"
@@ -9316,7 +9316,7 @@ export default function WhiteboardPage() {
                 {tabKey === "samples" && (
                   <div className="space-y-4 animate-in fade-in duration-150 text-xs">
                     <div>
-                      <h3 className="font-extrabold text-ink text-sm">Samples & Templates</h3>
+                      <h3 className="font-extrabold text-ink text-sm">Templates</h3>
                       <p className="text-[10px] text-muted">Pre-configured trading strategies and chart pattern guides</p>
                     </div>
 
@@ -13468,7 +13468,7 @@ export default function WhiteboardPage() {
           : panelKey === "drafts"
           ? "Diagrams & Drafts"
           : panelKey === "samples"
-          ? "Samples & Templates"
+          ? "Templates"
           : panelKey === "trash"
           ? `Trash (${trashedTabs.length})`
           : panelKey === "grid_guides"
@@ -13993,7 +13993,7 @@ export default function WhiteboardPage() {
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
                   }`}
-                  title={detachedPanels.samples.isOpen ? "Focus Floating Samples Gallery" : "Samples & Templates Gallery"}
+                  title={detachedPanels.samples.isOpen ? "Focus Floating Templates Gallery" : "Templates Gallery"}
                 >
                   <LayoutTemplate className="h-4 w-4" />
                   {detachedPanels.samples.isOpen && (
