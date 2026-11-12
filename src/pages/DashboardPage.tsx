@@ -684,84 +684,48 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Commissions Activity & Payout History — Premium Balanced Arrangement */}
-        <div className="pt-8 border-t border-line space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800">
-                <Receipt className="h-3.5 w-3.5 text-brand" />
-                <span>Earning Activity &amp; Payouts</span>
-              </div>
-              <h3 className="mt-2 font-display text-xl sm:text-2xl font-extrabold text-ink">
-                Referral Sales &amp; Withdrawal History
-              </h3>
-              <p className="mt-0.5 text-xs sm:text-sm text-muted">
-                Track real-time student conversions referred through your link and monitor payout disbursements.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPayoutModalOpen(true)}
-                disabled={profile.pendingBalance < (store.affiliateSettings.minimumPayoutAmount || 10000)}
-                className="btn-primary !py-2.5 !px-4 !text-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
-              >
-                <Wallet className="h-3.5 w-3.5" />
-                <span>Request Payout ({naira(profile.pendingBalance)})</span>
-              </button>
-            </div>
+        {/* Activity & Payout History — Clean GAMAT Website Style */}
+        <div className="pt-6 border-t border-line space-y-5">
+          <div>
+            <h3 className="font-display text-xl font-bold text-ink">
+              Activity &amp; Payout History
+            </h3>
+            <p className="mt-1 text-sm text-muted">
+              Track student commissions earned through your referral code and monitor your withdrawal requests.
+            </p>
           </div>
 
-          {/* Side-by-Side Responsive Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-            {/* Card 1: Referral Sales & Commissions */}
-            <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[340px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            {/* Referral Commissions Card */}
+            <div className="rounded-3xl border border-line bg-white p-6 shadow-sm flex flex-col justify-between min-h-[260px]">
               <div>
-                <div className="flex items-center justify-between border-b border-line pb-4 mb-5">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-xs">
-                      <TrendingUp className="h-5 w-5" />
-                    </span>
+                <div className="flex items-center justify-between border-b border-line pb-4 mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <TrendingUp className="h-5 w-5 text-brand" />
                     <div>
-                      <h4 className="font-display text-base font-bold text-ink">
-                        Referral Sales &amp; Commissions
+                      <h4 className="font-display text-base font-bold text-ink leading-tight">
+                        Referral Commissions
                       </h4>
-                      <p className="text-xs text-muted">15% commission on all student payments</p>
+                      <p className="text-[11px] text-muted">15% on all student enrollments</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="text-xs font-bold text-muted bg-cream px-3 py-1 rounded-full border border-line">
                     {commissions.length} {commissions.length === 1 ? "Sale" : "Sales"}
                   </span>
                 </div>
 
                 {commissions.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-line bg-cream/50 p-6 sm:p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-line shadow-xs text-muted/60 mb-3">
-                      <Users className="h-6 w-6 text-brand" />
-                    </div>
-                    <p className="font-bold text-ink text-sm sm:text-base">No referral commissions yet</p>
-                    <p className="text-xs text-muted mt-1.5 max-w-sm leading-relaxed">
-                      Share your card and invite link above. You will earn an automatic <strong>15% cash commission</strong> on every enrollment!
+                  <div className="py-10 text-center">
+                    <Users className="mx-auto h-10 w-10 text-muted/30" />
+                    <p className="mt-3 font-semibold text-ink text-sm">No referral commissions yet</p>
+                    <p className="mt-1 text-xs text-muted max-w-xs mx-auto leading-relaxed">
+                      Share your card or invite link above to earn 15% cash commission whenever anyone enrolls.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try {
-                          navigator.clipboard.writeText(getSignupReferralUrl(profile.referralCode));
-                          alert("Referral link copied to clipboard!");
-                        } catch {}
-                      }}
-                      className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      <span>Copy Invite Link</span>
-                    </button>
                   </div>
                 ) : (
-                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                  <div className="divide-y divide-line pt-1 max-h-72 overflow-y-auto pr-1">
                     {commissions.map((c) => (
-                      <div key={c.id} className="flex items-center justify-between rounded-xl bg-cream p-3 text-xs border border-line/60">
+                      <div key={c.id} className="py-3 flex items-center justify-between text-xs">
                         <div>
                           <p className="font-bold text-ink">{c.orderTitle}</p>
                           <p className="text-[11px] text-muted">
@@ -779,51 +743,36 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Card 2: Withdrawal History */}
-            <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[340px]">
+            {/* Withdrawal History Card */}
+            <div className="rounded-3xl border border-line bg-white p-6 shadow-sm flex flex-col justify-between min-h-[260px]">
               <div>
-                <div className="flex items-center justify-between border-b border-line pb-4 mb-5">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand border border-brand/20 shadow-xs">
-                      <History className="h-5 w-5" />
-                    </span>
+                <div className="flex items-center justify-between border-b border-line pb-4 mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <History className="h-5 w-5 text-brand" />
                     <div>
-                      <h4 className="font-display text-base font-bold text-ink">
+                      <h4 className="font-display text-base font-bold text-ink leading-tight">
                         Withdrawal History
                       </h4>
-                      <p className="text-xs text-muted">Direct payouts to Bank, USDT, or PayPal</p>
+                      <p className="text-[11px] text-muted">Bank, USDT, or PayPal payouts</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-100 text-slate-700 border border-slate-200">
+                  <span className="text-xs font-bold text-muted bg-cream px-3 py-1 rounded-full border border-line">
                     {myPayouts.length} {myPayouts.length === 1 ? "Payout" : "Payouts"}
                   </span>
                 </div>
 
                 {myPayouts.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-line bg-cream/50 p-6 sm:p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-line shadow-xs text-muted/60 mb-3">
-                      <Wallet className="h-6 w-6 text-emerald-600" />
-                    </div>
-                    <p className="font-bold text-ink text-sm sm:text-base">No withdrawals requested yet</p>
-                    <p className="text-xs text-muted mt-1.5 max-w-sm leading-relaxed">
-                      Once your available commission balance reaches <strong>{naira(store.affiliateSettings.minimumPayoutAmount || 10000)}</strong>, you can request an instant withdrawal payout.
+                  <div className="py-10 text-center">
+                    <Wallet className="mx-auto h-10 w-10 text-muted/30" />
+                    <p className="mt-3 font-semibold text-ink text-sm">No withdrawals requested yet</p>
+                    <p className="mt-1 text-xs text-muted max-w-xs mx-auto leading-relaxed">
+                      You can request a withdrawal once your commission balance reaches {naira(store.affiliateSettings.minimumPayoutAmount || 10000)}.
                     </p>
-                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPayoutModalOpen(true)}
-                        disabled={profile.pendingBalance < (store.affiliateSettings.minimumPayoutAmount || 10000)}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer shadow-xs flex items-center gap-1.5"
-                      >
-                        <Wallet className="h-3.5 w-3.5" />
-                        <span>Request Payout ({naira(profile.pendingBalance)})</span>
-                      </button>
-                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                  <div className="divide-y divide-line pt-1 max-h-72 overflow-y-auto pr-1">
                     {myPayouts.map((p) => (
-                      <div key={p.id} className="flex items-center justify-between rounded-xl bg-cream p-3 text-xs border border-line/60">
+                      <div key={p.id} className="py-3 flex items-center justify-between text-xs">
                         <div>
                           <p className="font-bold text-ink">{naira(p.amount)}</p>
                           <p className="text-[11px] text-muted capitalize">
