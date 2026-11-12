@@ -153,15 +153,22 @@ export default function Navbar() {
    * immediately, otherwise white nav text sits on a light background.
    */
   const forceSolid = route.startsWith("/dashboard") || requestedSolid;
-  const scrolled = scrolledRaw || forceSolid || open;
+  const scrolled = scrolledRaw || forceSolid;
 
-  // Lock body scroll when full-viewport mobile menu is open
+  // Lock body scroll smoothly without layout/scrollbar jump
   useEffect(() => {
     if (open) {
       const prevOverflow = document.body.style.overflow;
+      const prevPaddingRight = document.body.style.paddingRight;
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
       document.body.style.overflow = "hidden";
+      if (scrollBarWidth > 0) {
+        document.body.style.paddingRight = `${scrollBarWidth}px`;
+      }
       return () => {
         document.body.style.overflow = prevOverflow;
+        document.body.style.paddingRight = prevPaddingRight;
       };
     }
   }, [open]);
@@ -579,7 +586,7 @@ export default function Navbar() {
     <div
       aria-hidden="true"
       onClick={() => setOpen(false)}
-      className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 lg:hidden ${
+      className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transform-gpu will-change-[opacity] transition-opacity duration-300 lg:hidden ${
         open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
       }`}
     />
@@ -589,7 +596,7 @@ export default function Navbar() {
       id="mobile-navigation"
       aria-label="Mobile Navigation"
       aria-hidden={!open}
-      className={`fixed inset-y-0 right-0 z-50 flex h-dvh w-[86vw] max-w-[350px] flex-col border-l border-line bg-white shadow-[-16px_0_50px_rgba(0,0,0,0.22)] transition-transform duration-300 ease-out lg:hidden ${
+      className={`fixed inset-y-0 right-0 z-50 flex h-full max-h-screen w-[86vw] max-w-[350px] flex-col border-l border-line bg-white shadow-[-16px_0_50px_rgba(0,0,0,0.22)] transform-gpu will-change-transform [backface-visibility:hidden] [perspective:1000px] touch-pan-y transition-transform duration-300 ease-out lg:hidden ${
         open ? "translate-x-0" : "translate-x-full pointer-events-none"
       }`}
     >
@@ -607,7 +614,7 @@ export default function Navbar() {
       </div>
 
       {/* Drawer Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 [-webkit-overflow-scrolling:touch]">
         {/* Main Navigation */}
         <div>
           <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted">
