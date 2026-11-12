@@ -19,6 +19,7 @@ import {
   Edit3,
   Palette,
   CheckCircle,
+  ChevronDown,
 } from "lucide-react";
 import {
   type AffiliateProfile,
@@ -98,6 +99,10 @@ export default function AffiliateCard({
   const [inviteMessage, setInviteMessage] = useState(
     profile.personalQuote || DEFAULT_INVITE_MESSAGE
   );
+
+  // Collapsible dropdown toggles
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [captionCollapsibleOpen, setCaptionCollapsibleOpen] = useState(false);
 
   const referralUrl = getSignupReferralUrl(profile.referralCode);
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(referralUrl)}`;
@@ -587,176 +592,257 @@ export default function AffiliateCard({
             </p>
           </div>
 
-          {/* 2. Enrolled & Paid Course Selection Section */}
+          {/* 2. Enrolled & Paid Course Selection Section (Collapsible Dropdown) */}
           <div className="space-y-2 pt-2 border-t border-line/70">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <BookOpen className="h-3.5 w-3.5 text-brand" />
                 <span>Enrolled &amp; Paid Courses</span>
               </label>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
-                {enrolledCourses.length > 0
-                  ? `${enrolledCourses.length} Enrolled Course(s)`
-                  : "Catalog Selection"}
-              </span>
+              <button
+                type="button"
+                onClick={() => setCourseDropdownOpen(!courseDropdownOpen)}
+                className="text-[11px] font-bold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>{courseDropdownOpen ? "Collapse List" : "Change Course"}</span>
+                <ChevronDown
+                  className={`h-3 w-3 transition-transform duration-200 ${
+                    courseDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
             </div>
 
-            {enrolledCourses.length > 0 ? (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {enrolledCourses.map((c) => {
-                  const isSelected =
-                    !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
-                  return (
+            {/* Compact Selected Course Trigger Bar */}
+            <div
+              onClick={() => setCourseDropdownOpen(!courseDropdownOpen)}
+              className="w-full flex items-center justify-between p-3 rounded-xl border border-line bg-cream/70 hover:bg-cream hover:border-brand/40 transition cursor-pointer text-left shadow-xs"
+            >
+              <div className="min-w-0 flex-1 pr-3">
+                <span className="text-[10px] uppercase font-bold text-muted block">Selected on Card:</span>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <p className="font-bold text-xs sm:text-sm text-ink truncate">{courseTitle}</p>
+                  {isCustomCourse ? (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                      CUSTOM TITLE
+                    </span>
+                  ) : enrolledCourses.some(
+                      (c) => c.title.toLowerCase() === courseTitle.toLowerCase() && c.isPaid
+                    ) ? (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                      PAID ENROLLMENT
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                      ENROLLED
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-bold text-brand shrink-0">
+                <span className="hidden sm:inline">{courseDropdownOpen ? "Close" : "Change"}</span>
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    courseDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Collapsible Dropdown Options Container */}
+            {courseDropdownOpen && (
+              <div className="rounded-2xl border border-line bg-white p-3 shadow-md space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="flex items-center justify-between px-1 pb-1.5 border-b border-line text-[11px] font-bold text-muted">
+                  <span>
+                    Select from your courses ({enrolledCourses.length > 0 ? enrolledCourses.length : "Catalog"}):
+                  </span>
+                  <span className="text-[10px] text-muted">Click to select &amp; collapse</span>
+                </div>
+
+                {enrolledCourses.length > 0 ? (
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                    {enrolledCourses.map((c) => {
+                      const isSelected =
+                        !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            setIsCustomCourse(false);
+                            setCourseTitle(c.title);
+                            onUpdateCourseTitle?.(c.title);
+                            setCourseDropdownOpen(false);
+                          }}
+                          className={`w-full text-left p-2.5 rounded-xl border transition cursor-pointer flex items-center justify-between gap-2.5 ${
+                            isSelected
+                              ? "border-brand bg-brand/5 shadow-xs ring-1 ring-brand/20"
+                              : "border-line bg-white hover:border-slate-300 hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-bold text-xs sm:text-sm text-ink truncate">{c.title}</p>
+                              {c.isPaid ? (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                                  PAID ENROLLMENT
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                  ENROLLED
+                                </span>
+                              )}
+                            </div>
+                            {c.enrolledAt && (
+                              <p className="text-[10px] text-muted mt-0.5">
+                                Enrolled: {new Date(c.enrolledAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+
+                          <span
+                            className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition ${
+                              isSelected
+                                ? "border-brand bg-brand text-white"
+                                : "border-slate-300 bg-white"
+                            }`}
+                          >
+                            {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-amber-200/80 bg-amber-50/50 p-3 space-y-2">
+                    <p className="text-[11px] text-amber-900 font-medium">
+                      Select a program from our flagship catalog:
+                    </p>
+                    <div className="space-y-1.5">
+                      {fallbackCatalogCourses.map((c) => {
+                        const isSelected =
+                          !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              setIsCustomCourse(false);
+                              setCourseTitle(c.title);
+                              onUpdateCourseTitle?.(c.title);
+                              setCourseDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center justify-between ${
+                              isSelected
+                                ? "border-brand bg-brand text-white shadow-xs"
+                                : "border-line bg-white text-ink hover:bg-slate-50"
+                            }`}
+                          >
+                            <span className="truncate">{c.title}</span>
+                            {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom Course Name Option Inside Collapsible */}
+                <div className="pt-2 border-t border-line">
+                  {!isCustomCourse ? (
                     <button
-                      key={c.id}
                       type="button"
                       onClick={() => {
-                        setIsCustomCourse(false);
-                        setCourseTitle(c.title);
-                        onUpdateCourseTitle?.(c.title);
+                        setIsCustomCourse(true);
+                        setCustomCourseText(courseTitle);
                       }}
-                      className={`w-full text-left p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-3 ${
-                        isSelected
-                          ? "border-brand bg-brand/5 shadow-xs ring-1 ring-brand/20"
-                          : "border-line bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
+                      className="text-[11px] font-semibold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-xs sm:text-sm text-ink truncate">{c.title}</p>
-                          {c.isPaid ? (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
-                              PAID ENROLLMENT
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                              ENROLLED
-                            </span>
-                          )}
-                        </div>
-                        {c.enrolledAt && (
-                          <p className="text-[10px] text-muted mt-0.5">
-                            Enrolled: {new Date(c.enrolledAt).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-
-                      <span
-                        className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition ${
-                          isSelected
-                            ? "border-brand bg-brand text-white"
-                            : "border-slate-300 bg-white"
-                        }`}
-                      >
-                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                      </span>
+                      <Edit3 className="h-3 w-3" /> Or type a custom course title
                     </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-amber-200/80 bg-amber-50/50 p-3.5 space-y-2.5">
-                <p className="text-[11px] text-amber-900 font-medium">
-                  You haven't enrolled in a paid course yet. Select from our flagship programs below to feature on your card:
-                </p>
-                <div className="space-y-1.5">
-                  {fallbackCatalogCourses.map((c) => {
-                    const isSelected =
-                      !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => {
-                          setIsCustomCourse(false);
-                          setCourseTitle(c.title);
-                          onUpdateCourseTitle?.(c.title);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center justify-between ${
-                          isSelected
-                            ? "border-brand bg-brand text-white shadow-xs"
-                            : "border-line bg-white text-ink hover:bg-slate-50"
-                        }`}
-                      >
-                        <span className="truncate">{c.title}</span>
-                        {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
-                      </button>
-                    );
-                  })}
+                  ) : (
+                    <div className="w-full space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={customCourseText}
+                          onChange={(e) => {
+                            setCustomCourseText(e.target.value);
+                            setCourseTitle(e.target.value);
+                            onUpdateCourseTitle?.(e.target.value);
+                          }}
+                          placeholder="e.g. Institutional Order Flow &amp; Liquidity Playbook"
+                          className="flex-1 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink focus:border-brand outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsCustomCourse(false);
+                            const fallback = enrolledCourses[0]?.title || "Forex Foundations";
+                            setCourseTitle(fallback);
+                            onUpdateCourseTitle?.(fallback);
+                          }}
+                          className="text-xs font-bold text-muted hover:text-ink px-2.5 py-2 cursor-pointer"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
-
-            {/* Custom Course Name Option */}
-            <div className="pt-1 flex items-center justify-between">
-              {!isCustomCourse ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCustomCourse(true);
-                    setCustomCourseText(courseTitle);
-                  }}
-                  className="text-[11px] font-semibold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
-                >
-                  <Edit3 className="h-3 w-3" /> Or type a custom course title
-                </button>
-              ) : (
-                <div className="w-full space-y-1.5 pt-1">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={customCourseText}
-                      onChange={(e) => {
-                        setCustomCourseText(e.target.value);
-                        setCourseTitle(e.target.value);
-                        onUpdateCourseTitle?.(e.target.value);
-                      }}
-                      placeholder="e.g. Institutional Order Flow & Liquidity Playbook"
-                      className="flex-1 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink focus:border-brand outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsCustomCourse(false);
-                        const fallback = enrolledCourses[0]?.title || "Forex Foundations";
-                        setCourseTitle(fallback);
-                        onUpdateCourseTitle?.(fallback);
-                      }}
-                      className="text-xs font-bold text-muted hover:text-ink px-2.5 py-2 cursor-pointer"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* 3. Marketing Share Message / Hook */}
+          {/* 3. Marketing Share Message / Hook (Collapsible Templates) */}
           <div className="space-y-2 pt-2 border-t border-line/70">
-            <label className="text-xs font-bold text-ink flex items-center gap-1.5">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-brand" />
-              <span>Marketing Share Caption</span>
-            </label>
-            <div className="space-y-1.5">
-              {PRESET_INVITE_MESSAGES.map((msg, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setInviteMessage(msg);
-                    onUpdateQuote?.(msg);
-                  }}
-                  className={`w-full text-left p-2.5 rounded-lg transition cursor-pointer border text-[11px] leading-relaxed ${
-                    inviteMessage === msg
-                      ? "border-brand bg-brand/5 text-ink font-bold"
-                      : "border-line bg-cream text-muted hover:text-ink hover:bg-slate-100"
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <SlidersHorizontal className="h-3.5 w-3.5 text-brand" />
+                <span>Marketing Share Caption</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setCaptionCollapsibleOpen(!captionCollapsibleOpen)}
+                className="text-[11px] font-bold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>{captionCollapsibleOpen ? "Hide Templates" : "Browse 4 Templates"}</span>
+                <ChevronDown
+                  className={`h-3 w-3 transition-transform duration-200 ${
+                    captionCollapsibleOpen ? "rotate-180" : ""
                   }`}
-                >
-                  "{msg}"
-                </button>
-              ))}
+                />
+              </button>
             </div>
+
+            {/* Collapsible Templates List */}
+            {captionCollapsibleOpen && (
+              <div className="rounded-2xl border border-line bg-cream/70 p-3 space-y-2 animate-in fade-in duration-150">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
+                  Click any template to apply:
+                </p>
+                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                  {PRESET_INVITE_MESSAGES.map((msg, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setInviteMessage(msg);
+                        onUpdateQuote?.(msg);
+                        setCaptionCollapsibleOpen(false);
+                      }}
+                      className={`w-full text-left p-2.5 rounded-xl transition cursor-pointer border text-[11px] leading-relaxed ${
+                        inviteMessage === msg
+                          ? "border-brand bg-white text-ink font-bold shadow-xs ring-1 ring-brand/30"
+                          : "border-line bg-white text-muted hover:text-ink hover:border-slate-300"
+                      }`}
+                    >
+                      "{msg}"
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <textarea
               rows={2}
@@ -766,7 +852,7 @@ export default function AffiliateCard({
                 onUpdateQuote?.(e.target.value);
               }}
               placeholder="Or write your own custom invitation hook..."
-              className="mt-1 w-full rounded-xl border border-line bg-cream p-2 text-xs text-ink focus:border-brand focus:outline-none"
+              className="mt-1 w-full rounded-xl border border-line bg-cream p-2.5 text-xs text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:outline-none shadow-xs"
             />
           </div>
         </div>
