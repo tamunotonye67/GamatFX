@@ -1414,7 +1414,7 @@ type Ctx = {
     };
     revenueByMonth: { label: string; value: number }[];
     updateAccount: (id: string, patch: Partial<Account>) => void;
-    deleteAccount: (id: string) => void | Promise<void>;
+    deleteAccount: (id: string) => Promise<{ ok: boolean; error?: string }>;
     refreshAccounts: () => Promise<void>;
     createAccount: (d: Omit<Account, "id" | "joined">) => { ok: boolean; error?: string };
     enrollUser: (userId: string, courseId: string) => void;
@@ -3517,9 +3517,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       // Authoritative delete from Supabase
       try {
-        await deleteSupabaseAccount(targetId, targetEmail);
-      } catch (err) {
+        const res = await deleteSupabaseAccount(targetId, targetEmail);
+        return res;
+      } catch (err: any) {
         console.error("Failed to delete account from Supabase:", err);
+        return { ok: false, error: err.message || "Failed to delete account from Supabase" };
       }
     },
     refreshAccounts: async () => {

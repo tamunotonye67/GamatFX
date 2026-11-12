@@ -244,11 +244,15 @@ export function AdminStudents() {
   const [creating, setCreating] = useState(false);
   const [issuingCert, setIssuingCert] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [toDelete, setToDelete] = useState<Account | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteNotice, setDeleteNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleSync = async () => {
     setSyncing(true);
     try {
       await admin.refreshAccounts();
+      setDeleteNotice({ type: "success", text: "Database synchronized with Supabase." });
     } finally {
       setSyncing(false);
     }
@@ -288,6 +292,19 @@ export function AdminStudents() {
         </div>
       }
     >
+      {deleteNotice && (
+        <div className={`mb-4 flex items-center justify-between rounded-2xl p-4 text-sm font-semibold shadow-xs ${
+          deleteNotice.type === "success"
+            ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
+            : "border border-red-200 bg-red-50 text-red-800"
+        }`}>
+          <span>{deleteNotice.text}</span>
+          <button type="button" onClick={() => setDeleteNotice(null)} className="text-xs font-bold underline ml-4 cursor-pointer">
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-4">
           <SearchBar value={q} onChange={setQ} placeholder="Search name or email…" />
@@ -341,11 +358,9 @@ export function AdminStudents() {
                           onClick={() => admin.updateAccount(a.id, { status: a.status === "active" ? "suspended" : "active" })}>
                           {a.status === "active" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </IconBtn>
-                        <IconBtn danger title="Delete" onClick={async () => {
-                          if (confirm(`Delete ${a.firstName} ${a.lastName}? This will permanently remove their record and enrollments from both the website and Supabase.`)) {
-                            await admin.deleteAccount(a.id);
-                          }
-                        }}><Trash2 className="h-4 w-4" /></IconBtn>
+                        <IconBtn danger title="Delete" onClick={() => setToDelete(a)}>
+                          <Trash2 className="h-4 w-4" />
+                        </IconBtn>
                       </div>
                     </Td>
                   </tr>
@@ -369,6 +384,82 @@ export function AdminStudents() {
       {/* Create */}
       <Modal open={creating} onClose={() => setCreating(false)} title="Add new student">
         <StudentForm onDone={() => setCreating(false)} />
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={!!toDelete} onClose={() => !deleting && setToDelete(null)} title="Delete Student Account">
+        {toDelete && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-red-200/80 bg-red-50/70 p-4">
+              <p className="text-sm font-bold text-red-900">Are you sure you want to delete this student?</p>
+              <p className="mt-1 text-xs text-red-700 leading-relaxed">
+                This will permanently remove their profile and course enrollments from both the website and the Supabase database.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-line bg-cream p-4 text-sm">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+                  {(toDelete.firstName[0] ?? "") + (toDelete.lastName[0] ?? "")}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-bold text-ink truncate">{toDelete.firstName} {toDelete.lastName}</p>
+                  <p className="text-xs text-muted font-mono truncate">{toDelete.email}</p>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-line/60 flex items-center justify-between text-xs text-muted">
+                <span>Role: <strong className="text-ink capitalize">{toDelete.role}</strong></span>
+                <span>Enrolled courses: <strong className="text-ink">{enrollmentsOf(toDelete.id).length}</strong></span>
+                <span>Joined: <strong className="text-ink">{fmtDate(toDelete.joined)}</strong></span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setToDelete(null)}
+                className="rounded-xl border border-line px-4 py-2.5 text-xs font-bold text-ink hover:bg-cream transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    const res = await admin.deleteAccount(toDelete.id);
+                    if (res && !res.ok) {
+                      setDeleteNotice({ type: "error", text: res.error || "Failed to delete student from Supabase" });
+                    } else {
+                      setDeleteNotice({
+                        type: "success",
+                        text: `Student ${toDelete.firstName} ${toDelete.lastName} was deleted from both the website and Supabase.`,
+                      });
+                      setToDelete(null);
+                    }
+                  } catch (e: any) {
+                    setDeleteNotice({ type: "error", text: e.message || "Failed to delete account" });
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-red-700 transition cursor-pointer disabled:opacity-50"
+              >
+                {deleting ? (
+                  <>
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Deleting from Supabase...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-3.5 w-3.5" /> Delete Student
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Direct Office / Walk-in Certificate */}

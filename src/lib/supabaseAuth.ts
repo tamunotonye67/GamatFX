@@ -260,6 +260,16 @@ export async function deleteSupabaseAccount(id: string, email?: string): Promise
       }
     }
 
+    // 4. Optional RPC to delete from auth.users if configured in Supabase SQL editor
+    try {
+      await supabase.rpc("delete_user_by_admin", {
+        target_user_id: id,
+        target_email: cleanEmail || "",
+      });
+    } catch {
+      // Ignored if RPC is not installed in database
+    }
+
     if (errId && errEmail) {
       return { ok: false, error: errId.message || errEmail.message };
     }
