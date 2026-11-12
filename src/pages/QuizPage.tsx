@@ -347,7 +347,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     <div className="min-h-screen bg-cream">
       {/* Top Sticky Header */}
       <header className="sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <Logo />
           <div className="flex items-center gap-3 sm:gap-5">
             <span className="hidden text-xs sm:text-sm font-semibold text-muted md:inline">
@@ -383,96 +383,220 @@ export default function QuizPage({ courseId }: { courseId: string }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-10">
-        {err && (
-          <p className="mb-5 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">
-            <AlertCircle className="h-4 w-4 text-brand shrink-0" /> {err}
-          </p>
-        )}
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Active Question Column (Left, 8 cols on desktop) */}
+          <div className="lg:col-span-8 space-y-4">
+            {err && (
+              <p className="flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">
+                <AlertCircle className="h-4 w-4 text-brand shrink-0" /> {err}
+              </p>
+            )}
 
-        {/* Active Question Card */}
-        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-md">
-          <div className="flex items-center justify-between gap-3 border-b border-line/60 pb-4">
-            <div className="flex items-center gap-2">
-              <span className="rounded-md bg-ink px-2.5 py-1 text-xs font-extrabold text-white">
-                Q{idx + 1} of {activeQuestions.length}
-              </span>
-              {answers[q.id] !== undefined ? (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                  <Check className="h-3.5 w-3.5" /> Answered
-                </span>
-              ) : (
-                <span className="text-xs text-muted">Unanswered</span>
-              )}
-            </div>
+            {/* Active Question Card */}
+            <div className="rounded-2xl border border-line bg-white p-5 sm:p-7 shadow-xs">
+              <div className="flex items-center justify-between gap-3 border-b border-line/60 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-md bg-ink px-2.5 py-1 text-xs font-extrabold text-white">
+                    Q{idx + 1} of {activeQuestions.length}
+                  </span>
+                  {answers[q.id] !== undefined ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                      <Check className="h-3.5 w-3.5" /> Answered
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted">Unanswered</span>
+                  )}
+                </div>
 
-            <button
-              type="button"
-              onClick={() => setFlagged({ ...flagged, [q.id]: !isFlagged })}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
-                isFlagged ? "bg-amber-100 text-amber-800" : "bg-cream text-muted hover:text-ink"
-              }`}
-            >
-              <Bookmark className="h-3.5 w-3.5" />
-              {isFlagged ? "Flagged for Review" : "Flag for Review"}
-            </button>
-          </div>
-
-          <h2 className="mt-5 font-display text-lg sm:text-xl font-bold leading-snug text-ink md:text-2xl">
-            {q.q}
-          </h2>
-
-          <div className="mt-6 space-y-3">
-            {q.options.map((opt, i) => {
-              const sel = answers[q.id] === i;
-              return (
                 <button
-                  key={i}
-                  onClick={() => {
-                    setAnswers({ ...answers, [q.id]: i });
-                    setErr(null);
-                  }}
-                  className={`flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition ${
-                    sel ? "border-brand bg-brand-light/70 shadow-sm" : "border-line hover:border-brand/40 hover:bg-cream/60"
+                  type="button"
+                  onClick={() => setFlagged({ ...flagged, [q.id]: !isFlagged })}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition ${
+                    isFlagged ? "bg-amber-100 text-amber-800" : "bg-cream text-muted hover:text-ink"
                   }`}
                 >
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition ${
-                      sel ? "bg-brand text-white shadow-sm" : "bg-cream text-muted border border-line"
-                    }`}
-                  >
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <span className={`text-sm leading-relaxed ${sel ? "font-semibold text-ink" : "text-ink/80"}`}>
-                    {opt}
-                  </span>
+                  <Bookmark className="h-3.5 w-3.5" />
+                  {isFlagged ? "Flagged for Review" : "Flag for Review"}
                 </button>
-              );
-            })}
+              </div>
+
+              <h2 className="mt-5 font-display text-lg sm:text-xl font-bold leading-snug text-ink md:text-2xl">
+                {q.q}
+              </h2>
+
+              <div className="mt-6 space-y-3">
+                {q.options.map((opt, i) => {
+                  const sel = answers[q.id] === i;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setAnswers({ ...answers, [q.id]: i });
+                        setErr(null);
+                      }}
+                      className={`flex w-full items-start gap-3.5 rounded-xl border p-3.5 sm:p-4 text-left transition ${
+                        sel ? "border-brand bg-brand-light/70 shadow-xs" : "border-line hover:border-brand/40 hover:bg-cream/60"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition ${
+                          sel ? "bg-brand text-white shadow-xs" : "bg-cream text-muted border border-line"
+                        }`}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <span className={`text-sm leading-relaxed ${sel ? "font-semibold text-ink" : "text-ink/80"}`}>
+                        {opt}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="mt-7 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-line/60">
+                <button
+                  onClick={() => {
+                    setIdx((i) => Math.max(0, i - 1));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  disabled={idx === 0}
+                  className="btn-outline-dark !py-2 !px-4 text-xs font-bold disabled:opacity-30"
+                >
+                  <ArrowLeft className="h-4 w-4" /> Previous
+                </button>
+
+                <span className="text-xs text-muted font-medium">
+                  Question {idx + 1} / {activeQuestions.length}
+                </span>
+
+                {idx < activeQuestions.length - 1 ? (
+                  <button
+                    onClick={() => {
+                      setIdx((i) => i + 1);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="btn-primary !py-2 !px-4 text-xs font-bold"
+                  >
+                    Next <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      if (answeredCount < activeQuestions.length) {
+                        setShowSubmitModal(true);
+                      } else {
+                        finish();
+                      }
+                    }}
+                    className="btn-primary !py-2 !px-4 text-xs font-bold"
+                  >
+                    Submit Exam <Flag className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Navigation Controls */}
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-line/60">
-            <button
-              onClick={() => setIdx((i) => Math.max(0, i - 1))}
-              disabled={idx === 0}
-              className="btn-outline-dark !py-2 !px-4 text-xs font-bold disabled:opacity-30"
-            >
-              <ArrowLeft className="h-4 w-4" /> Previous
-            </button>
+          {/* Question Navigator Column (Right, 4 cols on desktop, sticky) */}
+          <aside className="lg:col-span-4 lg:sticky lg:top-[90px] w-full">
+            <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between gap-2 border-b border-line pb-3">
+                <div>
+                  <h3 className="font-display text-sm font-bold text-ink">Question Navigator</h3>
+                  <p className="text-[11px] text-muted">{answeredCount} of {activeQuestions.length} answered</p>
+                </div>
+                <span className="rounded-full bg-cream border border-line px-2.5 py-0.5 text-xs font-bold text-ink">
+                  {Math.round((answeredCount / activeQuestions.length) * 100)}%
+                </span>
+              </div>
 
-            <span className="text-xs text-muted font-medium">
-              Question {idx + 1} / {activeQuestions.length}
-            </span>
+              {/* Filter Pills */}
+              <div className="mt-3 grid grid-cols-4 gap-1 p-1 rounded-xl bg-cream border border-line/60">
+                <button
+                  onClick={() => setNavFilter("all")}
+                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                    navFilter === "all" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  All ({activeQuestions.length})
+                </button>
+                <button
+                  onClick={() => setNavFilter("unanswered")}
+                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                    navFilter === "unanswered" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  Left ({activeQuestions.length - answeredCount})
+                </button>
+                <button
+                  onClick={() => setNavFilter("answered")}
+                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                    navFilter === "answered" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  Done ({answeredCount})
+                </button>
+                <button
+                  onClick={() => setNavFilter("flagged")}
+                  className={`py-1 text-[11px] font-bold rounded-lg transition text-center ${
+                    navFilter === "flagged" ? "bg-white text-ink shadow-xs" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  Flag ({flaggedCount})
+                </button>
+              </div>
 
-            {idx < activeQuestions.length - 1 ? (
-              <button
-                onClick={() => setIdx((i) => i + 1)}
-                className="btn-primary !py-2 !px-4 text-xs font-bold"
-              >
-                Next <ArrowRight className="h-4 w-4" />
-              </button>
-            ) : (
+              {/* Number Buttons Grid (5 Columns) */}
+              <div className="mt-3.5 grid grid-cols-5 gap-1.5 max-h-[360px] overflow-y-auto pr-0.5">
+                {navIndices.map((i) => {
+                  const qq = activeQuestions[i];
+                  const isCurrent = i === idx;
+                  const hasAnswer = answers[qq.id] !== undefined;
+                  const isFl = Boolean(flagged[qq.id]);
+
+                  return (
+                    <button
+                      key={qq.id}
+                      onClick={() => {
+                        setIdx(i);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className={`relative flex h-8 items-center justify-center rounded-lg text-xs font-bold transition ${
+                        isCurrent
+                          ? "bg-ink text-white shadow-xs ring-2 ring-brand"
+                          : hasAnswer
+                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                          : "border border-line bg-cream/40 text-ink/70 hover:border-brand/40 hover:bg-white hover:text-ink"
+                      }`}
+                    >
+                      {i + 1}
+                      {isFl && (
+                        <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-amber-400 ring-1.5 ring-white" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Compact Legend */}
+              <div className="mt-3.5 grid grid-cols-2 gap-2 text-[11px] text-muted pt-3 border-t border-line/60">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded bg-emerald-600 shrink-0" /> Answered
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded border border-line bg-cream shrink-0" /> Unanswered
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded bg-ink shrink-0" /> Current
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 shrink-0" /> Flagged
+                </span>
+              </div>
+
+              {/* Submit CTA */}
               <button
                 onClick={() => {
                   if (answeredCount < activeQuestions.length) {
@@ -481,83 +605,14 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     finish();
                   }
                 }}
-                className="btn-primary !py-2 !px-4 text-xs font-bold"
+                className="mt-4 w-full btn-primary !py-2.5 text-xs font-bold"
               >
-                Submit Exam <Flag className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 50-Question Quick Jump Navigator */}
-        <div className="mt-6 rounded-3xl border border-line bg-white p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-ink">
-              Question Navigator ({answeredCount}/{activeQuestions.length} Answered)
-            </p>
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <button
-                onClick={() => setNavFilter("all")}
-                className={`rounded px-2.5 py-1 font-bold ${navFilter === "all" ? "bg-ink text-white" : "bg-cream text-muted"}`}
-              >
-                All (50)
-              </button>
-              <button
-                onClick={() => setNavFilter("unanswered")}
-                className={`rounded px-2.5 py-1 font-bold ${navFilter === "unanswered" ? "bg-ink text-white" : "bg-cream text-muted"}`}
-              >
-                Unanswered ({activeQuestions.length - answeredCount})
-              </button>
-              <button
-                onClick={() => setNavFilter("answered")}
-                className={`rounded px-2.5 py-1 font-bold ${navFilter === "answered" ? "bg-ink text-white" : "bg-cream text-muted"}`}
-              >
-                Answered ({answeredCount})
-              </button>
-              <button
-                onClick={() => setNavFilter("flagged")}
-                className={`rounded px-2.5 py-1 font-bold ${navFilter === "flagged" ? "bg-ink text-white" : "bg-cream text-muted"}`}
-              >
-                Flagged ({flaggedCount})
+                Submit Exam
               </button>
             </div>
-          </div>
-
-          <div className="mt-4 grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {navIndices.map((i) => {
-              const qq = activeQuestions[i];
-              const isCurrent = i === idx;
-              const hasAnswer = answers[qq.id] !== undefined;
-              const isFl = Boolean(flagged[qq.id]);
-
-              return (
-                <button
-                  key={qq.id}
-                  onClick={() => setIdx(i)}
-                  className={`relative flex h-9 items-center justify-center rounded-xl text-xs font-extrabold transition ${
-                    isCurrent
-                      ? "bg-ink text-white shadow-md ring-2 ring-brand"
-                      : hasAnswer
-                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                      : "border border-line bg-cream/50 text-muted hover:border-brand hover:text-ink"
-                  }`}
-                >
-                  {i + 1}
-                  {isFl && (
-                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-amber-400 ring-2 ring-white" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted pt-3 border-t border-line/60">
-            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-emerald-600" /> Answered</span>
-            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded border border-line bg-cream" /> Unanswered</span>
-            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-ink" /> Current Question</span>
-            <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /> Flagged for review</span>
-          </div>
+          </aside>
         </div>
+      </main>
 
         {/* Confirmation Modal for Incomplete Submissions */}
         {showSubmitModal && (
@@ -597,10 +652,9 @@ export default function QuizPage({ courseId }: { courseId: string }) {
             </div>
           </div>
         )}
-      </main>
-    </div>
-  );
-}
+      </div>
+    );
+  }
 
 function Fallback({ title, cta, to, icon: Icon }: { title: string; cta: string; to: string; icon?: React.ElementType }) {
   return (
