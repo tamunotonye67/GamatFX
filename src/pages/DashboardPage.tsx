@@ -832,27 +832,22 @@ export default function DashboardPage() {
         </div>
 
         {/* Preferred Payment Method Card */}
-        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand shrink-0">
-                <CreditCard className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-display text-base font-bold text-ink">
-                  Preferred Payout Destination
-                </h3>
-                <p className="text-xs text-muted">
-                  Your default disbursement account for commission withdrawals.
-                </p>
-              </div>
+            <div>
+              <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
+                Preferred Payout Destination
+              </h3>
+              <p className="mt-0.5 text-xs text-muted">
+                Your default disbursement account for affiliate commission withdrawals.
+              </p>
             </div>
 
             {!isEditingMethod && hasSavedMethod && (
               <button
                 type="button"
                 onClick={() => setIsEditingMethod(true)}
-                className="px-3.5 py-1.5 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer self-start sm:self-auto"
+                className="btn-outline-dark !py-1.5 !px-3.5 !text-xs self-start sm:self-auto cursor-pointer"
               >
                 Change Method
               </button>
@@ -861,34 +856,34 @@ export default function DashboardPage() {
 
           {savedNotice && (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>Preferred payout method saved successfully! Future withdrawals will disburse here automatically.</span>
             </div>
           )}
 
           {!isEditingMethod && hasSavedMethod ? (
-            <div className="rounded-xl border border-line bg-cream/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="rounded-xl border border-line bg-cream/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white border border-line shadow-xs shrink-0">
                   {profile?.payoutMethod === "bank" ? (
-                    <Building2 className="h-5 w-5 text-emerald-600" />
+                    <Building2 className="h-5 w-5 text-brand" />
                   ) : profile?.payoutMethod === "usdt" ? (
-                    <span className="font-black text-xs text-teal-600">USDT</span>
+                    <Wallet className="h-5 w-5 text-brand" />
                   ) : (
-                    <span className="font-black text-xs text-blue-600">PP</span>
+                    <CreditCard className="h-5 w-5 text-brand" />
                   )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs sm:text-sm text-ink">
+                    <span className="font-bold text-sm text-ink">
                       {profile?.payoutDetails}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                       Active Default
                     </span>
                   </div>
-                  <p className="text-[11px] text-muted mt-0.5 capitalize">
-                    Method: {profile?.payoutMethod === "bank" ? "Nigerian Bank Transfer" : profile?.payoutMethod === "usdt" ? "USDT (TRC-20)" : "PayPal"}
+                  <p className="text-xs text-muted mt-0.5">
+                    Disbursement Method: <span className="font-semibold text-ink">{profile?.payoutMethod === "bank" ? "Nigerian Bank Transfer" : profile?.payoutMethod === "usdt" ? "USDT (TRC-20)" : "PayPal"}</span>
                   </p>
                 </div>
               </div>
@@ -896,43 +891,82 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsEditingMethod(true)}
-                className="text-xs font-bold text-brand hover:underline cursor-pointer self-start sm:self-auto"
+                className="btn-outline-dark !py-2 !px-4 !text-xs self-start sm:self-auto cursor-pointer"
               >
                 Edit Details
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSavePreferredMethod} className="space-y-4 pt-1">
-              <div>
-                <label className="block text-xs font-bold text-ink mb-1.5">
+            <form onSubmit={handleSavePreferredMethod} className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-ink">
                   Choose Disbursement Method
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {(["bank", "usdt", "paypal"] as const).map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setPrefMethod(m)}
-                      className={`p-3 rounded-xl border text-center font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2 ${
-                        prefMethod === m
-                          ? "border-brand bg-brand/5 text-brand ring-1 ring-brand/30"
-                          : "border-line bg-white text-muted hover:text-ink hover:bg-slate-50"
-                      }`}
-                    >
-                      {m === "bank" ? "Nigerian Bank" : m === "usdt" ? "USDT (TRC-20)" : "PayPal"}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setPrefMethod("bank")}
+                    className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-center gap-3 ${
+                      prefMethod === "bank"
+                        ? "border-brand bg-brand/5 text-ink ring-1 ring-brand/30 shadow-xs"
+                        : "border-line bg-cream/40 text-muted hover:text-ink hover:bg-cream"
+                    }`}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${prefMethod === "bank" ? "bg-brand text-white" : "bg-white border border-line text-muted"}`}>
+                      <Building2 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-xs">Nigerian Bank</p>
+                      <p className="text-[10px] text-muted">Direct transfer in ₦ (NGN)</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPrefMethod("usdt")}
+                    className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-center gap-3 ${
+                      prefMethod === "usdt"
+                        ? "border-brand bg-brand/5 text-ink ring-1 ring-brand/30 shadow-xs"
+                        : "border-line bg-cream/40 text-muted hover:text-ink hover:bg-cream"
+                    }`}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${prefMethod === "usdt" ? "bg-brand text-white" : "bg-white border border-line text-muted"}`}>
+                      <Wallet className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-xs">USDT (TRC-20)</p>
+                      <p className="text-[10px] text-muted">Crypto wallet address</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPrefMethod("paypal")}
+                    className={`p-3 rounded-xl border text-left transition cursor-pointer flex items-center gap-3 ${
+                      prefMethod === "paypal"
+                        ? "border-brand bg-brand/5 text-ink ring-1 ring-brand/30 shadow-xs"
+                        : "border-line bg-cream/40 text-muted hover:text-ink hover:bg-cream"
+                    }`}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${prefMethod === "paypal" ? "bg-brand text-white" : "bg-white border border-line text-muted"}`}>
+                      <CreditCard className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-xs">PayPal</p>
+                      <p className="text-[10px] text-muted">International email payout</p>
+                    </div>
+                  </button>
                 </div>
               </div>
 
               {prefMethod === "bank" && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1">Bank Name</label>
+                    <label className="block text-xs font-bold text-ink mb-1.5">Bank Name</label>
                     <select
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
-                      className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                      className="w-full rounded-xl border border-line bg-cream/50 px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition cursor-pointer"
                       required
                     >
                       <option value="">Select your bank</option>
@@ -943,37 +977,37 @@ export default function DashboardPage() {
                     {bankName === "Other Bank" && (
                       <input
                         type="text"
-                        placeholder="Type your bank name"
+                        placeholder="Enter bank name"
                         value={customBankName}
                         onChange={(e) => setCustomBankName(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-line bg-cream/60 p-2 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                        className="mt-2 w-full rounded-xl border border-line bg-cream/50 px-3 py-2 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
                         required
                       />
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1">Account Number</label>
+                    <label className="block text-xs font-bold text-ink mb-1.5">Account Number</label>
                     <input
                       type="text"
                       pattern="[0-9]{10}"
                       maxLength={10}
-                      placeholder="10-digit account number"
+                      placeholder="10-digit NUBAN"
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
-                      className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                      className="w-full rounded-xl border border-line bg-cream/50 px-3 py-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1">Account Name</label>
+                    <label className="block text-xs font-bold text-ink mb-1.5">Account Name</label>
                     <input
                       type="text"
-                      placeholder="Account holder full name"
+                      placeholder="Beneficiary full name"
                       value={accountName}
                       onChange={(e) => setAccountName(e.target.value)}
-                      className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                      className="w-full rounded-xl border border-line bg-cream/50 px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
                       required
                     />
                   </div>
@@ -981,38 +1015,39 @@ export default function DashboardPage() {
               )}
 
               {prefMethod === "usdt" && (
-                <div>
-                  <label className="block text-xs font-bold text-ink mb-1">USDT TRC-20 Wallet Address</label>
+                <div className="pt-1 space-y-1.5">
+                  <label className="block text-xs font-bold text-ink">USDT TRC-20 Wallet Address</label>
                   <input
                     type="text"
-                    placeholder="e.g. TYDzsYBPjxNYt8CqCXp... (TRC-20 network only)"
+                    placeholder="e.g. TYDzsYBPjxNYt8CqCXp... (TRON TRC-20 network only)"
                     value={usdtAddress}
                     onChange={(e) => setUsdtAddress(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
                     required
                   />
-                  <p className="text-[11px] text-muted mt-1">Please ensure your address accepts the TRON (TRC-20) network.</p>
+                  <p className="text-[11px] text-muted">Please ensure your address accepts incoming transfers on the TRON (TRC-20) network.</p>
                 </div>
               )}
 
               {prefMethod === "paypal" && (
-                <div>
-                  <label className="block text-xs font-bold text-ink mb-1">PayPal Email Address</label>
+                <div className="pt-1 space-y-1.5">
+                  <label className="block text-xs font-bold text-ink">PayPal Email Address</label>
                   <input
                     type="email"
                     placeholder="student@example.com"
                     value={paypalEmail}
                     onChange={(e) => setPaypalEmail(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
                     required
                   />
+                  <p className="text-[11px] text-muted">Disbursements will be routed to your active PayPal email address.</p>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2.5 pt-2">
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition cursor-pointer"
+                  className="btn-primary !py-2.5 !px-5 !text-xs cursor-pointer shadow-sm"
                 >
                   Save Preferred Method
                 </button>
@@ -1020,7 +1055,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={() => setIsEditingMethod(false)}
-                    className="px-4 py-2 rounded-xl border border-line text-xs font-bold text-muted hover:text-ink cursor-pointer"
+                    className="btn-outline-dark !py-2.5 !px-4 !text-xs cursor-pointer"
                   >
                     Cancel
                   </button>
