@@ -589,13 +589,23 @@ export default function DashboardPage() {
     }
     return (
       <div className="space-y-8">
+        {/* Top Header Bar */}
+        <div className="border-b border-line pb-5">
+          <h2 className="font-display text-2xl font-extrabold text-ink">
+            Certificates &amp; Assessments
+          </h2>
+          <p className="mt-1 text-xs sm:text-sm text-muted">
+            Track your earned certificates, take academy examinations, and unlock accredited certification.
+          </p>
+        </div>
+
         {completed.length > 0 && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-display text-xl font-bold text-ink flex items-center gap-2">
-                <Award className="h-5 w-5 text-brand" /> Earned Certificates ({completed.length})
-              </h2>
-              <p className="mt-0.5 text-xs sm:text-sm text-muted">
+              <h3 className="font-display text-xl font-bold text-ink">
+                Earned Certificates ({completed.length})
+              </h3>
+              <p className="mt-1 text-xs sm:text-sm text-muted">
                 Official accredited certificates earned through verified assessments and completed coursework.
               </p>
             </div>
@@ -621,10 +631,10 @@ export default function DashboardPage() {
         {pendingPayment.length > 0 && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-display text-xl font-bold text-amber-950 flex items-center gap-2">
-                <Award className="h-5 w-5 text-amber-600" /> Passed Assessments — Certificate Fee Pending ({pendingPayment.length})
-              </h2>
-              <p className="mt-0.5 text-xs sm:text-sm text-muted">
+              <h3 className="font-display text-xl font-bold text-ink">
+                Passed Assessments — Certificate Fee Pending ({pendingPayment.length})
+              </h3>
+              <p className="mt-1 text-xs sm:text-sm text-muted">
                 You passed these examinations! Because you took the assessment directly without an online course enrollment, an official certification fee of ₦10,000 applies to issue your accredited certificate.
               </p>
             </div>
@@ -676,11 +686,11 @@ export default function DashboardPage() {
         {pending.length > 0 && (
           <div className="space-y-4">
             <div>
-              <h2 className="font-display text-xl font-bold text-ink flex items-center gap-2">
-                <ListChecks className="h-5 w-5 text-brand" /> Certification Assessments ({pending.length})
-              </h2>
-              <p className="mt-0.5 text-xs sm:text-sm text-muted">
-                Assessments are accessible to everyone. Pass any assessment ({70}% pass mark required) to qualify for your official verified certificate.
+              <h3 className="font-display text-xl font-bold text-ink">
+                Certification Assessments ({pending.length})
+              </h3>
+              <p className="mt-1 text-xs sm:text-sm text-muted">
+                Assessments are accessible to everyone. Pass any assessment (70% pass mark required) to qualify for your official verified certificate.
               </p>
             </div>
             <div className="space-y-4">
