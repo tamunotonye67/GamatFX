@@ -79,7 +79,7 @@ export default function StoreSection() {
           {/* LEFT: 3D Hardcover Book Presentation */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
             <div
-              className="relative w-full max-w-[260px] xs:max-w-[290px] sm:max-w-[340px] md:max-w-[370px] lg:max-w-[380px] py-4 sm:py-8 cursor-pointer select-none"
+              className="relative w-full max-w-[270px] sm:max-w-[340px] md:max-w-[370px] lg:max-w-[380px] py-4 sm:py-8 cursor-pointer select-none"
               style={{ perspective: "1400px" }}
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsHovered(true)}
@@ -138,7 +138,7 @@ export default function StoreSection() {
 
                   {/* Top Cover Header: Desk Badge & Rating */}
                   <div className="relative flex items-center justify-between pt-0.5 sm:pt-1">
-                    <span className="text-[7.5px] xs:text-[8px] sm:text-[9px] font-extrabold tracking-[0.2em] text-rose-200/90 uppercase">
+                    <span className="text-[8px] sm:text-[9px] font-extrabold tracking-[0.2em] text-rose-200/90 uppercase">
                       Official Desk Edition
                     </span>
                     <div className="flex items-center gap-0.5 text-amber-400 text-[9px] sm:text-[10px]">
@@ -151,7 +151,7 @@ export default function StoreSection() {
                   {/* Center Brand Identity: GAMAT Official Candlestick Logo */}
                   <div className="relative mt-3 sm:mt-5 lg:mt-6 flex flex-col items-center text-center">
                     {/* Official Candlestick Tile */}
-                    <div className="relative flex h-11 w-11 xs:h-12 xs:w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#b02a37] via-[#dc3545] to-[#83141f] shadow-lg shadow-brand/40 ring-2 ring-white/20">
+                    <div className="relative flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#b02a37] via-[#dc3545] to-[#83141f] shadow-lg shadow-brand/40 ring-2 ring-white/20">
                       <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true" className="sm:w-8 sm:h-8">
                         <line x1="4" y1="26" x2="28" y2="26" stroke="white" strokeOpacity="0.35" strokeWidth="1" />
                         <line x1="8.5" y1="7" x2="8.5" y2="24" stroke="white" strokeOpacity="0.8" strokeWidth="1.4" strokeLinecap="round" />
@@ -174,10 +174,10 @@ export default function StoreSection() {
                     <p className="text-[8.5px] sm:text-[10px] font-bold tracking-[0.22em] text-slate-300 uppercase">
                       The Institutional
                     </p>
-                    <h3 className="mt-0.5 sm:mt-1 font-display text-base xs:text-lg sm:text-2xl font-black leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-white drop-shadow-sm">
+                    <h3 className="mt-0.5 sm:mt-1 font-display text-lg sm:text-2xl font-black leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-rose-100 to-white drop-shadow-sm">
                       ORDER FLOW &amp;
                     </h3>
-                    <h3 className="font-display text-base xs:text-lg sm:text-2xl font-black leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-red-600 drop-shadow-sm">
+                    <h3 className="font-display text-lg sm:text-2xl font-black leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-rose-400 to-red-600 drop-shadow-sm">
                       LIQUIDITY
                     </h3>
                     <p className="mt-0.5 sm:mt-1 font-display text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/90">
@@ -186,7 +186,7 @@ export default function StoreSection() {
 
                     <div className="mx-auto my-2 sm:my-3 h-px w-20 sm:w-24 bg-gradient-to-r from-transparent via-brand to-transparent" />
 
-                    <p className="text-[8px] xs:text-[9px] sm:text-[10px] text-slate-300/90 leading-snug line-clamp-2 px-1 sm:px-2">
+                    <p className="text-[9px] sm:text-[10px] text-slate-300/90 leading-snug line-clamp-2 px-1 sm:px-2">
                       Decoding Central Bank Sweeps, Imbalances &amp; Multi-Timeframe Execution
                     </p>
                   </div>
@@ -304,7 +304,7 @@ export default function StoreSection() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full rounded-t-[28px] sm:rounded-t-[36px] rounded-b-none border-t border-white/20 bg-gradient-to-b from-slate-900 via-[#0e131d] to-slate-950 text-white shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.85)] h-[90dvh] sm:h-[92vh] max-h-[94dvh] flex flex-col animate-fly-up overflow-hidden">
+          <div className="relative w-full rounded-t-[28px] sm:rounded-t-[36px] rounded-b-none border-t border-white/20 bg-gradient-to-b from-slate-900 via-[#0e131d] to-slate-950 text-white shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.85)] h-[93dvh] sm:h-[93vh] max-h-[95dvh] flex flex-col animate-fly-up overflow-hidden">
             {/* Grab / Drag Handle */}
             <div className="pt-3 pb-1 flex justify-center">
               <div

@@ -76,7 +76,7 @@ export function AdminStore() {
       title="Store & Trading Tools"
       subtitle={`${products.length} total products (E-books, AI bots, indicators, and strategy blueprints)`}
       action={
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             onClick={() =>
               exportCsv(
@@ -97,13 +97,13 @@ export function AdminStore() {
                 }))
               )
             }
-            className="btn-outline-dark !py-2.5 text-xs font-bold"
+            className="btn-outline-dark !py-2 sm:!py-2.5 text-xs font-bold flex-1 sm:flex-none justify-center"
           >
             <Download className="h-4 w-4" /> Export CSV
           </button>
           <button
             onClick={() => setCreating(true)}
-            className="btn-primary !py-2.5 text-xs font-bold"
+            className="btn-primary !py-2 sm:!py-2.5 text-xs font-bold flex-1 sm:flex-none justify-center"
           >
             <Plus className="h-4 w-4" /> Add Product
           </button>
@@ -111,7 +111,7 @@ export function AdminStore() {
       }
     >
       {/* Top Stat Cards */}
-      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={ShoppingBag} label="Total Products" value={products.length} sub={`${publishedCount} active in store`} />
         <StatCard
           icon={DollarSign}
@@ -129,145 +129,246 @@ export function AdminStore() {
         <StatCard icon={Package} label="Units Delivered" value={totalSales} sub="Digital & physical downloads" />
       </div>
 
-      <Card className="mt-8 overflow-hidden">
+      <Card className="mt-6 sm:mt-8 overflow-hidden">
         {/* Search & Filters */}
-        <div className="flex flex-wrap items-center gap-3 border-b border-line p-4">
-          <SearchBar value={q} onChange={setQ} placeholder="Search product title, deliverable, or tagline…" />
-          <select
-            value={catFilter}
-            onChange={(e) => setCatFilter(e.target.value)}
-            className="rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
-          >
-            <option value="all">All categories</option>
-            <option value="bot">AI Bots & EAs</option>
-            <option value="indicator">Indicators</option>
-            <option value="ebook">E-Books & Playbooks</option>
-            <option value="strategy">Strategy Blueprints</option>
-            <option value="tool">Physical Journals & Tools</option>
-          </select>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
-          >
-            <option value="all">All statuses & types</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-            <option value="preorder">Pre-orders only</option>
-            <option value="free">Free items only</option>
-          </select>
-          <span className="ml-auto text-xs text-muted">{rows.length} item(s)</span>
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 border-b border-line p-3 sm:p-4">
+          <div className="w-full sm:w-auto sm:min-w-[240px] flex-1">
+            <SearchBar value={q} onChange={setQ} placeholder="Search product title, deliverable, or tagline…" />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={catFilter}
+              onChange={(e) => setCatFilter(e.target.value)}
+              className="flex-1 sm:flex-none rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
+            >
+              <option value="all">All categories</option>
+              <option value="bot">AI Bots & EAs</option>
+              <option value="indicator">Indicators</option>
+              <option value="ebook">E-Books & Playbooks</option>
+              <option value="strategy">Strategy Blueprints</option>
+              <option value="tool">Physical Journals & Tools</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="flex-1 sm:flex-none rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
+            >
+              <option value="all">All statuses & types</option>
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="preorder">Pre-orders only</option>
+              <option value="free">Free items only</option>
+            </select>
+          </div>
+          <span className="text-xs text-muted sm:ml-auto self-center sm:self-auto">{rows.length} item(s)</span>
         </div>
 
-        {/* Product Table */}
+        {/* Product List */}
         {rows.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] text-sm">
-              <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr>
-                  <Th className="w-[30%] min-w-[260px]">Product</Th>
-                  <Th className="whitespace-nowrap">Category</Th>
-                  <Th className="whitespace-nowrap">Price</Th>
-                  <Th className="whitespace-nowrap">Deliverable</Th>
-                  <Th className="whitespace-nowrap">Status</Th>
-                  <Th className="whitespace-nowrap">Sales</Th>
-                  <Th right>Actions</Th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {rows.map((p) => {
-                  const CatIcon = categoryIcon(p.category);
-                  return (
-                    <tr key={p.id} className="transition hover:bg-cream/50">
-                      <Td className="min-w-[260px]">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
-                            <CatIcon className="h-5 w-5 shrink-0" />
-                          </span>
-                          <div className="min-w-0 max-w-xs">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="truncate font-semibold text-ink">{p.title}</p>
-                              {p.isPreorder && (
-                                <Badge tone="purple">
-                                  <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
-                                </Badge>
-                              )}
-                              {(p.isFree || p.price === 0) && (
-                                <Badge tone="green">
-                                  <Gift className="h-2.5 w-2.5 inline mr-0.5" /> FREE
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="truncate text-xs text-muted">{p.tagline}</p>
-                            {p.isPreorder && p.preorderReleaseDate && (
-                              <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 mt-0.5">
-                                <Clock className="h-3 w-3 shrink-0" />
-                                <span>Releases: {p.preorderReleaseDate}</span>
-                              </p>
+          <>
+            {/* Mobile Card List (< md) */}
+            <div className="md:hidden divide-y divide-line">
+              {rows.map((p) => {
+                const CatIcon = categoryIcon(p.category);
+                return (
+                  <div key={p.id} className="p-4 space-y-3 transition hover:bg-cream/40">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
+                          <CatIcon className="h-5 w-5 shrink-0" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-bold text-ink text-sm leading-snug">{p.title}</p>
+                          <p className="text-xs text-muted truncate mt-0.5">{p.tagline}</p>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                            <Badge tone="gray">{p.category.toUpperCase()}</Badge>
+                            <Badge tone={p.published ? "green" : "amber"}>
+                              {p.published ? "Published" : "Draft"}
+                            </Badge>
+                            {p.isPreorder && (
+                              <Badge tone="purple">
+                                <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
+                              </Badge>
+                            )}
+                            {(p.isFree || p.price === 0) && (
+                              <Badge tone="green">
+                                <Gift className="h-2.5 w-2.5 inline mr-0.5" /> FREE
+                              </Badge>
                             )}
                           </div>
                         </div>
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        <Badge tone="gray">{p.category.toUpperCase()}</Badge>
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        <div>
-                          <p className="font-bold text-ink">
-                            {p.isFree || p.price === 0 ? (
-                              <span className="text-emerald-600 font-extrabold flex items-center gap-1">
-                                <Gift className="h-3.5 w-3.5" /> FREE
-                              </span>
-                            ) : (
-                              naira(p.price)
-                            )}
-                          </p>
-                          {p.originalPrice && (
-                            <p className="text-[11px] text-muted line-through">{naira(p.originalPrice)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-line/60">
+                      <div>
+                        <span className="text-muted block text-[10px] uppercase font-semibold">Price</span>
+                        <span className="font-bold text-ink">
+                          {p.isFree || p.price === 0 ? (
+                            <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                              <Gift className="h-3 w-3" /> FREE
+                            </span>
+                          ) : (
+                            naira(p.price)
                           )}
-                        </div>
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        <span className="text-xs text-muted line-clamp-1 max-w-[200px]">
-                          {p.deliverableType}
                         </span>
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        <Badge tone={p.published ? "green" : "amber"}>
-                          {p.published ? "Published" : "Draft"}
-                        </Badge>
-                      </Td>
-                      <Td className="whitespace-nowrap">
-                        <span className="font-semibold text-ink">{p.salesCount || 0}</span>
-                      </Td>
-                      <Td right>
-                        <div className="flex justify-end gap-1">
-                          <IconBtn
-                            title={p.published ? "Unpublish" : "Publish"}
-                            onClick={() => admin.saveStoreProduct({ ...p, published: !p.published })}
-                          >
-                            {p.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </IconBtn>
-                          <IconBtn title="Edit" onClick={() => setEditing(p)}>
-                            <Pencil className="h-4 w-4" />
-                          </IconBtn>
-                          <IconBtn
-                            danger
-                            title="Delete"
-                            onClick={() => {
-                              if (confirm(`Delete "${p.title}"?`)) admin.deleteStoreProduct(p.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </IconBtn>
-                        </div>
-                      </Td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        {p.originalPrice && (
+                          <span className="text-[10px] text-muted line-through ml-1.5">{naira(p.originalPrice)}</span>
+                        )}
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-muted block text-[10px] uppercase font-semibold">Sales</span>
+                        <span className="font-semibold text-ink">{p.salesCount || 0} units</span>
+                      </div>
+                    </div>
+
+                    {p.isPreorder && p.preorderReleaseDate && (
+                      <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-100">
+                        <Clock className="h-3 w-3 shrink-0" />
+                        <span>Releases: {p.preorderReleaseDate}</span>
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[11px] text-muted truncate max-w-[180px]">
+                        {p.deliverableType}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <IconBtn
+                          title={p.published ? "Unpublish" : "Publish"}
+                          onClick={() => admin.saveStoreProduct({ ...p, published: !p.published })}
+                        >
+                          {p.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </IconBtn>
+                        <IconBtn title="Edit" onClick={() => setEditing(p)}>
+                          <Pencil className="h-4 w-4" />
+                        </IconBtn>
+                        <IconBtn
+                          danger
+                          title="Delete"
+                          onClick={() => {
+                            if (confirm(`Delete "${p.title}"?`)) admin.deleteStoreProduct(p.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </IconBtn>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table (md+) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[850px] text-sm">
+                <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
+                  <tr>
+                    <Th className="w-[30%] min-w-[260px]">Product</Th>
+                    <Th className="whitespace-nowrap">Category</Th>
+                    <Th className="whitespace-nowrap">Price</Th>
+                    <Th className="whitespace-nowrap">Deliverable</Th>
+                    <Th className="whitespace-nowrap">Status</Th>
+                    <Th className="whitespace-nowrap">Sales</Th>
+                    <Th right>Actions</Th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {rows.map((p) => {
+                    const CatIcon = categoryIcon(p.category);
+                    return (
+                      <tr key={p.id} className="transition hover:bg-cream/50">
+                        <Td className="min-w-[260px]">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
+                              <CatIcon className="h-5 w-5 shrink-0" />
+                            </span>
+                            <div className="min-w-0 max-w-xs">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="truncate font-semibold text-ink">{p.title}</p>
+                                {p.isPreorder && (
+                                  <Badge tone="purple">
+                                    <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
+                                  </Badge>
+                                )}
+                                {(p.isFree || p.price === 0) && (
+                                  <Badge tone="green">
+                                    <Gift className="h-2.5 w-2.5 inline mr-0.5" /> FREE
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="truncate text-xs text-muted">{p.tagline}</p>
+                              {p.isPreorder && p.preorderReleaseDate && (
+                                <p className="text-[11px] font-semibold text-purple-700 flex items-center gap-1 mt-0.5">
+                                  <Clock className="h-3 w-3 shrink-0" />
+                                  <span>Releases: {p.preorderReleaseDate}</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          <Badge tone="gray">{p.category.toUpperCase()}</Badge>
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          <div>
+                            <p className="font-bold text-ink">
+                              {p.isFree || p.price === 0 ? (
+                                <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                                  <Gift className="h-3.5 w-3.5" /> FREE
+                                </span>
+                              ) : (
+                                naira(p.price)
+                              )}
+                            </p>
+                            {p.originalPrice && (
+                              <p className="text-[11px] text-muted line-through">{naira(p.originalPrice)}</p>
+                            )}
+                          </div>
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          <span className="text-xs text-muted line-clamp-1 max-w-[200px]">
+                            {p.deliverableType}
+                          </span>
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          <Badge tone={p.published ? "green" : "amber"}>
+                            {p.published ? "Published" : "Draft"}
+                          </Badge>
+                        </Td>
+                        <Td className="whitespace-nowrap">
+                          <span className="font-semibold text-ink">{p.salesCount || 0}</span>
+                        </Td>
+                        <Td right>
+                          <div className="flex justify-end gap-1">
+                            <IconBtn
+                              title={p.published ? "Unpublish" : "Publish"}
+                              onClick={() => admin.saveStoreProduct({ ...p, published: !p.published })}
+                            >
+                              {p.published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </IconBtn>
+                            <IconBtn title="Edit" onClick={() => setEditing(p)}>
+                              <Pencil className="h-4 w-4" />
+                            </IconBtn>
+                            <IconBtn
+                              danger
+                              title="Delete"
+                              onClick={() => {
+                                if (confirm(`Delete "${p.title}"?`)) admin.deleteStoreProduct(p.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </IconBtn>
+                          </div>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <Empty icon={ShoppingBag} title="No products found" body="Create a new store product or adjust filters." />
         )}
@@ -642,11 +743,11 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           </label>
         </div>
 
-        <div className="pt-3 flex justify-end gap-2 border-t border-line">
-          <button type="button" onClick={onClose} className="btn-outline-dark !py-2.5">
+        <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-line">
+          <button type="button" onClick={onClose} className="btn-outline-dark !py-2.5 justify-center">
             Cancel
           </button>
-          <button type="submit" className="btn-primary !py-2.5">
+          <button type="submit" className="btn-primary !py-2.5 justify-center">
             {product ? "Save Changes" : "Create Product"}
           </button>
         </div>
