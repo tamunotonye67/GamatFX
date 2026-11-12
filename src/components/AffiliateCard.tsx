@@ -170,7 +170,8 @@ export default function AffiliateCard({
         ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* ================= Left: The Visual Share Card & Instant Action Buttons (5 Cols) ================= */}
       <div className="lg:col-span-5 w-full flex flex-col items-center space-y-4">
         {/* Top Header & Theme Switcher */}
@@ -833,74 +834,77 @@ export default function AffiliateCard({
           </div>
         </div>
 
-        {/* CARD 3: 3-Step Commission Engine Explainer */}
-        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
-          <div className="border-b border-line pb-3.5 flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
-                How the {commissionPercent}% Commission Works
-              </h3>
-              <p className="mt-0.5 text-xs text-muted">
-                Three simple steps to earn cash commission on referred student enrollments.
-              </p>
-            </div>
-            <span className="hidden sm:inline-flex rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand shrink-0">
-              {commissionPercent}% Cash Payout
-            </span>
-          </div>
+        </div>
+      </div>
 
-          <div className="space-y-2.5">
-            {/* Step 1 */}
-            <div className="flex items-start gap-3.5 rounded-xl border border-line bg-cream/40 p-3 sm:p-3.5 transition hover:bg-cream/70">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ink text-[11px] font-bold text-white shadow-xs">
+      {/* CARD 3: Full-Width 3-Step Commission Explainer */}
+      <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-5">
+        <div className="border-b border-line pb-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
+              How the {commissionPercent}% Commission Works
+            </h3>
+            <p className="mt-0.5 text-xs text-muted">
+              Three simple steps to earn cash commission on referred student enrollments.
+            </p>
+          </div>
+          <span className="self-start sm:self-center rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand shrink-0">
+            {commissionPercent}% Cash Payout
+          </span>
+        </div>
+
+        {/* 3 Spacious Columns across the full width */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          {/* Step 1 */}
+          <div className="rounded-xl border border-line bg-cream/40 p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div className="space-y-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-ink text-xs font-bold text-white shadow-xs">
                 01
               </span>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs sm:text-sm font-bold text-ink">Share Your Card &amp; Invite Link</h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-muted leading-relaxed">
-                  Post your customized flyer to WhatsApp or social media, or share your invite link directly with friends.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex items-start gap-3.5 rounded-xl border border-line bg-cream/40 p-3 sm:p-3.5 transition hover:bg-cream/70">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ink text-[11px] font-bold text-white shadow-xs">
-                02
-              </span>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs sm:text-sm font-bold text-ink">Friends Register at No Cost</h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-muted leading-relaxed">
-                  They register using your unique link or scan your card QR code at zero cost to start learning.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex items-start gap-3.5 rounded-xl border border-brand/20 bg-brand/5 p-3 sm:p-3.5 transition hover:bg-brand/10">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand text-[11px] font-bold text-white shadow-xs">
-                03
-              </span>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs sm:text-sm font-bold text-brand">Earn {commissionPercent}% Cash Commission</h4>
-                <p className="mt-0.5 text-[11px] sm:text-xs text-muted leading-relaxed">
-                  You receive an instant {commissionPercent}% cash payout whenever they enroll in paid courses or trading tools.
-                </p>
-              </div>
+              <h4 className="font-bold text-ink text-sm sm:text-base">Share Your Card &amp; Invite Link</h4>
+              <p className="text-xs text-muted leading-relaxed">
+                Post your customized flyer to WhatsApp or social media, or share your invite link directly with friends.
+              </p>
             </div>
           </div>
 
-          {/* Program Terms & Payout Info */}
-          <div className="pt-3.5 border-t border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
-              <span className="text-[11px] sm:text-xs">
-                Disbursed via Nigerian Bank Transfer, USDT (TRC-20), or PayPal
+          {/* Step 2 */}
+          <div className="rounded-xl border border-line bg-cream/40 p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div className="space-y-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-ink text-xs font-bold text-white shadow-xs">
+                02
               </span>
+              <h4 className="font-bold text-ink text-sm sm:text-base">Friends Register at No Cost</h4>
+              <p className="text-xs text-muted leading-relaxed">
+                They register using your unique link or scan your card QR code at zero cost to start learning.
+              </p>
             </div>
-            <div className="text-[11px] sm:text-xs font-semibold text-ink sm:self-center">
-              Min. Payout: <span className="font-bold text-brand">₦{minimumPayoutAmount.toLocaleString()}</span>
+          </div>
+
+          {/* Step 3 */}
+          <div className="rounded-xl border border-brand/20 bg-brand/5 p-4 sm:p-5 flex flex-col justify-between space-y-3">
+            <div className="space-y-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-xs font-bold text-white shadow-xs">
+                03
+              </span>
+              <h4 className="font-bold text-brand text-sm sm:text-base">Earn {commissionPercent}% Cash Commission</h4>
+              <p className="text-xs text-muted leading-relaxed">
+                You receive an instant {commissionPercent}% cash payout whenever they enroll in paid courses or trading tools.
+              </p>
             </div>
+          </div>
+        </div>
+
+        {/* Program Terms & Payout Info */}
+        <div className="pt-3.5 border-t border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 text-xs text-muted">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span className="text-[11px] sm:text-xs">
+              Disbursed via Nigerian Bank Transfer, USDT (TRC-20), or PayPal
+            </span>
+          </div>
+          <div className="text-[11px] sm:text-xs font-semibold text-ink sm:self-center">
+            Min. Payout: <span className="font-bold text-brand">₦{minimumPayoutAmount.toLocaleString()}</span>
           </div>
         </div>
       </div>
