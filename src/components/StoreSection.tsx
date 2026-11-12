@@ -304,7 +304,7 @@ export default function StoreSection() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full rounded-t-[28px] sm:rounded-t-[36px] rounded-b-none border-t border-white/20 bg-gradient-to-b from-slate-900 via-[#0e131d] to-slate-950 text-white shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.85)] max-h-[88vh] sm:max-h-[85vh] flex flex-col animate-fly-up overflow-hidden">
+          <div className="relative w-full rounded-t-[28px] sm:rounded-t-[36px] rounded-b-none border-t border-white/20 bg-gradient-to-b from-slate-900 via-[#0e131d] to-slate-950 text-white shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.85)] h-[88vh] sm:h-[84vh] max-h-[92vh] flex flex-col animate-fly-up overflow-hidden">
             {/* Grab / Drag Handle */}
             <div className="pt-3.5 pb-1 flex justify-center">
               <div
