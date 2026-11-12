@@ -573,203 +573,192 @@ export default function Navbar() {
         </div>
         </nav>
       </div>
-    </header>
 
-    {/* Full-Viewport Simple Mobile Navigation Overlay */}
-    <div
-      id="mobile-navigation"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Mobile Navigation Menu"
-      className={`fixed inset-0 z-[100] flex h-[100dvh] w-screen flex-col bg-white transition-all duration-200 lg:hidden ${
-        open
-          ? "visible opacity-100 pointer-events-auto"
-          : "invisible opacity-0 pointer-events-none"
-      }`}
-    >
-      {/* Top Header mirroring the navbar */}
-      <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-line bg-white px-5 sm:px-6">
-        <Logo variant="dark" />
-        <button
-          type="button"
-          aria-label="Close menu"
-          onClick={() => setOpen(false)}
-          className="rounded-xl p-2 text-ink/80 hover:bg-cream hover:text-ink transition"
-        >
-          <X className="h-6 w-6" />
-        </button>
-      </div>
-
-      {/* Clean, Simple Scrollable Navigation */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-5 flex flex-col justify-between">
-        <div>
-          <nav className="divide-y divide-line/50">
-            {[
-              { label: "Home", to: "/" as Route },
-              { label: "About Us", to: "/about" as Route },
-              { label: "Courses", to: "/courses" as Route },
-              { label: "Services", to: "/services" as Route },
-              { label: "Events", to: "/events" as Route },
-              { label: "Store & Tools", to: "/store" as Route },
-              { label: "Trading Whiteboard", to: "/whiteboard" as Route },
-              { label: "Fun Zone", to: "/fun" as Route },
-              { label: "Student Forum", to: "/forum" as Route },
-              { label: "Contact Us", to: "/contact" as Route },
-            ].map((item) => {
-              const isActive = item.to === route;
-              return (
-                <button
-                  key={item.to}
-                  type="button"
-                  onClick={() => go(item.to)}
-                  className={`flex w-full items-center justify-between py-3.5 text-left transition ${
-                    isActive
-                      ? "text-brand font-bold text-base"
-                      : "text-ink/85 font-medium text-base hover:text-brand"
-                  }`}
-                >
-                  <span>{item.label}</span>
-                  <ChevronRight
-                    className={`h-4 w-4 transition-transform ${
-                      isActive ? "text-brand" : "text-muted/40"
+      {/* Frosted Glass Slide-Down Sheet (Apple-style) */}
+      <div
+        id="mobile-navigation"
+        aria-hidden={!open}
+        className={`overflow-hidden transition-all duration-300 ease-out lg:hidden ${
+          open
+            ? "max-h-[calc(100dvh-var(--header-h,72px))] opacity-100 pointer-events-auto"
+            : "max-h-0 opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="border-t border-line/60 bg-white/95 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(22,24,28,0.25)]">
+          <div className="container-x max-h-[calc(100dvh-var(--header-h,72px)-24px)] overflow-y-auto px-5 py-5 space-y-4">
+            {/* Compact Rounded Pills Grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: "Home", to: "/" as Route },
+                { label: "About Us", to: "/about" as Route },
+                { label: "Courses", to: "/courses" as Route },
+                { label: "Services", to: "/services" as Route },
+                { label: "Events", to: "/events" as Route },
+                { label: "Store & Tools", to: "/store" as Route },
+                { label: "Whiteboard", to: "/whiteboard" as Route },
+                { label: "Fun Zone", to: "/fun" as Route },
+                { label: "Student Forum", to: "/forum" as Route },
+                { label: "Contact Us", to: "/contact" as Route },
+              ].map((item) => {
+                const isActive = item.to === route;
+                return (
+                  <button
+                    key={item.to}
+                    type="button"
+                    onClick={() => go(item.to)}
+                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition active:scale-[0.98] ${
+                      isActive
+                        ? "bg-brand text-white shadow-sm shadow-brand/25"
+                        : "bg-slate-100/80 text-ink/80 hover:bg-slate-200/90 hover:text-ink"
                     }`}
-                  />
-                </button>
-              );
-            })}
-          </nav>
+                  >
+                    <span>{item.label}</span>
+                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Subtle Secondary Links */}
-          <div className="mt-5 pt-4 border-t border-line/60 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted">
-            <button
-              type="button"
-              onClick={() => go("/reviews")}
-              className="hover:text-brand transition"
-            >
-              Reviews
-            </button>
-            <span className="text-line">•</span>
-            <button
-              type="button"
-              onClick={() => go("/faq")}
-              className="hover:text-brand transition"
-            >
-              FAQ
-            </button>
-            <span className="text-line">•</span>
-            <button
-              type="button"
-              onClick={() => go("/blog")}
-              className="hover:text-brand transition"
-            >
-              Blog
-            </button>
-            <span className="text-line">•</span>
-            <button
-              type="button"
-              onClick={() => go("/outlook")}
-              className="hover:text-brand transition"
-            >
-              Daily Outlook
-            </button>
-            <span className="text-line">•</span>
-            <button
-              type="button"
-              onClick={() => go("/giveaways")}
-              className="hover:text-brand transition"
-            >
-              Giveaways
-            </button>
-          </div>
-        </div>
+            {/* Subtle Secondary Links */}
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-1 text-[11px] font-semibold text-muted">
+              <button
+                type="button"
+                onClick={() => go("/reviews")}
+                className="hover:text-brand transition"
+              >
+                Reviews
+              </button>
+              <span className="text-line">•</span>
+              <button
+                type="button"
+                onClick={() => go("/faq")}
+                className="hover:text-brand transition"
+              >
+                FAQ
+              </button>
+              <span className="text-line">•</span>
+              <button
+                type="button"
+                onClick={() => go("/blog")}
+                className="hover:text-brand transition"
+              >
+                Blog
+              </button>
+              <span className="text-line">•</span>
+              <button
+                type="button"
+                onClick={() => go("/outlook")}
+                className="hover:text-brand transition"
+              >
+                Outlook
+              </button>
+              <span className="text-line">•</span>
+              <button
+                type="button"
+                onClick={() => go("/giveaways")}
+                className="hover:text-brand transition"
+              >
+                Giveaways
+              </button>
+            </div>
 
-        {/* Clean Bottom Auth & Contact Actions */}
-        <div className="mt-8 pt-5 border-t border-line space-y-3">
-          {isAuthed && user ? (
-            <>
-              <div className="flex items-center gap-3">
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt=""
-                    className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-line"
-                  />
-                ) : (
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
-                    {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
-                  </span>
+            {/* Compact Auth & Contact Actions */}
+            {isAuthed && user ? (
+              <div className="pt-3 border-t border-line/60 space-y-2.5">
+                <div className="flex items-center gap-3 rounded-xl bg-slate-100/70 p-2.5">
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt=""
+                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-line"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                      {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-bold text-ink">
+                      {user.firstName} {user.lastName}
+                    </p>
+                    <p className="truncate text-[10px] text-muted">{user.email}</p>
+                  </div>
+                </div>
+
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => go("/admin")}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-ink py-2 text-xs font-bold text-white transition hover:bg-ink/90"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5 text-brand-light" /> Admin Panel
+                  </button>
                 )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-ink">
-                    {user.firstName} {user.lastName}
-                  </p>
-                  <p className="truncate text-xs text-muted">{user.email}</p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => go("/dashboard")}
+                    className="w-full rounded-xl bg-brand py-2 text-xs font-bold text-white transition hover:bg-brand-dark"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      navigate("/");
+                      setOpen(false);
+                    }}
+                    className="w-full rounded-xl border border-line bg-white/80 py-2 text-xs font-semibold text-muted hover:text-ink transition hover:bg-slate-100"
+                  >
+                    Log out
+                  </button>
                 </div>
               </div>
-
-              {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => go("/admin")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-ink py-2.5 text-xs font-bold text-white transition hover:bg-ink/90"
+            ) : (
+              <div className="pt-3 border-t border-line/60 space-y-2.5">
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => go("/login")}
+                    className="w-full rounded-full border border-line bg-white/80 py-2 text-xs font-bold text-ink shadow-sm hover:bg-slate-100 transition text-center"
+                  >
+                    Login
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => go("/signup")}
+                    className="w-full rounded-full bg-brand py-2 text-xs font-bold text-white shadow-sm hover:bg-brand-dark transition text-center"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+                <a
+                  href={CONTACT.whatsappAiHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted hover:text-brand transition"
                 >
-                  <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
-                </button>
-              )}
-
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => go("/dashboard")}
-                  className="w-full rounded-xl bg-brand py-2.5 text-xs font-bold text-white transition hover:bg-brand-dark"
-                >
-                  Dashboard
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    logout();
-                    navigate("/");
-                    setOpen(false);
-                  }}
-                  className="w-full rounded-xl border border-line py-2.5 text-xs font-semibold text-muted hover:text-ink transition hover:bg-cream"
-                >
-                  Log out
-                </button>
+                  <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>Ask Anything on WhatsApp</span>
+                </a>
               </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => go("/login")}
-                  className="w-full rounded-full border border-line py-2.5 text-sm font-semibold text-ink text-center hover:bg-cream transition"
-                >
-                  Login
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go("/signup")}
-                  className="w-full rounded-full bg-brand py-2.5 text-sm font-semibold text-white text-center hover:bg-brand-dark transition shadow-sm"
-                >
-                  Sign Up
-                </button>
-              </div>
-              <a
-                href={CONTACT.whatsappAiHref}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center gap-2 pt-1 text-xs font-medium text-muted hover:text-brand transition"
-              >
-                <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Questions? Chat with us on WhatsApp</span>
-              </a>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </header>
+
+    {/* Dimmed backdrop when sheet is open */}
+    {open && (
+      <div
+        aria-hidden="true"
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-300 lg:hidden"
+        style={{ top: "var(--header-h, 72px)" }}
+      />
+    )}
   </>
   );
 }
