@@ -30,7 +30,7 @@ export default function CheckoutPage({ id }: { id: string }) {
     try {
       const claimed = sessionStorage.getItem("gamat_claimed_coupon");
       if (claimed && !appliedCode) {
-        const res = validateCoupon(claimed, "courses");
+        const res = validateCoupon(claimed, "courses", course.id);
         if (res.ok && res.discountPercent && res.coupon) {
           setCoupon(res.coupon.code);
           setAppliedCode(res.coupon.code);
@@ -93,7 +93,7 @@ export default function CheckoutPage({ id }: { id: string }) {
 
   const applyCoupon = (codeToApply = coupon) => {
     setCouponMsg(null);
-    const res = validateCoupon(codeToApply, "courses");
+    const res = validateCoupon(codeToApply, "courses", course.id);
     if (res.ok && res.discountPercent && res.coupon) {
       setCoupon(res.coupon.code);
       setAppliedCode(res.coupon.code);
@@ -125,7 +125,7 @@ export default function CheckoutPage({ id }: { id: string }) {
     let activeDiscount = discount;
     let activeCode = appliedCode;
     if (coupon.trim() && coupon.trim().toUpperCase() !== appliedCode) {
-      const check = validateCoupon(coupon, "courses");
+      const check = validateCoupon(coupon, "courses", course.id);
       if (check.ok && check.discountPercent && check.coupon) {
         activeDiscount = check.discountPercent / 100;
         activeCode = check.coupon.code;

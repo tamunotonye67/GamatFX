@@ -594,6 +594,8 @@ export async function fetchSupabaseCoupons(): Promise<Coupon[]> {
       usedCount: Number(r.used_count || 0),
       expiryDate: r.expiry_date || undefined,
       applicableTo: r.applicable_to || "all",
+      targetProductId: r.target_product_id || undefined,
+      targetProductTitle: r.target_product_title || undefined,
       status: r.status || "active",
       createdAt: r.created_at,
     }));
@@ -604,7 +606,7 @@ export async function fetchSupabaseCoupons(): Promise<Coupon[]> {
 
 export async function saveSupabaseCoupon(c: Coupon): Promise<void> {
   try {
-    await supabase.from("coupons").upsert({
+    const payload: any = {
       id: c.id,
       code: c.code,
       discount_percent: c.discountPercent,
@@ -614,7 +616,17 @@ export async function saveSupabaseCoupon(c: Coupon): Promise<void> {
       applicable_to: c.applicableTo,
       status: c.status,
       created_at: c.createdAt,
-    }, { onConflict: "id" });
+    };
+    if (c.targetProductId) payload.target_product_id = c.targetProductId;
+    if (c.targetProductTitle) payload.target_product_title = c.targetProductTitle;
+
+    const { error } = await supabase.from("coupons").upsert(payload, { onConflict: "id" });
+    if (error) {
+      // Fallback if target_product columns don't exist yet on remote table
+      delete payload.target_product_id;
+      delete payload.target_product_title;
+      await supabase.from("coupons").upsert(payload, { onConflict: "id" });
+    }
   } catch (err) {
     console.warn("Supabase coupon save notice:", err);
   }

@@ -2,8 +2,11 @@ import { useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type Coupon } from "../../lib/store";
+import { COURSES, naira } from "../../lib/courses";
+import { SEED_STORE_PRODUCTS } from "../../lib/storeProducts";
 import {
   Tag, Plus, Pencil, Trash2, Download, CheckCircle2, Percent, Copy, Check, Calendar, Ticket,
+  Box, BookOpen,
 } from "lucide-react";
 
 type Draft = Partial<Coupon>;
@@ -18,15 +21,35 @@ const blank = (): Draft => ({
 });
 
 export function AdminCoupons() {
-  const { coupons, saveCoupon, deleteCoupon } = useStore();
+  const { coupons, saveCoupon, deleteCoupon, storeProducts, managedCourses } = useStore();
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<Draft | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Available store products & courses for single-product coupon targeting
+  const allStoreProducts = useMemo(() => {
+    return storeProducts && storeProducts.length ? storeProducts : SEED_STORE_PRODUCTS;
+  }, [storeProducts]);
+
+  const allCourses = useMemo(() => {
+    const base = COURSES;
+    const custom = (managedCourses || []).filter((mc) => !base.some((b) => b.id === mc.id));
+    return [...base, ...custom];
+  }, [managedCourses]);
+
+  const allSelectableProducts = useMemo(() => {
+    return [
+      ...allStoreProducts.map((p) => ({ id: p.id, title: p.title, type: "Store Tool", price: p.price, isFree: p.isFree })),
+      ...allCourses.map((c) => ({ id: c.id, title: c.title, type: "Course / Mentorship", price: c.price, isFree: false })),
+    ];
+  }, [allStoreProducts, allCourses]);
+
   const rows = useMemo(() => {
     return (coupons || []).filter((c) =>
-      `${c.code} ${c.applicableTo} ${c.discountPercent}%`.toLowerCase().includes(q.toLowerCase())
+      `${c.code} ${c.applicableTo} ${c.targetProductTitle ?? ""} ${c.targetProductId ?? ""} ${c.discountPercent}%`
+        .toLowerCase()
+        .includes(q.toLowerCase())
     );
   }, [coupons, q]);
 
@@ -48,6 +71,12 @@ export function AdminCoupons() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!edit) return;
+
+    if (edit.applicableTo === "single_product" && !edit.targetProductId) {
+      setErr("Please select a specific product or course for this single-product coupon.");
+      return;
+    }
+
     const res = saveCoupon({
       id: edit.id,
       code: edit.code ?? "",
@@ -55,6 +84,8 @@ export function AdminCoupons() {
       maxUses: Number(edit.maxUses) || 100,
       expiryDate: edit.expiryDate || undefined,
       applicableTo: edit.applicableTo || "all",
+      targetProductId: edit.applicableTo === "single_product" ? edit.targetProductId : undefined,
+      targetProductTitle: edit.applicableTo === "single_product" ? edit.targetProductTitle : undefined,
       status: edit.status || "active",
     });
     if (!res.ok) {
@@ -82,7 +113,11 @@ export function AdminCoupons() {
                 rows.map((c) => ({
                   Code: c.code,
                   Discount: `${c.discountPercent}%`,
-                  Target: c.applicableTo,
+                  Target: c.applicableTo === "single_product"
+                    ? `Single Product: ${c.targetProductTitle || c.targetProductId || "Unknown"}`
+                    : c.applicableTo === "store"
+                    ? "Store Products"
+                    : c.applicableTo,
                   MaxUses: c.maxUses,
                   Used: c.usedCount,
                   Status: c.status,
@@ -152,9 +187,24 @@ export function AdminCoupons() {
                       <span className="font-extrabold text-brand text-base whitespace-nowrap">{c.discountPercent}% OFF</span>
                     </Td>
                     <Td className="whitespace-nowrap">
-                      <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold capitalize text-ink whitespace-nowrap">
-                        {c.applicableTo}
-                      </span>
+                      {c.applicableTo === "single_product" ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-brand-light border border-brand/20 px-2.5 py-0.5 text-[11px] font-bold text-brand whitespace-nowrap w-fit">
+                            <Tag className="h-3 w-3" />
+                            <span>Single Product</span>
+                          </span>
+                          <span
+                            className="text-xs font-semibold text-ink max-w-[240px] truncate"
+                            title={c.targetProductTitle || c.targetProductId}
+                          >
+                            {c.targetProductTitle || c.targetProductId}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="rounded-full bg-cream border border-line px-2.5 py-1 text-xs font-bold capitalize text-ink whitespace-nowrap">
+                          {c.applicableTo === "store" ? "Store Products" : c.applicableTo}
+                        </span>
+                      )}
                     </Td>
                     <Td className="whitespace-nowrap">
                       <span className="text-xs font-semibold text-ink whitespace-nowrap">
@@ -226,10 +276,20 @@ export function AdminCoupons() {
               <Select
                 label="Applicable Target"
                 value={edit.applicableTo ?? "all"}
-                onChange={(v) => setEdit({ ...edit, applicableTo: v as Coupon["applicableTo"] })}
+                onChange={(v) => {
+                  const target = v as Coupon["applicableTo"];
+                  setEdit({
+                    ...edit,
+                    applicableTo: target,
+                    targetProductId: target === "single_product" ? (edit.targetProductId || allSelectableProducts[0]?.id) : undefined,
+                    targetProductTitle: target === "single_product" ? (edit.targetProductTitle || allSelectableProducts[0]?.title) : undefined,
+                  });
+                }}
                 options={[
-                  { v: "all", l: "All Products & Services" },
-                  { v: "courses", l: "Courses & Programs" },
+                  { v: "all", l: "All Products, Tools & Courses" },
+                  { v: "single_product", l: "Single Specific Product / Course" },
+                  { v: "courses", l: "All Courses & Mentorship Programs" },
+                  { v: "store", l: "All Store Tools & Products" },
                   { v: "services", l: "Consulting & Desk Services" },
                   { v: "events", l: "Live Events & Workshops" },
                 ]}
@@ -244,6 +304,58 @@ export function AdminCoupons() {
                 ]}
               />
             </div>
+
+            {/* Single Product Selector */}
+            {edit.applicableTo === "single_product" && (
+              <div className="rounded-2xl border border-brand/30 bg-brand-light/30 p-4 space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wide text-ink flex items-center gap-1.5">
+                      <Tag className="h-3.5 w-3.5 text-brand" />
+                      <span>Select Discounted Product or Course *</span>
+                    </label>
+                  </div>
+
+                  <select
+                    value={edit.targetProductId ?? ""}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const found = allSelectableProducts.find((p) => p.id === selectedId);
+                      setEdit({
+                        ...edit,
+                        targetProductId: selectedId,
+                        targetProductTitle: found?.title || selectedId,
+                      });
+                    }}
+                    className="w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink outline-none transition focus:border-brand shadow-xs"
+                    required
+                  >
+                    <option value="" disabled>-- Choose a single product or course --</option>
+                    <optgroup label="Store Tools & Trading Products">
+                      {allStoreProducts.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          [Store Tool] {p.title} ({p.isFree ? "Free" : naira(p.price)})
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Courses & Mentorship Programs">
+                      {allCourses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          [Course] {c.title} ({naira(c.price)})
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div className="flex items-start gap-2 text-[11px] text-muted leading-relaxed">
+                  <span className="font-bold text-brand shrink-0">Rule:</span>
+                  <span>
+                    This coupon will apply <strong>strictly to this selected product</strong>. Students cannot apply it to any other course or store item.
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">

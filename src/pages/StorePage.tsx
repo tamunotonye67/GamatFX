@@ -299,11 +299,19 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     return list;
   }, [publishedStoreProducts, selectedCat, q, sortBy]);
 
+  const openCheckout = (prod: StoreProduct) => {
+    setCheckoutProduct(prod);
+    setCouponCode("");
+    setCouponDiscount(0);
+    setCouponMsg(null);
+    setCouponError(null);
+  };
+
   const handleApplyCoupon = () => {
     setCouponError(null);
     setCouponMsg(null);
     if (!couponCode.trim()) return;
-    const res = validateCoupon(couponCode, "all");
+    const res = validateCoupon(couponCode, "store", checkoutProduct?.id);
     if (res.ok && res.discountPercent) {
       setCouponDiscount(res.discountPercent);
       setCouponMsg(`Success! ${res.discountPercent}% discount applied.`);
@@ -836,7 +844,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
 
                         <button
                           type="button"
-                          onClick={() => setCheckoutProduct(prod)}
+                          onClick={() => openCheckout(prod)}
                           className={`rounded-xl text-white px-3.5 py-2 text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer ${
                             prod.isFree || prod.price === 0
                               ? "bg-emerald-600 hover:bg-emerald-700"
@@ -974,7 +982,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setCheckoutProduct(prod)}
+                          onClick={() => openCheckout(prod)}
                           className={`rounded-xl px-4 py-2 text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
                             prod.isFree || prod.price === 0
                               ? "bg-emerald-600 hover:bg-emerald-700"
@@ -1229,7 +1237,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     onClick={() => {
                       const p = activeProduct;
                       setActiveProduct(null);
-                      setCheckoutProduct(p);
+                      openCheckout(p);
                     }}
                     className={`w-full rounded-xl py-3 px-6 text-sm font-bold text-white transition flex items-center justify-center gap-2 shadow-md cursor-pointer ${
                       activeProduct.isFree || activeProduct.price === 0

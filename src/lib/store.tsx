@@ -312,7 +312,9 @@ export type Coupon = {
   maxUses: number;
   usedCount: number;
   expiryDate?: string;
-  applicableTo: "all" | "courses" | "services" | "events";
+  applicableTo: "all" | "courses" | "services" | "events" | "store" | "single_product";
+  targetProductId?: string;
+  targetProductTitle?: string;
   status: "active" | "disabled";
   createdAt: string;
 };
@@ -352,6 +354,19 @@ export const SEED_COUPONS: Coupon[] = [
     createdAt: "2026-08-05T00:00:00Z",
   },
   {
+    id: "cp_playbook_30",
+    code: "PLAYBOOK30",
+    discountPercent: 30,
+    maxUses: 150,
+    usedCount: 14,
+    expiryDate: "2027-12-31",
+    applicableTo: "single_product",
+    targetProductId: "gamat-playbook-v1",
+    targetProductTitle: "Institutional Order Flow & Liquidity Playbook",
+    status: "active",
+    createdAt: "2026-08-08T00:00:00Z",
+  },
+  {
     id: "cp_3",
     code: "DESK50",
     discountPercent: 50,
@@ -376,7 +391,7 @@ function normalizeCoupons(existing: Coupon[], incoming: Coupon[] = []): Coupon[]
     if (seedMatch && (expiryDate === "2026-10-31" || expiryDate === "2026-12-31")) {
       expiryDate = "2027-12-31";
     }
-    const applicableTo = seedMatch && item.applicableTo !== "all" ? "all" : item.applicableTo || "all";
+    const applicableTo = seedMatch && item.applicableTo !== "all" && item.applicableTo !== "single_product" ? "all" : item.applicableTo || "all";
     byCode.set(cleanCode, {
       ...item,
       code: cleanCode,
@@ -385,6 +400,8 @@ function normalizeCoupons(existing: Coupon[], incoming: Coupon[] = []): Coupon[]
       usedCount: Number(item.usedCount) || 0,
       expiryDate,
       applicableTo,
+      targetProductId: item.targetProductId,
+      targetProductTitle: item.targetProductTitle,
       status: item.status || "active",
     });
   };
@@ -1296,7 +1313,7 @@ type Ctx = {
   coupons: Coupon[];
   saveCoupon: (c: Omit<Coupon, "id" | "createdAt" | "usedCount"> & { id?: string }) => { ok: boolean; error?: string };
   deleteCoupon: (id: string) => void;
-  validateCoupon: (code: string, target?: "all" | "courses" | "services" | "events") => { ok: boolean; coupon?: Coupon; discountPercent?: number; error?: string };
+  validateCoupon: (code: string, target?: "all" | "courses" | "services" | "events" | "store" | "single_product", productId?: string) => { ok: boolean; coupon?: Coupon; discountPercent?: number; error?: string };
 
   /* forum */
   forum: {
@@ -3544,7 +3561,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     deleteSupabaseCoupon(id);
   }, []);
 
-  const validateCoupon: Ctx["validateCoupon"] = useCallback((code, target = "all") => {
+  const validateCoupon: Ctx["validateCoupon"] = useCallback((code, target = "all", productId) => {
     const clean = code.trim().toUpperCase();
     if (!clean) return { ok: false, error: "Enter a coupon code." };
     const found = coupons.find((c) => c.code.trim().toUpperCase() === clean);
@@ -3559,14 +3576,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return { ok: false, error: "This coupon has expired." };
       }
     }
+
+    // 1. Single product coupon restriction
+    if (found.applicableTo === "single_product") {
+      if (!productId) {
+        return {
+          ok: false,
+          error: `This coupon is exclusively valid for ${found.targetProductTitle || "a specific product"}.`,
+        };
+      }
+      const cleanProdId = productId.replace(/^store-/, "").trim().toLowerCase();
+      const cleanTargetId = (found.targetProductId || "").replace(/^store-/, "").trim().toLowerCase();
+      if (cleanProdId !== cleanTargetId) {
+        return {
+          ok: false,
+          error: `This coupon is only valid for "${found.targetProductTitle || found.targetProductId || "a different product"}".`,
+        };
+      }
+      return { ok: true, coupon: found, discountPercent: found.discountPercent };
+    }
+
+    // 2. Category restriction check
     if (
       found.applicableTo !== "all" &&
       target !== "all" &&
       found.applicableTo !== target &&
       !(target === "courses" && found.applicableTo === "services")
     ) {
-      return { ok: false, error: `This coupon is only valid for ${found.applicableTo}.` };
+      const targetLabel =
+        found.applicableTo === "store"
+          ? "Store products & tools"
+          : found.applicableTo === "courses"
+          ? "Courses & Mentorships"
+          : found.applicableTo === "services"
+          ? "Services & Consulting"
+          : found.applicableTo === "events"
+          ? "Live Events"
+          : found.applicableTo;
+      return { ok: false, error: `This coupon is only valid for ${targetLabel}.` };
     }
+
     return { ok: true, coupon: found, discountPercent: found.discountPercent };
   }, [coupons]);
 
