@@ -262,16 +262,16 @@ export function AdminStore() {
 
             {/* Desktop Table (md+) */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full min-w-[850px] text-sm">
+              <table className="w-full min-w-[1080px] text-sm">
                 <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                   <tr>
-                    <Th className="w-[30%] min-w-[260px]">Product</Th>
-                    <Th className="whitespace-nowrap">Category</Th>
-                    <Th className="whitespace-nowrap">Price</Th>
-                    <Th className="whitespace-nowrap">Deliverable</Th>
-                    <Th className="whitespace-nowrap">Status</Th>
-                    <Th className="whitespace-nowrap">Sales</Th>
-                    <Th right>Actions</Th>
+                    <Th className="min-w-[320px]">Product</Th>
+                    <Th className="whitespace-nowrap min-w-[120px]">Category</Th>
+                    <Th className="whitespace-nowrap min-w-[120px]">Price</Th>
+                    <Th className="whitespace-nowrap min-w-[200px]">Deliverable</Th>
+                    <Th className="whitespace-nowrap min-w-[110px]">Status</Th>
+                    <Th className="whitespace-nowrap min-w-[90px]">Sales</Th>
+                    <Th right className="whitespace-nowrap min-w-[120px]">Actions</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
@@ -279,14 +279,14 @@ export function AdminStore() {
                     const CatIcon = categoryIcon(p.category);
                     return (
                       <tr key={p.id} className="transition hover:bg-cream/50">
-                        <Td className="min-w-[260px]">
+                        <Td className="min-w-[320px]">
                           <div className="flex items-center gap-3">
                             <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-cream border border-line text-brand">
                               <CatIcon className="h-5 w-5 shrink-0" />
                             </span>
-                            <div className="min-w-0 max-w-xs">
+                            <div className="min-w-0">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <p className="truncate font-semibold text-ink">{p.title}</p>
+                                <p className="font-semibold text-ink">{p.title}</p>
                                 {p.isPreorder && (
                                   <Badge tone="purple">
                                     <Clock className="h-2.5 w-2.5 inline mr-0.5" /> PRE-ORDER
@@ -308,10 +308,10 @@ export function AdminStore() {
                             </div>
                           </div>
                         </Td>
-                        <Td className="whitespace-nowrap">
+                        <Td className="whitespace-nowrap min-w-[120px]">
                           <Badge tone="gray">{p.category.toUpperCase()}</Badge>
                         </Td>
-                        <Td className="whitespace-nowrap">
+                        <Td className="whitespace-nowrap min-w-[120px]">
                           <div>
                             <p className="font-bold text-ink">
                               {p.isFree || p.price === 0 ? (
@@ -327,20 +327,20 @@ export function AdminStore() {
                             )}
                           </div>
                         </Td>
-                        <Td className="whitespace-nowrap">
-                          <span className="text-xs text-muted line-clamp-1 max-w-[200px]">
+                        <Td className="whitespace-nowrap min-w-[200px]">
+                          <span className="text-xs text-muted">
                             {p.deliverableType}
                           </span>
                         </Td>
-                        <Td className="whitespace-nowrap">
+                        <Td className="whitespace-nowrap min-w-[110px]">
                           <Badge tone={p.published ? "green" : "amber"}>
                             {p.published ? "Published" : "Draft"}
                           </Badge>
                         </Td>
-                        <Td className="whitespace-nowrap">
+                        <Td className="whitespace-nowrap min-w-[90px]">
                           <span className="font-semibold text-ink">{p.salesCount || 0}</span>
                         </Td>
-                        <Td right>
+                        <Td right className="whitespace-nowrap min-w-[120px]">
                           <div className="flex justify-end gap-1">
                             <IconBtn
                               title={p.published ? "Unpublish" : "Publish"}
