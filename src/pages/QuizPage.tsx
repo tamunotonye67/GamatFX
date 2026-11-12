@@ -170,7 +170,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                         onClick={() => setShowPaymentModal(true)}
                         className="btn-primary !py-3 !px-7 font-bold shadow-lg shadow-brand/25 flex items-center gap-2 cursor-pointer"
                       >
-                        <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                        <ShieldCheck className="h-4 w-4" /> Claim Certificate
                       </button>
                       <button
                         onClick={() => navigate("/dashboard")}
@@ -264,7 +264,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     </button>
                   ) : (
                     <button onClick={() => setShowPaymentModal(true)} className="btn-primary flex items-center gap-2">
-                      <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                      <ShieldCheck className="h-4 w-4" /> Claim Certificate
                     </button>
                   )
                 ) : (
@@ -339,7 +339,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                       onClick={() => setShowPaymentModal(true)}
                       className="btn-primary !py-1.5 !px-3 text-xs flex items-center gap-1 cursor-pointer"
                     >
-                      <ShieldCheck className="h-3.5 w-3.5" /> Unlock Certificate (₦10k)
+                      <ShieldCheck className="h-3.5 w-3.5" /> Claim Certificate
                     </button>
                   )}
                 </div>

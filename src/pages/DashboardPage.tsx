@@ -754,7 +754,7 @@ export default function DashboardPage() {
                           onClick={() => setPaymentModalCourseId(id)}
                           className="btn-primary w-full sm:w-auto !py-2.5 !px-6 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"
                         >
-                          <ShieldCheck className="h-4 w-4" /> Unlock Certificate (₦10,000)
+                          <ShieldCheck className="h-4 w-4" /> Claim Certificate
                         </button>
                       </div>
                     </div>
