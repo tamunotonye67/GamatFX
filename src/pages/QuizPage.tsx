@@ -621,6 +621,10 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                   <span className="mt-0.5 font-bold text-emerald-600 shrink-0">•</span>
                   <span>Review flagged and unanswered questions before submitting (70% pass mark).</span>
                 </div>
+                <div className="flex items-start gap-1.5">
+                  <span className="mt-0.5 font-bold text-amber-500 shrink-0">•</span>
+                  <span>Exam auto-submits when the timer reaches 00:00 — unlimited retakes allowed.</span>
+                </div>
               </div>
             </div>
           </aside>
