@@ -535,7 +535,7 @@ export function AdminWhiteboard() {
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={LayoutTemplate} label="Templates" value={samples.length} />
         <StatCard icon={BookOpen} label="Resources" value={resources.length} />
-        <StatCard icon={Library} label="Playbook Lessons" value={lessons.length} />
+        <StatCard icon={Library} label="Playbooks" value={lessons.length} />
         <StatCard icon={Layers} label="Pre-Drawn Shapes" value={totalShapes} />
       </div>
 
@@ -585,7 +585,7 @@ export function AdminWhiteboard() {
             >
               <Library className="h-4 w-4 shrink-0" />
               <span>
-                Playbook Lessons
+                Playbooks
                 <span className="ml-1 opacity-90">({lessons.length})</span>
               </span>
             </button>
