@@ -562,203 +562,257 @@ export default function Navbar() {
           )}
           <button
             type="button"
-            aria-label={open ? "Close menu" : "Open menu"}
-            onClick={() => setOpen((v) => !v)}
-            className={`rounded-xl p-2 transition lg:hidden hover:bg-black/5 ${
+            aria-label="Open menu"
+            onClick={() => setOpen(true)}
+            className={`rounded-xl p-2 transition lg:hidden hover:bg-black/5 cursor-pointer ${
               scrolled ? "text-ink" : "text-white"
             }`}
           >
-            {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Menu className="h-6 w-6" />
           </button>
         </div>
         </nav>
       </div>
+    </header>
 
-      {/* Frosted Glass Slide-Down Sheet (Apple-style) */}
-      <div
-        id="mobile-navigation"
-        aria-hidden={!open}
-        className={`overflow-hidden transition-all duration-300 ease-out lg:hidden ${
-          open
-            ? "max-h-[calc(100dvh-var(--header-h,72px))] opacity-100 pointer-events-auto"
-            : "max-h-0 opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="border-t border-line/60 bg-white/95 backdrop-blur-2xl shadow-[0_25px_60px_-15px_rgba(22,24,28,0.25)]">
-          <div className="container-x max-h-[calc(100dvh-var(--header-h,72px)-24px)] overflow-y-auto px-5 py-5 space-y-4">
-            {/* Compact Rounded Pills Grid */}
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: "Home", to: "/" as Route },
-                { label: "About Us", to: "/about" as Route },
-                { label: "Courses", to: "/courses" as Route },
-                { label: "Services", to: "/services" as Route },
-                { label: "Events", to: "/events" as Route },
-                { label: "Store & Tools", to: "/store" as Route },
-                { label: "Whiteboard", to: "/whiteboard" as Route },
-                { label: "Fun Zone", to: "/fun" as Route },
-                { label: "Student Forum", to: "/forum" as Route },
-                { label: "Contact Us", to: "/contact" as Route },
-              ].map((item) => {
-                const isActive = item.to === route;
-                return (
-                  <button
-                    key={item.to}
-                    type="button"
-                    onClick={() => go(item.to)}
-                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition active:scale-[0.98] ${
-                      isActive
-                        ? "bg-brand text-white shadow-sm shadow-brand/25"
-                        : "bg-slate-100/80 text-ink/80 hover:bg-slate-200/90 hover:text-ink"
-                    }`}
-                  >
-                    <span>{item.label}</span>
-                    {isActive && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-                  </button>
-                );
-              })}
-            </div>
+    {/* Dimmed backdrop when right drawer is open */}
+    <div
+      aria-hidden="true"
+      onClick={() => setOpen(false)}
+      className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transition-opacity duration-300 lg:hidden ${
+        open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      }`}
+    />
 
-            {/* Subtle Secondary Links */}
-            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 pt-1 text-[11px] font-semibold text-muted">
-              <button
-                type="button"
-                onClick={() => go("/reviews")}
-                className="hover:text-brand transition"
-              >
-                Reviews
-              </button>
-              <span className="text-line">•</span>
-              <button
-                type="button"
-                onClick={() => go("/faq")}
-                className="hover:text-brand transition"
-              >
-                FAQ
-              </button>
-              <span className="text-line">•</span>
-              <button
-                type="button"
-                onClick={() => go("/blog")}
-                className="hover:text-brand transition"
-              >
-                Blog
-              </button>
-              <span className="text-line">•</span>
-              <button
-                type="button"
-                onClick={() => go("/outlook")}
-                className="hover:text-brand transition"
-              >
-                Outlook
-              </button>
-              <span className="text-line">•</span>
-              <button
-                type="button"
-                onClick={() => go("/giveaways")}
-                className="hover:text-brand transition"
-              >
-                Giveaways
-              </button>
-            </div>
+    {/* Right Slide-Over Navigation Drawer */}
+    <aside
+      id="mobile-navigation"
+      aria-label="Mobile Navigation"
+      aria-hidden={!open}
+      className={`fixed inset-y-0 right-0 z-50 flex h-dvh w-[86vw] max-w-[350px] flex-col border-l border-line bg-white shadow-[-16px_0_50px_rgba(0,0,0,0.22)] transition-transform duration-300 ease-out lg:hidden ${
+        open ? "translate-x-0" : "translate-x-full pointer-events-none"
+      }`}
+    >
+      {/* Drawer Header */}
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-line bg-cream/60 px-5">
+        <Logo variant="dark" />
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={() => setOpen(false)}
+          className="rounded-full border border-line bg-white p-2 text-ink shadow-2xs hover:bg-cream transition cursor-pointer"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
-            {/* Compact Auth & Contact Actions */}
-            {isAuthed && user ? (
-              <div className="pt-3 border-t border-line/60 space-y-2.5">
-                <div className="flex items-center gap-3 rounded-xl bg-slate-100/70 p-2.5">
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt=""
-                      className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-line"
-                    />
-                  ) : (
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
-                      {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
-                    </span>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-ink">
-                      {user.firstName} {user.lastName}
-                    </p>
-                    <p className="truncate text-[10px] text-muted">{user.email}</p>
-                  </div>
-                </div>
-
-                {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => go("/admin")}
-                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-ink py-2 text-xs font-bold text-white transition hover:bg-ink/90"
-                  >
-                    <ShieldCheck className="h-3.5 w-3.5 text-brand-light" /> Admin Panel
-                  </button>
-                )}
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => go("/dashboard")}
-                    className="w-full rounded-xl bg-brand py-2 text-xs font-bold text-white transition hover:bg-brand-dark"
-                  >
-                    Dashboard
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      logout();
-                      navigate("/");
-                      setOpen(false);
-                    }}
-                    className="w-full rounded-xl border border-line bg-white/80 py-2 text-xs font-semibold text-muted hover:text-ink transition hover:bg-slate-100"
-                  >
-                    Log out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="pt-3 border-t border-line/60 space-y-2.5">
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => go("/login")}
-                    className="w-full rounded-full border border-line bg-white/80 py-2 text-xs font-bold text-ink shadow-sm hover:bg-slate-100 transition text-center"
-                  >
-                    Login
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => go("/signup")}
-                    className="w-full rounded-full bg-brand py-2 text-xs font-bold text-white shadow-sm hover:bg-brand-dark transition text-center"
-                  >
-                    Sign Up
-                  </button>
-                </div>
-                <a
-                  href={CONTACT.whatsappAiHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted hover:text-brand transition"
+      {/* Drawer Scrollable Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+        {/* Main Navigation */}
+        <div>
+          <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted">
+            Menu
+          </p>
+          <div className="space-y-1">
+            {[
+              { label: "Home", to: "/" as Route, icon: Home },
+              { label: "About Us", to: "/about" as Route, icon: Info },
+              { label: "Courses", to: "/courses" as Route, icon: GraduationCap, badge: "Popular" },
+              { label: "Services", to: "/services" as Route, icon: Briefcase },
+              { label: "Events", to: "/events" as Route, icon: Calendar },
+              { label: "Store & Tools", to: "/store" as Route, icon: ShoppingBag },
+              { label: "Whiteboard", to: "/whiteboard" as Route, icon: Pencil },
+            ].map((item) => {
+              const isActive = item.to === route;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => go(item.to)}
+                  className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition cursor-pointer ${
+                    isActive
+                      ? "bg-brand/10 text-brand font-bold"
+                      : "text-ink/80 hover:bg-cream hover:text-ink"
+                  }`}
                 >
-                  <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Ask Anything on WhatsApp</span>
-                </a>
-              </div>
-            )}
+                  <div className="flex items-center gap-3">
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-brand" : "text-muted group-hover:text-brand"}`} />
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-brand" : "text-muted/40 group-hover:text-muted"}`} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Explore & Community */}
+        <div className="border-t border-line/70 pt-4">
+          <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted">
+            Explore & Community
+          </p>
+          <div className="space-y-1">
+            {[
+              { label: "Fun Zone", to: "/fun" as Route, icon: Gamepad2 },
+              { label: "Student Forum", to: "/forum" as Route, icon: MessagesSquare },
+              { label: "Student of the Week", to: "/fun/student-of-the-week" as Route, icon: Award },
+              { label: "Community", to: "/community" as Route, icon: Users },
+              { label: "Reviews", to: "/reviews" as Route, icon: Star },
+              { label: "FAQ", to: "/faq" as Route, icon: HelpCircle },
+            ].map((item) => {
+              const isActive = item.to === route;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => go(item.to)}
+                  className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
+                    isActive
+                      ? "bg-brand/10 text-brand font-bold"
+                      : "text-ink/80 hover:bg-cream hover:text-ink"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-brand" : "text-muted group-hover:text-brand"}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-brand" : "text-muted/40 group-hover:text-muted"}`} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Updates */}
+        <div className="border-t border-line/70 pt-4">
+          <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted">
+            Updates & Insights
+          </p>
+          <div className="space-y-1">
+            {[
+              { label: "Blog", to: "/blog" as Route, icon: Newspaper },
+              { label: "News & Events", to: "/news" as Route, icon: Newspaper },
+              { label: "Daily Outlook", to: "/outlook" as Route, icon: Sun },
+              { label: "Giveaways", to: "/giveaways" as Route, icon: Gift },
+            ].map((item) => {
+              const isActive = item.to === route;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.to}
+                  type="button"
+                  onClick={() => go(item.to)}
+                  className={`group flex w-full items-center justify-between rounded-xl px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
+                    isActive
+                      ? "bg-brand/10 text-brand font-bold"
+                      : "text-ink/80 hover:bg-cream hover:text-ink"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-brand" : "text-muted group-hover:text-brand"}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-brand" : "text-muted/40 group-hover:text-muted"}`} />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
-    </header>
 
-    {/* Dimmed backdrop when sheet is open */}
-    {open && (
-      <div
-        aria-hidden="true"
-        onClick={() => setOpen(false)}
-        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-300 lg:hidden"
-        style={{ top: "var(--header-h, 72px)" }}
-      />
-    )}
+      {/* Drawer Footer (Auth & Contact) */}
+      <div className="shrink-0 border-t border-line bg-cream/70 p-4 space-y-3">
+        {isAuthed && user ? (
+          <>
+            <div className="flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 shadow-2xs">
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt=""
+                  className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-line"
+                />
+              ) : (
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
+                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
+                </span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-ink">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="truncate text-[10px] text-muted">{user.email}</p>
+              </div>
+            </div>
+
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => go("/admin")}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-ink py-2 text-xs font-bold text-white transition hover:bg-ink/90 cursor-pointer"
+              >
+                <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
+              </button>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => go("/dashboard")}
+                className="w-full rounded-xl bg-brand py-2 text-xs font-bold text-white transition hover:bg-brand-dark cursor-pointer"
+              >
+                Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  navigate("/");
+                  setOpen(false);
+                }}
+                className="w-full rounded-xl border border-line bg-white py-2 text-xs font-semibold text-muted hover:text-ink transition hover:bg-cream cursor-pointer"
+              >
+                Log out
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => go("/login")}
+                className="w-full rounded-full border border-line bg-white py-2 text-xs font-bold text-ink shadow-2xs hover:bg-slate-50 transition text-center cursor-pointer"
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/signup")}
+                className="w-full rounded-full bg-brand py-2 text-xs font-bold text-white shadow-2xs hover:bg-brand-dark transition text-center cursor-pointer"
+              >
+                Sign Up
+              </button>
+            </div>
+            <a
+              href={CONTACT.whatsappAiHref}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted hover:text-brand transition pt-1"
+            >
+              <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Ask Anything on WhatsApp</span>
+            </a>
+          </>
+        )}
+      </div>
+    </aside>
   </>
   );
 }
