@@ -2443,10 +2443,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (paidCertFee) return true;
 
     // C. Physical students whose certificate was directly issued by admin in office
-    if (admin.isUserCertified(sessionId, courseId) || admin.isUserCertified(sessionId, canonical)) return true;
+    const isCertifiedByAdmin = attempts.some(
+      (a) => a.userId === sessionId && (a.courseId === courseId || a.courseId === canonical) && a.passed
+    );
+    if (isCertifiedByAdmin) return true;
 
     return false;
-  }, [sessionId, user, hasPassedQuiz, myEnrollments, managedCourses, isCourseEnrolledOrPaid, myPayments, admin]);
+  }, [sessionId, user, hasPassedQuiz, myEnrollments, managedCourses, isCourseEnrolledOrPaid, myPayments, attempts]);
 
   const isCertificatePendingPayment: Ctx["isCertificatePendingPayment"] = useCallback((courseId) => {
     if (!sessionId) return false;
