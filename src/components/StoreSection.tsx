@@ -372,6 +372,14 @@ export default function StoreSection() {
                     </li>
                     <li className="flex items-start gap-2.5">
                       <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
+                      <span><strong>Module 5: Multi-Timeframe Structure</strong> — Mapping institutional order flow, internal vs swing structural shifts, and high-probability CHoCH confirmations.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
+                      <span><strong>Module 6: Risk Architecture &amp; Trade Management</strong> — Asymmetric 1:3+ risk-to-reward models, algorithmic stop placements, and dynamic profit-taking protocols.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                       <span><strong>Cheatsheet Desk Bundle</strong> — Printable laminated execution cards for quick multi-timeframe confirmation.</span>
                     </li>
                   </ul>
