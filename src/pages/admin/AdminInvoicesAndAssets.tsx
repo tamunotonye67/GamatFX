@@ -38,7 +38,11 @@ export function AdminInvoices() {
   const rows = useMemo(() => payments.filter((p) => {
     const mq = `${p.ref} ${p.userName} ${p.userEmail} ${p.courseTitle}`.toLowerCase().includes(q.toLowerCase());
     const isMentorship = p.courseId.startsWith("mentorship") || p.courseTitle.toLowerCase().includes("mentorship");
-    const matchType = typeFilter === "all" || (typeFilter === "mentorship" ? isMentorship : !isMentorship);
+    const isCert = p.courseId.startsWith("cert-") || p.courseTitle.toLowerCase().includes("certificate");
+    const matchType = typeFilter === "all"
+      || (typeFilter === "mentorship" && isMentorship)
+      || (typeFilter === "certificates" && isCert)
+      || (typeFilter === "courses" && !isMentorship && !isCert);
     const matchStatus = status === "all" || p.status === status;
     return mq && matchType && matchStatus;
   }), [payments, q, status, typeFilter]);
@@ -140,6 +144,7 @@ export function AdminInvoices() {
             <option value="all">All Item Types</option>
             <option value="courses">Video Courses</option>
             <option value="mentorship">Mentorship Packages</option>
+            <option value="certificates">Certification Fees</option>
           </select>
 
           <select

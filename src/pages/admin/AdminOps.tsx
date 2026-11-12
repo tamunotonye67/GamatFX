@@ -21,7 +21,11 @@ export function AdminPayments() {
   const rows = useMemo(() => admin.payments.filter((p) => {
     const mq = `${p.userName} ${p.userEmail} ${p.ref} ${p.courseTitle}`.toLowerCase().includes(q.toLowerCase());
     const isMentorship = p.courseId.startsWith("mentorship") || p.courseTitle.toLowerCase().includes("mentorship");
-    const matchType = typeFilter === "all" || (typeFilter === "mentorship" ? isMentorship : !isMentorship);
+    const isCert = p.courseId.startsWith("cert-") || p.courseTitle.toLowerCase().includes("certificate");
+    const matchType = typeFilter === "all"
+      || (typeFilter === "mentorship" && isMentorship)
+      || (typeFilter === "certificates" && isCert)
+      || (typeFilter === "courses" && !isMentorship && !isCert);
     return mq && (status === "all" || p.status === status) && matchType;
   }), [admin.payments, q, status, typeFilter]);
 
@@ -69,6 +73,7 @@ export function AdminPayments() {
             <option value="all">All Item Types</option>
             <option value="courses">Video Courses Only</option>
             <option value="mentorship">Mentorship Packages Only</option>
+            <option value="certificates">Certification Fees Only</option>
           </select>
           <select value={status} onChange={(e) => setStatus(e.target.value)}
             className="rounded-xl border border-line bg-white px-4 py-2.5 text-sm outline-none focus:border-brand">
