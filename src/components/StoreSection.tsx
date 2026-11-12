@@ -3,7 +3,6 @@ import { navigate } from "../lib/router";
 import {
   BookOpen,
   ArrowRight,
-  Sparkles,
   ShieldCheck,
   CheckCircle2,
   Download,
@@ -205,7 +204,7 @@ export default function StoreSection() {
 
               {/* Click to Preview Indicator */}
               <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-rose-300/80 hover:text-white transition">
-                <Sparkles className="h-3.5 w-3.5 text-brand" />
+                <BookOpen className="h-3.5 w-3.5 text-brand" />
                 <span className="font-semibold text-[11px]">Click book for chapter breakdown &amp; preview</span>
               </div>
             </div>
