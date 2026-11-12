@@ -19,6 +19,7 @@ import {
   Palette,
   CheckCircle,
   ChevronDown,
+  Printer,
 } from "lucide-react";
 import {
   type AffiliateProfile,
@@ -460,9 +461,9 @@ export default function AffiliateCard({
                 {profile.referralCode}
               </span>
               {copiedCode ? (
-                <span className="text-[10px] font-bold text-emerald-300 ml-1">Copied!</span>
+                <span className="text-[10px] font-bold text-emerald-300 ml-1 print:hidden">Copied!</span>
               ) : (
-                <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100 transition" />
+                <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100 transition print:hidden" />
               )}
             </button>
 
@@ -486,24 +487,36 @@ export default function AffiliateCard({
 
         {/* Action Controls Directly Under Card */}
         <div className="w-full max-w-[360px] space-y-2.5">
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={downloading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-brand/25 hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
-          >
-            {downloading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Generating High-Res PNG...</span>
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                <span>Download Share Card PNG</span>
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-brand px-3 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-brand/25 hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
+            >
+              {downloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  <span>Download PNG</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => window.print()}
+              title="Print official share card (2.76 x 4.75 in)"
+              className="btn-outline-dark !py-2.5 !text-xs sm:!text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Printer className="h-4 w-4" />
+              <span>Print Card</span>
+            </button>
+          </div>
 
           {/* 1-Click Social Channel Share Icons */}
           <div className="rounded-xl border border-line bg-white p-3 shadow-xs flex items-center justify-between gap-2">

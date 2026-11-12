@@ -438,8 +438,30 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
   /* Make target printable canvas and its contents strictly visible */
   #printable-letterhead, #printable-letterhead *,
   #printable-invoice, #printable-invoice *,
-  #printable-receipt, #printable-receipt * {
+  #printable-receipt, #printable-receipt *,
+  #student-enrollment-card, #student-enrollment-card * {
     visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Isolate student enrollment share card centered at exact 2.76 x 4.75 in aspect */
+  #student-enrollment-card {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 70.1mm !important; /* Exact 2.76 inches */
+    height: 120.65mm !important; /* Exact 4.75 inches */
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 6mm 5.5mm !important;
+    box-shadow: none !important;
+    border-radius: 6mm !important;
+    z-index: 999999 !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Isolate printable letterhead to fill the printed A4 sheet cleanly */
