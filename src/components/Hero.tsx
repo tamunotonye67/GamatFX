@@ -12,6 +12,7 @@ export default function Hero() {
   const heroRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    if (clockOpen) return;
     const checkScroll = () => {
       const el = heroRef.current;
       if (!el) return;
@@ -22,7 +23,7 @@ export default function Hero() {
     checkScroll();
     window.addEventListener("scroll", checkScroll, { passive: true });
     return () => window.removeEventListener("scroll", checkScroll);
-  }, []);
+  }, [clockOpen]);
 
   const eventList = allEvents || events || [];
   const latestEvent = eventList.find((e) => e.status === "published") || eventList[0] || {

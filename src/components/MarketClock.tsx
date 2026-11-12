@@ -104,12 +104,19 @@ export function MobileSessionDockModal({
 
   useEffect(() => {
     if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
     const t = window.setInterval(() => setNow(new Date()), 10000);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.touchAction = prevTouchAction;
       window.clearInterval(t);
       window.removeEventListener("keydown", onKey);
     };
@@ -122,7 +129,7 @@ export function MobileSessionDockModal({
   const activeColor = openSessions.length > 0 ? openSessions[openSessions.length - 1].color : "#dc3545";
 
   return (
-    <div className="fixed inset-0 z-[70] flex h-dvh w-full flex-col justify-between overflow-y-auto bg-[#0c0e12]/98 px-5 py-5 text-white backdrop-blur-xl animate-fade-in lg:hidden">
+    <div className="fixed inset-0 z-[70] flex h-full w-full flex-col justify-between overflow-y-auto overscroll-contain bg-[#0c0e12]/98 px-5 py-5 text-white backdrop-blur-xl lg:hidden select-none">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 pb-4">
         <div className="flex items-center gap-2.5">
@@ -192,7 +199,7 @@ export default function MarketClock() {
 
   return (
     <div
-      className="group/clock relative w-full max-w-[285px] xs:max-w-[310px] cursor-pointer select-none transition-transform duration-500 ease-[cubic-bezier(.34,1.8,.5,1)] lg:hover:scale-[1.07] sm:max-w-[330px] lg:max-w-[340px] xl:max-w-[370px]"
+      className="group/clock relative w-full max-w-[285px] xs:max-w-[310px] cursor-pointer select-none transition-transform duration-300 ease-out lg:hover:scale-[1.05] sm:max-w-[330px] lg:max-w-[340px] xl:max-w-[370px]"
     >
       {/* Glow */}
       <div
@@ -373,12 +380,10 @@ export default function MarketClock() {
         </text>
 
         {/* Hands */}
-        <g style={{ transition: "transform .3s cubic-bezier(.4,2,.6,1)" }}
-          transform={`rotate(${hourAngle} ${CX} ${CY})`}>
+        <g transform={`rotate(${hourAngle} ${CX} ${CY})`}>
           <line x1={CX} y1={CY + 14} x2={CX} y2={CY - 56} stroke="#fff" strokeWidth="6" strokeLinecap="round" />
         </g>
-        <g style={{ transition: "transform .3s cubic-bezier(.4,2,.6,1)" }}
-          transform={`rotate(${minAngle} ${CX} ${CY})`}>
+        <g transform={`rotate(${minAngle} ${CX} ${CY})`}>
           <line x1={CX} y1={CY + 18} x2={CX} y2={CY - 84} stroke="#fff" strokeWidth="4" strokeLinecap="round" opacity="0.9" />
         </g>
         {/* Second hand */}
