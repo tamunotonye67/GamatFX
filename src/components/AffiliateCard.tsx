@@ -4,19 +4,21 @@ import {
   Copy,
   Check,
   Share2,
-  QrCode,
   ExternalLink,
   MessageCircle,
   Send,
   Loader2,
-  Quote,
   CheckCircle2,
   ArrowRight,
   BookOpen,
-  MousePointerClick,
   SlidersHorizontal,
   ShieldCheck,
   Percent,
+  User,
+  RotateCcw,
+  Edit3,
+  Palette,
+  CheckCircle,
 } from "lucide-react";
 import {
   type AffiliateProfile,
@@ -43,33 +45,71 @@ function FacebookIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+export type EnrolledCourseItem = {
+  id: string;
+  title: string;
+  isPaid?: boolean;
+  enrolledAt?: string;
+};
+
+export type AvailableCourseItem = {
+  id: string;
+  title: string;
+  price?: number;
+};
+
 type Props = {
   profile: AffiliateProfile;
   avatarUrl?: string;
+  enrolledCourses?: EnrolledCourseItem[];
+  availableCourses?: AvailableCourseItem[];
   onUpdateQuote?: (quote: string) => void;
   onUpdateCourseTitle?: (title: string) => void;
+  onUpdateDisplayName?: (name: string) => void;
 };
 
 export default function AffiliateCard({
   profile,
   avatarUrl,
+  enrolledCourses = [],
+  availableCourses = [],
   onUpdateQuote,
   onUpdateCourseTitle,
+  onUpdateDisplayName,
 }: Props) {
   const [cardTheme, setCardTheme] = useState<AffiliateCardTheme>("red");
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedCaption, setCopiedCaption] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
+
+  // Student card personalization
+  const [cardDisplayName, setCardDisplayName] = useState(
+    profile.cardDisplayName || profile.userName || "Student Trader"
+  );
+  const [courseTitle, setCourseTitle] = useState(() => {
+    if (profile.enrolledCourseTitle) return profile.enrolledCourseTitle;
+    if (enrolledCourses.length > 0) return enrolledCourses[0].title;
+    return "Forex Foundations";
+  });
+
+  const [isCustomCourse, setIsCustomCourse] = useState(false);
+  const [customCourseText, setCustomCourseText] = useState("");
+
   const [inviteMessage, setInviteMessage] = useState(
     profile.personalQuote || DEFAULT_INVITE_MESSAGE
-  );
-  const [courseTitle, setCourseTitle] = useState(
-    profile.enrolledCourseTitle || "Forex Foundations"
   );
 
   const referralUrl = getSignupReferralUrl(profile.referralCode);
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(referralUrl)}`;
+
+  const activeDisplayName = cardDisplayName.trim() || profile.userName || "Student Trader";
+  const initials = activeDisplayName
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "ST";
 
   const copyLink = () => {
     try {
@@ -92,6 +132,8 @@ export default function AffiliateCard({
     try {
       const activeProfile: AffiliateProfile = {
         ...profile,
+        cardDisplayName: activeDisplayName,
+        userName: profile.userName,
         personalQuote: inviteMessage,
         enrolledCourseTitle: courseTitle,
       };
@@ -109,49 +151,54 @@ export default function AffiliateCard({
 
   const shareText = `${inviteMessage} 👉 ${referralUrl} (Invite Code: ${profile.referralCode})`;
 
-  const initials = (profile.userName || "ST")
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const fallbackCatalogCourses: AvailableCourseItem[] =
+    availableCourses.length > 0
+      ? availableCourses
+      : [
+          { id: "forex-foundations", title: "Forex Foundations Masterclass", price: 0 },
+          { id: "fundamental-supply-demand", title: "Fundamental & Supply and Demand", price: 45000 },
+          { id: "price-action", title: "Price Action Mastery", price: 65000 },
+          { id: "institutional-orderflow", title: "Institutional Order Flow & Liquidity", price: 85000 },
+        ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      {/* ================= Left: The Centered Student Enrollment Proof Card (5 Cols) ================= */}
-      <div className="lg:col-span-5 w-full space-y-4">
-        <div className="flex items-center justify-between px-1">
+      {/* ================= Left: The Visual Share Card & Instant Action Buttons (5 Cols) ================= */}
+      <div className="lg:col-span-5 w-full flex flex-col items-center space-y-4">
+        {/* Top Header & Theme Switcher */}
+        <div className="w-full max-w-[360px] flex items-center justify-between px-1">
           <div className="flex items-center gap-2 text-xs font-bold text-ink">
             <Share2 className="h-4 w-4 text-brand" />
-            <span>Enrollment Proof Share Card</span>
+            <span>Enrollment Share Card</span>
           </div>
 
-          {/* Compact Theme Toggle Button */}
-          <div className="flex items-center gap-2">
+          {/* Theme Switcher Toggle */}
+          <div className="flex items-center gap-1.5 bg-white border border-line p-1 rounded-full shadow-xs">
             <button
               type="button"
-              role="switch"
-              aria-checked={cardTheme === "dark"}
-              aria-label="Toggle card color theme"
-              onClick={() => setCardTheme(cardTheme === "red" ? "dark" : "red")}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-line bg-white shadow-xs hover:border-slate-300 transition cursor-pointer"
-              title={cardTheme === "red" ? "Switch to Dark" : "Switch to Red"}
+              onClick={() => setCardTheme("red")}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
+                cardTheme === "red"
+                  ? "bg-brand text-white shadow-xs"
+                  : "text-muted hover:text-ink"
+              }`}
+              title="Crimson Theme"
             >
-              <span
-                className="relative inline-flex h-4.5 w-8 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out"
-                style={{
-                  backgroundColor: cardTheme === "red" ? "#dc3545" : "#0f172a",
-                }}
-              >
-                <span
-                  className={`pointer-events-none inline-flex h-3.5 w-3.5 transform items-center justify-center rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${
-                    cardTheme === "dark" ? "translate-x-3.5" : "translate-x-0"
-                  }`}
-                />
-              </span>
-              <span className="text-[11px] font-bold text-ink capitalize">
-                {cardTheme}
-              </span>
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400 border border-white" />
+              <span>Red</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardTheme("dark")}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${
+                cardTheme === "dark"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "text-muted hover:text-ink"
+              }`}
+              title="Dark Theme"
+            >
+              <span className="h-2.5 w-2.5 rounded-full bg-slate-700 border border-white/40" />
+              <span>Dark</span>
             </button>
           </div>
         </div>
@@ -185,7 +232,7 @@ export default function AffiliateCard({
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt={profile.userName}
+                  alt={activeDisplayName}
                   className={`h-20 w-20 rounded-full object-cover shadow-lg ${
                     cardTheme === "red" ? "ring-4 ring-white/95" : "ring-4 ring-brand"
                   }`}
@@ -211,12 +258,12 @@ export default function AffiliateCard({
               </div>
             </div>
 
-            {/* 2. Student Name */}
+            {/* 2. Student Name on Card (Reflects Custom Display Name) */}
             <h4 className="mt-2.5 font-display text-lg sm:text-xl font-black text-white text-center truncate max-w-[280px]">
-              {profile.userName}
+              {activeDisplayName}
             </h4>
 
-            {/* 3. Enrolled Course (Clean text, NO pill layer) */}
+            {/* 3. Selected Enrolled Course */}
             <p
               className={`mt-0.5 text-xs font-semibold text-center truncate max-w-[280px] ${
                 cardTheme === "red" ? "text-rose-200" : "text-sky-400"
@@ -344,7 +391,7 @@ export default function AffiliateCard({
                 cardTheme === "red" ? "text-rose-100/90" : "text-slate-400"
               }`}
             >
-              Scan the QR code below to connect with my cohort & learn together
+              Scan the QR code below to connect with my cohort &amp; learn together
             </p>
 
             {/* QR Code Container */}
@@ -357,7 +404,7 @@ export default function AffiliateCard({
               />
             </div>
 
-            {/* Invite Code (NO PILL LAYER - Clean text) */}
+            {/* Invite Code */}
             <div className="mt-2.5 flex items-center justify-center gap-1.5 text-xs">
               <span
                 className={`text-[10px] font-semibold tracking-wider uppercase ${
@@ -393,46 +440,304 @@ export default function AffiliateCard({
           </div>
         </div>
 
-        {/* Action Buttons Directly Under Card */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {/* Action Controls Directly Under Card */}
+        <div className="w-full max-w-[360px] space-y-2.5">
           <button
             type="button"
             onClick={handleDownload}
             disabled={downloading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-brand/25 hover:bg-brand-dark transition cursor-pointer disabled:opacity-50"
           >
             {downloading ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Rendering PNG...</span>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating High-Res PNG...</span>
               </>
             ) : (
               <>
-                <Download className="h-3.5 w-3.5" />
-                <span>Download PNG Card</span>
+                <Download className="h-4 w-4" />
+                <span>Download Share Card PNG</span>
               </>
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={() => setShowOptions(!showOptions)}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer shadow-sm"
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5 text-muted" />
-            <span>{showOptions ? "Hide Caption" : "Customize Share Text"}</span>
-          </button>
-        </div>
+          {/* 1-Click Social Channel Share Icons */}
+          <div className="rounded-xl border border-line bg-white p-3 shadow-xs flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-ink">Share Now:</span>
+            <div className="flex items-center gap-2">
+              {/* WhatsApp */}
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share on WhatsApp"
+                aria-label="Share on WhatsApp"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm transition hover:scale-110"
+              >
+                <MessageCircle className="h-4.5 w-4.5 stroke-[2.2]" />
+              </a>
 
-        {/* Collapsible Message Editor */}
-        {showOptions && (
-          <div className="rounded-2xl border border-line bg-white p-4 shadow-sm text-xs space-y-3 animate-[fadeIn_.2s_ease]">
+              {/* Telegram */}
+              <a
+                href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share on Telegram"
+                aria-label="Share on Telegram"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#229ED9] text-white shadow-sm transition hover:scale-110"
+              >
+                <Send className="h-4 w-4 stroke-[2.2] -translate-x-0.5 -translate-y-0.5" />
+              </a>
+
+              {/* X / Twitter */}
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share on X"
+                aria-label="Share on X"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white shadow-sm transition hover:scale-110"
+              >
+                <XIcon className="h-4 w-4" />
+              </a>
+
+              {/* Facebook */}
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Share on Facebook"
+                aria-label="Share on Facebook"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-sm transition hover:scale-110"
+              >
+                <FacebookIcon className="h-4 w-4" />
+              </a>
+
+              {/* Copy Link */}
+              <button
+                type="button"
+                onClick={copyLink}
+                title="Copy Invite Link"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-white shadow-sm transition hover:scale-110 cursor-pointer"
+              >
+                {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= Right: Card Customization Studio & Sharing Suite (7 Cols) ================= */}
+      <div className="lg:col-span-7 space-y-6">
+        {/* CARD 1: Interactive Card Personalization & Enrolled Course Selector */}
+        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b border-line pb-4">
             <div>
-              <p className="font-bold text-ink">Choose Marketing Share Caption:</p>
-              <p className="text-[11px] text-muted mt-0.5">
-                This marketing text accompanies your card and referral link when sharing:
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand">
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>Card Personalization Studio</span>
+              </div>
+              <h3 className="mt-2 font-display text-lg font-bold text-ink">
+                Customize What Appears on Your Card
+              </h3>
+              <p className="mt-0.5 text-xs text-muted">
+                Choose the exact name and course displayed on your official share card.
               </p>
             </div>
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+              <CheckCircle className="h-3 w-3" /> Real-Time Preview
+            </span>
+          </div>
+
+          {/* 1. Name to Show on Card Input */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-brand" />
+                <span>Name to Show on Card</span>
+              </label>
+              {cardDisplayName !== profile.userName && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCardDisplayName(profile.userName);
+                    onUpdateDisplayName?.(profile.userName);
+                  }}
+                  className="text-[11px] font-semibold text-muted hover:text-brand flex items-center gap-1 transition cursor-pointer"
+                >
+                  <RotateCcw className="h-3 w-3" /> Reset to "{profile.userName}"
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                value={cardDisplayName}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCardDisplayName(val);
+                  onUpdateDisplayName?.(val);
+                }}
+                placeholder="e.g. Tonye Taylor or Lead Trader Tonye"
+                className="w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 outline-none transition focus:border-brand shadow-xs"
+              />
+            </div>
+            <p className="text-[11px] text-muted">
+              You decide the full name, preferred name, or trading alias that prints on your official card.
+            </p>
+          </div>
+
+          {/* 2. Enrolled & Paid Course Selection Section */}
+          <div className="space-y-2 pt-2 border-t border-line/70">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <BookOpen className="h-3.5 w-3.5 text-brand" />
+                <span>Enrolled &amp; Paid Courses</span>
+              </label>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
+                {enrolledCourses.length > 0
+                  ? `${enrolledCourses.length} Enrolled Course(s)`
+                  : "Catalog Selection"}
+              </span>
+            </div>
+
+            {enrolledCourses.length > 0 ? (
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {enrolledCourses.map((c) => {
+                  const isSelected =
+                    !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setIsCustomCourse(false);
+                        setCourseTitle(c.title);
+                        onUpdateCourseTitle?.(c.title);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-3 ${
+                        isSelected
+                          ? "border-brand bg-brand/5 shadow-xs ring-1 ring-brand/20"
+                          : "border-line bg-white hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-xs sm:text-sm text-ink truncate">{c.title}</p>
+                          {c.isPaid ? (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                              PAID ENROLLMENT
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                              ENROLLED
+                            </span>
+                          )}
+                        </div>
+                        {c.enrolledAt && (
+                          <p className="text-[10px] text-muted mt-0.5">
+                            Enrolled: {new Date(c.enrolledAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+
+                      <span
+                        className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition ${
+                          isSelected
+                            ? "border-brand bg-brand text-white"
+                            : "border-slate-300 bg-white"
+                        }`}
+                      >
+                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-amber-200/80 bg-amber-50/50 p-3.5 space-y-2.5">
+                <p className="text-[11px] text-amber-900 font-medium">
+                  You haven't enrolled in a paid course yet. Select from our flagship programs below to feature on your card:
+                </p>
+                <div className="space-y-1.5">
+                  {fallbackCatalogCourses.map((c) => {
+                    const isSelected =
+                      !isCustomCourse && courseTitle.toLowerCase() === c.title.toLowerCase();
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCourse(false);
+                          setCourseTitle(c.title);
+                          onUpdateCourseTitle?.(c.title);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg border text-xs font-semibold transition cursor-pointer flex items-center justify-between ${
+                          isSelected
+                            ? "border-brand bg-brand text-white shadow-xs"
+                            : "border-line bg-white text-ink hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="truncate">{c.title}</span>
+                        {isSelected && <Check className="h-3.5 w-3.5 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Custom Course Name Option */}
+            <div className="pt-1 flex items-center justify-between">
+              {!isCustomCourse ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomCourse(true);
+                    setCustomCourseText(courseTitle);
+                  }}
+                  className="text-[11px] font-semibold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <Edit3 className="h-3 w-3" /> Or type a custom course title
+                </button>
+              ) : (
+                <div className="w-full space-y-1.5 pt-1">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={customCourseText}
+                      onChange={(e) => {
+                        setCustomCourseText(e.target.value);
+                        setCourseTitle(e.target.value);
+                        onUpdateCourseTitle?.(e.target.value);
+                      }}
+                      placeholder="e.g. Institutional Order Flow & Liquidity Playbook"
+                      className="flex-1 rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink focus:border-brand outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomCourse(false);
+                        const fallback = enrolledCourses[0]?.title || "Forex Foundations";
+                        setCourseTitle(fallback);
+                        onUpdateCourseTitle?.(fallback);
+                      }}
+                      className="text-xs font-bold text-muted hover:text-ink px-2.5 py-2 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3. Marketing Share Message / Hook */}
+          <div className="space-y-2 pt-2 border-t border-line/70">
+            <label className="text-xs font-bold text-ink flex items-center gap-1.5">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-brand" />
+              <span>Marketing Share Caption</span>
+            </label>
             <div className="space-y-1.5">
               {PRESET_INVITE_MESSAGES.map((msg, idx) => (
                 <button
@@ -453,34 +758,28 @@ export default function AffiliateCard({
               ))}
             </div>
 
-            <div>
-              <p className="font-bold text-ink mb-1">Or write your custom caption:</p>
-              <textarea
-                rows={2}
-                value={inviteMessage}
-                onChange={(e) => {
-                  setInviteMessage(e.target.value);
-                  onUpdateQuote?.(e.target.value);
-                }}
-                className="w-full rounded-xl border border-line bg-cream p-2 text-xs text-ink focus:border-brand focus:outline-none"
-                placeholder="e.g. I just enrolled for Forex Foundational course at GAMAT Fx Academy! You can register at no cost using my link:"
-              />
-            </div>
+            <textarea
+              rows={2}
+              value={inviteMessage}
+              onChange={(e) => {
+                setInviteMessage(e.target.value);
+                onUpdateQuote?.(e.target.value);
+              }}
+              placeholder="Or write your own custom invitation hook..."
+              className="mt-1 w-full rounded-xl border border-line bg-cream p-2 text-xs text-ink focus:border-brand focus:outline-none"
+            />
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* ================= Right: Sharing Suite & 15% Program Breakdown (7 Cols) ================= */}
-      <div className="lg:col-span-7 space-y-6">
-        {/* Card 1: 1-Click Sharing Suite */}
-        <div className="rounded-2xl border border-line bg-white p-6 shadow-sm space-y-5">
+        {/* CARD 2: 1-Click Sharing Suite & Unique Invite Link */}
+        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
           <div>
             <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800">
               <Share2 className="h-3.5 w-3.5 text-brand" />
               <span>Instant Social Sharing</span>
             </div>
             <h3 className="mt-2 font-display text-lg font-bold text-ink">
-              Share Your Card & Invite Link
+              Share Your Card &amp; Invite Link
             </h3>
             <p className="mt-1 text-xs text-muted leading-relaxed">
               When friends use your link or scan your card code, they can register at no cost. You earn a <strong>15% commission</strong> whenever they enroll in paid courses or purchase trading tools.
@@ -535,64 +834,10 @@ export default function AffiliateCard({
               </button>
             </div>
           </div>
-
-          {/* 1-Click Social Circular Buttons */}
-          <div>
-            <p className="text-xs font-bold text-ink mb-2.5">Share Directly to Channels:</p>
-            <div className="flex items-center gap-3">
-              {/* WhatsApp */}
-              <a
-                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share on WhatsApp"
-                aria-label="Share on WhatsApp"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
-              >
-                <MessageCircle className="h-5 w-5 stroke-[2.2]" />
-              </a>
-
-              {/* Telegram */}
-              <a
-                href={`https://t.me/share/url?url=${encodeURIComponent(referralUrl)}&text=${encodeURIComponent(shareText)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share on Telegram"
-                aria-label="Share on Telegram"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#229ED9] text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
-              >
-                <Send className="h-4.5 w-4.5 stroke-[2.2] -translate-x-0.5 -translate-y-0.5" />
-              </a>
-
-              {/* X / Twitter */}
-              <a
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share on X (Twitter)"
-                aria-label="Share on X"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
-              >
-                <XIcon className="h-4.5 w-4.5" />
-              </a>
-
-              {/* Facebook */}
-              <a
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralUrl)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Share on Facebook"
-                aria-label="Share on Facebook"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1877F2] text-white shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg focus:outline-none"
-              >
-                <FacebookIcon className="h-4.5 w-4.5" />
-              </a>
-            </div>
-          </div>
         </div>
 
-        {/* Card 2: 3-Step 15% Commission Engine */}
-        <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
+        {/* CARD 3: 3-Step 15% Commission Engine Explainer */}
+        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Percent className="h-4 w-4 text-brand" />
             <h4 className="font-display text-sm font-bold text-ink">
@@ -606,7 +851,7 @@ export default function AffiliateCard({
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-white mb-2">
                   1
                 </span>
-                <p className="font-bold text-ink">Share Card & Link</p>
+                <p className="font-bold text-ink">Share Card &amp; Link</p>
                 <p className="mt-1 text-muted text-[11px] leading-relaxed">
                   Post your enrollment card to your WhatsApp status, Instagram, or share your link directly.
                 </p>

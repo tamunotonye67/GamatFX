@@ -8,6 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
+  TrendingUp, History, Copy,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -15,6 +16,7 @@ import { CONTACT } from "../lib/contact";
 import { rankForXp, progressToNext, nextRank } from "../lib/combat";
 import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
+import { getSignupReferralUrl } from "../lib/affiliate";
 
 type Tab = "overview" | "courses" | "certificates" | "affiliate" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
@@ -523,13 +525,59 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* The Pinterest & Medium-Style Enrollment Share Card Component */}
-        <AffiliateCard
-          profile={profile}
-          avatarUrl={user.avatar}
-          onUpdateQuote={(quote) => store.updateMyAffiliateProfile({ personalQuote: quote })}
-          onUpdateCourseTitle={(title) => store.updateMyAffiliateProfile({ enrolledCourseTitle: title })}
-        />
+        {/* Compute enrolled & paid courses for this student */}
+        {(() => {
+          const studentEnrolledCourses: { id: string; title: string; isPaid?: boolean; enrolledAt?: string }[] = [];
+
+          // 1. From active enrollments
+          enrollments.forEach((e) => {
+            const course = getCourse(e.courseId);
+            const title = course?.title || e.courseId;
+            const isPaid =
+              (course?.price ?? 0) > 0 ||
+              myPayments.some((p) => p.courseId === e.courseId && p.status === "paid");
+            if (!studentEnrolledCourses.some((item) => item.title.toLowerCase() === title.toLowerCase())) {
+              studentEnrolledCourses.push({
+                id: e.courseId,
+                title,
+                isPaid,
+                enrolledAt: e.enrolledAt,
+              });
+            }
+          });
+
+          // 2. From confirmed payments
+          myPayments
+            .filter((p) => p.status === "paid")
+            .forEach((p) => {
+              const course = getCourse(p.courseId);
+              const title =
+                course?.title ||
+                (p.courseId.startsWith("store-")
+                  ? p.courseId.replace("store-", "").replace(/-/g, " ").toUpperCase()
+                  : p.courseId);
+              if (!studentEnrolledCourses.some((item) => item.title.toLowerCase() === title.toLowerCase())) {
+                studentEnrolledCourses.push({
+                  id: p.courseId,
+                  title,
+                  isPaid: true,
+                  enrolledAt: p.createdAt,
+                });
+              }
+            });
+
+          return (
+            <AffiliateCard
+              profile={profile}
+              avatarUrl={user.avatar}
+              enrolledCourses={studentEnrolledCourses}
+              availableCourses={COURSES.map((c) => ({ id: c.id, title: c.title, price: c.price }))}
+              onUpdateQuote={(quote) => store.updateMyAffiliateProfile({ personalQuote: quote })}
+              onUpdateCourseTitle={(title) => store.updateMyAffiliateProfile({ enrolledCourseTitle: title })}
+              onUpdateDisplayName={(name) => store.updateMyAffiliateProfile({ cardDisplayName: name })}
+            />
+          );
+        })()}
 
         {/* Withdrawal Modal */}
         {payoutModalOpen && (
@@ -636,74 +684,141 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Commissions Activity & Payout History */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Commissions Earned */}
-          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
-            <h4 className="font-display text-sm font-bold text-ink mb-3">
-              Referral Sales & Commissions ({commissions.length})
-            </h4>
-            {commissions.length === 0 ? (
-              <p className="text-xs text-muted py-6 text-center">
-                No referral commissions yet. Share your card above to earn 15% on every enrollment!
-              </p>
-            ) : (
-              <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                {commissions.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between rounded-xl bg-cream p-3 text-xs">
-                    <div>
-                      <p className="font-bold text-ink">{c.orderTitle}</p>
-                      <p className="text-[11px] text-muted">
-                        Referred: {c.customerName} • {new Date(c.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-display font-extrabold text-emerald-600">+{naira(c.commissionAmount)}</p>
-                      <span className="text-[10px] uppercase font-bold text-muted">{c.status}</span>
-                    </div>
+        {/* Commissions Activity & Payout History — Premium Balanced Arrangement */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          {/* Commissions Earned Card */}
+          <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
+            <div>
+              <div className="flex items-center justify-between border-b border-line pb-3.5 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-xs">
+                    <TrendingUp className="h-4.5 w-4.5" />
+                  </span>
+                  <div>
+                    <h4 className="font-display text-sm sm:text-base font-bold text-ink">
+                      Referral Sales &amp; Commissions
+                    </h4>
+                    <p className="text-[11px] text-muted">15% commission on all student payments</p>
                   </div>
-                ))}
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {commissions.length} {commissions.length === 1 ? "Sale" : "Sales"}
+                </span>
               </div>
-            )}
+
+              {commissions.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-line bg-cream/60 p-6 sm:p-8 text-center my-2 flex flex-col items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-line shadow-xs text-muted/60 mb-3">
+                    <Users className="h-6 w-6 text-brand" />
+                  </div>
+                  <p className="font-bold text-ink text-sm">No referral commissions yet</p>
+                  <p className="text-xs text-muted mt-1.5 max-w-sm leading-relaxed">
+                    Share your card and invite link above. You will earn an automatic <strong>15% cash commission</strong> on every enrollment!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        navigator.clipboard.writeText(getSignupReferralUrl(profile.referralCode));
+                        alert("Referral link copied to clipboard!");
+                      } catch {}
+                    }}
+                    className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    <span>Copy Invite Link</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                  {commissions.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between rounded-xl bg-cream p-3 text-xs border border-line/60">
+                      <div>
+                        <p className="font-bold text-ink">{c.orderTitle}</p>
+                        <p className="text-[11px] text-muted">
+                          Referred: {c.customerName} • {new Date(c.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-display font-extrabold text-emerald-600">+{naira(c.commissionAmount)}</p>
+                        <span className="text-[10px] uppercase font-bold text-muted">{c.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Withdrawal History */}
-          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
-            <h4 className="font-display text-sm font-bold text-ink mb-3">
-              Withdrawal History ({myPayouts.length})
-            </h4>
-            {myPayouts.length === 0 ? (
-              <p className="text-xs text-muted py-6 text-center">
-                No withdrawals requested yet. Once your balance reaches ₦10,000, you can request payout.
-              </p>
-            ) : (
-              <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                {myPayouts.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between rounded-xl bg-cream p-3 text-xs">
-                    <div>
-                      <p className="font-bold text-ink">{naira(p.amount)}</p>
-                      <p className="text-[11px] text-muted capitalize">
-                        {p.method} • {new Date(p.requestedAt).toLocaleDateString()}
-                      </p>
-                      {p.adminNote && <p className="text-[10px] text-emerald-600 font-medium">{p.adminNote}</p>}
-                    </div>
-                    <div>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          p.status === "paid"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : p.status === "pending"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        {p.status}
-                      </span>
-                    </div>
+          {/* Withdrawal History Card */}
+          <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm flex flex-col justify-between min-h-[300px]">
+            <div>
+              <div className="flex items-center justify-between border-b border-line pb-3.5 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand border border-brand/20 shadow-xs">
+                    <History className="h-4.5 w-4.5" />
+                  </span>
+                  <div>
+                    <h4 className="font-display text-sm sm:text-base font-bold text-ink">
+                      Withdrawal History
+                    </h4>
+                    <p className="text-[11px] text-muted">Direct payouts to Bank, USDT, or PayPal</p>
                   </div>
-                ))}
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-xs font-black bg-slate-100 text-slate-700 border border-slate-200">
+                  {myPayouts.length} {myPayouts.length === 1 ? "Payout" : "Payouts"}
+                </span>
               </div>
-            )}
+
+              {myPayouts.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-line bg-cream/60 p-6 sm:p-8 text-center my-2 flex flex-col items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-line shadow-xs text-muted/60 mb-3">
+                    <Wallet className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <p className="font-bold text-ink text-sm">No withdrawals requested yet</p>
+                  <p className="text-xs text-muted mt-1.5 max-w-sm leading-relaxed">
+                    Once your available commission balance reaches <strong>{naira(store.affiliateSettings.minimumPayoutAmount || 10000)}</strong>, you can request an instant withdrawal payout.
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPayoutModalOpen(true)}
+                      disabled={profile.pendingBalance < (store.affiliateSettings.minimumPayoutAmount || 10000)}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer shadow-xs"
+                    >
+                      Request Payout ({naira(profile.pendingBalance)})
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                  {myPayouts.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between rounded-xl bg-cream p-3 text-xs border border-line/60">
+                      <div>
+                        <p className="font-bold text-ink">{naira(p.amount)}</p>
+                        <p className="text-[11px] text-muted capitalize">
+                          {p.method} • {new Date(p.requestedAt).toLocaleDateString()}
+                        </p>
+                        {p.adminNote && <p className="text-[10px] text-emerald-600 font-medium mt-0.5">{p.adminNote}</p>}
+                      </div>
+                      <div>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            p.status === "paid"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : p.status === "pending"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-red-50 text-red-700 border border-red-200"
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

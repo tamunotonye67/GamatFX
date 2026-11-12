@@ -16,6 +16,7 @@ export type AffiliateProfile = {
   avatar?: string;
   referralCode: string;
   enrolledCourseTitle?: string; // e.g. "Forex Foundations"
+  cardDisplayName?: string; // Custom display name chosen by the student specifically for their card
   badgeTitle?: string; // e.g. "Forex Foundations"
   personalQuote: string; // The social hook: "I just enrolled for Forex Foundational course with GAMAT at no costs at all. Click the link to join me"
   payoutMethod?: "bank" | "usdt" | "paypal";
@@ -523,12 +524,14 @@ export async function exportAffiliateCardAsPng(
     ctx.textAlign = "center";
     ctx.font = "bold 56px sans-serif";
     ctx.fillStyle = "#ffffff";
-    const initials = (profile.userName || "ST")
+    const displayName = (profile.cardDisplayName?.trim() || profile.userName || "ST");
+    const initials = displayName
       .split(" ")
+      .filter(Boolean)
       .map((n) => n[0])
       .slice(0, 2)
       .join("")
-      .toUpperCase();
+      .toUpperCase() || "ST";
     ctx.fillText(initials, avatarCenterX, avatarCenterY + 20);
   }
 
@@ -547,10 +550,11 @@ export async function exportAffiliateCardAsPng(
   ctx.fillText("✓", avatarCenterX + 58, avatarCenterY + 65);
 
   // 4. Student Name (Directly Under Avatar)
+  const resolvedDisplayName = (profile.cardDisplayName?.trim() || profile.userName || "Student Trader");
   ctx.textAlign = "center";
   ctx.font = "900 44px sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(profile.userName, width / 2, 345);
+  ctx.fillText(resolvedDisplayName, width / 2, 345);
 
   // 5. Enrolled Course (NO PILL LAYER - Clean typography)
   const courseName = profile.enrolledCourseTitle || "Forex Foundations";
