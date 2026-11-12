@@ -8,7 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
-  TrendingUp, History, Copy,
+  TrendingUp, History, Copy, Building2, CreditCard, ArrowRight, Check,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -18,16 +18,51 @@ import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
 
-type Tab = "overview" | "courses" | "certificates" | "affiliate" | "events" | "billing" | "posts" | "team-bio" | "profile";
+type Tab = "overview" | "courses" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
 const baseTabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "courses", label: "My Courses", icon: BookOpen },
   { id: "certificates", label: "Certificates", icon: Award },
   { id: "affiliate", label: "Invite & Earn", icon: Share2 },
+  { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "events", label: "My Events", icon: CalendarDays },
-  { id: "billing", label: "Billing", icon: Receipt },
   { id: "profile", label: "Profile", icon: UserIcon },
+];
+
+const NIGERIAN_BANKS = [
+  "Access Bank",
+  "Citibank Nigeria",
+  "Ecobank Nigeria",
+  "Fidelity Bank",
+  "First Bank of Nigeria",
+  "First City Monument Bank (FCMB)",
+  "Globus Bank",
+  "Guaranty Trust Bank (GTBank)",
+  "Heritage Bank",
+  "Jaiz Bank",
+  "Keystone Bank",
+  "Kuda Bank",
+  "Lotus Bank",
+  "Moniepoint MFB",
+  "OPay",
+  "Palmpay",
+  "Parallex Bank",
+  "Polaris Bank",
+  "PremiumTrust Bank",
+  "Providus Bank",
+  "Stanbic IBTC Bank",
+  "Standard Chartered Bank",
+  "Sterling Bank",
+  "SunTrust Bank",
+  "TAJBank",
+  "Titan Trust Bank",
+  "Union Bank of Nigeria",
+  "United Bank for Africa (UBA)",
+  "Unity Bank",
+  "Wema Bank",
+  "Zenith Bank",
+  "Other Bank",
 ];
 
 const CATEGORIES = ["Fundamentals", "Technical", "Psychology", "Risk", "News"];
@@ -41,7 +76,8 @@ export default function DashboardPage() {
   const [tab, setTabState] = useState<Tab>(() => {
     try {
       const saved = sessionStorage.getItem("gamat_fx_dashboard_tab") || localStorage.getItem("gamat_fx_dashboard_tab");
-      if (saved && ["overview", "courses", "certificates", "events", "billing", "posts", "team-bio", "profile"].includes(saved)) {
+      if (saved === "billing") return "wallet";
+      if (saved && ["overview", "courses", "certificates", "affiliate", "wallet", "events", "billing", "posts", "team-bio", "profile"].includes(saved)) {
         return saved as Tab;
       }
     } catch {}
@@ -76,7 +112,8 @@ export default function DashboardPage() {
   const isTeamMember = user.role === "staff" || user.role === "admin";
   let tabs = [...baseTabs];
   if (store.can("posts:write")) {
-    tabs = [...baseTabs.slice(0, 5), { id: "posts" as Tab, label: "My Articles", icon: PenSquare }, baseTabs[5]];
+    const profileIdx = tabs.findIndex((t) => t.id === "profile");
+    tabs = [...tabs.slice(0, profileIdx), { id: "posts" as Tab, label: "My Articles", icon: PenSquare }, ...tabs.slice(profileIdx)];
   }
   if (isTeamMember) {
     const profileIdx = tabs.findIndex((t) => t.id === "profile");
@@ -188,8 +225,8 @@ export default function DashboardPage() {
           {tab === "courses" && <MyCourses />}
           {tab === "certificates" && <Certificates completed={certified.map((e) => e.courseId)} pending={awaitingQuiz.map((e) => e.courseId)} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
           {tab === "affiliate" && <AffiliateSection />}
+          {(tab === "wallet" || tab === "billing") && <WalletSection />}
           {tab === "events" && <MyEvents />}
-          {tab === "billing" && <Billing />}
           {tab === "posts" && <MyArticles />}
           {tab === "team-bio" && <TeamBioForm />}
           {tab === "profile" && <Profile />}
@@ -399,33 +436,7 @@ export default function DashboardPage() {
 
   function AffiliateSection() {
     const profile = store.myAffiliateProfile;
-    const commissions = store.affiliateCommissions.filter(
-      (c) => c.affiliateUserId === user.id || (profile && c.affiliateCode === profile.referralCode)
-    );
-    const myPayouts = store.payoutRequests.filter((p) => p.affiliateUserId === user.id);
-    const [payoutModalOpen, setPayoutModalOpen] = useState(false);
-    const [payoutAmount, setPayoutAmount] = useState(profile ? Math.min(profile.pendingBalance, 50000) : 10000);
-    const [payoutMethod, setPayoutMethod] = useState<"bank" | "usdt" | "paypal">(profile?.payoutMethod || "bank");
-    const [payoutDetails, setPayoutDetails] = useState(profile?.payoutDetails || "");
-    const [payoutError, setPayoutError] = useState<string | null>(null);
-    const [payoutSuccess, setPayoutSuccess] = useState(false);
-
     if (!profile) return null;
-
-    const handleRequestPayout = (e: React.FormEvent) => {
-      e.preventDefault();
-      setPayoutError(null);
-      const res = store.requestPayout(Number(payoutAmount), payoutMethod, payoutDetails);
-      if (!res.ok) {
-        setPayoutError(res.error || "Unable to submit withdrawal request.");
-        return;
-      }
-      setPayoutSuccess(true);
-      setTimeout(() => {
-        setPayoutSuccess(false);
-        setPayoutModalOpen(false);
-      }, 2000);
-    };
 
     const commissionPercent = store.affiliateSettings?.defaultCommissionPercent || 15;
     const minPayout = store.affiliateSettings?.minimumPayoutAmount || 10000;
@@ -466,7 +477,7 @@ export default function DashboardPage() {
               </span>
               <button
                 type="button"
-                onClick={() => setPayoutModalOpen(true)}
+                onClick={() => setTab("wallet")}
                 disabled={profile.pendingBalance < minPayout}
                 className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer shrink-0"
               >
@@ -584,118 +595,447 @@ export default function DashboardPage() {
           );
         })()}
 
-        {/* Withdrawal Modal */}
-        {payoutModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-line pb-3">
-                <h4 className="font-display text-base font-bold text-ink">Request Affiliate Payout</h4>
-                <button
-                  type="button"
-                  onClick={() => setPayoutModalOpen(false)}
-                  className="rounded-lg p-1 text-muted hover:bg-slate-100 hover:text-ink cursor-pointer"
-                >
-                  ✕
-                </button>
+        {/* Link to Student Wallet */}
+        <div className="pt-2">
+          <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+                <Wallet className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-display text-base font-bold text-ink">
+                  Commission Ledger &amp; Preferred Payout Method
+                </h4>
+                <p className="mt-0.5 text-xs text-muted leading-relaxed">
+                  Track your referral sales, monitor withdrawal payouts, and set your default bank or USDT account in your Wallet.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTab("wallet")}
+              className="px-4 py-2.5 rounded-xl bg-ink text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              <span>Open Student Wallet</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------------------------- Student Wallet Hub ---------------------------- */
+
+  function WalletSection() {
+    const profile = store.myAffiliateProfile;
+    const commissions = store.affiliateCommissions.filter(
+      (c) => c.affiliateUserId === user.id || (profile && c.affiliateCode === profile.referralCode)
+    );
+    const myPayouts = store.payoutRequests.filter((p) => p.affiliateUserId === user.id);
+    const minPayout = store.affiliateSettings?.minimumPayoutAmount || 10000;
+    const commissionPercent = store.affiliateSettings?.defaultCommissionPercent || 15;
+
+    // Withdrawal modal state
+    const [payoutModalOpen, setPayoutModalOpen] = useState(false);
+    const [payoutAmount, setPayoutAmount] = useState(
+      profile && profile.pendingBalance >= minPayout ? profile.pendingBalance : minPayout
+    );
+    const [payoutMethod, setPayoutMethod] = useState<"bank" | "usdt" | "paypal">(profile?.payoutMethod || "bank");
+    const [payoutDetails, setPayoutDetails] = useState(profile?.payoutDetails || "");
+    const [payoutError, setPayoutError] = useState<string | null>(null);
+    const [payoutSuccess, setPayoutSuccess] = useState(false);
+
+    // Preferred payout method configuration state
+    const [isEditingMethod, setIsEditingMethod] = useState(!profile?.payoutDetails);
+    const [prefMethod, setPrefMethod] = useState<"bank" | "usdt" | "paypal">(profile?.payoutMethod || "bank");
+    const [bankName, setBankName] = useState("");
+    const [customBankName, setCustomBankName] = useState("");
+    const [accountNumber, setAccountNumber] = useState("");
+    const [accountName, setAccountName] = useState(
+      [user.firstName, user.lastName].filter(Boolean).join(" ")
+    );
+    const [usdtAddress, setUsdtAddress] = useState("");
+    const [paypalEmail, setPaypalEmail] = useState(user.email || "");
+    const [savedNotice, setSavedNotice] = useState(false);
+
+    // Sync from profile on mount/change
+    useEffect(() => {
+      if (profile?.payoutMethod) {
+        setPrefMethod(profile.payoutMethod);
+        setPayoutMethod(profile.payoutMethod);
+      }
+      if (profile?.payoutDetails) {
+        setPayoutDetails(profile.payoutDetails);
+        if (profile.payoutMethod === "usdt") {
+          setUsdtAddress(profile.payoutDetails.replace(/^TRC20:\s*/i, ""));
+        } else if (profile.payoutMethod === "paypal") {
+          setPaypalEmail(profile.payoutDetails.replace(/^PayPal:\s*/i, ""));
+        } else if (profile.payoutMethod === "bank") {
+          const parts = profile.payoutDetails.split(/[•-]/).map((s) => s.trim());
+          if (parts[0]) {
+            if (NIGERIAN_BANKS.includes(parts[0])) {
+              setBankName(parts[0]);
+            } else {
+              setBankName("Other Bank");
+              setCustomBankName(parts[0]);
+            }
+          }
+          if (parts[1]) {
+            const accNum = parts[1].split(" ")[0];
+            setAccountNumber(accNum);
+          }
+        }
+      }
+    }, [profile]);
+
+    const handleSavePreferredMethod = (e: React.FormEvent) => {
+      e.preventDefault();
+      let formatted = "";
+      if (prefMethod === "bank") {
+        const resolvedBank = bankName === "Other Bank" ? customBankName.trim() : bankName.trim();
+        if (!resolvedBank || !accountNumber.trim() || !accountName.trim()) return;
+        formatted = `${resolvedBank} • ${accountNumber.trim()} (${accountName.trim()})`;
+      } else if (prefMethod === "usdt") {
+        if (!usdtAddress.trim()) return;
+        formatted = `TRC20: ${usdtAddress.trim()}`;
+      } else if (prefMethod === "paypal") {
+        if (!paypalEmail.trim()) return;
+        formatted = `PayPal: ${paypalEmail.trim()}`;
+      }
+
+      store.updateMyAffiliateProfile({
+        payoutMethod: prefMethod,
+        payoutDetails: formatted,
+      });
+      setPayoutMethod(prefMethod);
+      setPayoutDetails(formatted);
+      setIsEditingMethod(false);
+      setSavedNotice(true);
+      setTimeout(() => setSavedNotice(false), 3000);
+    };
+
+    const handleRequestPayout = (e: React.FormEvent) => {
+      e.preventDefault();
+      setPayoutError(null);
+      const res = store.requestPayout(Number(payoutAmount), payoutMethod, payoutDetails);
+      if (!res.ok) {
+        setPayoutError(res.error || "Unable to submit withdrawal request.");
+        return;
+      }
+      setPayoutSuccess(true);
+      setTimeout(() => {
+        setPayoutSuccess(false);
+        setPayoutModalOpen(false);
+      }, 2000);
+    };
+
+    const hasSavedMethod = Boolean(profile?.payoutDetails);
+
+    return (
+      <div className="space-y-8">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+          <div>
+            <h2 className="font-display text-2xl font-extrabold text-ink">
+              Student Wallet &amp; Payouts
+            </h2>
+            <p className="mt-1 text-xs sm:text-sm text-muted">
+              Manage your commission earnings, configure your default payout account, and monitor payment records.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setTab("affiliate")}
+              className="px-3.5 py-2 rounded-xl border border-line bg-white text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              <Share2 className="h-3.5 w-3.5 text-brand" />
+              <span>Invite &amp; Earn</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3 Top Financial Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Available Commission Balance */}
+          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted">
+              <span className="text-xs font-bold uppercase tracking-wider">Available Balance</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <Wallet className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline justify-between gap-2 min-w-0">
+              <span
+                className="font-display text-2xl font-extrabold text-ink tabular-nums truncate"
+                title={naira(profile?.pendingBalance || 0)}
+              >
+                {(profile?.pendingBalance || 0) >= 1_000_000
+                  ? compactNaira(profile?.pendingBalance || 0)
+                  : naira(profile?.pendingBalance || 0)}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!hasSavedMethod) {
+                    setIsEditingMethod(true);
+                  }
+                  setPayoutAmount(profile && profile.pendingBalance >= minPayout ? profile.pendingBalance : minPayout);
+                  setPayoutModalOpen(true);
+                }}
+                disabled={(profile?.pendingBalance || 0) < minPayout}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-40 cursor-pointer shrink-0"
+              >
+                Withdraw
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              {(profile?.pendingBalance || 0) < minPayout
+                ? `Requires minimum ${naira(minPayout)} balance to withdraw`
+                : `Ready to disburse to your preferred account`}
+            </p>
+          </div>
+
+          {/* Total Paid Out */}
+          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted">
+              <span className="text-xs font-bold uppercase tracking-wider">Total Disbursed</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 min-w-0">
+              <span className="font-display text-2xl font-extrabold text-ink tabular-nums truncate block">
+                {naira(profile?.paidOut || 0)}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted">Paid to your bank or crypto account</p>
+          </div>
+
+          {/* Total Earned */}
+          <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted">
+              <span className="text-xs font-bold uppercase tracking-wider">Total Earned</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 min-w-0">
+              <span className="font-display text-2xl font-extrabold text-ink tabular-nums truncate block">
+                {naira(profile?.totalEarned || 0)}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted">{commissionPercent}% commission on referred enrollments</p>
+          </div>
+        </div>
+
+        {/* Preferred Payment Method Card */}
+        <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand shrink-0">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-display text-base font-bold text-ink">
+                  Preferred Payout Destination
+                </h3>
+                <p className="text-xs text-muted">
+                  Your default disbursement account for commission withdrawals.
+                </p>
+              </div>
+            </div>
+
+            {!isEditingMethod && hasSavedMethod && (
+              <button
+                type="button"
+                onClick={() => setIsEditingMethod(true)}
+                className="px-3.5 py-1.5 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer self-start sm:self-auto"
+              >
+                Change Method
+              </button>
+            )}
+          </div>
+
+          {savedNotice && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <span>Preferred payout method saved successfully! Future withdrawals will disburse here automatically.</span>
+            </div>
+          )}
+
+          {!isEditingMethod && hasSavedMethod ? (
+            <div className="rounded-xl border border-line bg-cream/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white border border-line shadow-xs shrink-0">
+                  {profile?.payoutMethod === "bank" ? (
+                    <Building2 className="h-5 w-5 text-emerald-600" />
+                  ) : profile?.payoutMethod === "usdt" ? (
+                    <span className="font-black text-xs text-teal-600">USDT</span>
+                  ) : (
+                    <span className="font-black text-xs text-blue-600">PP</span>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-xs sm:text-sm text-ink">
+                      {profile?.payoutDetails}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      Active Default
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted mt-0.5 capitalize">
+                    Method: {profile?.payoutMethod === "bank" ? "Nigerian Bank Transfer" : profile?.payoutMethod === "usdt" ? "USDT (TRC-20)" : "PayPal"}
+                  </p>
+                </div>
               </div>
 
-              <form onSubmit={handleRequestPayout} className="mt-4 space-y-4 text-xs">
-                {payoutError && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700 font-medium">
-                    {payoutError}
-                  </div>
-                )}
-                {payoutSuccess && (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-700 font-medium flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4" /> Payout request submitted! Our finance team will disburse shortly.
-                  </div>
-                )}
+              <button
+                type="button"
+                onClick={() => setIsEditingMethod(true)}
+                className="text-xs font-bold text-brand hover:underline cursor-pointer self-start sm:self-auto"
+              >
+                Edit Details
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSavePreferredMethod} className="space-y-4 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1.5">
+                  Choose Disbursement Method
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {(["bank", "usdt", "paypal"] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setPrefMethod(m)}
+                      className={`p-3 rounded-xl border text-center font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2 ${
+                        prefMethod === m
+                          ? "border-brand bg-brand/5 text-brand ring-1 ring-brand/30"
+                          : "border-line bg-white text-muted hover:text-ink hover:bg-slate-50"
+                      }`}
+                    >
+                      {m === "bank" ? "Nigerian Bank" : m === "usdt" ? "USDT (TRC-20)" : "PayPal"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
+              {prefMethod === "bank" && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-ink mb-1">Bank Name</label>
+                    <select
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                      required
+                    >
+                      <option value="">Select your bank</option>
+                      {NIGERIAN_BANKS.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                    {bankName === "Other Bank" && (
+                      <input
+                        type="text"
+                        placeholder="Type your bank name"
+                        value={customBankName}
+                        onChange={(e) => setCustomBankName(e.target.value)}
+                        className="mt-2 w-full rounded-xl border border-line bg-cream/60 p-2 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                        required
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-ink mb-1">Account Number</label>
+                    <input
+                      type="text"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      placeholder="10-digit account number"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
+                      className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-ink mb-1">Account Name</label>
+                    <input
+                      type="text"
+                      placeholder="Account holder full name"
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
+              {prefMethod === "usdt" && (
                 <div>
-                  <label className="block font-bold text-ink mb-1">
-                    Withdrawal Amount (₦) — Available: {naira(profile.pendingBalance)}
-                  </label>
+                  <label className="block text-xs font-bold text-ink mb-1">USDT TRC-20 Wallet Address</label>
                   <input
-                    type="number"
-                    step={1000}
-                    min={store.affiliateSettings.minimumPayoutAmount || 10000}
-                    max={profile.pendingBalance}
-                    value={payoutAmount}
-                    onChange={(e) => setPayoutAmount(Number(e.target.value))}
-                    className="w-full rounded-xl border border-line bg-cream p-2.5 font-bold text-ink focus:border-brand focus:outline-none"
+                    type="text"
+                    placeholder="e.g. TYDzsYBPjxNYt8CqCXp... (TRC-20 network only)"
+                    value={usdtAddress}
+                    onChange={(e) => setUsdtAddress(e.target.value)}
+                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    required
+                  />
+                  <p className="text-[11px] text-muted mt-1">Please ensure your address accepts the TRON (TRC-20) network.</p>
+                </div>
+              )}
+
+              {prefMethod === "paypal" && (
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">PayPal Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="student@example.com"
+                    value={paypalEmail}
+                    onChange={(e) => setPaypalEmail(e.target.value)}
+                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none"
                     required
                   />
                 </div>
+              )}
 
-                <div>
-                  <label className="block font-bold text-ink mb-1">Payout Method</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(["bank", "usdt", "paypal"] as const).map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setPayoutMethod(m)}
-                        className={`p-2.5 rounded-xl border text-center font-bold capitalize transition cursor-pointer ${
-                          payoutMethod === m ? "border-brand bg-brand/10 text-brand" : "border-line bg-white text-muted hover:text-ink"
-                        }`}
-                      >
-                        {m === "bank" ? "Nigerian Bank" : m === "usdt" ? "USDT (TRC20)" : "PayPal"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-ink mb-1">
-                    {payoutMethod === "bank"
-                      ? "Bank Details (Bank Name, Account Number, Account Name)"
-                      : payoutMethod === "usdt"
-                      ? "USDT TRC20 Wallet Address"
-                      : "PayPal Email Address"}
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={payoutDetails}
-                    onChange={(e) => setPayoutDetails(e.target.value)}
-                    placeholder={
-                      payoutMethod === "bank"
-                        ? "e.g. GTBank • 0123456789 • John Doe"
-                        : payoutMethod === "usdt"
-                        ? "e.g. TYs27F38kdP92mdLm78qZ03kdfk19..."
-                        : "e.g. payments@example.com"
-                    }
-                    className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs text-ink focus:border-brand focus:outline-none"
-                    required
-                  />
-                </div>
-
-                <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition cursor-pointer"
+                >
+                  Save Preferred Method
+                </button>
+                {hasSavedMethod && (
                   <button
                     type="button"
-                    onClick={() => setPayoutModalOpen(false)}
-                    className="px-4 py-2 rounded-xl border border-line font-bold text-ink hover:bg-slate-50 cursor-pointer"
+                    onClick={() => setIsEditingMethod(false)}
+                    className="px-4 py-2 rounded-xl border border-line text-xs font-bold text-muted hover:text-ink cursor-pointer"
                   >
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-brand text-white font-bold hover:bg-brand-dark transition cursor-pointer"
-                  >
-                    Submit Withdrawal
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+                )}
+              </div>
+            </form>
+          )}
+        </div>
 
-        {/* Activity & Payout History — Clean GAMAT Website Style */}
-        <div className="pt-6 border-t border-line space-y-5">
+        {/* Activity & Payout History */}
+        <div className="space-y-4">
           <div>
-            <h3 className="font-display text-xl font-bold text-ink">
+            <h3 className="font-display text-lg font-bold text-ink">
               Activity &amp; Payout History
             </h3>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-0.5 text-xs text-muted">
               Track student commissions earned through your referral code and monitor your withdrawal requests.
             </p>
           </div>
@@ -724,7 +1064,7 @@ export default function DashboardPage() {
                     <Users className="mx-auto h-10 w-10 text-muted/30" />
                     <p className="mt-3 font-semibold text-ink text-sm">No referral commissions yet</p>
                     <p className="mt-1 text-xs text-muted max-w-xs mx-auto leading-relaxed">
-                      Share your card or invite link above to earn {commissionPercent}% cash commission whenever anyone enrolls.
+                      Share your card or invite link to earn {commissionPercent}% cash commission whenever anyone enrolls.
                     </p>
                   </div>
                 ) : (
@@ -771,7 +1111,7 @@ export default function DashboardPage() {
                     <Wallet className="mx-auto h-10 w-10 text-muted/30" />
                     <p className="mt-3 font-semibold text-ink text-sm">No withdrawals requested yet</p>
                     <p className="mt-1 text-xs text-muted max-w-xs mx-auto leading-relaxed">
-                      You can request a withdrawal once your commission balance reaches {naira(store.affiliateSettings.minimumPayoutAmount || 10000)}.
+                      You can request a withdrawal once your commission balance reaches {naira(minPayout)}.
                     </p>
                   </div>
                 ) : (
@@ -806,68 +1146,191 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
 
-  function Billing() {
-    if (!myPayments.length) {
-      return <EmptyState title="No payments yet" body="Your course purchase receipts will appear here." cta="Browse Courses" to="/courses" />;
-    }
-    return (
-      <div className="space-y-5">
-        <div className="rounded-2xl border border-line bg-white p-5 text-sm text-muted">
-          <p className="font-semibold text-ink">Refunds are manual only</p>
-          <p className="mt-1.5 leading-relaxed">
-            There is no automatic refund button here. Enrollments are generally non-refundable.
-            If you believe you qualify for a review (for example you have not accessed any material
-            within 7 days of purchase), contact the academy — any approved refund is processed
-            manually by our team outside this dashboard.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <a href={CONTACT.whatsappHref} target="_blank" rel="noreferrer" className="btn-primary !py-2">
-              Message us on WhatsApp
-            </a>
-            <button type="button" onClick={() => navigate("/contact")} className="btn-outline-dark !py-2">
-              Contact form
-            </button>
+        {/* Course Invoices & Payment Receipts */}
+        <div className="space-y-4 pt-4 border-t border-line">
+          <div>
+            <h3 className="font-display text-lg font-bold text-ink">
+              Course Purchase Receipts
+            </h3>
+            <p className="mt-0.5 text-xs text-muted">
+              Payment records and transaction reference numbers for your enrolled courses.
+            </p>
           </div>
+
+          {myPayments.length === 0 ? (
+            <div className="rounded-2xl border border-line bg-white p-8 text-center">
+              <Receipt className="mx-auto h-8 w-8 text-muted/30" />
+              <p className="mt-2 text-xs font-bold text-ink">No course payments yet</p>
+              <p className="mt-0.5 text-[11px] text-muted">Receipts will appear here when you purchase paid courses or mentorship.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[600px] text-xs">
+                    <thead className="bg-cream text-left font-bold text-muted border-b border-line">
+                      <tr>
+                        <th className="px-5 py-3">Reference</th>
+                        <th className="px-5 py-3">Course / Tool</th>
+                        <th className="px-5 py-3">Amount</th>
+                        <th className="px-5 py-3">Status</th>
+                        <th className="px-5 py-3">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {myPayments.map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-50/80 transition">
+                          <td className="px-5 py-3.5"><code className="rounded bg-cream px-2 py-1 text-xs font-mono font-bold text-brand">{p.ref}</code></td>
+                          <td className="px-5 py-3.5 text-ink font-semibold">{p.courseTitle}</td>
+                          <td className="px-5 py-3.5 font-bold text-ink">{naira(p.amount)}</td>
+                          <td className="px-5 py-3.5">
+                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                              p.status === "paid" ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : p.status === "refunded" ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : "bg-line text-muted"
+                            }`}>
+                              {p.status === "refunded" ? "refunded (manual)" : p.status}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 text-muted">{new Date(p.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Refund notice */}
+              <div className="rounded-xl border border-line bg-white p-4 text-xs text-muted flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <p className="font-bold text-ink">Need billing assistance or refund review?</p>
+                  <p className="mt-0.5 text-[11px] text-muted">Enrollments are generally non-refundable. Contact the team for exceptional reviews.</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <a href={CONTACT.whatsappHref} target="_blank" rel="noreferrer" className="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+                    WhatsApp Support
+                  </a>
+                  <button type="button" onClick={() => navigate("/contact")} className="px-3 py-1.5 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-50 transition cursor-pointer">
+                    Contact Form
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-line bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-sm">
-              <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
-                <tr>
-                  <th className="px-5 py-3 font-bold">Reference</th>
-                  <th className="px-5 py-3 font-bold">Course</th>
-                  <th className="px-5 py-3 font-bold">Amount</th>
-                  <th className="px-5 py-3 font-bold">Status</th>
-                  <th className="px-5 py-3 font-bold">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {myPayments.map((p) => (
-                  <tr key={p.id}>
-                    <td className="px-5 py-3.5"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{p.ref}</code></td>
-                    <td className="px-5 py-3.5 text-ink/80">{p.courseTitle}</td>
-                    <td className="px-5 py-3.5 font-bold text-ink">{naira(p.amount)}</td>
-                    <td className="px-5 py-3.5">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase ${
-                        p.status === "paid" ? "bg-emerald-50 text-emerald-700"
-                          : p.status === "refunded" ? "bg-amber-50 text-amber-700"
-                          : "bg-line text-muted"
-                      }`}>
-                        {p.status === "refunded" ? "refunded (manual)" : p.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-muted">{new Date(p.createdAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Withdrawal Request Modal */}
+        {payoutModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h4 className="font-display text-base font-bold text-ink">Request Affiliate Payout</h4>
+                <button
+                  type="button"
+                  onClick={() => setPayoutModalOpen(false)}
+                  className="rounded-lg p-1 text-muted hover:bg-slate-100 hover:text-ink cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleRequestPayout} className="mt-4 space-y-4 text-xs">
+                {payoutError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700 font-medium">
+                    {payoutError}
+                  </div>
+                )}
+                {payoutSuccess && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-700 font-medium flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" /> Payout request submitted! Our finance team will disburse shortly.
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-bold text-ink mb-1">
+                    Withdrawal Amount (₦) — Available: {naira(profile?.pendingBalance || 0)}
+                  </label>
+                  <input
+                    type="number"
+                    step={1000}
+                    min={minPayout}
+                    max={profile?.pendingBalance || 0}
+                    value={payoutAmount}
+                    onChange={(e) => setPayoutAmount(Number(e.target.value))}
+                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 font-bold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    required
+                  />
+                  <p className="mt-1 text-[11px] text-muted">Minimum withdrawal: {naira(minPayout)}</p>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-ink mb-1">Disbursement Method</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["bank", "usdt", "paypal"] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setPayoutMethod(m)}
+                        className={`p-2 rounded-xl border text-center font-bold capitalize transition cursor-pointer text-xs ${
+                          payoutMethod === m ? "border-brand bg-brand/10 text-brand" : "border-line bg-white text-muted hover:text-ink"
+                        }`}
+                      >
+                        {m === "bank" ? "Nigerian Bank" : m === "usdt" ? "USDT (TRC20)" : "PayPal"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-ink mb-1">
+                    {payoutMethod === "bank"
+                      ? "Bank Name, Account Number & Name"
+                      : payoutMethod === "usdt"
+                      ? "USDT TRC20 Wallet Address"
+                      : "PayPal Email Address"}
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={payoutDetails}
+                    onChange={(e) => setPayoutDetails(e.target.value)}
+                    placeholder={
+                      payoutMethod === "bank"
+                        ? "e.g. Zenith Bank • 0123456789 • John Doe"
+                        : payoutMethod === "usdt"
+                        ? "e.g. TRC20: TYs27F38kdP92mdLm78qZ03kdfk19..."
+                        : "e.g. PayPal: payments@example.com"
+                    }
+                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    required
+                  />
+                  {hasSavedMethod && payoutDetails === profile?.payoutDetails && (
+                    <p className="mt-1 text-[11px] text-emerald-600 font-medium flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Auto-filled from your preferred payout destination
+                    </p>
+                  )}
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-2 border-t border-line">
+                  <button
+                    type="button"
+                    onClick={() => setPayoutModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-line font-bold text-ink hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={(profile?.pendingBalance || 0) < minPayout}
+                    className="px-5 py-2 rounded-xl bg-brand text-white font-bold hover:bg-brand-dark transition cursor-pointer"
+                  >
+                    Submit Withdrawal
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
