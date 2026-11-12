@@ -1536,13 +1536,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Check if user has been marked as deleted
-      const deleted = getDeletedAccountIds();
-      if (deleted.has(uid.toLowerCase()) || deleted.has(userEmail)) {
-        supabase.auth.signOut().catch(() => {});
-        setSessionId(null);
-        return;
-      }
+      // User is actively authenticating with Google / Supabase;
+      // unmark any previous deletion tombstone so they can re-register or log in fresh
+      unmarkDeletedAccount(uid, userEmail);
 
       // Check if user profile is already in local state
       setAccounts((prev) => {
@@ -1822,6 +1818,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       write(K.accounts, next);
       return next;
     });
+    unmarkDeletedAccount(acc.id, email);
     setSessionId(acc.id);
 
     // Attribute referral signup if referral code exists
@@ -1872,6 +1869,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const res = await signInSupabaseUser(cleanEmail, password);
       if (res.ok && res.account) {
         storeCredential(cleanEmail, password);
+        unmarkDeletedAccount(res.account.id, cleanEmail);
         setAccounts((p) => {
           const next = p.some((a) => a.id === res.account!.id)
             ? p.map((a) => (a.id === res.account!.id ? { ...res.account!, password } : a))
