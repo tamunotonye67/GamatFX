@@ -441,6 +441,15 @@ export default function DashboardPage() {
 
     const commissionPercent = store.affiliateSettings?.defaultCommissionPercent || 15;
     const minPayout = store.affiliateSettings?.minimumPayoutAmount || 10000;
+    const [copiedCode, setCopiedCode] = useState(false);
+
+    const handleCopyCode = async () => {
+      try {
+        await navigator.clipboard.writeText(profile.referralCode);
+        setCopiedCode(true);
+        setTimeout(() => setCopiedCode(false), 2000);
+      } catch {}
+    };
 
     return (
       <div className="space-y-8">
@@ -454,10 +463,25 @@ export default function DashboardPage() {
               Share your personal invite link or enrollment announcement card. Earn <strong>{commissionPercent}% commission</strong> when friends enroll in paid programs or store tools.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm shrink-0 self-start sm:self-auto">
-            <span>Invite Code:</span>
-            <span className="font-mono text-brand font-black">{profile.referralCode}</span>
-          </div>
+          <button
+            type="button"
+            onClick={handleCopyCode}
+            title="Click to copy invite code"
+            className="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-semibold text-ink shadow-xs hover:border-brand/40 hover:bg-cream/40 transition cursor-pointer shrink-0 self-start sm:self-auto"
+          >
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted">Invite Code:</span>
+            <code className="font-mono text-xs font-black text-brand select-all bg-cream/70 px-2 py-0.5 rounded-md border border-line/60">
+              {profile.referralCode}
+            </code>
+            {copiedCode ? (
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                <Check className="h-3.5 w-3.5" />
+                <span>Copied!</span>
+              </span>
+            ) : (
+              <Copy className="h-3.5 w-3.5 text-muted hover:text-ink transition" />
+            )}
+          </button>
         </div>
 
         {/* Top Earnings & Metrics */}
