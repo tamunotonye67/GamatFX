@@ -9,6 +9,7 @@ import {
 } from "../../lib/store";
 import { naira, COURSES } from "../../lib/courses";
 import { type Quiz, type Question } from "../../lib/quizzes";
+import { uploadCourseAsset } from "../../lib/supabaseStorage";
 import {
   BookOpen, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
   GraduationCap, LineChart, Brain, Target, Shield, Award, Rocket,
@@ -103,7 +104,9 @@ export function AdminCourseManager() {
   const [err, setErr] = useState<string | null>(null);
   const [openMod, setOpenMod] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const posterFileRef = useRef<HTMLInputElement | null>(null);
   const lessonUpload = useRef<{ mi: number; li: number } | null>(null);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
 
   // Exam Questions Manager state
   const [examCourse, setExamCourse] = useState<{ id: string; title: string } | null>(null);
@@ -303,6 +306,23 @@ export function AdminCourseManager() {
     }
     lessonUpload.current = null;
     if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const onPosterUpload = async (file?: File) => {
+    if (!file || !edit) return;
+    setUploadingPoster(true);
+    try {
+      const res = await uploadCourseAsset(edit.id || "course", file);
+      if (res.ok && res.url) {
+        setEdit({ ...edit, poster: res.url });
+        setErr(null);
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Poster upload failed.");
+    } finally {
+      setUploadingPoster(false);
+      if (posterFileRef.current) posterFileRef.current.value = "";
+    }
   };
 
   const submit = (e: React.FormEvent) => {
@@ -537,7 +557,51 @@ export function AdminCourseManager() {
             <section className="space-y-4">
               <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">Cover media</h4>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Poster image URL" value={edit.poster ?? ""} onChange={(v) => setEdit({ ...edit, poster: v })} />
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                    Course Poster Image
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={edit.poster ?? ""}
+                      onChange={(e) => setEdit({ ...edit, poster: e.target.value })}
+                      placeholder="Image URL (https://… or upload image)"
+                      className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingPoster}
+                      onClick={() => posterFileRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer disabled:opacity-50"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>{uploadingPoster ? "Uploading..." : "Upload Poster"}</span>
+                    </button>
+                    <input
+                      ref={posterFileRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => onPosterUpload(e.target.files?.[0])}
+                      className="hidden"
+                    />
+                  </div>
+                  {edit.poster && (
+                    <div className="mt-2.5 flex items-center gap-3">
+                      <img src={edit.poster} alt="Course poster preview" className="h-14 w-24 rounded-lg object-cover border border-line shadow-xs bg-white" />
+                      <div className="text-xs">
+                        <span className="font-semibold text-ink block">Poster Preview</span>
+                        <button
+                          type="button"
+                          onClick={() => setEdit({ ...edit, poster: "" })}
+                          className="text-[11px] text-muted hover:text-brand underline cursor-pointer"
+                        >
+                          Clear image
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <Field label="Preview video URL" value={edit.video ?? ""} onChange={(v) => setEdit({ ...edit, video: v })} ph="https://…/preview.mp4" />
               </div>
             </section>

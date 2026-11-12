@@ -19,6 +19,7 @@ export type StoreProduct = {
   features: string[];
   deliverableType: string; // e.g. "Instant PDF + Cheatsheet", "MT4/MT5 Robot File"
   downloadUrl?: string;
+  fileName?: string;
   accessInstructions?: string;
   published: boolean;
   salesCount: number;

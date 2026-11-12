@@ -83,8 +83,72 @@ export async function uploadCompanyAsset(assetKey: string, file: File): Promise<
   }
 }
 
+/** Format bytes into friendly size string like 1.4 MB */
+export function formatBytes(bytes: number, decimals = 1): string {
+  if (!bytes || bytes === 0) return "0 B";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+}
+
+/**
+ * Uploads a store digital deliverable file (e.g. PDF, ZIP, EA .ex4/.ex5, indicator scripts)
+ * to Supabase Storage with graceful fallback to Base64 data URL.
+ */
+export async function uploadStoreFile(productId: string, file: File): Promise<{ ok: boolean; url: string; fileName: string; fileSize: string; error?: string }> {
+  const sizeStr = formatBytes(file.size);
+  try {
+    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const filePath = `store_files/${productId || "prod"}_${Date.now()}_${cleanName}`;
+
+    const bucket = "course-materials";
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file, { upsert: true });
+
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      return { ok: true, url: publicUrl, fileName: file.name, fileSize: sizeStr };
+    }
+    console.warn("Supabase store file upload notice:", uploadError.message);
+  } catch (err: any) {
+    console.warn("Store file upload fallback triggered:", err);
+  }
+
+  const dataUrl = await fileToDataUrl(file);
+  return { ok: true, url: dataUrl, fileName: file.name, fileSize: sizeStr };
+}
+
+/**
+ * Uploads a store thumbnail picture or gallery preview picture.
+ * Returns public URL (or data URL fallback).
+ */
+export async function uploadStoreAsset(productId: string, file: File, prefix = "thumb"): Promise<{ ok: boolean; url: string; fileName: string; error?: string }> {
+  try {
+    const fileExt = file.name.split(".").pop() || "jpg";
+    const filePath = `store_${prefix}_${productId || "prod"}_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("course-materials")
+      .upload(filePath, file, { upsert: true });
+
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabase.storage.from("course-materials").getPublicUrl(filePath);
+      return { ok: true, url: publicUrl, fileName: file.name };
+    }
+    console.warn("Supabase store asset upload notice:", uploadError.message);
+  } catch (err: any) {
+    console.warn("Store asset upload fallback triggered:", err);
+  }
+
+  const dataUrl = await fileToDataUrl(file);
+  return { ok: true, url: dataUrl, fileName: file.name };
+}
+
 /** Utility to convert a File object to a Base64 data URL */
-function fileToDataUrl(file: File): Promise<string> {
+export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => resolve(e.target?.result as string);
@@ -92,3 +156,4 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+

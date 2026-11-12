@@ -1602,6 +1602,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
               <div className="mt-4 pt-3 border-t border-line flex flex-col sm:flex-row gap-2">
                 <a
                   href={purchasedProduct.downloadUrl || "#"}
+                  download={purchasedProduct.fileName || `${purchasedProduct.title.replace(/[^a-zA-Z0-9_-]/g, "_")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`flex-1 rounded-xl py-2.5 px-4 text-xs font-bold text-white transition text-center flex items-center justify-center gap-2 ${

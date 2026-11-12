@@ -1,13 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
 import { type StoreProduct, type StoreProductCategory } from "../../lib/storeProducts";
+import { uploadStoreFile, uploadStoreAsset } from "../../lib/supabaseStorage";
 import {
   ShoppingBag, Plus, Pencil, Trash2, Eye, EyeOff, Bot, LineChart,
   BookOpen, Target, Package, LayoutGrid, Download, CheckCircle2, DollarSign,
-  Clock, Gift
+  Clock, Gift, Upload, Image as ImageIcon, X, FileText, Loader2, Link2, ExternalLink
 } from "lucide-react";
 
 export function AdminStore() {
@@ -403,8 +404,11 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
     badge: product?.badge ?? "Best Seller",
     author: product?.author ?? "By GAMAT Institutional Research Desk",
     image: product?.image ?? "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
+    gallery: product?.gallery ?? [],
     deliverableType: product?.deliverableType ?? "Instant PDF Download",
     downloadUrl: product?.downloadUrl ?? "",
+    fileName: product?.fileName ?? "",
+    fileSize: product?.fileSize ?? "",
     accessInstructions: product?.accessInstructions ?? "Instant download available upon checkout.",
     description: product?.description ?? "",
     featuresStr: product?.features ? product.features.join("\n") : "Complete user manual included\nProp-firm compatible\nFree lifetime updates",
@@ -412,6 +416,101 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
   });
 
   const [err, setErr] = useState<string | null>(null);
+  const [uploadingThumb, setUploadingThumb] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [newGalleryUrl, setNewGalleryUrl] = useState("");
+
+  const thumbInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingThumb(true);
+    setErr(null);
+    try {
+      const res = await uploadStoreAsset(product?.id || "prod", file, "thumb");
+      if (res.ok && res.url) {
+        setF((prev) => ({ ...prev, image: res.url }));
+      }
+    } catch (err: any) {
+      setErr(err?.message || "Failed to upload thumbnail.");
+    } finally {
+      setUploadingThumb(false);
+      if (thumbInputRef.current) thumbInputRef.current.value = "";
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFile(true);
+    setErr(null);
+    try {
+      const res = await uploadStoreFile(product?.id || "prod", file);
+      if (res.ok && res.url) {
+        setF((prev) => {
+          let autoDeliverable = prev.deliverableType;
+          const ext = file.name.split(".").pop()?.toLowerCase();
+          if (ext === "zip" || ext === "rar") autoDeliverable = "ZIP Archive Bundle";
+          else if (ext === "ex4" || ext === "ex5") autoDeliverable = "MT4/MT5 EA Robot File";
+          else if (ext === "mq4" || ext === "mq5") autoDeliverable = "Custom Indicator Script";
+          else if (ext === "pdf") autoDeliverable = "Instant PDF Document";
+          else if (ext === "tpl") autoDeliverable = "MT4/MT5 Chart Template";
+
+          return {
+            ...prev,
+            downloadUrl: res.url,
+            fileName: res.fileName,
+            fileSize: res.fileSize,
+            deliverableType: autoDeliverable,
+          };
+        });
+      }
+    } catch (err: any) {
+      setErr(err?.message || "Failed to upload deliverable file.");
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploadingGallery(true);
+    setErr(null);
+    try {
+      const urls: string[] = [];
+      for (const file of files) {
+        const res = await uploadStoreAsset(product?.id || "prod", file, "gallery");
+        if (res.ok && res.url) urls.push(res.url);
+      }
+      if (urls.length) {
+        setF((prev) => ({ ...prev, gallery: [...prev.gallery, ...urls] }));
+      }
+    } catch (err: any) {
+      setErr(err?.message || "Failed to upload preview picture.");
+    } finally {
+      setUploadingGallery(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
+  };
+
+  const addGalleryUrl = () => {
+    if (!newGalleryUrl.trim()) return;
+    setF((prev) => ({ ...prev, gallery: [...prev.gallery, newGalleryUrl.trim()] }));
+    setNewGalleryUrl("");
+  };
+
+  const removeGalleryImg = (index: number) => {
+    setF((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index),
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -445,8 +544,11 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       badge: f.badge.trim() || undefined,
       author: f.author.trim() || "By GAMAT Institutional Research Desk",
       image: f.image.trim() || "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
+      gallery: f.gallery.length ? f.gallery : undefined,
       deliverableType: f.deliverableType.trim(),
       downloadUrl: f.downloadUrl.trim() || undefined,
+      fileName: f.fileName.trim() || undefined,
+      fileSize: f.fileSize.trim() || undefined,
       accessInstructions: f.accessInstructions.trim(),
       description: f.description.trim(),
       features,
@@ -496,14 +598,18 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Cover Image URL</label>
-            <input
-              type="url"
-              value={f.image}
-              onChange={(e) => setF({ ...f, image: e.target.value })}
-              placeholder="https://images.unsplash.com/..."
+            <label className="text-xs font-bold uppercase tracking-wide text-muted">Category</label>
+            <select
+              value={f.category}
+              onChange={(e) => setF({ ...f, category: e.target.value as any })}
               className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
-            />
+            >
+              <option value="bot">AI Bots & EAs</option>
+              <option value="indicator">Indicators & Scripts</option>
+              <option value="ebook">E-Books & Playbooks</option>
+              <option value="strategy">Strategy Blueprints</option>
+              <option value="tool">Physical Journals & Tools</option>
+            </select>
           </div>
         </div>
 
@@ -518,22 +624,253 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           />
         </div>
 
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Category</label>
-          <select
-            value={f.category}
-            onChange={(e) => setF({ ...f, category: e.target.value as any })}
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
-          >
-            <option value="bot">AI Bots & EAs</option>
-            <option value="indicator">Indicators & Scripts</option>
-            <option value="ebook">E-Books & Playbooks</option>
-            <option value="strategy">Strategy Blueprints</option>
-            <option value="tool">Physical Journals & Tools</option>
-          </select>
+        {/* 1. Cover Image / Thumbnail Upload */}
+        <div className="rounded-2xl border border-line bg-cream/40 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wide text-ink flex items-center gap-1.5">
+              <ImageIcon className="h-4 w-4 text-brand" />
+              <span>Cover Thumbnail Picture</span>
+            </span>
+            <span className="text-[11px] font-normal text-muted">Upload an image file or provide a link</span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="relative group shrink-0">
+              <img
+                src={f.image || "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=600&q=80"}
+                alt="Product thumbnail preview"
+                className="h-20 w-28 rounded-xl object-cover border border-line shadow-xs bg-white"
+              />
+              {uploadingThumb && (
+                <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center text-white">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 w-full space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={uploadingThumb}
+                  onClick={() => thumbInputRef.current?.click()}
+                  className="btn-outline-dark !py-1.5 !px-3 text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  {uploadingThumb ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                  <span>{uploadingThumb ? "Uploading Thumbnail..." : "Upload Thumbnail Picture"}</span>
+                </button>
+                <input
+                  ref={thumbInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThumbUpload}
+                  className="hidden"
+                />
+                {f.image && (
+                  <button
+                    type="button"
+                    onClick={() => setF({ ...f, image: "" })}
+                    className="text-xs text-muted hover:text-brand transition underline px-1 cursor-pointer"
+                  >
+                    Clear Image
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <input
+                  type="url"
+                  value={f.image}
+                  onChange={(e) => setF({ ...f, image: e.target.value })}
+                  placeholder="https://images.unsplash.com/... or upload image above"
+                  className="w-full rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs text-ink outline-none focus:border-brand font-mono"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 1. Item Pricing & Free Item Setting */}
+        {/* 2. Preview Pictures & Screenshots Gallery */}
+        <div className="rounded-2xl border border-line bg-cream/40 p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wide text-ink flex items-center gap-1.5">
+                <LayoutGrid className="h-4 w-4 text-brand" />
+                <span>Preview Pictures & Screenshots Gallery ({f.gallery.length})</span>
+              </span>
+              <p className="text-[11px] text-muted">
+                Add screenshots of the tool, indicators, backtest results, or playbook sample pages.
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={uploadingGallery}
+              onClick={() => galleryInputRef.current?.click()}
+              className="btn-outline-dark !py-1.5 !px-3 text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              {uploadingGallery ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              <span>{uploadingGallery ? "Uploading..." : "Upload Preview Pictures"}</span>
+            </button>
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleGalleryUpload}
+              className="hidden"
+            />
+          </div>
+
+          {/* Current Gallery Grid */}
+          {f.gallery.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
+              {f.gallery.map((url, idx) => (
+                <div key={idx} className="relative group rounded-xl overflow-hidden border border-line bg-white aspect-[4/3]">
+                  <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryImg(idx)}
+                    title="Remove preview image"
+                    className="absolute top-1 right-1 rounded-full bg-black/70 hover:bg-brand text-white p-1 transition cursor-pointer"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add Preview by URL */}
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="url"
+              value={newGalleryUrl}
+              onChange={(e) => setNewGalleryUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGalleryUrl(); } }}
+              placeholder="Or paste preview picture URL (https://...)"
+              className="flex-1 rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs text-ink outline-none focus:border-brand font-mono"
+            />
+            <button
+              type="button"
+              onClick={addGalleryUrl}
+              disabled={!newGalleryUrl.trim()}
+              className="rounded-xl border border-line bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40 cursor-pointer"
+            >
+              Add URL
+            </button>
+          </div>
+        </div>
+
+        {/* 3. Deliverable Digital Product File (Direct Upload or Link) */}
+        <div className="rounded-2xl border border-blue-200/90 bg-blue-50/40 p-4 space-y-3">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wide text-blue-950 flex items-center gap-1.5">
+                <Package className="h-4 w-4 text-blue-600" />
+                <span>Product Deliverable File (Direct Upload or Link)</span>
+              </span>
+              {f.downloadUrl && (
+                <span className="text-[11px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> File Attached
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted mt-0.5">
+              Upload the actual digital tool, bot, indicator, or e-book PDF so buyers can download it directly without links breaking.
+            </p>
+          </div>
+
+          {/* Active File Card if available */}
+          {f.downloadUrl ? (
+            <div className="rounded-xl border border-blue-200 bg-white p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+                  <FileText className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="font-bold text-xs text-ink truncate">
+                    {f.fileName || (f.downloadUrl.startsWith("data:") ? "Uploaded Digital File" : f.downloadUrl.split("/").pop() || "Product File")}
+                  </p>
+                  <p className="text-[11px] text-muted flex items-center gap-2 mt-0.5">
+                    {f.fileSize && <span className="font-semibold text-blue-700">{f.fileSize}</span>}
+                    <span className="truncate max-w-[220px] text-slate-400 font-mono text-[10px]">
+                      {f.downloadUrl.startsWith("data:") ? "Base64 Secure File Data" : f.downloadUrl}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <a
+                  href={f.downloadUrl}
+                  download={f.fileName || `${f.title || "product"}.bin`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition inline-flex items-center gap-1"
+                >
+                  <Download className="h-3.5 w-3.5" /> Test Download
+                </a>
+                <button
+                  type="button"
+                  disabled={uploadingFile}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink hover:bg-slate-50 transition inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                >
+                  <Upload className="h-3.5 w-3.5" /> Replace File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setF({ ...f, downloadUrl: "", fileName: "", fileSize: "" })}
+                  className="rounded-lg p-1.5 text-muted hover:text-brand hover:bg-brand-light transition cursor-pointer"
+                  title="Remove file"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="cursor-pointer rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-500 bg-white/70 hover:bg-white p-5 text-center transition group"
+            >
+              <div className="flex flex-col items-center justify-center gap-1.5">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:scale-105 transition">
+                  {uploadingFile ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+                </span>
+                <p className="text-xs font-bold text-ink mt-1">
+                  {uploadingFile ? "Uploading product file..." : "Click to Upload Digital Product File"}
+                </p>
+                <p className="text-[11px] text-muted">
+                  Supports PDF e-books, ZIP archives, MT4/MT5 EX4/EX5 robots, MQ4/MQ5 indicators, templates
+                </p>
+              </div>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          {/* External URL alternative */}
+          <div className="pt-1">
+            <label className="text-[11px] font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1">
+              <Link2 className="h-3 w-3" />
+              <span>Or Provide External File Download Link (Google Drive, Mega, Dropbox, S3)</span>
+            </label>
+            <input
+              type="text"
+              value={f.downloadUrl}
+              onChange={(e) => setF({ ...f, downloadUrl: e.target.value })}
+              placeholder="https://drive.google.com/... or https://gamatfxacademy.com/assets/file.zip"
+              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-xs text-ink outline-none focus:border-brand font-mono"
+            />
+          </div>
+        </div>
+
+        {/* 4. Item Pricing & Free Item Setting */}
         <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -598,7 +935,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           </div>
         </div>
 
-        {/* 2. Pre-Order Configuration Setting */}
+        {/* 5. Pre-Order Configuration Setting */}
         <div className="rounded-2xl border border-purple-200/90 bg-purple-50/40 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -675,7 +1012,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Deliverable Type</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted">Deliverable Format / Label</label>
             <input
               type="text"
               value={f.deliverableType}
@@ -684,17 +1021,6 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
             />
           </div>
-        </div>
-
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Download URL or File Host Link</label>
-          <input
-            type="text"
-            value={f.downloadUrl}
-            onChange={(e) => setF({ ...f, downloadUrl: e.target.value })}
-            placeholder="https://gamatfxacademy.com/assets/downloads/file.zip"
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand font-mono text-xs"
-          />
         </div>
 
         <div>
@@ -744,10 +1070,10 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
         </div>
 
         <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2 border-t border-line">
-          <button type="button" onClick={onClose} className="btn-outline-dark !py-2.5 justify-center">
+          <button type="button" onClick={onClose} className="btn-outline-dark !py-2.5 justify-center cursor-pointer">
             Cancel
           </button>
-          <button type="submit" className="btn-primary !py-2.5 justify-center">
+          <button type="submit" className="btn-primary !py-2.5 justify-center cursor-pointer">
             {product ? "Save Changes" : "Create Product"}
           </button>
         </div>

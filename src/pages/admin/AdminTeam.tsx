@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type TeamProfile, type TeamBioSubmission } from "../../lib/store";
+import { uploadAvatar } from "../../lib/supabaseStorage";
 import {
   Users, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
-  UserRound, Zap,
+  UserRound, Zap, Upload,
 } from "lucide-react";
 
 type Draft = Partial<TeamProfile> & {
@@ -41,6 +42,22 @@ export function AdminTeam() {
   const [edit, setEdit] = useState<Draft | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<"profiles" | "submissions">("profiles");
+  const avatarFileRef = useRef<HTMLInputElement | null>(null);
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !edit) return;
+    try {
+      const res = await uploadAvatar(edit.id || "team", file);
+      if (res.ok && res.url) {
+        setEdit({ ...edit, avatar: res.url });
+      }
+    } catch {
+      // fallback handled
+    } finally {
+      if (avatarFileRef.current) avatarFileRef.current.value = "";
+    }
+  };
 
   const rows = useMemo(
     () => teamProfiles
@@ -248,7 +265,47 @@ export function AdminTeam() {
               <Field label="Role / title" value={edit.role ?? ""} onChange={(v) => setEdit({ ...edit, role: v })} />
             </div>
             <Field label="Focus line" value={edit.focus ?? ""} onChange={(v) => setEdit({ ...edit, focus: v })} ph="Fundamentals · Mentorship" />
-            <Field label="Avatar URL (optional)" value={edit.avatar ?? ""} onChange={(v) => setEdit({ ...edit, avatar: v })} />
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                Avatar / Profile Picture
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={edit.avatar ?? ""}
+                  onChange={(e) => setEdit({ ...edit, avatar: e.target.value })}
+                  placeholder="Avatar URL (https://… or upload picture)"
+                  className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarFileRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>Upload</span>
+                </button>
+                <input
+                  ref={avatarFileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarFile}
+                  className="hidden"
+                />
+              </div>
+              {edit.avatar && (
+                <div className="mt-2.5 flex items-center gap-3">
+                  <img src={edit.avatar} alt="Avatar preview" className="h-10 w-10 rounded-full object-cover border border-line shadow-xs bg-white" />
+                  <button
+                    type="button"
+                    onClick={() => setEdit({ ...edit, avatar: "" })}
+                    className="text-[11px] text-muted hover:text-brand underline cursor-pointer"
+                  >
+                    Clear avatar
+                  </button>
+                </div>
+              )}
+            </div>
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Short bio</label>
               <textarea rows={2} value={edit.bio ?? ""} onChange={(e) => setEdit({ ...edit, bio: e.target.value })}
