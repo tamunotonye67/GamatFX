@@ -6,6 +6,7 @@ import {
   type PayoutRequest,
   type AffiliateCommission,
   type AffiliateSettings,
+  getSignupReferralUrl,
 } from "../../lib/affiliate";
 import {
   Users,
@@ -23,6 +24,8 @@ import {
   ShieldCheck,
   Check,
   AlertCircle,
+  Eye,
+  Copy,
 } from "lucide-react";
 import { naira } from "../../lib/courses";
 
@@ -46,6 +49,8 @@ export function AdminAffiliates() {
   const [settingsForm, setSettingsForm] = useState<AffiliateSettings>(affiliateSettings);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [copiedDetails, setCopiedDetails] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     setSettingsForm(affiliateSettings);
@@ -293,7 +298,7 @@ export function AdminAffiliates() {
                   <th className="py-3 px-4 whitespace-nowrap">Total Earned</th>
                   <th className="py-3 px-4 whitespace-nowrap">Balance</th>
                   <th className="py-3 px-4 whitespace-nowrap">Payout Account</th>
-                  <th className="py-3 px-4 text-right whitespace-nowrap w-[120px] min-w-[120px]">Action</th>
+                  <th className="py-3 px-4 text-right whitespace-nowrap w-[140px] min-w-[140px]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -350,13 +355,13 @@ export function AdminAffiliates() {
                       <td className="py-3.5 px-4 max-w-[200px] truncate text-muted whitespace-nowrap" title={p.payoutDetails || "None"}>
                         {p.payoutDetails || "—"}
                       </td>
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap w-[120px] min-w-[120px]">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap w-[140px] min-w-[140px]">
                         <button
                           type="button"
                           onClick={() => setSelectedProfile(p)}
-                          className="px-2.5 py-1 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-100 transition cursor-pointer whitespace-nowrap"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-line text-xs font-bold text-ink hover:bg-slate-100 hover:border-brand/40 transition cursor-pointer whitespace-nowrap"
                         >
-                          View Card
+                          <Eye className="h-3.5 w-3.5 text-brand" /> View Details
                         </button>
                       </td>
                     </tr>
@@ -637,81 +642,170 @@ export function AdminAffiliates() {
         </div>
       )}
 
-      {/* Modal: View Ambassador Card */}
+      {/* Modal: Ambassador Details & Payout Inspector */}
       {selectedProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <h4 className="font-display text-base font-bold text-ink">
-                Ambassador Card: {selectedProfile.cardDisplayName || selectedProfile.userName}
-              </h4>
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-line pb-4">
+              <div>
+                <h4 className="font-display text-lg font-bold text-ink">
+                  Ambassador Details
+                </h4>
+                <p className="text-xs text-muted mt-0.5">
+                  Profile, referral performance & disbursement account
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setSelectedProfile(null)}
-                className="rounded-lg p-1 text-muted hover:bg-slate-100 hover:text-ink cursor-pointer"
+                className="rounded-lg p-1.5 text-muted hover:bg-slate-100 hover:text-ink cursor-pointer transition"
+                aria-label="Close modal"
               >
                 ✕
               </button>
             </div>
 
-            <div className="mt-4 space-y-3 text-xs">
-              <div className="rounded-2xl bg-ink p-5 text-white">
+            <div className="mt-4 space-y-4 text-xs">
+              {/* Profile Card */}
+              <div className="rounded-2xl border border-line bg-cream/50 p-4">
                 <div className="flex items-center gap-3.5">
                   {selectedProfile.avatar ? (
                     <img
                       src={selectedProfile.avatar}
                       alt=""
-                      className="h-14 w-14 shrink-0 aspect-square rounded-2xl object-cover ring-2 ring-brand/40 shadow-sm"
+                      className="h-12 w-12 shrink-0 aspect-square rounded-2xl object-cover ring-1 ring-line shadow-sm"
                     />
                   ) : (
-                    <div className="h-14 w-14 shrink-0 aspect-square rounded-2xl bg-brand text-white font-extrabold flex items-center justify-center text-base shadow-sm">
+                    <div className="h-12 w-12 shrink-0 aspect-square rounded-2xl bg-brand text-white font-extrabold flex items-center justify-center text-sm shadow-sm">
                       {(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
                     </div>
                   )}
-                  <div className="min-w-0">
-                    <h5 className="font-bold text-white text-base leading-snug truncate">
+                  <div className="min-w-0 flex-1">
+                    <h5 className="font-bold text-ink text-sm leading-snug truncate">
                       {selectedProfile.cardDisplayName || selectedProfile.userName}
                     </h5>
-                    {selectedProfile.cardDisplayName && selectedProfile.cardDisplayName !== selectedProfile.userName && (
-                      <p className="text-[11px] text-white/60 truncate">Account: {selectedProfile.userName}</p>
-                    )}
+                    <p className="text-[11px] text-muted truncate">{selectedProfile.userEmail}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                      <span className="rounded-md bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-brand-light">
+                      <span className="rounded-md bg-white border border-line px-2 py-0.5 text-[10px] font-semibold text-slate-700">
                         {selectedProfile.enrolledCourseTitle || "Forex Foundations"}
                       </span>
-                      <span className="text-[10px] text-white/50 font-mono">Code: {selectedProfile.referralCode}</span>
+                      <span className="text-[10px] text-brand font-mono font-bold">
+                        Code: {selectedProfile.referralCode}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <blockquote className="mt-3.5 italic text-white/90 border-l-2 border-brand pl-3 text-xs leading-relaxed">
-                  "{selectedProfile.personalQuote}"
-                </blockquote>
+
+                {selectedProfile.personalQuote && (
+                  <blockquote className="mt-3 italic text-ink/80 border-l-2 border-brand pl-3 text-xs leading-relaxed bg-white/70 py-1.5 rounded-r-lg">
+                    "{selectedProfile.personalQuote}"
+                  </blockquote>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <div className="rounded-xl bg-cream p-3">
-                  <p className="text-muted">Total Clicks</p>
-                  <p className="text-sm font-bold text-ink">{selectedProfile.totalClicks}</p>
+              {/* Performance Metrics Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="rounded-xl border border-line bg-white p-3 text-center">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Clicks</p>
+                  <p className="text-base font-bold text-ink mt-0.5">{selectedProfile.totalClicks}</p>
                 </div>
-                <div className="rounded-xl bg-cream p-3">
-                  <p className="text-muted">Conversions</p>
-                  <p className="text-sm font-bold text-emerald-600">{selectedProfile.totalConversions}</p>
+                <div className="rounded-xl border border-line bg-white p-3 text-center">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Signups</p>
+                  <p className="text-base font-bold text-ink mt-0.5">{selectedProfile.totalSignups}</p>
+                </div>
+                <div className="rounded-xl border border-line bg-white p-3 text-center">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Orders</p>
+                  <p className="text-base font-bold text-emerald-600 mt-0.5">{selectedProfile.totalConversions}</p>
+                </div>
+                <div className="rounded-xl border border-line bg-white p-3 text-center">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Conv. Rate</p>
+                  <p className="text-base font-bold text-brand mt-0.5">
+                    {selectedProfile.totalClicks > 0
+                      ? `${((selectedProfile.totalConversions / selectedProfile.totalClicks) * 100).toFixed(1)}%`
+                      : "0%"}
+                  </p>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-cream p-3">
-                <p className="text-muted">Disbursement Account Details</p>
-                <p className="font-mono text-xs text-ink font-semibold mt-0.5">
-                  {selectedProfile.payoutDetails || "No payout method set by student yet"}
+              {/* Earnings Breakdown */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-line bg-emerald-50/50 p-3">
+                  <p className="text-muted text-[11px] font-medium">Total Earned</p>
+                  <p className="text-base font-extrabold text-emerald-700 mt-0.5">
+                    {naira(selectedProfile.totalEarned)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-line bg-amber-50/50 p-3">
+                  <p className="text-muted text-[11px] font-medium">Available Balance</p>
+                  <p className="text-base font-extrabold text-amber-700 mt-0.5">
+                    {naira(selectedProfile.pendingBalance)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Disbursement / Bank Details Card */}
+              <div className="rounded-2xl border border-line bg-slate-50 p-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <CreditCard className="h-4 w-4 text-brand" />
+                    <p className="font-bold text-ink text-xs">Payout Destination Details</p>
+                  </div>
+                  {selectedProfile.payoutDetails && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedProfile.payoutDetails || "");
+                        setCopiedDetails(true);
+                        setTimeout(() => setCopiedDetails(false), 2000);
+                      }}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-brand hover:underline cursor-pointer"
+                    >
+                      {copiedDetails ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-600" /> Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" /> Copy
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <p className="font-mono text-xs text-ink font-semibold mt-1 bg-white p-2.5 rounded-xl border border-line select-all">
+                  {selectedProfile.payoutDetails || "No payout method configured by student yet."}
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 text-right">
+            {/* Footer Actions */}
+            <div className="mt-5 pt-3 border-t border-line flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  const url = getSignupReferralUrl(selectedProfile.referralCode);
+                  navigator.clipboard.writeText(url);
+                  setCopiedLink(true);
+                  setTimeout(() => setCopiedLink(false), 2000);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-dark cursor-pointer"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-600" /> Referral Link Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" /> Copy Referral Link
+                  </>
+                )}
+              </button>
+
               <button
                 type="button"
                 onClick={() => setSelectedProfile(null)}
-                className="rounded-xl bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+                className="rounded-xl bg-ink px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer transition"
               >
                 Close
               </button>
