@@ -1681,6 +1681,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           });
           return Array.from(map.values());
         });
+        setCourseSettings((prev) => {
+          const next = { ...prev };
+          supabaseCourses.forEach((c) => {
+            next[c.id] = { ...next[c.id], price: c.price, published: (c as any).published ?? true };
+          });
+          return next;
+        });
       }
     });
   }, []);
@@ -2108,8 +2115,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const priceOf: Ctx["priceOf"] = useCallback((courseId) => {
     const override = courseSettings[courseId]?.price;
     if (typeof override === "number") return override;
+    const managed = managedCourses.find((m) => m.id === courseId);
+    if (managed && typeof managed.price === "number") return managed.price;
     return getCourse(courseId)?.price ?? 0;
-  }, [courseSettings]);
+  }, [courseSettings, managedCourses]);
 
   /* ---------------------------- Payments ---------------------------- */
 
@@ -2644,41 +2653,61 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!c.title.trim()) return { ok: false, error: "Course title is required." };
     if (c.price < 0) return { ok: false, error: "Price cannot be negative." };
     const now = new Date().toISOString();
-    let targetCourse: ManagedCourse;
+    const existing = managedCourses.find((x) => x.id === c.id);
+    const builtIn = c.id ? getCourse(c.id) : undefined;
+    const targetCourse: ManagedCourse = existing
+      ? {
+          ...existing,
+          ...c,
+          title: c.title.trim(),
+          short: c.short.trim(),
+          desc: c.desc.trim(),
+          updatedAt: now,
+        }
+      : {
+          tag: builtIn?.tag ?? "Fundamental",
+          level: builtIn?.level ?? "All levels",
+          duration: builtIn?.duration ?? "Self-paced",
+          poster: builtIn?.poster ?? "/images/about-hero.jpg",
+          video: builtIn?.video ?? "",
+          outcomes: builtIn?.outcomes ?? [],
+          requirements: builtIn?.requirements ?? [],
+          modules: builtIn?.modules ?? [],
+          ...c,
+          id: c.id || uid("mc"),
+          title: c.title.trim(),
+          short: c.short.trim(),
+          desc: c.desc.trim(),
+          createdAt: now,
+          updatedAt: now,
+        };
 
     setManagedCourses((prev) => {
-      if (c.id && prev.some((x) => x.id === c.id)) {
-        return prev.map((x) => {
-          if (x.id === c.id) {
-            targetCourse = { ...x, ...c, title: c.title.trim(), short: c.short.trim(), desc: c.desc.trim(), updatedAt: now };
-            return targetCourse;
-          }
-          return x;
-        });
+      const idx = prev.findIndex((x) => x.id === targetCourse.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = targetCourse;
+        return next;
       }
-      targetCourse = {
-        ...c,
-        id: c.id || uid("mc"),
-        title: c.title.trim(),
-        short: c.short.trim(),
-        desc: c.desc.trim(),
-        outcomes: c.outcomes ?? [],
-        requirements: c.requirements ?? [],
-        modules: c.modules ?? [],
-        icon: c.icon,
-        iconColor: c.iconColor,
-        createdAt: now,
-        updatedAt: now,
-      };
       return [targetCourse, ...prev];
     });
 
+    setCourseSettings((p) => ({
+      ...p,
+      [targetCourse.id]: {
+        ...p[targetCourse.id],
+        price: targetCourse.price,
+        published: targetCourse.published !== false,
+      },
+    }));
+
     // Save to Supabase DB asynchronously
-    if (targetCourse!) {
-      saveSupabaseCourse(targetCourse);
-    }
+    saveSupabaseCourse(targetCourse).catch((err) => {
+      console.error("Failed to save course to Supabase:", err);
+    });
+
     return { ok: true };
-  }, []);
+  }, [managedCourses]);
 
   const deleteManagedCourse: Ctx["deleteManagedCourse"] = useCallback((id) => {
     setManagedCourses((p) => p.filter((x) => x.id !== id));
@@ -3610,9 +3639,61 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteSupabaseEvent(id);
     },
     setRegistrationStatus: (id, status) => setRegistrations((p) => p.map((r) => (r.id === id ? { ...r, status } : r))),
-    deleteRegistration: (id) => setRegistrations((p) => p.filter((r) => r.id !== id)),
-    setCourseSetting: (courseId, patch) =>
-      setCourseSettings((p) => ({ ...p, [courseId]: { ...p[courseId], ...patch } })),
+    setCourseSetting: (courseId, patch) => {
+      setCourseSettings((p) => ({ ...p, [courseId]: { ...p[courseId], ...patch } }));
+      if (typeof patch.price === "number") {
+        setManagedCourses((prev) => {
+          const existing = prev.find((x) => x.id === courseId);
+          if (existing) {
+            const updated: ManagedCourse = {
+              ...existing,
+              price: patch.price!,
+              published: patch.published !== undefined ? patch.published : existing.published,
+              updatedAt: new Date().toISOString(),
+            };
+            saveSupabaseCourse(updated).catch((err) => console.error("Error syncing course price to Supabase:", err));
+            return prev.map((x) => (x.id === courseId ? updated : x));
+          } else {
+            const builtIn = getCourse(courseId);
+            if (builtIn) {
+              const now = new Date().toISOString();
+              const created: ManagedCourse = {
+                id: builtIn.id,
+                title: builtIn.title,
+                short: builtIn.short,
+                desc: builtIn.desc,
+                tag: builtIn.tag,
+                level: builtIn.level,
+                duration: builtIn.duration,
+                price: patch.price!,
+                oldPrice: builtIn.oldPrice,
+                poster: builtIn.poster,
+                video: builtIn.video,
+                outcomes: builtIn.outcomes,
+                requirements: builtIn.requirements,
+                modules: builtIn.modules,
+                published: patch.published !== undefined ? patch.published : true,
+                createdAt: now,
+                updatedAt: now,
+              };
+              saveSupabaseCourse(created).catch((err) => console.error("Error syncing course price to Supabase:", err));
+              return [created, ...prev];
+            }
+            return prev;
+          }
+        });
+      } else if (patch.published !== undefined) {
+        setManagedCourses((prev) => {
+          const existing = prev.find((x) => x.id === courseId);
+          if (existing) {
+            const updated = { ...existing, published: patch.published!, updatedAt: new Date().toISOString() };
+            saveSupabaseCourse(updated).catch((err) => console.error("Error syncing course status to Supabase:", err));
+            return prev.map((x) => (x.id === courseId ? updated : x));
+          }
+          return prev;
+        });
+      }
+    },
     issueCertificate: (userId, courseId) => {
       // 1. Ensure user has enrollment with all lessons marked completed
       const c = getCourse(courseId) || (managedCourses.find((m) => m.id === courseId) ? asCourse(managedCourses.find((m) => m.id === courseId)!) : undefined);

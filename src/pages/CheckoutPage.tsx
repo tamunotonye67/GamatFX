@@ -16,9 +16,9 @@ export default function CheckoutPage({ id }: { id: string }) {
   const { user, isAuthed, enroll, isEnrolled, priceOf, recordPayment, managedCourses, validateCoupon, affiliateSettings, payCertificateFee, isCertificateUnlocked } = useStore();
   const isCertCheckout = id.startsWith("cert-");
   const targetId = isCertCheckout ? id.replace("cert-", "") : id;
-  const builtIn = getCourse(targetId);
   const managed = managedCourses.find((c) => (c.id === targetId || c.id === id) && c.published);
-  const course = builtIn ?? (managed ? asCourse(managed) : undefined);
+  const builtIn = getCourse(targetId);
+  const course = (managed ? asCourse(managed) : undefined) ?? builtIn;
   const isMentorship = course?.tag === "Mentorship" || course?.id.startsWith("mentorship-");
   const [selectedMethod, setSelectedMethod] = useState<Method>("card");
   const [processing, setProcessing] = useState(false);
@@ -98,7 +98,7 @@ export default function CheckoutPage({ id }: { id: string }) {
     );
   }
 
-  const base = isCertCheckout ? 10000 : (managed ? managed.price : priceOf(course.id));
+  const base = isCertCheckout ? 10000 : priceOf(course.id);
   const discountAmt = Math.round(base * discount);
   const discountedSubtotal = Math.max(0, base - discountAmt);
   const vat = isCertCheckout ? 0 : Math.round(discountedSubtotal * 0.075);

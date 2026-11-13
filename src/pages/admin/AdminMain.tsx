@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { useStore, type Account } from "../../lib/store";
-import { COURSES, getCourse, totalLessons, naira, compactNaira } from "../../lib/courses";
+import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse, type Course } from "../../lib/courses";
 import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { navigate } from "../../lib/router";
 import {
@@ -820,9 +820,27 @@ function StudentForm({ account, onDone }: { account?: Account; onDone: () => voi
 /* =============================== Courses =============================== */
 
 export function AdminCourses() {
-  const { admin, priceOf, courseSettings } = useStore();
+  const { admin, priceOf, courseSettings, managedCourses } = useStore();
   const [editing, setEditing] = useState<string | null>(null);
   const [price, setPrice] = useState(0);
+
+  const allCourses = useMemo(() => {
+    const list: (Course & { published?: boolean })[] = [];
+    COURSES.forEach((c) => {
+      const mc = managedCourses.find((m) => m.id === c.id);
+      if (mc) {
+        list.push(asCourse(mc));
+      } else {
+        list.push(c);
+      }
+    });
+    managedCourses.forEach((mc) => {
+      if (!list.some((x) => x.id === mc.id)) {
+        list.push(asCourse(mc));
+      }
+    });
+    return list;
+  }, [managedCourses]);
 
   const enrollCount = (id: string) => admin.enrollments.filter((e) => e.courseId === id).length;
   const revenue = (id: string) => admin.payments.filter((p) => p.courseId === id && p.status === "paid").reduce((s, p) => s + p.amount, 0);
@@ -830,7 +848,7 @@ export function AdminCourses() {
   return (
     <AdminShell title="Courses" subtitle="Manage pricing, visibility and see performance per course."
       action={
-        <button onClick={() => exportCsv("courses.csv", COURSES.map(c => ({
+        <button onClick={() => exportCsv("courses.csv", allCourses.map(c => ({
           Title: c.title, Tag: c.tag, Level: c.level, Price: priceOf(c.id),
           Lessons: totalLessons(c), Enrollments: enrollCount(c.id), Revenue: revenue(c.id),
           Published: courseSettings[c.id]?.published !== false ? "Yes" : "No",
@@ -839,7 +857,7 @@ export function AdminCourses() {
         </button>
       }>
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
-        <StatCard icon={BookOpen} label="Total courses" value={COURSES.length} />
+        <StatCard icon={BookOpen} label="Total courses" value={allCourses.length} />
         <StatCard icon={GraduationCap} label="Total enrollments" value={admin.enrollments.length} />
         <StatCard
           icon={CreditCard}
@@ -847,7 +865,7 @@ export function AdminCourses() {
           value={compactNaira(admin.payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0))}
           fullValue={naira(admin.payments.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0))}
         />
-        <StatCard icon={ShieldCheck} label="Published" value={COURSES.filter(c => courseSettings[c.id]?.published !== false).length} />
+        <StatCard icon={ShieldCheck} label="Published" value={allCourses.filter(c => courseSettings[c.id]?.published !== false).length} />
       </div>
 
       <Card className="mt-6 overflow-hidden">
@@ -866,7 +884,7 @@ export function AdminCourses() {
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {COURSES.map((c) => {
+              {allCourses.map((c) => {
                 const published = courseSettings[c.id]?.published !== false;
                 return (
                   <tr key={c.id} className="transition hover:bg-cream/60">
@@ -904,7 +922,7 @@ export function AdminCourses() {
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Update course price">
         <div className="space-y-4">
-          <p className="text-sm text-muted">{getCourse(editing ?? "")?.title}</p>
+          <p className="text-sm text-muted">{allCourses.find((c) => c.id === editing)?.title || getCourse(editing ?? "")?.title}</p>
           <Field label="Price (₦)" type="number" value={price} onChange={(v) => setPrice(Number(v))} />
           <div className="flex justify-end gap-3 pt-2">
             <button onClick={() => setEditing(null)} className="btn-outline-dark !py-2.5">Cancel</button>

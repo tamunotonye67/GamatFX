@@ -10,12 +10,12 @@ import {
 
 export default function CourseDetailPage({ id }: { id: string }) {
   const { isAuthed, isEnrolled, progressOf, priceOf, managedCourses, admin } = useStore();
-  const builtIn = getCourse(id);
   const managed = managedCourses.find((c) => c.id === id && c.published);
-  const course = builtIn ?? (managed ? asCourse({
+  const builtIn = getCourse(id);
+  const course = (managed ? asCourse({
     ...managed,
     enrolled: admin.enrollments.filter((e) => e.courseId === id).length,
-  }) : undefined);
+  }) : undefined) ?? builtIn;
 
   const [openModule, setOpenModule] = useState<number>(0);
   const [videoModal, setVideoModal] = useState<{ title: string; videoUrl: string } | null>(null);
@@ -33,7 +33,7 @@ export default function CourseDetailPage({ id }: { id: string }) {
   const enrolled = isEnrolled(course.id);
   const progress = progressOf(course.id);
   const lessons = totalLessons(course);
-  const displayPrice = managed ? managed.price : priceOf(course.id);
+  const displayPrice = priceOf(course.id);
 
   const onEnroll = () => {
     if (!isAuthed) { navigate(`/signup?next=/checkout/${course.id}`); return; }

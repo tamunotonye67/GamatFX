@@ -31,7 +31,7 @@ function Catalogue() {
   }, [active, courseSettings]);
 
   const customShown = useMemo(() => {
-    const live = managedCourses.filter((c) => c.published);
+    const live = managedCourses.filter((c) => c.published && !COURSES.some((b) => b.id === c.id));
     return active === "All" ? live : live.filter((c) => c.tag === active);
   }, [active, managedCourses]);
 
@@ -210,7 +210,7 @@ function Catalogue() {
                         <div>
                           <p className="text-xs text-muted">{owned ? "Owned" : "One-time"}</p>
                           <p className="font-display text-xl font-extrabold text-ink">
-                            {owned ? "Enrolled" : naira(c.price)}
+                            {owned ? "Enrolled" : naira(priceOf(c.id))}
                           </p>
                         </div>
                         <button
