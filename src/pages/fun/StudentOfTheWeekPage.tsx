@@ -136,36 +136,57 @@ export function StudentOfTheWeekPage() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {history.map((item) => (
-              <div key={item.id} className="group relative rounded-3xl border border-line bg-white p-6 shadow-sm transition hover:shadow-xl hover:-translate-y-1">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={item.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                    alt={item.studentName}
-                    className="h-16 w-16 rounded-2xl object-cover border-2 border-brand/20 shadow-md"
-                  />
-                  <div>
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
-                      <Calendar className="h-3 w-3" /> {item.weekPeriod}
-                    </span>
-                    <h3 className="text-lg font-bold text-ink mt-1">{item.studentName}</h3>
-                    <p className="text-xs text-muted font-medium line-clamp-1">{item.track}</p>
+              <div
+                key={item.id}
+                className="group relative flex flex-col rounded-3xl border border-line bg-white p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition duration-300 hover:shadow-xl hover:-translate-y-1"
+              >
+                {/* 1. Full-width top date banner & status badge */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-3 mb-4">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200/60 px-3 py-1 text-xs font-bold text-amber-900">
+                    <Calendar className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                    <span>{item.weekPeriod}</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
+                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Past Champion
+                  </span>
+                </div>
+
+                {/* 2. Student Avatar + Name + Track */}
+                <div className="flex items-center gap-3.5">
+                  <div className="relative shrink-0">
+                    <img
+                      src={item.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                      alt={item.studentName}
+                      className="h-14 w-14 rounded-2xl object-cover border border-line shadow-sm"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-extrabold text-ink truncate leading-tight">{item.studentName}</h3>
+                    <p className="mt-0.5 text-xs font-semibold text-brand truncate">{item.track}</p>
                   </div>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-2 text-center text-xs">
-                  <div className="rounded-xl bg-cream p-2">
-                    <span className="block text-[10px] uppercase font-bold text-muted">Win Rate</span>
-                    <span className="font-extrabold text-brand">{item.winRate}</span>
+                {/* 3. Performance Metrics Grid (Win Rate, Gain, Quiz XP) */}
+                <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-2xl bg-cream/70 border border-line/50 p-2.5">
+                    <span className="block text-[10px] uppercase font-bold tracking-wider text-muted">Win Rate</span>
+                    <span className="text-sm font-black text-brand mt-0.5 block">{item.winRate}</span>
                   </div>
-                  <div className="rounded-xl bg-cream p-2">
-                    <span className="block text-[10px] uppercase font-bold text-muted">Quiz XP</span>
-                    <span className="font-extrabold text-ink">{item.quizXP}</span>
+                  <div className="rounded-2xl bg-cream/70 border border-line/50 p-2.5">
+                    <span className="block text-[10px] uppercase font-bold tracking-wider text-muted">Gain</span>
+                    <span className="text-sm font-black text-emerald-600 mt-0.5 block">{item.weeklyReturn || "+20%"}</span>
+                  </div>
+                  <div className="rounded-2xl bg-cream/70 border border-line/50 p-2.5">
+                    <span className="block text-[10px] uppercase font-bold tracking-wider text-muted">Quiz XP</span>
+                    <span className="text-sm font-black text-ink mt-0.5 block">{item.quizXP}</span>
                   </div>
                 </div>
 
-                <p className="mt-4 text-xs text-muted leading-relaxed line-clamp-3">
-                  "{item.performanceReview}"
-                </p>
+                {/* 4. Performance Review Quote */}
+                <div className="mt-4 flex-1 rounded-2xl bg-slate-50 border border-slate-100 p-3.5 text-xs leading-relaxed text-slate-700 italic flex items-start gap-2">
+                  <Quote className="h-4 w-4 shrink-0 text-brand/50 not-italic mt-0.5" />
+                  <p className="line-clamp-3">"{item.performanceReview}"</p>
+                </div>
               </div>
             ))}
           </div>
