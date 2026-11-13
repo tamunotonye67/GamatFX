@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { AdminShell, Card, Field } from "./AdminShell";
+import { AdminShell, Card, Field, Select } from "./AdminShell";
 import { useStore, type StudentOfTheWeek, type Account, type Enrollment, type QuizAttempt, type CombatStats } from "../../lib/store";
-import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Sparkles, RefreshCw, Award, Flame } from "lucide-react";
+import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Award, Flame, TrendingUp, ShieldCheck, RefreshCw } from "lucide-react";
 import { uploadAvatar } from "../../lib/supabaseStorage";
 import { getCourse } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
@@ -333,52 +333,20 @@ export function AdminStudentOfTheWeek() {
             )}
 
             <form onSubmit={submit} className="space-y-4">
-              {/* Quick Account Selector */}
-              <div className="rounded-2xl border border-brand/20 bg-brand/5 p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-bold uppercase tracking-wide text-brand">
-                    Quick Select Registered Student
-                  </label>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                    <Sparkles className="h-3 w-3 text-amber-500" /> Auto-fills Win Rate, XP, Rank & Review
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <select
-                    value={form.studentId ?? ""}
-                    onChange={(e) => handleSelectStudent(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-medium outline-none focus:border-brand shadow-sm"
-                  >
-                    <option value="">-- Choose student (auto-fills all metrics) --</option>
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.firstName} {a.lastName} ({a.email})
-                      </option>
-                    ))}
-                  </select>
-                  {form.studentId && (
-                    <button
-                      type="button"
-                      title="Re-calculate auto metrics"
-                      onClick={() => handleSelectStudent(form.studentId!)}
-                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-bold text-ink shadow-sm hover:border-brand hover:text-brand"
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" /> Re-calc
-                    </button>
-                  )}
-                </div>
-                {form.studentId && (
-                  <button
-                    type="button"
-                    onClick={() => handleSelectStudent(form.studentId!)}
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/10 py-2.5 text-xs font-bold text-brand shadow-xs transition hover:bg-brand hover:text-white"
-                  >
-                    <Sparkles className="h-4 w-4" /> Auto-Generate & Refresh Stats for this Student
-                  </button>
-                )}
-                <p className="mt-2 text-[11px] text-muted leading-relaxed">
-                  Selecting any student automatically detects their course track, calculates their win rate, quiz XP, market combat tier, and writes a personalized performance review. You can still customize any field below.
-                </p>
+              {/* Select Student */}
+              <div>
+                <Select
+                  label="Select Registered Student"
+                  value={form.studentId ?? ""}
+                  onChange={(val) => handleSelectStudent(val)}
+                  options={[
+                    { v: "", l: "-- Choose student (auto-fills stats & review) --" },
+                    ...accounts.map((a) => ({
+                      v: a.id,
+                      l: `${a.firstName} ${a.lastName} (${a.email})`,
+                    })),
+                  ]}
+                />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -511,59 +479,80 @@ export function AdminStudentOfTheWeek() {
           </Card>
         </div>
 
-        {/* Live Preview Card */}
+        {/* Live Website Preview */}
         <div className="lg:col-span-5">
-          <Card className="p-6 bg-slate-950 text-white border-brand/30">
-            <div className="flex items-center gap-2 mb-4 text-amber-400 font-bold text-xs uppercase tracking-wider">
-              <Zap className="h-4 w-4" /> Live Public Card Preview
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-line">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
+                <Eye className="h-4 w-4 text-brand" /> Website Card Preview
+              </span>
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Live Layout
+              </span>
             </div>
 
-            <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/10 shadow-xl">
-              <img
-                src={form.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+            {/* Exact Website Card Preview */}
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121316] p-5 text-white shadow-xl">
+              <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-slate-900 mb-4">
+                <img
+                  src={form.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                  alt={form.studentName || "Preview"}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#121316] via-transparent to-transparent" />
 
-              <div className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-3 py-0.5 text-[11px] font-black uppercase text-slate-950">
-                <Star className="h-3 w-3 fill-slate-950" /> Champion
+                <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-[11px] font-black uppercase text-slate-950 shadow-md">
+                  <Star className="h-3 w-3 fill-slate-950" /> Weekly Champion
+                </div>
+
+                <div className="absolute bottom-3 left-3 right-3 text-white">
+                  <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">{form.weekPeriod}</p>
+                  <h3 className="text-lg font-black">{form.studentName || "Student Name"}</h3>
+                  <p className="text-xs text-slate-300 font-medium">{form.track}</p>
+                </div>
               </div>
 
-              <div className="absolute bottom-3 left-3 right-3 text-white">
-                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">{form.weekPeriod}</p>
-                <h3 className="text-xl font-black">{form.studentName || "Student Name"}</h3>
-                <p className="text-xs text-slate-300 font-medium">{form.track}</p>
+              {/* Stats Grid matching website */}
+              <div className="grid grid-cols-2 gap-2 text-center mb-4">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
+                  <div className="flex items-center justify-center gap-1 text-amber-400 text-[10px] font-bold uppercase mb-0.5">
+                    <TrendingUp className="h-3 w-3" /> Win Rate
+                  </div>
+                  <span className="text-base font-black text-white">{form.winRate}</span>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
+                  <div className="flex items-center justify-center gap-1 text-emerald-400 text-[10px] font-bold uppercase mb-0.5">
+                    <Flame className="h-3 w-3" /> Return
+                  </div>
+                  <span className="text-base font-black text-white">{form.weeklyReturn}</span>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
+                  <div className="flex items-center justify-center gap-1 text-rose-400 text-[10px] font-bold uppercase mb-0.5">
+                    <Zap className="h-3 w-3" /> Quiz XP
+                  </div>
+                  <span className="text-base font-black text-white">{form.quizXP}</span>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
+                  <div className="flex items-center justify-center gap-1 text-purple-400 text-[10px] font-bold uppercase mb-0.5">
+                    <Trophy className="h-3 w-3" /> Rank
+                  </div>
+                  <span className="text-xs font-bold text-white block truncate">{form.combatRank}</span>
+                </div>
               </div>
+
+              {/* Mentor Evaluation matching website */}
+              {form.performanceReview && (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-100/90 leading-relaxed">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-1 text-[11px]">
+                    <ShieldCheck className="h-3.5 w-3.5" /> Mentor Evaluation
+                  </div>
+                  <p className="line-clamp-3">{form.performanceReview}</p>
+                </div>
+              )}
             </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-xl bg-white/5 p-2.5 border border-white/10 text-center">
-                <span className="block text-[10px] uppercase font-bold text-slate-400">Win Rate</span>
-                <span className="font-extrabold text-amber-400 text-sm">{form.winRate}</span>
-              </div>
-              <div className="rounded-xl bg-white/5 p-2.5 border border-white/10 text-center">
-                <span className="block text-[10px] uppercase font-bold text-slate-400">Weekly Gain</span>
-                <span className="font-extrabold text-emerald-400 text-sm">{form.weeklyReturn}</span>
-              </div>
-              <div className="rounded-xl bg-white/5 p-2.5 border border-white/10 text-center">
-                <span className="block text-[10px] uppercase font-bold text-slate-400">Quiz XP</span>
-                <span className="font-extrabold text-brand-light text-sm">{form.quizXP}</span>
-              </div>
-              <div className="rounded-xl bg-white/5 p-2.5 border border-white/10 text-center">
-                <span className="block text-[10px] uppercase font-bold text-slate-400">Combat Rank</span>
-                <span className="font-extrabold text-rose-400 text-xs truncate block">{form.combatRank}</span>
-              </div>
-            </div>
-
-            {form.performanceReview && (
-              <div className="mt-4 rounded-xl bg-white/5 p-3.5 border border-white/10 text-xs text-slate-300">
-                <p className="font-bold text-white mb-1 flex items-center gap-1.5">
-                  <Award className="h-3.5 w-3.5 text-amber-400" /> Performance Spotlight
-                </p>
-                <p className="leading-relaxed line-clamp-3 text-slate-300/90">{form.performanceReview}</p>
-              </div>
-            )}
           </Card>
         </div>
       </div>
