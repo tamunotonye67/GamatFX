@@ -1,48 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminShell, Card, Field, Select } from "./AdminShell";
-import { useStore, type StudentOfTheWeek, type Account, type Enrollment, type Payment, type QuizAttempt, type CombatStats } from "../../lib/store";
+import { useStore, type StudentOfTheWeek, type Account, type QuizAttempt, type CombatStats } from "../../lib/store";
 import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck } from "lucide-react";
 import { uploadAvatar } from "../../lib/supabaseStorage";
-import { getCourse } from "../../lib/courses";
+import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
 
 function computeStudentMetrics(
   acc: Account,
-  enrollments: Enrollment[] = [],
-  payments: Payment[] = [],
   allAttempts: QuizAttempt[] = [],
-  combatByUser: Record<string, CombatStats> = {},
-  managedCourses: any[] = []
+  combatByUser: Record<string, CombatStats> = {}
 ): Partial<StudentOfTheWeek> {
-  // 1. Course / Track: check real enrollments or completed payments
-  const userEnrs = enrollments.filter((e) => e.userId === acc.id);
-  const enrolledTitles = userEnrs
-    .map((e) => {
-      const mc = managedCourses.find((m) => m.id === e.courseId);
-      if (mc) return mc.title;
-      const bc = getCourse(e.courseId);
-      return bc ? bc.title : "";
-    })
-    .filter(Boolean);
-
-  let track = enrolledTitles[enrolledTitles.length - 1] || enrolledTitles[0] || "";
-  if (!track) {
-    const userPayment = payments.find(
-      (p) => (p.userId === acc.id || p.userEmail?.toLowerCase() === acc.email?.toLowerCase()) && p.status === "paid" && p.courseTitle
-    );
-    if (userPayment) {
-      track = userPayment.courseTitle;
-    }
-  }
-  if (!track) {
-    track = "Price Action Mastery";
-  }
-
-  // 2. Real stats lookup
+  // 1. Real stats lookup
   const combatStats = combatByUser[acc.id];
   const userAttempts = allAttempts.filter((a) => a.userId === acc.id);
 
-  // 3. Real Win Rate (0.0% if student has not played combat or taken quizzes yet)
+  // 2. Real Win Rate (0.0% if student has not played combat or taken quizzes yet)
   let winRate = "0.0%";
   if (combatStats && (combatStats.wins + combatStats.losses) > 0) {
     const rawRate = (combatStats.wins / (combatStats.wins + combatStats.losses)) * 100;
@@ -53,19 +26,19 @@ function computeStudentMetrics(
     winRate = `${avgScore.toFixed(1)}%`;
   }
 
-  // 4. Real Quiz & Combat XP (0 XP if student has not earned any yet)
+  // 3. Real Quiz & Combat XP (0 XP if student has not earned any yet)
   const quizPoints = userAttempts.reduce((s, a) => s + (a.passed ? a.score * 10 : 0), 0);
   const realXp = (combatStats?.xp ?? 0) + quizPoints;
   const quizXP = `${realXp.toLocaleString()} XP`;
 
-  // 5. Market Combat Rank based directly on real XP (Level 1 Market Rookie if 0 XP)
+  // 4. Market Combat Rank based directly on real XP (Level 1 Market Rookie if 0 XP)
   const r = rankForXp(realXp);
   const combatRank = `${r.title} (Tier ${r.level})`;
 
-  // 6. Real-time Weekly Return (defaults to +0.0% unless specified)
+  // 5. Real-time Weekly Return (defaults to +0.0% unless specified)
   const weeklyReturn = "+0.0% Return";
 
-  // 7. Week Period (Current active Monday - Sunday)
+  // 6. Week Period (Current active Monday - Sunday)
   const now = new Date();
   const day = now.getDay();
   const diffToMon = now.getDate() - day + (day === 0 ? -6 : 1);
@@ -77,20 +50,19 @@ function computeStudentMetrics(
   const sunStr = sun.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const weekPeriod = `Week of ${monStr} – ${sunStr}`;
 
-  // 8. Photo / Avatar: Real avatar from user account if available
+  // 7. Photo / Avatar: Real avatar from user account if available
   const avatar = acc.avatar?.trim() || "";
 
   return {
     studentId: acc.id,
     studentName: `${acc.firstName} ${acc.lastName}`.trim(),
     avatar,
-    track,
     weekPeriod,
     winRate,
     quizXP,
     combatRank,
     weeklyReturn,
-    // Performance review and mentor quote are intentionally omitted so they are entered manually
+    // Course track, performance review and mentor quote are intentionally manual
   };
 }
 
@@ -99,12 +71,19 @@ export function AdminStudentOfTheWeek() {
   const accounts = admin?.accounts ?? [];
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  const allCourseOptions = Array.from(
+    new Set([
+      ...COURSES.map((c) => c.title),
+      ...(managedCourses ?? []).map((m: any) => m.title).filter(Boolean),
+    ])
+  );
+
   const [form, setForm] = useState<Partial<StudentOfTheWeek>>({
     id: studentOfTheWeek.id || "sotw_active",
     studentId: studentOfTheWeek.studentId ?? "",
     studentName: studentOfTheWeek.studentName ?? "",
     avatar: studentOfTheWeek.avatar ?? "",
-    track: studentOfTheWeek.track ?? "Price Action Mastery",
+    track: studentOfTheWeek.track ?? "",
     weekPeriod: studentOfTheWeek.weekPeriod ?? `Week of ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}, 2026`,
     winRate: studentOfTheWeek.winRate ?? "0.0%",
     quizXP: studentOfTheWeek.quizXP ?? "0 XP",
@@ -127,7 +106,7 @@ export function AdminStudentOfTheWeek() {
         studentId: prev.studentId || studentOfTheWeek.studentId || "",
         studentName: prev.studentName || studentOfTheWeek.studentName || "",
         avatar: prev.avatar || studentOfTheWeek.avatar || "",
-        track: prev.track || studentOfTheWeek.track || "Price Action Mastery",
+        track: prev.track || studentOfTheWeek.track || "",
         weekPeriod: prev.weekPeriod || studentOfTheWeek.weekPeriod || "",
         winRate: prev.winRate || studentOfTheWeek.winRate || "0.0%",
         quizXP: prev.quizXP || studentOfTheWeek.quizXP || "0 XP",
@@ -157,17 +136,19 @@ export function AdminStudentOfTheWeek() {
 
     const metrics = computeStudentMetrics(
       acc,
-      admin?.enrollments ?? [],
-      admin?.payments ?? [],
       admin?.attempts ?? [],
-      admin?.combatByUser ?? {},
-      managedCourses ?? []
+      admin?.combatByUser ?? {}
     );
 
     setForm((prev) => {
-      // If selecting the student who is currently active or already in form, keep their typed review and quote
+      // If selecting the student who is currently active or already in form, keep their typed values
       const isCurrentSotw = studentOfTheWeek.studentId === acc.id;
       const isCurrentForm = prev.studentId === acc.id;
+
+      // Keep whatever track the admin has already set or chosen
+      const track = isCurrentSotw
+        ? studentOfTheWeek.track || prev.track || ""
+        : prev.track || "";
 
       const performanceReview = isCurrentSotw
         ? studentOfTheWeek.performanceReview || ""
@@ -184,6 +165,7 @@ export function AdminStudentOfTheWeek() {
       return {
         ...prev,
         ...metrics,
+        track,
         id: prev.id || studentOfTheWeek.id || "sotw_active",
         avatar: metrics.avatar || (isCurrentSotw ? studentOfTheWeek.avatar : "") || prev.avatar || "",
         performanceReview,
@@ -194,7 +176,7 @@ export function AdminStudentOfTheWeek() {
     if (announce) {
       setMsg({
         type: "success",
-        text: `Loaded live real-time stats for ${acc.firstName} ${acc.lastName} (${metrics.quizXP}, ${metrics.combatRank}). Write your custom review and mentor quote below.`,
+        text: `Loaded real-time stats for ${acc.firstName} ${acc.lastName} (${metrics.quizXP}, ${metrics.combatRank}). Set the course track and write your review below.`,
       });
     }
   };
@@ -330,12 +312,43 @@ export function AdminStudentOfTheWeek() {
                   onChange={(v) => setForm({ ...form, studentName: v })}
                   ph="e.g. Kelechi Okafor"
                 />
-                <Field
-                  label="Course / Track *"
-                  value={form.track ?? ""}
-                  onChange={(v) => setForm({ ...form, track: v })}
-                  ph="e.g. Price Action Mastery"
-                />
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                    Course / Track *
+                  </label>
+                  <input
+                    type="text"
+                    list="course-track-suggestions"
+                    value={form.track ?? ""}
+                    onChange={(e) => setForm({ ...form, track: e.target.value })}
+                    placeholder="Type or pick course track..."
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
+                  />
+                  <datalist id="course-track-suggestions">
+                    {allCourseOptions.map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+
+              {/* Quick Course Suggestions */}
+              <div className="flex flex-wrap items-center gap-1.5 -mt-2">
+                <span className="text-[11px] font-semibold text-muted">Quick Pick:</span>
+                {allCourseOptions.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setForm({ ...form, track: c })}
+                    className={`text-[11px] px-2.5 py-0.5 rounded-full border transition ${
+                      form.track === c
+                        ? "bg-brand text-white border-brand font-bold shadow-sm"
+                        : "bg-cream text-ink/75 border-line hover:border-brand hover:text-brand"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
               </div>
 
               <Field
