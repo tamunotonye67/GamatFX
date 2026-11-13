@@ -3,6 +3,12 @@ import { useReveal } from "../lib/useReveal";
 import { Trophy, TrendingUp, Zap, Star, ShieldCheck, ArrowRight, Flame } from "lucide-react";
 import { navigate } from "../lib/router";
 
+function formatReturn(val?: string): string {
+  if (!val) return "+0.0%";
+  const cleaned = val.replace(/\s*Return/i, "").trim();
+  return cleaned || "+0.0%";
+}
+
 function formatTier(rank?: string): string {
   if (!rank) return "Tier 1";
   const match = rank.match(/Tier\s*(\d+)/i);
@@ -87,7 +93,7 @@ export default function StudentOfTheWeekSection() {
                   <div className="flex items-center justify-center gap-1 text-emerald-400 text-[10px] font-bold uppercase mb-0.5">
                     <Flame className="h-3.5 w-3.5" /> Return
                   </div>
-                  <span className="text-lg font-black text-white">{sotw.weeklyReturn}</span>
+                  <span className="text-lg font-black text-white">{formatReturn(sotw.weeklyReturn)}</span>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">

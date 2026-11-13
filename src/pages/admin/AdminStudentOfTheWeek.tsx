@@ -6,6 +6,12 @@ import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
 
+function formatReturn(val?: string): string {
+  if (!val) return "+0.0%";
+  const cleaned = val.replace(/\s*Return/i, "").trim();
+  return cleaned || "+0.0%";
+}
+
 function formatTier(rank?: string): string {
   if (!rank) return "Tier 1";
   const match = rank.match(/Tier\s*(\d+)/i);
@@ -45,7 +51,7 @@ function computeStudentMetrics(
   const combatRank = `${r.title} (Tier ${r.level})`;
 
   // 5. Real-time Weekly Return (defaults to +0.0% unless specified)
-  const weeklyReturn = "+0.0% Return";
+  const weeklyReturn = "+0.0%";
 
   // 6. Week Period (Current active Monday - Sunday)
   const now = new Date();
@@ -97,7 +103,7 @@ export function AdminStudentOfTheWeek() {
     winRate: studentOfTheWeek.winRate ?? "0.0%",
     quizXP: studentOfTheWeek.quizXP ?? "0 XP",
     combatRank: studentOfTheWeek.combatRank ?? "Market Rookie (Tier 1)",
-    weeklyReturn: studentOfTheWeek.weeklyReturn ?? "+0.0% Return",
+    weeklyReturn: studentOfTheWeek.weeklyReturn ? formatReturn(studentOfTheWeek.weeklyReturn) : "+0.0%",
     performanceReview: studentOfTheWeek.performanceReview ?? "",
     mentorQuote: studentOfTheWeek.mentorQuote ?? "",
   });
@@ -120,7 +126,7 @@ export function AdminStudentOfTheWeek() {
         winRate: prev.winRate || studentOfTheWeek.winRate || "0.0%",
         quizXP: prev.quizXP || studentOfTheWeek.quizXP || "0 XP",
         combatRank: prev.combatRank || studentOfTheWeek.combatRank || "Market Rookie (Tier 1)",
-        weeklyReturn: prev.weeklyReturn || studentOfTheWeek.weeklyReturn || "+0.0% Return",
+        weeklyReturn: prev.weeklyReturn ? formatReturn(prev.weeklyReturn) : (studentOfTheWeek.weeklyReturn ? formatReturn(studentOfTheWeek.weeklyReturn) : "+0.0%"),
         performanceReview: prev.performanceReview || studentOfTheWeek.performanceReview || "",
         mentorQuote: prev.mentorQuote || studentOfTheWeek.mentorQuote || "",
       }));
@@ -243,12 +249,12 @@ export function AdminStudentOfTheWeek() {
       studentId: form.studentId,
       studentName: form.studentName ?? "",
       avatar: form.avatar,
-      track: form.track ?? "Price Action Mastery",
+      track: form.track?.trim() || "",
       weekPeriod: form.weekPeriod ?? "",
       winRate: form.winRate?.trim() || "0.0%",
       quizXP: form.quizXP?.trim() || "0 XP",
       combatRank: form.combatRank?.trim() || "Market Rookie (Tier 1)",
-      weeklyReturn: form.weeklyReturn?.trim() || "+0.0% Return",
+      weeklyReturn: form.weeklyReturn?.trim() ? formatReturn(form.weeklyReturn) : "+0.0%",
       performanceReview: form.performanceReview ?? "",
       mentorQuote: form.mentorQuote,
     });
@@ -424,7 +430,7 @@ export function AdminStudentOfTheWeek() {
                   label="Weekly Gain / Return"
                   value={form.weeklyReturn ?? ""}
                   onChange={(v) => setForm({ ...form, weeklyReturn: v })}
-                  ph="e.g. +0.0% Return"
+                  ph="e.g. +0.0% or +28.4%"
                 />
               </div>
 
@@ -521,7 +527,7 @@ export function AdminStudentOfTheWeek() {
                   <div className="flex items-center justify-center gap-1 text-emerald-400 text-[10px] font-bold uppercase mb-0.5">
                     <Flame className="h-3 w-3" /> Return
                   </div>
-                  <span className="text-base font-black text-white">{form.weeklyReturn}</span>
+                  <span className="text-base font-black text-white">{formatReturn(form.weeklyReturn)}</span>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">

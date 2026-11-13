@@ -6,6 +6,12 @@ import {
 } from "lucide-react";
 import { navigate } from "../../lib/router";
 
+function formatReturn(val?: string): string {
+  if (!val) return "+0.0%";
+  const cleaned = val.replace(/\s*Return/i, "").trim();
+  return cleaned || "+0.0%";
+}
+
 function formatTier(rank?: string): string {
   if (!rank) return "Tier 1";
   const match = rank.match(/Tier\s*(\d+)/i);
@@ -105,7 +111,7 @@ export function StudentOfTheWeekPage() {
                     <Flame className="h-4 w-4" />
                     <span className="text-xs font-bold uppercase tracking-wider">Gain</span>
                   </div>
-                  <p className="text-xl sm:text-2xl font-black text-white">{sotw.weeklyReturn}</p>
+                  <p className="text-xl sm:text-2xl font-black text-white">{formatReturn(sotw.weeklyReturn)}</p>
                 </div>
               </div>
 
@@ -183,7 +189,7 @@ export function StudentOfTheWeekPage() {
                   </div>
                   <div className="rounded-2xl bg-cream/70 border border-line/50 p-2.5">
                     <span className="block text-[10px] uppercase font-bold tracking-wider text-muted">Gain</span>
-                    <span className="text-sm font-black text-emerald-600 mt-0.5 block">{item.weeklyReturn || "+20%"}</span>
+                    <span className="text-sm font-black text-emerald-600 mt-0.5 block">{formatReturn(item.weeklyReturn)}</span>
                   </div>
                   <div className="rounded-2xl bg-cream/70 border border-line/50 p-2.5">
                     <span className="block text-[10px] uppercase font-bold tracking-wider text-muted">Quiz XP</span>
