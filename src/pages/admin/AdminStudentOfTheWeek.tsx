@@ -1,30 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminShell, Card, Field, Select } from "./AdminShell";
-import { useStore, type StudentOfTheWeek, type Account, type Enrollment, type QuizAttempt, type CombatStats } from "../../lib/store";
-import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Award, Flame, TrendingUp, ShieldCheck, RefreshCw } from "lucide-react";
+import { useStore, type StudentOfTheWeek, type Account, type Enrollment, type Payment, type QuizAttempt, type CombatStats } from "../../lib/store";
+import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck } from "lucide-react";
 import { uploadAvatar } from "../../lib/supabaseStorage";
 import { getCourse } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
 
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
 function computeStudentMetrics(
   acc: Account,
-  enrollments: Enrollment[],
+  enrollments: Enrollment[] = [],
+  payments: Payment[] = [],
   allAttempts: QuizAttempt[] = [],
   combatByUser: Record<string, CombatStats> = {},
   managedCourses: any[] = []
 ): Partial<StudentOfTheWeek> {
-  const seed = hashString(acc.id || acc.email || "student");
-
-  // 1. Course / Track from enrollments or payments
+  // 1. Course / Track: check real enrollments or completed payments
   const userEnrs = enrollments.filter((e) => e.userId === acc.id);
   const enrolledTitles = userEnrs
     .map((e) => {
@@ -35,57 +25,47 @@ function computeStudentMetrics(
     })
     .filter(Boolean);
 
-  const track = enrolledTitles[enrolledTitles.length - 1] || enrolledTitles[0] || "Price Action Mastery";
+  let track = enrolledTitles[enrolledTitles.length - 1] || enrolledTitles[0] || "";
+  if (!track) {
+    const userPayment = payments.find(
+      (p) => (p.userId === acc.id || p.userEmail?.toLowerCase() === acc.email?.toLowerCase()) && p.status === "paid" && p.courseTitle
+    );
+    if (userPayment) {
+      track = userPayment.courseTitle;
+    }
+  }
+  if (!track) {
+    track = "Price Action Mastery";
+  }
 
   // 2. Real stats lookup
   const combatStats = combatByUser[acc.id];
   const userAttempts = allAttempts.filter((a) => a.userId === acc.id);
 
-  // 3. Win Rate (use actual combat or quiz pass accuracy, else generate 88.0% - 96.8%)
-  let winRate: string;
-  if (combatStats && combatStats.wins + combatStats.losses >= 2) {
+  // 3. Real Win Rate (0.0% if student has not played combat or taken quizzes yet)
+  let winRate = "0.0%";
+  if (combatStats && (combatStats.wins + combatStats.losses) > 0) {
     const rawRate = (combatStats.wins / (combatStats.wins + combatStats.losses)) * 100;
-    winRate = `${Math.min(98.8, Math.max(76.0, rawRate)).toFixed(1)}%`;
+    winRate = `${rawRate.toFixed(1)}%`;
   } else if (userAttempts.length > 0) {
-    const avgScore = userAttempts.reduce((s, a) => s + a.score, 0) / userAttempts.length;
-    winRate = `${Math.min(97.5, Math.max(82.0, avgScore)).toFixed(1)}%`;
-  } else {
-    const gen = 88.0 + ((seed % 89) / 10);
-    winRate = `${gen.toFixed(1)}%`;
+    const passed = userAttempts.filter((a) => a.passed).length;
+    const avgScore = (passed / userAttempts.length) * 100;
+    winRate = `${avgScore.toFixed(1)}%`;
   }
 
-  // 4. Quiz XP (use actual XP or realistic high score 1,120 - 1,840 XP)
-  let quizXP: string;
-  const quizPoints = userAttempts.reduce((s, a) => s + (a.passed ? a.score * 12 : a.score * 5), 0);
-  const realXp = Math.max(combatStats?.xp ?? 0, quizPoints);
-  if (realXp >= 200) {
-    quizXP = `${realXp.toLocaleString()} XP`;
-  } else {
-    const genXp = 1120 + (seed % 720);
-    quizXP = `${genXp.toLocaleString()} XP`;
-  }
+  // 4. Real Quiz & Combat XP (0 XP if student has not earned any yet)
+  const quizPoints = userAttempts.reduce((s, a) => s + (a.passed ? a.score * 10 : 0), 0);
+  const realXp = (combatStats?.xp ?? 0) + quizPoints;
+  const quizXP = `${realXp.toLocaleString()} XP`;
 
-  // 5. Market Combat Rank (use actual rank if earned, else prestigious spotlight tier)
-  let combatRank: string;
-  if (combatStats?.xp && combatStats.xp >= 300) {
-    const r = rankForXp(combatStats.xp);
-    combatRank = `${r.title} (Tier ${r.level})`;
-  } else {
-    const eliteRanks = [
-      "Apex Sovereign (Tier 7)",
-      "Market Commander (Tier 7)",
-      "Grandmaster (Tier 6)",
-      "Desk Analyst (Tier 6)",
-      "Liquidity Hunter (Tier 5)",
-    ];
-    combatRank = eliteRanks[seed % eliteRanks.length];
-  }
+  // 5. Market Combat Rank based directly on real XP (Level 1 Market Rookie if 0 XP)
+  const r = rankForXp(realXp);
+  const combatRank = `${r.title} (Tier ${r.level})`;
 
-  // 6. Weekly Gain / Return (+19.4% to +34.8%)
-  const genReturn = (19.4 + ((seed % 145) / 10)).toFixed(1);
-  const weeklyReturn = `+${genReturn}% Return`;
+  // 6. Real-time Weekly Return (defaults to +0.0% unless specified)
+  const weeklyReturn = "+0.0% Return";
 
-  // 7. Week Period (Current active week)
+  // 7. Week Period (Current active Monday - Sunday)
   const now = new Date();
   const day = now.getDay();
   const diffToMon = now.getDate() - day + (day === 0 ? -6 : 1);
@@ -97,35 +77,8 @@ function computeStudentMetrics(
   const sunStr = sun.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const weekPeriod = `Week of ${monStr} – ${sunStr}`;
 
-  // 8. Photo / Avatar
-  const fallbackAvatars = [
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=600&q=80",
-  ];
-  const avatar = acc.avatar?.trim() || fallbackAvatars[seed % fallbackAvatars.length];
-
-  // 9. Personalized Performance Review
-  const firstName = acc.firstName?.trim() || "The student";
-  const reviews = [
-    `${firstName} demonstrated textbook trade execution and iron emotional discipline in the ${track} curriculum this week. Maintaining a standout ${winRate} accuracy across London and New York overlaps, ${firstName} strictly observed 1:3 risk-to-reward parameters and protected capital without hesitation.`,
-    `A breakout performance by ${firstName} this week! Exhibiting deep patience during high-impact market drivers, ${firstName} locked in an exceptional ${winRate} win rate and led the academy syndicate with rigorous session markup breakdowns.`,
-    `${firstName} exemplified the institutional trading standard this week, avoiding low-probability consolidation noise and executing precision entries with a ${winRate} win rate. An inspiring display of patience, risk control, and rule adherence.`,
-    `Exceptional market awareness from ${firstName} throughout the week. Following the institutional liquidity model taught in ${track}, ${firstName} secured a ${winRate} win record with zero drawdown violations.`
-  ];
-  const performanceReview = reviews[seed % reviews.length];
-
-  // 10. Mentor Recommendation Quote
-  const quotes = [
-    `"Consistency isn't luck; it's adhering to your trading plan when emotion urges you to break rules. ${firstName} nailed execution flawlessly."`,
-    `"Risk preservation is the first law of trading longevity. ${firstName} let the market come to their levels instead of chasing price."`,
-    `"Discipline during market noise is what separates profitable traders from amateurs. Proud of ${firstName}'s unwavering focus this week."`,
-    `"${firstName}'s execution this week was masterclass. When you master patience, profitability takes care of itself."`
-  ];
-  const mentorQuote = quotes[seed % quotes.length];
+  // 8. Photo / Avatar: Real avatar from user account if available
+  const avatar = acc.avatar?.trim() || "";
 
   return {
     studentId: acc.id,
@@ -137,8 +90,7 @@ function computeStudentMetrics(
     quizXP,
     combatRank,
     weeklyReturn,
-    performanceReview,
-    mentorQuote,
+    // Performance review and mentor quote are intentionally omitted so they are entered manually
   };
 }
 
@@ -152,12 +104,12 @@ export function AdminStudentOfTheWeek() {
     studentId: studentOfTheWeek.studentId ?? "",
     studentName: studentOfTheWeek.studentName ?? "",
     avatar: studentOfTheWeek.avatar ?? "",
-    track: studentOfTheWeek.track ?? "Advanced Technicals & Price Action",
+    track: studentOfTheWeek.track ?? "Price Action Mastery",
     weekPeriod: studentOfTheWeek.weekPeriod ?? `Week of ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}, 2026`,
-    winRate: studentOfTheWeek.winRate ?? "91.2%",
-    quizXP: studentOfTheWeek.quizXP ?? "1,240 XP",
-    combatRank: studentOfTheWeek.combatRank ?? "Apex Sovereign (Tier 7)",
-    weeklyReturn: studentOfTheWeek.weeklyReturn ?? "+28.4% Return",
+    winRate: studentOfTheWeek.winRate ?? "0.0%",
+    quizXP: studentOfTheWeek.quizXP ?? "0 XP",
+    combatRank: studentOfTheWeek.combatRank ?? "Market Rookie (Tier 1)",
+    weeklyReturn: studentOfTheWeek.weeklyReturn ?? "+0.0% Return",
     performanceReview: studentOfTheWeek.performanceReview ?? "",
     mentorQuote: studentOfTheWeek.mentorQuote ?? "",
   });
@@ -175,12 +127,12 @@ export function AdminStudentOfTheWeek() {
         studentId: prev.studentId || studentOfTheWeek.studentId || "",
         studentName: prev.studentName || studentOfTheWeek.studentName || "",
         avatar: prev.avatar || studentOfTheWeek.avatar || "",
-        track: prev.track || studentOfTheWeek.track || "Advanced Technicals & Price Action",
+        track: prev.track || studentOfTheWeek.track || "Price Action Mastery",
         weekPeriod: prev.weekPeriod || studentOfTheWeek.weekPeriod || "",
-        winRate: prev.winRate || studentOfTheWeek.winRate || "91.2%",
-        quizXP: prev.quizXP || studentOfTheWeek.quizXP || "1,240 XP",
-        combatRank: prev.combatRank || studentOfTheWeek.combatRank || "Apex Sovereign (Tier 7)",
-        weeklyReturn: prev.weeklyReturn || studentOfTheWeek.weeklyReturn || "+28.4% Return",
+        winRate: prev.winRate || studentOfTheWeek.winRate || "0.0%",
+        quizXP: prev.quizXP || studentOfTheWeek.quizXP || "0 XP",
+        combatRank: prev.combatRank || studentOfTheWeek.combatRank || "Market Rookie (Tier 1)",
+        weeklyReturn: prev.weeklyReturn || studentOfTheWeek.weeklyReturn || "+0.0% Return",
         performanceReview: prev.performanceReview || studentOfTheWeek.performanceReview || "",
         mentorQuote: prev.mentorQuote || studentOfTheWeek.mentorQuote || "",
       }));
@@ -206,21 +158,43 @@ export function AdminStudentOfTheWeek() {
     const metrics = computeStudentMetrics(
       acc,
       admin?.enrollments ?? [],
+      admin?.payments ?? [],
       admin?.attempts ?? [],
       admin?.combatByUser ?? {},
       managedCourses ?? []
     );
 
-    setForm((prev) => ({
-      ...prev,
-      ...metrics,
-      id: prev.id || studentOfTheWeek.id || "sotw_active",
-    }));
+    setForm((prev) => {
+      // If selecting the student who is currently active or already in form, keep their typed review and quote
+      const isCurrentSotw = studentOfTheWeek.studentId === acc.id;
+      const isCurrentForm = prev.studentId === acc.id;
+
+      const performanceReview = isCurrentSotw
+        ? studentOfTheWeek.performanceReview || ""
+        : isCurrentForm
+        ? prev.performanceReview || ""
+        : "";
+
+      const mentorQuote = isCurrentSotw
+        ? studentOfTheWeek.mentorQuote || ""
+        : isCurrentForm
+        ? prev.mentorQuote || ""
+        : "";
+
+      return {
+        ...prev,
+        ...metrics,
+        id: prev.id || studentOfTheWeek.id || "sotw_active",
+        avatar: metrics.avatar || (isCurrentSotw ? studentOfTheWeek.avatar : "") || prev.avatar || "",
+        performanceReview,
+        mentorQuote,
+      };
+    });
 
     if (announce) {
       setMsg({
         type: "success",
-        text: `Auto-populated win rate (${metrics.winRate}), rank (${metrics.combatRank}), XP (${metrics.quizXP}) and review for ${acc.firstName} ${acc.lastName}!`,
+        text: `Loaded live real-time stats for ${acc.firstName} ${acc.lastName} (${metrics.quizXP}, ${metrics.combatRank}). Write your custom review and mentor quote below.`,
       });
     }
   };
@@ -280,10 +254,10 @@ export function AdminStudentOfTheWeek() {
       avatar: form.avatar,
       track: form.track ?? "Price Action Mastery",
       weekPeriod: form.weekPeriod ?? "",
-      winRate: form.winRate ?? "88.0%",
-      quizXP: form.quizXP ?? "1,000 XP",
-      combatRank: form.combatRank ?? "Apex Master",
-      weeklyReturn: form.weeklyReturn ?? "+20.0%",
+      winRate: form.winRate?.trim() || "0.0%",
+      quizXP: form.quizXP?.trim() || "0 XP",
+      combatRank: form.combatRank?.trim() || "Market Rookie (Tier 1)",
+      weeklyReturn: form.weeklyReturn?.trim() || "+0.0% Return",
       performanceReview: form.performanceReview ?? "",
       mentorQuote: form.mentorQuote,
     });
@@ -298,7 +272,7 @@ export function AdminStudentOfTheWeek() {
   return (
     <AdminShell
       title="Student of the Week"
-      subtitle="Nominate and publish the top performing student spotlight with custom metrics and performance reviews."
+      subtitle="Nominate and publish the top performing student spotlight with real-time stats and custom mentor reviews."
       action={
         <a
           href="/fun/student-of-the-week"
@@ -340,7 +314,7 @@ export function AdminStudentOfTheWeek() {
                   value={form.studentId ?? ""}
                   onChange={(val) => handleSelectStudent(val)}
                   options={[
-                    { v: "", l: "-- Choose student (auto-fills stats & review) --" },
+                    { v: "", l: "-- Choose student (loads real-time stats) --" },
                     ...accounts.map((a) => ({
                       v: a.id,
                       l: `${a.firstName} ${a.lastName} (${a.email})`,
@@ -360,7 +334,7 @@ export function AdminStudentOfTheWeek() {
                   label="Course / Track *"
                   value={form.track ?? ""}
                   onChange={(v) => setForm({ ...form, track: v })}
-                  ph="e.g. Advanced Price Action"
+                  ph="e.g. Price Action Mastery"
                 />
               </div>
 
@@ -368,7 +342,7 @@ export function AdminStudentOfTheWeek() {
                 label="Week Period *"
                 value={form.weekPeriod ?? ""}
                 onChange={(v) => setForm({ ...form, weekPeriod: v })}
-                ph="e.g. Week of August 10 – August 16, 2026"
+                ph="e.g. Week of Nov 09 – Nov 15, 2026"
               />
 
               {/* Picture Upload / URL */}
@@ -410,25 +384,25 @@ export function AdminStudentOfTheWeek() {
                   label="Win Rate"
                   value={form.winRate ?? ""}
                   onChange={(v) => setForm({ ...form, winRate: v })}
-                  ph="e.g. 91.2%"
+                  ph="e.g. 0.0% or 78.5%"
                 />
                 <Field
-                  label="Quiz XP High Score"
+                  label="Quiz XP"
                   value={form.quizXP ?? ""}
                   onChange={(v) => setForm({ ...form, quizXP: v })}
-                  ph="e.g. 1,240 XP"
+                  ph="e.g. 0 XP"
                 />
                 <Field
                   label="Market Combat Rank"
                   value={form.combatRank ?? ""}
                   onChange={(v) => setForm({ ...form, combatRank: v })}
-                  ph="e.g. Apex Sovereign (Tier 7)"
+                  ph="e.g. Market Rookie (Tier 1)"
                 />
                 <Field
                   label="Weekly Gain / Return"
                   value={form.weeklyReturn ?? ""}
                   onChange={(v) => setForm({ ...form, weeklyReturn: v })}
-                  ph="e.g. +28.4% Return"
+                  ph="e.g. +0.0% Return"
                 />
               </div>
 
@@ -440,7 +414,7 @@ export function AdminStudentOfTheWeek() {
                   rows={4}
                   value={form.performanceReview ?? ""}
                   onChange={(e) => setForm({ ...form, performanceReview: e.target.value })}
-                  placeholder="Detail trade executions, risk management adherence, or quiz arcade performance..."
+                  placeholder="Write your personal evaluation of the student's trading performance, risk management, and discipline this week..."
                   className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white resize-none"
                 />
               </div>
@@ -453,7 +427,7 @@ export function AdminStudentOfTheWeek() {
                   rows={2}
                   value={form.mentorQuote ?? ""}
                   onChange={(e) => setForm({ ...form, mentorQuote: e.target.value })}
-                  placeholder="e.g. Consistency isn't luck; it's adhering to your plan when emotion urges you to break rules."
+                  placeholder="e.g. Great discipline during market noise. James executed his plan with zero overleveraging."
                   className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white resize-none"
                 />
               </div>
@@ -544,12 +518,24 @@ export function AdminStudentOfTheWeek() {
               </div>
 
               {/* Mentor Evaluation matching website */}
-              {form.performanceReview && (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-100/90 leading-relaxed">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-1 text-[11px]">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Mentor Evaluation
-                  </div>
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3.5 text-xs text-amber-100/90 leading-relaxed">
+                <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-1 text-[11px]">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Mentor Evaluation
+                </div>
+                {form.performanceReview ? (
                   <p className="line-clamp-3">{form.performanceReview}</p>
+                ) : (
+                  <p className="italic text-amber-200/50">
+                    Write your mentor performance evaluation on the left to preview it here.
+                  </p>
+                )}
+              </div>
+
+              {/* Mentor Quote preview */}
+              {form.mentorQuote && (
+                <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3 text-xs italic text-slate-300">
+                  <p>"{form.mentorQuote}"</p>
+                  <p className="mt-1 text-[10px] font-semibold not-italic text-amber-400">— Mentor Recommendation</p>
                 </div>
               )}
             </div>

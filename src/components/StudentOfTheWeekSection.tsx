@@ -97,12 +97,14 @@ export default function StudentOfTheWeekSection() {
               </div>
 
               {/* Mentor Note */}
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs sm:text-sm text-amber-100/90 leading-relaxed">
-                <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-1 text-xs">
-                  <ShieldCheck className="h-4 w-4" /> Mentor Evaluation
+              {sotw.performanceReview ? (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-xs sm:text-sm text-amber-100/90 leading-relaxed">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-1 text-xs">
+                    <ShieldCheck className="h-4 w-4" /> Mentor Evaluation
+                  </div>
+                  <p className="line-clamp-3">{sotw.performanceReview}</p>
                 </div>
-                <p className="line-clamp-3">{sotw.performanceReview}</p>
-              </div>
+              ) : null}
 
               {/* CTA link */}
               <div className="pt-1 flex flex-wrap items-center gap-4">
