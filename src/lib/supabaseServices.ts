@@ -112,9 +112,13 @@ export async function saveSupabasePayment(p: Payment): Promise<void> {
   }
 }
 
-export async function deleteSupabasePayment(id: string): Promise<void> {
+export async function deleteSupabasePayment(id: string, ref?: string): Promise<void> {
   try {
-    await supabase.from("payments").delete().eq("id", id);
+    if (ref && ref !== id) {
+      await supabase.from("payments").delete().or(`id.eq.${id},ref.eq.${ref},ref.eq.${id}`);
+    } else {
+      await supabase.from("payments").delete().or(`id.eq.${id},ref.eq.${id}`);
+    }
   } catch (err) {
     console.warn("Supabase payment delete notice:", err);
   }

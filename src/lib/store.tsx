@@ -1191,6 +1191,25 @@ export function unmarkDeletedAccount(id: string, email?: string) {
   write(DELETED_ACCOUNTS_KEY, next);
 }
 
+const DELETED_PAYMENTS_KEY = "gamat.deleted_payments.v1";
+
+export function getDeletedPaymentIds(): Set<string> {
+  const list = read<string[]>(DELETED_PAYMENTS_KEY, []);
+  return new Set(list.map((s) => s.toLowerCase()));
+}
+
+export function recordDeletedPayment(id: string, ref?: string) {
+  const existing = read<string[]>(DELETED_PAYMENTS_KEY, []);
+  const set = new Set(existing.map((s) => s.toLowerCase()));
+  if (id) set.add(id.toLowerCase());
+  if (ref) set.add(ref.toLowerCase());
+  write(DELETED_PAYMENTS_KEY, Array.from(set));
+}
+
+export function clearDeletedPaymentTombstones() {
+  write(DELETED_PAYMENTS_KEY, []);
+}
+
 const uid = (p: string) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 const ticketCode = () =>
   `GX-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -1415,6 +1434,7 @@ type Ctx = {
     removeEnrollment: (id: string) => void;
     setPaymentStatus: (id: string, status: Payment["status"]) => void;
     deletePayment: (id: string) => void;
+    purgeAllPayments: () => Promise<void>;
     saveEvent: (e: EventItem) => void;
     deleteEvent: (id: string) => void;
     setRegistrationStatus: (id: string, status: Registration["status"]) => void;
@@ -1676,7 +1696,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fetchSupabaseEnrollments().then((r) => {
         if (Array.isArray(r)) setAllEnrollments(r);
       });
-      fetchSupabasePayments().then((r) => r.length && setPayments(r));
+      fetchSupabasePayments().then((r) => {
+        if (Array.isArray(r)) {
+          const deleted = getDeletedPaymentIds();
+          const active = r.filter((p) => !deleted.has(p.id?.toLowerCase()) && !deleted.has(p.ref?.toLowerCase()));
+          setPayments(active);
+        }
+      });
       fetchSupabaseEvents().then((r) => r.length && setEvents(r));
       fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
       fetchSupabaseThreads().then((r) => r.length && setThreads(r));
@@ -3549,8 +3575,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
     },
     deletePayment: (id) => {
-      setPayments((p) => p.filter((x) => x.id !== id));
-      deleteSupabasePayment(id);
+      const target = payments.find((x) => x.id === id || x.ref === id);
+      const ref = target?.ref;
+      recordDeletedPayment(id, ref);
+      setPayments((p) => p.filter((x) => x.id !== id && x.ref !== id));
+      deleteSupabasePayment(id, ref);
+    },
+    purgeAllPayments: async () => {
+      payments.forEach((p) => recordDeletedPayment(p.id, p.ref));
+      setPayments([]);
+      write(K.payments, []);
+      try {
+        await supabase.from("payments").delete().neq("id", "none");
+      } catch (e) {
+        console.warn("Failed to purge payments in Supabase:", e);
+      }
     },
     saveEvent: (e) => {
       setEvents((p) => (p.some((x) => x.id === e.id) ? p.map((x) => (x.id === e.id ? e : x)) : [e, ...p]));
