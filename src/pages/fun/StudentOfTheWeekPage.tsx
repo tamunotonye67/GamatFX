@@ -6,6 +6,15 @@ import {
 } from "lucide-react";
 import { navigate } from "../../lib/router";
 
+function formatTier(rank?: string): string {
+  if (!rank) return "Tier 1";
+  const match = rank.match(/Tier\s*(\d+)/i);
+  if (match) return `Tier ${match[1]}`;
+  const lvlMatch = rank.match(/(?:Level|Lv\.?)\s*(\d+)/i);
+  if (lvlMatch) return `Tier ${lvlMatch[1]}`;
+  return rank.length <= 8 ? rank : "Tier 1";
+}
+
 export function StudentOfTheWeekPage() {
   const { studentOfTheWeek, studentOfTheWeekHistory } = useStore();
   const sotw = studentOfTheWeek;
@@ -88,7 +97,7 @@ export function StudentOfTheWeekPage() {
                     <Trophy className="h-4 w-4" />
                     <span className="text-xs font-bold uppercase tracking-wider">Combat Rank</span>
                   </div>
-                  <p className="text-sm font-bold text-white leading-tight mt-1">{sotw.combatRank}</p>
+                  <p className="text-xl sm:text-2xl font-black text-white">{formatTier(sotw.combatRank)}</p>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3.5 sm:p-4 backdrop-blur-md">

@@ -6,6 +6,15 @@ import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
 
+function formatTier(rank?: string): string {
+  if (!rank) return "Tier 1";
+  const match = rank.match(/Tier\s*(\d+)/i);
+  if (match) return `Tier ${match[1]}`;
+  const lvlMatch = rank.match(/(?:Level|Lv\.?)\s*(\d+)/i);
+  if (lvlMatch) return `Tier ${lvlMatch[1]}`;
+  return rank.length <= 8 ? rank : "Tier 1";
+}
+
 function computeStudentMetrics(
   acc: Account,
   allAttempts: QuizAttempt[] = [],
@@ -526,7 +535,7 @@ export function AdminStudentOfTheWeek() {
                   <div className="flex items-center justify-center gap-1 text-purple-400 text-[10px] font-bold uppercase mb-0.5">
                     <Trophy className="h-3 w-3" /> Rank
                   </div>
-                  <span className="text-xs font-bold text-white block truncate">{form.combatRank}</span>
+                  <span className="text-base font-black text-white">{formatTier(form.combatRank)}</span>
                 </div>
               </div>
 

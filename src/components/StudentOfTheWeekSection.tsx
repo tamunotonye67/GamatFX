@@ -3,6 +3,15 @@ import { useReveal } from "../lib/useReveal";
 import { Trophy, TrendingUp, Zap, Star, ShieldCheck, ArrowRight, Flame } from "lucide-react";
 import { navigate } from "../lib/router";
 
+function formatTier(rank?: string): string {
+  if (!rank) return "Tier 1";
+  const match = rank.match(/Tier\s*(\d+)/i);
+  if (match) return `Tier ${match[1]}`;
+  const lvlMatch = rank.match(/(?:Level|Lv\.?)\s*(\d+)/i);
+  if (lvlMatch) return `Tier ${lvlMatch[1]}`;
+  return rank.length <= 8 ? rank : "Tier 1";
+}
+
 export default function StudentOfTheWeekSection() {
   const { studentOfTheWeek } = useStore();
   const { ref, visible } = useReveal<HTMLDivElement>();
@@ -92,7 +101,7 @@ export default function StudentOfTheWeekSection() {
                   <div className="flex items-center justify-center gap-1 text-purple-400 text-[10px] font-bold uppercase mb-0.5">
                     <Trophy className="h-3.5 w-3.5" /> Rank
                   </div>
-                  <span className="text-xs font-bold text-white leading-tight block mt-1 line-clamp-1">{sotw.combatRank}</span>
+                  <span className="text-lg font-black text-white">{formatTier(sotw.combatRank)}</span>
                 </div>
               </div>
 
