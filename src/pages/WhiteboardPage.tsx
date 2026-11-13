@@ -6667,7 +6667,7 @@ export default function WhiteboardPage() {
                           <div className="pt-3 border-t border-line flex items-center justify-between text-xs">
                             <span className="text-muted font-bold">{sample.shapesCount} pre-configured layers</span>
                             <span className="font-extrabold text-brand flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                              Use Template <ChevronRight className="h-3.5 w-3.5" />
+                              Use Template
                             </span>
                           </div>
                         </div>

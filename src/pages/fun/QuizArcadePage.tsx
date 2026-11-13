@@ -4,7 +4,7 @@ import { navigate } from "../../lib/router";
 import { pickQuestions, type Difficulty, type TriviaQ } from "../../lib/trivia";
 import { useSolidNavbar } from "../../lib/chrome";
 import {
-  Zap, CheckCircle2, XCircle, Flame, Trophy, RotateCcw, ArrowRight,
+  Zap, CheckCircle2, XCircle, Flame, Trophy, RotateCcw,
   Timer, Target, Heart, Infinity as InfinityIcon,
 } from "lucide-react";
 
@@ -133,7 +133,7 @@ export default function QuizArcadePage() {
                     <h3 className="mt-5 font-display text-lg font-bold text-ink">{m.name}</h3>
                     <p className="mt-2 text-sm text-muted">{m.desc}</p>
                     <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
-                      Play now <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                      Play now
                     </span>
                   </button>
                 ))}

@@ -5,7 +5,7 @@ import { getCourse, asCourse, type Course } from "../lib/courses";
 import { useStore, type QuizAttempt } from "../lib/store";
 import { navigate } from "../lib/router";
 import {
-  Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Award,
+  Clock, CheckCircle2, XCircle, Award,
   Lock, AlertCircle, RotateCcw, Flag, Trophy, ListChecks, Bookmark,
   HelpCircle, Filter, Check, ShieldCheck,
 } from "lucide-react";
@@ -273,7 +273,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                   </button>
                 )}
                 <button onClick={() => navigate(courseUrl)} className="btn-outline-dark">
-                  <ArrowLeft className="h-4 w-4" /> Back to Course
+                  Back to Course
                 </button>
               </div>
             </div>
@@ -393,10 +393,10 @@ export default function QuizPage({ courseId }: { courseId: string }) {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <button onClick={startAssessment} className="btn-primary !py-3 !px-7 font-bold text-sm">
-                Begin 50-Question Exam <ArrowRight className="h-4 w-4" />
+                Begin 50-Question Exam
               </button>
               <button onClick={() => navigate(courseUrl)} className="btn-outline-dark">
-                <ArrowLeft className="h-4 w-4" /> Back to Course
+                Back to Course
               </button>
             </div>
           </div>
@@ -552,7 +552,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                   disabled={idx === 0}
                   className="btn-outline-dark !py-2 !px-4 text-xs font-bold disabled:opacity-30"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Previous
+                  Previous
                 </button>
 
                 <span className="text-xs text-muted font-medium">
@@ -567,7 +567,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     }}
                     className="btn-primary !py-2 !px-4 text-xs font-bold"
                   >
-                    Next <ArrowRight className="h-4 w-4" />
+                    Next
                   </button>
                 ) : (
                   <button

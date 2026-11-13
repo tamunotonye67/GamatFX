@@ -4,7 +4,7 @@ import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import Logo from "../components/Logo";
 import {
-  ArrowLeft, Lock, CreditCard, Building2, Coins, CheckCircle2,
+  Lock, CreditCard, Building2, Coins, CheckCircle2,
   ShieldCheck, ArrowUpRight, Loader2, Tag, Video, MessagesSquare, Send, MessageSquare, Check,
 } from "lucide-react";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
@@ -376,7 +376,7 @@ export default function CheckoutPage({ id }: { id: string }) {
         </div>
 
         <button onClick={() => navigate(`/courses/${course.id}`)} className="mt-6 sm:mt-8 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-brand">
-          <ArrowLeft className="h-4 w-4" /> Back to course
+          Back to course
         </button>
 
         <div className="mt-5 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-[1.3fr_1fr]">

@@ -5,7 +5,7 @@ import { useStore, type NewsItem } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import {
-  Newspaper, ChevronRight, ArrowLeft, Clock, Zap, AlertTriangle,
+  Newspaper, ChevronRight, Clock, Zap, AlertTriangle,
 } from "lucide-react";
 
 const IMPACT: Record<NewsItem["impact"], { label: string; tone: string }> = {
@@ -240,7 +240,7 @@ export function NewsDetailPage({ id }: { id: string }) {
               </p>
             </div>
             <button onClick={() => navigate("/news")} className="btn-outline-dark mt-8">
-              <ArrowLeft className="h-4 w-4" /> All news
+              All news
             </button>
           </article>
         </div>

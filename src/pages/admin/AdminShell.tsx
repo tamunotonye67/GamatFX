@@ -4,7 +4,7 @@ import { navigate, useRoute } from "../../lib/router";
 import { useStore, type ActivityNotification } from "../../lib/store";
 import {
   LayoutDashboard, Users, BookOpen, CreditCard, CalendarDays,
-  Ticket, Settings, LogOut, Menu, X, ShieldAlert, ArrowLeft, Search, Inbox,
+  Ticket, Settings, LogOut, Menu, X, ShieldAlert, Search, Inbox,
   FileText, UserCog, Newspaper, Sun, Library, Gift, Contact, Award, Bell,
   Check, Tag, BarChart3, Receipt, FolderDown, Presentation, ArrowUpRight,
   ShoppingBag, Share2,
@@ -217,7 +217,7 @@ export function AdminShell({ title, subtitle, action, children }: {
         <div className="mt-8 space-y-1 border-t border-white/10 px-3 pt-5 pb-8">
           <button onClick={() => navigate("/")}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
-            <ArrowLeft className="h-4 w-4 shrink-0" /> Back to site
+            Back to site
           </button>
           <button onClick={() => { logout(); navigate("/"); }}
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
@@ -289,7 +289,7 @@ export function AdminShell({ title, subtitle, action, children }: {
                       onClick={() => setNotifOpen(false)}
                       className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline"
                     >
-                      <ArrowLeft className="h-3.5 w-3.5" /> Back to {title}
+                      Back to {title}
                     </button>
                     <h2 className="font-display text-2xl font-extrabold text-ink lg:text-3xl">
                       Activity &amp; Notifications

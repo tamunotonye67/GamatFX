@@ -12,7 +12,6 @@ import {
   User,
   Eye,
   EyeOff,
-  ArrowLeft,
   CheckCircle2,
   BadgeCheck,
   ArrowUpRight,
@@ -119,7 +118,7 @@ function AuthShell({
               onClick={() => navigate("/")}
               className="mb-5 sm:mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted transition hover:text-brand"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to home
+              Back to home
             </button>
             {children}
           </div>

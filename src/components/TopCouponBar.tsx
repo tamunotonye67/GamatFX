@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Tag, X, Check, ArrowRight, Gift } from "lucide-react";
+import { Tag, X, Check, Gift } from "lucide-react";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
 
@@ -103,7 +103,6 @@ export default function TopCouponBar() {
           >
             <span>Claim</span>
             <span className="hidden sm:inline"> Offer</span>
-            <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
           </button>
 
           <button

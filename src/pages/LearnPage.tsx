@@ -4,7 +4,7 @@ import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import Logo from "../components/Logo";
 import {
-  CheckCircle2, Circle, ChevronLeft, ChevronRight, Menu, X,
+  CheckCircle2, Circle, Menu, X,
   Lock, Award, LayoutDashboard, PlayCircle,
 } from "lucide-react";
 
@@ -164,7 +164,7 @@ export default function LearnPage({ id }: { id: string }) {
             <div className="mt-8 flex flex-wrap items-center gap-2.5 sm:gap-3 border-t border-white/10 pt-6">
               <button onClick={() => go(-1)} disabled={index === 0}
                 className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2.5 sm:px-5 text-sm font-semibold transition hover:border-white hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-35">
-                <ChevronLeft className="h-4 w-4" /> Previous
+                Previous
               </button>
 
               <button onClick={() => toggleLesson(course.id, active.id)}
@@ -173,7 +173,7 @@ export default function LearnPage({ id }: { id: string }) {
               </button>
 
               <button onClick={completeAndNext} disabled={index === lessons.length - 1 && isDone} className="btn-primary w-full justify-center sm:w-auto sm:ml-auto disabled:opacity-40">
-                {index === lessons.length - 1 ? "Finish Course" : "Complete & Continue"} <ChevronRight className="h-4 w-4" />
+                {index === lessons.length - 1 ? "Finish Course" : "Complete & Continue"}
               </button>
             </div>
 

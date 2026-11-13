@@ -5,7 +5,7 @@ import { useStore, type OutlookItem } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import {
-  Sun, ChevronRight, ArrowLeft, CalendarDays, TrendingUp, TrendingDown,
+  Sun, ChevronRight, CalendarDays, TrendingUp, TrendingDown,
   Minus, Shuffle, AlertTriangle,
 } from "lucide-react";
 
@@ -85,7 +85,7 @@ export function OutlookPage() {
                     ))}
                   </div>
                   <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand">
-                    Read full outlook <ChevronRight className="h-4 w-4" />
+                    Read full outlook
                   </span>
                 </button>
               )}
@@ -203,7 +203,7 @@ export function OutlookDetailPage({ id }: { id: string }) {
             </div>
 
             <button onClick={() => navigate("/outlook")} className="btn-outline-dark mt-8">
-              <ArrowLeft className="h-4 w-4" /> All outlooks
+              All outlooks
             </button>
           </article>
         </div>

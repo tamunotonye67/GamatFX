@@ -2,7 +2,7 @@ import { useStore } from "../../lib/store";
 import PageCta from "../../components/PageCta";
 import {
   Trophy, TrendingUp, Zap, Star, Quote,
-  Calendar, ShieldCheck, Flame, ArrowRight,
+  Calendar, ShieldCheck, Flame,
 } from "lucide-react";
 import { navigate } from "../../lib/router";
 
@@ -145,7 +145,7 @@ export function StudentOfTheWeekPage() {
               <h2 className="text-2xl sm:text-3xl font-black text-ink">Past Students of the Week</h2>
             </div>
             <button onClick={() => navigate("/fun")} className="inline-flex items-center gap-2 text-sm font-bold text-brand hover:underline">
-              Back to Fun Zone <ArrowRight className="h-4 w-4" />
+              Back to Fun Zone
             </button>
           </div>
 

@@ -9,7 +9,6 @@ import {
   Send,
   Loader2,
   CheckCircle2,
-  ArrowRight,
   BookOpen,
   SlidersHorizontal,
   ShieldCheck,

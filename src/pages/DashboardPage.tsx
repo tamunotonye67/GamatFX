@@ -8,7 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
-  TrendingUp, History, Copy, Building2, CreditCard, ArrowRight, Check, X,
+  TrendingUp, History, Copy, Building2, CreditCard, Check, X,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -528,7 +528,6 @@ export default function DashboardPage() {
                     className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 font-display text-xs sm:text-sm font-black text-[#9e1016] shadow-xl hover:bg-cream hover:shadow-2xl transition cursor-pointer active:scale-95 whitespace-nowrap"
                   >
                     <span>Join &amp; Get Referral Link</span>
-                    <ArrowRight className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
@@ -1122,7 +1121,6 @@ export default function DashboardPage() {
               className="px-4 py-2.5 rounded-xl bg-ink text-white font-bold text-xs hover:bg-slate-800 transition cursor-pointer shrink-0 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto shadow-xs"
             >
               <span>Open Student Wallet</span>
-              <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>

@@ -34,7 +34,7 @@ function staffToPost(s: StaffPost): Post {
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import {
-  Clock, ChevronRight, ArrowUpRight, Search, Tag, ArrowLeft,
+  Clock, ChevronRight, ArrowUpRight, Search, Tag,
   Share2, Send, Link2, CheckCircle2,
 } from "lucide-react";
 
@@ -263,7 +263,7 @@ export function BlogPostPage({ slug }: { slug: string }) {
             </div>
 
             <button onClick={() => navigate("/blog")} className="btn-outline-dark mt-8">
-              <ArrowLeft className="h-4 w-4" /> Back to all articles
+              Back to all articles
             </button>
           </article>
 

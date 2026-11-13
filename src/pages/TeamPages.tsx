@@ -4,7 +4,7 @@ import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import {
-  Users, ChevronRight, ArrowLeft, ArrowUpRight, CheckCircle2, Quote,
+  Users, ChevronRight, ArrowUpRight, CheckCircle2, Quote,
 } from "lucide-react";
 
 function initials(name: string) {
@@ -70,7 +70,7 @@ export function TeamPage() {
 
           <div className="mt-12 text-center">
             <button type="button" onClick={() => navigate("/about")} className="btn-outline-dark">
-              <ArrowLeft className="h-4 w-4" /> Back to About Us
+              Back to About Us
             </button>
           </div>
         </div>
@@ -180,7 +180,7 @@ export function TeamMemberPage({ slug }: { slug: string }) {
 
         <div className="container-x mt-10 flex flex-wrap gap-3">
           <button type="button" onClick={() => navigate("/team")} className="btn-outline-dark">
-            <ArrowLeft className="h-4 w-4" /> All team members
+            All team members
           </button>
           <button type="button" onClick={() => navigate("/mentor")} className="btn-outline-dark">
             About the Founder

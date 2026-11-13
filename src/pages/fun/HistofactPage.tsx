@@ -5,7 +5,7 @@ import { HISTOFACTS, type HistoFact, type HistoFactCategory, type HistoFactTheme
 import { useReveal } from "../../lib/useReveal";
 import {
   History, Zap, RotateCw, Search, CheckCircle2,
-  Landmark, Coins, Globe, Lightbulb, HelpCircle, Eye, EyeOff, User, ChevronLeft, ChevronRight
+  Landmark, Coins, Globe, Lightbulb, HelpCircle, Eye, EyeOff, User,
 } from "lucide-react";
 
 /** Theme style definitions for mystery card backs */
@@ -499,7 +499,7 @@ export default function HistofactPage() {
                       disabled={currentPage === 1}
                       className="inline-flex items-center gap-1 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-bold text-ink transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line disabled:hover:text-ink cursor-pointer disabled:cursor-not-allowed"
                     >
-                      <ChevronLeft className="h-4 w-4" /> Previous
+                      Previous
                     </button>
 
                     <div className="flex items-center gap-1 overflow-x-auto max-w-[280px] sm:max-w-none py-1">
@@ -531,7 +531,7 @@ export default function HistofactPage() {
                       disabled={currentPage === totalPages}
                       className="inline-flex items-center gap-1 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-bold text-ink transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:hover:border-line disabled:hover:text-ink cursor-pointer disabled:cursor-not-allowed"
                     >
-                      Next <ChevronRight className="h-4 w-4" />
+                      Next
                     </button>
                   </div>
                 </div>

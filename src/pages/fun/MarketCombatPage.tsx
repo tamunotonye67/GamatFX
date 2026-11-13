@@ -9,7 +9,7 @@ import {
 } from "../../lib/combat";
 import {
   TrendingUp, TrendingDown, Trophy, Flame, Target, Clock,
-  CheckCircle2, XCircle, Lock, ChevronRight, Zap, Shield,
+  CheckCircle2, XCircle, Lock, Zap, Shield,
   BarChart3, Users, Info,
 } from "lucide-react";
 
@@ -218,7 +218,7 @@ export default function MarketCombatPage() {
                       <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-brand" /> {s.timeframe}</span>
                       <span>Entry {s.entry}</span>
                       <span className="ml-auto inline-flex items-center gap-1 font-bold text-brand">
-                        Analyse <ChevronRight className="h-3.5 w-3.5" />
+                        Analyse
                       </span>
                     </div>
                   </button>

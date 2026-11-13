@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, CheckCircle2, Lock, ShieldCheck, Loader2, Check, ArrowRight, X } from "lucide-react";
+import { Award, CheckCircle2, Lock, ShieldCheck, Loader2, Check, X } from "lucide-react";
 import { useStore } from "../lib/store";
 import { getCourse, naira, asCourse } from "../lib/courses";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
@@ -96,7 +96,7 @@ export default function CertificatePaymentModal({
                 }}
                 className="btn-primary mt-6 w-full !py-3.5 font-bold"
               >
-                View Certificate in Dashboard <ArrowRight className="h-4 w-4" />
+                View Certificate in Dashboard
               </button>
             </div>
           ) : (

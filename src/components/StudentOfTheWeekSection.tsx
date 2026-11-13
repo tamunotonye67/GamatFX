@@ -1,6 +1,6 @@
 import { useStore } from "../lib/store";
 import { useReveal } from "../lib/useReveal";
-import { Trophy, TrendingUp, Zap, Star, ShieldCheck, ArrowRight, Flame } from "lucide-react";
+import { Trophy, TrendingUp, Zap, Star, ShieldCheck, Flame } from "lucide-react";
 import { navigate } from "../lib/router";
 
 function formatReturn(val?: string): string {
@@ -128,7 +128,7 @@ export default function StudentOfTheWeekSection() {
                   onClick={() => navigate("/fun/student-of-the-week")}
                   className="btn-primary inline-flex items-center gap-2 !py-2.5 !text-xs sm:!text-sm"
                 >
-                  View Full Spotlight & Wall of Fame <ArrowRight className="h-4 w-4" />
+                  View Full Spotlight & Wall of Fame
                 </button>
               </div>
             </div>

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, MouseEvent } from "react";
 import { navigate } from "../lib/router";
 import {
   BookOpen,
-  ArrowRight,
   ShieldCheck,
   CheckCircle2,
   Download,
@@ -286,7 +285,6 @@ export default function StoreSection() {
                   className="w-full sm:w-auto rounded-xl border border-white/20 bg-white/5 px-5 sm:px-6 py-3.5 text-xs sm:text-sm font-bold text-white hover:bg-white/10 transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Visit Full Store &amp; Catalog</span>
-                  <ArrowRight className="h-4 w-4 shrink-0" />
                 </button>
               </div>
             </div>

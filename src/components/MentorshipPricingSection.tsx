@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Zap, Crown, ArrowRight, UserCheck, ShieldCheck, PhoneCall, Video } from "lucide-react";
+import { Check, Zap, Crown, UserCheck, ShieldCheck, PhoneCall, Video } from "lucide-react";
 import { navigate } from "../lib/router";
 
 export type MentorshipPlanId = "starter" | "pro" | "elite";
@@ -194,7 +194,7 @@ export default function MentorshipPricingSection() {
                         : "btn-outline-dark"
                     }`}
                   >
-                    {p.cta} <ArrowRight className="h-4 w-4" />
+                    {p.cta}
                   </button>
                 </div>
               </div>

@@ -14,8 +14,6 @@ import {
   Download,
   Star,
   ShieldCheck,
-  ArrowRight,
-  ArrowLeft,
   Search,
   Filter,
   FileText,
@@ -26,7 +24,6 @@ import {
   Lock,
   X,
   Tag,
-  ChevronRight,
   ArrowUpDown,
   LayoutGrid,
   List,
@@ -523,7 +520,6 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   onClick={handleBackToHub}
                   className="group inline-flex items-center gap-2 rounded-xl border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand hover:text-white hover:border-brand transition-all cursor-pointer shadow-2xs"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
                   <span>All Categories</span>
                 </button>
 
@@ -862,9 +858,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                           </span>
                           {prod.isFree || prod.price === 0 ? (
                             <Download className="h-3 w-3" />
-                          ) : (
-                            <ArrowRight className="h-3 w-3" />
-                          )}
+                          ) : null}
                         </button>
                       </div>
                     </div>
@@ -1000,9 +994,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                           </span>
                           {prod.isFree || prod.price === 0 ? (
                             <Download className="h-3.5 w-3.5" />
-                          ) : (
-                            <ArrowRight className="h-3.5 w-3.5" />
-                          )}
+                          ) : null}
                         </button>
                       </div>
                     </div>

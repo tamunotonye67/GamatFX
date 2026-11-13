@@ -5,7 +5,7 @@ import { useStore, type Giveaway } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import {
-  Gift, ChevronRight, ArrowLeft, Clock, Trophy, Zap, UserRound,
+  Gift, ChevronRight, Clock, Trophy, Zap, UserRound,
 } from "lucide-react";
 
 const fmt = (iso: string) =>
@@ -236,7 +236,7 @@ export function GiveawayDetailPage({ id }: { id: string }) {
           </div>
 
           <button onClick={() => navigate("/giveaways")} className="btn-outline-dark">
-            <ArrowLeft className="h-4 w-4" /> All giveaways
+            All giveaways
           </button>
         </div>
       </section>

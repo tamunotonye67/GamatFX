@@ -4,7 +4,7 @@ import { useStore, type ForumThread } from "../lib/store";
 import { navigate } from "../lib/router";
 import {
   MessagesSquare, HelpCircle, LineChart, Brain, Trophy, BookMarked, HandHeart,
-  Heart, MessageCircle, Pin, Trash2, Send, Search, ArrowLeft, ChevronRight,
+  Heart, MessageCircle, Pin, Trash2, Send, Search, ChevronRight,
   AlertCircle, Plus, ShieldCheck, Clock, X, ImagePlus, AtSign,
 } from "lucide-react";
 
@@ -422,7 +422,7 @@ export function ForumChannelPage({ channelId }: { channelId: string }) {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm text-muted">{threads.length} discussion{threads.length === 1 ? "" : "s"}</p>
             <div className="flex flex-wrap gap-2.5 sm:gap-3">
-              <button onClick={() => navigate("/forum")} className="btn-outline-dark !py-2.5"><ArrowLeft className="h-4 w-4" /> All channels</button>
+              <button onClick={() => navigate("/forum")} className="btn-outline-dark !py-2.5">All channels</button>
               <button onClick={() => (isAuthed ? setComposing(true) : navigate(`/login?next=/forum/${channel.id}`))} className="btn-primary !py-2.5">
                 <Plus className="h-4 w-4" /> New Post
               </button>
