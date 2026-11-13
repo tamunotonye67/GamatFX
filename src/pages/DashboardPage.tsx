@@ -348,10 +348,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-display text-xs sm:text-sm font-bold text-white">
-                    {combat.xp} <span className="text-[10px] font-normal text-white/50">XP</span>
+                    {combat.xp.toLocaleString()} <span className="text-[10px] font-normal text-white/50">XP</span>
                   </div>
                   <p className="text-[10px] text-white/45">
-                    {combatNext ? `${combatNext.minXp - combat.xp} to Lv.${combatNext.level}` : "Max rank"}
+                    {combatNext ? `${(combatNext.minXp - combat.xp).toLocaleString()} to Lv.${combatNext.level}` : "Max rank"}
                   </p>
                 </div>
               </div>

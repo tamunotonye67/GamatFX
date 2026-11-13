@@ -128,9 +128,9 @@ export default function MarketCombatPage() {
 
               <div className="mt-6">
                 <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-muted">{combat.xp} XP</span>
+                  <span className="text-muted">{combat.xp.toLocaleString()} XP</span>
                   <span className="text-ink">
-                    {nxt ? `${nxt.minXp - combat.xp} XP to ${nxt.title}` : "Max rank"}
+                    {nxt ? `${(nxt.minXp - combat.xp).toLocaleString()} XP to ${nxt.title}` : "Max rank"}
                   </span>
                 </div>
                 <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-line">
@@ -140,7 +140,7 @@ export default function MarketCombatPage() {
 
               <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  { i: Trophy, v: combat.xp, l: "Total XP" },
+                  { i: Trophy, v: combat.xp.toLocaleString(), l: "Total XP" },
                   { i: Target, v: `${winRate}%`, l: "Win rate" },
                   { i: Flame, v: combat.streak, l: "Win streak" },
                   { i: BarChart3, v: openCount, l: "Open calls" },
@@ -172,7 +172,7 @@ export default function MarketCombatPage() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block font-bold">{r.title}</span>
-                        <span className={`block text-[11px] ${current ? "text-white/75" : "text-muted"}`}>{r.minXp}+ XP</span>
+                        <span className={`block text-[11px] ${current ? "text-white/75" : "text-muted"}`}>{r.minXp.toLocaleString()}+ XP</span>
                       </span>
                       {current && <Zap className="h-4 w-4" />}
                       {!unlocked && <Lock className="h-3.5 w-3.5" />}

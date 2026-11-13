@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Download,
   Copy,
@@ -120,6 +120,28 @@ export default function AffiliateCard({
   const [inviteMessage, setInviteMessage] = useState(
     profile.personalQuote || DEFAULT_INVITE_MESSAGE
   );
+
+  // Debounce saving cardDisplayName to parent store to eliminate UI shaking and input lag
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = cardDisplayName.trim();
+      if (trimmed && trimmed !== profile.cardDisplayName) {
+        onUpdateDisplayName?.(trimmed);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [cardDisplayName, onUpdateDisplayName, profile.cardDisplayName]);
+
+  // Debounce saving inviteMessage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = inviteMessage.trim();
+      if (trimmed && trimmed !== profile.personalQuote) {
+        onUpdateQuote?.(trimmed);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [inviteMessage, onUpdateQuote, profile.personalQuote]);
 
   // Collapsible dropdown toggles
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
@@ -245,7 +267,7 @@ export default function AffiliateCard({
         <div
           id="student-enrollment-card"
           style={{ aspectRatio: "2.76 / 4.75" }}
-          className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 text-white shadow-2xl transition-all duration-300 w-full max-w-[360px] mx-auto flex flex-col justify-between ${
+          className={`relative overflow-hidden rounded-3xl p-6 sm:p-7 text-white shadow-2xl transition-colors duration-200 w-full max-w-[360px] mx-auto flex flex-col justify-between ${
             cardTheme === "red"
               ? "bg-gradient-to-b from-[#83141f] via-[#9e1c2b] to-[#450910] border border-white/20"
               : "bg-gradient-to-b from-[#080c14] via-[#0d1322] to-[#070a10] border border-white/10"
@@ -332,9 +354,11 @@ export default function AffiliateCard({
             </div>
 
             {/* Student Name */}
-            <h4 className="mt-3 font-display text-xl sm:text-2xl font-black text-white tracking-tight leading-tight max-w-[280px] truncate uppercase">
-              {cardNameUpper}
-            </h4>
+            <div className="mt-3 flex h-8 sm:h-9 w-full max-w-[280px] items-center justify-center overflow-hidden">
+              <h4 className="font-display text-xl sm:text-2xl font-black text-white tracking-tight leading-tight truncate uppercase">
+                {cardNameUpper}
+              </h4>
+            </div>
 
             {/* Enrolled Course Badge */}
             <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 max-w-[280px]">
@@ -497,20 +521,20 @@ export default function AffiliateCard({
 
           {/* 1. Name to Show on Card Input */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
+            <div className="flex h-6 items-center justify-between">
               <label className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-brand" />
                 <span>Name on Card</span>
               </label>
-              {cardDisplayName !== profile.userName && (
+              {cardDisplayName.trim() !== formatAffiliateCardName(profile.userName) && (
                 <button
                   type="button"
                   onClick={() => {
-                    const resetName = formatStudentName(profile.userName);
+                    const resetName = formatAffiliateCardName(profile.userName);
                     setCardDisplayName(resetName);
                     onUpdateDisplayName?.(resetName);
                   }}
-                  className="text-[11px] font-semibold text-muted hover:text-brand flex items-center gap-1 transition cursor-pointer"
+                  className="text-[11px] font-semibold text-muted hover:text-brand flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="h-3 w-3" /> Reset
                 </button>
@@ -519,13 +543,15 @@ export default function AffiliateCard({
             <input
               type="text"
               value={cardDisplayName}
-              onChange={(e) => {
-                const val = e.target.value;
-                setCardDisplayName(val);
-                onUpdateDisplayName?.(val);
+              onChange={(e) => setCardDisplayName(e.target.value)}
+              onBlur={() => {
+                const trimmed = cardDisplayName.trim();
+                if (trimmed && trimmed !== profile.cardDisplayName) {
+                  onUpdateDisplayName?.(trimmed);
+                }
               }}
               placeholder="e.g. Tonye Taylor"
-              className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition"
+              className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition-colors"
             />
             <p className="text-[11px] text-muted">
               Choose your full name, preferred name, or trading alias.
@@ -707,12 +733,15 @@ export default function AffiliateCard({
             <textarea
               rows={2}
               value={inviteMessage}
-              onChange={(e) => {
-                setInviteMessage(e.target.value);
-                onUpdateQuote?.(e.target.value);
+              onChange={(e) => setInviteMessage(e.target.value)}
+              onBlur={() => {
+                const trimmed = inviteMessage.trim();
+                if (trimmed && trimmed !== profile.personalQuote) {
+                  onUpdateQuote?.(trimmed);
+                }
               }}
               placeholder="Write your custom invitation message..."
-              className="w-full rounded-xl border border-line bg-cream/50 p-3 text-xs text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:outline-none transition leading-relaxed"
+              className="w-full rounded-xl border border-line bg-cream/50 p-3 text-xs text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:outline-none transition-colors leading-relaxed"
             />
             <p className="text-[11px] text-muted">
               Included automatically when sharing or copying your link.

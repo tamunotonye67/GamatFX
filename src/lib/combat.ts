@@ -41,12 +41,12 @@ export type CombatRank = {
 /** Hierarchy shown on profiles and the combat leaderboard. */
 export const RANKS: CombatRank[] = [
   { level: 1, title: "Market Rookie", minXp: 0, color: "#6b7280", blurb: "Just stepping onto the floor." },
-  { level: 2, title: "Chart Scout", minXp: 40, color: "#0ea5e9", blurb: "Reading structure, still learning patience." },
-  { level: 3, title: "Session Trader", minXp: 120, color: "#10b981", blurb: "Comfortable with bias and levels." },
-  { level: 4, title: "Bias Architect", minXp: 280, color: "#8b5cf6", blurb: "Combines macro and technical confluence." },
-  { level: 5, title: "Liquidity Hunter", minXp: 500, color: "#f59e0b", blurb: "Anticipates sweeps and expansions." },
-  { level: 6, title: "Desk Analyst", minXp: 850, color: "#dc3545", blurb: "Thinks in scenarios, not guesses." },
-  { level: 7, title: "Market Commander", minXp: 1400, color: "#b45309", blurb: "Elite consistency under pressure." },
+  { level: 2, title: "Chart Scout", minXp: 25000, color: "#0ea5e9", blurb: "Reading structure, still learning patience." },
+  { level: 3, title: "Session Trader", minXp: 100000, color: "#10b981", blurb: "Comfortable with bias and levels." },
+  { level: 4, title: "Bias Architect", minXp: 250000, color: "#8b5cf6", blurb: "Combines macro and technical confluence." },
+  { level: 5, title: "Liquidity Hunter", minXp: 500000, color: "#f59e0b", blurb: "Anticipates sweeps and expansions." },
+  { level: 6, title: "Desk Analyst", minXp: 750000, color: "#dc3545", blurb: "Thinks in scenarios, not guesses." },
+  { level: 7, title: "Market Commander", minXp: 1000000, color: "#b45309", blurb: "Elite consistency under pressure." },
 ];
 
 export const SCENARIOS: CombatScenario[] = [
