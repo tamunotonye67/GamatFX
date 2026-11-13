@@ -1359,7 +1359,7 @@ type Ctx = {
   /* student of the week */
   studentOfTheWeek: StudentOfTheWeek;
   studentOfTheWeekHistory: StudentOfTheWeek[];
-  saveStudentOfTheWeek: (s: Omit<StudentOfTheWeek, "id" | "createdAt"> & { id?: string }) => { ok: boolean; error?: string };
+  saveStudentOfTheWeek: (s: Omit<StudentOfTheWeek, "id" | "createdAt"> & { id?: string }) => Promise<{ ok: boolean; error?: string }>;
 
   /* student reviews & ratings */
   reviews: ReviewItem[];
@@ -1718,7 +1718,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
       });
       fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
-      fetchSupabaseSOTW().then((r) => r && setStudentOfTheWeek(r));
+      fetchSupabaseSOTW().then((res) => {
+        if (res.active) {
+          setStudentOfTheWeek(res.active);
+          write(K.studentOfTheWeek, res.active);
+        }
+        if (res.all.length > 0) {
+          setStudentOfTheWeekHistory(res.all);
+          write(K.sotwHistory, res.all);
+        }
+      });
       fetchSupabaseReviews().then((r) => r.length && setReviews(r));
       fetchSupabaseAffiliateSettings().then((s) => {
         if (s) setAffiliateSettings(s);
@@ -3665,13 +3674,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     updateAffiliateSettings,
   };
 
-  const saveStudentOfTheWeek: Ctx["saveStudentOfTheWeek"] = useCallback((s) => {
+  const saveStudentOfTheWeek: Ctx["saveStudentOfTheWeek"] = useCallback(async (s) => {
     if (!s.studentName.trim()) return { ok: false, error: "Student name is required." };
     if (!s.track.trim()) return { ok: false, error: "Course track is required." };
     const now = new Date().toISOString();
+    const sotwId = s.id || "sotw_active";
     const updated: StudentOfTheWeek = {
       ...s,
-      id: s.id || uid("sotw"),
+      id: sotwId,
       studentName: s.studentName.trim(),
       track: s.track.trim(),
       weekPeriod: s.weekPeriod || `Week of ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}, 2026`,
@@ -3683,8 +3693,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createdAt: now,
     };
     setStudentOfTheWeek(updated);
+    write(K.studentOfTheWeek, updated);
     setStudentOfTheWeekHistory((prev) => [updated, ...prev.filter((x) => x.id !== updated.id)]);
-    saveSupabaseSOTW(updated);
+    const res = await saveSupabaseSOTW(updated);
+    if (!res.ok) {
+      console.warn("Failed to persist SOTW to Supabase:", res.error);
+      return { ok: false, error: res.error || "Failed to update spotlight in database." };
+    }
     return { ok: true };
   }, []);
 

@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AdminShell, Card, Field } from "./AdminShell";
 import { useStore, type StudentOfTheWeek } from "../../lib/store";
-import { Trophy, Save, Upload, Star, CheckCircle2, Zap } from "lucide-react";
+import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2 } from "lucide-react";
+import { uploadAvatar } from "../../lib/supabaseStorage";
 
 export function AdminStudentOfTheWeek() {
   const { studentOfTheWeek, saveStudentOfTheWeek, admin } = useStore();
@@ -9,6 +10,7 @@ export function AdminStudentOfTheWeek() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState<Partial<StudentOfTheWeek>>({
+    id: studentOfTheWeek.id || "sotw_active",
     studentId: studentOfTheWeek.studentId ?? "",
     studentName: studentOfTheWeek.studentName ?? "",
     avatar: studentOfTheWeek.avatar ?? "",
@@ -22,7 +24,30 @@ export function AdminStudentOfTheWeek() {
     mentorQuote: studentOfTheWeek.mentorQuote ?? "",
   });
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Sync form when studentOfTheWeek updates from Supabase or storage
+  useEffect(() => {
+    if (studentOfTheWeek) {
+      setForm((prev) => ({
+        ...prev,
+        id: studentOfTheWeek.id || "sotw_active",
+        studentId: prev.studentId || studentOfTheWeek.studentId || "",
+        studentName: prev.studentName || studentOfTheWeek.studentName || "",
+        avatar: prev.avatar || studentOfTheWeek.avatar || "",
+        track: prev.track || studentOfTheWeek.track || "Advanced Technicals & Price Action",
+        weekPeriod: prev.weekPeriod || studentOfTheWeek.weekPeriod || "",
+        winRate: prev.winRate || studentOfTheWeek.winRate || "91.2%",
+        quizXP: prev.quizXP || studentOfTheWeek.quizXP || "1,240 XP",
+        combatRank: prev.combatRank || studentOfTheWeek.combatRank || "Apex Sovereign (Tier 7)",
+        weeklyReturn: prev.weeklyReturn || studentOfTheWeek.weeklyReturn || "+28.4% Return",
+        performanceReview: prev.performanceReview || studentOfTheWeek.performanceReview || "",
+        mentorQuote: prev.mentorQuote || studentOfTheWeek.mentorQuote || "",
+      }));
+    }
+  }, [studentOfTheWeek]);
 
   const handleSelectStudent = (accId: string) => {
     if (!accId) return;
@@ -36,22 +61,56 @@ export function AdminStudentOfTheWeek() {
     }));
   };
 
-  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setIsUploading(true);
+    // 1. Try uploading to Supabase Storage first
+    try {
+      const uploadRes = await uploadAvatar(form.studentId || "sotw", file);
+      if (uploadRes.ok && uploadRes.url && uploadRes.url.startsWith("http")) {
+        setForm((prev) => ({ ...prev, avatar: uploadRes.url }));
+        setIsUploading(false);
+        return;
+      }
+    } catch {}
+
+    // 2. Client-side canvas compression (max 800px, 80KB) to prevent storage/network quota blowouts
     const reader = new FileReader();
     reader.onload = () => {
-      if (reader.result) {
-        setForm((prev) => ({ ...prev, avatar: String(reader.result) }));
-      }
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 800;
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxDim) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else if (h > maxDim) {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL("image/jpeg", 0.82);
+        setForm((prev) => ({ ...prev, avatar: compressed }));
+        setIsUploading(false);
+      };
+      if (reader.result) img.src = String(reader.result);
     };
     reader.readAsDataURL(file);
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg(null);
-    const res = saveStudentOfTheWeek({
+    setIsSaving(true);
+    const res = await saveStudentOfTheWeek({
+      id: form.id || studentOfTheWeek.id || "sotw_active",
       studentId: form.studentId,
       studentName: form.studentName ?? "",
       avatar: form.avatar,
@@ -64,8 +123,9 @@ export function AdminStudentOfTheWeek() {
       performanceReview: form.performanceReview ?? "",
       mentorQuote: form.mentorQuote,
     });
+    setIsSaving(false);
     if (res.ok) {
-      setMsg({ type: "success", text: "Student of the Week spotlight updated successfully!" });
+      setMsg({ type: "success", text: "Student of the Week spotlight updated and published live!" });
     } else {
       setMsg({ type: "error", text: res.error || "Failed to update spotlight." });
     }
@@ -75,6 +135,16 @@ export function AdminStudentOfTheWeek() {
     <AdminShell
       title="Student of the Week"
       subtitle="Nominate and publish the top performing student spotlight with custom metrics and performance reviews."
+      action={
+        <a
+          href="/fun/student-of-the-week"
+          target="_blank"
+          rel="noreferrer"
+          className="btn-outline-dark !py-2 inline-flex items-center gap-1.5"
+        >
+          <Eye className="h-4 w-4" /> View Live Page
+        </a>
+      }
     >
       <div className="grid gap-8 lg:grid-cols-12">
         {/* Form Column */}
@@ -154,10 +224,12 @@ export function AdminStudentOfTheWeek() {
                   />
                   <button
                     type="button"
+                    disabled={isUploading}
                     onClick={() => fileRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:bg-white"
+                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:bg-white disabled:opacity-50"
                   >
-                    <Upload className="h-4 w-4" /> Upload
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {isUploading ? "Optimizing..." : "Upload"}
                   </button>
                   <input ref={fileRef} type="file" accept="image/*" onChange={handleImageFile} className="hidden" />
                 </div>
@@ -225,8 +297,20 @@ export function AdminStudentOfTheWeek() {
               </div>
 
               <div className="pt-2">
-                <button type="submit" className="btn-primary w-full justify-center !py-3">
-                  <Save className="h-4 w-4" /> Save & Publish Student of the Week
+                <button
+                  type="submit"
+                  disabled={isSaving || isUploading}
+                  className="btn-primary w-full justify-center !py-3 disabled:opacity-50"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving & Publishing...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save & Publish Student of the Week
+                    </>
+                  )}
                 </button>
               </div>
             </form>

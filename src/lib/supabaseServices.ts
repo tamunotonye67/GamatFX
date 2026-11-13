@@ -735,34 +735,35 @@ export async function saveSupabaseGiveaway(g: Giveaway): Promise<void> {
   }
 }
 
-export async function fetchSupabaseSOTW(): Promise<StudentOfTheWeek | null> {
+export async function fetchSupabaseSOTW(): Promise<{ active: StudentOfTheWeek | null; all: StudentOfTheWeek[] }> {
   try {
-    const { data, error } = await supabase.from("student_of_the_week").select("*").order("created_at", { ascending: false }).limit(1).single();
-    if (error || !data) return null;
-    return {
-      id: data.id,
-      studentId: data.student_id || undefined,
-      studentName: data.student_name,
-      avatar: data.avatar || undefined,
-      track: data.track,
-      weekPeriod: data.week_period,
-      winRate: data.win_rate,
-      quizXP: data.quiz_xp,
-      combatRank: data.combat_rank,
-      weeklyReturn: data.weekly_return,
-      performanceReview: data.performance_review,
-      mentorQuote: data.mentor_quote || undefined,
-      createdAt: data.created_at,
-    };
+    const { data, error } = await supabase.from("student_of_the_week").select("*").order("created_at", { ascending: false });
+    if (error || !data || data.length === 0) return { active: null, all: [] };
+    const all: StudentOfTheWeek[] = data.map((d: any) => ({
+      id: d.id,
+      studentId: d.student_id || undefined,
+      studentName: d.student_name,
+      avatar: d.avatar || undefined,
+      track: d.track,
+      weekPeriod: d.week_period,
+      winRate: d.win_rate,
+      quizXP: d.quiz_xp,
+      combatRank: d.combat_rank,
+      weeklyReturn: d.weekly_return,
+      performanceReview: d.performance_review,
+      mentorQuote: d.mentor_quote || undefined,
+      createdAt: d.created_at,
+    }));
+    return { active: all[0] || null, all };
   } catch {
-    return null;
+    return { active: null, all: [] };
   }
 }
 
-export async function saveSupabaseSOTW(s: StudentOfTheWeek): Promise<void> {
+export async function saveSupabaseSOTW(s: StudentOfTheWeek): Promise<{ ok: boolean; error?: string }> {
   try {
-    await supabase.from("student_of_the_week").upsert({
-      id: s.id,
+    const { error } = await supabase.from("student_of_the_week").upsert({
+      id: s.id || "sotw_active",
       student_id: s.studentId ?? null,
       student_name: s.studentName,
       avatar: s.avatar ?? null,
@@ -774,10 +775,16 @@ export async function saveSupabaseSOTW(s: StudentOfTheWeek): Promise<void> {
       weekly_return: s.weeklyReturn,
       performance_review: s.performanceReview,
       mentor_quote: s.mentorQuote ?? null,
-      created_at: s.createdAt,
+      created_at: s.createdAt || new Date().toISOString(),
     }, { onConflict: "id" });
-  } catch (err) {
+    if (error) {
+      console.warn("Supabase SOTW save error:", error.message);
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (err: any) {
     console.warn("Supabase SOTW save notice:", err);
+    return { ok: false, error: err.message || "Failed to save to database" };
   }
 }
 

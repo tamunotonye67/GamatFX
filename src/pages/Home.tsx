@@ -3,6 +3,7 @@ import About from "../components/About";
 import VideoPreview from "../components/VideoPreview";
 import Pillars from "../components/Pillars";
 import Community from "../components/Community";
+import StudentOfTheWeekSection from "../components/StudentOfTheWeekSection";
 import Courses from "../components/Courses";
 import MentorshipPricingSection from "../components/MentorshipPricingSection";
 import Services from "../components/Services";
@@ -18,6 +19,7 @@ export default function Home() {
       <VideoPreview />
       <Pillars />
       <Community />
+      <StudentOfTheWeekSection />
       <Courses />
       <MentorshipPricingSection />
       <Services />
