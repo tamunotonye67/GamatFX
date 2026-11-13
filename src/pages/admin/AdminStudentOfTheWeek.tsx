@@ -187,6 +187,17 @@ export function AdminStudentOfTheWeek() {
     }
   }, [studentOfTheWeek]);
 
+  // If navigating from ?studentId=...
+  useEffect(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const sid = sp.get("studentId");
+      if (sid && accounts.some((a) => a.id === sid)) {
+        handleSelectStudent(sid, true);
+      }
+    } catch {}
+  }, [accounts]);
+
   const handleSelectStudent = (accId: string, announce = true) => {
     if (!accId) return;
     const acc = accounts.find((a) => a.id === accId);
@@ -356,6 +367,15 @@ export function AdminStudentOfTheWeek() {
                     </button>
                   )}
                 </div>
+                {form.studentId && (
+                  <button
+                    type="button"
+                    onClick={() => handleSelectStudent(form.studentId!)}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-brand/30 bg-brand/10 py-2.5 text-xs font-bold text-brand shadow-xs transition hover:bg-brand hover:text-white"
+                  >
+                    <Sparkles className="h-4 w-4" /> Auto-Generate & Refresh Stats for this Student
+                  </button>
+                )}
                 <p className="mt-2 text-[11px] text-muted leading-relaxed">
                   Selecting any student automatically detects their course track, calculates their win rate, quiz XP, market combat tier, and writes a personalized performance review. You can still customize any field below.
                 </p>

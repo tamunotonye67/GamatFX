@@ -6,7 +6,7 @@ import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
-  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw,
+  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Trophy,
 } from "lucide-react";
 
 /* ============================= Dashboard ============================= */
@@ -352,6 +352,9 @@ export function AdminStudents() {
                     <Td className="whitespace-nowrap"><span className="text-muted">{fmtDate(a.joined)}</span></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
+                        <IconBtn title="Nominate as Student of the Week" onClick={() => navigate(`/admin/student-of-the-week?studentId=${a.id}`)}>
+                          <Trophy className="h-4 w-4 text-amber-500" />
+                        </IconBtn>
                         <IconBtn title="View" onClick={() => setView(a)}><Eye className="h-4 w-4" /></IconBtn>
                         <IconBtn title="Edit" onClick={() => setEdit(a)}><Pencil className="h-4 w-4" /></IconBtn>
                         <IconBtn title={a.status === "active" ? "Suspend" : "Activate"}
