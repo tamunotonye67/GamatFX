@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { getActiveReferralCode } from "../lib/affiliate";
+import { formatAccountName } from "../lib/formatName";
 
 type Method = "card" | "transfer" | "crypto";
 
@@ -165,7 +166,7 @@ export default function CheckoutPage({ id }: { id: string }) {
         enroll(course.id);
         recordPayment({
           userId: user!.id,
-          userName: `${user!.firstName} ${user!.lastName}`,
+          userName: formatAccountName(user),
           userEmail: user!.email,
           courseId: course.id,
           courseTitle: course.title,
@@ -190,7 +191,7 @@ export default function CheckoutPage({ id }: { id: string }) {
         amount: finalTotal,
         currency: "NGN",
         email: user!.email,
-        name: `${user!.firstName} ${user!.lastName}`.trim(),
+        name: formatAccountName(user),
         phone: user!.phone,
         reference: ref,
         metadata: {
@@ -389,7 +390,7 @@ export default function CheckoutPage({ id }: { id: string }) {
                 Complete Enrollment
               </h1>
               <p className="mt-2 text-xs text-muted sm:text-sm">
-                Enrolling as <strong className="text-ink font-semibold">{user?.firstName} {user?.lastName}</strong> ({user?.email})
+                Enrolling as <strong className="text-ink font-semibold">{formatAccountName(user)}</strong> ({user?.email})
               </p>
             </div>
 
@@ -546,7 +547,7 @@ function MentorshipSurveyCard({ user, courseId }: { user: any; courseId: string 
     e.preventDefault();
     const surveyData = {
       userId: user?.id,
-      userName: `${user?.firstName} ${user?.lastName}`,
+      userName: formatAccountName(user),
       userEmail: user?.email,
       courseId,
       tradingPath,

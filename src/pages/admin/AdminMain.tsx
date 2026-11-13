@@ -3,6 +3,7 @@ import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Emp
 import { useStore, type Account } from "../../lib/store";
 import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse, type Course } from "../../lib/courses";
 import { downloadCertificate, type CertData } from "../../lib/certificate";
+import { formatAccountName, formatStudentName, capitalizeWord } from "../../lib/formatName";
 import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
@@ -184,10 +185,10 @@ export function AdminDashboard() {
               {[...accounts].filter(a => a.role === "student").reverse().slice(0, 5).map((a) => (
                 <li key={a.id} className="flex items-center gap-3 px-6 py-3.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                    {(a.firstName[0] ?? "") + (a.lastName[0] ?? "")}
+                    {(capitalizeWord(a.firstName)[0] ?? "") + (capitalizeWord(a.lastName)[0] ?? "")}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-ink">{a.firstName} {a.lastName}</p>
+                    <p className="truncate text-sm font-semibold text-ink">{formatAccountName(a)}</p>
                     <p className="truncate text-xs text-muted">{a.email}</p>
                   </div>
                   <span className="shrink-0 text-xs text-muted">{fmtDate(a.joined)}</span>
@@ -277,7 +278,7 @@ export function AdminStudents() {
             <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin text-brand" : ""}`} /> Sync Database
           </button>
           <button onClick={() => exportCsv("students.csv", rows.map(a => ({
-            Name: `${a.firstName} ${a.lastName}`, Email: a.email, Role: a.role, Status: a.status,
+            Name: formatAccountName(a), Email: a.email, Role: a.role, Status: a.status,
             Phone: a.phone ?? "", Country: a.country ?? "", Joined: fmtDate(a.joined),
             Courses: enrollmentsOf(a.id).length, Spend: spendOf(a.id),
           })))} className="btn-outline-dark !py-2.5">
@@ -337,10 +338,10 @@ export function AdminStudents() {
                     <Td className="min-w-[260px]">
                       <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                          {(a.firstName[0] ?? "") + (a.lastName[0] ?? "")}
+                          {(capitalizeWord(a.firstName)[0] ?? "") + (capitalizeWord(a.lastName)[0] ?? "")}
                         </span>
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-ink">{a.firstName} {a.lastName}</p>
+                          <p className="truncate font-semibold text-ink">{formatAccountName(a)}</p>
                           <p className="truncate text-xs text-muted">{a.email}</p>
                         </div>
                       </div>
@@ -400,10 +401,10 @@ export function AdminStudents() {
             <div className="rounded-2xl border border-line bg-cream p-4 text-sm">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                  {(toDelete.firstName[0] ?? "") + (toDelete.lastName[0] ?? "")}
+                  {(capitalizeWord(toDelete.firstName)[0] ?? "") + (capitalizeWord(toDelete.lastName)[0] ?? "")}
                 </span>
                 <div className="min-w-0">
-                  <p className="font-bold text-ink truncate">{toDelete.firstName} {toDelete.lastName}</p>
+                  <p className="font-bold text-ink truncate">{formatAccountName(toDelete)}</p>
                   <p className="text-xs text-muted font-mono truncate">{toDelete.email}</p>
                 </div>
               </div>
@@ -435,7 +436,7 @@ export function AdminStudents() {
                     } else {
                       setDeleteNotice({
                         type: "success",
-                        text: `Student ${toDelete.firstName} ${toDelete.lastName} was deleted from both the website and Supabase.`,
+                        text: `Student ${formatAccountName(toDelete)} was deleted from both the website and Supabase.`,
                       });
                       setToDelete(null);
                     }
@@ -487,7 +488,7 @@ function IssueOfficeCertModal({ open, onClose }: { open: boolean; onClose: () =>
       return;
     }
     const certData: CertData = {
-      name: studentName.trim(),
+      name: formatStudentName(studentName),
       course: selectedCourse?.title ?? "Trading Masterclass",
       date: completionDate,
       serial: serial.trim() || `GX-OFFICE-${Date.now().toString().slice(-6)}`,
@@ -567,14 +568,14 @@ function IssueOfficeCertModal({ open, onClose }: { open: boolean; onClose: () =>
               setLinkedAccountId(e.target.value);
               const found = admin.accounts.find((a) => a.id === e.target.value);
               if (found && !studentName) {
-                setStudentName(`${found.firstName} ${found.lastName}`);
+                setStudentName(formatAccountName(found));
               }
             }}
             className="mt-1.5 w-full rounded-xl border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
           >
             <option value="">— None (Walk-in without account) —</option>
             {admin.accounts.map((a) => (
-              <option key={a.id} value={a.id}>{a.firstName} {a.lastName} ({a.email})</option>
+              <option key={a.id} value={a.id}>{formatAccountName(a)} ({a.email})</option>
             ))}
           </select>
           <p className="mt-1 text-xs text-muted">
@@ -606,10 +607,10 @@ function StudentDetail({ account }: { account: Account }) {
     <div className="space-y-7">
       <div className="flex items-center gap-4">
         <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-lg font-extrabold text-white">
-          {(account.firstName[0] ?? "") + (account.lastName[0] ?? "")}
+          {((account.firstName[0] ?? "") + (account.lastName[0] ?? "")).toUpperCase()}
         </span>
         <div>
-          <p className="font-display text-xl font-extrabold text-ink">{account.firstName} {account.lastName}</p>
+          <p className="font-display text-xl font-extrabold text-ink">{formatAccountName(account)}</p>
           <p className="text-sm text-muted">{account.email}</p>
           <div className="mt-2 flex gap-2">
             <Badge tone={account.role === "admin" ? "ink" : "gray"}>{account.role}</Badge>
@@ -694,7 +695,7 @@ function StudentDetail({ account }: { account: Account }) {
                           type="button"
                           onClick={() => {
                             const certData: CertData = {
-                              name: `${account.firstName} ${account.lastName}`,
+                              name: formatAccountName(account),
                               course: c?.title ?? e.courseId,
                               date: new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
                               serial: `GX-${e.courseId.slice(0, 4).toUpperCase()}-${account.id.slice(-5).toUpperCase()}`,
@@ -775,7 +776,7 @@ function StudentForm({ account, onDone }: { account?: Account; onDone: () => voi
     e.preventDefault();
     if (account) {
       admin.updateAccount(account.id, {
-        firstName: f.firstName, lastName: f.lastName, phone: f.phone, country: f.country,
+        firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()), phone: f.phone, country: f.country,
         role: f.role as Account["role"], status: f.status as Account["status"],
         ...(f.password ? { password: f.password } : {}),
       });
@@ -783,7 +784,7 @@ function StudentForm({ account, onDone }: { account?: Account; onDone: () => voi
     }
     if (!f.password || f.password.length < 6) { setErr("Password must be at least 6 characters."); return; }
     const res = admin.createAccount({
-      firstName: f.firstName, lastName: f.lastName, email: f.email, password: f.password,
+      firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()), email: f.email, password: f.password,
       phone: f.phone, country: f.country, role: f.role as Account["role"], status: f.status as Account["status"],
     });
     if (!res.ok) { setErr(res.error ?? "Could not create account."); return; }

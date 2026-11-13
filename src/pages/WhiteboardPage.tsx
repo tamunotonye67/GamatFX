@@ -12,6 +12,7 @@ const RulerIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
+import { formatAccountName } from "../lib/formatName";
 import {
   Calculator,
   MousePointer,
@@ -6270,7 +6271,7 @@ export default function WhiteboardPage() {
                   type="button"
                   onClick={() => setUserMenuOpen((v) => !v)}
                   className="flex items-center gap-1.5 rounded-2xl p-1 hover:bg-slate-100 transition group cursor-pointer"
-                  title={`${currentUser.firstName || "Guest"} ${currentUser.lastName || "Trader"} (${currentUser.email || ""})`}
+                  title={`${formatAccountName(currentUser)} (${currentUser.email || ""})`}
                 >
                   {currentUser.avatar ? (
                     <img
@@ -6292,14 +6293,14 @@ export default function WhiteboardPage() {
                     <div className="border-b border-line bg-cream p-3.5">
                       <div className="flex items-center gap-2.5">
                         {currentUser.avatar ? (
-                          <img src={currentUser.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
+                           <img src={currentUser.avatar} alt="" className="h-10 w-10 rounded-full object-cover border border-line" />
                         ) : (
                           <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-black text-white">
                             {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
+                          <p className="font-extrabold text-xs text-ink truncate">{formatAccountName(currentUser)}</p>
                           <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfxacademy.com"}</p>
                           <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
                             {currentUser.role || "student"}
@@ -11577,7 +11578,7 @@ export default function WhiteboardPage() {
               className={`h-full flex items-center gap-1.5 px-2 transition group cursor-pointer ${
                 userMenuOpen ? "bg-slate-100" : "hover:bg-slate-50"
               }`}
-              title={`${currentUser.firstName || "Guest"} ${currentUser.lastName || "Trader"} (${currentUser.email || ""})`}
+              title={`${formatAccountName(currentUser)} (${currentUser.email || ""})`}
             >
               {currentUser.avatar ? (
                 <img
@@ -11606,7 +11607,7 @@ export default function WhiteboardPage() {
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-extrabold text-xs text-ink truncate">{currentUser.firstName || "Guest"} {currentUser.lastName || "Trader"}</p>
+                      <p className="font-extrabold text-xs text-ink truncate">{formatAccountName(currentUser)}</p>
                       <p className="text-[10px] text-muted truncate">{currentUser.email || "guest@gamatfxacademy.com"}</p>
                       <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-brand-light text-brand text-[9px] font-black uppercase tracking-wider">
                         {currentUser.role || "student"}

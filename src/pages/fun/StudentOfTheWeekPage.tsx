@@ -5,6 +5,7 @@ import {
   Calendar, ShieldCheck, Flame,
 } from "lucide-react";
 import { navigate } from "../../lib/router";
+import { formatStudentName } from "../../lib/formatName";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -24,6 +25,7 @@ function formatTier(rank?: string): string {
 export function StudentOfTheWeekPage() {
   const { studentOfTheWeek, studentOfTheWeekHistory } = useStore();
   const sotw = studentOfTheWeek;
+  const studentDisplayName = formatStudentName(sotw?.studentName);
   const history = (studentOfTheWeekHistory || []).filter((h) => h.id !== sotw.id);
 
   return (
@@ -48,7 +50,7 @@ export function StudentOfTheWeekPage() {
                   <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-950">
                     <img
                       src={sotw.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                      alt={sotw.studentName}
+                      alt={studentDisplayName}
                       className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -60,7 +62,7 @@ export function StudentOfTheWeekPage() {
 
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest">{sotw.weekPeriod}</p>
-                      <h2 className="text-xl sm:text-2xl font-black">{sotw.studentName}</h2>
+                      <h2 className="text-xl sm:text-2xl font-black">{studentDisplayName}</h2>
                       <p className="text-xs text-slate-300 font-medium">{sotw.track}</p>
                     </div>
                   </div>
@@ -73,7 +75,7 @@ export function StudentOfTheWeekPage() {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-widest text-amber-400">{sotw.weekPeriod}</p>
                 <h1 className="mt-2 text-3xl sm:text-5xl font-black tracking-tight text-white">
-                  Meet {sotw.studentName}
+                  Meet {studentDisplayName}
                 </h1>
                 <p className="mt-3 text-base sm:text-lg text-slate-300">
                   Honoring high precision execution, strict risk management, and outstanding academic performance across GAMAT FX Academy modules.
@@ -171,12 +173,12 @@ export function StudentOfTheWeekPage() {
                   <div className="relative shrink-0">
                     <img
                       src={item.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                      alt={item.studentName}
+                      alt={formatStudentName(item.studentName)}
                       className="h-14 w-14 rounded-2xl object-cover border border-line shadow-sm"
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-extrabold text-ink truncate leading-tight">{item.studentName}</h3>
+                    <h3 className="text-base sm:text-lg font-extrabold text-ink truncate leading-tight">{formatStudentName(item.studentName)}</h3>
                     <p className="mt-0.5 text-xs font-semibold text-brand truncate">{item.track}</p>
                   </div>
                 </div>

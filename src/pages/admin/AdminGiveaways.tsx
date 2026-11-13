@@ -2,6 +2,7 @@ import { useMemo, useState, useRef } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type Giveaway, type GiveawayWinner, type Account } from "../../lib/store";
+import { formatAccountName, capitalizeWord } from "../../lib/formatName";
 import { uploadCourseAsset } from "../../lib/supabaseStorage";
 import {
   Gift, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff, UserPlus, X, Upload,
@@ -70,7 +71,7 @@ export function AdminGiveaways() {
       if (edit.winners.some((w) => w.userId === acc.id)) return;
       const w: GiveawayWinner = {
         userId: acc.id,
-        name: `${acc.firstName} ${acc.lastName}`.trim(),
+        name: formatAccountName(acc),
         nickname: acc.nickname,
         avatar: acc.avatar,
         note: "",
@@ -323,11 +324,11 @@ export function AdminGiveaways() {
                             <img src={s.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
                           ) : (
                             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
-                              {(s.firstName[0] ?? "") + (s.lastName[0] ?? "")}
+                              {((capitalizeWord(s.firstName)[0] ?? "") + (capitalizeWord(s.lastName)[0] ?? "")).toUpperCase()}
                             </span>
                           )}
                           <span className="min-w-0 flex-1">
-                            <span className="block font-semibold text-ink">{s.firstName} {s.lastName}</span>
+                            <span className="block font-semibold text-ink">{formatAccountName(s)}</span>
                             <span className="block truncate text-xs text-muted">{s.nickname ? `@${s.nickname}` : s.email}</span>
                           </span>
                           <UserPlus className="h-4 w-4 text-brand" />

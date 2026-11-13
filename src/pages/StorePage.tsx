@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useStore } from "../lib/store";
 import { type StoreProduct, type StoreProductCategory } from "../lib/storeProducts";
 import { naira } from "../lib/courses";
+import { formatAccountName, formatStudentName } from "../lib/formatName";
 import { navigate } from "../lib/router";
 import PageHero from "../components/PageHero";
 import {
@@ -237,7 +238,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
   }, [publishedStoreProducts]);
 
   // Checkout form state
-  const [buyerName, setBuyerName] = useState(user ? `${user.firstName} ${user.lastName}` : "");
+  const [buyerName, setBuyerName] = useState(user ? formatAccountName(user) : "");
   const [buyerEmail, setBuyerEmail] = useState(user?.email ?? "");
   const [buyerPhone, setBuyerPhone] = useState(user?.phone ?? "");
   const [couponCode, setCouponCode] = useState("");
@@ -321,7 +322,8 @@ export default function StorePage({ categoryParam }: StorePageProps) {
   const handlePurchase = (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkoutProduct) return;
-    if (!buyerName.trim() || !buyerEmail.trim()) {
+    const cleanBuyer = formatStudentName(buyerName.trim());
+    if (!cleanBuyer || !buyerEmail.trim()) {
       alert("Please enter your name and email address.");
       return;
     }
@@ -336,7 +338,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     const onFinishPayment = (finalTxRef: string, methodUsed: "card" | "transfer") => {
       recordPayment({
         userId: user?.id ?? `guest_${Date.now()}`,
-        userName: buyerName.trim(),
+        userName: cleanBuyer,
         userEmail: buyerEmail.trim(),
         courseId: `store-${checkoutProduct.id}`,
         courseTitle: checkoutProduct.title,

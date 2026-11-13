@@ -28,6 +28,7 @@ import {
   getSignupReferralUrl,
   exportAffiliateCardAsPng,
 } from "../lib/affiliate";
+import { formatAffiliateCardName, formatStudentName } from "../lib/formatName";
 
 function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -127,8 +128,10 @@ export default function AffiliateCard({
   const referralUrl = getSignupReferralUrl(profile.referralCode);
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(referralUrl)}`;
 
-  const activeDisplayName = cardDisplayName.trim() || profile.userName || "Student Trader";
-  const initials = activeDisplayName
+  const rawDisplayName = cardDisplayName.trim() || profile.userName || "Student Trader";
+  const activeDisplayName = formatStudentName(rawDisplayName);
+  const cardNameUpper = formatAffiliateCardName(rawDisplayName);
+  const initials = cardNameUpper
     .split(" ")
     .filter(Boolean)
     .map((n) => n[0])
@@ -165,7 +168,7 @@ export default function AffiliateCard({
     try {
       const activeProfile: AffiliateProfile = {
         ...profile,
-        cardDisplayName: activeDisplayName,
+        cardDisplayName: cardNameUpper,
         userName: profile.userName,
         personalQuote: inviteMessage,
         enrolledCourseTitle: courseTitle,
@@ -302,7 +305,7 @@ export default function AffiliateCard({
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt={activeDisplayName}
+                  alt={cardNameUpper}
                   className={`h-22 w-22 sm:h-24 sm:w-24 rounded-full object-cover shadow-2xl ${
                     cardTheme === "red" ? "ring-4 ring-white/95" : "ring-4 ring-brand"
                   }`}
@@ -329,8 +332,8 @@ export default function AffiliateCard({
             </div>
 
             {/* Student Name */}
-            <h4 className="mt-3 font-display text-xl sm:text-2xl font-black text-white tracking-tight leading-tight max-w-[280px] truncate">
-              {activeDisplayName}
+            <h4 className="mt-3 font-display text-xl sm:text-2xl font-black text-white tracking-tight leading-tight max-w-[280px] truncate uppercase">
+              {cardNameUpper}
             </h4>
 
             {/* Enrolled Course Badge */}
@@ -503,8 +506,9 @@ export default function AffiliateCard({
                 <button
                   type="button"
                   onClick={() => {
-                    setCardDisplayName(profile.userName);
-                    onUpdateDisplayName?.(profile.userName);
+                    const resetName = formatStudentName(profile.userName);
+                    setCardDisplayName(resetName);
+                    onUpdateDisplayName?.(resetName);
                   }}
                   className="text-[11px] font-semibold text-muted hover:text-brand flex items-center gap-1 transition cursor-pointer"
                 >

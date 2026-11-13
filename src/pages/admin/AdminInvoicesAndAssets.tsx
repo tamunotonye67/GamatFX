@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td } from "./AdminMain";
 import { useStore, type Payment } from "../../lib/store";
+import { formatStudentName } from "../../lib/formatName";
 import { naira, compactNaira } from "../../lib/courses";
 import Logo from "../../components/Logo";
 import {
@@ -61,7 +62,7 @@ export function AdminInvoices() {
 
     recordPayment({
       userId: `user_cust_${Date.now()}`,
-      userName: customStudentName || "Client Student",
+      userName: customStudentName ? formatStudentName(customStudentName) : "Client Student",
       userEmail: customStudentEmail || "student@example.com",
       courseId: "custom-invoice",
       courseTitle: customTitle,

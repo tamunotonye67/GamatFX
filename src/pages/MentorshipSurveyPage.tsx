@@ -3,6 +3,7 @@ import PageHero from "../components/PageHero";
 import PageCta from "../components/PageCta";
 import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
+import { formatAccountName } from "../lib/formatName";
 import { Lock, ArrowUpRight, Video } from "lucide-react";
 
 export default function MentorshipSurveyPage() {
@@ -28,7 +29,7 @@ export default function MentorshipSurveyPage() {
     if (!isAuthed) return;
     const surveyData = {
       userId: user?.id,
-      userName: `${user?.firstName} ${user?.lastName}`,
+      userName: formatAccountName(user),
       userEmail: user?.email,
       planId,
       experienceLevel,

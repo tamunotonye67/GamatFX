@@ -53,6 +53,7 @@ import {
   type AffiliateSettings,
 } from "./affiliate";
 import { generateTxRef } from "./bachs";
+import { formatAccountName, formatStudentName, formatAffiliateCardName, capitalizeWord } from "./formatName";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -1812,8 +1813,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     storeCredential(email, d.password);
 
     const newAccData = {
-      firstName: d.firstName.trim(),
-      lastName: d.lastName.trim(),
+      firstName: capitalizeWord(d.firstName.trim()),
+      lastName: capitalizeWord(d.lastName.trim()),
       email,
       password: d.password,
       phone: d.phone ? d.phone.trim() : undefined,
@@ -1985,13 +1986,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile: Ctx["updateProfile"] = useCallback((patch) => {
     if (!sessionId) return;
+    const cleanPatch = { ...patch };
+    if (cleanPatch.firstName) cleanPatch.firstName = capitalizeWord(cleanPatch.firstName.trim());
+    if (cleanPatch.middleName) cleanPatch.middleName = capitalizeWord(cleanPatch.middleName.trim());
+    if (cleanPatch.lastName) cleanPatch.lastName = capitalizeWord(cleanPatch.lastName.trim());
+
     setAccounts((p) => {
-      const updatedAccounts = p.map((a) => (a.id === sessionId ? { ...a, ...patch } : a));
+      const updatedAccounts = p.map((a) => (a.id === sessionId ? { ...a, ...cleanPatch } : a));
       const current = updatedAccounts.find((a) => a.id === sessionId);
       if (current) {
         saveSupabaseAccount(current);
-        if (patch.avatar !== undefined || patch.firstName || patch.lastName || patch.nickname) {
-          const newName = current.nickname?.trim() || `${current.firstName} ${current.lastName}`.trim();
+        if (cleanPatch.avatar !== undefined || cleanPatch.firstName || cleanPatch.lastName || cleanPatch.nickname) {
+          const newName = formatAccountName(current);
           const newAvatar = current.avatar;
           setThreads((prev) =>
             prev.map((t) => (t.authorId === sessionId ? { ...t, authorName: newName, authorAvatar: newAvatar } : t))
@@ -2466,7 +2472,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       id: uid("pay"),
       ref,
       userId: user.id,
-      userName: `${user.firstName} ${user.lastName}`.trim(),
+      userName: formatAccountName(user),
       userEmail: user.email,
       courseId: `cert-${canonical}`,
       courseTitle: `Official Certificate: ${title}`,
@@ -2537,7 +2543,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         id: p.id || uid("post"),
         slug, status,
         authorId: user.id,
-        authorName: [user.firstName, user.lastName].filter(Boolean).join(" "),
+        authorName: formatAccountName(user),
         createdAt: now, updatedAt: now,
       };
       return [created, ...prev];
@@ -2587,7 +2593,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         summary: n.summary.trim(),
         body: n.body.trim(),
         authorId: sessionId ?? undefined,
-        authorName: user ? `${user.firstName} ${user.lastName}` : "Market Desk",
+        authorName: user ? formatAccountName(user) : "Market Desk",
         publishedAt: n.status === "published" ? now : "",
         createdAt: now,
       };
@@ -2630,7 +2636,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         body: o.body.trim(),
         pairs: o.pairs ?? [],
         authorId: sessionId ?? undefined,
-        authorName: user ? `${user.firstName} ${user.lastName}` : "Market Desk",
+        authorName: user ? formatAccountName(user) : "Market Desk",
         createdAt: now,
       };
       return [targetOutlook, ...prev];
@@ -2798,9 +2804,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const acc = accounts.find((a) => a.id === userId);
         return {
           userId,
-          name: acc
-            ? (acc.nickname || `${acc.firstName} ${acc.lastName}`.trim())
-            : "Trader",
+          name: acc ? formatAccountName(acc) : "Trader",
           avatar: acc?.avatar,
           xp: stats.xp,
           wins: stats.wins,
@@ -2845,7 +2849,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         reward: g.reward.trim(),
         winners: g.winners,
         authorId: sessionId ?? undefined,
-        authorName: user ? `${user.firstName} ${user.lastName}` : "GAMAT Desk",
+        authorName: user ? formatAccountName(user) : "GAMAT Desk",
         announcedAt: g.status === "published" ? now : "",
         createdAt: now,
       };
@@ -2882,13 +2886,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         emblem: d.emblem || "Zap",
         color: d.color || "#dc3545",
         leaderId: user.id,
-        leaderName: `${user.firstName} ${user.lastName}`,
+        leaderName: formatAccountName(user),
         leaderAvatar: user.avatar,
         maxMembers: 10,
         members: [
           {
             userId: user.id,
-            name: `${user.firstName} ${user.lastName}`,
+            name: formatAccountName(user),
             avatar: user.avatar,
             role: "lead",
             joinedAt: new Date().toISOString(),
@@ -2924,7 +2928,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ...c.members,
             {
               userId: user.id,
-              name: `${user.firstName} ${user.lastName}`,
+              name: formatAccountName(user),
               avatar: user.avatar,
               role: "member",
               joinedAt: new Date().toISOString(),
@@ -3056,7 +3060,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const submission: TeamBioSubmission = {
       id: uid("tb"),
       userId: sessionId,
-      name: `${user.firstName} ${user.lastName}`.trim(),
+      name: formatAccountName(user),
       email: user.email,
       avatar: user.avatar,
       role: b.role.trim(),
@@ -3133,7 +3137,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* ------------------------------ Forum ------------------------------ */
 
   const displayName = useCallback(
-    () => (user ? user.nickname?.trim() || `${user.firstName} ${user.lastName}`.trim() : ""),
+    () => (user ? formatAccountName(user) : ""),
     [user]
   );
 
@@ -3141,7 +3145,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return threads.map((t) => {
       const acc = accounts.find((a) => a.id === t.authorId);
       if (!acc) return t;
-      const currentName = acc.nickname?.trim() || `${acc.firstName} ${acc.lastName}`.trim();
+      const currentName = formatAccountName(acc);
       const currentAvatar = acc.avatar;
       if (t.authorName === currentName && t.authorAvatar === currentAvatar) return t;
       return { ...t, authorName: currentName, authorAvatar: currentAvatar };
@@ -3152,7 +3156,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return replies.map((r) => {
       const acc = accounts.find((a) => a.id === r.authorId);
       if (!acc) return r;
-      const currentName = acc.nickname?.trim() || `${acc.firstName} ${acc.lastName}`.trim();
+      const currentName = formatAccountName(acc);
       const currentAvatar = acc.avatar;
       if (r.authorName === currentName && r.authorAvatar === currentAvatar) return r;
       return { ...r, authorName: currentName, authorAvatar: currentAvatar };
@@ -3338,10 +3342,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (existing) return existing;
     return {
       userId: user.id,
-      userName: `${user.firstName} ${user.lastName}`,
+      userName: formatAccountName(user),
+      cardDisplayName: formatAffiliateCardName(formatAccountName(user)),
       userEmail: user.email,
       avatar: user.avatar,
-      referralCode: generateReferralCode(user.firstName),
+      referralCode: generateReferralCode(capitalizeWord(user.firstName)),
       badgeTitle: PRESET_BADGES[0],
       personalQuote: PRESET_QUOTES[0],
       totalClicks: 0,
@@ -3363,10 +3368,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
       const newProf: AffiliateProfile = {
         userId: user.id,
-        userName: `${user.firstName} ${user.lastName}`,
+        userName: formatAccountName(user),
+        cardDisplayName: patch.cardDisplayName ? formatAffiliateCardName(patch.cardDisplayName) : formatAffiliateCardName(formatAccountName(user)),
         userEmail: user.email,
         avatar: user.avatar,
-        referralCode: generateReferralCode(user.firstName),
+        referralCode: generateReferralCode(capitalizeWord(user.firstName)),
         badgeTitle: PRESET_BADGES[0],
         personalQuote: PRESET_QUOTES[0],
         totalClicks: 0,
@@ -3399,7 +3405,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const req: PayoutRequest = {
       id: uid("payout"),
       affiliateUserId: user.id,
-      affiliateName: `${user.firstName} ${user.lastName}`,
+      affiliateName: formatAccountName(user),
       affiliateEmail: user.email,
       amount,
       method,
@@ -3767,7 +3773,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const updated: StudentOfTheWeek = {
       ...s,
       id: sotwId,
-      studentName: s.studentName.trim(),
+      studentName: formatStudentName(s.studentName),
       track: s.track.trim(),
       weekPeriod: s.weekPeriod || `Week of ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}, 2026`,
       winRate: s.winRate || "88.0%",
@@ -3892,7 +3898,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       id: uid("cm"),
       clubId,
       userId: user.id,
-      userName: `${user.firstName} ${user.lastName}`,
+      userName: formatAccountName(user),
       userAvatar: user.avatar,
       userRole: member.role,
       content: content.trim(),
@@ -4057,7 +4063,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const rev: ReviewItem = {
       id: uid("rev"),
       userId: user.id,
-      userName: user.nickname?.trim() || `${user.firstName} ${user.lastName}`.trim(),
+      userName: formatAccountName(user),
       userAvatar: user.avatar,
       userLocation: d.userLocation?.trim() || defaultLoc,
       targetType: d.targetType,

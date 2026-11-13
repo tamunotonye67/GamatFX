@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import PageHero from "../components/PageHero";
 import { useStore, type ForumThread } from "../lib/store";
 import { navigate } from "../lib/router";
+import { formatAccountName, capitalizeWord } from "../lib/formatName";
 import {
   MessagesSquare, HelpCircle, LineChart, Brain, Trophy, BookMarked, HandHeart,
   Heart, MessageCircle, Pin, Trash2, Send, Search, ChevronRight,
@@ -127,10 +128,10 @@ function MentionTextarea({
                   onClick={() => selectUser(acc)}
                   className="flex w-full items-center gap-3 px-3 py-2 text-left text-xs transition hover:bg-cream/80"
                 >
-                  <Avatar src={acc.avatar} name={`${acc.firstName} ${acc.lastName}`} size={28} />
+                  <Avatar src={acc.avatar} name={formatAccountName(acc)} size={28} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1 font-bold text-ink">
-                      <span className="truncate">{acc.firstName} {acc.lastName}</span>
+                      <span className="truncate">{formatAccountName(acc)}</span>
                       {acc.role === "admin" && (
                         <span className="rounded bg-brand px-1 py-0.2 text-[8px] font-extrabold text-white">MENTOR</span>
                       )}
@@ -608,7 +609,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
             <form onSubmit={post} className="mt-8 rounded-2xl border border-line bg-white p-4 sm:p-6">
               <div className="flex gap-3 sm:gap-4">
                 <div className="hidden xs:block">
-                  <Avatar src={user?.avatar} name={user?.nickname || `${user?.firstName} ${user?.lastName}`} size={40} />
+                  <Avatar src={user?.avatar} name={user?.nickname || formatAccountName(user)} size={40} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <MentionTextarea
@@ -630,7 +631,7 @@ export function ForumThreadPage({ threadId }: { threadId: string }) {
                   {err && <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-brand"><AlertCircle className="h-3.5 w-3.5" /> {err}</p>}
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      <p className="text-xs text-muted">Posting as <strong className="text-ink">{user?.nickname || user?.firstName}</strong></p>
+                      <p className="text-xs text-muted">Posting as <strong className="text-ink">{user?.nickname || (user ? capitalizeWord(user.firstName) : "")}</strong></p>
                       <button type="button" onClick={() => setBody((prev) => `${prev}${prev.endsWith(" ") || !prev ? "" : " "}@`)}
                         className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand">
                         <AtSign className="h-3.5 w-3.5 text-brand" /> Tag Member

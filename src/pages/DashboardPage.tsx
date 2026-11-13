@@ -18,6 +18,7 @@ import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
 import ImageCropModal from "../components/ImageCropModal";
+import { formatAccountName, formatStudentName, capitalizeWord } from "../lib/formatName";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
 
 type Tab = "overview" | "courses" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
@@ -252,7 +253,7 @@ export default function DashboardPage() {
     );
   }
 
-  const initials = `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
+  const initials = `${capitalizeWord(user.firstName)[0] ?? ""}${capitalizeWord(user.lastName)[0] ?? ""}`.toUpperCase();
 
   // Writers get articles; staff/admin also get a team-bio submission tab.
   const isTeamMember = user.role === "staff" || user.role === "admin";
@@ -309,7 +310,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h1 className="truncate font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                {user.nickname || `${user.firstName} ${user.lastName}`}
+                {formatAccountName(user)}
               </h1>
               <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-white/50">
                 <span className="truncate">{user.email}</span>
@@ -431,7 +432,7 @@ export default function DashboardPage() {
         <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
-          {tab === "certificates" && <Certificates completed={certifiedIds} pendingPayment={pendingPaymentCertIds} pending={awaitingQuizIds} name={[user.firstName, user.middleName, user.lastName].filter(Boolean).join(" ")} />}
+          {tab === "certificates" && <Certificates completed={certifiedIds} pendingPayment={pendingPaymentCertIds} pending={awaitingQuizIds} name={formatAccountName(user)} />}
           {tab === "affiliate" && <AffiliateSection />}
           {tab === "wallet" && <WalletSection />}
           {tab === "billing" && <BillingSection />}
@@ -648,7 +649,7 @@ export default function DashboardPage() {
   }
 
   function Certificates({ completed, pendingPayment = [], pending, name }: { completed: string[]; pendingPayment?: string[]; pending: string[]; name: string }) {
-    const studentName = name.trim() || user?.nickname || `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "GAMAT FX Student";
+    const studentName = formatStudentName(name.trim() || formatAccountName(user)) || "GAMAT FX Student";
 
     if (!completed.length && !pendingPayment.length && !pending.length) {
       return (
@@ -1156,7 +1157,7 @@ export default function DashboardPage() {
     const [customBankName, setCustomBankName] = useState("");
     const [accountNumber, setAccountNumber] = useState("");
     const [accountName, setAccountName] = useState(
-      [user.firstName, user.lastName].filter(Boolean).join(" ")
+      formatAccountName(user)
     );
     const [usdtAddress, setUsdtAddress] = useState("");
     const [paypalEmail, setPaypalEmail] = useState(user.email || "");
@@ -2179,7 +2180,7 @@ export default function DashboardPage() {
                   <img src={photo} alt="Team photo" className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand/20" />
                 ) : (
                   <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-extrabold text-white">
-                    {(u?.firstName?.[0] ?? "") + (u?.lastName?.[0] ?? "")}
+                    {((u?.firstName?.[0] ?? "") + (u?.lastName?.[0] ?? "")).toUpperCase()}
                   </span>
                 )}
                 <div className="space-y-2">
@@ -2303,10 +2304,10 @@ export default function DashboardPage() {
       setSaving(true);
       window.setTimeout(() => {
         store.updateProfile({
-          firstName: form.firstName.trim(),
-          middleName: form.middleName.trim() || undefined,
-          lastName: form.lastName.trim(),
-          nickname: form.nickname.trim() || undefined,
+          firstName: capitalizeWord(form.firstName.trim()),
+          middleName: form.middleName.trim() ? capitalizeWord(form.middleName.trim()) : undefined,
+          lastName: capitalizeWord(form.lastName.trim()),
+          nickname: form.nickname.trim() ? formatStudentName(form.nickname) : undefined,
           phone: form.phone.trim() || undefined,
           country: form.country.trim() || undefined,
           birthday: form.birthday || undefined,

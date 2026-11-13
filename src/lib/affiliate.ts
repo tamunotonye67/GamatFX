@@ -8,6 +8,7 @@
  * 3. 1-click social sharing to WhatsApp, X/Twitter, Facebook, Telegram, and HD PNG export.
  * 4. Automated commissions tracking (15% when invited friends enroll in paid courses or store tools).
  */
+import { formatAffiliateCardName } from "./formatName";
 
 export type AffiliateProfile = {
   userId: string;
@@ -629,7 +630,7 @@ export async function exportAffiliateCardAsPng(
     ctx.textAlign = "center";
     ctx.font = "900 84px sans-serif";
     ctx.fillStyle = "#ffffff";
-    const displayName = (profile.cardDisplayName?.trim() || profile.userName || "TT");
+    const displayName = formatAffiliateCardName(profile.cardDisplayName?.trim() || profile.userName);
     const initials = displayName
       .split(" ")
       .filter(Boolean)
@@ -658,8 +659,8 @@ export async function exportAffiliateCardAsPng(
   ctx.fillStyle = "#ffffff";
   ctx.fillText("✓", badgeX, badgeY + 11);
 
-  // Student Name
-  const resolvedDisplayName = (profile.cardDisplayName?.trim() || profile.userName || "Student Trader");
+  // Student Name (always in capital letters)
+  const resolvedDisplayName = formatAffiliateCardName(profile.cardDisplayName?.trim() || profile.userName);
   ctx.textAlign = "center";
   ctx.font = "900 52px sans-serif";
   ctx.fillStyle = "#ffffff";

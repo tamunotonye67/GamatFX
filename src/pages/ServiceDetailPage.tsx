@@ -2,6 +2,7 @@ import { useState } from "react";
 import PageCta from "../components/PageCta";
 import { getService, SERVICES } from "../lib/services";
 import { useStore } from "../lib/store";
+import { formatAccountName, formatStudentName } from "../lib/formatName";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import { CONTACT } from "../lib/contact";
@@ -240,7 +241,7 @@ function EnquiryForm({ service, pkg, setPkg }: {
 }) {
   const { submitEnquiry, user, isAuthed } = useStore();
   const [f, setF] = useState({
-    name: user ? `${user.firstName} ${user.lastName}` : "",
+    name: user ? formatAccountName(user) : "",
     email: user?.email ?? "", phone: user?.phone ?? "", company: "", budget: BUDGETS[0], message: "",
   });
   const [busy, setBusy] = useState(false);
@@ -258,7 +259,7 @@ function EnquiryForm({ service, pkg, setPkg }: {
       const enq = submitEnquiry({
         serviceSlug: service.slug, serviceTitle: service.title,
         packageName: pkg || undefined,
-        name: f.name, email: f.email, phone: f.phone,
+        name: formatStudentName(f.name.trim()), email: f.email, phone: f.phone,
         company: f.company || undefined, budget: f.budget, message: f.message,
       });
       setBusy(false);

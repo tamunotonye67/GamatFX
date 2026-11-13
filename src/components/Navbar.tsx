@@ -42,6 +42,7 @@ import Logo from "./Logo";
 import TopCouponBar from "./TopCouponBar";
 import { navigate, useRoute, type Route } from "../lib/router";
 import { useStore } from "../lib/store";
+import { formatAccountName, capitalizeWord } from "../lib/formatName";
 import { useNavbarForcedSolid } from "../lib/chrome";
 import { CONTACT } from "../lib/contact";
 
@@ -512,7 +513,7 @@ export default function Navbar() {
                   </span>
                 )}
                 <span className={`text-sm font-semibold ${scrolled ? "text-ink" : "text-white"}`}>
-                  {user.nickname || user.firstName}
+                  {user.nickname || capitalizeWord(user.firstName)}
                 </span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${userOpen ? "rotate-180" : ""} ${scrolled ? "text-ink/60" : "text-white/70"}`} />
               </button>
@@ -521,7 +522,7 @@ export default function Navbar() {
                 userOpen ? "visible scale-100 opacity-100 pointer-events-auto" : "hidden opacity-0 pointer-events-none"
               }`}>
                 <div className="border-b border-line bg-cream px-5 py-4">
-                  <p className="font-display text-sm font-bold text-ink">{user.firstName} {user.lastName}</p>
+                  <p className="font-display text-sm font-bold text-ink">{formatAccountName(user)}</p>
                   <p className="mt-0.5 truncate text-xs text-muted">{user.email}</p>
                   <p className="mt-2 text-xs font-semibold text-brand">{stats.enrolled} course{stats.enrolled === 1 ? "" : "s"} enrolled</p>
                 </div>
@@ -752,7 +753,7 @@ export default function Navbar() {
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-bold text-ink">
-                  {user.firstName} {user.lastName}
+                  {formatAccountName(user)}
                 </p>
                 <p className="truncate text-[10px] text-muted">{user.email}</p>
               </div>

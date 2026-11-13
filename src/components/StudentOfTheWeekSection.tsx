@@ -2,6 +2,7 @@ import { useStore } from "../lib/store";
 import { useReveal } from "../lib/useReveal";
 import { Trophy, TrendingUp, Zap, Star, ShieldCheck, Flame } from "lucide-react";
 import { navigate } from "../lib/router";
+import { formatStudentName } from "../lib/formatName";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -22,6 +23,7 @@ export default function StudentOfTheWeekSection() {
   const { studentOfTheWeek } = useStore();
   const { ref, visible } = useReveal<HTMLDivElement>();
   const sotw = studentOfTheWeek;
+  const studentDisplayName = formatStudentName(sotw?.studentName);
 
   if (!sotw || !sotw.studentName) return null;
 
@@ -53,7 +55,7 @@ export default function StudentOfTheWeekSection() {
                   <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-slate-900">
                     <img
                       src={sotw.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
-                      alt={sotw.studentName}
+                      alt={studentDisplayName}
                       className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
@@ -64,7 +66,7 @@ export default function StudentOfTheWeekSection() {
 
                     <div className="absolute bottom-3 left-3 right-3 text-white">
                       <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">{sotw.weekPeriod}</p>
-                      <h3 className="text-lg font-black">{sotw.studentName}</h3>
+                      <h3 className="text-lg font-black">{studentDisplayName}</h3>
                       <p className="text-xs text-slate-300 font-medium">{sotw.track}</p>
                     </div>
                   </div>
@@ -76,7 +78,7 @@ export default function StudentOfTheWeekSection() {
             <div className="lg:col-span-7 space-y-5">
               <div>
                 <span className="text-xs font-bold uppercase tracking-widest text-amber-400">{sotw.weekPeriod}</span>
-                <h3 className="mt-1 text-2xl sm:text-3xl font-black text-white">{sotw.studentName}</h3>
+                <h3 className="mt-1 text-2xl sm:text-3xl font-black text-white">{studentDisplayName}</h3>
                 <p className="text-xs sm:text-sm text-slate-300 font-medium">{sotw.track}</p>
               </div>
 

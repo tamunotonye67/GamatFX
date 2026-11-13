@@ -5,6 +5,7 @@ import {
   useStore, LEVEL_PERMISSIONS, LEVEL_LABELS, ALL_PERMISSIONS,
   type Account, type StaffLevel, type Permission,
 } from "../../lib/store";
+import { formatAccountName, capitalizeWord } from "../../lib/formatName";
 import {
   UserCog, Shield, PenSquare, Plus, Trash2, Save, UserCheck, UserX,
   CheckCircle2, Download, FileText, Eye, Key,
@@ -44,7 +45,7 @@ export function AdminStaff() {
       action={
         <div className="flex flex-wrap gap-3">
           <button onClick={() => exportCsv("staff.csv", staff.map(a => ({
-            Name: `${a.firstName} ${a.lastName}`, Email: a.email, Role: a.role,
+            Name: formatAccountName(a), Email: a.email, Role: a.role,
             Level: a.staffLevel ?? "—", JobTitle: a.jobTitle ?? "", Status: a.status,
             Articles: postsBy(a.id), Joined: fmtDate(a.joined),
           })))} className="btn-outline-dark !py-2.5"><Download className="h-4 w-4" /> Export</button>
@@ -107,10 +108,10 @@ export function AdminStaff() {
                         {a.avatar
                           ? <img src={a.avatar} alt="" className="h-9 w-9 shrink-0 aspect-square rounded-full object-cover" />
                           : <span className="flex h-9 w-9 shrink-0 aspect-square items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
-                              {(a.firstName[0] ?? "") + (a.lastName[0] ?? "")}
+                              {((capitalizeWord(a.firstName)[0] ?? "") + (capitalizeWord(a.lastName)[0] ?? "")).toUpperCase()}
                             </span>}
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-ink">{a.firstName} {a.lastName}</p>
+                          <p className="truncate font-semibold text-ink">{formatAccountName(a)}</p>
                           <p className="truncate text-xs text-muted">{a.email}</p>
                         </div>
                       </div>
@@ -127,7 +128,7 @@ export function AdminStaff() {
                           onClick={() => admin.updateAccount(a.id, { status: a.status === "active" ? "suspended" : "active" })}>
                           {a.status === "active" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </IconBtn>
-                        <IconBtn danger title="Delete" onClick={async () => { if (confirm(`Remove ${a.firstName}'s access?`)) await admin.deleteAccount(a.id); }}>
+                        <IconBtn danger title="Delete" onClick={async () => { if (confirm(`Remove ${capitalizeWord(a.firstName)}'s access?`)) await admin.deleteAccount(a.id); }}>
                           <Trash2 className="h-4 w-4" />
                         </IconBtn>
                       </div>
@@ -171,7 +172,7 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const patch = {
-      firstName: f.firstName.trim(), lastName: f.lastName.trim(),
+      firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()),
       jobTitle: f.jobTitle.trim() || undefined,
       role: f.role, staffLevel: f.role === "staff" ? f.staffLevel : undefined,
       extraPermissions: f.role === "admin" ? [] : extra,

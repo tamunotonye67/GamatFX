@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageHero from "../../components/PageHero";
 import { navigate } from "../../lib/router";
 import { useStore } from "../../lib/store";
+import { formatAccountName } from "../../lib/formatName";
 import { useSolidNavbar } from "../../lib/chrome";
 import {
   SCENARIOS, RANKS, rankForXp, nextRank, progressToNext, outcomeOf,
@@ -101,7 +102,7 @@ export default function MarketCombatPage() {
             <div className="rounded-3xl border border-line bg-white p-6 shadow-sm sm:p-8">
               <div className="flex flex-wrap items-center gap-5">
                 <Avatar
-                  name={user ? (user.nickname || `${user.firstName} ${user.lastName}`) : "Guest"}
+                  name={user ? (user.nickname || formatAccountName(user)) : "Guest"}
                   src={user?.avatar}
                   size={64}
                 />
@@ -109,7 +110,7 @@ export default function MarketCombatPage() {
                   <p className="text-xs font-bold uppercase tracking-wide text-muted">Combat profile</p>
                   <h2 className="font-display text-2xl font-extrabold text-ink">
                     {isAuthed
-                      ? (user?.nickname || `${user?.firstName} ${user?.lastName}`)
+                      ? (user?.nickname || formatAccountName(user))
                       : "Guest fighter"}
                   </h2>
                   <div className="mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold text-white"

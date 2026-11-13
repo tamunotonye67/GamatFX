@@ -5,6 +5,7 @@ import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, Tre
 import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
+import { formatStudentName, formatAccountName } from "../../lib/formatName";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -70,7 +71,7 @@ function computeStudentMetrics(
 
   return {
     studentId: acc.id,
-    studentName: `${acc.firstName} ${acc.lastName}`.trim(),
+    studentName: formatAccountName(acc),
     avatar,
     weekPeriod,
     winRate,
@@ -191,7 +192,7 @@ export function AdminStudentOfTheWeek() {
     if (announce) {
       setMsg({
         type: "success",
-        text: `Loaded real-time stats for ${acc.firstName} ${acc.lastName} (${metrics.quizXP}, ${metrics.combatRank}). Set the course track and write your review below.`,
+        text: `Loaded real-time stats for ${formatAccountName(acc)} (${metrics.quizXP}, ${metrics.combatRank}). Set the course track and write your review below.`,
       });
     }
   };
@@ -247,7 +248,7 @@ export function AdminStudentOfTheWeek() {
     const res = await saveStudentOfTheWeek({
       id: form.id || studentOfTheWeek.id || "sotw_active",
       studentId: form.studentId,
-      studentName: form.studentName ?? "",
+      studentName: formatStudentName(form.studentName),
       avatar: form.avatar,
       track: form.track?.trim() || "",
       weekPeriod: form.weekPeriod ?? "",
@@ -314,7 +315,7 @@ export function AdminStudentOfTheWeek() {
                     { v: "", l: "-- Choose student (loads real-time stats) --" },
                     ...accounts.map((a) => ({
                       v: a.id,
-                      l: `${a.firstName} ${a.lastName} (${a.email})`,
+                      l: `${formatAccountName(a)} (${a.email})`,
                     })),
                   ]}
                 />
@@ -509,7 +510,7 @@ export function AdminStudentOfTheWeek() {
 
                 <div className="absolute bottom-3 left-3 right-3 text-white">
                   <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">{form.weekPeriod}</p>
-                  <h3 className="text-lg font-black">{form.studentName || "Student Name"}</h3>
+                  <h3 className="text-lg font-black">{formatStudentName(form.studentName) || "Student Name"}</h3>
                   <p className="text-xs text-slate-300 font-medium">{form.track}</p>
                 </div>
               </div>

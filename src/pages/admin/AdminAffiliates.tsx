@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { AdminShell } from "./AdminShell";
 import { useStore } from "../../lib/store";
+import { formatStudentName, formatAffiliateCardName } from "../../lib/formatName";
 import {
   type AffiliateProfile,
   type PayoutRequest,
@@ -317,14 +318,14 @@ export function AdminAffiliates() {
                             <img src={p.avatar} alt="" className="h-8 w-8 shrink-0 aspect-square rounded-full object-cover ring-1 ring-line" />
                           ) : (
                             <div className="h-8 w-8 shrink-0 aspect-square rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center text-xs">
-                              {p.userName.slice(0, 2).toUpperCase()}
+                              {formatStudentName(p.userName).slice(0, 2).toUpperCase()}
                             </div>
                           )}
                           <div className="min-w-0">
                             <p className="font-bold text-ink truncate">
-                              {p.cardDisplayName || p.userName}
-                              {p.cardDisplayName && p.cardDisplayName !== p.userName && (
-                                <span className="ml-1 text-[10px] font-normal text-muted">({p.userName})</span>
+                              {p.cardDisplayName ? formatAffiliateCardName(p.cardDisplayName) : formatStudentName(p.userName)}
+                              {p.cardDisplayName && (
+                                <span className="ml-1 text-[10px] font-normal text-muted">({formatStudentName(p.userName)})</span>
                               )}
                             </p>
                             <p className="text-[11px] text-muted truncate">{p.userEmail}</p>
@@ -670,13 +671,13 @@ export function AdminAffiliates() {
                   />
                 ) : (
                   <div className="h-11 w-11 shrink-0 rounded-full bg-brand text-white font-bold flex items-center justify-center text-xs">
-                    {(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
+                    {formatAffiliateCardName(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
                   </div>
                 )}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h4 className="font-display text-base font-bold text-ink truncate">
-                      {selectedProfile.cardDisplayName || selectedProfile.userName}
+                      {formatAffiliateCardName(selectedProfile.cardDisplayName || selectedProfile.userName)}
                     </h4>
                     <span className="rounded-full bg-cream border border-line px-2 py-0.5 text-[10px] font-semibold text-muted">
                       {selectedProfile.enrolledCourseTitle || "Forex Foundations"}

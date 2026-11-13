@@ -3,6 +3,7 @@ import { Award, CheckCircle2, Lock, ShieldCheck, Loader2, Check, X } from "lucid
 import { useStore } from "../lib/store";
 import { getCourse, naira, asCourse } from "../lib/courses";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
+import { formatAccountName } from "../lib/formatName";
 import { navigate } from "../lib/router";
 
 interface CertificatePaymentModalProps {
@@ -42,7 +43,7 @@ export default function CertificatePaymentModal({
       amount: fee,
       currency: "NGN",
       email: user.email,
-      name: `${user.firstName} ${user.lastName}`.trim(),
+      name: formatAccountName(user),
       phone: user.phone,
       reference: txRef,
       metadata: {
@@ -50,7 +51,7 @@ export default function CertificatePaymentModal({
         course_id: courseId,
         course_title: course?.title || courseId,
         student_id: user.id,
-        student_name: `${user.firstName} ${user.lastName}`.trim(),
+        student_name: formatAccountName(user),
       },
       onSuccess: async (session) => {
         await payCertificateFee(courseId, "card", session.reference || txRef);

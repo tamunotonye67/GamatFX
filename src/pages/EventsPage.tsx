@@ -5,6 +5,7 @@ import { useReveal } from "../lib/useReveal";
 import { useStore, type EventItem, type Registration } from "../lib/store";
 import { navigate } from "../lib/router";
 import { naira } from "../lib/courses";
+import { formatAccountName, formatStudentName } from "../lib/formatName";
 import { CONTACT } from "../lib/contact";
 import {
   MapPin, CalendarDays, Clock, ArrowUpRight, Users, Video, Ticket,
@@ -102,7 +103,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 function RegistrationForm({ preset }: { preset: string }) {
   const { events, seatsLeft, registerForEvent, user, isAuthed } = useStore();
   const [eventId, setEventId] = useState(preset || events[0]?.id || "");
-  const [name, setName] = useState(user ? `${user.firstName} ${user.lastName}` : "");
+  const [name, setName] = useState(user ? formatAccountName(user) : "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [busy, setBusy] = useState(false);
@@ -121,7 +122,7 @@ function RegistrationForm({ preset }: { preset: string }) {
     setError(null);
     setBusy(true);
     window.setTimeout(() => {
-      const res = registerForEvent({ eventId, name, email, phone });
+      const res = registerForEvent({ eventId, name: formatStudentName(name.trim()), email, phone });
       setBusy(false);
       if (!res.ok) { setError(res.error ?? "Registration failed."); return; }
       setTicket(res.registration!);
