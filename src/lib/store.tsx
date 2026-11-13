@@ -1416,6 +1416,8 @@ type Ctx = {
     accounts: Account[];
     enrollments: Enrollment[];
     payments: Payment[];
+    attempts: QuizAttempt[];
+    combatByUser: Record<string, CombatStats>;
     registrations: Registration[];
     posts: StaffPost[];
     enquiries: ServiceEnquiry[];
@@ -3494,6 +3496,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     accounts,
     enrollments: allEnrollments,
     payments,
+    attempts,
+    combatByUser,
     registrations,
     posts,
     enquiries,
