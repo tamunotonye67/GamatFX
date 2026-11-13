@@ -34,28 +34,13 @@ export function AdminPayments() {
   return (
     <AdminShell title="Payments" subtitle="Every transaction processed through the academy."
       action={
-        <div className="flex items-center gap-2">
-          {admin.payments.length > 0 && (
-            <button
-              type="button"
-              onClick={async () => {
-                if (confirm("Are you sure you want to PURGE ALL transactions? This will permanently delete all payment history.")) {
-                  await admin.purgeAllPayments();
-                }
-              }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-bold text-red-700 transition hover:bg-red-100"
-            >
-              <Trash2 className="h-4 w-4" /> Purge All Payments
-            </button>
-          )}
-          <button onClick={() => exportCsv("payments.csv", rows.map(p => ({
-            Ref: p.ref, Student: p.userName, Email: p.userEmail, Course: p.courseTitle,
-            Subtotal: p.subtotal, Discount: p.discount, VAT: p.vat, Total: p.amount,
-            Method: p.method, Coupon: p.coupon ?? "", Status: p.status, Date: fmtDate(p.createdAt),
-          })))} className="btn-outline-dark !py-2">
-            <Download className="h-4 w-4" /> Export CSV
-          </button>
-        </div>
+        <button onClick={() => exportCsv("payments.csv", rows.map(p => ({
+          Ref: p.ref, Student: p.userName, Email: p.userEmail, Course: p.courseTitle,
+          Subtotal: p.subtotal, Discount: p.discount, VAT: p.vat, Total: p.amount,
+          Method: p.method, Coupon: p.coupon ?? "", Status: p.status, Date: fmtDate(p.createdAt),
+        })))} className="btn-outline-dark !py-2">
+          <Download className="h-4 w-4" /> Export CSV
+        </button>
       }>
       <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
         <strong className="font-bold">Manual refunds only.</strong>{" "}
