@@ -1298,69 +1298,64 @@ export default function StorePage({ categoryParam }: StorePageProps) {
 
           {/* Flyout Sheet from Bottom to Top */}
           <div
-            className="relative w-full sm:max-w-xl max-h-[92vh] sm:max-h-[88vh] rounded-t-[28px] sm:rounded-3xl bg-white shadow-[0_-20px_60px_-15px_rgba(22,24,28,0.4)] sm:shadow-2xl border-t sm:border border-line flex flex-col animate-flyout-up overflow-hidden z-10"
+            className="relative w-full sm:max-w-lg md:max-w-xl max-h-[92dvh] sm:max-h-[86vh] rounded-t-[28px] sm:rounded-3xl bg-white shadow-[0_-16px_50px_rgba(22,24,28,0.35)] sm:shadow-2xl border-t sm:border border-line flex flex-col animate-flyout-up overflow-hidden z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Drag Handle (Mobile) & Header */}
-            <div className="relative pt-3 pb-3 px-6 sm:px-8 border-b border-line bg-cream shrink-0 text-center">
-              {/* Mobile visual drag indicator */}
-              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-slate-300 sm:hidden" />
-
-              <button
-                type="button"
-                onClick={() => setCheckoutProduct(null)}
-                className="absolute right-4 top-4 sm:right-6 sm:top-5 flex h-9 w-9 items-center justify-center rounded-full bg-white hover:bg-slate-200 text-ink/70 hover:text-ink transition cursor-pointer border border-line shadow-xs"
-                title="Close checkout"
-              >
-                <X className="h-5 w-5" />
-              </button>
-
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider ${
-                checkoutProduct.isFree || checkoutProduct.price === 0
-                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                  : checkoutProduct.isPreorder
-                  ? "bg-purple-50 text-purple-800 border border-purple-200"
-                  : "bg-brand-light text-brand border border-brand/20"
-              }`}>
-                {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
-                  <>
-                    <Gift className="h-3.5 w-3.5 text-emerald-600" />
-                    <span>Free Resource Access</span>
-                  </>
-                ) : checkoutProduct.isPreorder ? (
-                  <>
-                    <Clock className="h-3.5 w-3.5 text-purple-600" />
-                    <span>Pre-Order Reservation</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="h-3.5 w-3.5 text-brand" />
-                    <span>Instant Digital Checkout</span>
-                  </>
-                )}
-              </span>
-
-              <h3 className="mt-2 font-display text-xl sm:text-2xl font-extrabold text-ink tracking-tight">
-                {checkoutProduct.isFree || checkoutProduct.price === 0
-                  ? "Claim Free Access"
-                  : checkoutProduct.isPreorder
-                  ? "Reserve Your Pre-Order"
-                  : "Complete Your Order"}
-              </h3>
-              <p className="mt-1 text-xs text-muted max-w-md mx-auto">
-                {checkoutProduct.isFree || checkoutProduct.price === 0
-                  ? "Enter your details to receive your instant digital download link."
-                  : checkoutProduct.isPreorder
-                  ? "Lock in early-bird launch pricing. Your license and files unlock on release."
-                  : "Receive instant download link and license activation keys right after payment."}
-              </p>
+            {/* Top Drag Handle (Mobile) */}
+            <div className="pt-2.5 pb-1 sm:hidden flex justify-center bg-cream/70 border-b border-line/40 shrink-0">
+              <div className="h-1.5 w-12 rounded-full bg-slate-300" />
             </div>
 
-            {/* Scrollable Flyout Body */}
-            <div className="overflow-y-auto px-5 sm:px-8 py-5 space-y-5 flex-1 overscroll-contain">
-              {/* Selected Product Summary Card */}
-              <div className="rounded-2xl border border-line bg-cream p-4 flex items-center gap-4 shadow-xs">
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-white shadow-xs">
+            {/* Header Bar with Integrated Compact Product Info */}
+            <div className="relative px-4 sm:px-6 pt-3 pb-3 border-b border-line bg-cream/70 shrink-0">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider shrink-0 ${
+                    checkoutProduct.isFree || checkoutProduct.price === 0
+                      ? "bg-emerald-100/80 text-emerald-800 border border-emerald-300/60"
+                      : checkoutProduct.isPreorder
+                      ? "bg-purple-100/80 text-purple-800 border border-purple-300/60"
+                      : "bg-brand/10 text-brand border border-brand/20"
+                  }`}>
+                    {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                      <>
+                        <Gift className="h-3 w-3 text-emerald-600" />
+                        <span>Free Access</span>
+                      </>
+                    ) : checkoutProduct.isPreorder ? (
+                      <>
+                        <Clock className="h-3 w-3 text-purple-600" />
+                        <span>Pre-Order</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="h-3 w-3 text-brand" />
+                        <span>Instant Checkout</span>
+                      </>
+                    )}
+                  </span>
+                  <h3 className="font-display font-extrabold text-base sm:text-lg text-ink truncate">
+                    {checkoutProduct.isFree || checkoutProduct.price === 0
+                      ? "Claim Free Resource"
+                      : checkoutProduct.isPreorder
+                      ? "Reserve Pre-Order"
+                      : "Complete Order"}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCheckoutProduct(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white hover:bg-slate-100 text-ink/70 hover:text-ink transition cursor-pointer border border-line shadow-2xs shrink-0"
+                  title="Close checkout"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Compact Product Banner */}
+              <div className="mt-2.5 rounded-xl border border-line/80 bg-white p-2.5 flex items-center gap-3 shadow-2xs">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-line bg-cream">
                   <img
                     src={checkoutProduct.image}
                     alt={checkoutProduct.title}
@@ -1368,47 +1363,52 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block rounded-md bg-white border border-line px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block rounded bg-cream border border-line px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider text-muted">
                       {checkoutProduct.deliverableType || "Digital Resource"}
                     </span>
                   </div>
-                  <p className="mt-1 font-display font-bold text-sm text-ink truncate leading-snug">
+                  <p className="font-display font-bold text-xs sm:text-sm text-ink truncate leading-tight mt-0.5">
                     {checkoutProduct.title}
                   </p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
-                      <span className="text-sm font-extrabold text-emerald-600 flex items-center gap-1">
-                        <Gift className="h-4 w-4" /> 100% FREE
-                      </span>
-                    ) : (
-                      <span className="font-display text-base font-black text-brand">
-                        {naira(checkoutProduct.price)}
-                      </span>
-                    )}
-                  </div>
                 </div>
-              </div>
-
-              {/* Pre-order banner in checkout */}
-              {checkoutProduct.isPreorder && (
-                <div className="rounded-2xl bg-purple-50 border border-purple-200/90 p-4 text-xs text-purple-950 shadow-xs">
-                  <p className="font-bold flex items-center gap-1.5 text-purple-900">
-                    <Clock className="h-4 w-4 text-purple-700 shrink-0" />
-                    <span>Pre-Order Item {checkoutProduct.preorderReleaseDate ? `• Expected: ${checkoutProduct.preorderReleaseDate}` : ""}</span>
-                  </p>
-                  {checkoutProduct.preorderNote && (
-                    <p className="mt-1 text-purple-800 text-[11px] leading-relaxed">
-                      {checkoutProduct.preorderNote}
-                    </p>
+                <div className="text-right shrink-0">
+                  {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                    <span className="text-xs font-black text-emerald-600 flex items-center gap-0.5">
+                      <Gift className="h-3.5 w-3.5" /> FREE
+                    </span>
+                  ) : (
+                    <span className="font-display text-sm sm:text-base font-black text-brand">
+                      {naira(checkoutProduct.price)}
+                    </span>
                   )}
                 </div>
-              )}
+              </div>
+            </div>
 
-              <form onSubmit={handlePurchase} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5 text-brand" />
+            {/* Form wrapping scrollable inputs and sticky footer */}
+            <form onSubmit={handlePurchase} className="flex flex-col flex-1 min-h-0">
+              {/* Scrollable Form Body */}
+              <div className="overflow-y-auto px-4 sm:px-6 py-4 space-y-3.5 flex-1 overscroll-contain">
+                {/* Pre-order banner if applicable */}
+                {checkoutProduct.isPreorder && (
+                  <div className="rounded-xl bg-purple-50 border border-purple-200/90 p-3 text-xs text-purple-950">
+                    <p className="font-bold flex items-center gap-1.5 text-purple-900">
+                      <Clock className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                      <span>Pre-Order Item {checkoutProduct.preorderReleaseDate ? `• Expected: ${checkoutProduct.preorderReleaseDate}` : ""}</span>
+                    </p>
+                    {checkoutProduct.preorderNote && (
+                      <p className="mt-1 text-purple-800 text-[11px] leading-relaxed">
+                        {checkoutProduct.preorderNote}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Full Name */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                    <User className="h-3 w-3 text-brand" />
                     <span>Your Full Name *</span>
                   </label>
                   <input
@@ -1417,13 +1417,14 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     value={buyerName}
                     onChange={(e) => setBuyerName(e.target.value)}
                     placeholder="e.g. Tonye Taylor"
-                    className="w-full rounded-xl border border-line bg-cream/50 hover:bg-cream px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-xs"
+                    className="w-full rounded-xl border border-line bg-cream/30 hover:bg-cream/60 px-3 py-2.5 text-[16px] sm:text-xs font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-2xs"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink flex items-center gap-1.5">
-                    <Mail className="h-3.5 w-3.5 text-brand" />
+                {/* Email Address */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                    <Mail className="h-3 w-3 text-brand" />
                     <span>Email Address (For File Delivery) *</span>
                   </label>
                   <input
@@ -1432,13 +1433,14 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     value={buyerEmail}
                     onChange={(e) => setBuyerEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full rounded-xl border border-line bg-cream/50 hover:bg-cream px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-xs"
+                    className="w-full rounded-xl border border-line bg-cream/30 hover:bg-cream/60 px-3 py-2.5 text-[16px] sm:text-xs font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-2xs"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-ink flex items-center gap-1.5">
-                    <Phone className="h-3.5 w-3.5 text-brand" />
+                {/* WhatsApp / Phone */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-brand" />
                     <span>WhatsApp / Phone Number</span>
                   </label>
                   <input
@@ -1446,15 +1448,15 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     value={buyerPhone}
                     onChange={(e) => setBuyerPhone(e.target.value)}
                     placeholder="+234 800 000 0000"
-                    className="w-full rounded-xl border border-line bg-cream/50 hover:bg-cream px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-xs"
+                    className="w-full rounded-xl border border-line bg-cream/30 hover:bg-cream/60 px-3 py-2.5 text-[16px] sm:text-xs font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-2xs"
                   />
                 </div>
 
                 {/* Coupon Code Input (hide if already free) */}
                 {!(checkoutProduct.isFree || checkoutProduct.price === 0) && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-ink flex items-center gap-1.5">
-                      <Tag className="h-3.5 w-3.5 text-brand" />
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                      <Tag className="h-3 w-3 text-brand" />
                       <span>Have a discount coupon?</span>
                     </label>
                     <div className="flex gap-2">
@@ -1462,13 +1464,13 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         type="text"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
-                        placeholder="ENTER COUPON CODE"
-                        className="flex-1 rounded-xl border border-line bg-cream/50 hover:bg-cream px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-xs"
+                        placeholder="DISCOUNT CODE"
+                        className="flex-1 rounded-xl border border-line bg-cream/30 hover:bg-cream/60 px-3 py-2 text-[16px] sm:text-xs font-bold uppercase tracking-wider text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition shadow-2xs"
                       />
                       <button
                         type="button"
                         onClick={handleApplyCoupon}
-                        className="rounded-xl bg-ink hover:bg-ink/90 text-white font-bold text-xs px-4 py-2 transition active:scale-95 cursor-pointer shadow-xs shrink-0"
+                        className="rounded-xl bg-ink hover:bg-ink/90 text-white font-bold text-xs px-3.5 py-2 transition active:scale-95 cursor-pointer shadow-2xs shrink-0"
                       >
                         Apply
                       </button>
@@ -1487,68 +1489,67 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 )}
 
                 {/* Payment Method / Access Method Card */}
-                <div className="space-y-1.5 pt-1">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-muted">
-                    {checkoutProduct.isFree || checkoutProduct.price === 0 ? "Access Channel" : "Payment Method"}
+                <div className="space-y-1 pt-0.5">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted">
+                    {checkoutProduct.isFree || checkoutProduct.price === 0 ? "Access Channel" : "Payment Gateway"}
                   </label>
                   {checkoutProduct.isFree || checkoutProduct.price === 0 ? (
-                    <div className="flex items-center justify-between rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/50 p-4 transition shadow-xs">
-                      <div className="flex items-center gap-3.5">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
-                          <Gift className="h-5 w-5" />
+                    <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-50/50 p-3 transition shadow-2xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
+                          <Gift className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm font-bold text-ink">100% Free Instant Download</p>
-                          <p className="text-[11px] text-emerald-800">No payment card required. Immediate 1-click access.</p>
+                          <p className="text-xs font-bold text-ink">Free Instant Download</p>
+                          <p className="text-[11px] text-emerald-800">No payment card required. Immediate access.</p>
                         </div>
                       </div>
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs shrink-0">
-                        <Check className="h-3.5 w-3.5 stroke-[3]" />
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white shadow-2xs shrink-0">
+                        <Check className="h-3 w-3 stroke-[3]" />
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between rounded-2xl border-2 border-brand/25 bg-brand/[0.04] p-4 transition shadow-xs">
-                      <div className="flex items-center gap-3.5">
-                        <div className="flex h-10 w-24 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2.5 shrink-0">
+                    <div className="flex items-center justify-between rounded-xl border border-brand/20 bg-brand/[0.03] p-3 transition shadow-2xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-20 items-center justify-center rounded-lg bg-white border border-line shadow-2xs px-2 shrink-0">
                           <img
                             src="/images/bachs-logo.png"
                             alt="Bachs"
-                            className="h-4.5 w-auto object-contain"
+                            className="h-3.5 w-auto object-contain"
                           />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm font-bold text-ink">Bachs Checkout</p>
+                          <p className="text-xs font-bold text-ink">Bachs Checkout</p>
                           <p className="text-[11px] text-muted">Card, Bank Transfer, or Crypto</p>
                         </div>
                       </div>
-
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white shadow-xs shrink-0">
-                        <Check className="h-3.5 w-3.5 stroke-[3]" />
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white shadow-2xs shrink-0">
+                        <Check className="h-3 w-3 stroke-[3]" />
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Price Breakdown */}
-                <div className="rounded-2xl bg-cream border border-line p-4 text-xs space-y-2">
-                  <div className="flex justify-between text-muted">
+                <div className="rounded-xl bg-cream/70 border border-line p-3 text-xs space-y-1.5">
+                  <div className="flex justify-between text-muted text-[11px]">
                     <span>Subtotal</span>
                     <span className="font-semibold text-ink">
                       {checkoutProduct.isFree || checkoutProduct.price === 0 ? "FREE" : naira(checkoutProduct.price)}
                     </span>
                   </div>
                   {couponDiscount > 0 && !(checkoutProduct.isFree || checkoutProduct.price === 0) && (
-                    <div className="flex justify-between text-brand font-bold">
+                    <div className="flex justify-between text-brand font-bold text-[11px]">
                       <span>Coupon Discount ({couponDiscount}%)</span>
                       <span>-{naira(Math.round((checkoutProduct.price * couponDiscount) / 100))}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-baseline text-sm font-bold text-ink pt-2.5 border-t border-line">
-                    <span>Total Amount Due</span>
-                    <span className="font-display text-base sm:text-lg font-black text-ink">
+                  <div className="flex justify-between items-baseline text-xs font-bold text-ink pt-1.5 border-t border-line">
+                    <span>Total Due</span>
+                    <span className="font-display text-sm sm:text-base font-black text-ink">
                       {checkoutProduct.isFree || checkoutProduct.price === 0 || (checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)) <= 0 ? (
                         <span className="text-emerald-600 font-extrabold flex items-center gap-1">
-                          <Gift className="h-4 w-4" /> FREE (₦0)
+                          <Gift className="h-3.5 w-3.5" /> FREE (₦0)
                         </span>
                       ) : (
                         <span className="text-brand">
@@ -1558,64 +1559,64 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                     </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Submit Button & Security Note */}
-                <div className="pt-2 space-y-3 pb-4">
-                  <button
-                    type="submit"
-                    disabled={isProcessing}
-                    className={`w-full py-4 text-sm sm:text-base font-display font-extrabold tracking-wide flex items-center justify-center gap-2.5 cursor-pointer rounded-2xl shadow-xl transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 text-white ${
-                      checkoutProduct.isFree || checkoutProduct.price === 0
-                        ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25"
-                        : checkoutProduct.isPreorder
-                        ? "bg-purple-600 hover:bg-purple-700 shadow-purple-600/25"
-                        : "btn-primary shadow-brand/25"
-                    }`}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>
-                          {checkoutProduct.isFree || checkoutProduct.price === 0
-                            ? "Unlocking Free Access…"
-                            : checkoutProduct.isPreorder
-                            ? "Reserving Pre-Order…"
-                            : "Launching Bachs Checkout…"}
-                        </span>
-                      </>
-                    ) : checkoutProduct.isFree || checkoutProduct.price === 0 ? (
-                      <>
-                        <Download className="h-5 w-5" />
-                        <span>Claim Free Access Now</span>
-                      </>
-                    ) : checkoutProduct.isPreorder ? (
-                      <>
-                        <Clock className="h-5 w-5" />
-                        <span>
-                          Complete Pre-Order ({naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))})
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Lock className="h-5 w-5" />
-                        <span>
-                          Pay {naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))}
-                        </span>
-                      </>
-                    )}
-                  </button>
+              {/* Sticky Bottom Action Bar (always visible & reachable on mobile!) */}
+              <div className="shrink-0 border-t border-line bg-white/95 backdrop-blur-xs p-3.5 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(0,0,0,0.05)] space-y-2">
+                <button
+                  type="submit"
+                  disabled={isProcessing}
+                  className={`w-full py-3 sm:py-3.5 text-xs sm:text-sm font-display font-extrabold tracking-wide flex items-center justify-center gap-2 cursor-pointer rounded-xl shadow-lg transition-all active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 text-white ${
+                    checkoutProduct.isFree || checkoutProduct.price === 0
+                      ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25"
+                      : checkoutProduct.isPreorder
+                      ? "bg-purple-600 hover:bg-purple-700 shadow-purple-600/25"
+                      : "btn-primary shadow-brand/25"
+                  }`}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>
+                        {checkoutProduct.isFree || checkoutProduct.price === 0
+                          ? "Unlocking Access…"
+                          : checkoutProduct.isPreorder
+                          ? "Reserving Pre-Order…"
+                          : "Launching Bachs Checkout…"}
+                      </span>
+                    </>
+                  ) : checkoutProduct.isFree || checkoutProduct.price === 0 ? (
+                    <>
+                      <Download className="h-4 w-4" />
+                      <span>Claim Free Access Now</span>
+                    </>
+                  ) : checkoutProduct.isPreorder ? (
+                    <>
+                      <Clock className="h-4 w-4" />
+                      <span>
+                        Complete Pre-Order • {naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      <span>
+                        Pay {naira(Math.max(0, checkoutProduct.price - Math.round((checkoutProduct.price * couponDiscount) / 100)))} • Instant Access
+                      </span>
+                    </>
+                  )}
+                </button>
 
-                  <p className="text-center text-xs text-muted flex items-center justify-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>
-                      {checkoutProduct.isFree || checkoutProduct.price === 0
-                        ? "Direct digital file link sent to your email immediately"
-                        : "Payments are 256-bit encrypted and processed securely by Bachs"}
-                    </span>
-                  </p>
-                </div>
-              </form>
-            </div>
+                <p className="text-center text-[10px] sm:text-[11px] text-muted flex items-center justify-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                  <span>
+                    {checkoutProduct.isFree || checkoutProduct.price === 0
+                      ? "Direct digital file link sent to your email immediately"
+                      : "256-bit encrypted • Processed securely by Bachs"}
+                  </span>
+                </p>
+              </div>
+            </form>
           </div>
         </div>
       )}

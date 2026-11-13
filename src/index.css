@@ -56,17 +56,15 @@ img, video, canvas {
 @keyframes flyoutUp {
   0% {
     transform: translateY(100%);
-    opacity: 0.6;
   }
   100% {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 
 .animate-flyout-up {
-  animation: flyoutUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: transform, opacity;
+  animation: flyoutUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform;
 }
 
 @keyframes fadeInBackdrop {
