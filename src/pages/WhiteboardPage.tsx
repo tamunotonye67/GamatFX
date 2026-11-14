@@ -4561,13 +4561,15 @@ export default function WhiteboardPage() {
     const pt = getCanvasCoords(e);
     const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
-    const menuW = 240;
-    const menuH = 340;
-    const clampedX = Math.max(12, Math.min(e.clientX, window.innerWidth - menuW - 12));
-    const clampedY = Math.max(12, Math.min(e.clientY, window.innerHeight - menuH - 12));
+    const menuW = 280;
+    const menuH = 420;
+    const clampedX = Math.max(8, Math.min(e.clientX, window.innerWidth - menuW - 8));
+    const clampedY = Math.max(8, Math.min(e.clientY, window.innerHeight - menuH - 8));
 
     if (hitShape) {
-      setSelectedShapeIds([hitShape.id]);
+      if (!selectedShapeIds.includes(hitShape.id)) {
+        setSelectedShapeIds([hitShape.id]);
+      }
       setContextMenu({
         x: clampedX,
         y: clampedY,
@@ -12866,212 +12868,1772 @@ export default function WhiteboardPage() {
           />
 
           {/* Contextual Right-Click Popover Menu */}
-          {contextMenu && (
-            <div
-              className="fixed z-50 w-56 rounded-2xl border border-line bg-white p-2 shadow-2xl animate-in fade-in"
-              style={{ left: contextMenu.x, top: contextMenu.y }}
-            >
-              {contextMenu.targetShape ? (
-                <div className="space-y-1">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider flex items-center justify-between">
-                    <span>Selected {contextMenu.targetShape.name || contextMenu.targetShape.type.toUpperCase()}</span>
-                    {contextMenu.targetShape.isLocked && <span className="text-amber-600 font-extrabold flex items-center gap-0.5"><Lock className="h-3 w-3" /> Locked</span>}
-                  </p>
+          {contextMenu && (() => {
+            const liveTarget = contextMenu.targetShape
+              ? shapes.find((s) => s.id === contextMenu.targetShape!.id) || contextMenu.targetShape
+              : null;
 
-                  {!contextMenu.targetShape.isLocked && (
-                    <div className="flex items-center gap-1 px-3 py-1.5 border-b border-line pb-2 mb-1">
-                      {PALETTE.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => applyColorToSelected(c)}
-                          className={`h-4.5 w-4.5 rounded-full border border-line transition-transform ${
-                            strokeColor === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
-                          }`}
-                          style={{ background: c }}
-                        />
-                      ))}
+            const updateTarget = (updater: (s: Shape) => Shape, msg?: string, closeAfter: boolean = false) => {
+              if (!liveTarget || liveTarget.isLocked) return;
+              setShapes((prev) => prev.map((s) => (s.id === liveTarget.id ? updater(s) : s)));
+              if (msg) showToast(msg);
+              if (closeAfter) setContextMenu(null);
+            };
+
+            const openTextEditorForTarget = (target: Shape, isStickyNote: boolean = false) => {
+              setEditingShapeId(target.id);
+              setIsStickyMode(isStickyNote);
+              setTextValue(target.text || "");
+              if (target.stickyColor) setStickyColor(target.stickyColor);
+              setTextModalPos(target.points[0] || contextMenu.canvasPt);
+              setSelectedShapeIds([target.id]);
+              setContextMenu(null);
+            };
+
+            const TargetIcon = liveTarget ? getToolIcon(liveTarget.type) : getToolIcon(activeTool);
+
+            return (
+              <div
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                className="fixed z-[180] w-68 sm:w-72 max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto [scrollbar-width:thin] rounded-2xl border border-line bg-white/98 backdrop-blur-md p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                style={{ left: contextMenu.x, top: contextMenu.y }}
+              >
+                {liveTarget ? (
+                  <div className="space-y-1.5">
+                    {/* Header: Tool Icon + Selected Object Name */}
+                    <div className="px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="p-1 rounded-lg bg-white border border-slate-200 text-brand shrink-0">
+                          <TargetIcon className="h-3.5 w-3.5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[10.5px] font-black uppercase text-ink truncate leading-tight">
+                            {liveTarget.name || TOOL_EXPLANATIONS[liveTarget.type]?.title || liveTarget.type.toUpperCase()}
+                          </p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
+                            {liveTarget.type.replace("_", " ")} Tool Options
+                          </p>
+                        </div>
+                      </div>
+                      {liveTarget.isLocked && (
+                        <span className="text-[9.5px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md font-extrabold flex items-center gap-0.5 shrink-0">
+                          <Lock className="h-2.5 w-2.5" /> Locked
+                        </span>
+                      )}
                     </div>
-                  )}
 
-                  {/* Lock / Unlock Object Button */}
-                  <button
-                    type="button"
-                    onClick={() => toggleLockShape(contextMenu.targetShape!.id)}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    {contextMenu.targetShape.isLocked ? (
-                      <><Unlock className="h-3.5 w-3.5 text-emerald-600" /> Unlock Object 🔓</>
-                    ) : (
-                      <><Lock className="h-3.5 w-3.5 text-amber-600" /> Lock Object 🔒</>
+                    {/* Quick Color Swatches */}
+                    {!liveTarget.isLocked && liveTarget.type !== "image" && (
+                      <div className="px-2.5 py-1.5 border-b border-line space-y-1">
+                        <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                          <span>{liveTarget.type === "sticky" ? "Note Text Color" : "Color Theme"}</span>
+                          <span className="font-mono text-[9px] text-slate-500">{liveTarget.color}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-1">
+                          {PALETTE.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => applyColorToSelected(c)}
+                              className={`h-4.5 w-4.5 rounded-full border border-line transition-transform cursor-pointer ${
+                                (liveTarget.strokeColor || liveTarget.color) === c ? "scale-125 ring-2 ring-brand" : "hover:scale-110"
+                              }`}
+                              style={{ background: c }}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  </button>
 
-                  {!contextMenu.targetShape.isLocked && (contextMenu.targetShape.type === "text" || contextMenu.targetShape.type === "sticky") && (
+                    {/* ============================================================ */}
+                    {/* UNIQUE TOOL-SPECIFIC OPTIONS FOR EVERY OBJECT / TOOL TYPE     */}
+                    {/* ============================================================ */}
+                    {!liveTarget.isLocked && (
+                      <div className="px-2 py-1.5 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2">
+                        {/* 1. FIBONACCI RETRACEMENT TOOL OPTIONS */}
+                        {liveTarget.type === "fibo" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-emerald-700 flex items-center gap-1">
+                              <Percent className="h-3 w-3" /> Fibonacci Retracement Options
+                            </p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [{ x: s.points[0].x, y: s.points[1].y }, { x: s.points[1].x, y: s.points[0].y }] : s.points,
+                                    }),
+                                    "Inverted Fibonacci Swing (0% ↔ 100%)!"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand hover:text-brand transition cursor-pointer text-left"
+                              >
+                                ⇅ Invert 0% ↔ 100%
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: s.points[1].x + 140, y: s.points[1].y }] : s.points,
+                                    }),
+                                    "Extended Fibonacci levels right!"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand hover:text-brand transition cursor-pointer text-left"
+                              >
+                                ⇥ Extend Width
+                              </button>
+                            </div>
+                            <p className="text-[9px] font-bold uppercase text-slate-400 pt-0.5">Level Presets</p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      fiboLevels: DEFAULT_FIBO_LEVELS.map((l) => ({
+                                        ...l,
+                                        enabled: [0, 0.5, 0.618, 1].some((r) => Math.abs(l.ratio - r) < 0.01),
+                                      })),
+                                    }),
+                                    "Applied Golden Pocket (50% - 61.8%) Fibo preset!"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-900 hover:bg-amber-100 transition cursor-pointer"
+                              >
+                                Golden Pocket
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      fiboLevels: [
+                                        { ratio: 0.0, label: "0.0% Low/High", color: "#64748b", enabled: true },
+                                        { ratio: 0.5, label: "50.0% Equilibrium", color: "#eab308", enabled: true },
+                                        { ratio: 0.618, label: "61.8% OTE Start", color: "#10b981", enabled: true },
+                                        { ratio: 0.705, label: "70.5% ICT OTE Sweetspot", color: "#059669", enabled: true },
+                                        { ratio: 0.786, label: "78.6% OTE Deep", color: "#3b82f6", enabled: true },
+                                        { ratio: 1.0, label: "100.0% Origin", color: "#64748b", enabled: true },
+                                      ],
+                                    }),
+                                    "Applied ICT OTE (61.8% - 70.5% - 78.6%) Fibo preset!"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-900 hover:bg-emerald-100 transition cursor-pointer"
+                              >
+                                ICT OTE (70.5%)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      fiboLevels: [
+                                        { ratio: 0.0, label: "0.0%", color: "#ef4444", enabled: true },
+                                        { ratio: 0.25, label: "25.0% Q1", color: "#f59e0b", enabled: true },
+                                        { ratio: 0.5, label: "50.0% EQ", color: "#10b981", enabled: true },
+                                        { ratio: 0.75, label: "75.0% Q3", color: "#3b82f6", enabled: true },
+                                        { ratio: 1.0, label: "100.0%", color: "#8b5cf6", enabled: true },
+                                      ],
+                                    }),
+                                    "Applied Quarters (0 / 25 / 50 / 75 / 100%) preset!"
+                                  )
+                                }
+                                className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                              >
+                                Quarters (25% / 50%)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget((s) => ({ ...s, fiboLevels: DEFAULT_FIBO_LEVELS }), "Reset to all standard Fibonacci levels!")
+                                }
+                                className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                              >
+                                All Standard
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. LONG & SHORT POSITION CALCULATOR TOOL OPTIONS */}
+                        {(liveTarget.type === "long" || liveTarget.type === "short") && (() => {
+                          const curStop = liveTarget.stopDistance ?? 30;
+                          const curTarget = liveTarget.targetDistance ?? 90;
+                          const curRR = liveTarget.riskReward ?? Number((curTarget / curStop).toFixed(2));
+                          return (
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[9.5px] font-black uppercase tracking-wider text-brand flex items-center gap-1">
+                                  {liveTarget.type === "long" ? <LongPositionIcon className="h-3 w-3" /> : <ShortPositionIcon className="h-3 w-3" />}
+                                  {liveTarget.type === "long" ? "Long Setup" : "Short Setup"} (1:{curRR})
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({
+                                        ...s,
+                                        type: s.type === "long" ? "short" : "long",
+                                        name: s.type === "long" ? "Short Position" : "Long Position",
+                                      }),
+                                      `Flipped to ${liveTarget.type === "long" ? "Short" : "Long"} Position!`
+                                    )
+                                  }
+                                  className="px-2 py-0.5 rounded-md bg-brand text-white text-[9.5px] font-bold hover:opacity-90 transition cursor-pointer"
+                                >
+                                  Flip {liveTarget.type === "long" ? "→ Short" : "→ Long"}
+                                </button>
+                              </div>
+
+                              <p className="text-[9px] font-bold uppercase text-slate-400">Target Risk : Reward (R:R)</p>
+                              <div className="grid grid-cols-5 gap-1">
+                                {[1, 2, 3, 4, 5].map((rr) => (
+                                  <button
+                                    key={rr}
+                                    type="button"
+                                    onClick={() =>
+                                      updateTarget(
+                                        (s) => {
+                                          const st = s.stopDistance ?? 30;
+                                          return {
+                                            ...s,
+                                            stopDistance: st,
+                                            targetDistance: Math.round(st * rr),
+                                            riskReward: rr,
+                                          };
+                                        },
+                                        `Set Risk:Reward to 1:${rr}R!`
+                                      )
+                                    }
+                                    className={`py-1 rounded-md text-[10px] font-mono font-bold transition cursor-pointer ${
+                                      Math.abs(curRR - rr) < 0.1 ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                                    }`}
+                                  >
+                                    1:{rr}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <p className="text-[9px] font-bold uppercase text-slate-400">Stop Loss Zone Size</p>
+                              <div className="grid grid-cols-3 gap-1">
+                                {[
+                                  { label: "Tight (20p)", val: 20 },
+                                  { label: "Normal (35p)", val: 35 },
+                                  { label: "Wide (55p)", val: 55 },
+                                ].map((sl) => (
+                                  <button
+                                    key={sl.val}
+                                    type="button"
+                                    onClick={() =>
+                                      updateTarget(
+                                        (s) => ({
+                                          ...s,
+                                          stopDistance: sl.val,
+                                          targetDistance: Math.round(sl.val * (s.riskReward || defaultRiskReward)),
+                                        }),
+                                        `Updated Stop Loss to ${sl.label}!`
+                                      )
+                                    }
+                                    className={`py-1 rounded-md text-[9.5px] font-bold transition cursor-pointer ${
+                                      curStop === sl.val ? "bg-rose-600 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-rose-50"
+                                    }`}
+                                  >
+                                    {sl.label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCalcTargetRR(curRR);
+                                  setRightPanelTab("risk_calc");
+                                  setIsInspectorOpen(true);
+                                  setContextMenu(null);
+                                }}
+                                className="w-full py-1 px-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold hover:bg-emerald-100 transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Calculator className="h-3 w-3" /> Calculate Lot Size for 1:{curRR}R
+                              </button>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 3. ORDER BLOCK (OB / POI) TOOL OPTIONS */}
+                        {liveTarget.type === "orderblock" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-violet-700 flex items-center gap-1">
+                              <OrderBlockIcon className="h-3 w-3" /> Order Block Zone Options
+                            </p>
+                            <div className="grid grid-cols-3 gap-1">
+                              {[
+                                { tag: "+OB Bullish", col: "#10b981" },
+                                { tag: "-OB Bearish", col: "#ef4444" },
+                                { tag: "Breaker BB", col: "#3b82f6" },
+                                { tag: "Mitigation", col: "#f59e0b" },
+                                { tag: "HTF POI", col: "#8b5cf6" },
+                                { tag: "Extreme OB", col: "#0f172a" },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.tag}
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, text: preset.tag, color: preset.col, strokeColor: preset.col, fillColor: preset.col }),
+                                      `Set Order Block to "${preset.tag}"`
+                                    )
+                                  }
+                                  className={`py-1 px-1.5 rounded-md text-[9.5px] font-bold truncate transition cursor-pointer ${
+                                    liveTarget.text === preset.tag ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {preset.tag}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {(["translucent", "solid", "gradient", "none"] as const).map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, fillStyle: fs }), `Zone fill: ${fs}`)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.fillStyle || "translucent") === fs ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs === "none" ? "Outline" : fs}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, false)}
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Edit3 className="h-3 w-3 text-brand" /> Custom Label
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: Math.max(s.points[0].x, s.points[1].x) + 150, y: s.points[1].y }] : s.points,
+                                    }),
+                                    "Extended Order Block zone forward!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ⇥ Extend +150px
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 4. FAIR VALUE GAP (FVG / IMBALANCE) TOOL OPTIONS */}
+                        {liveTarget.type === "fvg" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-amber-700 flex items-center gap-1">
+                              <FvgToolIcon className="h-3 w-3" /> Fair Value Gap Options
+                            </p>
+                            <div className="grid grid-cols-3 gap-1">
+                              {[
+                                { tag: "FVG", col: "#f59e0b" },
+                                { tag: "BISI +FVG", col: "#10b981" },
+                                { tag: "SIBI -FVG", col: "#ef4444" },
+                                { tag: "IFVG Inv.", col: "#8b5cf6" },
+                                { tag: "Vol. Imb.", col: "#3b82f6" },
+                                { tag: "HTF FVG", col: "#0f172a" },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.tag}
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, text: preset.tag, color: preset.col, strokeColor: preset.col, fillColor: preset.col }),
+                                      `Set Imbalance tag to "${preset.tag}"`
+                                    )
+                                  }
+                                  className={`py-1 px-1.5 rounded-md text-[9.5px] font-bold truncate transition cursor-pointer ${
+                                    (liveTarget.text || "FVG") === preset.tag ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {preset.tag}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {(["translucent", "solid", "gradient", "none"] as const).map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, fillStyle: fs }), `FVG fill: ${fs}`)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.fillStyle || "translucent") === fs ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs === "none" ? "Outline" : fs}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, false)}
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Edit3 className="h-3 w-3 text-brand" /> Custom Label
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: Math.max(s.points[0].x, s.points[1].x) + 150, y: s.points[1].y }] : s.points,
+                                    }),
+                                    "Extended Fair Value Gap forward!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ⇥ Extend +150px
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 5. BREAK OF STRUCTURE (BOS / CHoCH) TOOL OPTIONS */}
+                        {liveTarget.type === "bos" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-blue-700 flex items-center gap-1">
+                              <BosToolIcon className="h-3 w-3" /> Market Structure Options
+                            </p>
+                            <div className="grid grid-cols-3 gap-1">
+                              {[
+                                { tag: "BOS", col: "#3b82f6" },
+                                { tag: "CHoCH", col: "#f59e0b" },
+                                { tag: "MSS", col: "#10b981" },
+                                { tag: "iBOS", col: "#64748b" },
+                                { tag: "cBOS", col: "#8b5cf6" },
+                                { tag: "Sweep ✕", col: "#ef4444" },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.tag}
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, text: preset.tag, color: preset.col, strokeColor: preset.col }),
+                                      `Set structure label to "${preset.tag}"`
+                                    )
+                                  }
+                                  className={`py-1 px-1.5 rounded-md text-[9.5px] font-bold truncate transition cursor-pointer ${
+                                    (liveTarget.text || "BOS") === preset.tag ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {preset.tag}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: s.points[1].x, y: s.points[0].y }] : s.points,
+                                    }),
+                                    "Snapped BOS line perfectly horizontal!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ━ Snap Horizontal
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, false)}
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Edit3 className="h-3 w-3 text-brand" /> Custom Tag
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 6. LIQUIDITY POOL ($$$) TOOL OPTIONS */}
+                        {liveTarget.type === "liquidity" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-rose-700 flex items-center gap-1">
+                              <LiquidityIcon className="h-3 w-3" /> Liquidity Pool Options
+                            </p>
+                            <div className="grid grid-cols-3 gap-1">
+                              {[
+                                { tag: "$$$", col: "#e11d48" },
+                                { tag: "BSL ($$$)", col: "#10b981" },
+                                { tag: "SSL ($$$)", col: "#ef4444" },
+                                { tag: "EQH (===)", col: "#3b82f6" },
+                                { tag: "EQL (===)", col: "#f59e0b" },
+                                { tag: "IDM Trap", col: "#8b5cf6" },
+                              ].map((preset) => (
+                                <button
+                                  key={preset.tag}
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, text: preset.tag, color: preset.col, strokeColor: preset.col }),
+                                      `Set Liquidity tag to "${preset.tag}"`
+                                    )
+                                  }
+                                  className={`py-1 px-1.5 rounded-md text-[9.5px] font-bold truncate transition cursor-pointer ${
+                                    (liveTarget.text || "$$$") === preset.tag ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {preset.tag}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: s.points[1].x, y: s.points[0].y }] : s.points,
+                                    }),
+                                    "Snapped Liquidity level horizontal!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ━ Snap Horizontal
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, false)}
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-ink hover:border-brand transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Edit3 className="h-3 w-3 text-brand" /> Custom Tag
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 7. CANDLESTICK TOOLS (candle / bullish_candle / bearish_candle) OPTIONS */}
+                        {(liveTarget.type === "candle" || liveTarget.type === "bullish_candle" || liveTarget.type === "bearish_candle") && (() => {
+                          const isBear = liveTarget.candleType === "bearish" || liveTarget.type === "bearish_candle";
+                          return (
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                                  <CandleToolIcon className="h-3 w-3" /> Candlestick Anatomy
+                                </p>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => applyCandleTypeToSelected("bullish")}
+                                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${
+                                      !isBear ? "bg-emerald-600 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                    }`}
+                                  >
+                                    Bullish 🟢
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => applyCandleTypeToSelected("bearish")}
+                                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${
+                                      isBear ? "bg-rose-600 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                    }`}
+                                  >
+                                    Bearish 🔴
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, upperWickLength: 4, lowerWickLength: 4, candleBodyHeight: 85 }),
+                                      "Applied Marubozu (Full Impulse Body) preset!"
+                                    )
+                                  }
+                                  className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer text-left"
+                                >
+                                  ▮ Marubozu Body
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, upperWickLength: 6, lowerWickLength: 65, candleBodyHeight: 22 }),
+                                      "Applied Hammer / Bullish Pinbar preset!"
+                                    )
+                                  }
+                                  className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer text-left"
+                                >
+                                  ┬ Hammer / Pinbar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, upperWickLength: 65, lowerWickLength: 6, candleBodyHeight: 22 }),
+                                      "Applied Shooting Star (Upper Rejection) preset!"
+                                    )
+                                  }
+                                  className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer text-left"
+                                >
+                                  ┴ Shooting Star
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, upperWickLength: 42, lowerWickLength: 42, candleBodyHeight: 6 }),
+                                      "Applied Doji (Indecision Cross) preset!"
+                                    )
+                                  }
+                                  className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer text-left"
+                                >
+                                  ┼ Doji Cross
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-1">
+                                {(["solid", "translucent", "none"] as const).map((fs) => (
+                                  <button
+                                    key={fs}
+                                    type="button"
+                                    onClick={() => applyFillStyleToSelected(fs)}
+                                    className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                      (liveTarget.fillStyle || "translucent") === fs ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                    }`}
+                                  >
+                                    {fs === "none" ? "Hollow" : fs}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 8. RECTANGLE TOOL OPTIONS */}
+                        {liveTarget.type === "rectangle" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <Square className="h-3 w-3" /> Rectangle Box Options
+                            </p>
+                            <div className="grid grid-cols-4 gap-1">
+                              {(["translucent", "solid", "gradient", "none"] as const).map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => applyFillStyleToSelected(fs)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.fillStyle || "translucent") === fs ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs === "none" ? "Outline" : fs}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "Sharp", r: 0 },
+                                { label: "8px", r: 8 },
+                                { label: "16px", r: 16 },
+                                { label: "Pill", r: 28 },
+                              ].map((cr) => (
+                                <button
+                                  key={cr.r}
+                                  type="button"
+                                  onClick={() => applyCornerRadiusToSelected(cr.r)}
+                                  className={`py-1 rounded-md text-[9px] font-bold transition cursor-pointer ${
+                                    (liveTarget.cornerRadius || 0) === cr.r ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {cr.label}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => {
+                                      if (s.points.length < 2) return s;
+                                      const side = Math.max(40, Math.abs(s.points[1].x - s.points[0].x));
+                                      return { ...s, points: [s.points[0], { x: s.points[0].x + side, y: s.points[0].y + side }] };
+                                    },
+                                    "Converted to 1:1 Perfect Square!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ◻ Make 1:1 Square
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({ ...s, type: "orderblock", text: "OB", name: "Order Block" }),
+                                    "Converted Rectangle to Order Block Zone!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                → Convert to OB
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 9. CIRCLE NODE TOOL OPTIONS */}
+                        {liveTarget.type === "circle" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <Circle className="h-3 w-3" /> Circle Node Options
+                            </p>
+                            <div className="grid grid-cols-4 gap-1">
+                              {(["translucent", "solid", "gradient", "none"] as const).map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => applyFillStyleToSelected(fs)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.fillStyle || "translucent") === fs ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs === "none" ? "Outline" : fs}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "S (25)", r: 25 },
+                                { label: "M (50)", r: 50 },
+                                { label: "L (85)", r: 85 },
+                                { label: "XL (120)", r: 120 },
+                              ].map((sz) => (
+                                <button
+                                  key={sz.r}
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, points: [s.points[0], { x: s.points[0].x + sz.r, y: s.points[0].y }] }),
+                                      `Set Circle radius to ${sz.r}px!`
+                                    )
+                                  }
+                                  className="py-1 rounded-md bg-white border border-slate-200 text-[9px] font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                                >
+                                  {sz.label}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateTarget((s) => ({ ...s, isGlowing: !s.isGlowing }), `Circle Glow ${!liveTarget.isGlowing ? "Enabled" : "Disabled"}!`)
+                              }
+                              className={`w-full py-1 px-2 rounded-lg border text-[10px] font-bold transition cursor-pointer ${
+                                liveTarget.isGlowing ? "bg-amber-50 border-amber-300 text-amber-800" : "bg-white border-slate-200 text-slate-700"
+                              }`}
+                            >
+                              ✨ {liveTarget.isGlowing ? "Disable Glow Highlight" : "Enable Glow Highlight"}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 10. DECISION DIAMOND TOOL OPTIONS */}
+                        {liveTarget.type === "diamond" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <Diamond className="h-3 w-3" /> Decision Diamond Options
+                            </p>
+                            <div className="grid grid-cols-4 gap-1">
+                              {(["translucent", "solid", "gradient", "none"] as const).map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => applyFillStyleToSelected(fs)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.fillStyle || "translucent") === fs ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs === "none" ? "Outline" : fs}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => {
+                                      if (s.points.length < 2) return s;
+                                      const span = Math.max(60, Math.abs(s.points[1].x - s.points[0].x));
+                                      return { ...s, points: [s.points[0], { x: s.points[0].x + span, y: s.points[0].y + span }] };
+                                    },
+                                    "Snapped Diamond to 1:1 symmetry!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ◇ 1:1 Symmetrical
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget((s) => ({ ...s, isGlowing: !s.isGlowing }), `Diamond Glow ${!liveTarget.isGlowing ? "On" : "Off"}!`)
+                                }
+                                className={`py-1 px-2 rounded-lg border text-[9.5px] font-bold transition cursor-pointer ${
+                                  liveTarget.isGlowing ? "bg-amber-50 border-amber-300 text-amber-800" : "bg-white border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                ✨ {liveTarget.isGlowing ? "Glow On" : "Add Glow"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 11. STRAIGHT LINE / TRENDLINE TOOL OPTIONS */}
+                        {liveTarget.type === "line" && (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                                <Minus className="h-3 w-3" /> Trendline & S/R Options
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget((s) => ({ ...s, isRay: !s.isRay }), !liveTarget.isRay ? "Enabled Infinite Ray Mode!" : "Switched to Finite Line Segment!")
+                                }
+                                className={`px-2 py-0.5 rounded text-[9px] font-bold transition cursor-pointer ${
+                                  liveTarget.isRay ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                {liveTarget.isRay ? "Ray: ON ∞" : "Ray: OFF"}
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: s.points[1].x, y: s.points[0].y }] : s.points,
+                                    }),
+                                    "Snapped Horizontal Support/Resistance Line!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ━ Horizontal S/R
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], { x: s.points[0].x, y: s.points[1].y }] : s.points,
+                                    }),
+                                    "Snapped Vertical Session/Time Line!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ┃ Vertical Line
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {(["solid", "dashed", "dotted", "long-dash"] as const).map((ls) => (
+                                <button
+                                  key={ls}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, lineStyle: ls }), `Line style: ${ls}`)}
+                                  className={`py-1 rounded-md text-[8.5px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.lineStyle || "solid") === ls ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {ls}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-5 gap-1">
+                              {(["none", "arrow", "circle", "diamond", "bar"] as const).map((term) => (
+                                <button
+                                  key={term}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, arrowEnd: term }), `End cap: ${term}`)}
+                                  className={`py-0.5 rounded text-[8.5px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.arrowEnd || "none") === term ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {term}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 12. DIRECTIONAL ARROW TOOL OPTIONS */}
+                        {liveTarget.type === "arrow" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <MoveUpRight className="h-3 w-3" /> Directional Arrow Options
+                            </p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({ ...s, points: [...s.points].reverse() }),
+                                    "Reversed Arrow direction!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ⇄ Reverse Direction
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget((s) => ({ ...s, isGlowing: !s.isGlowing }), `Arrow Glow ${!liveTarget.isGlowing ? "On" : "Off"}!`)
+                                }
+                                className={`py-1 px-2 rounded-lg border text-[9.5px] font-bold transition cursor-pointer ${
+                                  liveTarget.isGlowing ? "bg-amber-50 border-amber-300 text-amber-800" : "bg-white border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                ✨ {liveTarget.isGlowing ? "Glow: ON" : "Glow: OFF"}
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {(["solid", "dashed", "dotted"] as const).map((ls) => (
+                                <button
+                                  key={ls}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, lineStyle: ls }), `Arrow line: ${ls}`)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.lineStyle || "solid") === ls ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {ls}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {[2, 4, 6].map((sw) => (
+                                <button
+                                  key={sw}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, strokeWidth: sw }), `Arrow thickness: ${sw}px`)}
+                                  className={`py-1 rounded-md text-[9px] font-mono font-bold transition cursor-pointer ${
+                                    liveTarget.strokeWidth === sw ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {sw}px
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 13. CHART PATTERN PATH / BEZIER POLYLINE TOOL OPTIONS */}
+                        {liveTarget.type === "bezier" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <Activity className="h-3 w-3" /> Pattern Path Options ({liveTarget.points.length} nodes)
+                            </p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  selectTool("node");
+                                  setSelectedShapeIds([liveTarget.id]);
+                                  setContextMenu(null);
+                                  showToast("Node Edit Mode: Drag any pattern vertex!");
+                                }}
+                                className="py-1 px-2 rounded-lg bg-brand text-white text-[9.5px] font-bold hover:opacity-90 transition cursor-pointer"
+                              >
+                                ⊹ Edit Path Nodes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 3 ? [...s.points, { ...s.points[0] }] : s.points,
+                                    }),
+                                    "Closed Pattern Path loop!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ⬡ Close Loop
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {(["solid", "dashed", "dotted"] as const).map((ls) => (
+                                <button
+                                  key={ls}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, lineStyle: ls }), `Pattern line: ${ls}`)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.lineStyle || "solid") === ls ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {ls}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 14. FREEHAND PEN (PENCIL) TOOL OPTIONS */}
+                        {liveTarget.type === "pencil" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <Pencil className="h-3 w-3" /> Freehand Pen Options
+                            </p>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[2, 4, 7, 12].map((sw) => (
+                                <button
+                                  key={sw}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, strokeWidth: sw }), `Pen width: ${sw}px`)}
+                                  className={`py-1 rounded-md text-[9px] font-mono font-bold transition cursor-pointer ${
+                                    liveTarget.strokeWidth === sw ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {sw}px
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {(["solid", "dashed", "dotted"] as const).map((ls) => (
+                                <button
+                                  key={ls}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, lineStyle: ls }), `Stroke style: ${ls}`)}
+                                  className={`py-1 rounded-md text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.lineStyle || "solid") === ls ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {ls}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length > 6 ? s.points.filter((_, idx) => idx === 0 || idx === s.points.length - 1 || idx % 2 === 0) : s.points,
+                                    }),
+                                    "Smoothed freehand stroke!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                〰 Smooth Curve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points: s.points.length >= 2 ? [s.points[0], s.points[s.points.length - 1]] : s.points,
+                                    }),
+                                    "Straightened stroke into direct line!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ╱ Straighten
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 15. TRANSLUCENT HIGHLIGHTER TOOL OPTIONS */}
+                        {liveTarget.type === "highlighter" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-amber-700 flex items-center gap-1">
+                              <Highlighter className="h-3 w-3" /> Highlighter Marker Options
+                            </p>
+                            <div className="flex items-center justify-between gap-1">
+                              {["#facc15", "#4ade80", "#38bdf8", "#f472b6", "#fb923c", "#c084fc"].map((hc) => (
+                                <button
+                                  key={hc}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, color: hc, strokeColor: hc }), "Updated Highlighter color!")}
+                                  className={`h-5 w-5 rounded-md border border-slate-300 transition cursor-pointer ${
+                                    (liveTarget.strokeColor || liveTarget.color) === hc ? "ring-2 ring-slate-900 scale-110" : ""
+                                  }`}
+                                  style={{ background: hc }}
+                                />
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[12, 20, 30, 42].map((hw) => (
+                                <button
+                                  key={hw}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, strokeWidth: hw }), `Highlighter width: ${hw}px`)}
+                                  className={`py-1 rounded-md text-[9px] font-mono font-bold transition cursor-pointer ${
+                                    (liveTarget.strokeWidth || 18) === hw ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {hw}px
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateTarget(
+                                  (s) => ({
+                                    ...s,
+                                    points: s.points.length >= 2 ? [s.points[0], { x: s.points[s.points.length - 1].x, y: s.points[0].y }] : s.points,
+                                  }),
+                                  "Snapped Highlighter to clean horizontal bar!"
+                                )
+                              }
+                              className="w-full py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                            >
+                              ▬ Straighten Horizontal Highlight
+                            </button>
+                          </div>
+                        )}
+
+                        {/* 16. TEXT LABEL TOOL OPTIONS */}
+                        {liveTarget.type === "text" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <Type className="h-3 w-3" /> Text Typography Options
+                            </p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingTextShapeId(liveTarget.id);
+                                  setInlineTextValue(liveTarget.text || "");
+                                  setSelectedShapeIds([liveTarget.id]);
+                                  setContextMenu(null);
+                                }}
+                                className="py-1 px-2 rounded-lg bg-brand text-white text-[9.5px] font-bold hover:opacity-90 transition cursor-pointer flex items-center justify-center gap-1"
+                              >
+                                <Edit3 className="h-3 w-3" /> Edit Inline
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, false)}
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                Edit in Popup
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-5 gap-1">
+                              {[12, 16, 22, 30, 40].map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, fontSize: fs }), `Font size: ${fs}px`)}
+                                  className={`py-1 rounded-md text-[9px] font-mono font-bold transition cursor-pointer ${
+                                    (liveTarget.fontSize || 16) === fs ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              <button
+                                type="button"
+                                onClick={() => updateTarget((s) => ({ ...s, fontWeight: s.fontWeight === "bold" ? "normal" : "bold" }))}
+                                className={`py-1 rounded-md text-[9.5px] font-black transition cursor-pointer ${
+                                  liveTarget.fontWeight === "bold" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                B
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateTarget((s) => ({ ...s, fontStyle: s.fontStyle === "italic" ? "normal" : "italic" }))}
+                                className={`py-1 rounded-md text-[9.5px] italic font-serif font-bold transition cursor-pointer ${
+                                  liveTarget.fontStyle === "italic" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                I
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateTarget((s) => ({ ...s, textDecoration: s.textDecoration === "underline" ? "none" : "underline" }))}
+                                className={`py-1 rounded-md text-[9.5px] underline font-bold transition cursor-pointer ${
+                                  liveTarget.textDecoration === "underline" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                U
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateTarget((s) => ({ ...s, textTransform: s.textTransform === "uppercase" ? "none" : "uppercase" }))}
+                                className={`py-1 rounded-md text-[9px] font-bold transition cursor-pointer ${
+                                  liveTarget.textTransform === "uppercase" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                AA
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {(["left", "center", "right"] as const).map((al) => (
+                                <button
+                                  key={al}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, textAlign: al }))}
+                                  className={`py-0.5 rounded text-[9px] font-bold capitalize transition cursor-pointer ${
+                                    (liveTarget.textAlign || "left") === al ? "bg-brand text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {al}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 17. STICKY NOTE TOOL OPTIONS */}
+                        {liveTarget.type === "sticky" && (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[9.5px] font-black uppercase tracking-wider text-amber-700 flex items-center gap-1">
+                                <StickyNote className="h-3 w-3" /> Sticky Note Options
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, true)}
+                                className="px-2 py-0.5 rounded bg-brand text-white text-[9px] font-bold hover:opacity-90 cursor-pointer flex items-center gap-1"
+                              >
+                                <Edit3 className="h-2.5 w-2.5" /> Edit Note
+                              </button>
+                            </div>
+                            <div className="flex items-center justify-between gap-1">
+                              {STICKY_COLORS.map((sc) => (
+                                <button
+                                  key={sc.color}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, stickyColor: sc.color }), `Sticky Note color: ${sc.name}`)}
+                                  className={`h-5 flex-1 rounded-md border border-slate-300 transition cursor-pointer ${
+                                    (liveTarget.stickyColor || "#fef08a") === sc.color ? "ring-2 ring-slate-900 scale-105" : ""
+                                  }`}
+                                  style={{ background: sc.color }}
+                                  title={sc.name}
+                                />
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[12, 14, 18].map((fs) => (
+                                <button
+                                  key={fs}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, fontSize: fs }), `Note font: ${fs}px`)}
+                                  className={`py-1 rounded-md text-[9px] font-mono font-bold transition cursor-pointer ${
+                                    (liveTarget.fontSize || 14) === fs ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {fs}px
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => updateTarget((s) => ({ ...s, fontWeight: s.fontWeight === "bold" ? "normal" : "bold" }))}
+                                className={`py-1 rounded-md text-[9px] font-black transition cursor-pointer ${
+                                  liveTarget.fontWeight === "bold" ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                Bold
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 18. ANNOTATION CALLOUT LEADER LINE TOOL OPTIONS */}
+                        {liveTarget.type === "annotation" && (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[9.5px] font-black uppercase tracking-wider text-blue-700 flex items-center gap-1">
+                                <AnnotationIcon className="h-3 w-3" /> Callout Leader Options
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => openTextEditorForTarget(liveTarget, false)}
+                                className="px-2 py-0.5 rounded bg-brand text-white text-[9px] font-bold hover:opacity-90 cursor-pointer flex items-center gap-1"
+                              >
+                                <Edit3 className="h-2.5 w-2.5" /> Edit Text
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              {[
+                                "Entry Trigger",
+                                "Liquidity Sweep",
+                                "Stop Hunt",
+                                "Invalidation",
+                                "HTF POI Zone",
+                                "BOS Retest",
+                              ].map((tag) => (
+                                <button
+                                  key={tag}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, text: tag }), `Callout set to "${tag}"`)}
+                                  className={`py-1 px-1.5 rounded-md text-[9px] font-bold truncate transition cursor-pointer ${
+                                    liveTarget.text === tag ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {tag}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget(
+                                    (s) => ({
+                                      ...s,
+                                      points:
+                                        s.points.length >= 2
+                                          ? [s.points[0], { x: s.points[0].x - (s.points[1].x - s.points[0].x), y: s.points[1].y }]
+                                          : s.points,
+                                    }),
+                                    "Flipped Callout Badge side!"
+                                  )
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                ⇄ Flip Badge Side
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget((s) => ({ ...s, lineStyle: s.lineStyle === "dashed" ? "solid" : "dashed" }), "Toggled leader line style!")
+                                }
+                                className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand transition cursor-pointer"
+                              >
+                                {liveTarget.lineStyle === "dashed" ? "━ Solid Leader" : "┅ Dashed Leader"}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 19. IMAGE / CHART SCREENSHOT TOOL OPTIONS */}
+                        {liveTarget.type === "image" && (
+                          <div className="space-y-1.5">
+                            <p className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                              <ImageIcon className="h-3 w-3" /> Chart Image Options
+                            </p>
+                            <p className="text-[9px] font-bold uppercase text-slate-400">Image Opacity (Trace Mode)</p>
+                            <div className="grid grid-cols-4 gap-1">
+                              {[
+                                { label: "100%", val: 1 },
+                                { label: "75%", val: 0.75 },
+                                { label: "50%", val: 0.5 },
+                                { label: "30%", val: 0.3 },
+                              ].map((op) => (
+                                <button
+                                  key={op.val}
+                                  type="button"
+                                  onClick={() => updateTarget((s) => ({ ...s, opacity: op.val }), `Image opacity: ${op.label}`)}
+                                  className={`py-1 rounded-md text-[9px] font-mono font-bold transition cursor-pointer ${
+                                    (liveTarget.opacity ?? 1) === op.val ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  }`}
+                                >
+                                  {op.label}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                              {[
+                                { label: "Standard (600×380)", w: 600, h: 380 },
+                                { label: "HD 16:9 (800×450)", w: 800, h: 450 },
+                              ].map((sz) => (
+                                <button
+                                  key={sz.label}
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget(
+                                      (s) => ({ ...s, points: [s.points[0], { x: s.points[0].x + sz.w, y: s.points[0].y + sz.h }] }),
+                                      `Resized image to ${sz.label}!`
+                                    )
+                                  }
+                                  className="py-1 px-1.5 rounded-lg bg-white border border-slate-200 text-[9px] font-bold text-slate-700 hover:border-brand transition cursor-pointer"
+                                >
+                                  {sz.label}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                triggerImageUpload(liveTarget.points[0]);
+                                setContextMenu(null);
+                              }}
+                              className="w-full py-1 px-2 rounded-lg bg-brand-light text-brand text-[10px] font-bold hover:bg-brand hover:text-white transition cursor-pointer"
+                            >
+                              Replace / Upload Another Image...
+                            </button>
+                          </div>
+                        )}
+
+                        {/* ACTIVE NODE EDIT TOOL EXTRA OPTIONS */}
+                        {activeTool === "node" && liveTarget.points.length >= 2 && (
+                          <div className="pt-1.5 border-t border-slate-200 space-y-1">
+                            <p className="text-[9px] font-black uppercase text-brand">Node Edit Tool Actions</p>
+                            <div className="grid grid-cols-2 gap-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateTarget((s) => {
+                                    const last = s.points[s.points.length - 1];
+                                    const prev = s.points[s.points.length - 2];
+                                    const mid = { x: Math.round((last.x + prev.x) / 2), y: Math.round((last.y + prev.y) / 2) };
+                                    const nextPts = [...s.points];
+                                    nextPts.splice(s.points.length - 1, 0, mid);
+                                    return { ...s, points: nextPts };
+                                  }, "Inserted midpoint node!")
+                                }
+                                className="py-1 px-1.5 rounded bg-white border border-slate-200 text-[9px] font-bold text-slate-700 hover:border-brand cursor-pointer"
+                              >
+                                + Add Mid Node
+                              </button>
+                              {liveTarget.points.length > 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateTarget((s) => ({ ...s, points: s.points.slice(0, -1) }), "Removed last node!")
+                                  }
+                                  className="py-1 px-1.5 rounded bg-white border border-slate-200 text-[9px] font-bold text-rose-600 hover:bg-rose-50 cursor-pointer"
+                                >
+                                  - Remove Node
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Standard Object Management Actions */}
+                    <div className="space-y-0.5 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleLockShape(liveTarget.id)}
+                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                      >
+                        {liveTarget.isLocked ? (
+                          <><Unlock className="h-3.5 w-3.5 text-emerald-600" /> Unlock Object 🔓</>
+                        ) : (
+                          <><Lock className="h-3.5 w-3.5 text-amber-600" /> Lock Object 🔒</>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => duplicateSelectedObject(liveTarget)}
+                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                      >
+                        <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
+                      </button>
+
+                      {selectedShapeIds.length >= 2 && (
+                        <button
+                          type="button"
+                          onClick={() => { groupSelectedObjects(); setContextMenu(null); }}
+                          className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                        >
+                          <FolderPlus className="h-3.5 w-3.5 text-brand" /> Group Objects (Ctrl+G)
+                        </button>
+                      )}
+
+                      {layerGroups.some((g) => g.shapeIds.some((id) => selectedShapeIds.includes(id) || id === liveTarget.id)) && (
+                        <button
+                          type="button"
+                          onClick={() => { ungroupSelectedObjects(); setContextMenu(null); }}
+                          className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                        >
+                          <FolderMinus className="h-3.5 w-3.5 text-brand" /> Ungroup (Ctrl+Shift+G)
+                        </button>
+                      )}
+
+                      {!liveTarget.isLocked && (
+                        <div className="grid grid-cols-2 gap-1 pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => bringToFront(liveTarget.id)}
+                            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> To Front
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => sendToBack(liveTarget.id)}
+                            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> To Back
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="border-t border-line pt-1 mt-1">
+                        <button
+                          type="button"
+                          onClick={() => deleteSelectedObject(liveTarget.id)}
+                          className={`flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold transition cursor-pointer ${
+                            liveTarget.isLocked ? "text-slate-400 cursor-not-allowed" : "text-rose-600 hover:bg-rose-50"
+                          }`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Delete Object
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {/* Active Tool Specific Options when right-clicking canvas */}
+                    <div className="px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                      <p className="text-[9.5px] font-black uppercase tracking-wider text-brand flex items-center gap-1.5">
+                        <TargetIcon className="h-3.5 w-3.5" /> Active Tool: {TOOL_EXPLANATIONS[activeTool]?.title || activeTool.toUpperCase()}
+                      </p>
+
+                      {activeTool === "eraser" ? (
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase">Eraser Brush Radius</span>
+                          <div className="grid grid-cols-4 gap-1">
+                            {[10, 20, 35, 55].map((er) => (
+                              <button
+                                key={er}
+                                type="button"
+                                onClick={() => { setEraserSize(er); showToast(`Eraser radius: ${er}px`); }}
+                                className={`py-1 rounded-md text-[9.5px] font-mono font-bold cursor-pointer ${
+                                  eraserSize === er ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                {er}px
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : activeTool === "zoom" || activeTool === "marquee_zoom" ? (
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase">Zoom Level Presets</span>
+                          <div className="grid grid-cols-4 gap-1">
+                            {[0.5, 1, 1.5, 2].map((zVal) => (
+                              <button
+                                key={zVal}
+                                type="button"
+                                onClick={() => { setZoom(zVal); setContextMenu(null); showToast(`Zoom: ${Math.round(zVal * 100)}%`); }}
+                                className={`py-1 rounded-md text-[9.5px] font-mono font-bold cursor-pointer ${
+                                  Math.abs(zoom - zVal) < 0.05 ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                }`}
+                              >
+                                {Math.round(zVal * 100)}%
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : activeTool === "hand" ? (
+                        <div className="grid grid-cols-2 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => { setPan({ x: 0, y: 0 }); setZoom(1); setContextMenu(null); showToast("Reset Canvas View (100%)"); }}
+                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                          >
+                            ⌖ Reset Origin
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setMouseWheelMode(mouseWheelMode === "zoom" ? "pan" : "zoom"); showToast(`Wheel mode: ${mouseWheelMode === "zoom" ? "Pan" : "Zoom"}`); }}
+                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                          >
+                            Wheel: {mouseWheelMode.toUpperCase()}
+                          </button>
+                        </div>
+                      ) : activeTool === "eyedropper" || activeTool === "paintbucket" ? (
+                        <div className="grid grid-cols-2 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => { handleSwapColors(); setContextMenu(null); }}
+                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                          >
+                            ⇄ Swap Stroke/Fill
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { handleResetDefaultColors(); setContextMenu(null); }}
+                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                          >
+                            Reset Black/White
+                          </button>
+                        </div>
+                      ) : activeTool === "select" || activeTool === "node" ? (
+                        <div className="grid grid-cols-2 gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const ids = shapes.filter((s) => !s.isHidden).map((s) => s.id);
+                              setSelectedShapeIds(ids);
+                              setContextMenu(null);
+                              showToast(`Selected all ${ids.length} objects`);
+                            }}
+                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                          >
+                            Select All ({shapes.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShapes((prev) => prev.map((s) => ({ ...s, isLocked: false })));
+                              setContextMenu(null);
+                              showToast("Unlocked all canvas objects!");
+                            }}
+                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                          >
+                            Unlock All 🔓
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 uppercase">
+                            <span>Default Stroke Width</span>
+                            <span className="font-mono text-slate-600">{strokeWidth}px</span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-1">
+                            {[1, 2, 4, 8].map((sw) => (
+                              <button
+                                key={sw}
+                                type="button"
+                                onClick={() => setStrokeWidth(sw)}
+                                className={`py-0.5 rounded text-[9px] font-mono font-bold cursor-pointer ${
+                                  strokeWidth === sw ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                }`}
+                              >
+                                {sw}px
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="px-2.5 pt-1 text-[10px] font-black uppercase text-muted tracking-wider">Canvas Quick Tools</p>
+
                     <button
                       type="button"
                       onClick={() => {
-                        setEditingShapeId(contextMenu.targetShape!.id);
-                        setIsStickyMode(contextMenu.targetShape!.type === "sticky");
-                        setTextValue(contextMenu.targetShape!.text || "");
-                        if (contextMenu.targetShape!.stickyColor) setStickyColor(contextMenu.targetShape!.stickyColor);
-                        setTextModalPos(contextMenu.targetShape!.points[0] || contextMenu.canvasPt);
-                        setSelectedShapeIds([contextMenu.targetShape!.id]);
+                        selectTool("fibo");
                         setContextMenu(null);
                       }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                     >
-                      <Edit3 className="h-3.5 w-3.5 text-brand" /> {contextMenu.targetShape.type === "sticky" ? "Edit Sticky Note" : "Edit Text"}
+                      <Percent className="h-3.5 w-3.5 text-slate-700" /> Fibonacci Retracement
                     </button>
-                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => duplicateSelectedObject(contextMenu.targetShape!)}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Copy className="h-3.5 w-3.5 text-blue-600" /> Duplicate (Alt + Drag)
-                  </button>
-
-                  {selectedShapeIds.length >= 2 && (
                     <button
                       type="button"
-                      onClick={() => { groupSelectedObjects(); setContextMenu(null); }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                      onClick={() => {
+                        selectTool("long");
+                        setContextMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                     >
-                      <FolderPlus className="h-3.5 w-3.5 text-brand" /> Group Objects (Ctrl+G)
+                      <LongPositionIcon className="h-3.5 w-3.5" /> Long Position Box
                     </button>
-                  )}
 
-                  {layerGroups.some((g) => g.shapeIds.some((id) => selectedShapeIds.includes(id) || (contextMenu.targetShape && id === contextMenu.targetShape.id))) && (
                     <button
                       type="button"
-                      onClick={() => { ungroupSelectedObjects(); setContextMenu(null); }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                      onClick={() => {
+                        selectTool("short");
+                        setContextMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
                     >
-                      <FolderMinus className="h-3.5 w-3.5 text-brand" /> Ungroup (Ctrl+Shift+G)
+                      <ShortPositionIcon className="h-3.5 w-3.5" /> Short Position Box
                     </button>
-                  )}
 
-                  {!contextMenu.targetShape.isLocked && (
-                    <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsStickyMode(true);
+                        setTextModalPos(contextMenu.canvasPt);
+                        selectTool("sticky");
+                        setContextMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                    >
+                      <StickyNote className="h-3.5 w-3.5 text-slate-700" /> Add Sticky Note Here
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsStickyMode(false);
+                        setTextModalPos(contextMenu.canvasPt);
+                        selectTool("text");
+                        setContextMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                    >
+                      <Type className="h-3.5 w-3.5 text-slate-700" /> Add Text Label Here
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerImageUpload(contextMenu.canvasPt);
+                        setContextMenu(null);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
+                    >
+                      <ImageIcon className="h-3.5 w-3.5 text-slate-700" /> Insert Image Here
+                    </button>
+
+                    <div className="border-t border-line pt-1 mt-1">
                       <button
                         type="button"
-                        onClick={() => bringToFront(contextMenu.targetShape!.id)}
-                        className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
+                        onClick={() => { handleClear(); setContextMenu(null); }}
+                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                       >
-                        <ArrowUp className="h-3.5 w-3.5 text-emerald-600" /> Bring to Front
+                        <Trash2 className="h-3.5 w-3.5" /> Clear Whiteboard
                       </button>
-
-                      <button
-                        type="button"
-                        onClick={() => sendToBack(contextMenu.targetShape!.id)}
-                        className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                      >
-                        <ArrowDown className="h-3.5 w-3.5 text-amber-600" /> Send to Back
-                      </button>
-                    </>
-                  )}
-
-                  <div className="border-t border-line pt-1 mt-1">
-                    <button
-                      type="button"
-                      onClick={() => deleteSelectedObject(contextMenu.targetShape!.id)}
-                      className={`flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
-                        contextMenu.targetShape.isLocked ? "text-slate-400 cursor-not-allowed" : "text-rose-600 hover:bg-rose-50"
-                      }`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Delete Object
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Canvas Quick Tools</p>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTool("fibo");
-                      setContextMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Percent className="h-3.5 w-3.5 text-slate-700" /> Fibonacci Retracement
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTool("long");
-                      setContextMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <LongPositionIcon className="h-3.5 w-3.5" /> Long Position Box
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTool("short");
-                      setContextMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <ShortPositionIcon className="h-3.5 w-3.5" /> Short Position Box
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsStickyMode(true);
-                      setTextModalPos(contextMenu.canvasPt);
-                      setActiveTool("sticky");
-                      setContextMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <StickyNote className="h-3.5 w-3.5 text-slate-700" /> Add Sticky Note Here
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsStickyMode(false);
-                      setTextModalPos(contextMenu.canvasPt);
-                      setActiveTool("text");
-                      setContextMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <Type className="h-3.5 w-3.5 text-slate-700" /> Add Text Label Here
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      triggerImageUpload(contextMenu.canvasPt);
-                      setContextMenu(null);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition"
-                  >
-                    <ImageIcon className="h-3.5 w-3.5 text-slate-700" /> Insert Image Here
-                  </button>
-
-                  <div className="border-t border-line pt-1 mt-1">
-                    <button
-                      type="button"
-                      onClick={() => { handleClear(); setContextMenu(null); }}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Clear Whiteboard
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
 
           {/* TAB RIGHT-CLICK CONTEXT MENU */}
           {tabContextMenu && (
@@ -13670,8 +15232,8 @@ export default function WhiteboardPage() {
             );
           })()}
 
-          {/* Sticky Note Input Modal for Sticky Notes Only */}
-          {textModalPos && isStickyMode && (
+          {/* Sticky Note & Object Label Input Modal */}
+          {textModalPos && (
             <div
               className="absolute z-40 rounded-2xl border border-line bg-white p-3 sm:p-4 shadow-2xl space-y-3 animate-in fade-in max-w-[calc(100%-1rem)]"
               style={{
@@ -13681,8 +15243,18 @@ export default function WhiteboardPage() {
             >
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-ink flex items-center gap-1.5">
-                  <StickyNote className="h-4 w-4 text-amber-500" />
-                  {editingShapeId ? "Edit Sticky Note" : "Add Sticky Note"}
+                  {isStickyMode ? (
+                    <StickyNote className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <Type className="h-4 w-4 text-brand" />
+                  )}
+                  {isStickyMode
+                    ? editingShapeId
+                      ? "Edit Sticky Note"
+                      : "Add Sticky Note"
+                    : editingShapeId
+                    ? "Edit Label / Callout Text"
+                    : "Add Text Label"}
                 </p>
               </div>
 
@@ -13691,7 +15263,7 @@ export default function WhiteboardPage() {
                 rows={3}
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
-                placeholder="Type teaching note or rule..."
+                placeholder={isStickyMode ? "Type teaching note or rule..." : "Enter custom tag or label text..."}
                 className="w-60 sm:w-64 max-w-full rounded-xl border border-line bg-cream p-2.5 text-xs text-ink outline-none focus:border-brand resize-none"
               />
 
@@ -13711,7 +15283,7 @@ export default function WhiteboardPage() {
                   onClick={handleAddTextOrSticky}
                   className="btn-primary !py-1.5 !px-3 text-xs font-bold"
                 >
-                  {editingShapeId ? "Update Note" : "Save Note"}
+                  {editingShapeId ? "Update" : "Save"}
                 </button>
               </div>
             </div>
@@ -15626,18 +17198,14 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const pts = shape.points;
   if (!pts.length) return false;
 
-  if (shape.type === "text" || shape.type === "sticky" || shape.type === "annotation" || shape.type === "fibo" || shape.type === "long" || shape.type === "short") {
-    const b = getShapeBounds(shape);
-    const pad = 8;
-    return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
+  if (shape.type === "circle" && pts.length >= 2) {
+    const r = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    return Math.hypot(pt.x - pts[0].x, pt.y - pts[0].y) <= r + 10;
   }
 
-  const minX = Math.min(...pts.map((p) => p.x)) - 10;
-  const maxX = Math.max(...pts.map((p) => p.x)) + 10;
-  const minY = Math.min(...pts.map((p) => p.y)) - 10;
-  const maxY = Math.max(...pts.map((p) => p.y)) + 10;
-
-  return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+  const b = getShapeBounds(shape);
+  const pad = 10;
+  return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
 }
 
 function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: number; maxY: number } {
@@ -15649,7 +17217,13 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
   let minY = Math.min(...pts.map((p) => p.y));
   let maxY = Math.max(...pts.map((p) => p.y));
 
-  if (shape.type === "sticky") {
+  if (shape.type === "circle" && pts.length >= 2) {
+    const r = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    minX = pts[0].x - r;
+    maxX = pts[0].x + r;
+    minY = pts[0].y - r;
+    maxY = pts[0].y + r;
+  } else if (shape.type === "sticky") {
     const p0 = pts[0];
     const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
     minX = Math.min(p0.x, p1.x);
@@ -15691,6 +17265,24 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     }
     minY = pts[0].y;
     maxY = pts[0].y + totalH;
+  } else if (shape.type === "annotation" && pts.length >= 2) {
+    const p0 = pts[0];
+    const p1 = pts[1];
+    const estBadgeW = Math.max(55, (shape.text || "Annotation").length * 7 + 20);
+    const isRight = p1.x >= p0.x;
+    const badgeLeft = isRight ? p1.x : p1.x - estBadgeW;
+    const badgeRight = isRight ? p1.x + estBadgeW : p1.x;
+    minX = Math.min(p0.x, badgeLeft);
+    maxX = Math.max(p0.x, badgeRight);
+    minY = Math.min(p0.y, p1.y - 14);
+    maxY = Math.max(p0.y, p1.y + 14);
+  } else if ((shape.type === "orderblock" || shape.type === "fvg") && pts.length >= 2) {
+    const boxW = Math.abs(pts[1].x - pts[0].x) || 160;
+    const boxH = Math.abs(pts[1].y - pts[0].y) || 60;
+    minX = Math.min(pts[0].x, pts[1].x);
+    minY = Math.min(pts[0].y, pts[1].y);
+    maxX = minX + boxW;
+    maxY = minY + boxH;
   } else if (shape.type === "candle" || shape.type === "bullish_candle" || shape.type === "bearish_candle") {
     if (pts.length >= 2) {
       const x1 = pts[0].x;
@@ -15702,11 +17294,14 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
       const totalH = Math.max(16, yLow - yHigh);
       const bodyW = shape.candleBodyWidth ?? Math.max(14, Math.abs(x2 - x1) || 22);
       const centerX = Math.abs(x2 - x1) > 5 ? Math.min(x1, x2) + bodyW / 2 : x1;
+      const upperWickH = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(totalH * 0.19);
+      const lowerWickH = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(totalH * 0.19);
+      const bodyH = shape.candleBodyHeight !== undefined ? shape.candleBodyHeight : Math.max(6, totalH - upperWickH - lowerWickH);
 
       minX = centerX - bodyW / 2;
       maxX = centerX + bodyW / 2;
       minY = yHigh;
-      maxY = yLow;
+      maxY = Math.max(yLow, yHigh + upperWickH + bodyH + lowerWickH);
     }
   } else if (shape.type === "fibo" && pts.length >= 2) {
     const x1 = pts[0].x;
