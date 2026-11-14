@@ -1762,8 +1762,10 @@ export default function WhiteboardPage() {
       ? { x: 44, y: 102 }
       : { x: 90, y: 130 }
   );
+  const favBarRef = useRef<HTMLDivElement | null>(null);
   const isDraggingFav = useRef(false);
-  const dragFavStart = useRef({ x: 0, y: 0 });
+  const favMovedRef = useRef(false);
+  const dragFavStart = useRef({ x: 0, y: 0, startClientX: 0, startClientY: 0 });
 
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
   const [activeFiboLevels, setActiveFiboLevels] = useState<FiboLevel[]>(DEFAULT_FIBO_LEVELS);
@@ -2063,14 +2065,7 @@ export default function WhiteboardPage() {
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
   // Individual Detachable & Attachable Floating Panels System
-  const [isInspectorOpen, setIsInspectorOpen] = useState(() =>
-    typeof window !== "undefined" ? window.innerWidth >= 768 : true
-  );
-  const autoOpenInspectorOnDesktop = () => {
-    if (typeof window === "undefined" || window.innerWidth >= 768) {
-      setIsInspectorOpen(true);
-    }
-  };
+  const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [viewportTick, setViewportTick] = useState(0);
   useEffect(() => {
     const handleViewportResize = () => setViewportTick((v) => v + 1);
@@ -2418,29 +2413,76 @@ export default function WhiteboardPage() {
     e: React.MouseEvent | React.TouchEvent,
     panelId: keyof typeof detachedPanels
   ) => {
+    e.stopPropagation();
     const clientX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
     const clientY = "touches" in e ? e.touches[0]?.clientY ?? 0 : e.clientY;
     draggingPanelKey.current = panelId;
+    const asideEl = (e.currentTarget as HTMLElement | null)?.closest("aside");
+    const rect = asideEl?.getBoundingClientRect();
     const current = detachedPanels[panelId];
     panelDragOffset.current = {
-      x: clientX - current.x,
-      y: clientY - current.y,
+      x: clientX - (rect ? rect.left : current.x),
+      y: clientY - (rect ? rect.top : current.y),
     };
     const newZ = highestPanelZIndex + 1;
     setHighestPanelZIndex(newZ);
     setDetachedPanels((prev) => ({
       ...prev,
-      [panelId]: { ...prev[panelId], zIndex: newZ },
+      [panelId]: {
+        ...prev[panelId],
+        x: rect ? rect.left : prev[panelId].x,
+        y: rect ? rect.top : prev[panelId].y,
+        zIndex: newZ,
+      },
     }));
+  };
+
+  const handleDockedHeaderDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const startX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
+    const startY = "touches" in e ? e.touches[0]?.clientY ?? 0 : e.clientY;
+    const asideEl = (e.currentTarget as HTMLElement | null)?.closest("aside");
+    const rect = asideEl?.getBoundingClientRect();
+    const offsetX = rect ? startX - rect.left : 120;
+    const offsetY = rect ? startY - rect.top : 20;
+    let hasDetached = false;
+
+    const onMove = (cx: number, cy: number, ev?: Event) => {
+      if (!hasDetached && Math.hypot(cx - startX, cy - startY) > 6) {
+        hasDetached = true;
+        const initX = Math.max(-180, Math.min(window.innerWidth - 80, cx - offsetX));
+        const initY = Math.max(4, Math.min(window.innerHeight - 60, cy - offsetY));
+        detachIndividualPanel(rightPanelTab, initX, initY);
+        draggingPanelKey.current = rightPanelTab;
+        panelDragOffset.current = { x: offsetX, y: offsetY };
+      }
+      if (hasDetached && ev && ev.cancelable) {
+        ev.preventDefault();
+      }
+    };
+
+    const onMouseMove = (ev: MouseEvent) => onMove(ev.clientX, ev.clientY, ev);
+    const onTouchMove = (ev: TouchEvent) => {
+      if (ev.touches[0]) onMove(ev.touches[0].clientX, ev.touches[0].clientY, ev);
+    };
+    const onEnd = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onEnd);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onEnd);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onEnd);
   };
 
   useEffect(() => {
     const updatePanelPos = (clientX: number, clientY: number) => {
       if (draggingPanelKey.current) {
         const id = draggingPanelKey.current;
-        const maxPanelW = Math.min(320, window.innerWidth - 16);
-        const newX = Math.max(8, Math.min(window.innerWidth - maxPanelW - 8, clientX - panelDragOffset.current.x));
-        const newY = Math.max(50, Math.min(window.innerHeight - 100, clientY - panelDragOffset.current.y));
+        const newX = Math.max(-180, Math.min(window.innerWidth - 80, clientX - panelDragOffset.current.x));
+        const newY = Math.max(4, Math.min(window.innerHeight - 60, clientY - panelDragOffset.current.y));
         setDetachedPanels((prev) => ({
           ...prev,
           [id]: { ...prev[id], x: newX, y: newY },
@@ -2451,6 +2493,7 @@ export default function WhiteboardPage() {
     const handleWindowMouseMove = (e: MouseEvent) => updatePanelPos(e.clientX, e.clientY);
     const handleWindowTouchMove = (e: TouchEvent) => {
       if (draggingPanelKey.current && e.touches[0]) {
+        if (e.cancelable) e.preventDefault();
         updatePanelPos(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
@@ -2463,15 +2506,17 @@ export default function WhiteboardPage() {
 
     window.addEventListener("mousemove", handleWindowMouseMove);
     window.addEventListener("mouseup", handleWindowMouseUp);
-    window.addEventListener("touchmove", handleWindowTouchMove, { passive: true });
+    window.addEventListener("touchmove", handleWindowTouchMove, { passive: false });
     window.addEventListener("touchend", handleWindowMouseUp);
+    window.addEventListener("touchcancel", handleWindowMouseUp);
     return () => {
       window.removeEventListener("mousemove", handleWindowMouseMove);
       window.removeEventListener("mouseup", handleWindowMouseUp);
       window.removeEventListener("touchmove", handleWindowTouchMove);
       window.removeEventListener("touchend", handleWindowMouseUp);
+      window.removeEventListener("touchcancel", handleWindowMouseUp);
     };
-  }, [highestPanelZIndex, detachedPanels]);
+  }, []);
 
   // Close User Menu on Outside Click / Escape
   useEffect(() => {
@@ -3130,7 +3175,6 @@ export default function WhiteboardPage() {
     setFlyoutGroup(null);
     if (tool === "select" || tool === "node") {
       setActiveSelectTool(tool as any);
-      autoOpenInspectorOnDesktop();
       setRightPanelTab("inspector");
     }
     if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "candle", "bullish_candle", "bearish_candle"].includes(tool)) {
@@ -3284,20 +3328,34 @@ export default function WhiteboardPage() {
     e.stopPropagation();
     const clientX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
     const clientY = "touches" in e ? e.touches[0]?.clientY ?? 0 : e.clientY;
+    const rect = favBarRef.current?.getBoundingClientRect();
+    const currentLeft = rect ? rect.left : favPos.x;
+    const currentTop = rect ? rect.top : favPos.y;
     isDraggingFav.current = true;
-    dragFavStart.current = { x: clientX - favPos.x, y: clientY - favPos.y };
+    favMovedRef.current = false;
+    dragFavStart.current = {
+      x: clientX - currentLeft,
+      y: clientY - currentTop,
+      startClientX: clientX,
+      startClientY: clientY,
+    };
 
-    const updateFavPos = (cx: number, cy: number) => {
+    const updateFavPos = (cx: number, cy: number, ev?: Event) => {
       if (!isDraggingFav.current) return;
+      if (!favMovedRef.current && Math.hypot(cx - dragFavStart.current.startClientX, cy - dragFavStart.current.startClientY) > 4) {
+        favMovedRef.current = true;
+      }
+      if (!favMovedRef.current) return;
+      if (ev && ev.cancelable) ev.preventDefault();
       setFavPos({
-        x: Math.max(4, Math.min(window.innerWidth - 100, cx - dragFavStart.current.x)),
-        y: Math.max(4, Math.min(window.innerHeight - 50, cy - dragFavStart.current.y)),
+        x: Math.max(4, Math.min(window.innerWidth - 60, cx - dragFavStart.current.x)),
+        y: Math.max(4, Math.min(window.innerHeight - 44, cy - dragFavStart.current.y)),
       });
     };
 
-    const handleFavMouseMove = (ev: MouseEvent) => updateFavPos(ev.clientX, ev.clientY);
+    const handleFavMouseMove = (ev: MouseEvent) => updateFavPos(ev.clientX, ev.clientY, ev);
     const handleFavTouchMove = (ev: TouchEvent) => {
-      if (ev.touches[0]) updateFavPos(ev.touches[0].clientX, ev.touches[0].clientY);
+      if (ev.touches[0]) updateFavPos(ev.touches[0].clientX, ev.touches[0].clientY, ev);
     };
 
     const handleFavMouseUp = () => {
@@ -3306,12 +3364,14 @@ export default function WhiteboardPage() {
       window.removeEventListener("mouseup", handleFavMouseUp);
       window.removeEventListener("touchmove", handleFavTouchMove);
       window.removeEventListener("touchend", handleFavMouseUp);
+      window.removeEventListener("touchcancel", handleFavMouseUp);
     };
 
     window.addEventListener("mousemove", handleFavMouseMove);
     window.addEventListener("mouseup", handleFavMouseUp);
-    window.addEventListener("touchmove", handleFavTouchMove, { passive: true });
+    window.addEventListener("touchmove", handleFavTouchMove, { passive: false });
     window.addEventListener("touchend", handleFavMouseUp);
+    window.addEventListener("touchcancel", handleFavMouseUp);
   };
 
   const toggleFavoriteTool = (toolToToggle: Tool) => {
@@ -3742,7 +3802,6 @@ export default function WhiteboardPage() {
       if (hitShape) {
         if (!selectedShapeIds.includes(hitShape.id)) {
           setSelectedShapeIds([hitShape.id]);
-          setIsInspectorOpen(true);
         }
         const nodeIdx = hitShape.points.findIndex((p) => Math.hypot(pt.x - p.x, pt.y - p.y) <= 12);
         if (nodeIdx !== -1 && !hitShape.isLocked) {
@@ -3782,7 +3841,6 @@ export default function WhiteboardPage() {
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
       if (hitShape) {
-        setIsInspectorOpen(true);
         if (hitShape.type === "fibo" && hitShape.fiboLevels && hitShape.fiboLevels.length > 0) {
           setActiveFiboLevels(hitShape.fiboLevels);
         }
@@ -3860,7 +3918,6 @@ export default function WhiteboardPage() {
           setEditingTextShapeId(hitShape.id);
           setInlineTextValue(hitShape.text || "");
           setSelectedShapeIds([hitShape.id]);
-          setIsInspectorOpen(true);
           setRightPanelTab("character");
           textCreatedTimeRef.current = Date.now();
         }
@@ -3893,7 +3950,6 @@ export default function WhiteboardPage() {
       setEditingTextShapeId(newId);
       setInlineTextValue("");
       setSelectedShapeIds([newId]);
-      setIsInspectorOpen(true);
       setRightPanelTab("character");
       return;
     }
@@ -4287,7 +4343,6 @@ export default function WhiteboardPage() {
           const newSelectedIds = enclosedShapes.map((s) => s.id);
           setSelectedShapeIds(newSelectedIds);
           if (newSelectedIds.length > 0) {
-            autoOpenInspectorOnDesktop();
             showToast(`Selected ${newSelectedIds.length} object${newSelectedIds.length > 1 ? "s" : ""}`);
           }
         }
@@ -4358,7 +4413,6 @@ export default function WhiteboardPage() {
       };
       setShapes((prev) => [...prev, finalShape]);
       setSelectedShapeIds([finalShape.id]);
-      autoOpenInspectorOnDesktop();
       setRightPanelTab("inspector");
       setCurrentShape(null);
       setRedoStack([]);
@@ -4389,7 +4443,6 @@ export default function WhiteboardPage() {
         setEditingTextShapeId(hitShape.id);
         setInlineTextValue(hitShape.text || "");
         setSelectedShapeIds([hitShape.id]);
-        autoOpenInspectorOnDesktop();
         setRightPanelTab("character");
         setTimeout(() => {
           if (inlineTextRef.current) {
@@ -10858,16 +10911,17 @@ export default function WhiteboardPage() {
       {/* Floating Draggable Favorites Toolbar */}
       {favoritedTools.length > 0 && showFavoritesBar && (
         <div
-          className="fixed z-[150] flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-default max-w-[calc(100vw-5.5rem)] sm:max-w-[calc(100vw-2rem)] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          ref={favBarRef}
+          onMouseDown={handleFavDragStart}
+          onTouchStart={handleFavDragStart}
+          className="fixed z-[150] flex flex-wrap items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none max-w-[calc(100vw-4.5rem)] sm:max-w-[calc(100vw-2rem)]"
           style={{
-            left: typeof window !== "undefined" ? Math.max(40, Math.min(favPos.x, window.innerWidth - 100)) : favPos.x,
-            top: typeof window !== "undefined" ? Math.max(96, Math.min(favPos.y, window.innerHeight - 60)) : favPos.y,
+            left: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.x, window.innerWidth - 60)) : favPos.x,
+            top: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.y, window.innerHeight - 44)) : favPos.y,
           }}
         >
           <div
-            onMouseDown={handleFavDragStart}
-            onTouchStart={handleFavDragStart}
-            className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0"
+            className="cursor-move px-1 py-0.5 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0 touch-none"
             title="Drag Favorites Toolbar Anywhere on Page"
           >
             <GripVertical className="h-4 w-4" />
@@ -10878,13 +10932,15 @@ export default function WhiteboardPage() {
               <button
                 key={tKey}
                 type="button"
-                onClick={() => setActiveTool(tKey)}
-                className={`h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-xl flex items-center justify-center transition ${
+                onClick={() => {
+                  if (!favMovedRef.current) selectTool(tKey);
+                }}
+                className={`h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-xl flex items-center justify-center transition touch-none ${
                   activeTool === tKey ? "bg-brand text-white shadow-md" : "text-slate-700 hover:bg-cream"
                 }`}
                 title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
               >
-                <IconComponent className="h-3.5 w-3.5" />
+                <IconComponent className="h-3.5 w-3.5 pointer-events-none" />
               </button>
             );
           })}
@@ -13722,8 +13778,8 @@ export default function WhiteboardPage() {
         <aside
           key={panelKey}
           style={{
-            left: typeof window !== "undefined" ? Math.max(8, Math.min(p.x, window.innerWidth - Math.min(320, window.innerWidth - 16))) : p.x,
-            top: typeof window !== "undefined" ? Math.max(56, Math.min(p.y, window.innerHeight - 120)) : p.y,
+            left: typeof window !== "undefined" ? Math.max(-180, Math.min(p.x, window.innerWidth - 80)) : p.x,
+            top: typeof window !== "undefined" ? Math.max(4, Math.min(p.y, window.innerHeight - 60)) : p.y,
             zIndex: p.zIndex,
           }}
           onMouseDown={() => {
@@ -13734,13 +13790,13 @@ export default function WhiteboardPage() {
               [panelKey]: { ...prev[panelKey], zIndex: newZ },
             }));
           }}
-          className="fixed w-80 max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] max-h-[75dvh] sm:max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
+          className="fixed w-64 sm:w-80 max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] max-h-[75dvh] sm:max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
         >
           {/* Draggable Titlebar */}
           <div
             onMouseDown={(e) => handleFloatingPanelDragStart(e, panelKey)}
             onTouchStart={(e) => handleFloatingPanelDragStart(e, panelKey)}
-            className="border-b border-line p-2 px-2.5 bg-slate-50/90 shrink-0 z-10 flex items-center justify-between cursor-move"
+            className="border-b border-line p-2 px-2.5 bg-slate-50/90 shrink-0 z-10 flex items-center justify-between cursor-move touch-none"
             title="Drag anywhere on canvas"
           >
             <div className="flex items-center gap-1.5 text-xs font-black text-ink min-w-0">
@@ -13797,7 +13853,12 @@ export default function WhiteboardPage() {
         {/* Panel Header */}
         <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           {/* Top Titlebar Controls */}
-          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100">
+          <div
+            onMouseDown={handleDockedHeaderDragStart}
+            onTouchStart={handleDockedHeaderDragStart}
+            className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 cursor-move touch-none select-none"
+            title="Drag to undock and move panel anywhere"
+          >
             <div className="flex items-center gap-1.5 text-xs font-black text-ink">
               <GripHorizontal className="h-3.5 w-3.5 text-slate-400" />
               <span>
