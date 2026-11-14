@@ -2,6 +2,7 @@ import { useState } from "react";
 import PageHero from "../components/PageHero";
 import { navigate } from "../lib/router";
 import { CONTACT } from "../lib/contact";
+import { useStore } from "../lib/store";
 import {
   Mail,
   Phone,
@@ -29,7 +30,29 @@ const subjects = [
 ];
 
 export default function ContactPage() {
+  const { submitEnquiry } = useStore();
   const [sent, setSent] = useState(false);
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitEnquiry({
+      serviceSlug: "general-contact",
+      serviceTitle: form.subject || "General Enquiry",
+      name: `${form.firstName} ${form.lastName}`.trim(),
+      email: form.email,
+      phone: form.phone,
+      message: form.message,
+    });
+    setSent(true);
+  };
 
   return (
     <>
@@ -103,18 +126,42 @@ export default function ContactPage() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <h2 className="font-display text-2xl font-bold text-ink">Send a message</h2>
                   <p className="mt-1 text-sm text-muted">All fields are required.</p>
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="First name" type="text" ph="Jane" />
-                  <Field label="Last name" type="text" ph="Doe" />
+                  <Field
+                    label="First name"
+                    type="text"
+                    ph="Jane"
+                    value={form.firstName}
+                    onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
+                  />
+                  <Field
+                    label="Last name"
+                    type="text"
+                    ph="Doe"
+                    value={form.lastName}
+                    onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
+                  />
                 </div>
-                <Field label="Email address" type="email" ph="jane@example.com" />
-                <Field label="Phone / WhatsApp" type="tel" ph={CONTACT.phone} />
+                <Field
+                  label="Email address"
+                  type="email"
+                  ph="jane@example.com"
+                  value={form.email}
+                  onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                />
+                <Field
+                  label="Phone / WhatsApp"
+                  type="tel"
+                  ph={CONTACT.phone}
+                  value={form.phone}
+                  onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                />
 
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
@@ -122,11 +169,12 @@ export default function ContactPage() {
                   </label>
                   <select
                     required
-                    defaultValue=""
+                    value={form.subject}
+                    onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
                     className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:bg-white"
                   >
                     <option value="" disabled>Choose a subject…</option>
-                    {subjects.map((s) => <option key={s}>{s}</option>)}
+                    {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
 
@@ -138,6 +186,8 @@ export default function ContactPage() {
                     required
                     rows={5}
                     placeholder="Tell us how we can help…"
+                    value={form.message}
+                    onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
                     className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white"
                   />
                 </div>
@@ -177,7 +227,19 @@ export default function ContactPage() {
   );
 }
 
-function Field({ label, type, ph }: { label: string; type: string; ph: string }) {
+function Field({
+  label,
+  type,
+  ph,
+  value,
+  onChange,
+}: {
+  label: string;
+  type: string;
+  ph: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
   return (
     <div>
       <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
@@ -187,6 +249,8 @@ function Field({ label, type, ph }: { label: string; type: string; ph: string })
         required
         type={type}
         placeholder={ph}
+        value={value}
+        onChange={onChange}
         className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white"
       />
     </div>

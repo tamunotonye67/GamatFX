@@ -75,8 +75,20 @@ export function AdminShell({ title, subtitle, action, children }: {
     }
   });
 
+  // Listen for notification read events from other admin components (e.g. opening messages)
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ readIds: string[] }>) => {
+      if (e.detail?.readIds) {
+        setReadNotifIds(new Set(e.detail.readIds));
+      }
+    };
+    window.addEventListener("admin_notifs_updated", handler as EventListener);
+    return () => window.removeEventListener("admin_notifs_updated", handler as EventListener);
+  }, []);
+
   const isNotifUnread = useCallback(
     (item: ActivityNotification) => {
+      if (item.read) return false;
       if (readNotifIds.has(item.id)) return false;
       return new Date(item.timestamp).getTime() > readAllTimestamp;
     },
@@ -106,14 +118,7 @@ export function AdminShell({ title, subtitle, action, children }: {
 
   const handleNotificationClick = (item: ActivityNotification) => {
     // 1. Mark this notification as read immediately in state and persistent storage
-    setReadNotifIds((prev) => {
-      const next = new Set(prev);
-      next.add(item.id);
-      try {
-        localStorage.setItem("admin_notifs_read_ids", JSON.stringify([...next]));
-      } catch {}
-      return next;
-    });
+    markAdminNotificationRead(item.id);
 
     // 2. Set target query in sessionStorage for destination page
     if (item.targetQuery) {
@@ -144,14 +149,7 @@ export function AdminShell({ title, subtitle, action, children }: {
     try {
       localStorage.setItem("admin_notifs_read_at", String(now));
     } catch {}
-    setReadNotifIds((prev) => {
-      const next = new Set(prev);
-      notifs.forEach((n) => next.add(n.id));
-      try {
-        localStorage.setItem("admin_notifs_read_ids", JSON.stringify([...next]));
-      } catch {}
-      return next;
-    });
+    markAdminNotificationRead(notifs.map((n) => n.id));
   };
 
   const filteredNotifs = notifs.filter((item) => {
@@ -816,4 +814,20 @@ export function useAdminSearchTarget(initialQ = ""): [string, (q: string) => voi
   }, []);
 
   return [q, setQ];
+}
+
+/** Mark one or multiple admin activity notifications as read and broadcast change immediately. */
+export function markAdminNotificationRead(notifId: string | string[]) {
+  try {
+    const raw = localStorage.getItem("admin_notifs_read_ids");
+    const set = raw ? new Set<string>(JSON.parse(raw)) : new Set<string>();
+    const ids = Array.isArray(notifId) ? notifId : [notifId];
+    ids.forEach((id) => set.add(id));
+    localStorage.setItem("admin_notifs_read_ids", JSON.stringify([...set]));
+    window.dispatchEvent(
+      new CustomEvent("admin_notifs_updated", {
+        detail: { readIds: [...set] },
+      })
+    );
+  } catch {}
 }

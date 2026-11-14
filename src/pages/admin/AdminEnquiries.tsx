@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, fmtDate, useAdminSearchTarget, markAdminNotificationRead } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type ServiceEnquiry } from "../../lib/store";
 import { SERVICES } from "../../lib/services";
@@ -13,6 +13,27 @@ export function AdminEnquiries() {
   const [status, setStatus] = useState("all");
   const [svc, setSvc] = useState("all");
   const [view, setView] = useState<ServiceEnquiry | null>(null);
+
+  const handleOpenEnquiry = (e: ServiceEnquiry) => {
+    const updated = e.status === "new" ? { ...e, status: "read" as const } : e;
+    setView(updated);
+    if (e.status === "new") {
+      admin.setEnquiryStatus(e.id, "read");
+    }
+    markAdminNotificationRead(`notif_enq_${e.id}`);
+  };
+
+  const lastAutoOpenedQuery = useRef<string | null>(null);
+  useEffect(() => {
+    if (!q) return;
+    const trimmed = q.trim().toLowerCase();
+    if (lastAutoOpenedQuery.current === trimmed) return;
+    const match = admin.enquiries.find((e) => e.ref.toLowerCase() === trimmed);
+    if (match) {
+      lastAutoOpenedQuery.current = trimmed;
+      handleOpenEnquiry(match);
+    }
+  }, [q, admin.enquiries]);
 
   const rows = useMemo(() => admin.enquiries.filter((e) => {
     const mq = `${e.name} ${e.email} ${e.ref} ${e.company ?? ""} ${e.serviceTitle}`.toLowerCase().includes(q.toLowerCase());
@@ -49,7 +70,7 @@ export function AdminEnquiries() {
           </select>
           <select value={status} onChange={(e) => setStatus(e.target.value)}
             className="rounded-xl border border-line bg-white px-4 py-2.5 text-sm outline-none focus:border-brand">
-            {["all", "new", "contacted", "closed"].map(s => <option key={s} value={s}>{s === "all" ? "All statuses" : s}</option>)}
+            {["all", "new", "read", "contacted", "closed"].map(s => <option key={s} value={s}>{s === "all" ? "All statuses" : s}</option>)}
           </select>
           <span className="ml-auto text-sm text-muted">{rows.length} enquiry(s)</span>
         </div>
@@ -71,22 +92,28 @@ export function AdminEnquiries() {
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((e) => (
-                  <tr key={e.id} className={`transition hover:bg-cream/60 ${e.status === "new" ? "bg-brand-light/40" : ""}`}>
-                    <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{e.ref}</code></Td>
+                  <tr key={e.id} className={`transition hover:bg-cream/60 ${e.status === "new" ? "bg-brand-light/40 font-medium" : ""}`}>
+                    <Td className="whitespace-nowrap">
+                      <button onClick={() => handleOpenEnquiry(e)} className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand hover:underline">
+                        {e.ref}
+                      </button>
+                    </Td>
                     <Td className="min-w-[220px]">
-                      <p className="font-semibold text-ink">{e.name}</p>
+                      <button onClick={() => handleOpenEnquiry(e)} className="text-left font-semibold text-ink hover:text-brand transition">
+                        {e.name}
+                      </button>
                       <p className="text-xs text-muted truncate">{e.email}</p>
                       {e.company && <p className="text-xs text-muted">{e.company}</p>}
                     </Td>
                     <Td className="min-w-[200px]"><span className="text-ink/80">{e.serviceTitle}</span></Td>
                     <Td className="whitespace-nowrap"><span className="text-muted">{e.packageName ?? "—"}</span></Td>
                     <Td className="whitespace-nowrap"><span className="text-muted">{e.budget ?? "—"}</span></Td>
-                    <Td className="whitespace-nowrap"><Badge tone={e.status === "new" ? "red" : e.status === "contacted" ? "amber" : "green"}>{e.status}</Badge></Td>
+                    <Td className="whitespace-nowrap"><Badge tone={e.status === "new" ? "red" : e.status === "read" ? "blue" : e.status === "contacted" ? "amber" : "green"}>{e.status}</Badge></Td>
                     <Td className="whitespace-nowrap"><span className="text-muted">{fmtDate(e.createdAt)}</span></Td>
                     <Td right>
                       <div className="flex justify-end gap-1">
-                        <IconBtn title="View" onClick={() => setView(e)}><Eye className="h-4 w-4" /></IconBtn>
-                        {e.status === "new" && (
+                        <IconBtn title="View" onClick={() => handleOpenEnquiry(e)}><Eye className="h-4 w-4" /></IconBtn>
+                        {e.status !== "contacted" && e.status !== "closed" && (
                           <IconBtn title="Mark contacted" onClick={() => admin.setEnquiryStatus(e.id, "contacted")}><PhoneCall className="h-4 w-4" /></IconBtn>
                         )}
                         {e.status !== "closed" && (
@@ -114,7 +141,7 @@ export function AdminEnquiries() {
                 <p className="mt-2 font-display text-lg font-extrabold text-ink">{view.name}</p>
                 <p className="text-sm text-muted">{view.email} · {view.phone}</p>
               </div>
-              <Badge tone={view.status === "new" ? "red" : view.status === "contacted" ? "amber" : "green"}>{view.status}</Badge>
+              <Badge tone={view.status === "new" ? "red" : view.status === "read" ? "blue" : view.status === "contacted" ? "amber" : "green"}>{view.status}</Badge>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -141,8 +168,13 @@ export function AdminEnquiries() {
                 <MailOpen className="h-4 w-4" /> Reply by email
               </a>
               <a href={`tel:${view.phone}`} className="btn-outline-dark !py-2.5"><PhoneCall className="h-4 w-4" /> Call</a>
+              {view.status !== "contacted" && (
+                <button onClick={() => { admin.setEnquiryStatus(view.id, "contacted"); setView(prev => prev ? { ...prev, status: "contacted" } : null); }} className="btn-outline-dark !py-2.5">
+                  <PhoneCall className="h-4 w-4" /> Mark contacted
+                </button>
+              )}
               {view.status !== "closed" && (
-                <button onClick={() => { admin.setEnquiryStatus(view.id, "closed"); setView(null); }} className="btn-outline-dark !py-2.5">
+                <button onClick={() => { admin.setEnquiryStatus(view.id, "closed"); setView(prev => prev ? { ...prev, status: "closed" } : null); }} className="btn-outline-dark !py-2.5">
                   <CheckCircle2 className="h-4 w-4" /> Mark closed
                 </button>
               )}

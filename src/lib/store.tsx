@@ -585,7 +585,7 @@ export type ServiceEnquiry = {
   budget?: string;
   message: string;
   userId?: string;
-  status: "new" | "contacted" | "closed";
+  status: "new" | "read" | "contacted" | "closed";
   createdAt: string;
 };
 
@@ -3545,7 +3545,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     registrations,
     posts,
     enquiries,
-    setEnquiryStatus: (id, status) => setEnquiries((p) => p.map((e) => (e.id === id ? { ...e, status } : e))),
+    setEnquiryStatus: (id, status) =>
+      setEnquiries((p) => {
+        const updated = p.map((e) => (e.id === id ? { ...e, status } : e));
+        const item = updated.find((e) => e.id === id);
+        if (item) saveSupabaseEnquiry(item);
+        return updated;
+      }),
     deleteEnquiry: (id) => setEnquiries((p) => p.filter((e) => e.id !== id)),
     kpis,
     revenueByMonth,
@@ -3902,7 +3908,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         timestamp: e.createdAt,
         link: "/admin/enquiries",
         targetQuery: e.ref || e.name || e.email,
-        read: false,
+        read: e.status !== "new",
       });
     });
 
