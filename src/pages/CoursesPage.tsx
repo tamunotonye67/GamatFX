@@ -6,6 +6,7 @@ import { useReveal } from "../lib/useReveal";
 import { navigate } from "../lib/router";
 import { COURSES, totalLessons, naira } from "../lib/courses";
 import { useStore } from "../lib/store";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import {
   Clock, Users, PlayCircle, Star, BadgeCheck, ArrowUpRight,
   Infinity as InfinityIcon, Award, MonitorPlay, CheckCircle2, BookOpen,
@@ -74,7 +75,12 @@ function Catalogue() {
 
                 {/* Poster */}
                 <button onClick={() => navigate(`/courses/${c.id}`)} className="relative block">
-                  <img src={c.poster} alt={c.title} className="aspect-video w-full object-cover" />
+                  <img
+                    src={normalizeImageUrl(c.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                    onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                    alt={c.title}
+                    className="aspect-video w-full object-cover"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/25 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-4">
                     <span className="chip">{c.tag}</span>
@@ -163,7 +169,12 @@ function Catalogue() {
                 return (
                   <div key={c.id} className="card flex flex-col overflow-hidden !p-0">
                     <button type="button" onClick={() => navigate(`/courses/${c.id}`)} className="relative aspect-video w-full bg-ink text-left">
-                      <img src={c.poster || "/images/about-hero.jpg"} alt={c.title} className="h-full w-full object-cover opacity-80" />
+                      <img
+                        src={normalizeImageUrl(c.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                        onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                        alt={c.title}
+                        className="h-full w-full object-cover opacity-80"
+                      />
                       <span
                         className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-lg"
                         style={{ background: c.iconColor || "#dc3545" }}

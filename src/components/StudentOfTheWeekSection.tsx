@@ -3,6 +3,7 @@ import { useReveal } from "../lib/useReveal";
 import { Trophy, TrendingUp, Zap, Star, ShieldCheck, Flame } from "lucide-react";
 import { navigate } from "../lib/router";
 import { formatStudentName } from "../lib/formatName";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -54,7 +55,8 @@ export default function StudentOfTheWeekSection() {
                 <div className="relative rounded-2xl bg-slate-950 p-2.5 border border-white/10 overflow-hidden shadow-xl">
                   <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-slate-900">
                     <img
-                      src={sotw.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                      src={normalizeImageUrl(sotw.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
                       alt={studentDisplayName}
                       className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
                     />

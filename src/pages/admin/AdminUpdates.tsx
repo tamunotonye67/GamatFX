@@ -2,6 +2,7 @@ import { useMemo, useState, useRef } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type NewsItem, type OutlookItem } from "../../lib/store";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
   Newspaper, Sun, Plus, Pencil, Trash2, Save, Download,
   Eye, CheckCircle2, EyeOff,
@@ -51,7 +52,7 @@ export function AdminNews() {
       source: edit.source,
       impact: (edit.impact as NewsItem["impact"]) ?? "medium",
       pair: edit.pair || undefined,
-      image: edit.image || undefined,
+      image: edit.image ? normalizeImageUrl(edit.image, DEFAULT_FALLBACK_IMAGES.news) : undefined,
       status: (edit.status as NewsItem["status"]) ?? "draft",
     });
     if (res.ok) setEdit(null);
@@ -99,7 +100,12 @@ export function AdminNews() {
                   <tr key={n.id} className="transition hover:bg-cream/60">
                     <Td className="whitespace-nowrap">
                       {n.image ? (
-                        <img src={n.image} alt="" className="h-10 w-14 shrink-0 aspect-[7/5] rounded-md object-cover border border-line" />
+                        <img
+                          src={normalizeImageUrl(n.image, DEFAULT_FALLBACK_IMAGES.news)}
+                          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.news)}
+                          alt=""
+                          className="h-10 w-14 shrink-0 aspect-[7/5] rounded-md object-cover border border-line"
+                        />
                       ) : (
                         <div className="flex h-10 w-14 shrink-0 aspect-[7/5] items-center justify-center rounded-md bg-line/60 text-muted">
                           <Newspaper className="h-4 w-4" />
@@ -148,7 +154,13 @@ export function AdminNews() {
                   type="text"
                   value={edit.image ?? ""}
                   onChange={(e) => setEdit({ ...edit, image: e.target.value })}
-                  placeholder="Image URL (https://… or upload file below)"
+                  onBlur={() => {
+                    if (edit.image?.trim()) {
+                      const norm = normalizeImageUrl(edit.image.trim());
+                      if (norm && norm !== edit.image) setEdit((prev) => prev ? { ...prev, image: norm } : null);
+                    }
+                  }}
+                  placeholder="Image URL (https://… or Google Drive / Dropbox link)"
                   className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
                 />
                 <button
@@ -162,7 +174,12 @@ export function AdminNews() {
               </div>
               {edit.image && (
                 <div className="mt-2.5 flex items-center gap-3">
-                  <img src={edit.image} alt="Thumbnail preview" className="h-14 w-24 rounded-lg object-cover border border-line shadow-sm" />
+                  <img
+                    src={normalizeImageUrl(edit.image, DEFAULT_FALLBACK_IMAGES.news)}
+                    onError={handleImageError(DEFAULT_FALLBACK_IMAGES.news)}
+                    alt="Thumbnail preview"
+                    className="h-14 w-24 rounded-lg object-cover border border-line shadow-sm"
+                  />
                   <span className="text-xs text-muted">Thumbnail preview</span>
                 </div>
               )}

@@ -5,6 +5,7 @@ import { useStore } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
 import { type StoreProduct, type StoreProductCategory } from "../../lib/storeProducts";
 import { uploadStoreFile, uploadStoreAsset } from "../../lib/supabaseStorage";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
   ShoppingBag, Plus, Pencil, Trash2, Eye, EyeOff, Bot, LineChart,
   BookOpen, Target, Package, LayoutGrid, Download, CheckCircle2, DollarSign,
@@ -199,7 +200,8 @@ export function AdminStore() {
                           <div className="flex items-start gap-3">
                             {p.image ? (
                               <img
-                                src={p.image}
+                                src={normalizeImageUrl(p.image, DEFAULT_FALLBACK_IMAGES.product)}
+                                onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
                                 alt=""
                                 className="h-10 w-10 shrink-0 aspect-square rounded-xl object-cover border border-line bg-white mt-0.5"
                               />
@@ -426,7 +428,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
 
   const addGalleryUrl = () => {
     if (!newGalleryUrl.trim()) return;
-    setF((prev) => ({ ...prev, gallery: [...prev.gallery, newGalleryUrl.trim()] }));
+    const normalized = normalizeImageUrl(newGalleryUrl.trim(), DEFAULT_FALLBACK_IMAGES.product);
+    setF((prev) => ({ ...prev, gallery: [...prev.gallery, normalized] }));
     setNewGalleryUrl("");
   };
 
@@ -455,6 +458,11 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const normImage = normalizeImageUrl(f.image.trim(), DEFAULT_FALLBACK_IMAGES.product) || DEFAULT_FALLBACK_IMAGES.product;
+    const normGallery = f.gallery.length
+      ? f.gallery.map((g) => normalizeImageUrl(g, DEFAULT_FALLBACK_IMAGES.product)).filter(Boolean)
+      : undefined;
+
     const res = admin.saveStoreProduct({
       id: product?.id,
       title: f.title.trim(),
@@ -468,8 +476,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       preorderNote: f.isPreorder ? f.preorderNote.trim() : undefined,
       badge: f.badge.trim() || undefined,
       author: f.author.trim() || "By GAMAT Institutional Research Desk",
-      image: f.image.trim() || "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80",
-      gallery: f.gallery.length ? f.gallery : undefined,
+      image: normImage,
+      gallery: normGallery,
       deliverableType: f.deliverableType.trim(),
       downloadUrl: f.downloadUrl.trim() || undefined,
       fileName: f.fileName.trim() || undefined,
@@ -562,7 +570,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="relative group shrink-0">
               <img
-                src={f.image || "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=600&q=80"}
+                src={normalizeImageUrl(f.image, DEFAULT_FALLBACK_IMAGES.product)}
+                onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
                 alt="Product thumbnail preview"
                 className="h-20 w-28 rounded-xl object-cover border border-line shadow-xs bg-white"
               />
@@ -607,7 +616,13 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                   type="url"
                   value={f.image}
                   onChange={(e) => setF({ ...f, image: e.target.value })}
-                  placeholder="https://images.unsplash.com/... or upload image above"
+                  onBlur={() => {
+                    if (f.image.trim()) {
+                      const norm = normalizeImageUrl(f.image.trim());
+                      if (norm && norm !== f.image) setF((prev) => ({ ...prev, image: norm }));
+                    }
+                  }}
+                  placeholder="https://... or paste Google Drive / Dropbox image link"
                   className="w-full rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs text-ink outline-none focus:border-brand font-mono"
                 />
               </div>
@@ -651,7 +666,12 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
               {f.gallery.map((url, idx) => (
                 <div key={idx} className="relative group rounded-xl overflow-hidden border border-line bg-white aspect-[4/3]">
-                  <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img
+                    src={normalizeImageUrl(url, DEFAULT_FALLBACK_IMAGES.product)}
+                    onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
+                    alt={`Preview ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     type="button"
                     onClick={() => removeGalleryImg(idx)}

@@ -3,6 +3,7 @@ import PageCta from "../components/PageCta";
 import { getCourse, totalLessons, naira, asCourse } from "../lib/courses";
 import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import {
   Play, Clock, Users, Star, BadgeCheck, ChevronDown, ChevronRight,
   Lock, CheckCircle2, Infinity as InfinityIcon, Award, MonitorPlay, ArrowUpRight, X,
@@ -64,7 +65,7 @@ export default function CourseDetailPage({ id }: { id: string }) {
             <div className="relative aspect-video w-full overflow-hidden bg-black">
               <video
                 src={videoModal.videoUrl}
-                poster={course.poster}
+                poster={normalizeImageUrl(course.poster, DEFAULT_FALLBACK_IMAGES.course)}
                 controls
                 autoPlay
                 playsInline
@@ -84,7 +85,13 @@ export default function CourseDetailPage({ id }: { id: string }) {
       {/* Hero */}
       <section className="relative isolate overflow-hidden bg-ink text-white">
         <div className="absolute inset-0 -z-10">
-          <img src={course.poster} alt="" aria-hidden className="h-full w-full object-cover opacity-25" />
+          <img
+            src={normalizeImageUrl(course.poster, DEFAULT_FALLBACK_IMAGES.course)}
+            onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+            alt=""
+            aria-hidden
+            className="h-full w-full object-cover opacity-25"
+          />
           <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/95 to-[#0c0d10]" />
           <div className="absolute inset-0 bg-[radial-gradient(55%_55%_at_85%_15%,rgba(220,53,69,0.3),transparent_60%)]" />
         </div>
@@ -131,7 +138,7 @@ export default function CourseDetailPage({ id }: { id: string }) {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl">
               <div className="relative aspect-video w-full overflow-hidden bg-black group cursor-pointer" onClick={() => openPreview()}>
-                <video poster={course.poster} muted loop playsInline preload="none"
+                <video poster={normalizeImageUrl(course.poster, DEFAULT_FALLBACK_IMAGES.course)} muted loop playsInline preload="none"
                   disablePictureInPicture disableRemotePlayback
                   controlsList="nodownload noplaybackrate noremoteplayback"
                   onContextMenu={(e) => e.preventDefault()}

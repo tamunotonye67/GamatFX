@@ -4,6 +4,7 @@ import PageCta from "../components/PageCta";
 import { useStore, type NewsItem } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import {
   Newspaper, ChevronRight, Clock, Zap, AlertTriangle,
 } from "lucide-react";
@@ -109,7 +110,8 @@ export function NewsPage() {
                   <div className="relative aspect-[16/9] lg:aspect-auto h-full w-full overflow-hidden bg-gradient-to-br from-brand/40 to-ink group">
                     {featured.image ? (
                       <img
-                        src={featured.image}
+                        src={normalizeImageUrl(featured.image, DEFAULT_FALLBACK_IMAGES.news)}
+                        onError={handleImageError(DEFAULT_FALLBACK_IMAGES.news)}
                         alt={featured.title}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
@@ -134,7 +136,8 @@ export function NewsPage() {
                     {n.image && (
                       <div className="aspect-[16/9] w-full overflow-hidden bg-ink/10">
                         <img
-                          src={n.image}
+                          src={normalizeImageUrl(n.image, DEFAULT_FALLBACK_IMAGES.news)}
+                          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.news)}
                           alt={n.title}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
@@ -222,7 +225,8 @@ export function NewsDetailPage({ id }: { id: string }) {
             {/* Full Picture on Article Detail View */}
             {item.image && (
               <img
-                src={item.image}
+                src={normalizeImageUrl(item.image, DEFAULT_FALLBACK_IMAGES.news)}
+                onError={handleImageError(DEFAULT_FALLBACK_IMAGES.news)}
                 alt={item.title}
                 className="mb-8 w-full rounded-2xl object-cover shadow-md max-h-[500px]"
               />

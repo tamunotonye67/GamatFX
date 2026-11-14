@@ -19,6 +19,7 @@ import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
 import ImageCropModal from "../components/ImageCropModal";
 import { formatAccountName, formatStudentName, capitalizeWord } from "../lib/formatName";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
 
 type Tab = "overview" | "courses" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
@@ -283,7 +284,8 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4 sm:gap-5 min-w-0 lg:max-w-md">
             {user.avatar ? (
               <img
-                src={user.avatar}
+                src={normalizeImageUrl(user.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
                 alt=""
                 className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl object-cover ring-2 ring-white/10 ring-offset-2 ring-offset-ink shadow-xl"
               />
@@ -561,7 +563,12 @@ export default function DashboardPage() {
         {nextCourse ? (
           <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_18px_50px_-30px_rgba(22,24,28,0.3)]">
             <div className="grid sm:grid-cols-[240px_1fr]">
-              <img src={nextCourse.poster} alt="" className="h-48 sm:h-full min-h-[160px] w-full object-cover" />
+              <img
+                src={normalizeImageUrl(nextCourse.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                alt=""
+                className="h-48 sm:h-full min-h-[160px] w-full object-cover"
+              />
               <div className="p-5 sm:p-7">
                 <span className="chip">Continue learning</span>
                 <h2 className="mt-3 font-display text-lg sm:text-xl font-bold text-ink">{nextCourse.title}</h2>
@@ -586,7 +593,12 @@ export default function DashboardPage() {
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             {COURSES.filter((c) => !store.isEnrolled(c.id)).slice(0, 4).map((c) => (
               <button key={c.id} onClick={() => navigate(`/courses/${c.id}`)} className="card text-left !p-5">
-                <img src={c.poster} alt="" className="h-28 w-full rounded-xl object-cover" />
+                <img
+                  src={normalizeImageUrl(c.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                  alt=""
+                  className="h-28 w-full rounded-xl object-cover"
+                />
                 <p className="mt-3 font-display text-sm font-bold text-ink">{c.title}</p>
                 <p className="mt-1 text-xs text-muted">{c.level} · {totalLessons(c)} lessons</p>
                 <p className="mt-2 font-display text-base font-extrabold text-brand">{naira(c.price)}</p>
@@ -611,7 +623,12 @@ export default function DashboardPage() {
           return (
             <div key={c.id} className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_14px_45px_-28px_rgba(22,24,28,0.3)]">
               <div className="grid sm:grid-cols-[200px_1fr]">
-                <img src={c.poster} alt="" className="h-44 sm:h-full min-h-[140px] w-full object-cover" />
+                <img
+                  src={normalizeImageUrl(c.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                  alt=""
+                  className="h-44 sm:h-full min-h-[140px] w-full object-cover"
+                />
                 <div className="p-5 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -2379,7 +2396,12 @@ export default function DashboardPage() {
           <div className="mt-6 flex flex-wrap items-center gap-6">
             <div className="relative">
               {avatar ? (
-                <img src={avatar} alt="Profile" className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand-light" />
+                <img
+                  src={normalizeImageUrl(avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
+                  alt="Profile"
+                  className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand-light"
+                />
               ) : (
                 <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-extrabold text-white">
                   {initials}

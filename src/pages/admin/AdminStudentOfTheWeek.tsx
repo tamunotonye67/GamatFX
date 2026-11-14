@@ -6,6 +6,7 @@ import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
 import { formatStudentName, formatAccountName } from "../../lib/formatName";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -249,7 +250,7 @@ export function AdminStudentOfTheWeek() {
       id: form.id || studentOfTheWeek.id || "sotw_active",
       studentId: form.studentId,
       studentName: formatStudentName(form.studentName),
-      avatar: form.avatar,
+      avatar: form.avatar ? normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar) : "",
       track: form.track?.trim() || "",
       weekPeriod: form.weekPeriod ?? "",
       winRate: form.winRate?.trim() || "0.0%",
@@ -384,7 +385,13 @@ export function AdminStudentOfTheWeek() {
                     type="text"
                     value={form.avatar ?? ""}
                     onChange={(e) => setForm({ ...form, avatar: e.target.value })}
-                    placeholder="Image URL or upload file below"
+                    onBlur={() => {
+                      if (form.avatar?.trim()) {
+                        const norm = normalizeImageUrl(form.avatar.trim());
+                        if (norm && norm !== form.avatar) setForm((p) => ({ ...p, avatar: norm }));
+                      }
+                    }}
+                    placeholder="Image URL (https://… or Google Drive / Dropbox link)"
                     className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
                   />
                   <button
@@ -401,7 +408,12 @@ export function AdminStudentOfTheWeek() {
 
                 {form.avatar && (
                   <div className="mt-3 flex items-center gap-3">
-                    <img src={form.avatar} alt="Preview" className="h-16 w-16 shrink-0 aspect-square rounded-xl object-cover border border-line shadow-sm" />
+                    <img
+                      src={normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
+                      alt="Preview"
+                      className="h-16 w-16 shrink-0 aspect-square rounded-xl object-cover border border-line shadow-sm"
+                    />
                     <span className="text-xs text-muted">Photo preview</span>
                   </div>
                 )}
@@ -498,7 +510,8 @@ export function AdminStudentOfTheWeek() {
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121316] p-5 text-white shadow-xl">
               <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-slate-900 mb-4">
                 <img
-                  src={form.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                  src={normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
                   alt={form.studentName || "Preview"}
                   className="w-full h-full object-cover"
                 />

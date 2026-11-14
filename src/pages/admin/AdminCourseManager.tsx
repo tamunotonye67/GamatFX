@@ -10,6 +10,7 @@ import {
 import { naira, COURSES } from "../../lib/courses";
 import { type Quiz, type Question } from "../../lib/quizzes";
 import { uploadCourseAsset } from "../../lib/supabaseStorage";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
   BookOpen, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
   GraduationCap, LineChart, Brain, Target, Shield, Award, Rocket,
@@ -349,7 +350,7 @@ export function AdminCourseManager() {
       duration: edit.duration ?? "",
       price: Number(edit.price) || 0,
       oldPrice: edit.oldPrice ? Number(edit.oldPrice) : undefined,
-      poster: edit.poster || undefined,
+      poster: edit.poster ? normalizeImageUrl(edit.poster, DEFAULT_FALLBACK_IMAGES.course) : undefined,
       video: edit.video || undefined,
       icon: edit.icon || "GraduationCap",
       iconColor: edit.iconColor || "#dc3545",
@@ -566,7 +567,13 @@ export function AdminCourseManager() {
                       type="text"
                       value={edit.poster ?? ""}
                       onChange={(e) => setEdit({ ...edit, poster: e.target.value })}
-                      placeholder="Image URL (https://… or upload image)"
+                      onBlur={() => {
+                        if (edit.poster?.trim()) {
+                          const norm = normalizeImageUrl(edit.poster.trim());
+                          if (norm && norm !== edit.poster) setEdit((prev) => prev ? { ...prev, poster: norm } : null);
+                        }
+                      }}
+                      placeholder="Image URL (https://… or Google Drive / Dropbox link)"
                       className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
                     />
                     <button
@@ -588,7 +595,12 @@ export function AdminCourseManager() {
                   </div>
                   {edit.poster && (
                     <div className="mt-2.5 flex items-center gap-3">
-                      <img src={edit.poster} alt="Course poster preview" className="h-14 w-24 rounded-lg object-cover border border-line shadow-xs bg-white" />
+                      <img
+                        src={normalizeImageUrl(edit.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                        onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                        alt="Course poster preview"
+                        className="h-14 w-24 rounded-lg object-cover border border-line shadow-xs bg-white"
+                      />
                       <div className="text-xs">
                         <span className="font-semibold text-ink block">Poster Preview</span>
                         <button

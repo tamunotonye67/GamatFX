@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { navigate } from "../../lib/router";
 import { formatStudentName } from "../../lib/formatName";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -49,7 +50,8 @@ export function StudentOfTheWeekPage() {
                 <div className="relative rounded-3xl bg-slate-900 p-3.5 sm:p-4 border border-white/10 shadow-2xl overflow-hidden">
                   <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-950">
                     <img
-                      src={sotw.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                      src={normalizeImageUrl(sotw.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
                       alt={studentDisplayName}
                       className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
                     />
@@ -172,7 +174,8 @@ export function StudentOfTheWeekPage() {
                 <div className="flex items-center gap-3.5">
                   <div className="relative shrink-0">
                     <img
-                      src={item.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+                      src={normalizeImageUrl(item.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
                       alt={formatStudentName(item.studentName)}
                       className="h-14 w-14 rounded-2xl object-cover border border-line shadow-sm"
                     />

@@ -4,6 +4,7 @@ import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type Giveaway, type GiveawayWinner, type Account } from "../../lib/store";
 import { formatAccountName, capitalizeWord } from "../../lib/formatName";
 import { uploadCourseAsset } from "../../lib/supabaseStorage";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
   Gift, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff, UserPlus, X, Upload,
 } from "lucide-react";
@@ -104,7 +105,7 @@ export function AdminGiveaways() {
       summary: edit.summary ?? "",
       body: edit.body ?? "",
       reward: edit.reward ?? "",
-      image: edit.image,
+      image: edit.image ? normalizeImageUrl(edit.image, DEFAULT_FALLBACK_IMAGES.event) : undefined,
       taggedClubId: edit.taggedClubId,
       taggedClubName: edit.taggedClubName,
       status: (edit.status as Giveaway["status"]) ?? "draft",
@@ -233,7 +234,13 @@ export function AdminGiveaways() {
                     type="text"
                     value={edit.image ?? ""}
                     onChange={(e) => setEdit({ ...edit, image: e.target.value })}
-                    placeholder="Image URL or upload image"
+                    onBlur={() => {
+                      if (edit.image?.trim()) {
+                        const norm = normalizeImageUrl(edit.image.trim());
+                        if (norm && norm !== edit.image) setEdit((prev) => prev ? { ...prev, image: norm } : null);
+                      }
+                    }}
+                    placeholder="Image URL (https://… or Google Drive / Dropbox link)"
                     className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
                   />
                   <button
@@ -254,7 +261,12 @@ export function AdminGiveaways() {
                 </div>
                 {edit.image && (
                   <div className="mt-2.5 flex items-center gap-3">
-                    <img src={edit.image} alt="Giveaway preview" className="h-12 w-20 rounded-lg object-cover border border-line shadow-xs bg-white" />
+                    <img
+                      src={normalizeImageUrl(edit.image, DEFAULT_FALLBACK_IMAGES.event)}
+                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.event)}
+                      alt="Giveaway preview"
+                      className="h-12 w-20 rounded-lg object-cover border border-line shadow-xs bg-white"
+                    />
                     <button
                       type="button"
                       onClick={() => setEdit({ ...edit, image: "" })}

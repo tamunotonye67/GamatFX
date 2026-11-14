@@ -4,6 +4,7 @@ import PageCta from "../components/PageCta";
 import { useStore, type Giveaway } from "../lib/store";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import {
   Gift, ChevronRight, Clock, Trophy, Zap, UserRound,
 } from "lucide-react";
@@ -27,7 +28,12 @@ function WinnerCard({
         {rank}
       </span>
       {avatar ? (
-        <img src={avatar} alt={name} className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-brand/20" />
+        <img
+          src={normalizeImageUrl(avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
+          alt={name}
+          className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-brand/20"
+        />
       ) : (
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-sm font-bold text-white">
           {initials || <UserRound className="h-5 w-5" />}
@@ -117,7 +123,12 @@ export function GiveawaysPage() {
                     {featured.winners.slice(0, 4).map((w) => (
                       <span key={w.name} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
                         {w.avatar ? (
-                          <img src={w.avatar} alt="" className="h-5 w-5 rounded-full object-cover" />
+                          <img
+                            src={normalizeImageUrl(w.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                            onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
+                            alt=""
+                            className="h-5 w-5 rounded-full object-cover"
+                          />
                         ) : (
                           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[9px] font-bold">
                             {w.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}

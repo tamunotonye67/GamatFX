@@ -3,6 +3,7 @@ import { useStore } from "../lib/store";
 import { type StoreProduct, type StoreProductCategory } from "../lib/storeProducts";
 import { naira } from "../lib/courses";
 import { formatAccountName, formatStudentName } from "../lib/formatName";
+import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import { navigate } from "../lib/router";
 import PageHero from "../components/PageHero";
 import {
@@ -747,7 +748,8 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         className="relative aspect-[16/10] overflow-hidden bg-ink cursor-pointer"
                       >
                         <img
-                          src={prod.image}
+                          src={normalizeImageUrl(prod.image, DEFAULT_FALLBACK_IMAGES.product)}
+                          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
                           alt={prod.title}
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-95"
                           loading="lazy"
@@ -905,7 +907,13 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         onClick={() => openQuickView(prod)}
                         className="relative w-full sm:w-56 aspect-[16/10] sm:aspect-auto rounded-xl overflow-hidden bg-ink shrink-0 cursor-pointer"
                       >
-                        <img src={prod.image} alt={prod.title} className="h-full w-full object-cover" loading="lazy" />
+                        <img
+                          src={normalizeImageUrl(prod.image, DEFAULT_FALLBACK_IMAGES.product)}
+                          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
+                          alt={prod.title}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
                         <div className="absolute top-2 left-2 flex flex-col gap-1">
                           {prod.isPreorder && (
                             <span className="rounded bg-purple-600 px-2 py-0.5 text-[9px] font-black uppercase text-white flex items-center gap-1 shadow-sm">
@@ -1089,7 +1097,8 @@ export default function StorePage({ categoryParam }: StorePageProps) {
               <div>
                 <div className="aspect-[16/11] overflow-hidden rounded-2xl bg-ink">
                   <img
-                    src={activeGalleryImg || activeProduct.image}
+                    src={normalizeImageUrl(activeGalleryImg || activeProduct.image, DEFAULT_FALLBACK_IMAGES.product)}
+                    onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
                     alt={activeProduct.title}
                     className="h-full w-full object-cover"
                   />
@@ -1106,7 +1115,12 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                           activeGalleryImg === img ? "border-brand" : "border-transparent opacity-60 hover:opacity-100"
                         }`}
                       >
-                        <img src={img} alt="" className="h-full w-full object-cover" />
+                        <img
+                          src={normalizeImageUrl(img, DEFAULT_FALLBACK_IMAGES.product)}
+                          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
                       </button>
                     ))}
                   </div>
@@ -1366,7 +1380,8 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                 <div className="rounded-2xl border border-line bg-slate-50/70 p-4 flex items-center gap-4 shadow-2xs">
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-line bg-white shadow-2xs">
                     <img
-                      src={checkoutProduct.image}
+                      src={normalizeImageUrl(checkoutProduct.image, DEFAULT_FALLBACK_IMAGES.product)}
+                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
                       alt={checkoutProduct.title}
                       className="h-full w-full object-cover"
                     />
@@ -1666,7 +1681,12 @@ export default function StorePage({ categoryParam }: StorePageProps) {
             {/* Direct Download Card */}
             <div className="mt-6 rounded-2xl border border-line bg-cream p-4 text-left">
               <div className="flex items-center gap-3">
-                <img src={purchasedProduct.image} alt="" className="h-12 w-12 rounded-xl object-cover shrink-0" />
+                <img
+                  src={normalizeImageUrl(purchasedProduct.image, DEFAULT_FALLBACK_IMAGES.product)}
+                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
+                  alt=""
+                  className="h-12 w-12 rounded-xl object-cover shrink-0"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-xs text-ink truncate">{purchasedProduct.title}</p>
                   <p className="text-[11px] text-muted truncate">{purchasedProduct.deliverableType}</p>
