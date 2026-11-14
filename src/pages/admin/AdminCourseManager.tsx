@@ -40,7 +40,9 @@ const COLORS = [
 
 const uid = () => `x_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
-type Draft = Partial<ManagedCourse> & {
+type Draft = Omit<Partial<ManagedCourse>, "price" | "oldPrice"> & {
+  price?: number | string;
+  oldPrice?: number | string;
   outcomesText?: string;
   requirementsText?: string;
   modules: ManagedModule[];
@@ -501,12 +503,13 @@ export function AdminCourseManager() {
             {/* Basics */}
             <section className="space-y-4">
               <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">Basics</h4>
-              <Field label="Title" value={edit.title ?? ""} onChange={(v) => setEdit({ ...edit, title: v })} />
-              <Field label="Short description" value={edit.short ?? ""} onChange={(v) => setEdit({ ...edit, short: v })} />
+              <Field label="Title *" value={edit.title ?? ""} onChange={(v) => setEdit({ ...edit, title: v })} ph="e.g. Master Institutional Price Action" />
+              <Field label="Short description *" value={edit.short ?? ""} onChange={(v) => setEdit({ ...edit, short: v })} ph="e.g. Master market structure, liquidity engineering and risk limits" />
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Full description</label>
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Full description</label>
                 <textarea rows={4} value={edit.desc ?? ""} onChange={(e) => setEdit({ ...edit, desc: e.target.value })}
-                  className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                  placeholder="Detailed breakdown of what this course delivers..."
+                  className="w-full resize-y rounded-xl border border-line bg-cream/70 p-4 text-sm font-medium leading-relaxed outline-none transition shadow-2xs focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15" />
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="Tag" value={edit.tag ?? ""} onChange={(v) => setEdit({ ...edit, tag: v })} ph="Fundamental" />
@@ -514,8 +517,8 @@ export function AdminCourseManager() {
                 <Field label="Duration" value={edit.duration ?? ""} onChange={(v) => setEdit({ ...edit, duration: v })} ph="8hr 30min" />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Price (₦)" type="number" value={edit.price ?? 0} onChange={(v) => setEdit({ ...edit, price: Number(v) })} />
-                <Field label="Old price (optional)" type="number" value={edit.oldPrice ?? ""} onChange={(v) => setEdit({ ...edit, oldPrice: v ? Number(v) : undefined })} />
+                <Field label="Price (₦) *" type="number" value={edit.price ?? ""} onChange={(v) => setEdit({ ...edit, price: v })} ph="39999" />
+                <Field label="Old price (optional strike-through)" type="number" value={edit.oldPrice ?? ""} onChange={(v) => setEdit({ ...edit, oldPrice: v })} ph="55000" />
               </div>
             </section>
 
@@ -620,102 +623,102 @@ export function AdminCourseManager() {
 
             {/* What you'll learn */}
             <section className="space-y-3">
-              <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">What you'll learn</h4>
+              <h4 className="font-display text-sm font-bold uppercase tracking-wider text-muted">What you'll learn</h4>
               <p className="text-xs text-muted">One outcome per line — shown on the course page like built-in programmes.</p>
               <textarea rows={5} value={edit.outcomesText ?? ""} onChange={(e) => setEdit({ ...edit, outcomesText: e.target.value })}
                 placeholder={"Read economic data releases\nMap institutional zones\nBuild a top-down bias"}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-y rounded-xl border border-line bg-cream/70 p-4 text-sm font-medium leading-relaxed outline-none transition shadow-2xs focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15" />
             </section>
 
             {/* Requirements */}
             <section className="space-y-3">
-              <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">Requirements</h4>
+              <h4 className="font-display text-sm font-bold uppercase tracking-wider text-muted">Requirements</h4>
               <textarea rows={3} value={edit.requirementsText ?? ""} onChange={(e) => setEdit({ ...edit, requirementsText: e.target.value })}
                 placeholder={"A laptop or smartphone\nFree charting or MT5 account"}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-y rounded-xl border border-line bg-cream/70 p-4 text-sm font-medium leading-relaxed outline-none transition shadow-2xs focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15" />
             </section>
 
             {/* Curriculum */}
             <section className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">Curriculum</h4>
+                  <h4 className="font-display text-sm font-bold uppercase tracking-wider text-muted">Curriculum</h4>
                   <p className="text-xs text-muted">Modules and lessons with optional video links or uploads.</p>
                 </div>
-                <button type="button" onClick={addModule} className="btn-outline-dark !py-2">
+                <button type="button" onClick={addModule} className="btn-outline-dark !py-2.5">
                   <Plus className="h-4 w-4" /> Add module
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {edit.modules.map((m, mi) => {
                   const open = openMod === m.id;
                   return (
-                    <div key={m.id} className="overflow-hidden rounded-2xl border border-line bg-white">
-                      <div className="flex items-center gap-2 border-b border-line bg-cream/60 px-4 py-3">
-                        <button type="button" onClick={() => setOpenMod(open ? null : m.id)} className="text-muted">
+                    <div key={m.id} className="overflow-hidden rounded-2xl border border-line bg-white shadow-2xs">
+                      <div className="flex items-center gap-3 border-b border-line bg-cream/60 px-4 py-3.5">
+                        <button type="button" onClick={() => setOpenMod(open ? null : m.id)} className="text-muted hover:text-brand transition cursor-pointer">
                           {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
                         <input
                           value={m.title}
                           onChange={(e) => setMod(mi, { title: e.target.value })}
-                          className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-bold text-ink outline-none focus:border-line focus:bg-white"
+                          className="min-w-0 flex-1 rounded-xl border border-line/60 bg-white px-3.5 py-2 text-sm font-bold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
                           placeholder="Module title"
                         />
-                        <span className="text-xs text-muted">{m.lessons.length} lesson(s)</span>
-                        <button type="button" onClick={() => removeModule(mi)} className="rounded-lg p-1.5 text-muted hover:bg-brand-light hover:text-brand">
+                        <span className="text-xs font-semibold text-muted whitespace-nowrap">{m.lessons.length} lesson(s)</span>
+                        <button type="button" onClick={() => removeModule(mi)} className="rounded-lg p-2 text-muted hover:bg-brand-light hover:text-brand transition cursor-pointer">
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
 
                       {open && (
-                        <div className="space-y-3 p-4">
+                        <div className="space-y-3.5 p-4 sm:p-5">
                           {m.lessons.map((l, li) => (
-                            <div key={l.id} className="rounded-xl border border-line bg-cream/40 p-3">
-                              <div className="grid gap-3 sm:grid-cols-[1fr_120px_auto]">
+                            <div key={l.id} className="rounded-xl border border-line bg-cream/40 p-3.5 sm:p-4 space-y-3 shadow-2xs">
+                              <div className="grid gap-3 sm:grid-cols-[1fr_130px_auto]">
                                 <input value={l.title} onChange={(e) => setLes(mi, li, { title: e.target.value })}
-                                  placeholder="Lesson title" className="rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
+                                  placeholder="Lesson title" className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm font-medium outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs" />
                                 <input value={l.duration} onChange={(e) => setLes(mi, li, { duration: e.target.value })}
-                                  placeholder="12:00" className="rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none focus:border-brand" />
-                                <label className="flex items-center gap-2 text-xs font-semibold text-muted">
+                                  placeholder="12:00" className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm font-medium outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs" />
+                                <label className="flex items-center gap-2 text-xs font-bold text-muted cursor-pointer whitespace-nowrap">
                                   <input type="checkbox" checked={!!l.free} onChange={(e) => setLes(mi, li, { free: e.target.checked })}
-                                    className="h-3.5 w-3.5 accent-[#dc3545]" /> Free preview
+                                    className="h-4 w-4 rounded accent-[#dc3545] cursor-pointer" /> Free preview
                                 </label>
                               </div>
 
-                              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+                              <div className="grid gap-2.5 sm:grid-cols-[1fr_auto_auto]">
                                 <div className="relative">
-                                  <Link2 className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+                                  <Link2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                                   <input
                                     value={l.videoUrl && !l.videoUrl.startsWith("data:") ? l.videoUrl : ""}
                                     onChange={(e) => setLes(mi, li, { videoUrl: e.target.value, videoFileName: "" })}
                                     placeholder="Video URL (https://…)"
-                                    className="w-full rounded-lg border border-line bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-brand"
+                                    className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-sm font-medium outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
                                   />
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => { lessonUpload.current = { mi, li }; fileRef.current?.click(); }}
-                                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:text-brand"
+                                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand cursor-pointer shadow-2xs"
                                 >
                                   <Upload className="h-3.5 w-3.5" /> Upload
                                 </button>
                                 <button type="button" onClick={() => removeLesson(mi, li)}
-                                  className="rounded-lg border border-line bg-white px-3 py-2 text-muted hover:border-brand hover:text-brand">
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                  className="rounded-xl border border-line bg-white px-3 py-2.5 text-muted hover:border-brand hover:text-brand transition cursor-pointer shadow-2xs">
+                                  <Trash2 className="h-4 w-4" />
                                 </button>
                               </div>
                               {l.videoFileName && (
-                                <p className="mt-2 text-[11px] font-semibold text-brand">
+                                <p className="text-[11px] font-semibold text-brand">
                                   Uploaded: {l.videoFileName}
                                 </p>
                               )}
                               {l.videoUrl && l.videoUrl.startsWith("data:") && !l.videoFileName && (
-                                <p className="mt-2 text-[11px] font-semibold text-brand">Local video attached</p>
+                                <p className="text-[11px] font-semibold text-brand">Local video attached</p>
                               )}
                             </div>
                           ))}
-                          <button type="button" onClick={() => addLesson(mi)} className="btn-outline-dark !py-2">
+                          <button type="button" onClick={() => addLesson(mi)} className="btn-outline-dark !py-2.5 cursor-pointer">
                             <Plus className="h-4 w-4" /> Add lesson
                           </button>
                         </div>

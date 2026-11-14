@@ -499,43 +499,43 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
 
   return (
     <Modal open onClose={onClose} title={product ? "Edit Store Product" : "Add Store Product"} wide>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
         {err && (
-          <p className="rounded-xl border border-brand/30 bg-brand-light p-3 text-xs font-bold text-brand">
+          <p className="rounded-xl border border-brand/30 bg-brand-light p-3.5 text-xs font-bold text-brand">
             {err}
           </p>
         )}
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Product Title</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Product Title *</label>
           <input
             type="text"
             required
             value={f.title}
             onChange={(e) => setF({ ...f, title: e.target.value })}
             placeholder="e.g. GAMAT Apex Scalper EA"
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Author / Creator Line</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Author / Creator Line</label>
             <input
               type="text"
               value={f.author}
               onChange={(e) => setF({ ...f, author: e.target.value })}
               placeholder="e.g. By Lead Mentor Tonye & Research Desk"
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Category</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Category</label>
             <select
               value={f.category}
               onChange={(e) => setF({ ...f, category: e.target.value as any })}
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs cursor-pointer"
             >
               <option value="bot">AI Bots & EAs</option>
               <option value="indicator">Indicators & Scripts</option>
@@ -547,13 +547,13 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Tagline (One-sentence summary)</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Tagline (One-sentence summary)</label>
           <input
             type="text"
             value={f.tagline}
             onChange={(e) => setF({ ...f, tagline: e.target.value })}
             placeholder="e.g. Automated session breakout robot with strict prop-firm risk limits"
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
           />
         </div>
 
@@ -849,10 +849,10 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
             Check this to let students and visitors access/download this tool without any payment. You can enter an Original Price to demonstrate its value (e.g. ₦15,000 struck through).
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 pt-1">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wide text-muted">
-                Price (₦ Naira) {f.isFree ? "(Free = ₦0)" : ""}
+              <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">
+                Price (₦ Naira) {f.isFree ? "(Free = ₦0)" : "*"}
               </label>
               <input
                 type="number"
@@ -861,12 +861,12 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.isFree ? "0" : f.price}
                 onChange={(e) => setF({ ...f, price: e.target.value })}
                 placeholder={f.isFree ? "0 (Free)" : "e.g. 25000"}
-                className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
+                className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wide text-muted">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">
                 Original / Value Price (Strike-through)
               </label>
               <input
@@ -874,7 +874,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.originalPrice}
                 onChange={(e) => setF({ ...f, originalPrice: e.target.value })}
                 placeholder="e.g. 45000"
-                className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+                className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
               />
             </div>
           </div>
@@ -909,14 +909,14 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               </span>
             )}
           </div>
-          <p className="text-[11px] text-muted">
+          <p className="text-[11px] text-muted leading-relaxed">
             Enable pre-orders for upcoming bots, indicators, or physical journals so students can reserve their copy before the official release.
           </p>
 
           {f.isPreorder && (
-            <div className="space-y-3 pt-2 border-t border-purple-100">
+            <div className="space-y-4 pt-2 border-t border-purple-100">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wide text-purple-950">
+                <label className="text-xs font-bold uppercase tracking-wider text-purple-950 block mb-1.5">
                   Expected Release / Delivery Window
                 </label>
                 <input
@@ -924,80 +924,80 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                   value={f.preorderReleaseDate}
                   onChange={(e) => setF({ ...f, preorderReleaseDate: e.target.value })}
                   placeholder="e.g. April 2026 or April 15, 2026"
-                  className="mt-1 w-full rounded-xl border border-purple-200 bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-purple-600"
+                  className="w-full rounded-xl border border-purple-200 bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15 shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase tracking-wide text-purple-950">
+                <label className="text-xs font-bold uppercase tracking-wider text-purple-950 block mb-1.5">
                   Pre-Order Notice & Early-Bird Incentive Note
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={f.preorderNote}
                   onChange={(e) => setF({ ...f, preorderNote: e.target.value })}
                   placeholder="e.g. Pre-order now to lock in 50% early bird launch pricing. Software license and files delivered on release day."
-                  className="mt-1 w-full rounded-xl border border-purple-200 bg-white p-3 text-xs text-ink outline-none focus:border-purple-600"
+                  className="w-full resize-y rounded-xl border border-purple-200 bg-white p-4 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15 shadow-2xs"
                 />
               </div>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Badge Label</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Badge Label</label>
             <input
               type="text"
               value={f.badge}
               onChange={(e) => setF({ ...f, badge: e.target.value })}
               placeholder="e.g. Best Seller, Prop-Firm Safe, New"
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wide text-muted">Deliverable Format / Label</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Deliverable Format / Label</label>
             <input
               type="text"
               value={f.deliverableType}
               onChange={(e) => setF({ ...f, deliverableType: e.target.value })}
               placeholder="e.g. Compiled EX4/EX5 Robots + Setup Guide"
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
             />
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Delivery & License Instructions</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Delivery & License Instructions</label>
           <input
             type="text"
             value={f.accessInstructions}
             onChange={(e) => setF({ ...f, accessInstructions: e.target.value })}
             placeholder="Instant download available upon checkout..."
-            className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-sm text-ink outline-none focus:border-brand"
+            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
           />
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Feature Highlights (One per line)</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Feature Highlights (One per line)</label>
           <textarea
-            rows={3}
+            rows={4}
             value={f.featuresStr}
             onChange={(e) => setF({ ...f, featuresStr: e.target.value })}
             placeholder="Enter each feature bullet on a new line..."
-            className="mt-1 w-full rounded-xl border border-line bg-white p-3 text-xs text-ink outline-none focus:border-brand"
+            className="w-full resize-y rounded-xl border border-line bg-white p-4 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
           />
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wide text-muted">Full Description</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Full Description</label>
           <textarea
-            rows={4}
+            rows={5}
             value={f.description}
             onChange={(e) => setF({ ...f, description: e.target.value })}
             placeholder="Detailed description of the tool, indicators, or e-book..."
-            className="mt-1 w-full rounded-xl border border-line bg-white p-3 text-xs text-ink outline-none focus:border-brand"
+            className="w-full resize-y rounded-xl border border-line bg-white p-4 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
           />
         </div>
 

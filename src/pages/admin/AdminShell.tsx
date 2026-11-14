@@ -662,27 +662,105 @@ export function Modal({ open = true, onClose, title, subtitle, children, wide }:
   );
 }
 
-export function Field({ label, value, onChange, ph, type = "text" }: {
-  label: string; value: string | number; onChange: (v: string) => void; ph?: string; type?: string;
+export function Field({
+  label,
+  value,
+  onChange,
+  ph,
+  type = "text",
+  disabled = false,
+  className = "",
+}: {
+  label: string;
+  value: string | number | undefined;
+  onChange: (v: string) => void;
+  ph?: string;
+  type?: string;
+  disabled?: boolean;
+  className?: string;
 }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">{label}</label>
-      <input type={type} value={value} placeholder={ph} onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white" />
+    <div className={className}>
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
+        {label}
+      </label>
+      <input
+        type={type}
+        disabled={disabled}
+        value={value ?? ""}
+        placeholder={ph}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-line bg-cream/70 px-4 py-3 text-sm font-medium text-ink placeholder-muted/60 outline-none transition shadow-2xs focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 disabled:bg-line/40 disabled:cursor-not-allowed"
+      />
     </div>
   );
 }
 
-export function Select({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: { v: string; l: string }[];
+export function TextAreaField({
+  label,
+  value,
+  onChange,
+  ph,
+  rows = 4,
+  disabled = false,
+  className = "",
+}: {
+  label: string;
+  value: string | undefined;
+  onChange: (v: string) => void;
+  ph?: string;
+  rows?: number;
+  disabled?: boolean;
+  className?: string;
 }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:bg-white">
-        {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
+    <div className={className}>
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
+        {label}
+      </label>
+      <textarea
+        rows={rows}
+        disabled={disabled}
+        value={value ?? ""}
+        placeholder={ph}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full resize-y rounded-xl border border-line bg-cream/70 p-4 text-sm font-medium leading-relaxed text-ink placeholder-muted/60 outline-none transition shadow-2xs focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 disabled:bg-line/40 disabled:cursor-not-allowed"
+      />
+    </div>
+  );
+}
+
+export function Select({
+  label,
+  value,
+  onChange,
+  options,
+  disabled = false,
+  className = "",
+}: {
+  label: string;
+  value: string | undefined;
+  onChange: (v: string) => void;
+  options: { v: string; l: string }[];
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
+        {label}
+      </label>
+      <select
+        disabled={disabled}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-line bg-cream/70 px-4 py-3 text-sm font-medium text-ink outline-none transition shadow-2xs focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 disabled:bg-line/40 disabled:cursor-not-allowed cursor-pointer"
+      >
+        {options.map((o) => (
+          <option key={o.v} value={o.v}>
+            {o.l}
+          </option>
+        ))}
       </select>
     </div>
   );

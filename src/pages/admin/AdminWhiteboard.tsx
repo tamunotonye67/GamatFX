@@ -24,10 +24,10 @@ function FormItem({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+      <label className="block text-xs font-bold uppercase tracking-wider text-muted">
         {label}
       </label>
-      {hint && <p className="text-[10px] text-muted leading-tight">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted leading-tight mb-1">{hint}</p>}
       {children}
     </div>
   );
@@ -938,7 +938,7 @@ export function AdminWhiteboard() {
                 value={sampleForm.name}
                 onChange={(e) => setSampleForm({ ...sampleForm, name: e.target.value })}
                 placeholder="e.g. Asia High Liquidity Sweep & Judas Entry"
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
               />
             </FormItem>
 
@@ -949,7 +949,7 @@ export function AdminWhiteboard() {
                   value={sampleForm.category}
                   onChange={(e) => setSampleForm({ ...sampleForm, category: e.target.value })}
                   placeholder="e.g. Smart Money Concepts, Mind Maps, Risk..."
-                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                 />
               </FormItem>
 
@@ -957,7 +957,7 @@ export function AdminWhiteboard() {
                 <select
                   value={sampleForm.difficulty}
                   onChange={(e) => setSampleForm({ ...sampleForm, difficulty: e.target.value as any })}
-                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand cursor-pointer"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 cursor-pointer shadow-2xs"
                 >
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
@@ -972,7 +972,7 @@ export function AdminWhiteboard() {
                 value={sampleForm.tag}
                 onChange={(e) => setSampleForm({ ...sampleForm, tag: e.target.value })}
                 placeholder="e.g. Order Blocks & FVG, H4 Liquidity Sweep..."
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
               />
             </FormItem>
 
@@ -982,7 +982,7 @@ export function AdminWhiteboard() {
                 value={sampleForm.desc}
                 onChange={(e) => setSampleForm({ ...sampleForm, desc: e.target.value })}
                 placeholder="Detailed explanation of the technical concept illustrated by this diagram template..."
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+                className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs resize-y"
               />
             </FormItem>
 
@@ -1083,7 +1083,7 @@ export function AdminWhiteboard() {
                 value={resourceForm.title}
                 onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })}
                 placeholder="e.g. SMC Institutional POI Playbook"
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
               />
             </FormItem>
 
@@ -1094,7 +1094,7 @@ export function AdminWhiteboard() {
                   value={resourceForm.category}
                   onChange={(e) => setResourceForm({ ...resourceForm, category: e.target.value })}
                   placeholder="e.g. Smart Money Concepts, Market Timing..."
-                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                 />
               </FormItem>
 
@@ -1104,7 +1104,7 @@ export function AdminWhiteboard() {
                   value={resourceForm.badge}
                   onChange={(e) => setResourceForm({ ...resourceForm, badge: e.target.value })}
                   placeholder="e.g. Most Popular, Essential, Session Timing..."
-                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                 />
               </FormItem>
             </div>
@@ -1115,7 +1115,7 @@ export function AdminWhiteboard() {
                 value={resourceForm.desc}
                 onChange={(e) => setResourceForm({ ...resourceForm, desc: e.target.value })}
                 placeholder="Summary of the guide and what the student will learn..."
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+                className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs resize-y"
               />
             </FormItem>
 
@@ -1125,7 +1125,7 @@ export function AdminWhiteboard() {
                 value={resourceForm.pointsText}
                 onChange={(e) => setResourceForm({ ...resourceForm, pointsText: e.target.value })}
                 placeholder="• Point 1&#10;• Point 2&#10;• Point 3"
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+                className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs resize-y"
               />
             </FormItem>
 
@@ -1135,7 +1135,7 @@ export function AdminWhiteboard() {
                 value={resourceForm.actionLabel}
                 onChange={(e) => setResourceForm({ ...resourceForm, actionLabel: e.target.value })}
                 placeholder="e.g. Create Canvas with Guide, Open Risk Template..."
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
               />
             </FormItem>
 
@@ -1176,7 +1176,7 @@ export function AdminWhiteboard() {
                   value={lessonForm.num}
                   onChange={(e) => setLessonForm({ ...lessonForm, num: e.target.value })}
                   placeholder="01"
-                  className="w-full rounded-xl border border-line bg-white p-3 text-xs font-mono font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand text-center"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-mono font-bold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs text-center"
                 />
               </FormItem>
               <div className="sm:col-span-3">
@@ -1186,7 +1186,7 @@ export function AdminWhiteboard() {
                     value={lessonForm.title}
                     onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
                     placeholder="e.g. Smart Money Concepts (SMC) Markup"
-                    className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                   />
                 </FormItem>
               </div>
@@ -1198,7 +1198,7 @@ export function AdminWhiteboard() {
                 value={lessonForm.subtitle}
                 onChange={(e) => setLessonForm({ ...lessonForm, subtitle: e.target.value })}
                 placeholder="e.g. Institutional supply/demand zones"
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-bold text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
               />
             </FormItem>
 
@@ -1208,7 +1208,7 @@ export function AdminWhiteboard() {
                 value={lessonForm.desc}
                 onChange={(e) => setLessonForm({ ...lessonForm, desc: e.target.value })}
                 placeholder="Provide instructions on hotkeys and techniques..."
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+                className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs resize-y"
               />
             </FormItem>
 
@@ -1221,7 +1221,7 @@ export function AdminWhiteboard() {
                 value={lessonForm.itemsText}
                 onChange={(e) => setLessonForm({ ...lessonForm, itemsText: e.target.value })}
                 placeholder="Order Blocks (OB) | Translucent Demand Zones&#10;Fib Tool Hotkey | Press F&#10;Delete Shape | Del / Backspace"
-                className="w-full rounded-xl border border-line bg-white p-3 text-xs font-medium text-ink outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none font-mono"
+                className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs resize-y font-mono"
               />
             </FormItem>
 

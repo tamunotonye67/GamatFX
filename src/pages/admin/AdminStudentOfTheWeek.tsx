@@ -392,13 +392,13 @@ export function AdminStudentOfTheWeek() {
                       }
                     }}
                     placeholder="Image URL (https://… or Google Drive / Dropbox link)"
-                    className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                   />
                   <button
                     type="button"
                     disabled={isUploading}
                     onClick={() => fileRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:bg-white disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-3 text-xs font-bold text-ink transition hover:border-brand hover:bg-white disabled:opacity-50 shadow-2xs cursor-pointer"
                   >
                     {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     {isUploading ? "Optimizing..." : "Upload"}
@@ -448,7 +448,7 @@ export function AdminStudentOfTheWeek() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                   Performance Review Writeup *
                 </label>
                 <textarea
@@ -456,20 +456,20 @@ export function AdminStudentOfTheWeek() {
                   value={form.performanceReview ?? ""}
                   onChange={(e) => setForm({ ...form, performanceReview: e.target.value })}
                   placeholder="Write your personal evaluation of the student's trading performance, risk management, and discipline this week..."
-                  className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white resize-none"
+                  className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed resize-y"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                   Mentor Recommendation Quote
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={form.mentorQuote ?? ""}
                   onChange={(e) => setForm({ ...form, mentorQuote: e.target.value })}
                   placeholder="e.g. Great discipline during market noise. James executed his plan with zero overleveraging."
-                  className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white resize-none"
+                  className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed resize-y"
                 />
               </div>
 

@@ -121,27 +121,7 @@ export default function AffiliateCard({
     profile.personalQuote || DEFAULT_INVITE_MESSAGE
   );
 
-  // Debounce saving cardDisplayName to parent store to eliminate UI shaking and input lag
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const trimmed = cardDisplayName.trim();
-      if (trimmed && trimmed !== profile.cardDisplayName) {
-        onUpdateDisplayName?.(trimmed);
-      }
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [cardDisplayName, onUpdateDisplayName, profile.cardDisplayName]);
 
-  // Debounce saving inviteMessage
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const trimmed = inviteMessage.trim();
-      if (trimmed && trimmed !== profile.personalQuote) {
-        onUpdateQuote?.(trimmed);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [inviteMessage, onUpdateQuote, profile.personalQuote]);
 
   // Collapsible dropdown toggles
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
@@ -186,6 +166,14 @@ export default function AffiliateCard({
   };
 
   const handleDownload = async () => {
+    const trimmedName = cardDisplayName.trim();
+    if (trimmedName && trimmedName !== profile.cardDisplayName) {
+      onUpdateDisplayName?.(trimmedName);
+    }
+    const trimmedQuote = inviteMessage.trim();
+    if (trimmedQuote && trimmedQuote !== profile.personalQuote) {
+      onUpdateQuote?.(trimmedQuote);
+    }
     setDownloading(true);
     try {
       const activeProfile: AffiliateProfile = {
@@ -544,6 +532,11 @@ export default function AffiliateCard({
               type="text"
               value={cardDisplayName}
               onChange={(e) => setCardDisplayName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  (e.target as HTMLElement).blur();
+                }
+              }}
               onBlur={() => {
                 const trimmed = cardDisplayName.trim();
                 if (trimmed && trimmed !== profile.cardDisplayName) {
@@ -551,7 +544,7 @@ export default function AffiliateCard({
                 }
               }}
               placeholder="e.g. Tonye Taylor"
-              className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-ink placeholder-muted/60 focus:bg-white focus:border-brand focus:outline-none transition-colors"
+              className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink placeholder-muted/60 transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none shadow-2xs"
             />
             <p className="text-[11px] text-muted">
               Choose your full name, preferred name, or trading alias.
@@ -659,7 +652,7 @@ export default function AffiliateCard({
                           onUpdateCourseTitle?.(e.target.value);
                         }}
                         placeholder="Enter course title"
-                        className="flex-1 rounded-lg border border-line bg-cream/50 px-3 py-1.5 text-xs font-semibold text-ink focus:bg-white focus:border-brand focus:outline-none"
+                        className="flex-1 rounded-xl border border-line bg-cream px-4 py-2.5 text-sm font-semibold text-ink focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                       />
                       <button
                         type="button"
@@ -731,7 +724,7 @@ export default function AffiliateCard({
             )}
 
             <textarea
-              rows={2}
+              rows={3}
               value={inviteMessage}
               onChange={(e) => setInviteMessage(e.target.value)}
               onBlur={() => {
@@ -741,7 +734,7 @@ export default function AffiliateCard({
                 }
               }}
               placeholder="Write your custom invitation message..."
-              className="w-full rounded-xl border border-line bg-cream/50 p-3 text-xs text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:outline-none transition-colors leading-relaxed"
+              className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink placeholder-muted/60 focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition leading-relaxed shadow-2xs"
             />
             <p className="text-[11px] text-muted">
               Included automatically when sharing or copying your link.
@@ -773,7 +766,7 @@ export default function AffiliateCard({
                   value={referralUrl}
                   onClick={() => copyLink()}
                   title="Click to copy link"
-                  className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-mono font-semibold text-ink outline-none select-all truncate focus:bg-white focus:border-brand cursor-pointer transition"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-mono font-semibold text-ink outline-none select-all truncate focus:bg-white focus:border-brand focus:ring-2 focus:ring-brand/15 cursor-pointer transition shadow-2xs"
                 />
               </div>
 

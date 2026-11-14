@@ -275,14 +275,14 @@ export function AdminTeam() {
                   value={edit.avatar ?? ""}
                   onChange={(e) => setEdit({ ...edit, avatar: e.target.value })}
                   placeholder="Avatar URL (https://… or upload picture)"
-                  className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                 />
                 <button
                   type="button"
                   onClick={() => avatarFileRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer"
+                  className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-3 text-xs font-bold text-ink transition hover:border-brand hover:bg-white shadow-2xs cursor-pointer"
                 >
-                  <Upload className="h-3.5 w-3.5" />
+                  <Upload className="h-4 w-4" />
                   <span>Upload</span>
                 </button>
                 <input
@@ -307,27 +307,27 @@ export function AdminTeam() {
               )}
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Short bio</label>
-              <textarea rows={2} value={edit.bio ?? ""} onChange={(e) => setEdit({ ...edit, bio: e.target.value })}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Short bio</label>
+              <textarea rows={3} value={edit.bio ?? ""} onChange={(e) => setEdit({ ...edit, bio: e.target.value })}
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Long bio (profile page)</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Long bio (profile page)</label>
               <textarea rows={6} value={edit.longBio ?? ""} onChange={(e) => setEdit({ ...edit, longBio: e.target.value })}
-                className="w-full resize-y rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-y rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Expertise (one per line)</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Expertise (one per line)</label>
               <textarea rows={4} value={edit.expertiseText ?? ""} onChange={(e) => setEdit({ ...edit, expertiseText: e.target.value })}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                 Milestones (one per line: Year — Title: Body)
               </label>
               <textarea rows={4} value={edit.milestonesText ?? ""} onChange={(e) => setEdit({ ...edit, milestonesText: e.target.value })}
                 placeholder="2023 — Joined GAMAT: Took ownership of curriculum standards."
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Display order" type="number" value={edit.order ?? 10} onChange={(v) => setEdit({ ...edit, order: Number(v) })} />

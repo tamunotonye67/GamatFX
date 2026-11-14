@@ -138,17 +138,17 @@ export function AdminNews() {
           <form onSubmit={submit} className="space-y-4">
             <Field label="Headline" value={edit.title ?? ""} onChange={(v) => setEdit({ ...edit, title: v })} />
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Summary</label>
-              <textarea rows={2} value={edit.summary ?? ""} onChange={(e) => setEdit({ ...edit, summary: e.target.value })}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Summary</label>
+              <textarea rows={3} value={edit.summary ?? ""} onChange={(e) => setEdit({ ...edit, summary: e.target.value })}
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Full body</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Full body</label>
               <textarea rows={8} value={edit.body ?? ""} onChange={(e) => setEdit({ ...edit, body: e.target.value })}
-                className="w-full resize-y rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-y rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Thumbnail Picture</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Thumbnail Picture</label>
               <div className="flex gap-3">
                 <input
                   type="text"
@@ -161,12 +161,12 @@ export function AdminNews() {
                     }
                   }}
                   placeholder="Image URL (https://… or Google Drive / Dropbox link)"
-                  className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
+                  className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                 />
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:bg-white"
+                  className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-3 text-xs font-bold text-ink transition hover:border-brand hover:bg-white shadow-2xs cursor-pointer"
                 >
                   Upload Image
                 </button>
@@ -316,19 +316,19 @@ export function AdminOutlooks() {
             <Field label="Title" value={edit.title ?? ""} onChange={(v) => setEdit({ ...edit, title: v })} />
             <Field label="Pairs (comma separated)" value={edit.pairsText ?? ""} onChange={(v) => setEdit({ ...edit, pairsText: v })} ph="EURUSD, GBPUSD, XAUUSD" />
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Summary</label>
-              <textarea rows={2} value={edit.summary ?? ""} onChange={(e) => setEdit({ ...edit, summary: e.target.value })}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Summary</label>
+              <textarea rows={3} value={edit.summary ?? ""} onChange={(e) => setEdit({ ...edit, summary: e.target.value })}
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Full notes</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Full notes</label>
               <textarea rows={8} value={edit.body ?? ""} onChange={(e) => setEdit({ ...edit, body: e.target.value })}
-                className="w-full resize-y rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+                className="w-full resize-y rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Key levels (optional)</label>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Key levels (optional)</label>
               <textarea rows={3} value={edit.levels ?? ""} onChange={(e) => setEdit({ ...edit, levels: e.target.value })}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed"
                 placeholder={"EURUSD support 1.0820 / resistance 1.0910"} />
             </div>
             <Select label="Status" value={edit.status ?? "draft"} onChange={(v) => setEdit({ ...edit, status: v as OutlookItem["status"] })}

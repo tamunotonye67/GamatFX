@@ -1482,11 +1482,11 @@ export default function DashboardPage() {
               {prefMethod === "bank" && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1.5">Bank Name</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-2">Bank Name</label>
                     <select
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
-                      className="w-full rounded-xl border border-line bg-cream/50 px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition cursor-pointer"
+                      className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition cursor-pointer shadow-2xs"
                       required
                     >
                       <option value="">Select your bank</option>
@@ -1500,14 +1500,14 @@ export default function DashboardPage() {
                         placeholder="Enter bank name"
                         value={customBankName}
                         onChange={(e) => setCustomBankName(e.target.value)}
-                        className="mt-2 w-full rounded-xl border border-line bg-cream/50 px-3 py-2 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
+                        className="mt-2.5 w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                         required
                       />
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1.5">Account Number</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-2">Account Number</label>
                     <input
                       type="text"
                       pattern="[0-9]{10}"
@@ -1515,19 +1515,19 @@ export default function DashboardPage() {
                       placeholder="10-digit NUBAN"
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ""))}
-                      className="w-full rounded-xl border border-line bg-cream/50 px-3 py-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
+                      className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1.5">Account Name</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-muted mb-2">Account Name</label>
                     <input
                       type="text"
                       placeholder="Beneficiary full name"
                       value={accountName}
                       onChange={(e) => setAccountName(e.target.value)}
-                      className="w-full rounded-xl border border-line bg-cream/50 px-3 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
+                      className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                       required
                     />
                   </div>
@@ -1535,14 +1535,14 @@ export default function DashboardPage() {
               )}
 
               {prefMethod === "usdt" && (
-                <div className="pt-1 space-y-1.5">
-                  <label className="block text-xs font-bold text-ink">USDT TRC-20 Wallet Address</label>
+                <div className="pt-1 space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-muted">USDT TRC-20 Wallet Address</label>
                   <input
                     type="text"
                     placeholder="e.g. TYDzsYBPjxNYt8CqCXp... (TRON TRC-20 network only)"
                     value={usdtAddress}
                     onChange={(e) => setUsdtAddress(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-mono font-semibold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                     required
                   />
                   <p className="text-[11px] text-muted">Please ensure your address accepts incoming transfers on the TRON (TRC-20) network.</p>
@@ -1550,14 +1550,14 @@ export default function DashboardPage() {
               )}
 
               {prefMethod === "paypal" && (
-                <div className="pt-1 space-y-1.5">
-                  <label className="block text-xs font-bold text-ink">PayPal Email Address</label>
+                <div className="pt-1 space-y-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-muted">PayPal Email Address</label>
                   <input
                     type="email"
                     placeholder="student@example.com"
                     value={paypalEmail}
                     onChange={(e) => setPaypalEmail(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-cream/50 px-3.5 py-2.5 text-xs font-semibold text-ink focus:border-brand focus:bg-white focus:outline-none transition"
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-semibold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                     required
                   />
                   <p className="text-[11px] text-muted">Disbursements will be routed to your active PayPal email address.</p>
@@ -1759,9 +1759,9 @@ export default function DashboardPage() {
                     step={1000}
                     min={minPayout}
                     max={profile?.pendingBalance || 0}
-                    value={payoutAmount}
-                    onChange={(e) => setPayoutAmount(Number(e.target.value))}
-                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 font-bold text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    value={payoutAmount || ""}
+                    onChange={(e) => setPayoutAmount(e.target.value === "" ? 0 : Number(e.target.value))}
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                     required
                   />
                   <p className="mt-1 text-[11px] text-muted">Minimum withdrawal: {naira(minPayout)}</p>
@@ -1775,7 +1775,7 @@ export default function DashboardPage() {
                         key={m}
                         type="button"
                         onClick={() => setPayoutMethod(m)}
-                        className={`p-2 rounded-xl border text-center font-bold capitalize transition cursor-pointer text-xs ${
+                        className={`p-2.5 rounded-xl border text-center font-bold capitalize transition cursor-pointer text-xs ${
                           payoutMethod === m ? "border-brand bg-brand/10 text-brand" : "border-line bg-white text-muted hover:text-ink"
                         }`}
                       >
@@ -1794,7 +1794,7 @@ export default function DashboardPage() {
                       : "PayPal Email Address"}
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={payoutDetails}
                     onChange={(e) => setPayoutDetails(e.target.value)}
                     placeholder={
@@ -1804,7 +1804,7 @@ export default function DashboardPage() {
                         ? "e.g. TRC20: TYs27F38kdP92mdLm78qZ03kdfk19..."
                         : "e.g. PayPal: payments@example.com"
                     }
-                    className="w-full rounded-xl border border-line bg-cream/60 p-2.5 text-xs text-ink focus:border-brand focus:bg-white focus:outline-none"
+                    className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition leading-relaxed shadow-2xs"
                     required
                   />
                   {hasSavedMethod && payoutDetails === profile?.payoutDetails && (
@@ -2466,10 +2466,10 @@ export default function DashboardPage() {
                 <Cake className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-muted">Date of birth</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted">Date of birth</label>
                 <input type="date" value={form.birthday} max={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setForm({ ...form, birthday: e.target.value })}
-                  className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-brand sm:max-w-xs" />
+                  className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs sm:max-w-xs" />
 
                 <div className="mt-3 flex items-start gap-2 rounded-xl bg-white p-3">
                   <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
@@ -2496,15 +2496,15 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-5">
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Email (read only)</label>
-            <input disabled value={user!.email} className="w-full cursor-not-allowed rounded-xl border border-line bg-line/40 px-4 py-3 text-sm text-muted" />
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Email (read only)</label>
+            <input disabled value={user!.email} className="w-full cursor-not-allowed rounded-xl border border-line bg-line/40 px-4 py-3 text-sm font-medium text-muted shadow-2xs" />
           </div>
 
           <div className="mt-5">
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Trading bio</label>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Trading bio</label>
             <textarea rows={4} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
               placeholder="Tell the community a bit about your trading journey…"
-              className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white" />
+              className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs" />
           </div>
 
           {err && (
@@ -2555,9 +2555,13 @@ export default function DashboardPage() {
 function Input({ label, value, onChange, ph }: { label: string; value: string; onChange: (v: string) => void; ph?: string }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">{label}</label>
-      <input value={value} placeholder={ph} onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white" />
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">{label}</label>
+      <input
+        value={value ?? ""}
+        placeholder={ph}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
+      />
     </div>
   );
 }

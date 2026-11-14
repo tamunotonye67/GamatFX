@@ -563,7 +563,7 @@ export function AdminAffiliates() {
 
           <form onSubmit={handleSaveSettings} className="mt-6 space-y-5">
             <div>
-              <label className="block text-xs font-bold text-ink mb-1">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                 Ambassador Commission Percentage (%)
               </label>
               <div className="flex items-center gap-3">
@@ -571,11 +571,11 @@ export function AdminAffiliates() {
                   type="number"
                   min={1}
                   max={50}
-                  value={settingsForm.defaultCommissionPercent}
+                  value={settingsForm.defaultCommissionPercent || ""}
                   onChange={(e) =>
-                    setSettingsForm({ ...settingsForm, defaultCommissionPercent: Number(e.target.value) })
+                    setSettingsForm({ ...settingsForm, defaultCommissionPercent: e.target.value === "" ? 0 : Number(e.target.value) })
                   }
-                  className="w-32 rounded-xl border border-line bg-cream p-2.5 text-sm font-bold text-ink focus:border-brand focus:outline-none"
+                  className="w-36 rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                 />
                 <span className="text-xs text-muted">
                   Default: 15% (e.g. ₦15,000 on a ₦100,000 course sale)
@@ -584,7 +584,7 @@ export function AdminAffiliates() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-ink mb-1">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                 Friend / Referred Student Welcome Discount (%)
               </label>
               <div className="flex items-center gap-3">
@@ -592,11 +592,11 @@ export function AdminAffiliates() {
                   type="number"
                   min={0}
                   max={30}
-                  value={settingsForm.affiliateDiscountPercent}
+                  value={settingsForm.affiliateDiscountPercent || ""}
                   onChange={(e) =>
-                    setSettingsForm({ ...settingsForm, affiliateDiscountPercent: Number(e.target.value) })
+                    setSettingsForm({ ...settingsForm, affiliateDiscountPercent: e.target.value === "" ? 0 : Number(e.target.value) })
                   }
-                  className="w-32 rounded-xl border border-line bg-cream p-2.5 text-sm font-bold text-ink focus:border-brand focus:outline-none"
+                  className="w-36 rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                 />
                 <span className="text-xs text-muted">
                   Applied automatically at checkout when referred by an ambassador
@@ -605,7 +605,7 @@ export function AdminAffiliates() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-ink mb-1">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                 Minimum Withdrawal Payout Threshold (₦)
               </label>
               <div className="flex items-center gap-3">
@@ -613,11 +613,11 @@ export function AdminAffiliates() {
                   type="number"
                   step={1000}
                   min={1000}
-                  value={settingsForm.minimumPayoutAmount}
+                  value={settingsForm.minimumPayoutAmount || ""}
                   onChange={(e) =>
-                    setSettingsForm({ ...settingsForm, minimumPayoutAmount: Number(e.target.value) })
+                    setSettingsForm({ ...settingsForm, minimumPayoutAmount: e.target.value === "" ? 0 : Number(e.target.value) })
                   }
-                  className="w-40 rounded-xl border border-line bg-cream p-2.5 text-sm font-bold text-ink focus:border-brand focus:outline-none"
+                  className="w-44 rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
                 />
                 <span className="text-xs text-muted">
                   Students can only request payout once balance reaches this threshold

@@ -209,14 +209,14 @@ export function AdminGiveaways() {
             <Field label="Title" value={edit.title ?? ""} onChange={(v) => setEdit({ ...edit, title: v })} ph="March Process Champions" />
             <Field label="Reward" value={edit.reward ?? ""} onChange={(v) => setEdit({ ...edit, reward: v })} ph="Free mentorship month + merch" />
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Short summary</label>
-              <textarea rows={2} value={edit.summary ?? ""} onChange={(e) => setEdit({ ...edit, summary: e.target.value })}
-                className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Short summary</label>
+              <textarea rows={3} value={edit.summary ?? ""} onChange={(e) => setEdit({ ...edit, summary: e.target.value })}
+                className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Full announcement</label>
-              <textarea rows={5} value={edit.body ?? ""} onChange={(e) => setEdit({ ...edit, body: e.target.value })}
-                className="w-full resize-y rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white" />
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Full announcement</label>
+              <textarea rows={6} value={edit.body ?? ""} onChange={(e) => setEdit({ ...edit, body: e.target.value })}
+                className="w-full resize-y rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed" />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <Select
@@ -226,7 +226,7 @@ export function AdminGiveaways() {
                 options={[{ v: "draft", l: "Draft" }, { v: "published", l: "Published" }]}
               />
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                   Giveaway Picture
                 </label>
                 <div className="flex gap-2">
@@ -241,14 +241,14 @@ export function AdminGiveaways() {
                       }
                     }}
                     placeholder="Image URL (https://… or Google Drive / Dropbox link)"
-                    className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
+                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                   />
                   <button
                     type="button"
                     onClick={() => imageFileRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer"
+                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-3 text-xs font-bold text-ink transition hover:border-brand hover:bg-white shadow-2xs cursor-pointer"
                   >
-                    <Upload className="h-3.5 w-3.5" />
+                    <Upload className="h-4 w-4" />
                     <span>Upload</span>
                   </button>
                   <input
@@ -281,7 +281,7 @@ export function AdminGiveaways() {
 
             {/* Tag Winning Club / Syndicate */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
                 Tag Winning Syndicate / Club (Optional)
               </label>
               <select
@@ -294,7 +294,7 @@ export function AdminGiveaways() {
                     taggedClubName: selectedClub ? selectedClub.name : undefined,
                   });
                 }}
-                className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white text-ink"
+                className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 text-ink shadow-2xs"
               >
                 <option value="">-- No club tagged --</option>
                 {(clubs || []).map((c) => (
@@ -369,20 +369,20 @@ export function AdminGiveaways() {
                           value={w.name}
                           onChange={(e) => updateWinner(i, { name: e.target.value })}
                           placeholder="Full name"
-                          className="w-full rounded-lg border border-line bg-cream px-3 py-2 text-sm font-semibold outline-none focus:border-brand focus:bg-white"
+                          className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm font-semibold outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                         />
                         <div className="grid gap-2 sm:grid-cols-2">
                           <input
                             value={w.nickname ?? ""}
                             onChange={(e) => updateWinner(i, { nickname: e.target.value })}
                             placeholder="Nickname / handle"
-                            className="rounded-lg border border-line bg-cream px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+                            className="rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                           />
                           <input
                             value={w.note ?? ""}
                             onChange={(e) => updateWinner(i, { note: e.target.value })}
                             placeholder="Why they won (short note)"
-                            className="rounded-lg border border-line bg-cream px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+                            className="rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
                           />
                         </div>
                         {w.userId && (

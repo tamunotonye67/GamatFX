@@ -260,14 +260,14 @@ export function AdminCoupons() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
                 label="Discount Percent (%)"
-                value={String(edit.discountPercent ?? 10)}
-                onChange={(v) => setEdit({ ...edit, discountPercent: Number(v) || 0 })}
+                value={edit.discountPercent !== undefined ? String(edit.discountPercent) : ""}
+                onChange={(v) => setEdit({ ...edit, discountPercent: v === "" ? (undefined as any) : Number(v) })}
                 ph="10"
               />
               <Field
                 label="Max Uses"
-                value={String(edit.maxUses ?? 100)}
-                onChange={(v) => setEdit({ ...edit, maxUses: Number(v) || 1 })}
+                value={edit.maxUses !== undefined ? String(edit.maxUses) : ""}
+                onChange={(v) => setEdit({ ...edit, maxUses: v === "" ? (undefined as any) : Number(v) })}
                 ph="100"
               />
             </div>
