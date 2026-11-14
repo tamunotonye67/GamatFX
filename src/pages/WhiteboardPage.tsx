@@ -3348,7 +3348,7 @@ export default function WhiteboardPage() {
       if (!favMovedRef.current) return;
       if (ev && ev.cancelable) ev.preventDefault();
       setFavPos({
-        x: Math.max(4, Math.min(window.innerWidth - 60, cx - dragFavStart.current.x)),
+        x: Math.max(4, Math.min(window.innerWidth - 44, cx - dragFavStart.current.x)),
         y: Math.max(4, Math.min(window.innerHeight - 44, cy - dragFavStart.current.y)),
       });
     };
@@ -10914,9 +10914,9 @@ export default function WhiteboardPage() {
           ref={favBarRef}
           onMouseDown={handleFavDragStart}
           onTouchStart={handleFavDragStart}
-          className="fixed z-[150] flex flex-wrap items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none max-w-[calc(100vw-4.5rem)] sm:max-w-[calc(100vw-2rem)]"
+          className="fixed z-[150] flex flex-col sm:flex-row items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none max-h-[calc(100dvh-6rem)] sm:max-h-none sm:max-w-[calc(100vw-2rem)]"
           style={{
-            left: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.x, window.innerWidth - 60)) : favPos.x,
+            left: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.x, window.innerWidth - 44)) : favPos.x,
             top: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.y, window.innerHeight - 44)) : favPos.y,
           }}
         >
@@ -10924,7 +10924,8 @@ export default function WhiteboardPage() {
             className="cursor-move px-1 py-0.5 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0 touch-none"
             title="Drag Favorites Toolbar Anywhere on Page"
           >
-            <GripVertical className="h-4 w-4" />
+            <GripHorizontal className="h-4 w-4 sm:hidden" />
+            <GripVertical className="hidden sm:block h-4 w-4" />
           </div>
           {favoritedTools.map((tKey) => {
             const IconComponent = getToolIcon(tKey);
