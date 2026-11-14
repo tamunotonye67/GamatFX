@@ -1757,7 +1757,11 @@ export default function WhiteboardPage() {
 
   // Floating Favorites Toolbar State (Floats anywhere on canvas workspace)
   const [favoritedTools, setFavoritedTools] = useState<Tool[]>(["select", "pencil", "line", "fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "candle"]);
-  const [favPos, setFavPos] = useState({ x: 90, y: 130 });
+  const [favPos, setFavPos] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth < 640
+      ? { x: 44, y: 102 }
+      : { x: 90, y: 130 }
+  );
   const isDraggingFav = useRef(false);
   const dragFavStart = useRef({ x: 0, y: 0 });
 
@@ -2059,24 +2063,41 @@ export default function WhiteboardPage() {
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
   // Individual Detachable & Attachable Floating Panels System
-  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 768 : true
+  );
+  const autoOpenInspectorOnDesktop = () => {
+    if (typeof window === "undefined" || window.innerWidth >= 768) {
+      setIsInspectorOpen(true);
+    }
+  };
+  const [viewportTick, setViewportTick] = useState(0);
+  useEffect(() => {
+    const handleViewportResize = () => setViewportTick((v) => v + 1);
+    window.addEventListener("resize", handleViewportResize);
+    window.addEventListener("orientationchange", handleViewportResize);
+    return () => {
+      window.removeEventListener("resize", handleViewportResize);
+      window.removeEventListener("orientationchange", handleViewportResize);
+    };
+  }, []);
   const [rightPanelTab, setRightPanelTab] = useState<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "geometry" | "patterns" | "sessions" | "risk_calc" | "economic_calendar">("inspector");
   const [detachedPanels, setDetachedPanels] = useState<Record<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "geometry" | "patterns" | "sessions" | "risk_calc" | "economic_calendar", { isOpen: boolean; x: number; y: number; zIndex: number }>>({
-    inspector: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    character: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    drafts: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    samples: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    trash: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    grid_guides: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    geometry: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    patterns: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    sessions: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    risk_calc: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
-    economic_calendar: { isOpen: false, x: typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    inspector: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    layers: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    character: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    drafts: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    samples: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    trash: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    grid_guides: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    geometry: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    patterns: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    sessions: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    risk_calc: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
+    economic_calendar: { isOpen: false, x: typeof window !== "undefined" ? Math.max(12, window.innerWidth - 370) : 700, y: 55, zIndex: 40 },
   });
   const [highestPanelZIndex, setHighestPanelZIndex] = useState(40);
-  const draggingPanelKey = useRef<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns" | null>(null);
+  const draggingPanelKey = useRef<"inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "geometry" | "patterns" | "sessions" | "risk_calc" | "economic_calendar" | null>(null);
   const panelDragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   // Grid, Guidelines & Snap Settings State
   const [guidelines, setGuidelines] = useState<Array<{ id: string; orientation: "horizontal" | "vertical"; position: number; color: string }>>([
@@ -2309,17 +2330,17 @@ export default function WhiteboardPage() {
     };
   }, []);
 
-  const detachIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns", customX?: number, customY?: number) => {
+  const detachIndividualPanel = (panelId: keyof typeof detachedPanels, customX?: number, customY?: number) => {
     const newZ = highestPanelZIndex + 1;
     setHighestPanelZIndex(newZ);
-    const defaultX = typeof window !== "undefined" ? Math.max(20, window.innerWidth - 370) : 700;
-    const defaultY = 55;
+    const defaultX = typeof window !== "undefined" ? Math.max(8, window.innerWidth - Math.min(340, window.innerWidth - 16)) : 700;
+    const defaultY = typeof window !== "undefined" && window.innerWidth < 640 ? 96 : 55;
     setDetachedPanels((prev) => ({
       ...prev,
       [panelId]: {
         isOpen: true,
-        x: customX ?? (prev[panelId].isOpen ? prev[panelId].x : defaultX),
-        y: customY ?? (prev[panelId].isOpen ? prev[panelId].y : defaultY),
+        x: customX ?? (prev[panelId]?.isOpen ? prev[panelId].x : defaultX),
+        y: customY ?? (prev[panelId]?.isOpen ? prev[panelId].y : defaultY),
         zIndex: newZ,
       },
     }));
@@ -2340,13 +2361,19 @@ export default function WhiteboardPage() {
         ? "Trash"
         : panelId === "grid_guides"
         ? "Grid & Snap"
-        : panelId === "theme"
-        ? "Theme & Canvas"
-        : "Patterns Library";
+        : panelId === "geometry"
+        ? "Geometry"
+        : panelId === "patterns"
+        ? "Patterns Library"
+        : panelId === "sessions"
+        ? "Market Sessions"
+        : panelId === "risk_calc"
+        ? "Risk Calculator"
+        : "Economic Calendar";
     showToast(`Detached "${panelName}" into floating panel!`);
   };
 
-  const dockIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns") => {
+  const dockIndividualPanel = (panelId: keyof typeof detachedPanels) => {
     setDetachedPanels((prev) => ({
       ...prev,
       [panelId]: { ...prev[panelId], isOpen: false },
@@ -2368,25 +2395,36 @@ export default function WhiteboardPage() {
         ? "Trash"
         : panelId === "grid_guides"
         ? "Grid & Snap"
-        : panelId === "theme"
-        ? "Theme & Canvas"
-        : "Patterns Library";
+        : panelId === "geometry"
+        ? "Geometry"
+        : panelId === "patterns"
+        ? "Patterns Library"
+        : panelId === "sessions"
+        ? "Market Sessions"
+        : panelId === "risk_calc"
+        ? "Risk Calculator"
+        : "Economic Calendar";
     showToast(`Attached "${panelName}" back to sidebar group!`);
   };
 
-  const closeIndividualPanel = (panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns") => {
+  const closeIndividualPanel = (panelId: keyof typeof detachedPanels) => {
     setDetachedPanels((prev) => ({
       ...prev,
       [panelId]: { ...prev[panelId], isOpen: false },
     }));
   };
 
-  const handleFloatingPanelDragStart = (e: React.MouseEvent, panelId: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns") => {
+  const handleFloatingPanelDragStart = (
+    e: React.MouseEvent | React.TouchEvent,
+    panelId: keyof typeof detachedPanels
+  ) => {
+    const clientX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
+    const clientY = "touches" in e ? e.touches[0]?.clientY ?? 0 : e.clientY;
     draggingPanelKey.current = panelId;
     const current = detachedPanels[panelId];
     panelDragOffset.current = {
-      x: e.clientX - current.x,
-      y: e.clientY - current.y,
+      x: clientX - current.x,
+      y: clientY - current.y,
     };
     const newZ = highestPanelZIndex + 1;
     setHighestPanelZIndex(newZ);
@@ -2397,15 +2435,23 @@ export default function WhiteboardPage() {
   };
 
   useEffect(() => {
-    const handleWindowMouseMove = (e: MouseEvent) => {
+    const updatePanelPos = (clientX: number, clientY: number) => {
       if (draggingPanelKey.current) {
         const id = draggingPanelKey.current;
-        const newX = Math.max(10, Math.min(window.innerWidth - 340, e.clientX - panelDragOffset.current.x));
-        const newY = Math.max(50, Math.min(window.innerHeight - 100, e.clientY - panelDragOffset.current.y));
+        const maxPanelW = Math.min(320, window.innerWidth - 16);
+        const newX = Math.max(8, Math.min(window.innerWidth - maxPanelW - 8, clientX - panelDragOffset.current.x));
+        const newY = Math.max(50, Math.min(window.innerHeight - 100, clientY - panelDragOffset.current.y));
         setDetachedPanels((prev) => ({
           ...prev,
           [id]: { ...prev[id], x: newX, y: newY },
         }));
+      }
+    };
+
+    const handleWindowMouseMove = (e: MouseEvent) => updatePanelPos(e.clientX, e.clientY);
+    const handleWindowTouchMove = (e: TouchEvent) => {
+      if (draggingPanelKey.current && e.touches[0]) {
+        updatePanelPos(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
 
@@ -2417,9 +2463,13 @@ export default function WhiteboardPage() {
 
     window.addEventListener("mousemove", handleWindowMouseMove);
     window.addEventListener("mouseup", handleWindowMouseUp);
+    window.addEventListener("touchmove", handleWindowTouchMove, { passive: true });
+    window.addEventListener("touchend", handleWindowMouseUp);
     return () => {
       window.removeEventListener("mousemove", handleWindowMouseMove);
       window.removeEventListener("mouseup", handleWindowMouseUp);
+      window.removeEventListener("touchmove", handleWindowTouchMove);
+      window.removeEventListener("touchend", handleWindowMouseUp);
     };
   }, [highestPanelZIndex, detachedPanels]);
 
@@ -3071,7 +3121,7 @@ export default function WhiteboardPage() {
     });
 
     ctx.restore();
-  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio]);
+  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio, viewportTick]);
 
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
@@ -3080,7 +3130,7 @@ export default function WhiteboardPage() {
     setFlyoutGroup(null);
     if (tool === "select" || tool === "node") {
       setActiveSelectTool(tool as any);
-      setIsInspectorOpen(true);
+      autoOpenInspectorOnDesktop();
       setRightPanelTab("inspector");
     }
     if (["fibo", "long", "short", "orderblock", "fvg", "bos", "liquidity", "candle", "bullish_candle", "bearish_candle"].includes(tool)) {
@@ -3100,7 +3150,7 @@ export default function WhiteboardPage() {
 
   /* ------------------------- Coordinate Conversions ----------------------- */
 
-  const getCanvasCoords = (e: React.MouseEvent) => {
+  const getCanvasCoords = (e: React.MouseEvent | { clientX: number; clientY: number }) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
@@ -3230,27 +3280,38 @@ export default function WhiteboardPage() {
 
   /* ------------------------- Favorites Floating Bar Dragging --------------- */
 
-  const handleFavDragStart = (e: React.MouseEvent) => {
+  const handleFavDragStart = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
+    const clientX = "touches" in e ? e.touches[0]?.clientX ?? 0 : e.clientX;
+    const clientY = "touches" in e ? e.touches[0]?.clientY ?? 0 : e.clientY;
     isDraggingFav.current = true;
-    dragFavStart.current = { x: e.clientX - favPos.x, y: e.clientY - favPos.y };
+    dragFavStart.current = { x: clientX - favPos.x, y: clientY - favPos.y };
 
-    const handleFavMouseMove = (ev: MouseEvent) => {
+    const updateFavPos = (cx: number, cy: number) => {
       if (!isDraggingFav.current) return;
       setFavPos({
-        x: Math.max(0, Math.min(window.innerWidth - 100, ev.clientX - dragFavStart.current.x)),
-        y: Math.max(0, Math.min(window.innerHeight - 50, ev.clientY - dragFavStart.current.y)),
+        x: Math.max(4, Math.min(window.innerWidth - 100, cx - dragFavStart.current.x)),
+        y: Math.max(4, Math.min(window.innerHeight - 50, cy - dragFavStart.current.y)),
       });
+    };
+
+    const handleFavMouseMove = (ev: MouseEvent) => updateFavPos(ev.clientX, ev.clientY);
+    const handleFavTouchMove = (ev: TouchEvent) => {
+      if (ev.touches[0]) updateFavPos(ev.touches[0].clientX, ev.touches[0].clientY);
     };
 
     const handleFavMouseUp = () => {
       isDraggingFav.current = false;
       window.removeEventListener("mousemove", handleFavMouseMove);
       window.removeEventListener("mouseup", handleFavMouseUp);
+      window.removeEventListener("touchmove", handleFavTouchMove);
+      window.removeEventListener("touchend", handleFavMouseUp);
     };
 
     window.addEventListener("mousemove", handleFavMouseMove);
     window.addEventListener("mouseup", handleFavMouseUp);
+    window.addEventListener("touchmove", handleFavTouchMove, { passive: true });
+    window.addEventListener("touchend", handleFavMouseUp);
   };
 
   const toggleFavoriteTool = (toolToToggle: Tool) => {
@@ -4226,7 +4287,7 @@ export default function WhiteboardPage() {
           const newSelectedIds = enclosedShapes.map((s) => s.id);
           setSelectedShapeIds(newSelectedIds);
           if (newSelectedIds.length > 0) {
-            setIsInspectorOpen(true);
+            autoOpenInspectorOnDesktop();
             showToast(`Selected ${newSelectedIds.length} object${newSelectedIds.length > 1 ? "s" : ""}`);
           }
         }
@@ -4297,7 +4358,7 @@ export default function WhiteboardPage() {
       };
       setShapes((prev) => [...prev, finalShape]);
       setSelectedShapeIds([finalShape.id]);
-      setIsInspectorOpen(true);
+      autoOpenInspectorOnDesktop();
       setRightPanelTab("inspector");
       setCurrentShape(null);
       setRedoStack([]);
@@ -4328,7 +4389,7 @@ export default function WhiteboardPage() {
         setEditingTextShapeId(hitShape.id);
         setInlineTextValue(hitShape.text || "");
         setSelectedShapeIds([hitShape.id]);
-        setIsInspectorOpen(true);
+        autoOpenInspectorOnDesktop();
         setRightPanelTab("character");
         setTimeout(() => {
           if (inlineTextRef.current) {
@@ -4347,6 +4408,98 @@ export default function WhiteboardPage() {
         setSelectedShapeIds([hitShape.id]);
       }
     }
+  };
+
+  /* ------------------------- Mobile Touch Support (Draw, Drag & Pinch-Zoom) - */
+  const lastTouchTapRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
+  const pinchStateRef = useRef<{ dist: number; zoom: number; midX: number; midY: number; panX: number; panY: number } | null>(null);
+
+  const createSyntheticCanvasMouseEvent = (touch: React.Touch, target: HTMLCanvasElement): React.MouseEvent<HTMLCanvasElement> =>
+    ({
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      button: 0,
+      buttons: 1,
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      currentTarget: target,
+      target,
+      preventDefault: () => {},
+      stopPropagation: () => {},
+    } as unknown as React.MouseEvent<HTMLCanvasElement>);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 2) {
+      // Two-finger pinch zoom & pan
+      isDrawing.current = false;
+      isDraggingShape.current = false;
+      setCurrentShape(null);
+      setMarqueeBox(null);
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const dist = Math.max(10, Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY));
+      const rect = e.currentTarget.getBoundingClientRect();
+      const midX = (t0.clientX + t1.clientX) / 2 - rect.left;
+      const midY = (t0.clientY + t1.clientY) / 2 - rect.top;
+      pinchStateRef.current = { dist, zoom, midX, midY, panX: pan.x, panY: pan.y };
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      pinchStateRef.current = null;
+      const touch = e.touches[0];
+      const now = Date.now();
+      const dt = now - lastTouchTapRef.current.time;
+      const dx = Math.hypot(touch.clientX - lastTouchTapRef.current.x, touch.clientY - lastTouchTapRef.current.y);
+      const synth = createSyntheticCanvasMouseEvent(touch, e.currentTarget);
+
+      if (dt < 320 && dx < 28) {
+        lastTouchTapRef.current = { time: 0, x: 0, y: 0 };
+        handleDoubleClick(synth);
+        return;
+      }
+
+      lastTouchTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
+      handleMouseDown(synth);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 2 && pinchStateRef.current) {
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const newDist = Math.max(10, Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY));
+      const rect = e.currentTarget.getBoundingClientRect();
+      const newMidX = (t0.clientX + t1.clientX) / 2 - rect.left;
+      const newMidY = (t0.clientY + t1.clientY) / 2 - rect.top;
+      const { dist, zoom: startZoom, midX: startMidX, midY: startMidY, panX: startPanX, panY: startPanY } = pinchStateRef.current;
+
+      const nextZoom = Math.min(4.0, Math.max(0.2, startZoom * (newDist / dist)));
+      const canvasX = (startMidX - startPanX) / startZoom;
+      const canvasY = (startMidY - startPanY) / startZoom;
+      const rawPan = {
+        x: newMidX - canvasX * nextZoom,
+        y: newMidY - canvasY * nextZoom,
+      };
+      setZoom(nextZoom);
+      setPan(clampPan(rawPan, nextZoom, shapes));
+      return;
+    }
+
+    if (e.touches.length === 1 && !pinchStateRef.current) {
+      const synth = createSyntheticCanvasMouseEvent(e.touches[0], e.currentTarget);
+      handleMouseMove(synth);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pinchStateRef.current) {
+      pinchStateRef.current = null;
+      return;
+    }
+    handleMouseUp();
   };
 
   /* Contextual Right-Click Handler */
@@ -6546,7 +6699,7 @@ export default function WhiteboardPage() {
                           else handleOpenDraftFromHub(draft as SavedDraft);
                         }}
                         title={`Click to open "${draft.name}" in Whiteboard`}
-                        className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition"
+                        className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition"
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
                           <div className="h-10 w-16 rounded-lg border border-line bg-slate-100 overflow-hidden shrink-0">
@@ -6557,7 +6710,7 @@ export default function WhiteboardPage() {
                             <p className="text-xs text-muted">{draft.shapes?.length || 0} layers • Saved {new Date(draft.savedAt).toLocaleDateString()}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
                             onClick={() => {
@@ -6683,14 +6836,14 @@ export default function WhiteboardPage() {
                         key={sample.id}
                         onClick={() => handleOpenSampleFromHub(sample.id)}
                         title={`Click to open "${sample.name}" template in Whiteboard`}
-                        className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition"
+                        className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 cursor-pointer transition"
                       >
                         <div className="flex items-center gap-4 min-w-0">
                           <div className="h-14 w-24 rounded-xl border border-line bg-slate-100 overflow-hidden shrink-0">
                             <HubDiagramThumbnail shapes={sample.shapes} />
                           </div>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-1.5">
                               <h4 className="font-extrabold text-sm text-ink truncate">{sample.name}</h4>
                               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-black uppercase">
                                 {sample.tag}
@@ -6710,7 +6863,7 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => handleOpenSampleFromHub(sample.id)}
-                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 ml-4 cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-brand text-white font-bold text-xs hover:bg-brand-dark transition shadow-xs shrink-0 sm:ml-4 self-end sm:self-center cursor-pointer"
                         >
                           Use Template →
                         </button>
@@ -6909,14 +7062,14 @@ export default function WhiteboardPage() {
                     {filteredTrash.map((item) => {
                       const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24)));
                       return (
-                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition">
-                          <div className="space-y-1">
-                            <h4 className="font-extrabold text-sm text-ink">{item.name}</h4>
+                        <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition">
+                          <div className="space-y-1 min-w-0">
+                            <h4 className="font-extrabold text-sm text-ink truncate">{item.name}</h4>
                             <p className="text-xs text-amber-600 font-bold flex items-center gap-1">
                               <Clock className="h-3 w-3" /> Auto-purges in {daysLeft} days • {item.shapes.length} layers
                             </p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-end gap-2 shrink-0">
                             <button
                               type="button"
                               onClick={() => { restoreTrashedTab(item); setViewMode("canvas"); }}
@@ -10680,7 +10833,7 @@ export default function WhiteboardPage() {
   /*                        VIEW MODE 2: LIVE CANVAS MODE                       */
   /* -------------------------------------------------------------------------- */
   return (
-    <div ref={containerRef} className="fixed inset-0 h-screen w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
+    <div ref={containerRef} className="fixed inset-0 h-[100dvh] w-screen bg-slate-900 text-ink font-sans flex flex-col overflow-hidden select-none touch-none">
       {/* Hidden file input for image insertion (must be in whiteboard view) */}
       <input
         ref={imageInputRef}
@@ -10691,8 +10844,8 @@ export default function WhiteboardPage() {
       />
       {/* Toast Notification */}
       {statusMsg && (
-        <div className="fixed top-20 right-6 z-50 rounded-2xl bg-brand text-white px-5 py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
-          <Check className="h-4 w-4" /> {statusMsg}
+        <div className="fixed top-16 sm:top-20 right-3 sm:right-6 max-w-[calc(100vw-1.5rem)] z-50 rounded-2xl bg-brand text-white px-4 sm:px-5 py-2.5 sm:py-3 shadow-2xl flex items-center gap-2 font-bold text-xs animate-in fade-in slide-in-from-top-3">
+          <Check className="h-4 w-4 shrink-0" /> <span className="truncate">{statusMsg}</span>
         </div>
       )}
 
@@ -10705,12 +10858,16 @@ export default function WhiteboardPage() {
       {/* Floating Draggable Favorites Toolbar */}
       {favoritedTools.length > 0 && showFavoritesBar && (
         <div
-          className="fixed z-[150] flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1.5 shadow-2xl animate-in fade-in cursor-default"
-          style={{ left: favPos.x, top: favPos.y }}
+          className="fixed z-[150] flex items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-default max-w-[calc(100vw-5.5rem)] sm:max-w-[calc(100vw-2rem)] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{
+            left: typeof window !== "undefined" ? Math.max(40, Math.min(favPos.x, window.innerWidth - 100)) : favPos.x,
+            top: typeof window !== "undefined" ? Math.max(96, Math.min(favPos.y, window.innerHeight - 60)) : favPos.y,
+          }}
         >
           <div
             onMouseDown={handleFavDragStart}
-            className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center"
+            onTouchStart={handleFavDragStart}
+            className="cursor-move px-1 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0"
             title="Drag Favorites Toolbar Anywhere on Page"
           >
             <GripVertical className="h-4 w-4" />
@@ -10722,7 +10879,7 @@ export default function WhiteboardPage() {
                 key={tKey}
                 type="button"
                 onClick={() => setActiveTool(tKey)}
-                className={`h-8 w-8 rounded-xl flex items-center justify-center transition ${
+                className={`h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-xl flex items-center justify-center transition ${
                   activeTool === tKey ? "bg-brand text-white shadow-md" : "text-slate-700 hover:bg-cream"
                 }`}
                 title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
@@ -10736,10 +10893,12 @@ export default function WhiteboardPage() {
 
       {/* Main Header Bar - Slim h-11 with Edge-to-Edge Full-Height Dividers */}
       {/* Main Header Bar - Restored h-16 Height with Edge-to-Edge Full-Height Dividers & Full-Cell Hover States */}
-      <header className="h-14 sm:h-16 border-b border-line bg-white px-2.5 sm:px-4 md:px-5 flex items-center justify-between gap-2 sm:gap-4 shrink-0 z-[60] relative shadow-xs">
+      <header className="h-14 sm:h-16 border-b border-line bg-white px-2 sm:px-4 md:px-5 flex items-center justify-between gap-1.5 sm:gap-4 shrink-0 z-[60] relative shadow-xs">
         {/* Left Section: GAMAT Logo & Board Title */}
-        <div className="flex items-center gap-2 sm:gap-3.5 shrink-0 h-full">
-          <Logo variant="dark" asDiv />
+        <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0 h-full min-w-0">
+          <div className="scale-90 sm:scale-100 origin-left flex items-center shrink-0">
+            <Logo variant="dark" asDiv />
+          </div>
           <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
           <span className="hidden lg:inline text-[16px] font-extrabold text-slate-900 tracking-tight">
             Technical Analysis Whiteboard
@@ -10747,9 +10906,9 @@ export default function WhiteboardPage() {
         </div>
 
         {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 h-full shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2.5 h-full shrink-0">
           {/* Compact Ash Grey Overlay Menu Bar */}
-          <div ref={topMenubarRef} className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
+          <div ref={topMenubarRef} className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11px] sm:text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -10763,7 +10922,7 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 sm:px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
                   fileMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="File Operations"
@@ -10772,7 +10931,7 @@ export default function WhiteboardPage() {
               </button>
 
               {fileMenuOpen && (
-                <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-1 w-60 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -10893,7 +11052,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 2. EDIT MENU */}
-            <div className="relative h-full hidden md:flex items-center">
+            <div className="relative h-full flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -10905,7 +11064,7 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
                   editMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Edit Operations"
@@ -10914,7 +11073,7 @@ export default function WhiteboardPage() {
               </button>
 
               {editMenuOpen && (
-                <div className="absolute left-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -11067,7 +11226,7 @@ export default function WhiteboardPage() {
             </div>
 
             {/* 3. VIEW MENU */}
-            <div className="relative h-full hidden md:flex items-center">
+            <div className="relative h-full flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -11079,7 +11238,7 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
                   viewMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="View Operations"
@@ -11088,7 +11247,7 @@ export default function WhiteboardPage() {
               </button>
 
               {viewMenuOpen && (
-                <div className="absolute left-0 top-full mt-1 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -11181,6 +11340,43 @@ export default function WhiteboardPage() {
                       {showCursorCoords ? "ON" : "OFF"}
                     </span>
                   </button>
+
+                  {/* Mobile Quick Access for Snap & Theme */}
+                  <div className="sm:hidden pt-1 space-y-0.5 border-t border-slate-300 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSnapToGrid(!snapToGrid);
+                        showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
+                      }}
+                      className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Magnet className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Snap to Grid
+                      </span>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${snapToGrid ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                        {snapToGrid ? "ON" : "OFF"}
+                      </span>
+                    </button>
+                    <p className="px-3 pt-1.5 pb-0.5 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Canvas Grid Theme</p>
+                    {CANVAS_THEMES.map((theme) => (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => {
+                          handleSetBgGrid(theme.id as any);
+                          setViewMenuOpen(false);
+                          showToast(`Switched canvas to ${theme.name}!`);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium transition cursor-pointer ${
+                          bgGrid === theme.id ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                        }`}
+                      >
+                        <span>{theme.name}</span>
+                        {bgGrid === theme.id && <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -11198,7 +11394,7 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2 sm:px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
                   insertMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
                 }`}
                 title="Insert Tools, Shapes & Strategy"
@@ -11208,7 +11404,7 @@ export default function WhiteboardPage() {
 
               {/* Insert Popover */}
               {insertMenuOpen && (
-                <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-1 w-64 sm:w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80vh] overflow-y-auto [scrollbar-width:thin]">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-1 sm:w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80dvh] overflow-y-auto [scrollbar-width:thin]">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Trading & SMC Setups</p>
                   
                   <button
@@ -11417,7 +11613,7 @@ export default function WhiteboardPage() {
               </button>
 
               {bgOpen && (
-                <div className="absolute right-0 top-full mt-1 w-56 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1 sm:w-56 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Background Grid Theme</p>
                   {CANVAS_THEMES.map((theme) => (
                     <button
@@ -11473,17 +11669,17 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full self-stretch flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-xs transition cursor-pointer shadow-xs rounded-none ${
+                className={`h-full self-stretch flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-[11px] sm:text-xs transition cursor-pointer shadow-xs rounded-none ${
                   exportOpen ? "bg-brand-dark" : ""
                 }`}
                 title="Export Diagram (PNG, JPEG, SVG)"
               >
-                <Download className="h-3.5 w-3.5 text-white shrink-0 stroke-[1.75]" />
+                <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white shrink-0 stroke-[1.75]" />
                 <span>Export</span>
               </button>
 
               {exportOpen && (
-                <div className="absolute right-0 top-full mt-1 w-60 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Export Format</p>
 
                   {/* PNG Option */}
@@ -11575,7 +11771,7 @@ export default function WhiteboardPage() {
                 setBgOpen(false);
                 setExportOpen(false);
               }}
-              className={`h-full flex items-center gap-1.5 px-2 transition group cursor-pointer ${
+              className={`h-full flex items-center gap-1 sm:gap-1.5 px-1 sm:px-2 transition group cursor-pointer ${
                 userMenuOpen ? "bg-slate-100" : "hover:bg-slate-50"
               }`}
               title={`${formatAccountName(currentUser)} (${currentUser.email || ""})`}
@@ -11584,19 +11780,19 @@ export default function WhiteboardPage() {
                 <img
                   src={currentUser.avatar}
                   alt={currentUser.firstName || "User"}
-                  className="h-8 w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
+                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover border border-line shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0"
                 />
               ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
+                <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-[11px] sm:text-xs font-extrabold text-white shadow-xs group-hover:ring-2 group-hover:ring-brand transition shrink-0">
                   {`${currentUser.firstName?.[0] ?? "U"}${currentUser.lastName?.[0] ?? ""}`.toUpperCase()}
                 </span>
               )}
-              <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`hidden sm:inline h-3.5 w-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {/* Profile Popover (Clean Light Theme) */}
             {userMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
+              <div className="max-sm:fixed max-sm:right-2.5 max-sm:top-14 sm:absolute sm:right-0 sm:top-full sm:mt-2 w-64 max-w-[calc(100vw-1.25rem)] rounded-2xl border border-line bg-white shadow-2xl z-[100] animate-in fade-in overflow-hidden">
                 <div className="border-b border-line bg-cream p-3.5">
                   <div className="flex items-center gap-2.5">
                     {currentUser.avatar ? (
@@ -11676,13 +11872,22 @@ export default function WhiteboardPage() {
                       </button>
                     </>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => { setUserMenuOpen(false); navigate("/login"); }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-brand font-bold hover:bg-slate-50 transition text-left"
-                    >
-                      <User className="h-4 w-4" /> Sign In / Register
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); setSettingsOpen(true); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-ink font-bold hover:bg-brand-light hover:text-brand transition text-left"
+                      >
+                        <Settings className="h-4 w-4 text-slate-700" /> Whiteboard Settings
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setUserMenuOpen(false); navigate("/login"); }}
+                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-brand font-bold hover:bg-slate-50 transition text-left"
+                      >
+                        <User className="h-4 w-4" /> Sign In / Register
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -11697,11 +11902,11 @@ export default function WhiteboardPage() {
         {/* Left Column: Sub-Header Tabs Bar on top + Workspace Canvas on bottom */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           {/* Sub-Header Drag-and-Drop Reorderable Tabs Bar */}
-          <div className="h-10 border-b border-line bg-slate-100 flex items-center justify-between shrink-0 z-20 relative pr-4">
+          <div className="h-10 border-b border-line bg-slate-100 flex items-center justify-between shrink-0 z-20 relative pr-2 sm:pr-4">
             {/* Left Side: Home Icon Hub Link & Active Tabs List */}
             <div className="flex items-center h-full shrink-0 min-w-0 flex-1 overflow-hidden">
-              {/* Home Icon Cell: Width matched to Left Toolbar (w-10 = 40px) */}
-              <div className="w-10 h-full flex items-center justify-center shrink-0">
+              {/* Home Icon Cell: Width matched to Left Toolbar (w-9 on mobile, w-10 on sm+) */}
+              <div className="w-9 sm:w-10 h-full flex items-center justify-center shrink-0">
                 <button
                   type="button"
                   onClick={handleReturnToHub}
@@ -11716,7 +11921,7 @@ export default function WhiteboardPage() {
               <span className="self-stretch w-px bg-line shrink-0" />
 
               {/* Diagram Tabs Bar with Drag & Drop Reordering (Locally Scrollable - No Visible Scrollbar) */}
-              <div className="flex items-center gap-1.5 px-3 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-center gap-1.5 px-2 sm:px-3 shrink-0 overflow-x-auto py-1 max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {tabs.map((tab, idx) => (
                   <div
                     key={tab.id}
@@ -11750,7 +11955,7 @@ export default function WhiteboardPage() {
                       e.stopPropagation();
                       handleStartRenameTab(tab.id, tab.name);
                     }}
-                    className={`group flex items-center gap-1.5 rounded-t-xl px-2.5 py-1 text-[11px] font-semibold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
+                    className={`group flex items-center gap-1.5 rounded-t-xl px-2 sm:px-2.5 py-1 text-[11px] font-semibold cursor-grab active:cursor-grabbing transition-all border-t border-x shrink-0 select-none ${
                       activeTabId === tab.id
                         ? "bg-white text-brand border-line shadow-xs font-bold"
                         : "border-transparent text-muted hover:text-ink hover:bg-white/60"
@@ -11779,7 +11984,7 @@ export default function WhiteboardPage() {
                           e.stopPropagation();
                           handleStartRenameTab(tab.id, tab.name);
                         }}
-                        className="truncate max-w-[130px] inline-block align-bottom text-[11px]"
+                        className="truncate max-w-[100px] sm:max-w-[130px] inline-block align-bottom text-[11px]"
                       >
                         {tab.name}
                       </span>
@@ -11814,7 +12019,7 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside ref={leftDockRef} className="left-dock-container w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
+            <aside ref={leftDockRef} className="left-dock-container w-9 sm:w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
           <div className="w-full flex flex-col items-center divide-y divide-line">
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
@@ -11835,7 +12040,7 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "selection" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Selection Tools</p>
 
                   <FlyoutToolItem
@@ -11896,7 +12101,7 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "forex" && (
-                <div className="absolute left-full top-0 ml-1.5 w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800 max-h-[85vh] overflow-y-auto [scrollbar-width:thin]">
+                <div className="absolute left-full top-0 ml-1.5 w-64 sm:w-72 max-w-[calc(100vw-3.25rem)] rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800 max-h-[70dvh] sm:max-h-[85vh] overflow-y-auto [scrollbar-width:thin]">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
 
                   <FlyoutToolItem
@@ -12001,7 +12206,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "pen" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Pen Tools</p>
                   <FlyoutToolItem
                     toolKey="pencil"
@@ -12045,7 +12250,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "shapes" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Shape and Object Tools</p>
                   <FlyoutToolItem
                     toolKey="rectangle"
@@ -12116,7 +12321,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "lines" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
                   <FlyoutToolItem
                     toolKey="line"
@@ -12170,7 +12375,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "notes" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Text & Annotation Tools</p>
                   <FlyoutToolItem
                     toolKey="text"
@@ -12263,7 +12468,7 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "colortools" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
+                <div className="absolute left-full bottom-0 sm:top-0 sm:bottom-auto ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Color & Fill Tools</p>
                   <FlyoutToolItem
                     toolKey="eyedropper"
@@ -12302,7 +12507,7 @@ export default function WhiteboardPage() {
           {/* Bottom Actions */}
           <div className="w-full border-t border-line flex flex-col items-center divide-y divide-line">
             {/* Standard Minimalist Stroke & Fill Color, Default B&W, and Swap Control */}
-            <div className="w-full flex flex-col items-center py-1.5 px-1 select-none" title="Stroke & Fill Color Tools">
+            <div className="w-full flex flex-col items-center py-1 sm:py-1.5 px-1 select-none" title="Stroke & Fill Color Tools">
               {/* Top micro utility row: Default B&W on left, Swap on right */}
               <div className="w-[23px] flex items-center justify-between mb-0.5">
                 {/* Reset to Default Black & White (D / Shift+D) */}
@@ -12416,28 +12621,28 @@ export default function WhiteboardPage() {
               type="button"
               onClick={handleUndo}
               disabled={shapes.length === 0}
-              className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-7 sm:h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
               title="Undo (Ctrl + Z)"
             >
-              <RotateCcw className="h-4 w-4 shrink-0" />
+              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             </button>
             <button
               type="button"
               onClick={handleRedo}
               disabled={redoStack.length === 0}
-              className="w-full h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-7 sm:h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
               title="Redo (Ctrl + Y)"
             >
-              <RotateCw className="h-4 w-4 shrink-0" />
+              <RotateCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             </button>
             <button
               type="button"
               onClick={handleClear}
               disabled={shapes.length === 0}
-              className="w-full h-8 flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-7 sm:h-8 flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition cursor-pointer"
               title="Clear Whiteboard"
             >
-              <Trash2 className="h-4 w-4 shrink-0" />
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             </button>
           </div>
         </aside>
@@ -12445,7 +12650,7 @@ export default function WhiteboardPage() {
         {/* Central Whiteboard Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
           {/* Bottom Zoom & Navigation Bar */}
-          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-1.5 rounded-xl border border-line bg-white/95 p-1.5 backdrop-blur shadow-lg text-xs font-bold select-none">
+          <div className="absolute bottom-2.5 left-2.5 sm:bottom-4 sm:left-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-line bg-white/95 p-1 sm:p-1.5 backdrop-blur shadow-lg text-xs font-bold select-none">
             {/* Zoom Out Button */}
             <button
               type="button"
@@ -12458,7 +12663,7 @@ export default function WhiteboardPage() {
 
             {/* Editable Zoom Text Field & Popover Dropdown Trigger */}
             <div className="relative">
-              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 hover:bg-white focus-within:border-brand focus-within:bg-white px-1.5 py-0.5 transition">
+              <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 hover:bg-white focus-within:border-brand focus-within:bg-white px-1 sm:px-1.5 py-0.5 transition">
                 <input
                   type="text"
                   value={zoomInputValue}
@@ -12473,14 +12678,14 @@ export default function WhiteboardPage() {
                     }
                   }}
                   onBlur={handleZoomInputCommit}
-                  className="w-8 bg-transparent text-center font-mono text-[11px] font-bold text-ink outline-none"
+                  className="w-7 sm:w-8 bg-transparent text-center font-mono text-[10.5px] sm:text-[11px] font-bold text-ink outline-none"
                   title="Type custom zoom percentage and press Enter"
                 />
                 <span className="text-[10px] text-muted font-bold select-none">%</span>
                 <button
                   type="button"
                   onClick={() => setZoomMenuOpen((v) => !v)}
-                  className="ml-1 p-0.5 text-slate-400 hover:text-ink rounded transition cursor-pointer"
+                  className="ml-0.5 sm:ml-1 p-0.5 text-slate-400 hover:text-ink rounded transition cursor-pointer"
                   title="Zoom options & Screen views"
                 >
                   <ChevronDown className={`h-3 w-3 transition-transform ${zoomMenuOpen ? "rotate-180" : ""}`} />
@@ -12489,7 +12694,7 @@ export default function WhiteboardPage() {
 
               {/* Zoom & View Options Dropdown Popover */}
               {zoomMenuOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-48 rounded-xl border border-line bg-white p-1.5 shadow-2xl z-50 animate-in fade-in space-y-1">
+                <div className="absolute bottom-full left-0 mb-2 w-48 max-w-[calc(100vw-5rem)] rounded-xl border border-line bg-white p-1.5 shadow-2xl z-50 animate-in fade-in space-y-1">
                   {/* Screen Views / Fit Options */}
                   <div className="space-y-0.5 pb-1 border-b border-slate-100">
                     <button
@@ -12578,8 +12783,8 @@ export default function WhiteboardPage() {
             {/* Optional Cursor Coordinates Indicator */}
             {showCursorCoords && cursorCoords && (
               <>
-                <span className="h-3.5 w-px bg-line/80 mx-0.5" />
-                <span className="text-[9.5px] text-muted flex items-center gap-1 font-mono">
+                <span className="hidden sm:inline h-3.5 w-px bg-line/80 mx-0.5" />
+                <span className="hidden sm:flex text-[9.5px] text-muted items-center gap-1 font-mono">
                   <Crosshair className="h-3 w-3 text-brand" />
                   {Math.round(cursorCoords.x)}, {Math.round(cursorCoords.y)}
                 </span>
@@ -12595,6 +12800,10 @@ export default function WhiteboardPage() {
             onMouseUp={handleMouseUp}
             onDoubleClick={handleDoubleClick}
             onContextMenu={handleContextMenu}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
             style={getToolCursorStyle(isSpaceHeld || isSpacePressed.current ? "hand" : activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle, isAltHeld)}
             className="w-full h-full block"
           />
@@ -13407,10 +13616,10 @@ export default function WhiteboardPage() {
           {/* Sticky Note Input Modal for Sticky Notes Only */}
           {textModalPos && isStickyMode && (
             <div
-              className="absolute z-40 rounded-2xl border border-line bg-white p-4 shadow-2xl space-y-3 animate-in fade-in"
+              className="absolute z-40 rounded-2xl border border-line bg-white p-3 sm:p-4 shadow-2xl space-y-3 animate-in fade-in max-w-[calc(100%-1rem)]"
               style={{
-                left: Math.min(textModalPos.x * zoom + pan.x, (canvasRef.current?.width || 800) - 280),
-                top: Math.min(textModalPos.y * zoom + pan.y, (canvasRef.current?.height || 600) - 200),
+                left: Math.max(8, Math.min(textModalPos.x * zoom + pan.x, (canvasRef.current?.width || 800) - 280)),
+                top: Math.max(8, Math.min(textModalPos.y * zoom + pan.y, (canvasRef.current?.height || 600) - 200)),
               }}
             >
               <div className="flex items-center justify-between">
@@ -13426,7 +13635,7 @@ export default function WhiteboardPage() {
                 value={textValue}
                 onChange={(e) => setTextValue(e.target.value)}
                 placeholder="Type teaching note or rule..."
-                className="w-64 rounded-xl border border-line bg-cream p-2.5 text-xs text-ink outline-none focus:border-brand resize-none"
+                className="w-60 sm:w-64 max-w-full rounded-xl border border-line bg-cream p-2.5 text-xs text-ink outline-none focus:border-brand resize-none"
               />
 
               <div className="flex justify-end gap-2">
@@ -13512,7 +13721,11 @@ export default function WhiteboardPage() {
       return (
         <aside
           key={panelKey}
-          style={{ left: p.x, top: p.y, zIndex: p.zIndex }}
+          style={{
+            left: typeof window !== "undefined" ? Math.max(8, Math.min(p.x, window.innerWidth - Math.min(320, window.innerWidth - 16))) : p.x,
+            top: typeof window !== "undefined" ? Math.max(56, Math.min(p.y, window.innerHeight - 120)) : p.y,
+            zIndex: p.zIndex,
+          }}
           onMouseDown={() => {
             const newZ = highestPanelZIndex + 1;
             setHighestPanelZIndex(newZ);
@@ -13521,11 +13734,12 @@ export default function WhiteboardPage() {
               [panelKey]: { ...prev[panelKey], zIndex: newZ },
             }));
           }}
-          className="fixed w-80 max-w-[calc(100vw-2rem)] max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
+          className="fixed w-80 max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] max-h-[75dvh] sm:max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
         >
           {/* Draggable Titlebar */}
           <div
             onMouseDown={(e) => handleFloatingPanelDragStart(e, panelKey)}
+            onTouchStart={(e) => handleFloatingPanelDragStart(e, panelKey)}
             className="border-b border-line p-2 px-2.5 bg-slate-50/90 shrink-0 z-10 flex items-center justify-between cursor-move"
             title="Drag anywhere on canvas"
           >
@@ -13579,7 +13793,7 @@ export default function WhiteboardPage() {
 
     {/* Docked Sidebar Panel */}
     {isInspectorOpen && (
-      <aside className="absolute right-10 top-0 bottom-0 w-84 max-w-[calc(100vw-2.5rem)] border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-text">
+      <aside className="absolute right-9 sm:right-10 top-10 sm:top-0 bottom-0 w-[calc(100vw-4.5rem)] sm:w-80 max-w-[calc(100vw-4.5rem)] sm:max-w-[calc(100vw-2.5rem)] border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-text">
         {/* Panel Header */}
         <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           {/* Top Titlebar Controls */}
@@ -13782,9 +13996,9 @@ export default function WhiteboardPage() {
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, Management, and Setup Panels */}
-          <aside className="w-10 border-l border-line bg-white flex flex-col items-center justify-between py-1 shrink-0 z-30 shadow-xs select-none">
-            {/* Top Tool Icons Container: Contains ALL 3 Groups Compactly */}
-            <div className="flex flex-col items-center w-full">
+          <aside className="w-9 sm:w-10 border-l border-line bg-white flex flex-col items-center justify-between py-0.5 sm:py-1 shrink-0 z-30 shadow-xs select-none overflow-hidden">
+            {/* Top Tool Icons Container: Contains ALL 4 Groups Compactly */}
+            <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center w-full">
               {/* === GROUP 1: WORKSPACE & CANVAS TOOLS === */}
               <div className="flex flex-col items-center w-full">
                 {/* 1. Inspector Tool Button */}
@@ -13805,7 +14019,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.inspector?.isOpen || (isInspectorOpen && rightPanelTab === "inspector"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -13820,7 +14034,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Drag tab to float)"
                   onClick={() => detachIndividualPanel("inspector")}
                 >
@@ -13847,7 +14061,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.layers?.isOpen || (isInspectorOpen && rightPanelTab === "layers"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -13856,7 +14070,7 @@ export default function WhiteboardPage() {
                 >
                   <Layers className="h-4 w-4" />
                   {shapes.length > 0 && (
-                    <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                    <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                       {shapes.length > 99 ? "99+" : shapes.length}
                     </span>
                   )}
@@ -13867,7 +14081,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Drag tab to float)"
                   onClick={() => detachIndividualPanel("layers")}
                 >
@@ -13894,7 +14108,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.character?.isOpen || (isInspectorOpen && rightPanelTab === "character"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -13909,7 +14123,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("character")}
                 >
@@ -13920,7 +14134,7 @@ export default function WhiteboardPage() {
               </div>
 
               {/* Edge-to-Edge Separator Line separating Group 1 and Group 2 */}
-              <div className="w-full h-px bg-line shrink-0 my-1" />
+              <div className="w-full h-px bg-line shrink-0 my-0.5 sm:my-1" />
 
               {/* === GROUP 2: DRAFTS, SAMPLES & TRASH === */}
               <div className="flex flex-col items-center w-full">
@@ -13942,7 +14156,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.drafts?.isOpen || (isInspectorOpen && rightPanelTab === "drafts"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -13951,7 +14165,7 @@ export default function WhiteboardPage() {
                 >
                   <FileText className="h-4 w-4" />
                   {tabs.length + savedDrafts.length > 0 && (
-                    <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-slate-700 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                    <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 px-1 min-w-[13px] h-[13px] bg-slate-700 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                       {tabs.length + savedDrafts.length}
                     </span>
                   )}
@@ -13962,7 +14176,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Drag tab to float)"
                   onClick={() => detachIndividualPanel("drafts")}
                 >
@@ -13989,7 +14203,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.samples?.isOpen || (isInspectorOpen && rightPanelTab === "samples"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14004,7 +14218,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Drag tab to float)"
                   onClick={() => detachIndividualPanel("samples")}
                 >
@@ -14031,7 +14245,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.trash?.isOpen || (isInspectorOpen && rightPanelTab === "trash"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14040,7 +14254,7 @@ export default function WhiteboardPage() {
                 >
                   <Archive className="h-4 w-4" />
                   {trashedTabs.length > 0 && (
-                    <span className="absolute top-1 right-1 px-1 min-w-[13px] h-[13px] bg-rose-500 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                    <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 px-1 min-w-[13px] h-[13px] bg-rose-500 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
                       {trashedTabs.length}
                     </span>
                   )}
@@ -14051,7 +14265,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("trash")}
                 >
@@ -14062,7 +14276,7 @@ export default function WhiteboardPage() {
               </div>
 
               {/* Edge-to-Edge Separator Line separating Group 2 and Group 3 */}
-              <div className="w-full h-px bg-line shrink-0 my-1" />
+              <div className="w-full h-px bg-line shrink-0 my-0.5 sm:my-1" />
 
               {/* === GROUP 3: GRID & GUIDES, GEOMETRY, PATTERNS === */}
               <div className="flex flex-col items-center w-full">
@@ -14084,7 +14298,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.grid_guides?.isOpen || (isInspectorOpen && rightPanelTab === "grid_guides"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14099,7 +14313,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("grid_guides")}
                 >
@@ -14126,7 +14340,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.geometry?.isOpen || (isInspectorOpen && rightPanelTab === "geometry"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14141,7 +14355,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("geometry")}
                 >
@@ -14168,7 +14382,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.patterns?.isOpen || (isInspectorOpen && rightPanelTab === "patterns"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14183,7 +14397,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("patterns")}
                 >
@@ -14194,7 +14408,7 @@ export default function WhiteboardPage() {
               </div>
 
               {/* Edge-to-Edge Separator Line separating Group 3 and Group 4 */}
-              <div className="w-full h-px bg-line shrink-0 my-1" />
+              <div className="w-full h-px bg-line shrink-0 my-0.5 sm:my-1" />
 
               {/* === GROUP 4: FOREX & INSTITUTIONAL TRADING TOOLS === */}
               <div className="flex flex-col items-center w-full">
@@ -14216,7 +14430,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.sessions?.isOpen || (isInspectorOpen && rightPanelTab === "sessions"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14231,7 +14445,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("sessions")}
                 >
@@ -14258,7 +14472,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.risk_calc?.isOpen || (isInspectorOpen && rightPanelTab === "risk_calc"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14273,7 +14487,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("risk_calc")}
                 >
@@ -14300,7 +14514,7 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
                     (detachedPanels.economic_calendar?.isOpen || (isInspectorOpen && rightPanelTab === "economic_calendar"))
                       ? "text-rose-600"
                       : "text-slate-500 hover:text-slate-900"
@@ -14315,7 +14529,7 @@ export default function WhiteboardPage() {
 
                 {/* Horizontal Detachable Indicator Dots */}
                 <div
-                  className="w-full py-0.5 flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
+                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
                   title="Detachable Panel Group (Click to float)"
                   onClick={() => detachIndividualPanel("economic_calendar")}
                 >
@@ -14327,30 +14541,26 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Bottom: Collapse / Expand & Detach Trigger */}
-            <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line">
+            <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line shrink-0">
               <button
                 type="button"
                 onClick={() => {
                   const anyDetached = Object.values(detachedPanels).some((p) => p.isOpen);
                   if (anyDetached) {
-                    setDetachedPanels((prev) => ({
-                      inspector: { ...prev.inspector, isOpen: false },
-                      layers: { ...prev.layers, isOpen: false },
-                      character: { ...prev.character, isOpen: false },
-                      drafts: { ...prev.drafts, isOpen: false },
-                      samples: { ...prev.samples, isOpen: false },
-                      trash: { ...prev.trash, isOpen: false },
-                      grid_guides: { ...prev.grid_guides, isOpen: false },
-                      theme: { ...prev.theme, isOpen: false },
-                      patterns: { ...prev.patterns, isOpen: false },
-                    }));
+                    setDetachedPanels((prev) => {
+                      const next = { ...prev };
+                      (Object.keys(next) as Array<keyof typeof next>).forEach((k) => {
+                        next[k] = { ...next[k], isOpen: false };
+                      });
+                      return next;
+                    });
                     setIsInspectorOpen(true);
                     showToast("Attached all floating panels back to sidebar dock!");
                   } else {
                     detachIndividualPanel(rightPanelTab);
                   }
                 }}
-                className={`w-full h-8 flex items-center justify-center transition cursor-pointer ${
+                className={`w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer ${
                   Object.values(detachedPanels).some((p) => p.isOpen) ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
                 }`}
                 title={Object.values(detachedPanels).some((p) => p.isOpen) ? "Attach all floating panels back to sidebar dock" : "Detach active panel"}
@@ -14360,7 +14570,7 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-                className="w-full h-8 flex items-center justify-center text-slate-400 hover:text-ink hover:bg-slate-50 transition cursor-pointer"
+                className="w-full h-7 sm:h-8 flex items-center justify-center text-slate-400 hover:text-ink hover:bg-slate-50 transition cursor-pointer"
                 title={isInspectorOpen ? "Collapse Panel" : "Expand Panel"}
               >
                 {isInspectorOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
@@ -14890,13 +15100,13 @@ function WhiteboardToolBtn({
         }}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative w-full h-8 flex items-center justify-center transition cursor-pointer border-l-2 ${
+        className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer border-l-2 ${
           active
             ? "bg-brand-light text-brand border-brand font-bold"
             : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
         }`}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
         {hasFlyout && (
           <span
             onClick={(e) => {
@@ -14914,7 +15124,7 @@ function WhiteboardToolBtn({
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && !isFlyoutOpen && (
         <div
-          className="absolute left-full ml-2 w-52 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2"
+          className="hidden sm:block absolute left-full ml-2 w-52 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2"
           style={popoverPos.bottom !== undefined ? { bottom: popoverPos.bottom } : { top: popoverPos.top ?? 0 }}
         >
           {/* Visual Thumbnail Preview with Soft Curved Container and Uniform Square Aspect Ratio */}
