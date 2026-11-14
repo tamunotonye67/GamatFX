@@ -88,13 +88,16 @@ export async function fetchSupabaseCourses(): Promise<Course[]> {
       return COURSES;
     }
 
-    if (!data || data.length === 0) {
+    // Filter out store products so courses only contain actual courses
+    const courseRows = (data || []).filter((row) => row.tag !== "StoreProduct");
+
+    if (courseRows.length === 0) {
       console.log("No courses found in Supabase. Seeding default courses to Supabase database...");
       await seedSupabaseCourses(COURSES);
       return COURSES;
     }
 
-    return data.map((row) => rowToCourse(row as SupabaseCourseRow));
+    return courseRows.map((row) => rowToCourse(row as SupabaseCourseRow));
   } catch (err) {
     console.error("Failed to connect to Supabase courses table:", err);
     return COURSES;

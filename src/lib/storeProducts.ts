@@ -333,5 +333,18 @@ export function loadStoredProducts(): StoreProduct[] {
 export function saveStoredProducts(list: StoreProduct[]): void {
   try {
     localStorage.setItem(STORE_STORAGE_KEY, JSON.stringify(list));
-  } catch {}
+  } catch (err) {
+    // Fallback: If localStorage quota is exceeded (e.g. large base64 data URLs), strip oversize base64 and retry
+    try {
+      const sanitized = list.map((p) => ({
+        ...p,
+        image: p.image?.startsWith("data:") && p.image.length > 60000
+          ? "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1000&q=80"
+          : p.image,
+        gallery: p.gallery?.map((g) => (g.startsWith("data:") && g.length > 60000 ? "" : g)).filter(Boolean),
+        downloadUrl: p.downloadUrl?.startsWith("data:") && p.downloadUrl.length > 60000 ? undefined : p.downloadUrl,
+      }));
+      localStorage.setItem(STORE_STORAGE_KEY, JSON.stringify(sanitized));
+    } catch {}
+  }
 }

@@ -82,9 +82,9 @@ function readVideoFile(file: File): Promise<{ url: string; name: string }> {
       reject(new Error("Please choose a video file (MP4, WebM, MOV)."));
       return;
     }
-    // Cap at ~40MB for localStorage safety; larger files should use a URL.
-    if (file.size > 40 * 1024 * 1024) {
-      reject(new Error("File is larger than 40MB. Host it online and paste the URL instead."));
+    // Cap at 2.5MB to protect browser localStorage quota; instruct user to use URL for full video files
+    if (file.size > 2.5 * 1024 * 1024) {
+      reject(new Error("Video file is larger than 2.5MB. To keep browser storage fast and prevent data loss, please paste your video URL (YouTube, Vimeo, or MP4 link) above."));
       return;
     }
     const reader = new FileReader();

@@ -147,12 +147,52 @@ export async function uploadStoreAsset(productId: string, file: File, prefix = "
   return { ok: true, url: dataUrl, fileName: file.name };
 }
 
-/** Utility to convert a File object to a Base64 data URL */
+/** Utility to convert a File object to a Base64 data URL, automatically compressing images to prevent storage quota exhaustion */
 export function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    // If it's an image, downscale and compress to compact JPEG (~70KB) so it safely fits anywhere
+    if (file.type.startsWith("image/") && typeof document !== "undefined") {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            const maxDim = 1200;
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressed = canvas.toDataURL("image/jpeg", 0.82);
+              resolve(compressed);
+              return;
+            }
+          } catch {}
+          resolve(String(e.target?.result || ""));
+        };
+        img.onerror = () => resolve(String(e.target?.result || ""));
+        img.src = String(e.target?.result || "");
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target?.result as string);
-    reader.onerror = (e) => reject(e);
+    reader.onload = (e) => resolve(String(e.target?.result || ""));
+    reader.onerror = () => resolve("");
     reader.readAsDataURL(file);
   });
 }

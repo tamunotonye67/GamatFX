@@ -32,8 +32,8 @@ import {
   getQuiz, getCustomQuizzes, saveCustomQuiz, deleteCustomQuiz,
   type Quiz, type Question,
 } from "./quizzes";
-import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
-import { loadStoredProducts, saveStoredProducts, type StoreProduct } from "./storeProducts";
+import { loadStoredProducts, saveStoredProducts, SEED_STORE_PRODUCTS, type StoreProduct } from "./storeProducts";
+import { fetchSupabaseStoreProducts, saveSupabaseStoreProduct, deleteSupabaseStoreProduct } from "./supabaseStoreProducts";
 import {
   loadAffiliateProfiles,
   saveAffiliateProfiles,
@@ -1649,6 +1649,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (supabaseCourses && supabaseCourses.length > 0) {
         setManagedCourses((prev) => {
           const map = new Map<string, ManagedCourse>();
+          SEED_MANAGED_COURSES.forEach((c) => map.set(c.id, c));
           prev.forEach((c) => map.set(c.id, c));
           supabaseCourses.forEach((c) => {
             const mc: ManagedCourse = {
@@ -1677,18 +1678,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 })),
               })),
               published: (c as any).published ?? true,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              createdAt: (c as any).created_at || (c as any).createdAt || new Date().toISOString(),
+              updatedAt: (c as any).updated_at || (c as any).updatedAt || new Date().toISOString(),
             };
             map.set(c.id, mc);
           });
-          return Array.from(map.values());
+          const merged = Array.from(map.values());
+          write(K.managedCourses, merged);
+          return merged;
         });
         setCourseSettings((prev) => {
           const next = { ...prev };
           supabaseCourses.forEach((c) => {
             next[c.id] = { ...next[c.id], price: c.price, published: (c as any).published ?? true };
           });
+          write(K.courseSettings, next);
           return next;
         });
       }
@@ -1741,6 +1745,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fetchSupabaseReviews().then((r) => r.length && setReviews(r));
       fetchSupabaseAffiliateSettings().then((s) => {
         if (s) setAffiliateSettings(s);
+      });
+      fetchSupabaseStoreProducts().then((supaProds) => {
+        if (supaProds && supaProds.length > 0) {
+          setStoreProducts((prev) => {
+            const map = new Map<string, StoreProduct>();
+            SEED_STORE_PRODUCTS.forEach((p) => map.set(p.id, p));
+            prev.forEach((p) => map.set(p.id, p));
+            supaProds.forEach((p) => map.set(p.id, p));
+            const merged = Array.from(map.values());
+            saveStoredProducts(merged);
+            return merged;
+          });
+        }
       });
     };
 
@@ -2690,24 +2707,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           updatedAt: now,
         };
 
-    setManagedCourses((prev) => {
-      const idx = prev.findIndex((x) => x.id === targetCourse.id);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = targetCourse;
-        return next;
-      }
-      return [targetCourse, ...prev];
-    });
+    let nextCourses: ManagedCourse[];
+    const idx = managedCourses.findIndex((x) => x.id === targetCourse.id);
+    if (idx >= 0) {
+      nextCourses = [...managedCourses];
+      nextCourses[idx] = targetCourse;
+    } else {
+      nextCourses = [targetCourse, ...managedCourses];
+    }
+    setManagedCourses(nextCourses);
+    write(K.managedCourses, nextCourses);
 
-    setCourseSettings((p) => ({
-      ...p,
-      [targetCourse.id]: {
-        ...p[targetCourse.id],
-        price: targetCourse.price,
-        published: targetCourse.published !== false,
-      },
-    }));
+    setCourseSettings((p) => {
+      const nextSettings = {
+        ...p,
+        [targetCourse.id]: {
+          ...p[targetCourse.id],
+          price: targetCourse.price,
+          published: targetCourse.published !== false,
+        },
+      };
+      write(K.courseSettings, nextSettings);
+      return nextSettings;
+    });
 
     // Save to Supabase DB asynchronously
     saveSupabaseCourse(targetCourse).catch((err) => {
@@ -2718,9 +2740,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [managedCourses]);
 
   const deleteManagedCourse: Ctx["deleteManagedCourse"] = useCallback((id) => {
-    setManagedCourses((p) => p.filter((x) => x.id !== id));
-    deleteSupabaseCourse(id);
-  }, []);
+    const nextCourses = managedCourses.filter((x) => x.id !== id);
+    setManagedCourses(nextCourses);
+    write(K.managedCourses, nextCourses);
+    deleteSupabaseCourse(id).catch((err) => {
+      console.error("Failed to delete course from Supabase:", err);
+    });
+  }, [managedCourses]);
 
   /* ------------------------- Market Combat ------------------------- */
 
@@ -3294,25 +3320,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     const finalPrice = isFree ? 0 : Number(p.price);
     const now = new Date().toISOString();
+    let targetProd: StoreProduct;
+    let nextList: StoreProduct[];
+
     if (p.id) {
-      setStoreProducts((prev) =>
-        prev.map((item) =>
-          item.id === p.id
-            ? ({
-                ...item,
-                ...p,
-                price: finalPrice,
-                isFree,
-                isPreorder: Boolean(p.isPreorder),
-                preorderReleaseDate: p.isPreorder ? p.preorderReleaseDate : undefined,
-                preorderNote: p.isPreorder ? p.preorderNote : undefined,
-                updatedAt: now,
-              } as StoreProduct)
-            : item
-        )
-      );
+      const existing = storeProducts.find((x) => x.id === p.id);
+      targetProd = {
+        ...existing,
+        ...p,
+        price: finalPrice,
+        isFree,
+        isPreorder: Boolean(p.isPreorder),
+        preorderReleaseDate: p.isPreorder ? p.preorderReleaseDate : undefined,
+        preorderNote: p.isPreorder ? p.preorderNote : undefined,
+        updatedAt: now,
+      } as StoreProduct;
+      nextList = storeProducts.map((item) => (item.id === p.id ? targetProd : item));
     } else {
-      const newProd: StoreProduct = {
+      targetProd = {
         ...p,
         price: finalPrice,
         isFree,
@@ -3325,14 +3350,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         salesCount: 0,
         createdAt: now,
       };
-      setStoreProducts((prev) => [newProd, ...prev]);
+      nextList = [targetProd, ...storeProducts];
     }
+
+    setStoreProducts(nextList);
+    saveStoredProducts(nextList);
+
+    // Save to Supabase remote database asynchronously
+    saveSupabaseStoreProduct(targetProd).catch((err) => {
+      console.error("Failed to save store product to Supabase:", err);
+    });
+
     return { ok: true };
-  }, []);
+  }, [storeProducts]);
 
   const deleteStoreProduct: Ctx["deleteStoreProduct"] = useCallback((id: string) => {
-    setStoreProducts((prev) => prev.filter((item) => item.id !== id));
-  }, []);
+    const nextList = storeProducts.filter((item) => item.id !== id);
+    setStoreProducts(nextList);
+    saveStoredProducts(nextList);
+    deleteSupabaseStoreProduct(id).catch((err) => {
+      console.error("Failed to delete store product from Supabase:", err);
+    });
+  }, [storeProducts]);
 
   /* ---------------------- Affiliate & Ambassador ---------------------- */
 
