@@ -1649,7 +1649,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (supabaseCourses && supabaseCourses.length > 0) {
         setManagedCourses((prev) => {
           const map = new Map<string, ManagedCourse>();
-          SEED_MANAGED_COURSES.forEach((c) => map.set(c.id, c));
           prev.forEach((c) => map.set(c.id, c));
           supabaseCourses.forEach((c) => {
             const mc: ManagedCourse = {
