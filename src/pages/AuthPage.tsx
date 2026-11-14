@@ -317,10 +317,22 @@ function PasswordInput({
 }
 
 function ErrorBox({ msg }: { msg: string }) {
+  const isDeleted = msg.toLowerCase().includes("deleted");
   return (
     <div className="flex items-start gap-3 rounded-xl border border-brand/30 bg-brand-light p-4">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-      <p className="text-sm text-ink/80">{msg}</p>
+      <div className="text-sm text-ink/80">
+        <p>{msg}</p>
+        {isDeleted && (
+          <button
+            type="button"
+            onClick={() => navigate("/signup")}
+            className="mt-2 inline-flex items-center gap-1.5 font-bold text-brand hover:underline cursor-pointer"
+          >
+            Create a new account now →
+          </button>
+        )}
+      </div>
     </div>
   );
 }

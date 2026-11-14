@@ -1465,7 +1465,16 @@ const StoreContext = createContext<Ctx | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>(() => seedAccounts());
-  const [sessionId, setSessionId] = useState<string | null>(() => read<string | null>(K.session, null));
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    const raw = read<string | null>(K.session, null);
+    if (!raw) return null;
+    const deleted = getDeletedAccountIds();
+    if (deleted.has(raw.toLowerCase())) {
+      write(K.session, null);
+      return null;
+    }
+    return raw;
+  });
   const [allEnrollments, setAllEnrollments] = useState<Enrollment[]>(() => read<Enrollment[]>(K.enrollments, []));
   const [payments, setPayments] = useState<Payment[]>(() => read<Payment[]>(K.payments, []));
   const [events, setEvents] = useState<EventItem[]>(() => read<EventItem[]>(K.events, DEFAULT_EVENTS));
@@ -1884,6 +1893,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const login: Ctx["login"] = useCallback(async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
+    const deleted = getDeletedAccountIds();
+
+    // 0. Check if this account was explicitly deleted
+    if (deleted.has(cleanEmail)) {
+      setSessionId(null);
+      write(K.session, null);
+      signOutSupabaseUser().catch(() => {});
+      return {
+        ok: false,
+        error: "This account has been deleted. Please sign up to create a new account.",
+      };
+    }
 
     // 1. Identify local or cached account & saved credential
     let found = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
@@ -1897,6 +1918,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await signInSupabaseUser(cleanEmail, password);
       if (res.ok && res.account) {
+        if (deleted.has(res.account.id.toLowerCase()) || deleted.has(cleanEmail)) {
+          setSessionId(null);
+          write(K.session, null);
+          signOutSupabaseUser().catch(() => {});
+          return {
+            ok: false,
+            error: "This account has been deleted. Please sign up to create a new account.",
+          };
+        }
         storeCredential(cleanEmail, password);
         unmarkDeletedAccount(res.account.id, cleanEmail);
         setAccounts((p) => {
@@ -1910,9 +1940,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return { ok: true };
       }
 
+      // If Supabase Auth returned an explicit deleted error, stop immediately
+      if (!res.ok && res.error?.toLowerCase().includes("deleted")) {
+        setSessionId(null);
+        write(K.session, null);
+        signOutSupabaseUser().catch(() => {});
+        return { ok: false, error: res.error };
+      }
+
       // If Supabase Auth failed (e.g. unconfirmed email, manually created account without auth entry, etc.)
       // Check if we have the account locally or in accounts state:
       if (found) {
+        if (deleted.has(found.id.toLowerCase()) || deleted.has(cleanEmail)) {
+          setSessionId(null);
+          write(K.session, null);
+          signOutSupabaseUser().catch(() => {});
+          return {
+            ok: false,
+            error: "This account has been deleted. Please sign up to create a new account.",
+          };
+        }
+
         if (found.status === "suspended") {
           return { ok: false, error: "This account has been suspended. Contact support." };
         }
@@ -1950,6 +1998,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (supaRow) {
+        if (deleted.has(supaRow.id.toLowerCase()) || deleted.has(cleanEmail)) {
+          setSessionId(null);
+          write(K.session, null);
+          signOutSupabaseUser().catch(() => {});
+          return {
+            ok: false,
+            error: "This account has been deleted. Please sign up to create a new account.",
+          };
+        }
+
         const supaAcc = rowToAccount(supaRow as SupabaseAccountRow, password);
         const expectedPassword = savedPassword || supaAcc.password;
 
@@ -1978,7 +2036,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       // If no account exists anywhere
-      return { ok: false, error: "No account found with that email. Please check your credentials or create an account." };
+      return { ok: false, error: res.error || "No account found with that email. Please check your credentials or create an account." };
     } catch {
       // Supabase network unreachable, fall back to cached local storage
       if (found) {
@@ -3595,8 +3653,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Clear session if the deleted user is currently logged in
-      if (sessionId === targetId || sessionId === id) {
+      if (sessionId === targetId || sessionId === id || (user && targetEmail && user.email.toLowerCase() === targetEmail)) {
         setSessionId(null);
+        write(K.session, null);
+        signOutSupabaseUser().catch(() => {});
       }
 
       // Authoritative delete from Supabase

@@ -151,6 +151,24 @@ export async function signInSupabaseUser(
 ): Promise<{ ok: boolean; account?: Account; error?: string }> {
   try {
     const cleanEmail = email.trim().toLowerCase();
+
+    // Check if account is in deleted tombstone list
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("gamat.deleted_accounts.v1");
+        if (raw) {
+          const deleted = new Set<string>(JSON.parse(raw).map((s: string) => s.toLowerCase()));
+          if (deleted.has(cleanEmail)) {
+            await supabase.auth.signOut().catch(() => {});
+            return {
+              ok: false,
+              error: "This account has been deleted. Please sign up to create a new account.",
+            };
+          }
+        }
+      } catch {}
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
       password: pass,
@@ -162,6 +180,23 @@ export async function signInSupabaseUser(
     }
 
     if (authData?.user) {
+      // Check if user ID is in deleted tombstone list
+      if (typeof window !== "undefined") {
+        try {
+          const raw = localStorage.getItem("gamat.deleted_accounts.v1");
+          if (raw) {
+            const deleted = new Set<string>(JSON.parse(raw).map((s: string) => s.toLowerCase()));
+            if (deleted.has(authData.user.id.toLowerCase()) || deleted.has(cleanEmail)) {
+              await supabase.auth.signOut().catch(() => {});
+              return {
+                ok: false,
+                error: "This account has been deleted. Please sign up to create a new account.",
+              };
+            }
+          }
+        } catch {}
+      }
+
       // Query user profile from public.accounts
       const { data: rows, error: dbError } = await supabase
         .from("accounts")
@@ -174,19 +209,12 @@ export async function signInSupabaseUser(
         return { ok: true, account: acc };
       }
 
-      // Fallback if row does not exist yet in accounts table
-      const fallbackAcc: Account = {
-        id: authData.user.id,
-        firstName: authData.user.user_metadata?.first_name || cleanEmail.split("@")[0],
-        lastName: authData.user.user_metadata?.last_name || "User",
-        email: cleanEmail,
-        password: pass,
-        role: "student",
-        status: "active",
-        joined: new Date().toISOString(),
+      // If user profile is missing from accounts table, they were deleted from the database
+      await supabase.auth.signOut().catch(() => {});
+      return {
+        ok: false,
+        error: "This account has been deleted. Please sign up to create a new account.",
       };
-      saveSupabaseAccount(fallbackAcc);
-      return { ok: true, account: fallbackAcc };
     }
 
     return { ok: false, error: "Invalid login credentials" };
