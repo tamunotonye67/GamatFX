@@ -453,13 +453,13 @@ export default function DashboardPage() {
           role="dialog"
           aria-modal="true"
           aria-label="GAMAT Ambassador Program"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-300"
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-md p-3 sm:p-6 overflow-y-auto overscroll-contain animate-in fade-in duration-300"
           onClick={(e) => {
             if (e.target === e.currentTarget) handleDismissAffiliateAd();
           }}
         >
           <div
-            className="relative w-full max-w-lg sm:max-w-2xl lg:max-w-3xl rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white shadow-[0_25px_70px_-15px_rgba(196,21,28,0.65)] border border-white/20 overflow-hidden animate-in zoom-in-95 duration-300"
+            className="relative my-auto w-full max-w-lg sm:max-w-2xl lg:max-w-3xl max-h-[92vh] sm:max-h-none overflow-y-auto sm:overflow-hidden rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white shadow-[0_25px_70px_-15px_rgba(196,21,28,0.65)] border border-white/20 animate-in zoom-in-95 duration-300"
           >
             {/* Ambient Radial Lights */}
             <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-white/10 blur-3xl pointer-events-none" />
@@ -469,7 +469,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={handleDismissAffiliateAd}
-              className="absolute top-4 right-4 z-20 rounded-full bg-black/30 p-2 text-white/80 hover:bg-black/50 hover:text-white transition cursor-pointer backdrop-blur-xs ring-1 ring-white/20"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 rounded-full bg-black/40 p-2 text-white/80 hover:bg-black/60 hover:text-white transition cursor-pointer backdrop-blur-xs ring-1 ring-white/20"
               aria-label="Close advertisement"
             >
               <X className="h-4 w-4" />
@@ -477,7 +477,7 @@ export default function DashboardPage() {
 
             <div className="grid sm:grid-cols-12 items-stretch">
               {/* Left Column: Smiling Student with Backpack & Tablet */}
-              <div className="relative sm:col-span-5 h-52 sm:h-auto min-h-[220px] sm:min-h-full overflow-hidden bg-black/30">
+              <div className="relative sm:col-span-5 h-40 sm:h-auto min-h-[160px] sm:min-h-full overflow-hidden bg-black/30">
                 <img
                   src="/images/affiliate-modal-student.jpg"
                   alt="GAMAT student trading with tablet and carrying backpack"
@@ -494,7 +494,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column: Copy & CTAs */}
-              <div className="relative sm:col-span-7 p-6 sm:p-7 flex flex-col justify-between">
+              <div className="relative sm:col-span-7 p-4 sm:p-7 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white backdrop-blur-xs ring-1 ring-white/25 shadow-xs">
