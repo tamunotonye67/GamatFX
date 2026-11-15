@@ -18,6 +18,7 @@ import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
 import ImageCropModal from "../components/ImageCropModal";
+import { formatAccountName, formatStudentName, capitalizeWord } from "../lib/formatName";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
 import { useSolidNavbar } from "../lib/chrome";

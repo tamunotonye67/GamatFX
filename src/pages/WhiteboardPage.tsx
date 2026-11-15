@@ -25,6 +25,7 @@ import {
   Diamond,
   ArrowRight,
   ArrowUpRight,
+  MoveUpRight,
   Home,
   Type,
   StickyNote,

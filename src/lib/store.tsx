@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { supabase } from "./supabase";
-import { COURSES, getCourse, totalLessons, COURSE_ALIASES } from "./courses";
+import { COURSES, getCourse, totalLessons, COURSE_ALIASES, asCourse } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
 import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount, rowToAccount, type SupabaseAccountRow } from "./supabaseAuth";
 import {
@@ -32,6 +32,7 @@ import {
   getQuiz, getCustomQuizzes, saveCustomQuiz, deleteCustomQuiz,
   type Quiz, type Question,
 } from "./quizzes";
+import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
 import { loadStoredProducts, saveStoredProducts, SEED_STORE_PRODUCTS, type StoreProduct } from "./storeProducts";
 import { fetchSupabaseStoreProducts, saveSupabaseStoreProduct, deleteSupabaseStoreProduct } from "./supabaseStoreProducts";
 import {
