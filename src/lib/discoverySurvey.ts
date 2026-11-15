@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export type DiscoverySourceId =
   | "instagram"
   | "youtube"
@@ -112,14 +114,56 @@ const RESPONSES_KEY = "gamat.discovery_responses.v1";
 const COMPLETED_KEY = "gamat.discovery_completed.v1";
 const SESSION_DISMISSED_KEY = "gamat.discovery_dismissed_session.v1";
 const JUST_REGISTERED_KEY = "gamat.discovery_just_registered.v1";
+const SUPABASE_DISCOVERY_SLUG = "sys_discovery_survey";
 
 type CompletedRecord = {
   visitorDone?: boolean;
   userIds?: string[];
   emails?: string[];
-  lastSourceId?: DiscoverySourceId;
+  lastSourceId?: string;
   lastDetail?: string;
 };
+
+export function normalizeDiscoverySourceId(rawId?: string, rawLabel?: string): DiscoverySourceId {
+  const id = (rawId || "").trim().toLowerCase();
+  if (id === "whatsapp_telegram") return "whatsapp";
+  if (id === "facebook_linkedin") return "facebook";
+
+  const exact = DISCOVERY_OPTIONS.find((o) => o.id === id);
+  if (exact) return exact.id;
+
+  const lbl = (rawLabel || "").trim().toLowerCase();
+  if (lbl.includes("instagram")) return "instagram";
+  if (lbl.includes("youtube")) return "youtube";
+  if (lbl.includes("tiktok")) return "tiktok";
+  if (lbl.includes("telegram")) return "telegram";
+  if (lbl.includes("whatsapp")) return "whatsapp";
+  if (lbl.includes("twitter") || lbl.startsWith("x ")) return "twitter";
+  if (lbl.includes("linkedin")) return "linkedin";
+  if (lbl.includes("facebook")) return "facebook";
+  if (lbl.includes("friend") || lbl.includes("ambassador") || lbl.includes("referral")) return "friend_referral";
+  if (lbl.includes("google")) return "google_search";
+  if (lbl.includes("event") || lbl.includes("webinar")) return "live_event";
+
+  return "other";
+}
+
+function normalizeResponseItem(raw: any): DiscoveryResponse {
+  const sourceId = normalizeDiscoverySourceId(raw?.sourceId, raw?.sourceLabel);
+  const opt = DISCOVERY_OPTIONS.find((o) => o.id === sourceId) || DISCOVERY_OPTIONS[0];
+  return {
+    id: String(raw?.id || `disc_${Date.now().toString(36)}`),
+    sourceId,
+    sourceLabel: opt.label,
+    detail: raw?.detail ? String(raw.detail).trim() : undefined,
+    userId: raw?.userId ? String(raw.userId) : undefined,
+    userName: raw?.userName ? String(raw.userName) : undefined,
+    userEmail: raw?.userEmail ? String(raw.userEmail).trim().toLowerCase() : undefined,
+    visitorType: raw?.visitorType === "new_student" ? "new_student" : "visitor",
+    route: raw?.route ? String(raw.route) : "/",
+    createdAt: raw?.createdAt || new Date().toISOString(),
+  };
+}
 
 function getCompletedRecord(): CompletedRecord {
   if (typeof window === "undefined") return {};
@@ -138,6 +182,101 @@ function saveCompletedRecord(rec: CompletedRecord) {
   } catch {}
 }
 
+/** Upserts a discovery response into Supabase so it reflects across all devices and admin sessions. */
+export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse): Promise<void> {
+  try {
+    await supabase.from("service_enquiries").upsert(
+      {
+        id: resp.id,
+        ref: resp.sourceId,
+        service_slug: SUPABASE_DISCOVERY_SLUG,
+        service_title: resp.sourceLabel,
+        package_name: resp.visitorType,
+        name: resp.userName || (resp.visitorType === "new_student" ? "New Student" : "Website Visitor"),
+        email: resp.userEmail || "visitor@gamatfx.com",
+        phone: resp.route || "/",
+        company: resp.userId ?? null,
+        budget: resp.detail ?? null,
+        message: resp.detail || resp.sourceLabel,
+        user_id: null,
+        status: "closed",
+        created_at: resp.createdAt,
+      },
+      { onConflict: "id" }
+    );
+  } catch (err) {
+    console.warn("Supabase discovery response save notice:", err);
+  }
+}
+
+/** Fetches all discovery survey responses from Supabase and merges them with local responses. */
+export async function fetchSupabaseDiscoveryResponses(): Promise<DiscoveryResponse[]> {
+  const local = loadDiscoveryResponses();
+  try {
+    const { data, error } = await supabase
+      .from("service_enquiries")
+      .select("*")
+      .eq("service_slug", SUPABASE_DISCOVERY_SLUG)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) {
+      return local;
+    }
+
+    const remoteIds = new Set<string>();
+    const remoteItems: DiscoveryResponse[] = data.map((r: any) => {
+      remoteIds.add(String(r.id));
+      const sourceId = normalizeDiscoverySourceId(r.ref, r.service_title);
+      const opt = DISCOVERY_OPTIONS.find((o) => o.id === sourceId) || DISCOVERY_OPTIONS[0];
+      const detailText = r.budget || (r.message && r.message !== r.service_title && r.message !== opt.label ? r.message : undefined);
+      const cleanEmail = r.email && r.email !== "visitor@gamatfx.com" ? String(r.email).trim().toLowerCase() : undefined;
+      const cleanName = r.name && r.name !== "Website Visitor" && r.name !== "New Student" ? String(r.name) : undefined;
+      return {
+        id: String(r.id),
+        sourceId,
+        sourceLabel: opt.label,
+        detail: detailText || undefined,
+        userId: r.company || r.user_id || undefined,
+        userName: cleanName,
+        userEmail: cleanEmail,
+        visitorType: r.package_name === "new_student" ? "new_student" : "visitor",
+        route: r.phone || "/",
+        createdAt: r.created_at || new Date().toISOString(),
+      };
+    });
+
+    // Push any local responses that haven't been synced to Supabase yet
+    for (const loc of local) {
+      if (!remoteIds.has(loc.id)) {
+        saveSupabaseDiscoveryResponse(loc);
+      }
+    }
+
+    const map = new Map<string, DiscoveryResponse>();
+    remoteItems.forEach((item) => map.set(item.id, item));
+    local.forEach((item) => {
+      if (!map.has(item.id)) {
+        map.set(item.id, item);
+      }
+    });
+
+    const merged = Array.from(map.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(RESPONSES_KEY, JSON.stringify(merged));
+        window.dispatchEvent(new CustomEvent("gamat:discovery-updated"));
+      } catch {}
+    }
+
+    return merged;
+  } catch {
+    return local;
+  }
+}
+
 /** Marks that a user just completed registration so we can prompt them if they haven't answered yet. */
 export function triggerDiscoveryForNewRegistration(userId?: string, email?: string) {
   if (typeof window === "undefined") return;
@@ -148,17 +287,23 @@ export function triggerDiscoveryForNewRegistration(userId?: string, email?: stri
     // If they already answered as a visitor on this device, link their visitor response to their new account
     if (rec.visitorDone && rec.lastSourceId) {
       const responses = loadDiscoveryResponses();
-      const updated = responses.map((r, idx) =>
-        idx === 0 && !r.userId
-          ? {
-              ...r,
-              userId,
-              userEmail: cleanEmail,
-              visitorType: "new_student" as const,
-            }
-          : r
-      );
+      let linkedItem: DiscoveryResponse | null = null;
+      const updated = responses.map((r, idx) => {
+        if (idx === 0 && !r.userId) {
+          linkedItem = {
+            ...r,
+            userId,
+            userEmail: cleanEmail,
+            visitorType: "new_student" as const,
+          };
+          return linkedItem;
+        }
+        return r;
+      });
       localStorage.setItem(RESPONSES_KEY, JSON.stringify(updated));
+      if (linkedItem) {
+        saveSupabaseDiscoveryResponse(linkedItem);
+      }
       const userIds = new Set(rec.userIds || []);
       const emails = new Set(rec.emails || []);
       if (userId) userIds.add(userId);
@@ -168,6 +313,7 @@ export function triggerDiscoveryForNewRegistration(userId?: string, email?: stri
         userIds: Array.from(userIds),
         emails: Array.from(emails),
       });
+      window.dispatchEvent(new CustomEvent("gamat:discovery-updated"));
       return;
     }
 
@@ -197,7 +343,6 @@ export function hasCompletedDiscoverySurvey(userId?: string | null, email?: stri
 export function isDiscoveryDismissedForSession(): boolean {
   if (typeof window === "undefined") return true;
   try {
-    // If they just registered, don't suppress even if they skipped earlier as an anonymous visitor
     const justReg = sessionStorage.getItem(JUST_REGISTERED_KEY);
     if (justReg) return false;
     return sessionStorage.getItem(SESSION_DISMISSED_KEY) === "1";
@@ -227,9 +372,37 @@ export function loadDiscoveryResponses(): DiscoveryResponse[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(RESPONSES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    let list: DiscoveryResponse[] = [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        list = parsed.map(normalizeResponseItem);
+      }
+    }
+
+    // Recover from CompletedRecord if visitorDone was recorded but RESPONSES_KEY was cleared or empty
+    if (list.length === 0) {
+      const rec = getCompletedRecord();
+      if (rec.visitorDone && rec.lastSourceId) {
+        const sourceId = normalizeDiscoverySourceId(rec.lastSourceId);
+        const opt = DISCOVERY_OPTIONS.find((o) => o.id === sourceId) || DISCOVERY_OPTIONS[0];
+        const recovered: DiscoveryResponse = {
+          id: `disc_rec_${(rec.emails?.[0] || "visitor").replace(/[^a-z0-9]/gi, "")}`,
+          sourceId,
+          sourceLabel: opt.label,
+          detail: rec.lastDetail || undefined,
+          userId: rec.userIds?.[0] || undefined,
+          userEmail: rec.emails?.[0] || undefined,
+          visitorType: rec.userIds?.length || rec.emails?.length ? "new_student" : "visitor",
+          route: "/",
+          createdAt: new Date().toISOString(),
+        };
+        list = [recovered];
+        localStorage.setItem(RESPONSES_KEY, JSON.stringify(list));
+      }
+    }
+
+    return list;
   } catch {
     return [];
   }
@@ -243,13 +416,14 @@ export function saveDiscoveryResponse(input: {
   userEmail?: string;
   route?: string;
 }): DiscoveryResponse {
-  const opt = DISCOVERY_OPTIONS.find((o) => o.id === input.sourceId) || DISCOVERY_OPTIONS[0];
+  const sourceId = normalizeDiscoverySourceId(input.sourceId);
+  const opt = DISCOVERY_OPTIONS.find((o) => o.id === sourceId) || DISCOVERY_OPTIONS[0];
   const cleanEmail = input.userEmail?.trim().toLowerCase();
   const isNewStudent = Boolean(input.userId || cleanEmail || consumeJustRegisteredFlag());
 
   const newResp: DiscoveryResponse = {
     id: `disc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
-    sourceId: input.sourceId,
+    sourceId,
     sourceLabel: opt.label,
     detail: input.detail?.trim() || undefined,
     userId: input.userId || undefined,
@@ -276,7 +450,7 @@ export function saveDiscoveryResponse(input: {
         visitorDone: true,
         userIds: Array.from(userIds),
         emails: Array.from(emails),
-        lastSourceId: input.sourceId,
+        lastSourceId: sourceId,
         lastDetail: input.detail?.trim() || undefined,
       });
 
@@ -285,6 +459,8 @@ export function saveDiscoveryResponse(input: {
       window.dispatchEvent(new CustomEvent("gamat:discovery-updated"));
     } catch {}
   }
+
+  saveSupabaseDiscoveryResponse(newResp);
 
   return newResp;
 }

@@ -1,8 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AdminShell, Card, StatCard, Badge, exportCsv } from "./AdminShell";
 import { useStore, type Payment } from "../../lib/store";
 import { COURSES, totalLessons, naira, compactNaira } from "../../lib/courses";
-import { DISCOVERY_OPTIONS, loadDiscoveryResponses } from "../../lib/discoverySurvey";
+import {
+  DISCOVERY_OPTIONS,
+  loadDiscoveryResponses,
+  fetchSupabaseDiscoveryResponses,
+  normalizeDiscoverySourceId,
+  type DiscoveryResponse,
+} from "../../lib/discoverySurvey";
 import {
   BarChart3, Users, CreditCard, BookOpen, Zap, Swords,
   MessageSquare, Calendar, Download, Tag, Activity, Target, Compass,
@@ -19,6 +25,26 @@ export function AdminAnalytics() {
   const { threads, replies } = forum;
 
   const [range, setRange] = useState<TimeRange>("all");
+  const [discoveryList, setDiscoveryList] = useState<DiscoveryResponse[]>(() =>
+    loadDiscoveryResponses()
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    const refreshLocal = () => {
+      if (mounted) setDiscoveryList(loadDiscoveryResponses());
+    };
+    fetchSupabaseDiscoveryResponses().then((merged) => {
+      if (mounted) setDiscoveryList(merged);
+    });
+    window.addEventListener("gamat:discovery-updated", refreshLocal);
+    window.addEventListener("storage", refreshLocal);
+    return () => {
+      mounted = false;
+      window.removeEventListener("gamat:discovery-updated", refreshLocal);
+      window.removeEventListener("storage", refreshLocal);
+    };
+  }, []);
 
   // Filter payments by time range
   const filteredPayments = useMemo(() => {
@@ -391,10 +417,11 @@ export function AdminAnalytics() {
 
       {/* Discovery Survey Attribution ("How did you hear about us?") */}
       {(() => {
-        const discoveryList = loadDiscoveryResponses();
         const totalResp = discoveryList.length;
         const counts = DISCOVERY_OPTIONS.map((opt) => {
-          const count = discoveryList.filter((r) => r.sourceId === opt.id).length;
+          const count = discoveryList.filter(
+            (r) => normalizeDiscoverySourceId(r.sourceId, r.sourceLabel) === opt.id
+          ).length;
           const pct = totalResp ? Math.round((count / totalResp) * 100) : 0;
           return { ...opt, count, pct };
         }).sort((a, b) => b.count - a.count);

@@ -56,7 +56,7 @@ import {
 } from "./affiliate";
 import { generateTxRef } from "./bachs";
 import { formatAccountName, formatStudentName, formatAffiliateCardName, capitalizeWord } from "./formatName";
-import { triggerDiscoveryForNewRegistration } from "./discoverySurvey";
+import { triggerDiscoveryForNewRegistration, fetchSupabaseDiscoveryResponses } from "./discoverySurvey";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -1877,6 +1877,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fetchSupabaseNews().then((r) => r.length && setNews(r));
       fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
       fetchSupabaseEnquiries().then((r) => r.length && setEnquiries(r));
+      fetchSupabaseDiscoveryResponses();
       fetchSupabaseCoupons().then((r) => {
         if (r.length) {
           setCoupons((prev) => normalizeCoupons(prev, r));

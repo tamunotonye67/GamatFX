@@ -543,22 +543,24 @@ export async function fetchSupabaseEnquiries(): Promise<ServiceEnquiry[]> {
   try {
     const { data, error } = await supabase.from("service_enquiries").select("*").order("created_at", { ascending: false });
     if (error || !data) return [];
-    return data.map((r: any) => ({
-      id: r.id,
-      ref: r.ref,
-      serviceSlug: r.service_slug,
-      serviceTitle: r.service_title,
-      packageName: r.package_name || undefined,
-      name: r.name,
-      email: r.email,
-      phone: r.phone,
-      company: r.company || undefined,
-      budget: r.budget || undefined,
-      message: r.message,
-      userId: r.user_id || undefined,
-      status: r.status || "new",
-      createdAt: r.created_at,
-    }));
+    return data
+      .filter((r: any) => r.service_slug !== "sys_discovery_survey")
+      .map((r: any) => ({
+        id: r.id,
+        ref: r.ref,
+        serviceSlug: r.service_slug,
+        serviceTitle: r.service_title,
+        packageName: r.package_name || undefined,
+        name: r.name,
+        email: r.email,
+        phone: r.phone,
+        company: r.company || undefined,
+        budget: r.budget || undefined,
+        message: r.message,
+        userId: r.user_id || undefined,
+        status: r.status || "new",
+        createdAt: r.created_at,
+      }));
   } catch {
     return [];
   }
