@@ -88,6 +88,49 @@ export async function signUpSupabaseUser(
     const cleanEmail = email.trim().toLowerCase();
     const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : undefined;
 
+    // 0. Check if an active profile with this email already exists in public.accounts
+    let deletedSet = new Set<string>();
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("gamat.deleted_accounts.v1");
+        if (raw) {
+          deletedSet = new Set<string>(JSON.parse(raw).map((s: string) => s.toLowerCase()));
+        }
+      } catch {}
+    }
+
+    const { data: existingProfile } = await supabase
+      .from("accounts")
+      .select("id, email")
+      .eq("email", cleanEmail)
+      .maybeSingle();
+
+    if (existingProfile) {
+      const isMarkedDeleted =
+        deletedSet.has(existingProfile.id.toLowerCase()) || deletedSet.has(cleanEmail);
+      if (!isMarkedDeleted) {
+        return { ok: false, error: "An account with this email already exists." };
+      }
+      // Remove stale deleted profile row so re-registration succeeds cleanly
+      await supabase.from("accounts").delete().eq("id", existingProfile.id);
+    }
+
+    // Clear any deletion tombstones for this email (and any previous ID) immediately
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("gamat.deleted_accounts.v1");
+        if (raw) {
+          const list: string[] = JSON.parse(raw);
+          const oldIdLower = existingProfile?.id?.toLowerCase();
+          const filtered = list.filter((s) => {
+            const lower = s.toLowerCase();
+            return lower !== cleanEmail && (!oldIdLower || lower !== oldIdLower);
+          });
+          localStorage.setItem("gamat.deleted_accounts.v1", JSON.stringify(filtered));
+        }
+      } catch {}
+    }
+
     // Cache credential immediately in persistent vault
     if (typeof window !== "undefined") {
       try {
@@ -111,18 +154,44 @@ export async function signUpSupabaseUser(
       },
     });
 
+    let userId = authData?.user?.id || "";
+
     if (authError) {
       console.warn("Supabase auth signup notice:", authError.message);
-      if (
-        authError.message.toLowerCase().includes("user already registered") ||
-        authError.message.toLowerCase().includes("already exists")
-      ) {
-        return { ok: false, error: "An account with this email already exists." };
-      }
-      return { ok: false, error: authError.message };
+      // Since we already verified above that no active profile exists in public.accounts,
+      // an authError here (such as "User already registered" in auth.users from a previously
+      // deleted account, or email rate limits) should not block re-creating the account profile.
+      try {
+        const { data: signInData } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: pass,
+        });
+        if (signInData?.user?.id) {
+          userId = signInData.user.id;
+        }
+      } catch {}
     }
 
-    const userId = authData.user?.id || `u_${Date.now()}`;
+    if (!userId) {
+      userId = `u_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    }
+
+    // Ensure userId is also cleared from deletion tombstones
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("gamat.deleted_accounts.v1");
+        if (raw) {
+          const list: string[] = JSON.parse(raw);
+          const uidLower = userId.toLowerCase();
+          const filtered = list.filter((s) => {
+            const lower = s.toLowerCase();
+            return lower !== cleanEmail && lower !== uidLower;
+          });
+          localStorage.setItem("gamat.deleted_accounts.v1", JSON.stringify(filtered));
+        }
+      } catch {}
+    }
+
     const newAccount: Account = {
       ...accData,
       email: cleanEmail,
@@ -131,8 +200,9 @@ export async function signUpSupabaseUser(
       joined: new Date().toISOString(),
     };
 
-    // 2. Save user profile to Supabase `accounts` table
-    const row = accountToRow(newAccount, pass);
+    // 2. Save user profile to Supabase `accounts` table (removing any conflicting email row first)
+    await supabase.from("accounts").delete().eq("email", cleanEmail).neq("id", userId);
+    const row = accountToRow(newAccount);
     const { error: dbError } = await supabase.from("accounts").upsert(row, { onConflict: "id" });
     if (dbError) {
       console.warn("Supabase accounts insert error:", dbError.message);
@@ -180,23 +250,6 @@ export async function signInSupabaseUser(
     }
 
     if (authData?.user) {
-      // Check if user ID is in deleted tombstone list
-      if (typeof window !== "undefined") {
-        try {
-          const raw = localStorage.getItem("gamat.deleted_accounts.v1");
-          if (raw) {
-            const deleted = new Set<string>(JSON.parse(raw).map((s: string) => s.toLowerCase()));
-            if (deleted.has(authData.user.id.toLowerCase()) || deleted.has(cleanEmail)) {
-              await supabase.auth.signOut().catch(() => {});
-              return {
-                ok: false,
-                error: "This account has been deleted. Please sign up to create a new account.",
-              };
-            }
-          }
-        } catch {}
-      }
-
       // Query user profile from public.accounts
       const { data: rows, error: dbError } = await supabase
         .from("accounts")
@@ -205,6 +258,23 @@ export async function signInSupabaseUser(
         .single();
 
       if (!dbError && rows) {
+        // Check if this specific profile is in the deleted tombstone list
+        if (typeof window !== "undefined") {
+          try {
+            const raw = localStorage.getItem("gamat.deleted_accounts.v1");
+            if (raw) {
+              const deleted = new Set<string>(JSON.parse(raw).map((s: string) => s.toLowerCase()));
+              if (deleted.has(cleanEmail)) {
+                await supabase.auth.signOut().catch(() => {});
+                return {
+                  ok: false,
+                  error: "This account has been deleted. Please sign up to create a new account.",
+                };
+              }
+            }
+          } catch {}
+        }
+
         const acc = rowToAccount(rows as SupabaseAccountRow, pass);
         return { ok: true, account: acc };
       }
@@ -251,7 +321,9 @@ export async function fetchSupabaseAccounts(): Promise<{ ok: boolean; accounts: 
 /** Saves or updates an account profile in Supabase `accounts` table. */
 export async function saveSupabaseAccount(acc: Account): Promise<{ ok: boolean; error?: string }> {
   try {
-    const row = accountToRow(acc);
+    const cleanEmail = acc.email.trim().toLowerCase();
+    const row = accountToRow({ ...acc, email: cleanEmail });
+    await supabase.from("accounts").delete().eq("email", cleanEmail).neq("id", acc.id);
     const { error } = await supabase.from("accounts").upsert(row, { onConflict: "id" });
     if (error) return { ok: false, error: error.message };
     return { ok: true };

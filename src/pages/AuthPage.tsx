@@ -143,6 +143,9 @@ function GoogleAuthButton({ label }: { label: string }) {
   const handleGoogleAuth = async () => {
     setLoading(true);
     setGoogleErr(null);
+    try {
+      localStorage.setItem("gamat.oauth_intent.v1", String(Date.now()));
+    } catch {}
     const res = await signInWithGoogleSupabase();
     setLoading(false);
     if (!res.ok) {

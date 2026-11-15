@@ -1177,19 +1177,45 @@ export function getDeletedAccountIds(): Set<string> {
   return new Set(list.map((s) => s.toLowerCase()));
 }
 
+const DELETED_ACCOUNTS_MAP_KEY = "gamat.deleted_accounts_map.v1";
+
 export function recordDeletedAccount(id: string, email?: string) {
   const existing = read<string[]>(DELETED_ACCOUNTS_KEY, []);
   const set = new Set(existing.map((s) => s.toLowerCase()));
-  if (id) set.add(id.toLowerCase());
-  if (email) set.add(email.trim().toLowerCase());
+  const idLower = id ? id.toLowerCase() : "";
+  const emailLower = email ? email.trim().toLowerCase() : "";
+  if (idLower) set.add(idLower);
+  if (emailLower) set.add(emailLower);
   write(DELETED_ACCOUNTS_KEY, Array.from(set));
+
+  if (idLower && emailLower) {
+    const map = read<Record<string, string>>(DELETED_ACCOUNTS_MAP_KEY, {});
+    map[emailLower] = idLower;
+    map[idLower] = emailLower;
+    write(DELETED_ACCOUNTS_MAP_KEY, map);
+  }
 }
 
 export function unmarkDeletedAccount(id: string, email?: string) {
   const existing = read<string[]>(DELETED_ACCOUNTS_KEY, []);
-  const idLower = id?.toLowerCase();
-  const emailLower = email?.trim().toLowerCase();
-  const next = existing.filter((s) => s !== idLower && s !== emailLower);
+  const map = read<Record<string, string>>(DELETED_ACCOUNTS_MAP_KEY, {});
+  const idLower = id ? id.toLowerCase() : "";
+  const emailLower = email ? email.trim().toLowerCase() : "";
+  const mappedId = emailLower ? map[emailLower] : undefined;
+  const mappedEmail = idLower ? map[idLower] : undefined;
+
+  const toRemove = new Set<string>(
+    [idLower, emailLower, mappedId, mappedEmail].filter((x): x is string => Boolean(x))
+  );
+
+  // Also strip any orphaned non-email UUID tombstones (preserving 'u_admin' and deleted emails)
+  // so accounts deleted before the map was introduced never block re-registration.
+  const next = existing.filter((s) => {
+    const lower = s.toLowerCase();
+    if (toRemove.has(lower)) return false;
+    if (lower !== "u_admin" && !lower.includes("@")) return false;
+    return true;
+  });
   write(DELETED_ACCOUNTS_KEY, next);
 }
 
@@ -1547,49 +1573,139 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => write(K.sotwHistory, studentOfTheWeekHistory), [studentOfTheWeekHistory]);
   useEffect(() => write(K.coupons, coupons), [coupons]);
   useEffect(() => write(K.customQuizzes, customQuizzes), [customQuizzes]);
+  const recentlyCreatedRef = useRef<Map<string, { account: Account; ts: number }>>(new Map());
+  const authActionInProgressRef = useRef(false);
+
   /* Sync active user session with native Supabase Auth & Google OAuth callbacks */
   useEffect(() => {
     const syncAuthUser = async (userObj: any) => {
-      if (!userObj?.id) return;
+      if (!userObj?.id || authActionInProgressRef.current) return;
       const uid = userObj.id;
       const userEmail = (userObj.email || "").trim().toLowerCase();
 
-      // User is actively authenticating with Google / Supabase;
-      // unmark any previous deletion tombstone so they can re-register or log in fresh
-      unmarkDeletedAccount(uid, userEmail);
+      const isOAuth =
+        userObj.app_metadata?.provider === "google" ||
+        (Array.isArray(userObj.app_metadata?.providers) &&
+          userObj.app_metadata.providers.includes("google")) ||
+        (Array.isArray(userObj.identities) &&
+          userObj.identities.some((i: any) => i.provider === "google")) ||
+        Boolean(localStorage.getItem("gamat.oauth_intent.v1")) ||
+        window.location.hash.includes("access_token=") ||
+        window.location.search.includes("code=");
 
-      // Check if user profile is already in local state
-      setAccounts((prev) => {
-        const found = prev.find((a) => a.id === uid || (userEmail && a.email.toLowerCase() === userEmail));
-        if (found) {
-          if (found.id !== uid) {
-            return prev.map((a) => (a.email.toLowerCase() === userEmail ? { ...a, id: uid } : a));
-          }
-          return prev;
+      const hasExplicitOAuthCallback =
+        Boolean(localStorage.getItem("gamat.oauth_intent.v1")) ||
+        window.location.hash.includes("access_token=") ||
+        window.location.search.includes("code=");
+
+      if (hasExplicitOAuthCallback) {
+        try {
+          localStorage.removeItem("gamat.oauth_intent.v1");
+        } catch {}
+        unmarkDeletedAccount(uid, userEmail);
+      } else {
+        const deleted = getDeletedAccountIds();
+        if (deleted.has(uid.toLowerCase()) || (userEmail && deleted.has(userEmail))) {
+          supabase.auth.signOut().catch(() => {});
+          setSessionId(null);
+          return;
         }
+      }
 
-        // Auto-provision Google OAuth / Supabase user into accounts
+      if (isOAuth) {
+        unmarkDeletedAccount(uid, userEmail);
         const meta = userObj.user_metadata || {};
         const fullName = meta.full_name || meta.name || "";
-        const nameParts = fullName.split(" ");
-        const firstName = meta.first_name || nameParts[0] || (userEmail ? userEmail.split("@")[0] : "User");
-        const lastName = meta.last_name || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Trader");
-        const newAcc: Account = {
-          id: uid,
-          firstName,
-          lastName,
-          email: userEmail,
-          password: "password123",
-          avatar: meta.avatar_url || meta.picture || undefined,
-          role: "student",
-          status: "active",
-          joined: new Date().toISOString(),
-        };
-        saveSupabaseAccount(newAcc);
-        return [...prev, newAcc];
-      });
+        const nameParts = fullName.split(" ").filter(Boolean);
+        const firstName = capitalizeWord(
+          meta.first_name || nameParts[0] || (userEmail ? userEmail.split("@")[0] : "User")
+        );
+        const lastName = capitalizeWord(
+          meta.last_name || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Trader")
+        );
 
-      setSessionId(uid);
+        let resolvedAcc: Account | null = null;
+        try {
+          if (userEmail) {
+            const { data: existingRow } = await supabase
+              .from("accounts")
+              .select("*")
+              .eq("email", userEmail)
+              .maybeSingle();
+            if (existingRow) {
+              resolvedAcc = rowToAccount(existingRow as SupabaseAccountRow);
+            }
+          }
+        } catch {}
+
+        if (!resolvedAcc) {
+          resolvedAcc = {
+            id: uid,
+            firstName,
+            lastName,
+            email: userEmail,
+            password: "password123",
+            avatar: meta.avatar_url || meta.picture || undefined,
+            role: "student",
+            status: "active",
+            joined: new Date().toISOString(),
+          };
+        }
+
+        const finalAcc = resolvedAcc;
+        recentlyCreatedRef.current.set(finalAcc.id, { account: finalAcc, ts: Date.now() });
+        unmarkDeletedAccount(finalAcc.id, userEmail);
+
+        setAccounts((prev) => {
+          const exists = prev.some(
+            (a) => a.id === finalAcc.id || (userEmail && a.email.toLowerCase() === userEmail)
+          );
+          const next = exists
+            ? prev.map((a) =>
+                a.id === finalAcc.id || (userEmail && a.email.toLowerCase() === userEmail)
+                  ? { ...a, ...finalAcc, id: finalAcc.id }
+                  : a
+              )
+            : [...prev, finalAcc];
+          write(K.accounts, next);
+          return next;
+        });
+
+        setSessionId(finalAcc.id);
+        write(K.session, finalAcc.id);
+        await saveSupabaseAccount(finalAcc);
+        return;
+      }
+
+      // Non-OAuth session recovery on reload: verify profile exists in local state or Supabase
+      const localAccs = read<Account[]>(K.accounts, []);
+      const localMatch = localAccs.find(
+        (a) => a.id === uid || (userEmail && a.email.toLowerCase() === userEmail)
+      );
+      if (localMatch) {
+        setSessionId(localMatch.id);
+        return;
+      }
+
+      if (userEmail) {
+        try {
+          const { data: existingRow } = await supabase
+            .from("accounts")
+            .select("*")
+            .eq("email", userEmail)
+            .maybeSingle();
+          if (existingRow) {
+            const acc = rowToAccount(existingRow as SupabaseAccountRow);
+            setAccounts((prev) => {
+              const next = prev.some((a) => a.id === acc.id) ? prev : [...prev, acc];
+              write(K.accounts, next);
+              return next;
+            });
+            setSessionId(acc.id);
+            return;
+          }
+        } catch {}
+      }
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -1603,7 +1719,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         syncAuthUser(session.user);
-      } else if (_event === "SIGNED_OUT") {
+      } else if (_event === "SIGNED_OUT" && !authActionInProgressRef.current) {
         setSessionId(null);
       }
     });
@@ -1645,6 +1761,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             : supaAcc.password || "password123");
 
         map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
+      });
+
+      // Preserve any newly created / re-registered accounts from the last 60s whose save is still in flight
+      const now = Date.now();
+      recentlyCreatedRef.current.forEach((entry, id) => {
+        if (now - entry.ts > 60000) {
+          recentlyCreatedRef.current.delete(id);
+          return;
+        }
+        const cleanEmail = entry.account.email.trim().toLowerCase();
+        if (!deleted.has(id.toLowerCase()) && !deleted.has(cleanEmail)) {
+          const alreadyInMap = Array.from(map.values()).some(
+            (a) => a.id === id || a.email.toLowerCase() === cleanEmail
+          );
+          if (!alreadyInMap) {
+            map.set(id, entry.account);
+            saveSupabaseAccount(entry.account);
+          }
+        }
       });
 
       const next = Array.from(map.values());
@@ -1832,8 +1967,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const signup: Ctx["signup"] = useCallback(async (d) => {
     const email = d.email.trim().toLowerCase();
     if (!d.firstName.trim() || !d.lastName.trim()) return { ok: false, error: "Please enter your full name." };
-    if (accounts.some((a) => a.email.toLowerCase() === email)) return { ok: false, error: "An account with this email already exists." };
+    const deleted = getDeletedAccountIds();
+    const activeExisting = accounts.find(
+      (a) =>
+        a.email.toLowerCase() === email &&
+        !deleted.has(a.id.toLowerCase()) &&
+        !deleted.has(email)
+    );
+    if (activeExisting) return { ok: false, error: "An account with this email already exists." };
     if (d.password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
+
+    // Unmark any previous deletion tombstones for this email before registering
+    unmarkDeletedAccount("", email);
 
     // Persist credentials in local credentials vault
     storeCredential(email, d.password);
@@ -1850,7 +1995,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
 
     // 1. Primary: Register in Supabase Auth & Database
-    const res = await signUpSupabaseUser(email, d.password, newAccData);
+    authActionInProgressRef.current = true;
+    let res: { ok: boolean; account?: Account; error?: string };
+    try {
+      res = await signUpSupabaseUser(email, d.password, newAccData);
+    } finally {
+      authActionInProgressRef.current = false;
+    }
+
     if (!res.ok) {
       const errLower = (res.error || "").toLowerCase();
       if (errLower.includes("already registered") || errLower.includes("already exists")) {
@@ -1859,21 +2011,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       console.warn("Supabase signup notice:", res.error);
     }
 
-    const acc = res.account || {
-      ...newAccData,
-      id: uid("u"),
-      joined: new Date().toISOString(),
-    };
+    const acc: Account = res.account
+      ? { ...res.account, password: d.password }
+      : {
+          ...newAccData,
+          id: uid("u"),
+          joined: new Date().toISOString(),
+        };
+
+    unmarkDeletedAccount(acc.id, email);
+    recentlyCreatedRef.current.set(acc.id, { account: acc, ts: Date.now() });
+
+    if (!res.account) {
+      await saveSupabaseAccount(acc);
+    }
 
     setAccounts((p) => {
-      const next = p.some((a) => a.id === acc.id)
-        ? p.map((a) => (a.id === acc.id ? { ...acc, password: d.password } : a))
-        : [...p, { ...acc, password: d.password }];
+      const filtered = p.filter(
+        (a) => a.id !== acc.id && a.email.toLowerCase() !== email
+      );
+      const next = [...filtered, acc];
       write(K.accounts, next);
       return next;
     });
-    unmarkDeletedAccount(acc.id, email);
     setSessionId(acc.id);
+    write(K.session, acc.id);
 
     // Attribute referral signup if referral code exists
     try {
@@ -1916,10 +2078,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const savedPassword = getStoredCredential(cleanEmail) || found?.password;
 
     // 3. Primary: Authenticate via Supabase Auth (Cross-device authoritative authentication)
+    authActionInProgressRef.current = true;
     try {
       const res = await signInSupabaseUser(cleanEmail, password);
       if (res.ok && res.account) {
-        if (deleted.has(res.account.id.toLowerCase()) || deleted.has(cleanEmail)) {
+        if (deleted.has(cleanEmail)) {
           setSessionId(null);
           write(K.session, null);
           signOutSupabaseUser().catch(() => {});
@@ -1928,16 +2091,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             error: "This account has been deleted. Please sign up to create a new account.",
           };
         }
+        const authedAcc = { ...res.account, password };
         storeCredential(cleanEmail, password);
-        unmarkDeletedAccount(res.account.id, cleanEmail);
+        unmarkDeletedAccount(authedAcc.id, cleanEmail);
+        recentlyCreatedRef.current.set(authedAcc.id, { account: authedAcc, ts: Date.now() });
         setAccounts((p) => {
-          const next = p.some((a) => a.id === res.account!.id)
-            ? p.map((a) => (a.id === res.account!.id ? { ...res.account!, password } : a))
-            : [...p, { ...res.account!, password }];
+          const filtered = p.filter(
+            (a) => a.id !== authedAcc.id && a.email.toLowerCase() !== cleanEmail
+          );
+          const next = [...filtered, authedAcc];
           write(K.accounts, next);
           return next;
         });
-        setSessionId(res.account.id);
+        setSessionId(authedAcc.id);
+        write(K.session, authedAcc.id);
         return { ok: true };
       }
 
@@ -1972,17 +2139,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           (savedPassword === undefined && found.password === "password123" && password === "password123");
 
         if (isPasswordMatch) {
+          const authedFound = { ...found, password };
           storeCredential(cleanEmail, password);
+          recentlyCreatedRef.current.set(authedFound.id, { account: authedFound, ts: Date.now() });
           setAccounts((prev) => {
-            const next = prev.map((a) => (a.id === found!.id ? { ...a, password } : a));
+            const next = prev.map((a) => (a.id === authedFound.id ? authedFound : a));
             write(K.accounts, next);
             return next;
           });
-          setSessionId(found.id);
+          setSessionId(authedFound.id);
+          write(K.session, authedFound.id);
 
           // Attempt background sync to Supabase Auth if needed
           if (res.error?.toLowerCase().includes("invalid login credentials")) {
-            signUpSupabaseUser(cleanEmail, password, found).catch(() => {});
+            signUpSupabaseUser(cleanEmail, password, authedFound).catch(() => {});
           }
 
           return { ok: true };
@@ -1999,7 +2169,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (supaRow) {
-        if (deleted.has(supaRow.id.toLowerCase()) || deleted.has(cleanEmail)) {
+        if (deleted.has(cleanEmail)) {
           setSessionId(null);
           write(K.session, null);
           signOutSupabaseUser().catch(() => {});
@@ -2020,16 +2190,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           expectedPassword === password ||
           (expectedPassword === "password123" && password === "password123")
         ) {
+          const authedSupa = { ...supaAcc, password };
           storeCredential(cleanEmail, password);
+          unmarkDeletedAccount(authedSupa.id, cleanEmail);
+          recentlyCreatedRef.current.set(authedSupa.id, { account: authedSupa, ts: Date.now() });
           setAccounts((prev) => {
-            const next = prev.some((a) => a.id === supaAcc.id)
-              ? prev.map((a) => (a.id === supaAcc.id ? { ...supaAcc, password } : a))
-              : [...prev, { ...supaAcc, password }];
+            const filtered = prev.filter(
+              (a) => a.id !== authedSupa.id && a.email.toLowerCase() !== cleanEmail
+            );
+            const next = [...filtered, authedSupa];
             write(K.accounts, next);
             return next;
           });
-          setSessionId(supaAcc.id);
-          signUpSupabaseUser(cleanEmail, password, supaAcc).catch(() => {});
+          setSessionId(authedSupa.id);
+          write(K.session, authedSupa.id);
+          signUpSupabaseUser(cleanEmail, password, authedSupa).catch(() => {});
           return { ok: true };
         } else {
           return { ok: false, error: "Incorrect password. Please check your password and try again." };
@@ -2046,11 +2221,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         if (savedPassword === password || found.password === password) {
           setSessionId(found.id);
+          write(K.session, found.id);
           return { ok: true };
         }
         return { ok: false, error: "Incorrect password. Please try again." };
       }
       return { ok: false, error: "No account found with that email. Please create an account to get started." };
+    } finally {
+      authActionInProgressRef.current = false;
     }
   }, [accounts]);
 

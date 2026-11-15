@@ -242,53 +242,15 @@ export default function DashboardPage() {
       .filter((id) => !certifiedIds.includes(id) && !pendingPaymentCertIds.includes(id));
   }, [allAvailableCourses, certifiedIds, pendingPaymentCertIds]);
 
-  // Auto-clean any dangling session when user is not found
-  useEffect(() => {
-    if (!isAuthed || !user) {
-      try {
-        const stored = localStorage.getItem("gamat.session.v1");
-        if (stored) {
-          logout();
-        }
-      } catch {}
-    }
-  }, [isAuthed, user, logout]);
-
   if (!isAuthed || !user) {
     return (
-      <section className="flex min-h-[calc(100vh-140px)] flex-col items-center justify-center bg-cream px-6 pt-[calc(var(--header-h,72px)+3rem)] pb-16 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-          <Lock className="h-8 w-8" />
-        </div>
+      <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
+        <Lock className="h-14 w-14 text-brand" />
         <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Sign in to view your dashboard</h1>
-        <p className="mt-3 max-w-md text-sm text-muted leading-relaxed">
-          Your personal dashboard gives you access to enrolled courses, live progress, certificates, trading stats, and mentor tools.
-        </p>
+        <p className="mt-3 max-w-sm text-muted">Track your courses, progress and certificates in one place.</p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button onClick={() => navigate("/login")} className="btn-primary">Log In</button>
           <button onClick={() => navigate("/signup")} className="btn-outline-dark">Create Account</button>
-        </div>
-
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-muted">
-          <button type="button" onClick={() => navigate("/")} className="hover:text-brand transition underline-offset-4 hover:underline">
-            ← Back to Home
-          </button>
-          <span>•</span>
-          <button type="button" onClick={() => navigate("/courses")} className="hover:text-brand transition underline-offset-4 hover:underline">
-            Browse Courses
-          </button>
-          <span>•</span>
-          <button type="button" onClick={() => navigate("/services")} className="hover:text-brand transition underline-offset-4 hover:underline">
-            Services
-          </button>
-          <span>•</span>
-          <button type="button" onClick={() => navigate("/community")} className="hover:text-brand transition underline-offset-4 hover:underline">
-            Community
-          </button>
-          <span>•</span>
-          <button type="button" onClick={() => navigate("/contact")} className="hover:text-brand transition underline-offset-4 hover:underline">
-            Contact Support
-          </button>
         </div>
       </section>
     );
