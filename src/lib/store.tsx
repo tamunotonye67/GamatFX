@@ -56,6 +56,7 @@ import {
 } from "./affiliate";
 import { generateTxRef } from "./bachs";
 import { formatAccountName, formatStudentName, formatAffiliateCardName, capitalizeWord } from "./formatName";
+import { triggerDiscoveryForNewRegistration } from "./discoverySurvey";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -1639,7 +1640,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
         } catch {}
 
+        let isBrandNewOAuth = false;
         if (!resolvedAcc) {
+          isBrandNewOAuth = true;
           resolvedAcc = {
             id: uid,
             firstName,
@@ -1674,6 +1677,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         setSessionId(finalAcc.id);
         write(K.session, finalAcc.id);
+        if (isBrandNewOAuth) {
+          triggerDiscoveryForNewRegistration(finalAcc.id, userEmail);
+        }
         await saveSupabaseAccount(finalAcc);
         return;
       }
@@ -2051,6 +2057,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         );
       }
     } catch {}
+
+    triggerDiscoveryForNewRegistration(acc.id, email);
 
     return { ok: true };
   }, [accounts]);

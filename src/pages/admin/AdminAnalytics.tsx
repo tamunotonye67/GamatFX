@@ -2,9 +2,10 @@ import { useState, useMemo } from "react";
 import { AdminShell, Card, StatCard, Badge, exportCsv } from "./AdminShell";
 import { useStore, type Payment } from "../../lib/store";
 import { COURSES, totalLessons, naira, compactNaira } from "../../lib/courses";
+import { DISCOVERY_OPTIONS, loadDiscoveryResponses } from "../../lib/discoverySurvey";
 import {
   BarChart3, Users, CreditCard, BookOpen, Zap, Swords,
-  MessageSquare, Calendar, Download, Tag, Activity, Target,
+  MessageSquare, Calendar, Download, Tag, Activity, Target, Compass,
 } from "lucide-react";
 
 type TimeRange = "all" | "30days" | "thisMonth" | "thisYear";
@@ -387,6 +388,82 @@ export function AdminAnalytics() {
           </div>
         </Card>
       </div>
+
+      {/* Discovery Survey Attribution ("How did you hear about us?") */}
+      {(() => {
+        const discoveryList = loadDiscoveryResponses();
+        const totalResp = discoveryList.length;
+        const counts = DISCOVERY_OPTIONS.map((opt) => {
+          const count = discoveryList.filter((r) => r.sourceId === opt.id).length;
+          const pct = totalResp ? Math.round((count / totalResp) * 100) : 0;
+          return { ...opt, count, pct };
+        }).sort((a, b) => b.count - a.count);
+
+        return (
+          <div className="mt-8">
+            <Card className="p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+                <div>
+                  <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
+                    <Compass className="h-5 w-5 text-brand" /> Acquisition Channels — How Visitors & Students Heard About Us
+                  </h3>
+                  <p className="text-xs text-muted mt-0.5">
+                    Responses collected from the newcomer & visitor discovery popup across the platform.
+                  </p>
+                </div>
+                <Badge tone="ink">{totalResp} Total {totalResp === 1 ? "Response" : "Responses"}</Badge>
+              </div>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {counts.map((c) => (
+                  <div key={c.id} className="rounded-2xl border border-line bg-cream/40 p-3.5">
+                    <div className="flex items-center justify-between gap-2 text-xs font-bold text-ink">
+                      <span className="truncate">{c.label}</span>
+                      <span className="text-brand">{c.pct}%</span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-muted">{c.count} {c.count === 1 ? "person" : "people"}</div>
+                    <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-line">
+                      <div
+                        className="h-full rounded-full bg-brand transition-all duration-500"
+                        style={{ width: `${c.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {discoveryList.length > 0 && (
+                <div className="mt-6 border-t border-line pt-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-muted mb-3">
+                    Recent Responses
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {discoveryList.slice(0, 6).map((r) => (
+                      <div
+                        key={r.id}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-bold text-ink truncate">
+                            {r.sourceLabel}
+                            {r.detail ? ` — “${r.detail}”` : ""}
+                          </div>
+                          <div className="text-[11px] text-muted truncate">
+                            {r.userName || r.userEmail || (r.visitorType === "new_student" ? "New Student" : "Website Visitor")}
+                          </div>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-cream px-2 py-0.5 text-[10px] font-semibold text-muted">
+                          {new Date(r.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
+        );
+      })()}
     </AdminShell>
   );
 }

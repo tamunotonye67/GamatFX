@@ -54,6 +54,7 @@ import { AdminAffiliates } from "./pages/admin/AdminAffiliates";
 import { captureReferralFromUrl } from "./lib/affiliate";
 import { useStore } from "./lib/store";
 import { useRoute, segments } from "./lib/router";
+import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
 
 export class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
   public state = {
@@ -287,6 +288,7 @@ export default function App() {
         ) : (
           <Footer />
         )}
+        <DiscoverySurveyModal />
       </div>
     </ErrorBoundary>
   );
