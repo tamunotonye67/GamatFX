@@ -3,11 +3,13 @@ export type DiscoverySourceId =
   | "youtube"
   | "tiktok"
   | "twitter"
+  | "whatsapp"
+  | "telegram"
+  | "facebook"
+  | "linkedin"
   | "friend_referral"
-  | "whatsapp_telegram"
   | "google_search"
   | "live_event"
-  | "facebook_linkedin"
   | "other";
 
 export type DiscoveryResponse = {
@@ -49,23 +51,41 @@ export const DISCOVERY_OPTIONS: {
     color: "from-slate-900 to-slate-700",
   },
   {
-    id: "friend_referral",
-    label: "Friend / Ambassador",
-    sub: "Recommended by a student or trader",
-    color: "from-emerald-500 to-teal-600",
-    promptPlaceholder: "Who told you about us? (Name or referral code - optional)",
+    id: "whatsapp",
+    label: "WhatsApp",
+    sub: "Broadcast, group or status update",
+    color: "from-green-500 to-emerald-600",
   },
   {
-    id: "whatsapp_telegram",
-    label: "WhatsApp / Telegram",
-    sub: "Trading group, channel or status",
-    color: "from-green-500 to-emerald-600",
+    id: "telegram",
+    label: "Telegram",
+    sub: "Trading channel or community group",
+    color: "from-sky-500 to-blue-600",
   },
   {
     id: "twitter",
     label: "X (Twitter)",
     sub: "Spaces, threads & market updates",
     color: "from-neutral-800 to-neutral-950",
+  },
+  {
+    id: "facebook",
+    label: "Facebook",
+    sub: "Social feed, group or page post",
+    color: "from-blue-600 to-blue-700",
+  },
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    sub: "Professional network or article",
+    color: "from-sky-600 to-blue-800",
+  },
+  {
+    id: "friend_referral",
+    label: "Friend / Ambassador",
+    sub: "Recommended by a student or trader",
+    color: "from-emerald-500 to-teal-600",
+    promptPlaceholder: "Who told you about us? (Name or referral code - optional)",
   },
   {
     id: "google_search",
@@ -80,17 +100,11 @@ export const DISCOVERY_OPTIONS: {
     color: "from-amber-500 to-orange-600",
   },
   {
-    id: "facebook_linkedin",
-    label: "Facebook / LinkedIn",
-    sub: "Social feed, group or sponsored post",
-    color: "from-blue-600 to-sky-600",
-  },
-  {
     id: "other",
     label: "Other Source",
     sub: "Podcast, blog, billboard or elsewhere",
     color: "from-purple-500 to-violet-600",
-    promptPlaceholder: "Tell us where you heard about GAMAT Fx...",
+    promptPlaceholder: "Tell us where you heard about GAMAT Fx Academy...",
   },
 ];
 

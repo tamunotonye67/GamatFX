@@ -414,7 +414,7 @@ export function AdminAnalytics() {
                 <Badge tone="ink">{totalResp} Total {totalResp === 1 ? "Response" : "Responses"}</Badge>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {counts.map((c) => (
                   <div key={c.id} className="rounded-2xl border border-line bg-cream/40 p-3.5">
                     <div className="flex items-center justify-between gap-2 text-xs font-bold text-ink">
