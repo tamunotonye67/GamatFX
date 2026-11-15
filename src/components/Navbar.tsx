@@ -217,10 +217,10 @@ export default function Navbar() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-50 border-b transform-gpu transition-colors duration-200 ${
           scrolled
-            ? "border-b border-line bg-white/95 backdrop-blur-md shadow-[0_8px_30px_-18px_rgba(22,24,28,0.35)]"
-            : "bg-transparent"
+            ? "border-line bg-white/98 shadow-[0_8px_30px_-18px_rgba(22,24,28,0.35)]"
+            : "border-transparent bg-transparent"
         }`}
       >
       <div ref={barRef}>
@@ -572,7 +572,7 @@ export default function Navbar() {
             type="button"
             aria-label="Open menu"
             onClick={() => setOpen(true)}
-            className={`rounded-xl p-2 transition lg:hidden hover:bg-black/5 cursor-pointer ${
+            className={`rounded-xl p-2 transition-colors duration-200 lg:hidden hover:bg-black/5 cursor-pointer ${
               scrolled ? "text-ink" : "text-white"
             }`}
           >
