@@ -76,7 +76,7 @@ export default function Hero() {
 
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,0.75fr)] lg:gap-14 xl:gap-20">
             <div className="max-w-3xl lg:max-w-none">
-              <h1 className="font-display text-[2.15rem] font-extrabold leading-[1.12] tracking-tight sm:text-5xl md:text-6xl">
+              <h1 className="font-display text-[clamp(1.65rem,7.2vw,2.25rem)] font-extrabold leading-[1.12] tracking-tight sm:text-5xl md:text-6xl">
                 Build elite traders through{" "}
                 <span className="text-brand">high-quality forex education</span>
               </h1>
