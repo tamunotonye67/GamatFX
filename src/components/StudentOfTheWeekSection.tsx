@@ -78,7 +78,7 @@ export default function StudentOfTheWeekSection() {
 
             {/* Performance Stats & Mentor Note */}
             <div className="lg:col-span-7 space-y-5">
-              <div>
+              <div className="hidden lg:block">
                 <span className="text-xs font-bold uppercase tracking-widest text-amber-400">{sotw.weekPeriod}</span>
                 <h3 className="mt-1 text-2xl sm:text-3xl font-black text-white">{studentDisplayName}</h3>
                 <p className="text-xs sm:text-sm text-slate-300 font-medium">{sotw.track}</p>
