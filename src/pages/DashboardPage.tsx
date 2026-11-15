@@ -141,6 +141,21 @@ export default function DashboardPage() {
     };
   }, [isAuthed, user, tab]);
 
+  useEffect(() => {
+    if (!showAffiliateAd || tab === "affiliate") return;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevOverscroll = document.body.style.overscrollBehavior;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "contain";
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.overscrollBehavior = prevOverscroll;
+    };
+  }, [showAffiliateAd, tab]);
+
   const handleDismissAffiliateAd = () => {
     setShowAffiliateAd(false);
     try {
@@ -453,23 +468,19 @@ export default function DashboardPage() {
           role="dialog"
           aria-modal="true"
           aria-label="GAMAT Ambassador Program"
-          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-md p-3 sm:p-6 overflow-y-auto overscroll-contain animate-in fade-in duration-300"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 sm:p-6 overscroll-contain touch-none"
           onClick={(e) => {
             if (e.target === e.currentTarget) handleDismissAffiliateAd();
           }}
         >
           <div
-            className="relative my-auto w-full max-w-lg sm:max-w-2xl lg:max-w-3xl max-h-[92vh] sm:max-h-none overflow-y-auto sm:overflow-hidden rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white shadow-[0_25px_70px_-15px_rgba(196,21,28,0.65)] border border-white/20 animate-in zoom-in-95 duration-300"
+            className="relative w-full max-w-lg sm:max-w-2xl lg:max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain touch-pan-y transform-gpu rounded-3xl bg-gradient-to-br from-[#c4151c] via-[#9e1016] to-[#14151a] text-white shadow-[0_25px_70px_-15px_rgba(196,21,28,0.65)] border border-white/20"
           >
-            {/* Ambient Radial Lights */}
-            <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 h-52 w-52 rounded-full bg-black/40 blur-3xl pointer-events-none" />
-
             {/* Close Button top-right */}
             <button
               type="button"
               onClick={handleDismissAffiliateAd}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 rounded-full bg-black/40 p-2 text-white/80 hover:bg-black/60 hover:text-white transition cursor-pointer backdrop-blur-xs ring-1 ring-white/20"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 rounded-full bg-black/45 p-2 text-white/85 hover:bg-black/65 hover:text-white transition-colors cursor-pointer ring-1 ring-white/20"
               aria-label="Close advertisement"
             >
               <X className="h-4 w-4" />
