@@ -156,19 +156,28 @@ export default function Navbar() {
   const forceSolid = route.startsWith("/dashboard") || requestedSolid;
   const scrolled = scrolledRaw || forceSolid;
 
-  // Lock body scroll smoothly without layout/scrollbar jump
+  // Lock html & body scroll smoothly without layout/scrollbar jump or overscroll bounce
   useEffect(() => {
     if (open) {
-      const prevOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevHtmlOverscroll = document.documentElement.style.overscrollBehavior;
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevBodyOverscroll = document.body.style.overscrollBehavior;
       const prevPaddingRight = document.body.style.paddingRight;
       const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
 
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.overscrollBehavior = "none";
       document.body.style.overflow = "hidden";
+      document.body.style.overscrollBehavior = "none";
       if (scrollBarWidth > 0) {
         document.body.style.paddingRight = `${scrollBarWidth}px`;
       }
       return () => {
-        document.body.style.overflow = prevOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+        document.documentElement.style.overscrollBehavior = prevHtmlOverscroll;
+        document.body.style.overflow = prevBodyOverflow;
+        document.body.style.overscrollBehavior = prevBodyOverscroll;
         document.body.style.paddingRight = prevPaddingRight;
       };
     }
@@ -587,7 +596,7 @@ export default function Navbar() {
     <div
       aria-hidden="true"
       onClick={() => setOpen(false)}
-      className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-xs transform-gpu will-change-[opacity] transition-opacity duration-300 lg:hidden ${
+      className={`fixed inset-0 z-50 bg-black/65 touch-none overscroll-none transform-gpu will-change-[opacity] transition-opacity duration-300 lg:hidden ${
         open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
       }`}
     />
@@ -597,7 +606,7 @@ export default function Navbar() {
       id="mobile-navigation"
       aria-label="Mobile Navigation"
       aria-hidden={!open}
-      className={`fixed inset-y-0 right-0 z-50 flex h-full max-h-screen w-[86vw] max-w-[350px] flex-col border-l border-line bg-white shadow-[-16px_0_50px_rgba(0,0,0,0.22)] transform-gpu will-change-transform [backface-visibility:hidden] [perspective:1000px] touch-pan-y transition-transform duration-300 ease-out lg:hidden ${
+      className={`fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-[86vw] max-w-[350px] flex-col border-l border-line bg-white shadow-[-16px_0_50px_rgba(0,0,0,0.22)] overscroll-none touch-none transform-gpu will-change-transform [backface-visibility:hidden] transition-transform duration-300 ease-out lg:hidden ${
         open ? "translate-x-0" : "translate-x-full pointer-events-none"
       }`}
     >
@@ -608,14 +617,14 @@ export default function Navbar() {
           type="button"
           aria-label="Close menu"
           onClick={() => setOpen(false)}
-          className="rounded-full border border-line bg-white p-2 text-ink shadow-2xs hover:bg-cream transition cursor-pointer"
+          className="rounded-full border border-line bg-white p-2 text-ink shadow-2xs hover:bg-cream transition-colors cursor-pointer"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
       {/* Drawer Scrollable Content */}
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5 [-webkit-overflow-scrolling:touch]">
+      <div className="flex-1 overflow-y-auto overscroll-none touch-pan-y px-4 py-4 space-y-5 [-webkit-overflow-scrolling:touch]">
         {/* Main Navigation */}
         <div>
           <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted">
