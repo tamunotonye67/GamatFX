@@ -1347,7 +1347,7 @@ type Ctx = {
 
   /* admin-managed courses */
   managedCourses: ManagedCourse[];
-  saveManagedCourse: (c: Omit<ManagedCourse, "id" | "createdAt" | "updatedAt"> & { id?: string }) => { ok: boolean; error?: string };
+  saveManagedCourse: (c: Omit<ManagedCourse, "id" | "createdAt" | "updatedAt"> & { id?: string }) => { ok: boolean; error?: string; syncPromise?: Promise<{ ok: boolean; error?: string }> };
   deleteManagedCourse: (id: string) => void;
 
   /* market combat */
@@ -1799,10 +1799,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetchSupabaseCourses().then((supabaseCourses) => {
       if (supabaseCourses && supabaseCourses.length > 0) {
+        const toResync: ManagedCourse[] = [];
         setManagedCourses((prev) => {
           const map = new Map<string, ManagedCourse>();
           prev.forEach((c) => map.set(c.id, c));
+          const remoteIds = new Set<string>();
+
           supabaseCourses.forEach((c) => {
+            remoteIds.add(c.id);
+            const existing = map.get(c.id);
+            const remoteUpdatedStr = (c as any).updated_at || (c as any).updatedAt || "";
+            const remoteUpdatedMs = remoteUpdatedStr ? Date.parse(remoteUpdatedStr) : 0;
+            const localUpdatedMs = existing?.updatedAt ? Date.parse(existing.updatedAt) : 0;
+
+            if (existing && localUpdatedMs > 0 && (!remoteUpdatedMs || localUpdatedMs > remoteUpdatedMs + 1000)) {
+              // Local edit is newer than Supabase row — keep local and re-sync to Supabase
+              toResync.push(existing);
+              return;
+            }
+
             const mc: ManagedCourse = {
               id: c.id,
               title: c.title,
@@ -1815,33 +1830,60 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               oldPrice: c.oldPrice,
               poster: c.poster,
               video: c.video,
+              icon: existing?.icon,
+              iconColor: existing?.iconColor,
+              featured: (c as any).featured ?? existing?.featured,
               outcomes: c.outcomes,
               requirements: c.requirements,
-              modules: c.modules.map((m, mi) => ({
-                id: (m as any).id || `${c.id}-mod-${mi}`,
-                title: m.title,
-                lessons: m.lessons.map((l, li) => ({
-                  id: l.id || `${c.id}-les-${mi}-${li}`,
-                  title: l.title,
-                  duration: l.duration,
-                  free: l.free,
-                  videoUrl: (l as any).videoUrl,
-                })),
-              })),
+              modules: c.modules.map((m, mi) => {
+                const exMod = existing?.modules?.[mi];
+                return {
+                  id: (m as any).id || exMod?.id || `${c.id}-mod-${mi}`,
+                  title: m.title,
+                  lessons: m.lessons.map((l, li) => {
+                    const exLes = exMod?.lessons?.[li];
+                    return {
+                      id: l.id || exLes?.id || `${c.id}-les-${mi}-${li}`,
+                      title: l.title,
+                      duration: l.duration,
+                      free: l.free,
+                      videoUrl: (l as any).videoUrl,
+                      videoFileName: (l as any).videoFileName || exLes?.videoFileName,
+                    };
+                  }),
+                };
+              }),
               published: (c as any).published ?? true,
-              createdAt: (c as any).created_at || (c as any).createdAt || new Date().toISOString(),
-              updatedAt: (c as any).updated_at || (c as any).updatedAt || new Date().toISOString(),
+              createdAt: (c as any).created_at || (c as any).createdAt || existing?.createdAt || new Date().toISOString(),
+              updatedAt: remoteUpdatedStr || existing?.updatedAt || new Date().toISOString(),
             };
             map.set(c.id, mc);
           });
+
+          // Re-sync any local-only courses that haven't been saved to Supabase yet
+          prev.forEach((c) => {
+            if (!remoteIds.has(c.id)) {
+              toResync.push(c);
+            }
+          });
+
           const merged = Array.from(map.values());
           write(K.managedCourses, merged);
           return merged;
         });
+
+        toResync.forEach((mc) => {
+          saveSupabaseCourse(mc).catch((err) => {
+            console.error("Failed to re-sync local course to Supabase:", err);
+          });
+        });
+
         setCourseSettings((prev) => {
           const next = { ...prev };
           supabaseCourses.forEach((c) => {
-            next[c.id] = { ...next[c.id], price: c.price, published: (c as any).published ?? true };
+            if (!next[c.id]) {
+              next[c.id] = { price: c.price, published: (c as any).published ?? true };
+            }
           });
           write(K.courseSettings, next);
           return next;
@@ -2978,12 +3020,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return nextSettings;
     });
 
-    // Save to Supabase DB asynchronously
-    saveSupabaseCourse(targetCourse).catch((err) => {
+    // Save to Supabase DB asynchronously and return promise so callers can verify cloud persistence
+    const syncPromise = saveSupabaseCourse(targetCourse).catch((err) => {
       console.error("Failed to save course to Supabase:", err);
+      return { ok: false, error: err?.message || "Failed to save course to Supabase" };
     });
 
-    return { ok: true };
+    return { ok: true, syncPromise };
   }, [managedCourses]);
 
   const deleteManagedCourse: Ctx["deleteManagedCourse"] = useCallback((id) => {

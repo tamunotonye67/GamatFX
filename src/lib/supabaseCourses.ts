@@ -52,7 +52,7 @@ export function courseToRow(c: Course | ManagedCourse): SupabaseCourseRow {
 }
 
 /** Converts a Supabase table row to a frontend Course model. */
-export function rowToCourse(row: SupabaseCourseRow): Course & { published?: boolean } {
+export function rowToCourse(row: SupabaseCourseRow): Course & { published?: boolean; created_at?: string; updated_at?: string } {
   return {
     id: row.id,
     tag: (row.tag as Course["tag"]) || "Fundamental",
@@ -72,6 +72,8 @@ export function rowToCourse(row: SupabaseCourseRow): Course & { published?: bool
     requirements: Array.isArray(row.requirements) ? row.requirements : [],
     modules: Array.isArray(row.modules) ? row.modules : [],
     published: row.published ?? true,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 }
 

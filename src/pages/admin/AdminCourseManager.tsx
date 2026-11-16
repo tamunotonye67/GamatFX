@@ -98,6 +98,7 @@ export function AdminCourseManager() {
   const lessonUpload = useRef<{ mi: number; li: number } | null>(null);
   const [uploadingPoster, setUploadingPoster] = useState(false);
   const [uploadingVideoKey, setUploadingVideoKey] = useState<string | null>(null);
+  const [savingCourse, setSavingCourse] = useState(false);
 
   // Exam Questions Manager state
   const [examCourse, setExamCourse] = useState<{ id: string; title: string } | null>(null);
@@ -361,9 +362,9 @@ export function AdminCourseManager() {
     }
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!edit) return;
+    if (!edit || savingCourse) return;
     if (!edit.title?.trim()) { setErr("Course title is required."); return; }
     const modules = edit.modules
       .map((m) => ({
@@ -375,6 +376,8 @@ export function AdminCourseManager() {
       }))
       .filter((m) => m.lessons.length);
 
+    setSavingCourse(true);
+    setErr(null);
     const res = saveManagedCourse({
       id: edit.id,
       title: edit.title ?? "",
@@ -395,7 +398,20 @@ export function AdminCourseManager() {
       published: edit.published !== false,
       featured: !!edit.featured,
     });
-    if (!res.ok) { setErr(res.error ?? "Could not save."); return; }
+    if (!res.ok) {
+      setSavingCourse(false);
+      setErr(res.error ?? "Could not save.");
+      return;
+    }
+    if (res.syncPromise) {
+      const syncRes = await res.syncPromise;
+      if (!syncRes.ok) {
+        setSavingCourse(false);
+        setErr(`Course saved locally, but cloud sync failed: ${syncRes.error || "Unknown error"}`);
+        return;
+      }
+    }
+    setSavingCourse(false);
     setEdit(null);
   };
 
@@ -800,6 +816,13 @@ export function AdminCourseManager() {
               </label>
             </div>
 
+            {err && (
+              <div className="flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-brand-dark">
+                <AlertCircle className="h-4 w-4 shrink-0 text-brand" />
+                <span>{err}</span>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
               {edit.id ? (
                 <button
@@ -811,8 +834,8 @@ export function AdminCourseManager() {
                 </button>
               ) : <div />}
               <div className="flex gap-3">
-                <button type="button" onClick={() => setEdit(null)} className="btn-outline-dark !py-2.5">Cancel</button>
-                <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save course</button>
+                <button type="button" onClick={() => setEdit(null)} disabled={savingCourse} className="btn-outline-dark !py-2.5 disabled:opacity-50">Cancel</button>
+                <button type="submit" disabled={savingCourse} className="btn-primary !py-2.5 disabled:opacity-50"><Save className="h-4 w-4" /> {savingCourse ? "Saving..." : "Save course"}</button>
               </div>
             </div>
           </form>
