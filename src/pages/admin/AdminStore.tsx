@@ -558,60 +558,66 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
         </div>
 
         {/* 1. Cover Image / Thumbnail Upload */}
-        <div className="rounded-2xl border border-line bg-cream/40 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wide text-ink flex items-center gap-1.5">
-              <ImageIcon className="h-4 w-4 text-brand" />
-              <span>Cover Thumbnail Picture</span>
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <ImageIcon className="h-4 w-4" />
             </span>
-            <span className="text-[11px] font-normal text-muted">Upload an image file or provide a link</span>
+            <div className="min-w-0">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                Cover Thumbnail Picture
+              </h4>
+              <p className="text-[11px] text-muted mt-0.5">
+                Upload a cover image or paste a direct image link.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative group shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+            <div className="relative group shrink-0 overflow-hidden rounded-xl border border-line bg-cream/40">
               <img
                 src={normalizeImageUrl(f.image, DEFAULT_FALLBACK_IMAGES.product)}
                 onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
                 alt="Product thumbnail preview"
-                className="h-20 w-28 rounded-xl object-cover border border-line shadow-xs bg-white"
+                className="h-40 w-full sm:h-24 sm:w-36 object-cover"
               />
+              {f.image && !uploadingThumb && (
+                <button
+                  type="button"
+                  onClick={() => setF({ ...f, image: "" })}
+                  title="Clear thumbnail image"
+                  className="absolute top-2 right-2 rounded-full bg-black/65 hover:bg-brand text-white p-1.5 backdrop-blur-xs transition cursor-pointer shadow-xs"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
               {uploadingThumb && (
-                <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center text-white">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
                   <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
               )}
             </div>
 
-            <div className="flex-1 w-full space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  disabled={uploadingThumb}
-                  onClick={() => thumbInputRef.current?.click()}
-                  className="btn-outline-dark !py-1.5 !px-3 text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-                >
-                  {uploadingThumb ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                  <span>{uploadingThumb ? "Uploading Thumbnail..." : "Upload Thumbnail Picture"}</span>
-                </button>
-                <input
-                  ref={thumbInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleThumbUpload}
-                  className="hidden"
-                />
-                {f.image && (
-                  <button
-                    type="button"
-                    onClick={() => setF({ ...f, image: "" })}
-                    className="text-xs text-muted hover:text-brand transition underline px-1 cursor-pointer"
-                  >
-                    Clear Image
-                  </button>
-                )}
-              </div>
+            <div className="flex-1 w-full min-w-0 space-y-2.5">
+              <button
+                type="button"
+                disabled={uploadingThumb}
+                onClick={() => thumbInputRef.current?.click()}
+                className="w-full sm:w-auto rounded-xl border border-line bg-cream/60 hover:bg-cream px-4 py-2.5 text-xs font-bold text-ink transition inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {uploadingThumb ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 text-brand" />}
+                <span>{uploadingThumb ? "Uploading Thumbnail..." : "Upload Thumbnail Picture"}</span>
+              </button>
+              <input
+                ref={thumbInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleThumbUpload}
+                className="hidden"
+              />
 
-              <div>
+              <div className="relative">
+                <Link2 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
                 <input
                   type="url"
                   value={f.image}
@@ -622,8 +628,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                       if (norm && norm !== f.image) setF((prev) => ({ ...prev, image: norm }));
                     }
                   }}
-                  placeholder="https://... or paste Google Drive / Dropbox image link"
-                  className="w-full rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs text-ink outline-none focus:border-brand font-mono"
+                  placeholder="https://... or paste Google Drive / Dropbox link"
+                  className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white pl-9 pr-3.5 py-2.5 text-xs text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
                 />
               </div>
             </div>
@@ -631,41 +637,49 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
         </div>
 
         {/* 2. Preview Pictures & Screenshots Gallery */}
-        <div className="rounded-2xl border border-line bg-cream/40 p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wide text-ink flex items-center gap-1.5">
-                <LayoutGrid className="h-4 w-4 text-brand" />
-                <span>Preview Pictures & Screenshots Gallery ({f.gallery.length})</span>
-              </span>
-              <p className="text-[11px] text-muted">
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <LayoutGrid className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                  Preview Pictures & Screenshots
+                </h4>
+                <span className="rounded-full bg-cream px-2 py-0.5 text-[10px] font-bold text-muted border border-line">
+                  {f.gallery.length}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted mt-0.5">
                 Add screenshots of the tool, indicators, backtest results, or playbook sample pages.
               </p>
             </div>
-            <button
-              type="button"
-              disabled={uploadingGallery}
-              onClick={() => galleryInputRef.current?.click()}
-              className="btn-outline-dark !py-1.5 !px-3 text-xs font-bold inline-flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-            >
-              {uploadingGallery ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-              <span>{uploadingGallery ? "Uploading..." : "Upload Preview Pictures"}</span>
-            </button>
-            <input
-              ref={galleryInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleGalleryUpload}
-              className="hidden"
-            />
           </div>
+
+          <button
+            type="button"
+            disabled={uploadingGallery}
+            onClick={() => galleryInputRef.current?.click()}
+            className="w-full rounded-xl border border-dashed border-line hover:border-brand/50 bg-cream/40 hover:bg-brand/[0.03] px-4 py-3 text-xs font-bold text-ink transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          >
+            {uploadingGallery ? <Loader2 className="h-4 w-4 animate-spin text-brand" /> : <Upload className="h-4 w-4 text-brand" />}
+            <span>{uploadingGallery ? "Uploading..." : "Upload Preview Pictures"}</span>
+          </button>
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleGalleryUpload}
+            className="hidden"
+          />
 
           {/* Current Gallery Grid */}
           {f.gallery.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {f.gallery.map((url, idx) => (
-                <div key={idx} className="relative group rounded-xl overflow-hidden border border-line bg-white aspect-[4/3]">
+                <div key={idx} className="relative group rounded-xl overflow-hidden border border-line bg-cream/30 aspect-[4/3]">
                   <img
                     src={normalizeImageUrl(url, DEFAULT_FALLBACK_IMAGES.product)}
                     onError={handleImageError(DEFAULT_FALLBACK_IMAGES.product)}
@@ -676,7 +690,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                     type="button"
                     onClick={() => removeGalleryImg(idx)}
                     title="Remove preview image"
-                    className="absolute top-1 right-1 rounded-full bg-black/70 hover:bg-brand text-white p-1 transition cursor-pointer"
+                    className="absolute top-1.5 right-1.5 rounded-full bg-black/70 hover:bg-brand text-white p-1 transition cursor-pointer shadow-xs"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -686,20 +700,23 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           )}
 
           {/* Add Preview by URL */}
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="url"
-              value={newGalleryUrl}
-              onChange={(e) => setNewGalleryUrl(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGalleryUrl(); } }}
-              placeholder="Or paste preview picture URL (https://...)"
-              className="flex-1 rounded-xl border border-line bg-white px-3.5 py-1.5 text-xs text-ink outline-none focus:border-brand font-mono"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Link2 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+              <input
+                type="url"
+                value={newGalleryUrl}
+                onChange={(e) => setNewGalleryUrl(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGalleryUrl(); } }}
+                placeholder="Paste preview image URL (https://...)"
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white pl-9 pr-3.5 py-2.5 text-xs text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
+              />
+            </div>
             <button
               type="button"
               onClick={addGalleryUrl}
               disabled={!newGalleryUrl.trim()}
-              className="rounded-xl border border-line bg-white hover:bg-slate-50 px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40 cursor-pointer"
+              className="shrink-0 w-full sm:w-auto rounded-xl bg-ink hover:bg-ink/90 px-4 py-2.5 text-xs font-bold text-white transition disabled:opacity-35 cursor-pointer text-center"
             >
               Add URL
             </button>
@@ -709,13 +726,13 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
         {/* 3. Deliverable Digital Product File (Direct Upload or Link) */}
         <div className="rounded-2xl border border-blue-200/90 bg-blue-50/40 p-4 space-y-3">
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wide text-blue-950 flex items-center gap-1.5">
-                <Package className="h-4 w-4 text-blue-600" />
+                <Package className="h-4 w-4 text-blue-600 shrink-0" />
                 <span>Product Deliverable File (Direct Upload or Link)</span>
               </span>
               {f.downloadUrl && (
-                <span className="text-[11px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <span className="text-[11px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0">
                   <CheckCircle2 className="h-3 w-3" /> File Attached
                 </span>
               )}
@@ -728,24 +745,24 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           {/* Active File Card if available */}
           {f.downloadUrl ? (
             <div className="rounded-xl border border-blue-200 bg-white p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                 <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                   <FileText className="h-5 w-5" />
                 </span>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-bold text-xs text-ink truncate">
                     {f.fileName || (f.downloadUrl.startsWith("data:") ? "Uploaded Digital File" : f.downloadUrl.split("/").pop() || "Product File")}
                   </p>
                   <p className="text-[11px] text-muted flex items-center gap-2 mt-0.5">
-                    {f.fileSize && <span className="font-semibold text-blue-700">{f.fileSize}</span>}
-                    <span className="truncate max-w-[220px] text-slate-400 font-mono text-[10px]">
+                    {f.fileSize && <span className="font-semibold text-blue-700 shrink-0">{f.fileSize}</span>}
+                    <span className="truncate text-slate-400 font-mono text-[10px]">
                       {f.downloadUrl.startsWith("data:") ? "Base64 Secure File Data" : f.downloadUrl}
                     </span>
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
                 <a
                   href={f.downloadUrl}
                   download={f.fileName || `${f.title || "product"}.bin`}
@@ -801,8 +818,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
 
           {/* External URL alternative */}
           <div className="pt-1">
-            <label className="text-[11px] font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1">
-              <Link2 className="h-3 w-3" />
+            <label className="text-[11px] font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
+              <Link2 className="h-3 w-3 shrink-0" />
               <span>Or Provide External File Download Link (Google Drive, Mega, Dropbox, S3)</span>
             </label>
             <input
@@ -810,14 +827,14 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               value={f.downloadUrl}
               onChange={(e) => setF({ ...f, downloadUrl: e.target.value })}
               placeholder="https://drive.google.com/... or https://gamatfxacademy.com/assets/file.zip"
-              className="mt-1 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-xs text-ink outline-none focus:border-brand font-mono"
+              className="mt-1.5 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-xs text-ink outline-none focus:border-brand font-mono"
             />
           </div>
         </div>
 
         {/* 4. Item Pricing & Free Item Setting */}
         <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -832,15 +849,15 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                     badge: checked && (!f.badge || f.badge === "Best Seller") ? "Free Resource" : f.badge,
                   });
                 }}
-                className="h-4 w-4 rounded accent-emerald-600 cursor-pointer"
+                className="h-4 w-4 rounded accent-emerald-600 cursor-pointer shrink-0"
               />
               <span className="text-xs font-bold text-ink flex items-center gap-1.5">
-                <Gift className="h-4 w-4 text-emerald-600" />
+                <Gift className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>Set as 100% Free Item (₦0)</span>
               </span>
             </label>
             {f.isFree && (
-              <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full shrink-0">
                 Free Download Active
               </span>
             )}
@@ -882,7 +899,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
 
         {/* 5. Pre-Order Configuration Setting */}
         <div className="rounded-2xl border border-purple-200/90 bg-purple-50/40 p-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -896,15 +913,15 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                     badge: checked && (!f.badge || f.badge === "Best Seller") ? "Pre-Order" : f.badge,
                   });
                 }}
-                className="h-4 w-4 rounded accent-purple-600 cursor-pointer"
+                className="h-4 w-4 rounded accent-purple-600 cursor-pointer shrink-0"
               />
               <span className="text-xs font-bold text-ink flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-purple-700" />
+                <Clock className="h-4 w-4 text-purple-700 shrink-0" />
                 <span>Mark Tool / Product as Pre-Order</span>
               </span>
             </label>
             {f.isPreorder && (
-              <span className="text-[11px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full shrink-0">
                 Pre-Order Mode Enabled
               </span>
             )}
