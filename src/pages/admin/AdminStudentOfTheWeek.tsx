@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminShell, Card } from "./AdminShell";
 import { useStore, type StudentOfTheWeek, type Account, type QuizAttempt, type CombatStats } from "../../lib/store";
-import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck } from "lucide-react";
+import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck, Image as ImageIcon, Link2, X } from "lucide-react";
 import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
