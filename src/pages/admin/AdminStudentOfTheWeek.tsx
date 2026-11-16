@@ -6,7 +6,7 @@ import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
 import { formatStudentName, formatAccountName } from "../../lib/formatName";
-import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
+import { normalizeImageUrl, StudentAvatar } from "../../lib/imageUrl";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -257,7 +257,7 @@ export function AdminStudentOfTheWeek() {
       id: form.id || studentOfTheWeek.id || "sotw_active",
       studentId: form.studentId,
       studentName: formatStudentName(form.studentName),
-      avatar: form.avatar ? normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar) : "",
+      avatar: form.avatar?.trim() ? normalizeImageUrl(form.avatar.trim()) : "",
       track: form.track?.trim() || "",
       weekPeriod: form.weekPeriod ?? "",
       winRate: form.winRate?.trim() || "0.0%",
@@ -434,11 +434,12 @@ export function AdminStudentOfTheWeek() {
                 {activeTab === "photo" && (
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                     <div className="relative group shrink-0 overflow-hidden rounded-xl border border-line bg-slate-50">
-                      <img
-                        src={normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
-                        onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
-                        alt="Student photo preview"
+                      <StudentAvatar
+                        src={form.avatar}
+                        name={formatStudentName(form.studentName)}
                         className="h-44 w-full sm:h-28 sm:w-28 object-cover"
+                        textClassName="text-2xl"
+                        alt="Student photo preview"
                       />
                       {form.avatar && !isUploading && (
                         <button
@@ -638,11 +639,12 @@ export function AdminStudentOfTheWeek() {
             {/* Exact Website Card Preview */}
             <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#121316] p-5 text-white shadow-xl">
               <div className="relative aspect-[4/5] w-full rounded-xl overflow-hidden bg-slate-900 mb-4">
-                <img
-                  src={normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
-                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
-                  alt={form.studentName || "Preview"}
+                <StudentAvatar
+                  src={form.avatar}
+                  name={formatStudentName(form.studentName)}
                   className="w-full h-full object-cover"
+                  textClassName="text-4xl sm:text-5xl"
+                  alt={form.studentName || "Preview"}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#121316] via-transparent to-transparent" />
 

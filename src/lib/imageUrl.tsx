@@ -114,3 +114,65 @@ export function SafeImage({ src, alt, fallback = DEFAULT_FALLBACK_IMAGES.product
     />
   );
 }
+
+function getInitials(name?: string | null): string {
+  const clean = (name || "").trim();
+  if (!clean) return "";
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export interface StudentAvatarProps {
+  src?: string | null;
+  name?: string | null;
+  className?: string;
+  textClassName?: string;
+  alt?: string;
+}
+
+/**
+ * Renders a student photo if provided and valid; otherwise displays a clean
+ * initials placeholder instead of a stock demo portrait.
+ */
+export function StudentAvatar({
+  src,
+  name,
+  className = "w-full h-full object-cover",
+  textClassName = "text-3xl sm:text-4xl",
+  alt,
+}: StudentAvatarProps) {
+  const resolved = normalizeImageUrl(src);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [resolved]);
+
+  if (resolved && !failed) {
+    return (
+      <img
+        src={resolved}
+        alt={alt || name || "Student"}
+        className={className}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+
+  const initials = getInitials(name);
+  return (
+    <div
+      role="img"
+      aria-label={alt || name || "No student photo"}
+      className={`${className} flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white select-none`}
+    >
+      <span className={`font-black tracking-wider text-amber-400/90 ${textClassName}`}>
+        {initials || "—"}
+      </span>
+      <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        No Photo
+      </span>
+    </div>
+  );
+}

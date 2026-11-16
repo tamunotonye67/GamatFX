@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { navigate } from "../../lib/router";
 import { formatStudentName } from "../../lib/formatName";
-import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
+import { StudentAvatar } from "../../lib/imageUrl";
 
 function formatReturn(val?: string): string {
   if (!val) return "+0.0%";
@@ -49,11 +49,11 @@ export function StudentOfTheWeekPage() {
                 <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-brand via-amber-500 to-rose-600 blur opacity-75 group-hover:opacity-100 transition duration-500 animate-pulse" />
                 <div className="relative rounded-3xl bg-slate-900 p-3.5 sm:p-4 border border-white/10 shadow-2xl overflow-hidden">
                   <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-950">
-                    <img
-                      src={normalizeImageUrl(sotw.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
-                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
-                      alt={studentDisplayName}
+                    <StudentAvatar
+                      src={sotw.avatar}
+                      name={studentDisplayName}
                       className="w-full h-full object-cover transition duration-700 group-hover:scale-105"
+                      textClassName="text-5xl sm:text-6xl"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
 
@@ -173,11 +173,11 @@ export function StudentOfTheWeekPage() {
                 {/* 2. Student Avatar + Name + Track */}
                 <div className="flex items-center gap-3.5">
                   <div className="relative shrink-0">
-                    <img
-                      src={normalizeImageUrl(item.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
-                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
-                      alt={formatStudentName(item.studentName)}
+                    <StudentAvatar
+                      src={item.avatar}
+                      name={formatStudentName(item.studentName)}
                       className="h-14 w-14 rounded-2xl object-cover border border-line shadow-sm"
+                      textClassName="text-base"
                     />
                   </div>
                   <div className="min-w-0 flex-1">
