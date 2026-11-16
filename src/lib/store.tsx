@@ -1644,6 +1644,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         let isBrandNewOAuth = false;
         if (!resolvedAcc) {
           isBrandNewOAuth = true;
+          const isPrimaryAdmin = userEmail === "tamunotonye.taylor@gmail.com";
           resolvedAcc = {
             id: uid,
             firstName,
@@ -1651,7 +1652,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             email: userEmail,
             password: "password123",
             avatar: meta.avatar_url || meta.picture || undefined,
-            role: "student",
+            role: isPrimaryAdmin ? "admin" : "student",
             status: "active",
             joined: new Date().toISOString(),
           };
@@ -1749,13 +1750,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       supaAccounts.forEach((supaAcc) => {
         const cleanEmail = supaAcc.email.trim().toLowerCase();
 
-        // If explicitly deleted or legacy demo admin, skip
+        const isPrimaryAdmin = cleanEmail === "tamunotonye.taylor@gmail.com";
+
+        // If explicitly deleted or legacy demo admin, skip (never skip primary admin)
         if (
-          deleted.has(supaAcc.id.toLowerCase()) ||
-          deleted.has(cleanEmail) ||
-          cleanEmail === "admin@gamatfxacademy.com" ||
-          cleanEmail === "admin@gamatfx.com" ||
-          supaAcc.id === "u_admin"
+          !isPrimaryAdmin &&
+          (deleted.has(supaAcc.id.toLowerCase()) ||
+            deleted.has(cleanEmail) ||
+            cleanEmail === "admin@gamatfxacademy.com" ||
+            cleanEmail === "admin@gamatfx.com" ||
+            supaAcc.id === "u_admin")
         ) {
           return;
         }
@@ -1998,13 +2002,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = subscribeToSupabaseRealtime((table, eventType, payload) => {
       if (table === "accounts" && eventType === "DELETE" && payload?.old?.id) {
         const deletedId = payload.old.id;
-        recordDeletedAccount(deletedId);
-        setAccounts((prev) => {
-          const next = prev.filter((a) => a.id !== deletedId);
-          write(K.accounts, next);
-          return next;
-        });
-        setAllEnrollments((prev) => prev.filter((e) => e.userId !== deletedId));
+        const deletedEmail = String(payload.old.email || "").trim().toLowerCase();
+        if (deletedEmail !== "tamunotonye.taylor@gmail.com") {
+          recordDeletedAccount(deletedId);
+          setAccounts((prev) => {
+            const next = prev.filter((a) => a.id !== deletedId);
+            write(K.accounts, next);
+            return next;
+          });
+          setAllEnrollments((prev) => prev.filter((e) => e.userId !== deletedId));
+        }
       }
       refreshAllFromSupabase();
     });
