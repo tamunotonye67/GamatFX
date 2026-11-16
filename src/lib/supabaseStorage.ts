@@ -57,6 +57,53 @@ export async function uploadCourseAsset(courseId: string, file: File): Promise<{
 }
 
 /**
+ * Uploads a course preview or lesson video to the Supabase Storage 'course-materials' bucket.
+ * Falls back to a data URL only for small clips (<= 2.5MB) so localStorage is never exhausted.
+ */
+export async function uploadCourseVideo(courseId: string, file: File): Promise<{ ok: boolean; url?: string; error?: string }> {
+  const MAX_CLOUD_BYTES = 200 * 1024 * 1024; // 200MB
+  if (file.size > MAX_CLOUD_BYTES) {
+    return { ok: false, error: "Video file is larger than 200MB. Please compress it or paste a video URL instead." };
+  }
+
+  try {
+    const fileExt = (file.name.split(".").pop() || "mp4").toLowerCase();
+    const filePath = `videos/course_${courseId || "new"}_${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("course-materials")
+      .upload(filePath, file, {
+        upsert: true,
+        contentType: file.type || "video/mp4",
+      });
+
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabase.storage.from("course-materials").getPublicUrl(filePath);
+      return { ok: true, url: publicUrl };
+    }
+
+    console.warn("Supabase course video upload notice:", uploadError.message);
+    if (file.size <= 2.5 * 1024 * 1024) {
+      const dataUrl = await fileToDataUrl(file);
+      return { ok: true, url: dataUrl };
+    }
+    return {
+      ok: false,
+      error: `Cloud video upload failed (${uploadError.message}). Paste a video URL or try a smaller clip.`,
+    };
+  } catch (err: any) {
+    if (file.size <= 2.5 * 1024 * 1024) {
+      const dataUrl = await fileToDataUrl(file);
+      return { ok: true, url: dataUrl };
+    }
+    return {
+      ok: false,
+      error: err?.message || "Video upload failed. Please paste a video URL instead.",
+    };
+  }
+}
+
+/**
  * Uploads a company logo or official signature to the Supabase Storage 'company-assets' bucket.
  * Returns the public CDN URL of the uploaded asset.
  */

@@ -9,7 +9,7 @@ import {
 } from "../../lib/store";
 import { naira, COURSES } from "../../lib/courses";
 import { type Quiz, type Question } from "../../lib/quizzes";
-import { uploadCourseAsset } from "../../lib/supabaseStorage";
+import { uploadCourseAsset, uploadCourseVideo } from "../../lib/supabaseStorage";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
   BookOpen, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
@@ -79,22 +79,8 @@ function IconPreview({ name, color }: { name?: string; color?: string }) {
   );
 }
 
-function readVideoFile(file: File): Promise<{ url: string; name: string }> {
-  return new Promise((resolve, reject) => {
-    if (!file.type.startsWith("video/") && !file.name.match(/\.(mp4|webm|mov|m4v)$/i)) {
-      reject(new Error("Please choose a video file (MP4, WebM, MOV)."));
-      return;
-    }
-    // Cap at 2.5MB to protect browser localStorage quota; instruct user to use URL for full video files
-    if (file.size > 2.5 * 1024 * 1024) {
-      reject(new Error("Video file is larger than 2.5MB. To keep browser storage fast and prevent data loss, please paste your video URL (YouTube, Vimeo, or MP4 link) above."));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => resolve({ url: String(reader.result), name: file.name });
-    reader.onerror = () => reject(new Error("Could not read that file."));
-    reader.readAsDataURL(file);
-  });
+function isValidVideoFile(file: File): boolean {
+  return file.type.startsWith("video/") || /\.(mp4|webm|mov|m4v|mkv|avi)$/i.test(file.name);
 }
 
 export function AdminCourseManager() {
@@ -108,8 +94,10 @@ export function AdminCourseManager() {
   const [openMod, setOpenMod] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const posterFileRef = useRef<HTMLInputElement | null>(null);
+  const previewVideoFileRef = useRef<HTMLInputElement | null>(null);
   const lessonUpload = useRef<{ mi: number; li: number } | null>(null);
   const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [uploadingVideoKey, setUploadingVideoKey] = useState<string | null>(null);
 
   // Exam Questions Manager state
   const [examCourse, setExamCourse] = useState<{ id: string; title: string } | null>(null);
@@ -298,17 +286,62 @@ export function AdminCourseManager() {
   };
 
   const onUpload = async (file?: File) => {
-    if (!file || !lessonUpload.current || !edit) return;
-    const { mi, li } = lessonUpload.current;
+    const target = lessonUpload.current;
+    if (!file || !target || !edit) {
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+    if (!isValidVideoFile(file)) {
+      setErr("Please choose a video file (MP4, WebM, MOV, M4V).");
+      lessonUpload.current = null;
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+    const { mi, li } = target;
+    const key = `${mi}-${li}`;
+    setUploadingVideoKey(key);
+    setErr(null);
     try {
-      const { url, name } = await readVideoFile(file);
-      setLes(mi, li, { videoUrl: url, videoFileName: name });
-      setErr(null);
+      const res = await uploadCourseVideo(edit.id || "course", file);
+      if (res.ok && res.url) {
+        setLes(mi, li, { videoUrl: res.url, videoFileName: file.name });
+      } else {
+        setErr(res.error || "Video upload failed.");
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Upload failed.");
+    } finally {
+      setUploadingVideoKey(null);
+      lessonUpload.current = null;
+      if (fileRef.current) fileRef.current.value = "";
     }
-    lessonUpload.current = null;
-    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const onPreviewVideoUpload = async (file?: File) => {
+    if (!file || !edit) {
+      if (previewVideoFileRef.current) previewVideoFileRef.current.value = "";
+      return;
+    }
+    if (!isValidVideoFile(file)) {
+      setErr("Please choose a video file (MP4, WebM, MOV, M4V).");
+      if (previewVideoFileRef.current) previewVideoFileRef.current.value = "";
+      return;
+    }
+    setUploadingVideoKey("preview");
+    setErr(null);
+    try {
+      const res = await uploadCourseVideo(edit.id || "preview", file);
+      if (res.ok && res.url) {
+        setEdit((prev) => (prev ? { ...prev, video: res.url } : null));
+      } else {
+        setErr(res.error || "Preview video upload failed.");
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Preview video upload failed.");
+    } finally {
+      setUploadingVideoKey(null);
+      if (previewVideoFileRef.current) previewVideoFileRef.current.value = "";
+    }
   };
 
   const onPosterUpload = async (file?: File) => {
@@ -617,7 +650,33 @@ export function AdminCourseManager() {
                     </div>
                   )}
                 </div>
-                <Field label="Preview video URL" value={edit.video ?? ""} onChange={(v) => setEdit({ ...edit, video: v })} ph="https://…/preview.mp4" />
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Preview video URL</label>
+                  <div className="flex gap-2">
+                    <input
+                      value={edit.video ?? ""}
+                      onChange={(e) => setEdit({ ...edit, video: e.target.value })}
+                      placeholder="https://…/preview.mp4"
+                      className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingVideoKey === "preview"}
+                      onClick={() => previewVideoFileRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer disabled:opacity-50"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>{uploadingVideoKey === "preview" ? "Uploading..." : "Upload Video"}</span>
+                    </button>
+                    <input
+                      ref={previewVideoFileRef}
+                      type="file"
+                      accept="video/*,.mp4,.webm,.mov,.m4v"
+                      onChange={(e) => void onPreviewVideoUpload(e.target.files?.[0])}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -698,10 +757,11 @@ export function AdminCourseManager() {
                                 </div>
                                 <button
                                   type="button"
+                                  disabled={uploadingVideoKey === `${mi}-${li}`}
                                   onClick={() => { lessonUpload.current = { mi, li }; fileRef.current?.click(); }}
-                                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand cursor-pointer shadow-2xs"
+                                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2.5 text-xs font-bold text-ink transition hover:border-brand hover:text-brand cursor-pointer shadow-2xs disabled:opacity-50"
                                 >
-                                  <Upload className="h-3.5 w-3.5" /> Upload
+                                  <Upload className="h-3.5 w-3.5" /> {uploadingVideoKey === `${mi}-${li}` ? "Uploading..." : "Upload"}
                                 </button>
                                 <button type="button" onClick={() => removeLesson(mi, li)}
                                   className="rounded-xl border border-line bg-white px-3 py-2.5 text-muted hover:border-brand hover:text-brand transition cursor-pointer shadow-2xs">

@@ -94,9 +94,8 @@ export default function VideoPreview() {
           />
 
           {/* Play button */}
-          <div className="absolute inset-0 flex items-center justify-center pb-6 sm:pb-0">
-            <span className="relative flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-brand text-white shadow-2xl transition-transform duration-300 group-hover:scale-110">
-              <span className="absolute inset-0 animate-ping rounded-full bg-brand/40" />
+          <div className="absolute inset-0 flex items-center justify-center pb-6 sm:pb-0 pointer-events-none">
+            <span className="relative flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-brand text-white shadow-2xl ring-8 ring-brand/25 transition-transform duration-300 group-hover:scale-110">
               <Play className="relative ml-0.5 sm:ml-1 h-6 w-6 sm:h-8 sm:w-8 fill-white" />
             </span>
           </div>

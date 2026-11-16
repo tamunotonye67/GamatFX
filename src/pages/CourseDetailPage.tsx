@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageCta from "../components/PageCta";
 import { getCourse, totalLessons, naira, asCourse } from "../lib/courses";
 import { useStore } from "../lib/store";
@@ -20,6 +20,21 @@ export default function CourseDetailPage({ id }: { id: string }) {
 
   const [openModule, setOpenModule] = useState<number>(0);
   const [videoModal, setVideoModal] = useState<{ title: string; videoUrl: string } | null>(null);
+
+  useEffect(() => {
+    if (!videoModal) return;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevOverscroll = document.body.style.overscrollBehavior;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "contain";
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.overscrollBehavior = prevOverscroll;
+    };
+  }, [videoModal]);
 
   if (!course) {
     return (
@@ -50,13 +65,19 @@ export default function CourseDetailPage({ id }: { id: string }) {
     <>
       {/* Video Modal */}
       {videoModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/80 p-4 backdrop-blur-md">
-          <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-ink shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-              <h3 className="font-display text-base font-bold text-white truncate pr-4">{videoModal.title}</h3>
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-3 sm:p-4 overscroll-contain touch-none"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setVideoModal(null);
+          }}
+        >
+          <div className="relative w-full max-w-4xl max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden rounded-3xl border border-white/20 bg-ink shadow-2xl">
+            <div className="shrink-0 flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
+              <h3 className="font-display text-sm sm:text-base font-bold text-white truncate pr-4">{videoModal.title}</h3>
               <button
+                type="button"
                 onClick={() => setVideoModal(null)}
-                className="rounded-full p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+                className="rounded-full p-2 text-white/70 transition hover:bg-white/10 hover:text-white cursor-pointer"
                 aria-label="Close preview"
               >
                 <X className="h-5 w-5" />
@@ -75,7 +96,7 @@ export default function CourseDetailPage({ id }: { id: string }) {
                 controlsList="nodownload noplaybackrate noremoteplayback"
                 onContextMenu={(e) => e.preventDefault()}
                 onDragStart={(e) => e.preventDefault()}
-                className="block h-full w-full object-contain transform-gpu"
+                className="block h-full w-full object-contain"
               />
             </div>
           </div>
