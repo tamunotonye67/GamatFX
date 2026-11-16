@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { ZoomIn, ZoomOut, RotateCw, RefreshCw, Check, X, Move, Camera, Loader2 } from "lucide-react";
 
 export interface ImageCropModalProps {
@@ -244,8 +245,8 @@ export default function ImageCropModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-md">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-md">
       <div className="relative w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] rounded-3xl border border-line/60 bg-[#12151b] text-white shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="shrink-0 flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
@@ -477,4 +478,6 @@ export default function ImageCropModal({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : modalContent;
 }

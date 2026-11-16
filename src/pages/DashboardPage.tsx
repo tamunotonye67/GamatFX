@@ -175,6 +175,41 @@ export default function DashboardPage() {
   };
 
   const [paymentModalCourseId, setPaymentModalCourseId] = useState<string | null>(null);
+  const [cropModal, setCropModal] = useState<{ src: string; target: "profile" | "team" } | null>(null);
+
+  const openCropModal = (file: File, target: "profile" | "team") => {
+    const objectUrl = URL.createObjectURL(file);
+    setCropModal((prev) => {
+      if (prev?.src.startsWith("blob:")) {
+        try { URL.revokeObjectURL(prev.src); } catch {}
+      }
+      return { src: objectUrl, target };
+    });
+  };
+
+  const closeCropModal = () => {
+    setCropModal((prev) => {
+      if (prev?.src.startsWith("blob:")) {
+        try { URL.revokeObjectURL(prev.src); } catch {}
+      }
+      return null;
+    });
+  };
+
+  const handleCropModalComplete = async (croppedBlob: Blob, croppedDataUrl: string) => {
+    closeCropModal();
+    if (!user) return;
+    store.updateProfile({ avatar: croppedDataUrl });
+    try {
+      const croppedFile = new File([croppedBlob], `avatar_${user.id}_${Date.now()}.jpg`, { type: "image/jpeg" });
+      const res = await uploadAvatar(user.id, croppedFile);
+      if (res.ok && res.url) {
+        store.updateProfile({ avatar: res.url });
+      }
+    } catch (e) {
+      console.warn("Avatar cloud upload fallback:", e);
+    }
+  };
 
   // All academy courses available for learning and certification assessments
   const allAvailableCourses = useMemo<Course[]>(() => {
@@ -462,6 +497,14 @@ export default function DashboardPage() {
           {tab === "profile" && <Profile />}
         </div>
       </section>
+
+      {cropModal && (
+        <ImageCropModal
+          imageSrc={cropModal.src}
+          onCrop={handleCropModalComplete}
+          onCancel={closeCropModal}
+        />
+      )}
 
       {/* Centered Red Gradient Affiliate Modal with Blurred Backdrop */}
       {showAffiliateAd && tab !== "affiliate" && (
@@ -2138,26 +2181,13 @@ export default function DashboardPage() {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
-    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
-
     const pickPhoto = (file?: File) => {
       if (!file) return;
-      if (!file.type.startsWith("image/")) { setError("Please choose an image file."); return; }
+      const isImg = file.type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(file.name);
+      if (!isImg) { setError("Please choose an image file."); return; }
       if (file.size > 8 * 1024 * 1024) { setError("Image must be smaller than 8MB."); return; }
       setError(null);
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          setCropImageSrc(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    };
-
-    const handleTeamCrop = (croppedBlob: Blob, croppedDataUrl: string) => {
-      setPhoto(croppedDataUrl);
-      updateProfile({ avatar: croppedDataUrl });
-      setCropImageSrc(null);
+      openCropModal(file, "team");
     };
 
     const submit = (e: React.FormEvent) => {
@@ -2173,13 +2203,6 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-6">
-        {cropImageSrc && (
-          <ImageCropModal
-            imageSrc={cropImageSrc}
-            onCrop={handleTeamCrop}
-            onCancel={() => setCropImageSrc(null)}
-          />
-        )}
         <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-sm">
           <h2 className="font-display text-xl font-bold text-ink">Team bio for the public site</h2>
           <p className="mt-2 text-sm text-muted">
@@ -2358,42 +2381,13 @@ export default function DashboardPage() {
       }, 500);
     };
 
-    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
-
-    const pick = async (file?: File) => {
+    const pick = (file?: File) => {
       if (!file) return;
       const isImg = file.type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(file.name);
       if (!isImg) { setErr("Please choose an image file."); return; }
       if (file.size > 8 * 1024 * 1024) { setErr("Image must be smaller than 8MB."); return; }
       setErr(null);
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          setCropImageSrc(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-    };
-
-    const handleCropComplete = async (croppedBlob: Blob, croppedDataUrl: string) => {
-      setAvatar(croppedDataUrl);
-      setCropImageSrc(null);
-
-      // Instantly save to user profile store so changes reflect across the app
-      store.updateProfile({ avatar: croppedDataUrl });
-
-      // Asynchronously attempt cloud upload if configured
-      try {
-        const croppedFile = new File([croppedBlob], `avatar_${user!.id}_${Date.now()}.jpg`, { type: "image/jpeg" });
-        const res = await uploadAvatar(user!.id, croppedFile);
-        if (res.ok && res.url) {
-          setAvatar(res.url);
-          store.updateProfile({ avatar: res.url });
-        }
-      } catch (e) {
-        console.warn("Avatar cloud upload fallback:", e);
-      }
+      openCropModal(file, "profile");
     };
 
     const initials = `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase();
@@ -2403,13 +2397,6 @@ export default function DashboardPage() {
 
     return (
       <form onSubmit={save} className="space-y-6">
-        {cropImageSrc && (
-          <ImageCropModal
-            imageSrc={cropImageSrc}
-            onCrop={handleCropComplete}
-            onCancel={() => setCropImageSrc(null)}
-          />
-        )}
         {/* Avatar + identity */}
         <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
           <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
