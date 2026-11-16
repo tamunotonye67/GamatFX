@@ -2234,7 +2234,6 @@ export default function DashboardPage() {
                 value={photo}
                 onChange={(url) => {
                   setPhoto(url);
-                  updateProfile({ avatar: url || undefined });
                 }}
               />
             </div>
@@ -2459,7 +2458,6 @@ export default function DashboardPage() {
             value={avatar}
             onChange={(url) => {
               setAvatar(url);
-              store.updateProfile({ avatar: url || undefined });
             }}
           />
         </div>
