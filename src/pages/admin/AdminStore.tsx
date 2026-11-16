@@ -76,7 +76,7 @@ export function AdminStore() {
   return (
     <AdminShell
       title="Store & Trading Tools"
-      subtitle={`${products.length} total products (E-books, AI bots, indicators, and strategy blueprints)`}
+      subtitle={`${products.length} products · Bots, indicators, e-books & blueprints`}
       action={
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
@@ -135,13 +135,13 @@ export function AdminStore() {
         {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3 border-b border-line p-3 sm:p-4">
           <div className="w-full sm:w-auto sm:min-w-[240px] flex-1">
-            <SearchBar value={q} onChange={setQ} placeholder="Search product title, deliverable, or tagline…" />
+            <SearchBar value={q} onChange={setQ} placeholder="Search title, deliverable, or tagline…" />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2">
             <select
               value={catFilter}
               onChange={(e) => setCatFilter(e.target.value)}
-              className="flex-1 sm:flex-none rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
+              className="w-full sm:w-auto rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
             >
               <option value="all">All categories</option>
               <option value="bot">AI Bots & EAs</option>
@@ -153,16 +153,16 @@ export function AdminStore() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="flex-1 sm:flex-none rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
+              className="w-full sm:w-auto rounded-xl border border-line bg-white px-3 py-2 text-xs font-semibold text-ink outline-none focus:border-brand"
             >
-              <option value="all">All statuses & types</option>
+              <option value="all">All statuses</option>
               <option value="published">Published</option>
               <option value="draft">Draft</option>
-              <option value="preorder">Pre-orders only</option>
-              <option value="free">Free items only</option>
+              <option value="preorder">Pre-orders</option>
+              <option value="free">Free items</option>
             </select>
           </div>
-          <span className="text-xs text-muted sm:ml-auto self-center sm:self-auto">{rows.length} item(s)</span>
+          <span className="hidden sm:inline text-xs text-muted sm:ml-auto">{rows.length} item(s)</span>
         </div>
 
         {/* Product List */}
@@ -498,63 +498,80 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
   };
 
   return (
-    <Modal open onClose={onClose} title={product ? "Edit Store Product" : "Add Store Product"} wide>
-      <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+    <Modal open onClose={onClose} title={product ? "Edit Product" : "Add Product"} wide>
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         {err && (
           <p className="rounded-xl border border-brand/30 bg-brand-light p-3.5 text-xs font-bold text-brand">
             {err}
           </p>
         )}
 
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Product Title *</label>
-          <input
-            type="text"
-            required
-            value={f.title}
-            onChange={(e) => setF({ ...f, title: e.target.value })}
-            placeholder="e.g. GAMAT Apex Scalper EA"
-            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
-          />
-        </div>
+        {/* 0. Product Details */}
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <ShoppingBag className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                Product Details
+              </h4>
+              <p className="text-[11px] text-muted mt-0.5">
+                Core title, creator, category, and short summary.
+              </p>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Author / Creator Line</label>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Title *</label>
             <input
               type="text"
-              value={f.author}
-              onChange={(e) => setF({ ...f, author: e.target.value })}
-              placeholder="e.g. By Lead Mentor Tonye & Research Desk"
-              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+              required
+              value={f.title}
+              onChange={(e) => setF({ ...f, title: e.target.value })}
+              placeholder="e.g. GAMAT Apex Scalper EA"
+              className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
 
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Category</label>
-            <select
-              value={f.category}
-              onChange={(e) => setF({ ...f, category: e.target.value as any })}
-              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs cursor-pointer"
-            >
-              <option value="bot">AI Bots & EAs</option>
-              <option value="indicator">Indicators & Scripts</option>
-              <option value="ebook">E-Books & Playbooks</option>
-              <option value="strategy">Strategy Blueprints</option>
-              <option value="tool">Physical Journals & Tools</option>
-            </select>
-          </div>
-        </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Author / Creator</label>
+              <input
+                type="text"
+                value={f.author}
+                onChange={(e) => setF({ ...f, author: e.target.value })}
+                placeholder="e.g. By GAMAT Research Desk"
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+              />
+            </div>
 
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Tagline (One-sentence summary)</label>
-          <input
-            type="text"
-            value={f.tagline}
-            onChange={(e) => setF({ ...f, tagline: e.target.value })}
-            placeholder="e.g. Automated session breakout robot with strict prop-firm risk limits"
-            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
-          />
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Category</label>
+              <select
+                value={f.category}
+                onChange={(e) => setF({ ...f, category: e.target.value as any })}
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 cursor-pointer"
+              >
+                <option value="bot">AI Bots & EAs</option>
+                <option value="indicator">Indicators & Scripts</option>
+                <option value="ebook">E-Books & Playbooks</option>
+                <option value="strategy">Strategy Blueprints</option>
+                <option value="tool">Physical Journals & Tools</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Tagline</label>
+            <input
+              type="text"
+              value={f.tagline}
+              onChange={(e) => setF({ ...f, tagline: e.target.value })}
+              placeholder="One-sentence product summary"
+              className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+            />
+          </div>
         </div>
 
         {/* 1. Cover Image / Thumbnail Upload */}
@@ -565,10 +582,10 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
             </span>
             <div className="min-w-0">
               <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
-                Cover Thumbnail Picture
+                Cover Thumbnail
               </h4>
               <p className="text-[11px] text-muted mt-0.5">
-                Upload a cover image or paste a direct image link.
+                Upload a cover image or paste a link.
               </p>
             </div>
           </div>
@@ -606,7 +623,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 className="w-full sm:w-auto rounded-xl border border-line bg-cream/60 hover:bg-cream px-4 py-2.5 text-xs font-bold text-ink transition inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {uploadingThumb ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 text-brand" />}
-                <span>{uploadingThumb ? "Uploading Thumbnail..." : "Upload Thumbnail Picture"}</span>
+                <span>{uploadingThumb ? "Uploading..." : "Upload Thumbnail"}</span>
               </button>
               <input
                 ref={thumbInputRef}
@@ -645,14 +662,14 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
-                  Preview Pictures & Screenshots
+                  Preview Gallery
                 </h4>
                 <span className="rounded-full bg-cream px-2 py-0.5 text-[10px] font-bold text-muted border border-line">
                   {f.gallery.length}
                 </span>
               </div>
               <p className="text-[11px] text-muted mt-0.5">
-                Add screenshots of the tool, indicators, backtest results, or playbook sample pages.
+                Add screenshots, backtest results, or sample pages.
               </p>
             </div>
           </div>
@@ -723,28 +740,32 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           </div>
         </div>
 
-        {/* 3. Deliverable Digital Product File (Direct Upload or Link) */}
-        <div className="rounded-2xl border border-blue-200/90 bg-blue-50/40 p-4 space-y-3">
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-bold uppercase tracking-wide text-blue-950 flex items-center gap-1.5">
-                <Package className="h-4 w-4 text-blue-600 shrink-0" />
-                <span>Product Deliverable File (Direct Upload or Link)</span>
-              </span>
-              {f.downloadUrl && (
-                <span className="text-[11px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0">
-                  <CheckCircle2 className="h-3 w-3" /> File Attached
-                </span>
-              )}
+        {/* 3. Deliverable File */}
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <Package className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                  Deliverable File
+                </h4>
+                {f.downloadUrl && (
+                  <span className="text-[10px] font-extrabold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0">
+                    <CheckCircle2 className="h-3 w-3" /> Attached
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted mt-0.5">
+                Upload the digital file or paste a download link.
+              </p>
             </div>
-            <p className="text-[11px] text-muted mt-0.5">
-              Upload the actual digital tool, bot, indicator, or e-book PDF so buyers can download it directly without links breaking.
-            </p>
           </div>
 
           {/* Active File Card if available */}
           {f.downloadUrl ? (
-            <div className="rounded-xl border border-blue-200 bg-white p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="rounded-xl border border-blue-200/80 bg-blue-50/30 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                 <span className="flex h-10 w-10 shrink-0 aspect-square items-center justify-center rounded-xl bg-blue-100 text-blue-700">
                   <FileText className="h-5 w-5" />
@@ -768,9 +789,9 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                   download={f.fileName || `${f.title || "product"}.bin`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-100 transition inline-flex items-center gap-1"
+                  className="rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-blue-700 hover:bg-blue-50 transition inline-flex items-center gap-1"
                 >
-                  <Download className="h-3.5 w-3.5" /> Test Download
+                  <Download className="h-3.5 w-3.5" /> Test
                 </a>
                 <button
                   type="button"
@@ -778,7 +799,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                   onClick={() => fileInputRef.current?.click()}
                   className="rounded-lg border border-line bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink hover:bg-slate-50 transition inline-flex items-center gap-1 disabled:opacity-50 cursor-pointer"
                 >
-                  <Upload className="h-3.5 w-3.5" /> Replace File
+                  <Upload className="h-3.5 w-3.5" /> Replace
                 </button>
                 <button
                   type="button"
@@ -791,22 +812,23 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               </div>
             </div>
           ) : (
-            <div
+            <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="cursor-pointer rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-500 bg-white/70 hover:bg-white p-5 text-center transition group"
+              className="w-full cursor-pointer rounded-xl border border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/30 hover:bg-blue-50/60 p-4 text-center transition group"
             >
-              <div className="flex flex-col items-center justify-center gap-1.5">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 group-hover:scale-105 transition">
-                  {uploadingFile ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+              <div className="flex flex-col items-center justify-center gap-1">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100/80 text-blue-600 group-hover:scale-105 transition">
+                  {uploadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                 </span>
                 <p className="text-xs font-bold text-ink mt-1">
-                  {uploadingFile ? "Uploading product file..." : "Click to Upload Digital Product File"}
+                  {uploadingFile ? "Uploading file..." : "Upload Digital File"}
                 </p>
                 <p className="text-[11px] text-muted">
-                  Supports PDF e-books, ZIP archives, MT4/MT5 EX4/EX5 robots, MQ4/MQ5 indicators, templates
+                  PDF, ZIP, EX4/EX5, MQ4/MQ5, or templates
                 </p>
               </div>
-            </div>
+            </button>
           )}
 
           <input
@@ -817,59 +839,71 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
           />
 
           {/* External URL alternative */}
-          <div className="pt-1">
-            <label className="text-[11px] font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
-              <Link2 className="h-3 w-3 shrink-0" />
-              <span>Or Provide External File Download Link (Google Drive, Mega, Dropbox, S3)</span>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+              External Download Link
             </label>
-            <input
-              type="text"
-              value={f.downloadUrl}
-              onChange={(e) => setF({ ...f, downloadUrl: e.target.value })}
-              placeholder="https://drive.google.com/... or https://gamatfxacademy.com/assets/file.zip"
-              className="mt-1.5 w-full rounded-xl border border-line bg-white px-3.5 py-2 text-xs text-ink outline-none focus:border-brand font-mono"
-            />
+            <div className="relative">
+              <Link2 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+              <input
+                type="text"
+                value={f.downloadUrl}
+                onChange={(e) => setF({ ...f, downloadUrl: e.target.value })}
+                placeholder="https://drive.google.com/... or Dropbox / S3 link"
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white pl-9 pr-3.5 py-2.5 text-xs text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
+              />
+            </div>
           </div>
         </div>
 
-        {/* 4. Item Pricing & Free Item Setting */}
-        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/40 p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                id="isFree"
-                checked={f.isFree}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setF({
-                    ...f,
-                    isFree: checked,
-                    price: checked ? "0" : (f.price === "0" ? "25000" : f.price),
-                    badge: checked && (!f.badge || f.badge === "Best Seller") ? "Free Resource" : f.badge,
-                  });
-                }}
-                className="h-4 w-4 rounded accent-emerald-600 cursor-pointer shrink-0"
-              />
-              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
-                <Gift className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>Set as 100% Free Item (₦0)</span>
-              </span>
-            </label>
-            {f.isFree && (
-              <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full shrink-0">
-                Free Download Active
-              </span>
-            )}
+        {/* 4. Pricing */}
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <Gift className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                  Pricing
+                </h4>
+                {f.isFree && (
+                  <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                    Free (₦0)
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted mt-0.5">
+                Set the product price or offer it for free.
+              </p>
+            </div>
           </div>
-          <p className="text-[11px] text-muted">
-            Check this to let students and visitors access/download this tool without any payment. You can enter an Original Price to demonstrate its value (e.g. ₦15,000 struck through).
-          </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 pt-1">
+          <label className="flex items-center gap-2.5 rounded-xl border border-line bg-cream/30 px-3.5 py-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              id="isFree"
+              checked={f.isFree}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setF({
+                  ...f,
+                  isFree: checked,
+                  price: checked ? "0" : (f.price === "0" ? "25000" : f.price),
+                  badge: checked && (!f.badge || f.badge === "Best Seller") ? "Free Resource" : f.badge,
+                });
+              }}
+              className="h-4 w-4 rounded accent-emerald-600 cursor-pointer shrink-0"
+            />
+            <span className="text-xs font-bold text-ink">
+              Make this a free item (₦0)
+            </span>
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">
-                Price (₦ Naira) {f.isFree ? "(Free = ₦0)" : "*"}
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                Price (₦) {f.isFree ? "(Free)" : "*"}
               </label>
               <input
                 type="number"
@@ -877,157 +911,184 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 required={!f.isFree}
                 value={f.isFree ? "0" : f.price}
                 onChange={(e) => setF({ ...f, price: e.target.value })}
-                placeholder={f.isFree ? "0 (Free)" : "e.g. 25000"}
-                className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
+                placeholder={f.isFree ? "0" : "e.g. 25000"}
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">
-                Original / Value Price (Strike-through)
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                Original Price (₦)
               </label>
               <input
                 type="number"
                 value={f.originalPrice}
                 onChange={(e) => setF({ ...f, originalPrice: e.target.value })}
                 placeholder="e.g. 45000"
-                className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </div>
           </div>
         </div>
 
-        {/* 5. Pre-Order Configuration Setting */}
-        <div className="rounded-2xl border border-purple-200/90 bg-purple-50/40 p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                id="isPreorder"
-                checked={f.isPreorder}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setF({
-                    ...f,
-                    isPreorder: checked,
-                    badge: checked && (!f.badge || f.badge === "Best Seller") ? "Pre-Order" : f.badge,
-                  });
-                }}
-                className="h-4 w-4 rounded accent-purple-600 cursor-pointer shrink-0"
-              />
-              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-purple-700 shrink-0" />
-                <span>Mark Tool / Product as Pre-Order</span>
-              </span>
-            </label>
-            {f.isPreorder && (
-              <span className="text-[11px] font-extrabold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full shrink-0">
-                Pre-Order Mode Enabled
-              </span>
-            )}
+        {/* 5. Pre-Order */}
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+              <Clock className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                  Pre-Order
+                </h4>
+                {f.isPreorder && (
+                  <span className="text-[10px] font-extrabold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full shrink-0">
+                    Enabled
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted mt-0.5">
+                Allow students to reserve upcoming releases.
+              </p>
+            </div>
           </div>
-          <p className="text-[11px] text-muted leading-relaxed">
-            Enable pre-orders for upcoming bots, indicators, or physical journals so students can reserve their copy before the official release.
-          </p>
+
+          <label className="flex items-center gap-2.5 rounded-xl border border-line bg-cream/30 px-3.5 py-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              id="isPreorder"
+              checked={f.isPreorder}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setF({
+                  ...f,
+                  isPreorder: checked,
+                  badge: checked && (!f.badge || f.badge === "Best Seller") ? "Pre-Order" : f.badge,
+                });
+              }}
+              className="h-4 w-4 rounded accent-purple-600 cursor-pointer shrink-0"
+            />
+            <span className="text-xs font-bold text-ink">
+              Enable pre-order mode
+            </span>
+          </label>
 
           {f.isPreorder && (
-            <div className="space-y-4 pt-2 border-t border-purple-100">
+            <div className="space-y-3.5 pt-2 border-t border-line">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-purple-950 block mb-1.5">
-                  Expected Release / Delivery Window
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                  Release Window
                 </label>
                 <input
                   type="text"
                   value={f.preorderReleaseDate}
                   onChange={(e) => setF({ ...f, preorderReleaseDate: e.target.value })}
-                  placeholder="e.g. April 2026 or April 15, 2026"
-                  className="w-full rounded-xl border border-purple-200 bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15 shadow-2xs"
+                  placeholder="e.g. April 2026"
+                  className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-purple-950 block mb-1.5">
-                  Pre-Order Notice & Early-Bird Incentive Note
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                  Pre-Order Note
                 </label>
                 <textarea
                   rows={3}
                   value={f.preorderNote}
                   onChange={(e) => setF({ ...f, preorderNote: e.target.value })}
-                  placeholder="e.g. Pre-order now to lock in 50% early bird launch pricing. Software license and files delivered on release day."
-                  className="w-full resize-y rounded-xl border border-purple-200 bg-white p-4 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/15 shadow-2xs"
+                  placeholder="Early-bird details and release-day delivery note..."
+                  className="w-full resize-y rounded-xl border border-line bg-cream/30 focus:bg-white p-3.5 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
                 />
               </div>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        {/* 6. Listing & Delivery */}
+        <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cream text-ink border border-line">
+              <FileText className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                Listing & Delivery
+              </h4>
+              <p className="text-[11px] text-muted mt-0.5">
+                Badges, highlights, instructions, and visibility.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Badge</label>
+              <input
+                type="text"
+                value={f.badge}
+                onChange={(e) => setF({ ...f, badge: e.target.value })}
+                placeholder="e.g. Best Seller, New"
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Format Label</label>
+              <input
+                type="text"
+                value={f.deliverableType}
+                onChange={(e) => setF({ ...f, deliverableType: e.target.value })}
+                placeholder="e.g. EX4/EX5 + Setup Guide"
+                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Badge Label</label>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Access Instructions</label>
             <input
               type="text"
-              value={f.badge}
-              onChange={(e) => setF({ ...f, badge: e.target.value })}
-              placeholder="e.g. Best Seller, Prop-Firm Safe, New"
-              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+              value={f.accessInstructions}
+              onChange={(e) => setF({ ...f, accessInstructions: e.target.value })}
+              placeholder="Instant download available upon checkout..."
+              className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Deliverable Format / Label</label>
-            <input
-              type="text"
-              value={f.deliverableType}
-              onChange={(e) => setF({ ...f, deliverableType: e.target.value })}
-              placeholder="e.g. Compiled EX4/EX5 Robots + Setup Guide"
-              className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Key Features (One per line)</label>
+            <textarea
+              rows={3}
+              value={f.featuresStr}
+              onChange={(e) => setF({ ...f, featuresStr: e.target.value })}
+              placeholder="Enter each feature on a new line..."
+              className="w-full resize-y rounded-xl border border-line bg-cream/30 focus:bg-white p-3.5 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
-        </div>
 
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Delivery & License Instructions</label>
-          <input
-            type="text"
-            value={f.accessInstructions}
-            onChange={(e) => setF({ ...f, accessInstructions: e.target.value })}
-            placeholder="Instant download available upon checkout..."
-            className="w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
-          />
-        </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">Description</label>
+            <textarea
+              rows={4}
+              value={f.description}
+              onChange={(e) => setF({ ...f, description: e.target.value })}
+              placeholder="Detailed description of the product..."
+              className="w-full resize-y rounded-xl border border-line bg-cream/30 focus:bg-white p-3.5 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+            />
+          </div>
 
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Feature Highlights (One per line)</label>
-          <textarea
-            rows={4}
-            value={f.featuresStr}
-            onChange={(e) => setF({ ...f, featuresStr: e.target.value })}
-            placeholder="Enter each feature bullet on a new line..."
-            className="w-full resize-y rounded-xl border border-line bg-white p-4 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-muted block mb-1.5">Full Description</label>
-          <textarea
-            rows={5}
-            value={f.description}
-            onChange={(e) => setF({ ...f, description: e.target.value })}
-            placeholder="Detailed description of the tool, indicators, or e-book..."
-            className="w-full resize-y rounded-xl border border-line bg-white p-4 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 pt-1">
-          <input
-            type="checkbox"
-            id="published"
-            checked={f.published}
-            onChange={(e) => setF({ ...f, published: e.target.checked })}
-            className="h-4 w-4 rounded accent-brand"
-          />
-          <label htmlFor="published" className="text-xs font-bold text-ink cursor-pointer">
-            Publish in Store immediately
+          <label className="flex items-center gap-2.5 rounded-xl border border-line bg-cream/30 px-3.5 py-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              id="published"
+              checked={f.published}
+              onChange={(e) => setF({ ...f, published: e.target.checked })}
+              className="h-4 w-4 rounded accent-brand shrink-0"
+            />
+            <span className="text-xs font-bold text-ink">
+              Publish in Store immediately
+            </span>
           </label>
         </div>
 
