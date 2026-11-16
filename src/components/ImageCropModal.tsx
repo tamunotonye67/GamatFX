@@ -18,6 +18,7 @@ export default function ImageCropModal({
   title = "Crop & Position Photo",
 }: ImageCropModalProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [naturalSize, setNaturalSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [zoom, setZoom] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
@@ -34,25 +35,46 @@ export default function ImageCropModal({
 
   const imgRef = useRef<HTMLImageElement | null>(null);
 
+  // Lock background page scroll while modal is open
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   // Load natural dimensions of the image
   useEffect(() => {
+    let cancelled = false;
     setImageLoaded(false);
+    setLoadError(null);
     const img = new Image();
-    img.onload = () => {
+    const applyLoaded = () => {
+      if (cancelled) return;
+      if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+        setLoadError("Unable to read image dimensions. Please try another photo.");
+        return;
+      }
       setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
       setImageLoaded(true);
       setZoom(1);
       setRotation(0);
       setOffset({ x: 0, y: 0 });
     };
+    img.onload = applyLoaded;
+    img.onerror = () => {
+      if (!cancelled) {
+        setLoadError("Could not load this image. Please try a JPG or PNG file.");
+      }
+    };
     img.src = imageSrc;
     if (img.complete && img.naturalWidth > 0) {
-      setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
-      setImageLoaded(true);
-      setZoom(1);
-      setRotation(0);
-      setOffset({ x: 0, y: 0 });
+      applyLoaded();
     }
+    return () => {
+      cancelled = true;
+    };
   }, [imageSrc]);
 
   // Compute base dimensions to cover the crop box at 1x zoom
@@ -144,7 +166,6 @@ export default function ImageCropModal({
 
   // Wheel zoom
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
     const delta = -e.deltaY * 0.0015;
     handleZoomChange(zoom + delta);
   };
@@ -153,17 +174,25 @@ export default function ImageCropModal({
   const handleSaveCrop = async () => {
     if (!imageLoaded || isProcessing) return;
     setIsProcessing(true);
+    setLoadError(null);
 
     try {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
+      let img = imgRef.current;
+      const isRemoteHttp = /^https?:\/\//i.test(imageSrc);
 
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = reject;
-        img.src = imageSrc;
-        if (img.complete && img.naturalWidth > 0) resolve();
-      });
+      if (!img || !img.complete || img.naturalWidth === 0 || isRemoteHttp) {
+        const fresh = new Image();
+        if (isRemoteHttp) {
+          fresh.crossOrigin = "anonymous";
+        }
+        await new Promise<void>((resolve, reject) => {
+          fresh.onload = () => resolve();
+          fresh.onerror = () => reject(new Error("Image load failed"));
+          fresh.src = imageSrc;
+          if (fresh.complete && fresh.naturalWidth > 0) resolve();
+        });
+        img = fresh;
+      }
 
       const canvas = document.createElement("canvas");
       canvas.width = OUTPUT_SIZE;
@@ -176,6 +205,8 @@ export default function ImageCropModal({
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
+      ctx.fillStyle = "#0a0c10";
+      ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
       // Ratio from on-screen crop box to final high-res output
       const ratio = OUTPUT_SIZE / CROP_BOX_SIZE;
@@ -207,16 +238,17 @@ export default function ImageCropModal({
       await onCrop(blob, dataUrl);
     } catch (err) {
       console.error("Failed to crop image:", err);
+      setLoadError("Could not crop this image. Please try another photo.");
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl border border-line/60 bg-[#12151b] text-white shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-md">
+      <div className="relative w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)] rounded-3xl border border-line/60 bg-[#12151b] text-white shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+        <div className="shrink-0 flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/20 text-brand">
               <Camera className="h-5 w-5" />
@@ -236,8 +268,10 @@ export default function ImageCropModal({
           </button>
         </div>
 
+        {/* Scrollable body so tight screens never clip header or footer */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         {/* Crop Viewport Area */}
-        <div className="flex flex-col items-center justify-center p-6 bg-[#0a0c10]">
+        <div className="flex flex-col items-center justify-center p-4 sm:p-6 bg-[#0a0c10]">
           <div
             className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-2xl overflow-hidden bg-neutral-950 flex items-center justify-center cursor-grab active:cursor-grabbing select-none touch-none shadow-inner"
             onPointerDown={handlePointerDown}
@@ -247,12 +281,18 @@ export default function ImageCropModal({
             onWheel={handleWheel}
           >
             {/* The Image */}
-            {imageLoaded ? (
+            {loadError ? (
+              <div className="px-4 text-center text-xs text-red-400">
+                {loadError}
+              </div>
+            ) : imageLoaded ? (
               <img
                 ref={imgRef}
                 src={imageSrc}
                 alt="Crop preview"
-                className="absolute pointer-events-none select-none max-w-none transition-transform duration-75 ease-out"
+                className={`absolute pointer-events-none select-none max-w-none ${
+                  isDragging ? "" : "transition-transform duration-75 ease-out"
+                }`}
                 style={{
                   width: `${baseW}px`,
                   height: `${baseH}px`,
@@ -404,9 +444,10 @@ export default function ImageCropModal({
             {OUTPUT_SIZE} × {OUTPUT_SIZE} HD
           </div>
         </div>
+        </div>
 
         {/* Actions Footer */}
-        <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-[#0c0e12] px-6 py-4">
+        <div className="shrink-0 flex items-center justify-end gap-3 border-t border-white/10 bg-[#0c0e12] px-4 py-3 sm:px-6 sm:py-4">
           <button
             type="button"
             onClick={onCancel}

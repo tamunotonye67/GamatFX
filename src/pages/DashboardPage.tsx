@@ -2362,7 +2362,8 @@ export default function DashboardPage() {
 
     const pick = async (file?: File) => {
       if (!file) return;
-      if (!file.type.startsWith("image/")) { setErr("Please choose an image file."); return; }
+      const isImg = file.type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(file.name);
+      if (!isImg) { setErr("Please choose an image file."); return; }
       if (file.size > 8 * 1024 * 1024) { setErr("Image must be smaller than 8MB."); return; }
       setErr(null);
 
