@@ -2472,8 +2472,8 @@ function ProfileTab({
         <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
         <p className="mt-1 text-sm text-muted">Shown on your dashboard, certificates area and community profile.</p>
 
-        <div className="mt-6 flex flex-wrap items-center gap-6">
-          <div className="relative">
+        <div className="mt-6 flex flex-col items-center gap-5 text-center sm:flex-row sm:items-center sm:gap-6 sm:text-left">
+          <div className="relative shrink-0">
             {avatar ? (
               <img
                 src={normalizeImageUrl(avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
@@ -2493,13 +2493,13 @@ function ProfileTab({
             </button>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={() => fileRef.current?.click()} className="btn-outline-dark !py-2.5">
+          <div className="flex w-full flex-col items-center gap-2.5 sm:w-auto sm:items-start">
+            <div className="flex flex-wrap justify-center gap-2.5 sm:justify-start sm:gap-3">
+              <button type="button" onClick={() => fileRef.current?.click()} className="btn-outline-dark !py-2.5 !px-4 text-xs sm:text-sm">
                 <Camera className="h-4 w-4" /> {avatar ? "Change photo" : "Upload photo"}
               </button>
               {avatar && (
-                <button type="button" onClick={() => { setAvatar(""); store.updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2.5">
+                <button type="button" onClick={() => { setAvatar(""); store.updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2.5 !px-4 text-xs sm:text-sm">
                   <Trash2 className="h-4 w-4" /> Remove
                 </button>
               )}
