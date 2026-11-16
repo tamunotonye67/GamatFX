@@ -10,7 +10,27 @@ import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "..
 import {
   Clock, Users, PlayCircle, Star, BadgeCheck, ArrowUpRight,
   Infinity as InfinityIcon, Award, MonitorPlay, CheckCircle2, BookOpen,
+  GraduationCap, LineChart, Brain, Target, Shield, Rocket, TrendingUp, BarChart3, Layers,
 } from "lucide-react";
+
+const COURSE_ICONS: Record<string, React.ElementType> = {
+  GraduationCap,
+  LineChart,
+  Brain,
+  Target,
+  Shield,
+  Award,
+  Rocket,
+  TrendingUp,
+  BarChart3,
+  Layers,
+  BookOpen,
+};
+
+function CourseIcon({ name, className = "h-5 w-5" }: { name?: string; className?: string }) {
+  const Icon = (name && COURSE_ICONS[name]) || BookOpen;
+  return <Icon className={className} />;
+}
 
 const filters = ["All", "Beginner", "Fundamental", "Technical", "Mentorship"] as const;
 
@@ -29,7 +49,7 @@ function Catalogue() {
   const shown = useMemo(() => {
     const merged = COURSES.map((c) => {
       const m = managedCourses.find((mc) => mc.id === c.id);
-      if (!m) return c;
+      if (!m) return { ...c, icon: undefined as string | undefined, iconColor: undefined as string | undefined };
       return {
         ...asCourse({
           ...m,
@@ -37,6 +57,8 @@ function Catalogue() {
           rating: c.rating,
         }),
         featured: m.featured ?? c.featured,
+        icon: m.icon,
+        iconColor: m.iconColor,
       };
     });
     const live = merged.filter((c) => {
@@ -104,8 +126,16 @@ function Catalogue() {
                       <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {c.rating}
                     </span>
                   </div>
+                  {(c.icon || c.iconColor) && (
+                    <span
+                      className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-lg"
+                      style={{ background: c.iconColor || "#dc3545" }}
+                    >
+                      <CourseIcon name={c.icon} className="h-5 w-5" />
+                    </span>
+                  )}
                   {c.featured && (
-                    <span className="absolute left-4 top-4 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">Most Popular</span>
+                    <span className={`absolute top-4 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white ${(c.icon || c.iconColor) ? "left-16" : "left-4"}`}>Most Popular</span>
                   )}
                   {owned && (
                     <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-bold text-brand">
@@ -195,7 +225,7 @@ function Catalogue() {
                         className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-lg"
                         style={{ background: c.iconColor || "#dc3545" }}
                       >
-                        <BookOpen className="h-5 w-5" />
+                        <CourseIcon name={c.icon} className="h-5 w-5" />
                       </span>
                       {c.featured && (
                         <span className="absolute right-4 top-4 rounded-full bg-brand px-3 py-1 text-xs font-bold text-white">Featured</span>
