@@ -636,7 +636,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               <div className="relative">
                 <Link2 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
                 <input
-                  type="url"
+                  type="text"
+                  inputMode="url"
                   value={f.image}
                   onChange={(e) => setF({ ...f, image: e.target.value })}
                   onBlur={() => {
@@ -721,7 +722,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
             <div className="relative flex-1 min-w-0">
               <Link2 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
               <input
-                type="url"
+                type="text"
+                inputMode="url"
                 value={newGalleryUrl}
                 onChange={(e) => setNewGalleryUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGalleryUrl(); } }}
