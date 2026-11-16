@@ -294,11 +294,25 @@ export default function DashboardPage() {
   }, [allAvailableCourses, certifiedIds, pendingPaymentCertIds]);
 
   if (!isAuthed || !user) {
+    if (store.authLoading) {
+      return (
+        <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-brand" />
+          <h1 className="mt-6 font-display text-2xl font-extrabold text-ink">Signing you in…</h1>
+          <p className="mt-2 max-w-sm text-sm text-muted">Completing your Google authentication, please wait.</p>
+        </section>
+      );
+    }
     return (
       <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
         <Lock className="h-14 w-14 text-brand" />
         <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Sign in to view your dashboard</h1>
         <p className="mt-3 max-w-sm text-muted">Track your courses, progress and certificates in one place.</p>
+        {store.authError && (
+          <div className="mt-4 max-w-md rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
+            Google sign-in error: {store.authError}
+          </div>
+        )}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button onClick={() => navigate("/login")} className="btn-primary">Log In</button>
           <button onClick={() => navigate("/signup")} className="btn-outline-dark">Create Account</button>

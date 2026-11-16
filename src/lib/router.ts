@@ -70,7 +70,7 @@ function parse(): string {
   }
 
   // 3. Handle general OAuth login token redirect (#access_token=... with no subpath)
-  if (hash.startsWith("#access_token=") && !hash.includes("/")) {
+  if (hash.startsWith("#access_token=") && !hash.startsWith("#/")) {
     persistRoute("/dashboard");
     return "/dashboard";
   }
@@ -81,6 +81,12 @@ function parse(): string {
       persistRoute("/reset-password");
       return "/reset-password";
     }
+    persistRoute("/dashboard");
+    return "/dashboard";
+  }
+
+  // 3c. Handle OAuth error callback (?error=... or #error=...)
+  if (search.includes("error=") || hash.startsWith("#error=")) {
     persistRoute("/dashboard");
     return "/dashboard";
   }

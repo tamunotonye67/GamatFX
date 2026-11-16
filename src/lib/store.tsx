@@ -1273,6 +1273,8 @@ type Ctx = {
   user: User | null;
   isAuthed: boolean;
   isAdmin: boolean;
+  authLoading: boolean;
+  authError: string | null;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
   signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string; avatar?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
   logout: () => void;
@@ -1579,6 +1581,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const recentlyUpdatedAccountsRef = useRef<Map<string, { account: Account; ts: number; persistLocal?: boolean }>>(new Map());
   const authActionInProgressRef = useRef(false);
   const syncingUidRef = useRef<string | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(() => {
+    try {
+      const search = window.location.search || "";
+      const hash = window.location.hash || "";
+      return search.includes("code=") || hash.includes("access_token=");
+    } catch {
+      return false;
+    }
+  });
+  const [authError, setAuthError] = useState<string | null>(null);
 
   /* Sync active user session with native Supabase Auth & Google OAuth callbacks */
   useEffect(() => {
@@ -1726,19 +1738,62 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        syncAuthUser(session.user);
+    const initAuth = async () => {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(
+          window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash
+        );
+        const urlErr =
+          searchParams.get("error_description") ||
+          searchParams.get("error") ||
+          hashParams.get("error_description") ||
+          hashParams.get("error");
+        if (urlErr) {
+          setAuthError(urlErr);
+          try {
+            localStorage.removeItem("gamat.oauth_intent.v1");
+          } catch {}
+        }
+
+        let { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          setAuthError(error.message);
+        }
+
+        const code = searchParams.get("code");
+        if (!session && code) {
+          const exchanged = await supabase.auth.exchangeCodeForSession(code);
+          if (exchanged.error) {
+            setAuthError(exchanged.error.message);
+          } else if (exchanged.data?.session) {
+            session = exchanged.data.session;
+          }
+        }
+
+        if (session?.user) {
+          setAuthError(null);
+          await syncAuthUser(session.user);
+        }
+      } catch (err: any) {
+        setAuthError(err?.message || "Authentication failed.");
+      } finally {
+        setAuthLoading(false);
       }
-    });
+    };
+
+    initAuth();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        syncAuthUser(session.user);
+        setAuthError(null);
+        await syncAuthUser(session.user);
+        setAuthLoading(false);
       } else if (_event === "SIGNED_OUT" && !authActionInProgressRef.current) {
         setSessionId(null);
+        setAuthLoading(false);
       }
     });
 
@@ -4472,7 +4527,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const value: Ctx = {
-    user, isAuthed: !!user, isAdmin: user?.role === "admin",
+    user, isAuthed: !!user, isAdmin: user?.role === "admin", authLoading, authError,
     login, signup, logout, updateProfile,
     enrollments: myEnrollments, isEnrolled, getEnrollment, enroll,
     toggleLesson, setLastLesson, progressOf, stats,
