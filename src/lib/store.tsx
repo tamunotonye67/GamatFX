@@ -1578,12 +1578,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const recentlyCreatedRef = useRef<Map<string, { account: Account; ts: number }>>(new Map());
   const recentlyUpdatedAccountsRef = useRef<Map<string, { account: Account; ts: number; persistLocal?: boolean }>>(new Map());
   const authActionInProgressRef = useRef(false);
+  const syncingUidRef = useRef<string | null>(null);
 
   /* Sync active user session with native Supabase Auth & Google OAuth callbacks */
   useEffect(() => {
     const syncAuthUser = async (userObj: any) => {
       if (!userObj?.id || authActionInProgressRef.current) return;
       const uid = userObj.id;
+      if (syncingUidRef.current === uid) return;
+      syncingUidRef.current = uid;
+      try {
       const userEmail = (userObj.email || "").trim().toLowerCase();
 
       const isOAuth =
@@ -1606,7 +1610,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem("gamat.oauth_intent.v1");
         } catch {}
         unmarkDeletedAccount(uid, userEmail);
-      } else {
+      } else if (userEmail !== "tamunotonye.taylor@gmail.com") {
         const deleted = getDeletedAccountIds();
         if (deleted.has(uid.toLowerCase()) || (userEmail && deleted.has(userEmail))) {
           supabase.auth.signOut().catch(() => {});
@@ -1714,6 +1718,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             return;
           }
         } catch {}
+      }
+      } finally {
+        if (syncingUidRef.current === uid) {
+          syncingUidRef.current = null;
+        }
       }
     };
 
