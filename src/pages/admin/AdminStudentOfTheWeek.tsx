@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { AdminShell, Card, Field, Select } from "./AdminShell";
+import { AdminShell, Card } from "./AdminShell";
 import { useStore, type StudentOfTheWeek, type Account, type QuizAttempt, type CombatStats } from "../../lib/store";
 import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck } from "lucide-react";
 import { uploadAvatar } from "../../lib/supabaseStorage";
@@ -271,66 +271,85 @@ export function AdminStudentOfTheWeek() {
   return (
     <AdminShell
       title="Student of the Week"
-      subtitle="Nominate and publish the top performing student spotlight with real-time stats and custom mentor reviews."
+      subtitle="Nominate & publish the weekly student spotlight."
       action={
         <a
           href="/fun/student-of-the-week"
           target="_blank"
           rel="noreferrer"
-          className="btn-outline-dark !py-2 inline-flex items-center gap-1.5"
+          className="btn-outline-dark !py-2 inline-flex w-full sm:w-auto items-center justify-center gap-1.5 text-xs font-bold"
         >
           <Eye className="h-4 w-4" /> View Live Page
         </a>
       }
     >
-      <div className="grid gap-8 lg:grid-cols-12">
+      <div className="grid gap-6 lg:grid-cols-12">
         {/* Form Column */}
         <div className="lg:col-span-7">
-          <Card className="p-6">
-            <div className="flex items-center gap-2 mb-6 text-brand font-bold">
-              <Trophy className="h-5 w-5 text-amber-500" />
-              <h2 className="text-lg font-bold text-ink">Publish Active Spotlight</h2>
-            </div>
-
+          <form onSubmit={submit} className="space-y-4 sm:space-y-5">
             {msg && (
               <div
-                className={`mb-6 rounded-2xl p-4 text-sm font-semibold flex items-center gap-2 ${
+                className={`rounded-2xl p-4 text-xs sm:text-sm font-semibold flex items-center gap-2.5 ${
                   msg.type === "success"
                     ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                     : "bg-rose-50 text-rose-800 border border-rose-200"
                 }`}
               >
                 <CheckCircle2 className="h-5 w-5 shrink-0" />
-                {msg.text}
+                <span>{msg.text}</span>
               </div>
             )}
 
-            <form onSubmit={submit} className="space-y-4">
-              {/* Select Student */}
-              <div>
-                <Select
-                  label="Select Registered Student"
-                  value={form.studentId ?? ""}
-                  onChange={(val) => handleSelectStudent(val)}
-                  options={[
-                    { v: "", l: "-- Choose student (loads real-time stats) --" },
-                    ...accounts.map((a) => ({
-                      v: a.id,
-                      l: `${formatAccountName(a)} (${a.email})`,
-                    })),
-                  ]}
-                />
+            {/* 1. Student & Track */}
+            <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                  <Trophy className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                    Student & Track
+                  </h2>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    Pick a student to auto-load stats, or enter details manually.
+                  </p>
+                </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Student Full Name *"
-                  value={form.studentName ?? ""}
-                  onChange={(v) => setForm({ ...form, studentName: v })}
-                  ph="e.g. Kelechi Okafor"
-                />
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                  Registered Student
+                </label>
+                <select
+                  value={form.studentId ?? ""}
+                  onChange={(e) => handleSelectStudent(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 cursor-pointer"
+                >
+                  <option value="">-- Choose student (loads real-time stats) --</option>
+                  {accounts.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {formatAccountName(a)} ({a.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-3.5 sm:gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.studentName ?? ""}
+                    onChange={(e) => setForm({ ...form, studentName: e.target.value })}
+                    placeholder="e.g. Kelechi Okafor"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
                     Course / Track *
                   </label>
                   <input
@@ -338,8 +357,8 @@ export function AdminStudentOfTheWeek() {
                     list="course-track-suggestions"
                     value={form.track ?? ""}
                     onChange={(e) => setForm({ ...form, track: e.target.value })}
-                    placeholder="Type or pick course track..."
-                    className="w-full rounded-xl border border-line bg-cream px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
+                    placeholder="Type or pick track..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
                   />
                   <datalist id="course-track-suggestions">
                     {allCourseOptions.map((c) => (
@@ -350,17 +369,17 @@ export function AdminStudentOfTheWeek() {
               </div>
 
               {/* Quick Course Suggestions */}
-              <div className="flex flex-wrap items-center gap-1.5 -mt-2">
-                <span className="text-[11px] font-semibold text-muted">Quick Pick:</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] font-semibold text-muted mr-0.5">Quick Pick:</span>
                 {allCourseOptions.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setForm({ ...form, track: c })}
-                    className={`text-[11px] px-2.5 py-0.5 rounded-full border transition ${
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition cursor-pointer ${
                       form.track === c
-                        ? "bg-brand text-white border-brand font-bold shadow-sm"
-                        : "bg-cream text-ink/75 border-line hover:border-brand hover:text-brand"
+                        ? "bg-brand text-white border-brand font-bold shadow-xs"
+                        : "bg-slate-50 text-ink/75 border-slate-200 hover:border-brand hover:text-brand"
                     }`}
                   >
                     {c}
@@ -368,140 +387,232 @@ export function AdminStudentOfTheWeek() {
                 ))}
               </div>
 
-              <Field
-                label="Week Period *"
-                value={form.weekPeriod ?? ""}
-                onChange={(v) => setForm({ ...form, weekPeriod: v })}
-                ph="e.g. Week of Nov 09 – Nov 15, 2026"
-              />
-
-              {/* Picture Upload / URL */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
-                  Student Picture / Avatar
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                  Week Period *
                 </label>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    value={form.avatar ?? ""}
-                    onChange={(e) => setForm({ ...form, avatar: e.target.value })}
-                    onBlur={() => {
-                      if (form.avatar?.trim()) {
-                        const norm = normalizeImageUrl(form.avatar.trim());
-                        if (norm && norm !== form.avatar) setForm((p) => ({ ...p, avatar: norm }));
-                      }
-                    }}
-                    placeholder="Image URL (https://… or Google Drive / Dropbox link)"
-                    className="w-full rounded-xl border border-line bg-cream px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs"
+                <input
+                  type="text"
+                  required
+                  value={form.weekPeriod ?? ""}
+                  onChange={(e) => setForm({ ...form, weekPeriod: e.target.value })}
+                  placeholder="e.g. Week of Nov 09 – Nov 15, 2026"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                />
+              </div>
+            </div>
+
+            {/* 2. Student Photo */}
+            <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                  <ImageIcon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                    Student Photo
+                  </h4>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    Upload a portrait or paste an image link.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                <div className="relative group shrink-0 overflow-hidden rounded-xl border border-line bg-slate-50">
+                  <img
+                    src={normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                    onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
+                    alt="Student photo preview"
+                    className="h-40 w-full sm:h-24 sm:w-24 object-cover"
                   />
+                  {form.avatar && !isUploading && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, avatar: "" })}
+                      title="Clear photo"
+                      className="absolute top-2 right-2 rounded-full bg-black/65 hover:bg-brand text-white p-1.5 backdrop-blur-xs transition cursor-pointer shadow-xs"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 w-full min-w-0 space-y-2.5">
                   <button
                     type="button"
                     disabled={isUploading}
                     onClick={() => fileRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-4 py-3 text-xs font-bold text-ink transition hover:border-brand hover:bg-white disabled:opacity-50 shadow-2xs cursor-pointer"
+                    className="w-full sm:w-auto rounded-xl border border-line bg-cream/60 hover:bg-cream px-4 py-2.5 text-xs font-bold text-ink transition inline-flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
-                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                    {isUploading ? "Optimizing..." : "Upload"}
+                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 text-brand" />}
+                    <span>{isUploading ? "Optimizing..." : "Upload Photo"}</span>
                   </button>
                   <input ref={fileRef} type="file" accept="image/*" onChange={handleImageFile} className="hidden" />
-                </div>
 
-                {form.avatar && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <img
-                      src={normalizeImageUrl(form.avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
-                      onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
-                      alt="Preview"
-                      className="h-16 w-16 shrink-0 aspect-square rounded-xl object-cover border border-line shadow-sm"
+                  <div className="relative">
+                    <Link2 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" />
+                    <input
+                      type="text"
+                      inputMode="url"
+                      value={form.avatar ?? ""}
+                      onChange={(e) => setForm({ ...form, avatar: e.target.value })}
+                      onBlur={() => {
+                        if (form.avatar?.trim()) {
+                          const norm = normalizeImageUrl(form.avatar.trim());
+                          if (norm && norm !== form.avatar) setForm((p) => ({ ...p, avatar: norm }));
+                        }
+                      }}
+                      placeholder="https://... or paste Google Drive / Dropbox link"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs pl-9 pr-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
                     />
-                    <span className="text-xs text-muted">Photo preview</span>
                   </div>
-                )}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Performance Metrics */}
+            <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <TrendingUp className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                    Performance Metrics
+                  </h4>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    Weekly stats displayed on the spotlight card.
+                  </p>
+                </div>
               </div>
 
-              {/* Metrics Inputs */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Win Rate"
-                  value={form.winRate ?? ""}
-                  onChange={(v) => setForm({ ...form, winRate: v })}
-                  ph="e.g. 0.0% or 78.5%"
-                />
-                <Field
-                  label="Quiz XP"
-                  value={form.quizXP ?? ""}
-                  onChange={(v) => setForm({ ...form, quizXP: v })}
-                  ph="e.g. 0 XP"
-                />
-                <Field
-                  label="Market Combat Rank"
-                  value={form.combatRank ?? ""}
-                  onChange={(v) => setForm({ ...form, combatRank: v })}
-                  ph="e.g. Market Rookie (Tier 1)"
-                />
-                <Field
-                  label="Weekly Gain / Return"
-                  value={form.weeklyReturn ?? ""}
-                  onChange={(v) => setForm({ ...form, weeklyReturn: v })}
-                  ph="e.g. +0.0% or +28.4%"
-                />
+              <div className="grid gap-3.5 sm:gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                    Win Rate
+                  </label>
+                  <input
+                    type="text"
+                    value={form.winRate ?? ""}
+                    onChange={(e) => setForm({ ...form, winRate: e.target.value })}
+                    placeholder="e.g. 78.5%"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                    Quiz XP
+                  </label>
+                  <input
+                    type="text"
+                    value={form.quizXP ?? ""}
+                    onChange={(e) => setForm({ ...form, quizXP: e.target.value })}
+                    placeholder="e.g. 1,200 XP"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                    Combat Rank
+                  </label>
+                  <input
+                    type="text"
+                    value={form.combatRank ?? ""}
+                    onChange={(e) => setForm({ ...form, combatRank: e.target.value })}
+                    placeholder="e.g. Market Rookie (Tier 1)"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                    Weekly Return
+                  </label>
+                  <input
+                    type="text"
+                    value={form.weeklyReturn ?? ""}
+                    onChange={(e) => setForm({ ...form, weeklyReturn: e.target.value })}
+                    placeholder="e.g. +28.4%"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Mentor Review */}
+            <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
+                    Mentor Review
+                  </h4>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    Evaluation writeup and recommendation quote.
+                  </p>
+                </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
-                  Performance Review Writeup *
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                  Performance Review *
                 </label>
                 <textarea
                   rows={4}
                   value={form.performanceReview ?? ""}
                   onChange={(e) => setForm({ ...form, performanceReview: e.target.value })}
-                  placeholder="Write your personal evaluation of the student's trading performance, risk management, and discipline this week..."
-                  className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed resize-y"
+                  placeholder="Write your evaluation of the student's execution, risk management, and discipline..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs p-3.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 leading-relaxed resize-y"
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
-                  Mentor Recommendation Quote
+                <label className="text-[11px] font-bold uppercase tracking-wider text-muted block mb-1.5">
+                  Mentor Quote
                 </label>
                 <textarea
                   rows={3}
                   value={form.mentorQuote ?? ""}
                   onChange={(e) => setForm({ ...form, mentorQuote: e.target.value })}
-                  placeholder="e.g. Great discipline during market noise. James executed his plan with zero overleveraging."
-                  className="w-full rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 shadow-2xs leading-relaxed resize-y"
+                  placeholder="e.g. Great discipline during market noise with zero overleveraging."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs p-3.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 leading-relaxed resize-y"
                 />
               </div>
+            </div>
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSaving || isUploading}
-                  className="btn-primary w-full justify-center !py-3 disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Saving & Publishing...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save & Publish Student of the Week
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </Card>
+            <button
+              type="submit"
+              disabled={isSaving || isUploading}
+              className="btn-primary w-full justify-center !py-3 disabled:opacity-50 cursor-pointer"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Publishing...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" /> Publish Spotlight
+                </>
+              )}
+            </button>
+          </form>
         </div>
 
         {/* Live Website Preview */}
         <div className="lg:col-span-5">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-line">
+          <Card className="p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-line">
               <span className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
-                <Eye className="h-4 w-4 text-brand" /> Website Card Preview
+                <Eye className="h-4 w-4 text-brand shrink-0" /> Live Card Preview
               </span>
-              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
                 Live Layout
               </span>
             </div>
