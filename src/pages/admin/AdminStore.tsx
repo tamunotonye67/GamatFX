@@ -530,7 +530,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               value={f.title}
               onChange={(e) => setF({ ...f, title: e.target.value })}
               placeholder="e.g. GAMAT Apex Scalper EA"
-              className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
 
@@ -542,7 +542,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.author}
                 onChange={(e) => setF({ ...f, author: e.target.value })}
                 placeholder="e.g. By GAMAT Research Desk"
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </div>
 
@@ -551,7 +551,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               <select
                 value={f.category}
                 onChange={(e) => setF({ ...f, category: e.target.value as any })}
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 cursor-pointer"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 cursor-pointer"
               >
                 <option value="bot">AI Bots & EAs</option>
                 <option value="indicator">Indicators & Scripts</option>
@@ -569,7 +569,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               value={f.tagline}
               onChange={(e) => setF({ ...f, tagline: e.target.value })}
               placeholder="One-sentence product summary"
-              className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
         </div>
@@ -646,7 +646,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                     }
                   }}
                   placeholder="https://... or paste Google Drive / Dropbox link"
-                  className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white pl-9 pr-3.5 py-2.5 text-xs text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs pl-9 pr-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
                 />
               </div>
             </div>
@@ -726,7 +726,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 onChange={(e) => setNewGalleryUrl(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGalleryUrl(); } }}
                 placeholder="Paste preview image URL (https://...)"
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white pl-9 pr-3.5 py-2.5 text-xs text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs pl-9 pr-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
               />
             </div>
             <button
@@ -850,7 +850,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.downloadUrl}
                 onChange={(e) => setF({ ...f, downloadUrl: e.target.value })}
                 placeholder="https://drive.google.com/... or Dropbox / S3 link"
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white pl-9 pr-3.5 py-2.5 text-xs text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs pl-9 pr-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono"
               />
             </div>
           </div>
@@ -912,7 +912,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.isFree ? "0" : f.price}
                 onChange={(e) => setF({ ...f, price: e.target.value })}
                 placeholder={f.isFree ? "0" : "e.g. 25000"}
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:bg-slate-100 disabled:text-muted disabled:cursor-not-allowed"
               />
             </div>
 
@@ -925,7 +925,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.originalPrice}
                 onChange={(e) => setF({ ...f, originalPrice: e.target.value })}
                 placeholder="e.g. 45000"
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-semibold text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </div>
           </div>
@@ -985,7 +985,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                   value={f.preorderReleaseDate}
                   onChange={(e) => setF({ ...f, preorderReleaseDate: e.target.value })}
                   placeholder="e.g. April 2026"
-                  className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
                 />
               </div>
 
@@ -998,7 +998,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                   value={f.preorderNote}
                   onChange={(e) => setF({ ...f, preorderNote: e.target.value })}
                   placeholder="Early-bird details and release-day delivery note..."
-                  className="w-full resize-y rounded-xl border border-line bg-cream/30 focus:bg-white p-3.5 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
+                  className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs p-3.5 text-sm font-medium leading-relaxed text-ink outline-none transition focus:border-purple-600 focus:ring-2 focus:ring-purple-600/10"
                 />
               </div>
             </div>
@@ -1029,7 +1029,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.badge}
                 onChange={(e) => setF({ ...f, badge: e.target.value })}
                 placeholder="e.g. Best Seller, New"
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </div>
 
@@ -1040,7 +1040,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
                 value={f.deliverableType}
                 onChange={(e) => setF({ ...f, deliverableType: e.target.value })}
                 placeholder="e.g. EX4/EX5 + Setup Guide"
-                className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
               />
             </div>
           </div>
@@ -1052,7 +1052,7 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
               value={f.accessInstructions}
               onChange={(e) => setF({ ...f, accessInstructions: e.target.value })}
               placeholder="Instant download available upon checkout..."
-              className="w-full rounded-xl border border-line bg-cream/30 focus:bg-white px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white placeholder:text-slate-400 shadow-2xs px-3.5 py-2.5 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10"
             />
           </div>
 
