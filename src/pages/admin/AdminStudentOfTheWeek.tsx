@@ -180,12 +180,18 @@ export function AdminStudentOfTheWeek() {
         ? prev.mentorQuote || ""
         : "";
 
+      const avatar = isCurrentSotw
+        ? metrics.avatar || studentOfTheWeek.avatar || ""
+        : isCurrentForm
+        ? metrics.avatar || prev.avatar || ""
+        : metrics.avatar || "";
+
       return {
         ...prev,
         ...metrics,
         track,
         id: prev.id || studentOfTheWeek.id || "sotw_active",
-        avatar: metrics.avatar || (isCurrentSotw ? studentOfTheWeek.avatar : "") || prev.avatar || "",
+        avatar,
         performanceReview,
         mentorQuote,
       };
