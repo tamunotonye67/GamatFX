@@ -1,17 +1,24 @@
 import { useReveal } from "../lib/useReveal";
 import { Clock, Users, PlayCircle, Star } from "lucide-react";
 import { navigate } from "../lib/router";
-import { COURSES, naira, totalLessons } from "../lib/courses";
+import { COURSES, naira, totalLessons, asCourse } from "../lib/courses";
 import { useStore } from "../lib/store";
 
 /** Home-page featured courses — links straight into each course detail. */
 export default function Courses() {
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { priceOf, isEnrolled } = useStore();
+  const { priceOf, isEnrolled, managedCourses } = useStore();
 
   const featured = COURSES.filter((c) =>
     ["fundamental-supply-demand", "price-action-mastery", "pro-trader-mentorship"].includes(c.id)
-  );
+  ).map((c) => {
+    const m = managedCourses.find((mc) => mc.id === c.id);
+    if (!m) return c;
+    return {
+      ...asCourse({ ...m, enrolled: c.enrolled, rating: c.rating }),
+      featured: m.featured ?? c.featured,
+    };
+  });
 
   return (
     <section id="courses" className="section bg-white overflow-hidden">

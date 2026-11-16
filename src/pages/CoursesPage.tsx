@@ -4,7 +4,7 @@ import PageCta from "../components/PageCta";
 import Faq from "../components/Faq";
 import { useReveal } from "../lib/useReveal";
 import { navigate } from "../lib/router";
-import { COURSES, totalLessons, naira } from "../lib/courses";
+import { COURSES, totalLessons, naira, asCourse } from "../lib/courses";
 import { useStore } from "../lib/store";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import {
@@ -27,9 +27,25 @@ function Catalogue() {
   const { isEnrolled, progressOf, priceOf, courseSettings, managedCourses, admin } = useStore();
 
   const shown = useMemo(() => {
-    const live = COURSES.filter((c) => courseSettings[c.id]?.published !== false);
+    const merged = COURSES.map((c) => {
+      const m = managedCourses.find((mc) => mc.id === c.id);
+      if (!m) return c;
+      return {
+        ...asCourse({
+          ...m,
+          enrolled: admin.enrollments.filter((e) => e.courseId === c.id).length || c.enrolled,
+          rating: c.rating,
+        }),
+        featured: m.featured ?? c.featured,
+      };
+    });
+    const live = merged.filter((c) => {
+      const m = managedCourses.find((mc) => mc.id === c.id);
+      if (m && m.published === false) return false;
+      return courseSettings[c.id]?.published !== false;
+    });
     return active === "All" ? live : live.filter((c) => c.tag === active);
-  }, [active, courseSettings]);
+  }, [active, courseSettings, managedCourses, admin.enrollments]);
 
   const customShown = useMemo(() => {
     const live = managedCourses.filter((c) => c.published && !COURSES.some((b) => b.id === c.id));
