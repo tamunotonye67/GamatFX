@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Logo from "../components/Logo";
+import AvatarPicker from "../components/AvatarPicker";
 import { navigate } from "../lib/router";
 import { useStore, storeCredential } from "../lib/store";
 import { supabase } from "../lib/supabase";
@@ -592,6 +593,7 @@ export function SignUpPage() {
     password: "",
     phone: "",
     country: "Nigeria",
+    avatar: "",
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -696,6 +698,16 @@ export function SignUpPage() {
             <div>
               <PasswordInput label="Password" value={form.password} onChange={set("password")} />
               <p className="mt-1 text-xs text-muted">Must be at least 6 characters.</p>
+            </div>
+
+            <div className="rounded-2xl border border-line bg-cream/40 p-4">
+              <AvatarPicker
+                compact
+                title="Choose an avatar (optional)"
+                subtitle="Pick a modern avatar or upload your own photo later."
+                value={form.avatar}
+                onChange={set("avatar")}
+              />
             </div>
 
             <label className="flex items-start gap-2.5 text-sm text-muted">

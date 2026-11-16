@@ -1274,7 +1274,7 @@ type Ctx = {
   isAuthed: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
-  signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
+  signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string; avatar?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
   logout: () => void;
   updateProfile: (patch: Partial<User>) => void;
 
@@ -1998,6 +1998,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       password: d.password,
       phone: d.phone ? d.phone.trim() : undefined,
       country: d.country?.trim() || "Nigeria",
+      avatar: d.avatar || undefined,
       role: "student" as const,
       status: "active" as const,
     };

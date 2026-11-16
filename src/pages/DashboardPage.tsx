@@ -18,6 +18,7 @@ import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
 import { getSignupReferralUrl } from "../lib/affiliate";
 import ImageCropModal from "../components/ImageCropModal";
+import AvatarPicker from "../components/AvatarPicker";
 import { formatAccountName, formatStudentName, capitalizeWord } from "../lib/formatName";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
@@ -2228,6 +2229,14 @@ export default function DashboardPage() {
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ""; }} />
               </div>
+
+              <AvatarPicker
+                value={photo}
+                onChange={(url) => {
+                  setPhoto(url);
+                  updateProfile({ avatar: url || undefined });
+                }}
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -2445,6 +2454,14 @@ export default function DashboardPage() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden"
               onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
           </div>
+
+          <AvatarPicker
+            value={avatar}
+            onChange={(url) => {
+              setAvatar(url);
+              store.updateProfile({ avatar: url || undefined });
+            }}
+          />
         </div>
 
         {/* Details */}
