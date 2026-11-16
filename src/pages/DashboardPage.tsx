@@ -508,7 +508,7 @@ export default function DashboardPage() {
           {tab === "events" && <MyEvents />}
           {tab === "posts" && <MyArticles />}
           {tab === "team-bio" && <TeamBioForm />}
-          {tab === "profile" && <Profile />}
+          {tab === "profile" && <ProfileTab user={user} store={store} openCropModal={openCropModal} />}
         </div>
       </section>
 
@@ -2343,244 +2343,334 @@ export default function DashboardPage() {
     );
   }
 
-  function Profile() {
-    const fileRef = useRef<HTMLInputElement | null>(null);
-    const [form, setForm] = useState({
-      firstName: user!.firstName,
-      middleName: user!.middleName ?? "",
-      lastName: user!.lastName,
-      nickname: user!.nickname ?? "",
-      phone: user!.phone ?? "", country: user!.country ?? "",
-      birthday: user!.birthday ?? "", bio: user!.bio ?? "",
+}
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function ProfileTab({
+  user,
+  store,
+  openCropModal,
+}: {
+  user: NonNullable<ReturnType<typeof useStore>["user"]>;
+  store: ReturnType<typeof useStore>;
+  openCropModal: (file: File, target: "profile" | "team") => void;
+}) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [form, setForm] = useState({
+    firstName: user.firstName,
+    middleName: user.middleName ?? "",
+    lastName: user.lastName,
+    nickname: user.nickname ?? "",
+    phone: user.phone ?? "",
+    country: user.country ?? "",
+    birthday: user.birthday ?? "",
+    bio: user.bio ?? "",
+  });
+  const [avatar, setAvatar] = useState(user.avatar ?? "");
+  useEffect(() => {
+    setAvatar(user.avatar ?? "");
+  }, [user.avatar]);
+
+  // Parse YYYY-MM-DD into separate Day / Month / Year parts so mobile selects stay in sync
+  const parseBday = (val: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(val);
+    if (!m) return { y: "", mo: "", d: "" };
+    return { y: m[1], mo: m[2], d: m[3] };
+  };
+  const [dobParts, setDobParts] = useState(() => parseBday(user.birthday ?? ""));
+
+  const updateDobPart = (part: "y" | "mo" | "d", val: string) => {
+    setDobParts((prev) => {
+      const next = { ...prev, [part]: val };
+      if (next.y && next.mo && next.d) {
+        const maxDay = new Date(Number(next.y), Number(next.mo), 0).getDate();
+        const clampedDay = String(Math.min(Number(next.d), maxDay)).padStart(2, "0");
+        next.d = clampedDay;
+        setForm((f) => ({ ...f, birthday: `${next.y}-${next.mo}-${clampedDay}` }));
+      } else if (!next.y && !next.mo && !next.d) {
+        setForm((f) => ({ ...f, birthday: "" }));
+      }
+      return next;
     });
-    const [avatar, setAvatar] = useState(user!.avatar ?? "");
-    useEffect(() => {
-      setAvatar(user?.avatar ?? "");
-    }, [user?.avatar]);
-    const [saved, setSaved] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [err, setErr] = useState<string | null>(null);
+  };
 
-    // Has anything actually changed?
-    const dirty =
-      form.firstName !== user!.firstName ||
-      form.middleName !== (user!.middleName ?? "") ||
-      form.lastName !== user!.lastName ||
-      form.nickname !== (user!.nickname ?? "") ||
-      form.phone !== (user!.phone ?? "") ||
-      form.country !== (user!.country ?? "") ||
-      form.birthday !== (user!.birthday ?? "") ||
-      form.bio !== (user!.bio ?? "") ||
-      avatar !== (user!.avatar ?? "");
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
+  const maxDaysInSelectedMonth =
+    dobParts.y && dobParts.mo
+      ? new Date(Number(dobParts.y), Number(dobParts.mo), 0).getDate()
+      : dobParts.mo
+        ? new Date(2000, Number(dobParts.mo), 0).getDate()
+        : 31;
+  const days = Array.from({ length: maxDaysInSelectedMonth }, (_, i) => String(i + 1).padStart(2, "0"));
 
-    const save = (e: React.FormEvent) => {
-      e.preventDefault();
-      setErr(null);
-      if (!form.firstName.trim()) { setErr("First name is required."); return; }
-      if (!form.lastName.trim()) { setErr("Last name is required."); return; }
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-      setSaving(true);
-      window.setTimeout(() => {
-        store.updateProfile({
-          firstName: capitalizeWord(form.firstName.trim()),
-          middleName: form.middleName.trim() ? capitalizeWord(form.middleName.trim()) : undefined,
-          lastName: capitalizeWord(form.lastName.trim()),
-          nickname: form.nickname.trim() ? formatStudentName(form.nickname) : undefined,
-          phone: form.phone.trim() || undefined,
-          country: form.country.trim() || undefined,
-          birthday: form.birthday || undefined,
-          bio: form.bio.trim() || undefined,
-          avatar: avatar || undefined,
-        });
-        setSaving(false);
-        setSaved(true);
-        window.setTimeout(() => setSaved(false), 3000);
-      }, 500);
-    };
+  // Has anything actually changed?
+  const dirty =
+    form.firstName !== user.firstName ||
+    form.middleName !== (user.middleName ?? "") ||
+    form.lastName !== user.lastName ||
+    form.nickname !== (user.nickname ?? "") ||
+    form.phone !== (user.phone ?? "") ||
+    form.country !== (user.country ?? "") ||
+    form.birthday !== (user.birthday ?? "") ||
+    form.bio !== (user.bio ?? "") ||
+    avatar !== (user.avatar ?? "");
 
-    const pick = (file?: File) => {
-      if (!file) return;
-      const isImg = file.type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(file.name);
-      if (!isImg) { setErr("Please choose an image file."); return; }
-      if (file.size > 8 * 1024 * 1024) { setErr("Image must be smaller than 8MB."); return; }
-      setErr(null);
-      openCropModal(file, "profile");
-    };
+  const save = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErr(null);
+    if (!form.firstName.trim()) { setErr("First name is required."); return; }
+    if (!form.lastName.trim()) { setErr("Last name is required."); return; }
 
-    const initials = `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase();
-    const bdayLabel = form.birthday
-      ? new Date(form.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
+    setSaving(true);
+    window.setTimeout(() => {
+      store.updateProfile({
+        firstName: capitalizeWord(form.firstName.trim()),
+        middleName: form.middleName.trim() ? capitalizeWord(form.middleName.trim()) : undefined,
+        lastName: capitalizeWord(form.lastName.trim()),
+        nickname: form.nickname.trim() ? formatStudentName(form.nickname) : undefined,
+        phone: form.phone.trim() || undefined,
+        country: form.country.trim() || undefined,
+        birthday: form.birthday || undefined,
+        bio: form.bio.trim() || undefined,
+        avatar: avatar || undefined,
+      });
+      setSaving(false);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 3000);
+    }, 500);
+  };
+
+  const pick = (file?: File) => {
+    if (!file) return;
+    const isImg = file.type.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(file.name);
+    if (!isImg) { setErr("Please choose an image file."); return; }
+    if (file.size > 8 * 1024 * 1024) { setErr("Image must be smaller than 8MB."); return; }
+    setErr(null);
+    openCropModal(file, "profile");
+  };
+
+  const initials = `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase();
+  const parsedForLabel = parseBday(form.birthday);
+  const bdayLabel =
+    parsedForLabel.d && parsedForLabel.mo
+      ? `${Number(parsedForLabel.d)} ${MONTHS[Number(parsedForLabel.mo) - 1] ?? ""}`
       : "";
 
-    return (
-      <form onSubmit={save} className="space-y-6">
-        {/* Avatar + identity */}
-        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
-          <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
-          <p className="mt-1 text-sm text-muted">Shown on your dashboard, certificates area and community profile.</p>
+  return (
+    <form onSubmit={save} className="space-y-6">
+      {/* Avatar + identity */}
+      <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+        <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
+        <p className="mt-1 text-sm text-muted">Shown on your dashboard, certificates area and community profile.</p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-6">
-            <div className="relative">
-              {avatar ? (
-                <img
-                  src={normalizeImageUrl(avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
-                  onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
-                  alt="Profile"
-                  className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand-light"
-                />
-              ) : (
-                <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-extrabold text-white">
-                  {initials}
-                </span>
-              )}
-              <button type="button" onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white shadow-lg transition hover:bg-brand"
-                aria-label="Upload picture">
-                <Camera className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-3">
-                <button type="button" onClick={() => fileRef.current?.click()} className="btn-outline-dark !py-2.5">
-                  <Camera className="h-4 w-4" /> {avatar ? "Change photo" : "Upload photo"}
-                </button>
-                {avatar && (
-                  <button type="button" onClick={() => { setAvatar(""); store.updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2.5">
-                    <Trash2 className="h-4 w-4" /> Remove
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-muted">Crop and position freely before saving. Max 8MB.</p>
-              {err && <p className="text-xs font-semibold text-brand">{err}</p>}
-            </div>
-
-            <input ref={fileRef} type="file" accept="image/*" className="hidden"
-              onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
+        <div className="mt-6 flex flex-wrap items-center gap-6">
+          <div className="relative">
+            {avatar ? (
+              <img
+                src={normalizeImageUrl(avatar, DEFAULT_FALLBACK_IMAGES.avatar)}
+                onError={handleImageError(DEFAULT_FALLBACK_IMAGES.avatar)}
+                alt="Profile"
+                className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand-light"
+              />
+            ) : (
+              <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-extrabold text-white">
+                {initials}
+              </span>
+            )}
+            <button type="button" onClick={() => fileRef.current?.click()}
+              className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white shadow-lg transition hover:bg-brand"
+              aria-label="Upload picture">
+              <Camera className="h-4 w-4" />
+            </button>
           </div>
 
-          <AvatarPicker
-            value={avatar}
-            onChange={(url) => {
-              setAvatar(url);
-            }}
-          />
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-3">
+              <button type="button" onClick={() => fileRef.current?.click()} className="btn-outline-dark !py-2.5">
+                <Camera className="h-4 w-4" /> {avatar ? "Change photo" : "Upload photo"}
+              </button>
+              {avatar && (
+                <button type="button" onClick={() => { setAvatar(""); store.updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2.5">
+                  <Trash2 className="h-4 w-4" /> Remove
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-muted">Crop and position freely before saving. Max 8MB.</p>
+            {err && <p className="text-xs font-semibold text-brand">{err}</p>}
+          </div>
+
+          <input ref={fileRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
         </div>
 
-        {/* Details */}
-        <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
-          <h2 className="font-display text-xl font-bold text-ink">Personal details</h2>
-          <p className="mt-1 text-sm text-muted">Update your information and how you appear to others.</p>
+        <AvatarPicker
+          value={avatar}
+          onChange={(url) => {
+            setAvatar(url);
+          }}
+        />
+      </div>
 
-          <div className="mt-7 grid gap-5 sm:grid-cols-3">
-            <Input label="First name *" value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v })} />
-            <Input label="Middle name (optional)" value={form.middleName}
-              onChange={(v) => setForm({ ...form, middleName: v })} ph="Optional" />
-            <Input label="Last name *" value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} />
-          </div>
+      {/* Details */}
+      <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+        <h2 className="font-display text-xl font-bold text-ink">Personal details</h2>
+        <p className="mt-1 text-sm text-muted">Update your information and how you appear to others.</p>
 
-          <div className="mt-5">
-            <Input label="Nickname / display name (optional)" value={form.nickname}
-              onChange={(v) => setForm({ ...form, nickname: v })} ph="e.g. TheChartGuy" />
-            <p className="mt-1.5 text-xs text-muted">
-              This is what the community and forum see. Leave blank to use your full name.
-            </p>
-          </div>
+        <div className="mt-7 grid gap-5 sm:grid-cols-3">
+          <Input label="First name *" value={form.firstName} onChange={(v) => setForm({ ...form, firstName: v })} />
+          <Input label="Middle name (optional)" value={form.middleName}
+            onChange={(v) => setForm({ ...form, middleName: v })} ph="Optional" />
+          <Input label="Last name *" value={form.lastName} onChange={(v) => setForm({ ...form, lastName: v })} />
+        </div>
 
-          <div className="mt-5 grid gap-5 sm:grid-cols-2">
-            <Input label="Phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} ph="+234 806 194 9891" />
-            <Input label="Country" value={form.country} onChange={(v) => setForm({ ...form, country: v })} ph="Nigeria" />
-          </div>
+        <div className="mt-5">
+          <Input label="Nickname / display name (optional)" value={form.nickname}
+            onChange={(v) => setForm({ ...form, nickname: v })} ph="e.g. TheChartGuy" />
+          <p className="mt-1.5 text-xs text-muted">
+            This is what the community and forum see. Leave blank to use your full name.
+          </p>
+        </div>
 
-          {/* Birthday */}
-          <div className="mt-5 rounded-2xl border border-line bg-cream p-4 sm:p-5">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
-                <Cake className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-muted">Date of birth</label>
-                <input type="date" value={form.birthday} max={new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => setForm({ ...form, birthday: e.target.value })}
-                  className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs sm:max-w-xs" />
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <Input label="Phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} ph="+234 806 194 9891" />
+          <Input label="Country" value={form.country} onChange={(v) => setForm({ ...form, country: v })} ph="Nigeria" />
+        </div>
 
-                <div className="mt-3 flex items-start gap-2 rounded-xl bg-white p-3">
-                  <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                  <p className="text-xs leading-relaxed text-muted">
-                    <strong className="text-ink">Your birth year is private.</strong> Only you (and academy
-                    admins) can see it. The community and your certificates show only
-                    {bdayLabel ? <> <strong className="text-ink">{bdayLabel}</strong></> : " the day and month"} —
-                    never the year.
-                  </p>
-                </div>
-
-                {form.birthday && (
-                  <div className="mt-3 flex flex-wrap gap-3 text-xs">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 font-semibold text-ink">
-                      <Eye className="h-3.5 w-3.5 text-brand" /> Public: {bdayLabel}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 font-semibold text-muted">
-                      <EyeOff className="h-3.5 w-3.5 text-brand" /> Private: {new Date(form.birthday).getFullYear()}
-                    </span>
-                  </div>
-                )}
-              </div>
+        {/* Birthday */}
+        <div className="mt-5 rounded-2xl border border-line bg-cream p-4 sm:p-5">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
+              <Cake className="h-5 w-5" />
+            </span>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted">Date of birth</label>
+              <p className="text-xs text-muted">Select day, month, and year</p>
             </div>
           </div>
 
-          <div className="mt-5">
-            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Email (read only)</label>
-            <input disabled value={user!.email} className="w-full cursor-not-allowed rounded-xl border border-line bg-line/40 px-4 py-3 text-sm font-medium text-muted shadow-2xs" />
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3 sm:max-w-md">
+            <select
+              aria-label="Birth day"
+              value={dobParts.d}
+              onChange={(e) => updateDobPart("d", e.target.value)}
+              className="w-full rounded-xl border border-line bg-white px-2.5 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+            >
+              <option value="">Day</option>
+              {days.map((d) => (
+                <option key={d} value={d}>{Number(d)}</option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Birth month"
+              value={dobParts.mo}
+              onChange={(e) => updateDobPart("mo", e.target.value)}
+              className="w-full rounded-xl border border-line bg-white px-2.5 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+            >
+              <option value="">Month</option>
+              {MONTHS.map((m, idx) => {
+                const val = String(idx + 1).padStart(2, "0");
+                return <option key={val} value={val}>{m}</option>;
+              })}
+            </select>
+
+            <select
+              aria-label="Birth year"
+              value={dobParts.y}
+              onChange={(e) => updateDobPart("y", e.target.value)}
+              className="w-full rounded-xl border border-line bg-white px-2.5 py-3 text-sm font-medium text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15 shadow-2xs"
+            >
+              <option value="">Year</option>
+              {years.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="mt-5">
-            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Trading bio</label>
-            <textarea rows={4} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              placeholder="Tell the community a bit about your trading journey…"
-              className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs" />
-          </div>
-
-          {err && (
-            <p className="mt-5 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">
-              <AlertCircle className="h-4 w-4 shrink-0 text-brand" /> {err}
+          <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-white p-3">
+            <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+            <p className="text-xs leading-relaxed text-muted">
+              <strong className="text-ink">Your birth year is private.</strong> Only you (and academy
+              admins) can see it. The community and your certificates show only
+              {bdayLabel ? <> <strong className="text-ink">{bdayLabel}</strong></> : " the day and month"} —
+              never the year.
             </p>
+          </div>
+
+          {form.birthday && parsedForLabel.y && (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 font-semibold text-ink">
+                <Eye className="h-3.5 w-3.5 text-brand" /> Public: {bdayLabel}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 font-semibold text-muted">
+                <EyeOff className="h-3.5 w-3.5 text-brand" /> Private: {parsedForLabel.y}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5">
+          <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Email (read only)</label>
+          <input disabled value={user.email} className="w-full cursor-not-allowed rounded-xl border border-line bg-line/40 px-4 py-3 text-sm font-medium text-muted shadow-2xs" />
+        </div>
+
+        <div className="mt-5">
+          <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">Trading bio</label>
+          <textarea rows={4} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })}
+            placeholder="Tell the community a bit about your trading journey…"
+            className="w-full resize-none rounded-xl border border-line bg-cream p-4 text-sm font-medium text-ink placeholder-muted/60 outline-none transition focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 leading-relaxed shadow-2xs" />
+        </div>
+
+        {err && (
+          <p className="mt-5 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">
+            <AlertCircle className="h-4 w-4 shrink-0 text-brand" /> {err}
+          </p>
+        )}
+
+        <div className="mt-7 flex flex-wrap items-center gap-4 border-t border-line pt-6">
+          <button type="submit" disabled={saving || !dirty}
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+            {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : <><Save className="h-4 w-4" /> Save Changes</>}
+          </button>
+
+          {dirty && !saving && !saved && (
+            <button type="button"
+              onClick={() => {
+                setForm({
+                  firstName: user.firstName, middleName: user.middleName ?? "", lastName: user.lastName,
+                  nickname: user.nickname ?? "", phone: user.phone ?? "", country: user.country ?? "",
+                  birthday: user.birthday ?? "", bio: user.bio ?? "",
+                });
+                setDobParts(parseBday(user.birthday ?? ""));
+                setAvatar(user.avatar ?? "");
+                setErr(null);
+              }}
+              className="btn-outline-dark">
+              Discard changes
+            </button>
           )}
 
-          <div className="mt-7 flex flex-wrap items-center gap-4 border-t border-line pt-6">
-            <button type="submit" disabled={saving || !dirty}
-              className="btn-primary disabled:cursor-not-allowed disabled:opacity-50">
-              {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : <><Save className="h-4 w-4" /> Save Changes</>}
-            </button>
-
-            {dirty && !saving && !saved && (
-              <button type="button"
-                onClick={() => {
-                  setForm({
-                    firstName: user!.firstName, middleName: user!.middleName ?? "", lastName: user!.lastName,
-                    nickname: user!.nickname ?? "", phone: user!.phone ?? "", country: user!.country ?? "",
-                    birthday: user!.birthday ?? "", bio: user!.bio ?? "",
-                  });
-                  setAvatar(user!.avatar ?? "");
-                  setErr(null);
-                }}
-                className="btn-outline-dark">
-                Discard changes
-              </button>
-            )}
-
-            {saved && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
-                <CheckCircle2 className="h-4 w-4" /> Profile saved successfully
-              </span>
-            )}
-            {!dirty && !saved && !saving && (
-              <span className="text-sm text-muted">No unsaved changes.</span>
-            )}
-          </div>
+          {saved && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="h-4 w-4" /> Profile saved successfully
+            </span>
+          )}
+          {!dirty && !saved && !saving && (
+            <span className="text-sm text-muted">No unsaved changes.</span>
+          )}
         </div>
-      </form>
-    );
-  }
+      </div>
+    </form>
+  );
 }
 
 /* ------------------------------ Helpers ------------------------------ */
