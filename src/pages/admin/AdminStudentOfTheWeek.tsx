@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { AdminShell, Card } from "./AdminShell";
 import { useStore, type StudentOfTheWeek, type Account, type QuizAttempt, type CombatStats } from "../../lib/store";
-import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck, Image as ImageIcon, Link2, X } from "lucide-react";
+import { Trophy, Save, Upload, Star, CheckCircle2, Zap, Eye, Loader2, Flame, TrendingUp, ShieldCheck, Camera, Link2, X } from "lucide-react";
 import { uploadAvatar } from "../../lib/supabaseStorage";
 import { COURSES } from "../../lib/courses";
 import { rankForXp } from "../../lib/combat";
@@ -406,7 +406,7 @@ export function AdminStudentOfTheWeek() {
             <div className="rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-start gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                  <ImageIcon className="h-4 w-4" />
+                  <Camera className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-ink">
