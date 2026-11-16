@@ -171,23 +171,41 @@ export default function DiscoverySurveyModal() {
       Date.now() - new Date(user.joined).getTime() < 10 * 60 * 1000;
 
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let scrollListening = false;
+
+    const onScroll = () => {
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      if (y >= 360) {
+        if (scrollListening) {
+          window.removeEventListener("scroll", onScroll);
+          scrollListening = false;
+        }
+        checkAndOpen(false);
+      }
+    };
 
     if (!hasCompletedDiscoverySurvey(user?.id, user?.email)) {
       if (justRegNow || (isRecentSignup && !isDiscoveryDismissedForSession())) {
         timer = setTimeout(() => checkAndOpen(true), 750);
       } else if (!isExcludedVisitorRoute && !pathname.startsWith("/dashboard") && !isDiscoveryDismissedForSession()) {
-        timer = setTimeout(() => checkAndOpen(false), 4500);
+        scrollListening = true;
+        window.addEventListener("scroll", onScroll, { passive: true });
       }
     }
 
     const onTrigger = () => {
       if (timer) clearTimeout(timer);
+      if (scrollListening) {
+        window.removeEventListener("scroll", onScroll);
+        scrollListening = false;
+      }
       timer = setTimeout(() => checkAndOpen(true), 600);
     };
 
     window.addEventListener("gamat:discovery-trigger", onTrigger);
     return () => {
       if (timer) clearTimeout(timer);
+      if (scrollListening) window.removeEventListener("scroll", onScroll);
       window.removeEventListener("gamat:discovery-trigger", onTrigger);
     };
   }, [pathname, isAuthed, user?.id, user?.email, user?.joined]);
@@ -229,12 +247,12 @@ export default function DiscoverySurveyModal() {
       aria-labelledby="discovery-survey-title"
     >
       <div
-        className="relative flex flex-col w-full max-w-xl max-h-[85vh] sm:max-h-[88vh] overflow-hidden rounded-3xl bg-white shadow-2xl border border-line/80 transform-gpu touch-auto"
+        className="relative flex flex-col w-full max-w-xl md:max-w-3xl lg:max-w-4xl max-h-[85vh] sm:max-h-[88vh] overflow-hidden rounded-3xl bg-white shadow-2xl border border-line/80 transform-gpu touch-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top luxury brand header */}
         <div
-          className="relative shrink-0 overflow-hidden bg-ink px-5 sm:px-6 pt-5 pb-4 text-white"
+          className="relative shrink-0 overflow-hidden bg-ink px-5 sm:px-7 pt-5 pb-4 text-white"
           style={{
             backgroundImage:
               "radial-gradient(circle at 92% 12%, rgba(220, 53, 69, 0.24) 0%, transparent 55%)",
@@ -253,7 +271,7 @@ export default function DiscoverySurveyModal() {
                   ? `${user.firstName}, how did you first hear about GAMAT Fx Academy?`
                   : "How did you first hear about GAMAT Fx Academy?"}
               </h2>
-              <p className="mt-1 text-xs sm:text-sm text-white/70 max-w-md">
+              <p className="mt-1 text-xs sm:text-sm text-white/70 max-w-2xl">
                 {isNewStudentContext || isAuthed
                   ? "Help us personalize your academy experience and credit the channel that brought you in."
                   : "We’d love to know what brought you to our trading academy today — it only takes one tap."}
@@ -287,7 +305,7 @@ export default function DiscoverySurveyModal() {
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 bg-cream/30">
             <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
                 {DISCOVERY_OPTIONS.map((opt) => {
                   const active = selectedId === opt.id;
                   return (
