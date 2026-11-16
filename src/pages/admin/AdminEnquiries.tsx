@@ -23,24 +23,29 @@ export function AdminEnquiries() {
     markAdminNotificationRead(`notif_enq_${e.id}`);
   };
 
+  const serviceEnquiries = useMemo(
+    () => admin.enquiries.filter((e) => e.serviceSlug !== "sys_discovery_survey"),
+    [admin.enquiries]
+  );
+
   const lastAutoOpenedQuery = useRef<string | null>(null);
   useEffect(() => {
     if (!q) return;
     const trimmed = q.trim().toLowerCase();
     if (lastAutoOpenedQuery.current === trimmed) return;
-    const match = admin.enquiries.find((e) => e.ref.toLowerCase() === trimmed);
+    const match = serviceEnquiries.find((e) => e.ref.toLowerCase() === trimmed);
     if (match) {
       lastAutoOpenedQuery.current = trimmed;
       handleOpenEnquiry(match);
     }
-  }, [q, admin.enquiries]);
+  }, [q, serviceEnquiries]);
 
-  const rows = useMemo(() => admin.enquiries.filter((e) => {
+  const rows = useMemo(() => serviceEnquiries.filter((e) => {
     const mq = `${e.name} ${e.email} ${e.ref} ${e.company ?? ""} ${e.serviceTitle}`.toLowerCase().includes(q.toLowerCase());
     return mq && (status === "all" || e.status === status) && (svc === "all" || e.serviceSlug === svc);
-  }), [admin.enquiries, q, status, svc]);
+  }), [serviceEnquiries, q, status, svc]);
 
-  const count = (s: ServiceEnquiry["status"]) => admin.enquiries.filter((e) => e.status === s).length;
+  const count = (s: ServiceEnquiry["status"]) => serviceEnquiries.filter((e) => e.status === s).length;
 
   return (
     <AdminShell title="Service Enquiries" subtitle="Leads submitted through your service pages."
@@ -54,7 +59,7 @@ export function AdminEnquiries() {
         </button>
       }>
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
-        <StatCard icon={Inbox} label="Total enquiries" value={admin.enquiries.length} />
+        <StatCard icon={Inbox} label="Total enquiries" value={serviceEnquiries.length} />
         <StatCard icon={MailOpen} label="New / unread" value={count("new")} sub={count("new") ? "Needs attention" : undefined} />
         <StatCard icon={PhoneCall} label="Contacted" value={count("contacted")} />
         <StatCard icon={CheckCircle2} label="Closed" value={count("closed")} />

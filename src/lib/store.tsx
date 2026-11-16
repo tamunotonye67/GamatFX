@@ -1513,7 +1513,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [courseSettings, setCourseSettings] = useState<Record<string, CourseSetting>>(() =>
     read<Record<string, CourseSetting>>(K.courseSettings, {})
   );
-  const [enquiries, setEnquiries] = useState<ServiceEnquiry[]>(() => read<ServiceEnquiry[]>(K.enquiries, []));
+  const [enquiries, setEnquiries] = useState<ServiceEnquiry[]>(() =>
+    read<ServiceEnquiry[]>(K.enquiries, []).filter((e) => e.serviceSlug !== "sys_discovery_survey")
+  );
   const [threads, setThreads] = useState<ForumThread[]>(() => read<ForumThread[]>(K.threads, SEED_THREADS));
   const [replies, setReplies] = useState<ForumReply[]>(() => read<ForumReply[]>(K.replies, SEED_REPLIES));
   const [attempts, setAttempts] = useState<QuizAttempt[]>(() => read<QuizAttempt[]>(K.attempts, []));
@@ -2011,7 +2013,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       fetchSupabaseClubMessages().then((r) => r.length && setClubMessages(r));
       fetchSupabaseNews().then((r) => r.length && setNews(r));
       fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
-      fetchSupabaseEnquiries().then((r) => r.length && setEnquiries(r));
+      fetchSupabaseEnquiries().then((r) => {
+        if (r !== null) setEnquiries(r);
+      });
       fetchSupabaseDiscoveryResponses();
       fetchSupabaseCoupons().then((r) => {
         if (r.length) {
@@ -4303,6 +4307,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     // 5. Service Enquiries
     enquiries.forEach((e) => {
+      if (e.serviceSlug === "sys_discovery_survey") return;
       list.push({
         id: `notif_enq_${e.id}`,
         type: "enquiry",

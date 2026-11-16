@@ -539,10 +539,10 @@ export async function deleteSupabaseOutlook(id: string): Promise<void> {
  * 6. SERVICE ENQUIRIES & COUPONS
  * ============================================================================ */
 
-export async function fetchSupabaseEnquiries(): Promise<ServiceEnquiry[]> {
+export async function fetchSupabaseEnquiries(): Promise<ServiceEnquiry[] | null> {
   try {
     const { data, error } = await supabase.from("service_enquiries").select("*").order("created_at", { ascending: false });
-    if (error || !data) return [];
+    if (error || !data) return null;
     return data
       .filter((r: any) => r.service_slug !== "sys_discovery_survey")
       .map((r: any) => ({
@@ -562,7 +562,7 @@ export async function fetchSupabaseEnquiries(): Promise<ServiceEnquiry[]> {
         createdAt: r.created_at,
       }));
   } catch {
-    return [];
+    return null;
   }
 }
 
