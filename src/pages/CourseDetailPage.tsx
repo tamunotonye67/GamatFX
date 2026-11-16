@@ -4,6 +4,7 @@ import { getCourse, totalLessons, naira, asCourse } from "../lib/courses";
 import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
+import { getVideoEmbedUrl } from "../lib/videoUrl";
 import {
   Play, Clock, Users, Star, BadgeCheck, ChevronDown, ChevronRight,
   Lock, CheckCircle2, Infinity as InfinityIcon, Award, MonitorPlay, ArrowUpRight, X,
@@ -84,20 +85,36 @@ export default function CourseDetailPage({ id }: { id: string }) {
               </button>
             </div>
             <div className="relative aspect-video w-full overflow-hidden bg-black">
-              <video
-                src={videoModal.videoUrl}
-                poster={normalizeImageUrl(course.poster, DEFAULT_FALLBACK_IMAGES.course)}
-                controls
-                autoPlay
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-                disableRemotePlayback
-                controlsList="nodownload noplaybackrate noremoteplayback"
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                className="block h-full w-full object-contain"
-              />
+              {(() => {
+                const embedUrl = getVideoEmbedUrl(videoModal.videoUrl);
+                if (embedUrl) {
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      title={videoModal.title}
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                      className="block h-full w-full border-0"
+                    />
+                  );
+                }
+                return (
+                  <video
+                    src={videoModal.videoUrl}
+                    poster={normalizeImageUrl(course.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="metadata"
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    controlsList="nodownload noplaybackrate noremoteplayback"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    className="block h-full w-full object-contain"
+                  />
+                );
+              })()}
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { getCourse, allLessons, totalLessons, asCourse, type LessonWithVideo } f
 import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import Logo from "../components/Logo";
+import { getVideoEmbedUrl } from "../lib/videoUrl";
 import {
   CheckCircle2, Circle, Menu, X,
   Lock, Award, LayoutDashboard, PlayCircle,
@@ -12,7 +13,7 @@ export default function LearnPage({ id }: { id: string }) {
   const { isAuthed, isEnrolled, getEnrollment, toggleLesson, setLastLesson, progressOf, managedCourses } = useStore();
   const builtIn = getCourse(id);
   const managed = managedCourses.find((c) => c.id === id);
-  const course = builtIn ?? (managed ? asCourse(managed) : undefined);
+  const course = (managed ? asCourse(managed) : undefined) ?? builtIn;
   const [sidebar, setSidebar] = useState(false);
 
   const lessons = useMemo(() => (course ? allLessons(course) as LessonWithVideo[] : []), [course]);
@@ -135,21 +136,37 @@ export default function LearnPage({ id }: { id: string }) {
           <div className="mx-auto max-w-4xl">
             {/* Download / right-click / PiP disabled to protect course content. */}
             <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
-              <video
-                key={active.id + (activeVideo || "")}
-                poster={course.poster}
-                controls
-                playsInline
-                preload="metadata"
-                disablePictureInPicture
-                disableRemotePlayback
-                controlsList="nodownload noplaybackrate noremoteplayback"
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                className="block h-full w-full object-contain transform-gpu"
-              >
-                <source src={activeVideo} type="video/mp4" />
-              </video>
+              {(() => {
+                const embedUrl = getVideoEmbedUrl(activeVideo);
+                if (embedUrl) {
+                  return (
+                    <iframe
+                      key={active.id + embedUrl}
+                      src={embedUrl}
+                      title={active.title}
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                      className="block h-full w-full border-0"
+                    />
+                  );
+                }
+                return (
+                  <video
+                    key={active.id + (activeVideo || "")}
+                    src={activeVideo}
+                    poster={course.poster}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    controlsList="nodownload noplaybackrate noremoteplayback"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    className="block h-full w-full object-contain transform-gpu"
+                  />
+                );
+              })()}
             </div>
 
             <div className="mt-7">
