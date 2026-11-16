@@ -2340,6 +2340,9 @@ export default function DashboardPage() {
       birthday: user!.birthday ?? "", bio: user!.bio ?? "",
     });
     const [avatar, setAvatar] = useState(user!.avatar ?? "");
+    useEffect(() => {
+      setAvatar(user?.avatar ?? "");
+    }, [user?.avatar]);
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
     const [err, setErr] = useState<string | null>(null);

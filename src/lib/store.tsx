@@ -1576,6 +1576,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => write(K.coupons, coupons), [coupons]);
   useEffect(() => write(K.customQuizzes, customQuizzes), [customQuizzes]);
   const recentlyCreatedRef = useRef<Map<string, { account: Account; ts: number }>>(new Map());
+  const recentlyUpdatedAccountsRef = useRef<Map<string, { account: Account; ts: number; persistLocal?: boolean }>>(new Map());
   const authActionInProgressRef = useRef(false);
 
   /* Sync active user session with native Supabase Auth & Google OAuth callbacks */
@@ -1767,7 +1768,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ? existing.password
             : supaAcc.password || "password123");
 
-        map.set(supaAcc.id, { ...supaAcc, password: preservedPassword });
+        const recentUpdate = recentlyUpdatedAccountsRef.current.get(supaAcc.id);
+        const isRecentValid = recentUpdate && (recentUpdate.persistLocal || Date.now() - recentUpdate.ts < 120000);
+        if (recentUpdate && !isRecentValid) {
+          recentlyUpdatedAccountsRef.current.delete(supaAcc.id);
+        }
+
+        const mergedAcc: Account = isRecentValid
+          ? { ...supaAcc, ...recentUpdate.account, password: preservedPassword }
+          : { ...supaAcc, password: preservedPassword };
+
+        map.set(supaAcc.id, mergedAcc);
       });
 
       // Preserve any newly created / re-registered accounts from the last 60s whose save is still in flight
@@ -1788,6 +1799,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
         }
       });
+
+      // Preserve any active non-deleted session account if missing from Supabase response
+      const activeSessionId = read<string | null>(K.session, null);
+      if (activeSessionId && !map.has(activeSessionId)) {
+        const activeLocal = prev.find((p) => p.id === activeSessionId);
+        if (
+          activeLocal &&
+          !deleted.has(activeLocal.id.toLowerCase()) &&
+          !deleted.has(activeLocal.email.trim().toLowerCase())
+        ) {
+          map.set(activeLocal.id, activeLocal);
+          saveSupabaseAccount(activeLocal);
+        }
+      }
 
       const next = Array.from(map.values());
       write(K.accounts, next);
@@ -2301,7 +2326,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const updatedAccounts = p.map((a) => (a.id === sessionId ? { ...a, ...cleanPatch } : a));
       const current = updatedAccounts.find((a) => a.id === sessionId);
       if (current) {
-        saveSupabaseAccount(current);
+        recentlyUpdatedAccountsRef.current.set(current.id, {
+          account: current,
+          ts: Date.now(),
+          persistLocal: false,
+        });
+        saveSupabaseAccount(current).then((res) => {
+          if (!res.ok) {
+            console.warn("Supabase profile save failed (preserving local update):", res.error);
+            recentlyUpdatedAccountsRef.current.set(current.id, {
+              account: current,
+              ts: Date.now(),
+              persistLocal: true,
+            });
+          }
+        });
         if (cleanPatch.avatar !== undefined || cleanPatch.firstName || cleanPatch.lastName || cleanPatch.nickname) {
           const newName = formatAccountName(current);
           const newAvatar = current.avatar;
