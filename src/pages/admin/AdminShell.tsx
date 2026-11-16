@@ -618,9 +618,9 @@ const toneMap: Record<string, string> = {
   blue: "bg-blue-50 text-blue-700",
 };
 
-export function Badge({ children, tone = "gray" }: { children: React.ReactNode; tone?: keyof typeof toneMap }) {
+export function Badge({ children, tone = "gray", className = "" }: { children: React.ReactNode; tone?: keyof typeof toneMap; className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${toneMap[tone]}`}>
+    <span className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${toneMap[tone]} ${className}`}>
       {children}
     </span>
   );

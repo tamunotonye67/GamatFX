@@ -226,15 +226,16 @@ export function AdminAnalytics() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         {/* Revenue & Payment Method Analytics */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between border-b border-line pb-4">
-            <div>
-              <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-brand" /> Revenue by Payment Method
+        <Card className="p-5 sm:p-6">
+          <div className="flex flex-col items-start gap-2.5 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-lg font-bold text-ink flex items-start gap-2">
+                <BarChart3 className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+                <span>Revenue by Payment Method</span>
               </h2>
-              <p className="text-xs text-muted">Distribution of sales across Card, Bank Transfer, and Crypto.</p>
+              <p className="mt-1 text-xs text-muted">Distribution of sales across Card, Bank Transfer, and Crypto.</p>
             </div>
-            <Badge tone="green">Real-time</Badge>
+            <Badge tone="green" className="shrink-0 whitespace-nowrap">Real-time</Badge>
           </div>
 
           <div className="mt-6 space-y-5">
@@ -273,15 +274,16 @@ export function AdminAnalytics() {
         </Card>
 
         {/* Top Courses Leaderboard */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between border-b border-line pb-4">
-            <div>
-              <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-brand" /> Course Enrollment Leaderboard
+        <Card className="p-5 sm:p-6">
+          <div className="flex flex-col items-start gap-2.5 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-lg font-bold text-ink flex items-start gap-2">
+                <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+                <span>Course Enrollment Leaderboard</span>
               </h2>
-              <p className="text-xs text-muted">Most popular courses and student completion rates.</p>
+              <p className="mt-1 text-xs text-muted">Most popular courses and student completion rates.</p>
             </div>
-            <Badge tone="gray">{courseStats.length} Courses</Badge>
+            <Badge tone="gray" className="shrink-0 whitespace-nowrap">{courseStats.length} Courses</Badge>
           </div>
 
           <div className="mt-6 divide-y divide-line">
@@ -440,17 +442,18 @@ export function AdminAnalytics() {
 
         return (
           <div className="mt-8">
-            <Card className="p-6">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-                <div>
-                  <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
-                    <Compass className="h-5 w-5 text-brand" /> Acquisition Channels — How Visitors & Students Heard About Us
+            <Card className="p-5 sm:p-6">
+              <div className="flex flex-col items-start gap-2.5 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <h3 className="font-display text-base font-bold text-ink flex items-start gap-2">
+                    <Compass className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+                    <span>Acquisition Channels — How Visitors &amp; Students Heard About Us</span>
                   </h3>
-                  <p className="text-xs text-muted mt-0.5">
-                    Responses collected from the newcomer & visitor discovery popup across the platform.
+                  <p className="text-xs text-muted mt-1">
+                    Responses collected from the newcomer &amp; visitor discovery popup across the platform.
                   </p>
                 </div>
-                <Badge tone="ink">{totalResp} Total {totalResp === 1 ? "Response" : "Responses"}</Badge>
+                <Badge tone="ink" className="shrink-0 whitespace-nowrap">{totalResp} Total {totalResp === 1 ? "Response" : "Responses"}</Badge>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
