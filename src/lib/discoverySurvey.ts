@@ -182,28 +182,31 @@ function saveCompletedRecord(rec: CompletedRecord) {
   } catch {}
 }
 
-/** Upserts a discovery response into Supabase so it reflects across all devices and admin sessions. */
-export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse): Promise<void> {
+/** Inserts (or updates when linking a user) a discovery response in Supabase so it reflects across all devices and admin sessions. */
+export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isUpdate = false): Promise<void> {
+  const payload = {
+    id: resp.id,
+    ref: resp.sourceId,
+    service_slug: SUPABASE_DISCOVERY_SLUG,
+    service_title: resp.sourceLabel,
+    package_name: resp.visitorType,
+    name: resp.userName || (resp.visitorType === "new_student" ? "New Student" : "Website Visitor"),
+    email: resp.userEmail || "visitor@gamatfx.com",
+    phone: resp.route || "/",
+    company: resp.userId ?? null,
+    budget: resp.detail ?? null,
+    message: resp.detail || resp.sourceLabel,
+    user_id: null,
+    status: "closed",
+    created_at: resp.createdAt,
+  };
   try {
-    await supabase.from("service_enquiries").upsert(
-      {
-        id: resp.id,
-        ref: resp.sourceId,
-        service_slug: SUPABASE_DISCOVERY_SLUG,
-        service_title: resp.sourceLabel,
-        package_name: resp.visitorType,
-        name: resp.userName || (resp.visitorType === "new_student" ? "New Student" : "Website Visitor"),
-        email: resp.userEmail || "visitor@gamatfx.com",
-        phone: resp.route || "/",
-        company: resp.userId ?? null,
-        budget: resp.detail ?? null,
-        message: resp.detail || resp.sourceLabel,
-        user_id: null,
-        status: "closed",
-        created_at: resp.createdAt,
-      },
-      { onConflict: "id" }
-    );
+    const { error } = isUpdate
+      ? await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" })
+      : await supabase.from("service_enquiries").insert(payload);
+    if (error && error.code !== "23505") {
+      console.error("Supabase discovery response save error:", error);
+    }
   } catch (err) {
     console.warn("Supabase discovery response save notice:", err);
   }
@@ -302,7 +305,7 @@ export function triggerDiscoveryForNewRegistration(userId?: string, email?: stri
       });
       localStorage.setItem(RESPONSES_KEY, JSON.stringify(updated));
       if (linkedItem) {
-        saveSupabaseDiscoveryResponse(linkedItem);
+        saveSupabaseDiscoveryResponse(linkedItem, true);
       }
       const userIds = new Set(rec.userIds || []);
       const emails = new Set(rec.emails || []);

@@ -34,15 +34,27 @@ export function AdminAnalytics() {
     const refreshLocal = () => {
       if (mounted) setDiscoveryList(loadDiscoveryResponses());
     };
-    fetchSupabaseDiscoveryResponses().then((merged) => {
-      if (mounted) setDiscoveryList(merged);
-    });
+    const refreshRemote = () => {
+      fetchSupabaseDiscoveryResponses().then((merged) => {
+        if (mounted) setDiscoveryList(merged);
+      });
+    };
+    refreshRemote();
+    const onFocus = () => {
+      if (document.visibilityState === "visible") refreshRemote();
+    };
+    const interval = window.setInterval(refreshRemote, 15000);
     window.addEventListener("gamat:discovery-updated", refreshLocal);
     window.addEventListener("storage", refreshLocal);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       mounted = false;
+      window.clearInterval(interval);
       window.removeEventListener("gamat:discovery-updated", refreshLocal);
       window.removeEventListener("storage", refreshLocal);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, []);
 
