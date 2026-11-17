@@ -391,13 +391,34 @@ export default async function handler(req, res) {
         </html>
       `;
 
-      const result = await sendResendEmail(apiKey, {
-        from: fromEmail,
-        to: [to],
-        reply_to: adminEmail,
-        subject: "Welcome to GAMAT FX Academy!",
-        html,
-      });
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">New Student Registered</h2>
+            <p style="margin:0 0 8px;"><strong>Name:</strong> ${safeName}<br/>
+            <strong>Email:</strong> ${escapeHtml(to)}</p>
+            <p style="margin:12px 0 0;"><a href="https://gamatfxacademy.com/#/admin">Open Admin Dashboard</a></p>
+          </body>
+        </html>
+      `;
+
+      const [result] = await Promise.all([
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [to],
+          reply_to: adminEmail,
+          subject: "Welcome to GAMAT FX Academy!",
+          html,
+        }),
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          reply_to: to,
+          subject: `New Student Registered: ${name || to}`,
+          html: adminHtml,
+        }).catch(() => null),
+      ]);
       if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send welcome email" });
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
