@@ -864,14 +864,14 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end justify-center overflow-hidden bg-ink/60 p-0 backdrop-blur-sm sm:items-center sm:p-4 print:block print:p-0"
+      className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center print:block print:p-0"
       onClick={onClose}
     >
-      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl print:max-w-none print:max-h-none print:overflow-visible print:rounded-none" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md print:max-w-none print:overflow-visible" onClick={(e) => e.stopPropagation()}>
         {/* Document */}
         <div
           id={isReceipt ? "printable-receipt" : "printable-invoice"}
-          className="overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white text-ink shadow-[0_30px_80px_-30px_rgba(22,24,28,0.55)] flex flex-col justify-between print:rounded-none"
+          className="overflow-hidden rounded-3xl bg-white text-ink shadow-[0_30px_80px_-30px_rgba(22,24,28,0.55)] print:flex print:flex-col print:justify-between print:rounded-none"
         >
           <div>
             {/* Brand header */}
