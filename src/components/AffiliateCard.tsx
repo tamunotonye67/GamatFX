@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { printElement } from "../lib/print";
 import {
   Download,
   Copy,
@@ -419,7 +420,7 @@ export default function AffiliateCard({
 
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() => printElement("student-enrollment-card")}
               title="Print official share card (2.76 x 4.75 in)"
               className="btn-outline-dark !py-2.5 !text-xs sm:!text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
             >

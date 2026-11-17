@@ -446,6 +446,10 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
 }
 
 /* ---------- Print Layout Styles (A4 Letterhead, Invoice, Receipt) ---------- */
+#print-portal {
+  display: none;
+}
+
 @media print {
   @page {
     size: A4 portrait;
@@ -461,24 +465,22 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     height: auto !important;
   }
 
-  /* Prevent invisible background content from spawning a blank 2nd page on single-sheet prints */
-  html:has(#printable-letterhead, #printable-invoice, #printable-receipt, #student-enrollment-card),
-  body:has(#printable-letterhead, #printable-invoice, #printable-receipt, #student-enrollment-card) {
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
+  /* Clean top-level print portal: hides #root completely so only 1 page prints */
+  body[data-printing="true"] > *:not(#print-portal) {
+    display: none !important;
   }
 
-  /* Hide screen chrome & controls when printing */
-  body * {
-    visibility: hidden !important;
+  body[data-printing="true"] {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
 
-  /* Make target printable canvas and its contents strictly visible */
-  #printable-letterhead, #printable-letterhead *,
-  #printable-invoice, #printable-invoice *,
-  #printable-receipt, #printable-receipt *,
-  #student-enrollment-card, #student-enrollment-card * {
+  #print-portal,
+  #print-portal * {
     visibility: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -488,14 +490,97 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Isolate student enrollment share card centered at exact 2.76 x 4.75 in aspect */
-  #student-enrollment-card {
+  #print-portal {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #print-portal #printable-letterhead {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 98vh !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    padding: 16mm 14mm !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #print-portal #printable-invoice,
+  #print-portal #printable-receipt {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 98vh !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    background: #ffffff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #print-portal #student-enrollment-card {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    margin: 18mm auto !important;
+    width: 70.1mm !important;
+    height: 120.65mm !important;
+    max-width: none !important;
+    padding: 6mm 5.5mm !important;
+    box-shadow: none !important;
+    border-radius: 6mm !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Fallback rules when browser print (Ctrl+P) is triggered without printElement() */
+  body:not([data-printing="true"]) * {
+    visibility: hidden !important;
+  }
+
+  body:not([data-printing="true"]) #printable-letterhead,
+  body:not([data-printing="true"]) #printable-letterhead *,
+  body:not([data-printing="true"]) #printable-invoice,
+  body:not([data-printing="true"]) #printable-invoice *,
+  body:not([data-printing="true"]) #printable-receipt,
+  body:not([data-printing="true"]) #printable-receipt *,
+  body:not([data-printing="true"]) #student-enrollment-card,
+  body:not([data-printing="true"]) #student-enrollment-card * {
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    text-rendering: geometricPrecision !important;
+    -webkit-font-smoothing: antialiased !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body:not([data-printing="true"]) #student-enrollment-card {
     position: fixed !important;
     left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 70.1mm !important; /* Exact 2.76 inches */
-    height: 120.65mm !important; /* Exact 4.75 inches */
+    width: 70.1mm !important;
+    height: 120.65mm !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 6mm 5.5mm !important;
@@ -503,19 +588,15 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     border-radius: 6mm !important;
     z-index: 999999 !important;
     overflow: hidden !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 
-  /* Isolate printable letterhead to fill the printed sheet cleanly (A4 or US Letter) */
-  #printable-letterhead {
+  body:not([data-printing="true"]) #printable-letterhead {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
+    min-height: 98vh !important;
     box-sizing: border-box !important;
     padding: 16mm 14mm !important;
     box-shadow: none !important;
@@ -526,15 +607,15 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     z-index: 999999 !important;
   }
 
-  #printable-invoice, #printable-receipt {
+  body:not([data-printing="true"]) #printable-invoice,
+  body:not([data-printing="true"]) #printable-receipt {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;
     transform: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
+    min-height: 98vh !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -546,22 +627,5 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     justify-content: space-between !important;
     background: #ffffff !important;
     z-index: 999999 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Ensure modal backdrop and scroll wrappers never force low-DPI bitmap rasterization in PDF/print */
-  .fixed.inset-0,
-  .fixed.inset-0 > div,
-  .fixed.inset-0 > div > div,
-  .backdrop-blur-sm,
-  .backdrop-blur-xs {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    filter: none !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-    max-height: none !important;
   }
 }

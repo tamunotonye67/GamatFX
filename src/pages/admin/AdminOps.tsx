@@ -185,7 +185,6 @@ export function AdminPayments() {
           kind="receipt"
           payment={view}
           onClose={() => setView(null)}
-          onPrint={() => window.print()}
         />
       )}
     </AdminShell>

@@ -10,6 +10,7 @@ import {
   Image, AlertTriangle, Wallet, Upload, X, RotateCcw, Eye, Pencil
 } from "lucide-react";
 import { uploadCompanyAsset } from "../../lib/supabaseStorage";
+import { printElement } from "../../lib/print";
 
 /* ========================================================================== */
 /*                            1. INVOICES & RECEIPTS                          */
@@ -80,7 +81,7 @@ export function AdminInvoices() {
   };
 
   const handlePrint = () => {
-    window.print();
+    printElement(activeReceipt ? "printable-receipt" : "printable-invoice");
   };
 
   return (
@@ -468,7 +469,7 @@ export function AdminCompanyAssets() {
   };
 
   const handlePrintLetterhead = () => {
-    window.print();
+    printElement("printable-letterhead");
   };
 
   return (
@@ -955,8 +956,8 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
           <button type="button" onClick={onClose} className="btn-ghost flex-1 !border-white/30 bg-white/5 cursor-pointer">
             <X className="h-4 w-4" /> Close
           </button>
-          <button type="button" onClick={onPrint ?? (() => window.print())} className="btn-primary flex-1 cursor-pointer">
-            <Printer className="h-4 w-4" /> {isReceipt ? "Print / Save PDF" : "Print / Save PDF"}
+          <button type="button" onClick={onPrint ?? (() => printElement(isReceipt ? "printable-receipt" : "printable-invoice"))} className="btn-primary flex-1 cursor-pointer">
+            <Printer className="h-4 w-4" /> Print / Save PDF
           </button>
         </div>
       </div>
