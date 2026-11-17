@@ -273,22 +273,28 @@ export function AdminStudents() {
       title="Students"
       subtitle={`${admin.accounts.length} total accounts`}
       action={
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <button onClick={handleSync} disabled={syncing} className="btn-outline-dark !py-2.5" title="Pull latest student accounts from Supabase">
-            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin text-brand" : ""}`} /> Sync Database
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <button onClick={handleSync} disabled={syncing} className="btn-outline-dark !py-2.5 !px-3 sm:!px-5 !text-xs sm:!text-sm w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer" title="Pull latest student accounts from Supabase">
+            <RefreshCw className={`h-4 w-4 shrink-0 ${syncing ? "animate-spin text-brand" : ""}`} />
+            <span className="sm:hidden">Sync DB</span>
+            <span className="hidden sm:inline">Sync Database</span>
           </button>
           <button onClick={() => exportCsv("students.csv", rows.map(a => ({
             Name: formatAccountName(a), Email: a.email, Role: a.role, Status: a.status,
             Phone: a.phone ?? "", Country: a.country ?? "", Joined: fmtDate(a.joined),
             Courses: enrollmentsOf(a.id).length, Spend: spendOf(a.id),
-          })))} className="btn-outline-dark !py-2.5">
-            <Download className="h-4 w-4" /> Export CSV
+          })))} className="btn-outline-dark !py-2.5 !px-3 sm:!px-5 !text-xs sm:!text-sm w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer">
+            <Download className="h-4 w-4 shrink-0" />
+            <span>Export CSV</span>
           </button>
-          <button onClick={() => setIssuingCert(true)} className="btn-primary !py-2.5 !bg-ink hover:!bg-black">
-            <Award className="h-4 w-4 text-brand" /> Issue Office Certificate
+          <button onClick={() => setIssuingCert(true)} className="btn-primary !py-2.5 !px-3 sm:!px-5 !text-xs sm:!text-sm !bg-ink hover:!bg-black w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer">
+            <Award className="h-4 w-4 shrink-0 text-brand" />
+            <span className="sm:hidden">Office Cert</span>
+            <span className="hidden sm:inline">Issue Office Certificate</span>
           </button>
-          <button onClick={() => setCreating(true)} className="btn-primary !py-2.5">
-            <Plus className="h-4 w-4" /> Add Student
+          <button onClick={() => setCreating(true)} className="btn-primary !py-2.5 !px-3 sm:!px-5 !text-xs sm:!text-sm w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer">
+            <Plus className="h-4 w-4 shrink-0" />
+            <span>Add Student</span>
           </button>
         </div>
       }
