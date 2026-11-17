@@ -156,13 +156,37 @@ export default async function handler(req, res) {
         </html>
       `;
 
-      const result = await sendResendEmail(apiKey, {
-        from: fromEmail,
-        to: [to],
-        reply_to: adminEmail,
-        subject: `${isPreorder ? "Pre-Order Confirmed" : isFree ? "Your Download" : "Receipt"}: ${itemTitle} (${safeRef})`,
-        html,
-      });
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">${isPreorder ? "New Pre-Order" : isFree ? "New Free Download" : "New Purchase"}: ${safeTitle}</h2>
+            <p style="margin:0 0 8px;"><strong>Customer:</strong> ${safeName} (${escapeHtml(to)})<br/>
+            <strong>Category:</strong> ${safeCategory}<br/>
+            <strong>Amount:</strong> ${amountLabel}<br/>
+            <strong>Method:</strong> ${safeMethod}<br/>
+            <strong>Reference:</strong> ${safeRef}${safeRelease ? `<br/><strong>Expected Release:</strong> ${safeRelease}` : ""}</p>
+            <p style="margin:12px 0 0;"><a href="https://gamatfxacademy.com/#/admin">Open Admin Dashboard</a></p>
+          </body>
+        </html>
+      `;
+
+      const [result] = await Promise.all([
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [to],
+          reply_to: adminEmail,
+          subject: `${isPreorder ? "Pre-Order Confirmed" : isFree ? "Your Download" : "Receipt"}: ${itemTitle} (${safeRef})`,
+          html,
+        }),
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          reply_to: to,
+          subject: `${isPreorder ? "New Pre-Order" : isFree ? "Free Download" : "New Sale"} (${amountLabel}): ${itemTitle}`,
+          html: adminHtml,
+        }).catch(() => null),
+      ]);
 
       if (!result.ok) {
         return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send receipt" });
@@ -545,13 +569,35 @@ export default async function handler(req, res) {
           </body>
         </html>
       `;
-      const result = await sendResendEmail(apiKey, {
-        from: fromEmail,
-        to: [to],
-        reply_to: adminEmail,
-        subject: `Exam Passed (${safeScore}%): ${courseTitle}`,
-        html,
-      });
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">Student Passed Course Exam</h2>
+            <p style="margin:0 0 8px;"><strong>Student:</strong> ${safeName} (${escapeHtml(to)})<br/>
+            <strong>Course:</strong> ${safeCourse}<br/>
+            <strong>Score:</strong> ${safeScore}%</p>
+            <p style="margin:12px 0 0;"><a href="https://gamatfxacademy.com/#/admin">Open Admin Dashboard</a></p>
+          </body>
+        </html>
+      `;
+
+      const [result] = await Promise.all([
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [to],
+          reply_to: adminEmail,
+          subject: `Exam Passed (${safeScore}%): ${courseTitle}`,
+          html,
+        }),
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          reply_to: to,
+          subject: `Exam Passed (${safeScore}%): ${name || to} — ${courseTitle}`,
+          html: adminHtml,
+        }).catch(() => null),
+      ]);
       if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send quiz email" });
       return res.status(200).json({ ok: true, id: result.data?.id });
     }

@@ -143,19 +143,51 @@ export default async function handler(req, res) {
       </html>
     `;
 
-    const resendRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: fromEmail,
-        to: [to],
-        subject,
-        html,
+    const adminEmail =
+      (process.env.ADMIN_NOTIFY_EMAIL || "").trim() ||
+      "hello@gamatfxacademy.com";
+    const adminHtml = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+          <h2 style="margin:0 0 12px;">New Event Registration: ${escapeHtml(eventTitle)}</h2>
+          <p style="margin:0 0 8px;"><strong>Attendee:</strong> ${escapeHtml(name || "Attendee")} (${escapeHtml(to)})<br/>
+          <strong>Ticket:</strong> ${escapeHtml(ticket)}<br/>
+          <strong>Amount:</strong> ${priceLabel}${paymentRef ? `<br/><strong>Payment Ref:</strong> ${escapeHtml(paymentRef)}` : ""}${eventDate ? `<br/><strong>Date:</strong> ${escapeHtml(eventDate)}${eventTime ? ` · ${escapeHtml(eventTime)}` : ""}` : ""}${eventLocation ? `<br/><strong>Location:</strong> ${escapeHtml(eventLocation)}` : ""}</p>
+          <p style="margin:12px 0 0;"><a href="https://gamatfxacademy.com/#/admin">View Event Registrations</a></p>
+        </body>
+      </html>
+    `;
+
+    const [resendRes] = await Promise.all([
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [to],
+          subject,
+          html,
+        }),
       }),
-    });
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [adminEmail],
+          reply_to: to,
+          subject: `New Event Registration: ${eventTitle} (${ticket})`,
+          html: adminHtml,
+        }),
+      }).catch(() => null),
+    ]);
 
     const data = await resendRes.json().catch(() => ({}));
     if (!resendRes.ok) {
