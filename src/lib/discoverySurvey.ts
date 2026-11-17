@@ -197,7 +197,7 @@ export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isU
     budget: resp.detail ?? null,
     message: resp.detail || resp.sourceLabel,
     user_id: null,
-    status: "closed",
+    status: isUpdate ? "closed" : "new",
     created_at: resp.createdAt,
   };
   try {

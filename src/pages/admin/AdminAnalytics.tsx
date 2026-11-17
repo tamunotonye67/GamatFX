@@ -11,7 +11,7 @@ import {
 } from "../../lib/discoverySurvey";
 import {
   BarChart3, Users, CreditCard, BookOpen, Zap, Swords,
-  MessageSquare, Calendar, Download, Tag, Activity, Target, Compass,
+  MessageSquare, Calendar, Download, Tag, Activity, Target, Compass, RefreshCw,
 } from "lucide-react";
 
 type TimeRange = "all" | "30days" | "thisMonth" | "thisYear";
@@ -25,9 +25,19 @@ export function AdminAnalytics() {
   const { threads, replies } = forum;
 
   const [range, setRange] = useState<TimeRange>("all");
+  const [syncingDiscovery, setSyncingDiscovery] = useState(false);
   const [discoveryList, setDiscoveryList] = useState<DiscoveryResponse[]>(() =>
     loadDiscoveryResponses()
   );
+
+  const refreshDiscoveryNow = () => {
+    setSyncingDiscovery(true);
+    fetchSupabaseDiscoveryResponses()
+      .then((merged) => {
+        setDiscoveryList(merged);
+      })
+      .finally(() => setSyncingDiscovery(false));
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -460,7 +470,19 @@ export function AdminAnalytics() {
                     Responses collected from the newcomer &amp; visitor discovery popup across the platform.
                   </p>
                 </div>
-                <Badge tone="ink" className="shrink-0 whitespace-nowrap">{totalResp} Total {totalResp === 1 ? "Response" : "Responses"}</Badge>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge tone="ink" className="whitespace-nowrap">{totalResp} Total {totalResp === 1 ? "Response" : "Responses"}</Badge>
+                  <button
+                    type="button"
+                    onClick={refreshDiscoveryNow}
+                    disabled={syncingDiscovery}
+                    title="Refresh visitor responses"
+                    aria-label="Refresh visitor responses"
+                    className="rounded-lg border border-line bg-white p-1.5 text-muted transition hover:border-brand hover:text-brand cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${syncingDiscovery ? "animate-spin text-brand" : ""}`} />
+                  </button>
+                </div>
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
