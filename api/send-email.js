@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       "hello@gamatfxacademy.com";
 
     if (type === "receipt") {
-      const { to, name, itemTitle, amount, reference, method, category = "Enrollment" } = body;
+      const { to, name, itemTitle, amount, reference, method, category = "Enrollment", downloadUrl } = body;
       if (!to || !itemTitle) {
         return res.status(400).json({ ok: false, message: "Missing required receipt fields (to, itemTitle)" });
       }
@@ -70,9 +70,14 @@ export default async function handler(req, res) {
       const safeRef = escapeHtml(reference || "N/A");
       const safeMethod = escapeHtml(method || "Online Payment");
       const safeCategory = escapeHtml(category);
-      const amountLabel = Number(amount) > 0
-        ? `₦${Number(amount).toLocaleString("en-NG")}`
-        : "Free";
+      const isFree = !(Number(amount) > 0);
+      const amountLabel = isFree
+        ? "Free (₦0)"
+        : `₦${Number(amount).toLocaleString("en-NG")}`;
+      const safeDownloadUrl =
+        downloadUrl && /^https?:\/\//i.test(String(downloadUrl).trim())
+          ? String(downloadUrl).trim()
+          : "";
 
       const html = `
         <!DOCTYPE html>
@@ -86,24 +91,29 @@ export default async function handler(req, res) {
                     <tr>
                       <td style="background:#16181c;padding:28px;text-align:center;">
                         <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
-                        <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">Payment Receipt</h1>
+                        <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">${isFree ? "Your Free Download Is Ready" : "Payment Receipt"}</h1>
                       </td>
                     </tr>
                     <tr>
                       <td style="padding:28px;">
                         <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
-                          Hi <strong>${safeName}</strong>, thank you! Your payment for <strong>${safeTitle}</strong> has been confirmed.
+                          Hi <strong>${safeName}</strong>, thank you! ${isFree ? `Here is your free access to <strong>${safeTitle}</strong>.` : `Your payment for <strong>${safeTitle}</strong> has been confirmed.`}
                         </p>
                         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;padding:16px;font-size:13px;color:#374151;">
                           <tr><td style="padding:6px 0;color:#6b7280;width:130px;">Type</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeCategory}</td></tr>
                           <tr><td style="padding:6px 0;color:#6b7280;">Item</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeTitle}</td></tr>
-                          <tr><td style="padding:6px 0;color:#6b7280;">Amount Paid</td><td style="padding:6px 0;font-weight:700;color:#dc3545;">${amountLabel}</td></tr>
+                          <tr><td style="padding:6px 0;color:#6b7280;">Amount</td><td style="padding:6px 0;font-weight:700;color:#dc3545;">${amountLabel}</td></tr>
                           <tr><td style="padding:6px 0;color:#6b7280;">Reference</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeRef}</td></tr>
                           <tr><td style="padding:6px 0;color:#6b7280;">Method</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeMethod}</td></tr>
                         </table>
                         <div style="text-align:center;margin-top:24px;">
-                          <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">
-                            Open My Dashboard
+                          ${
+                            safeDownloadUrl
+                              ? `<a href="${escapeHtml(safeDownloadUrl)}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">Download File Now</a>`
+                              : ""
+                          }
+                          <a href="${safeDownloadUrl ? "https://gamatfxacademy.com/#/store" : "https://gamatfxacademy.com/#/dashboard"}" style="display:inline-block;background:${safeDownloadUrl ? "#16181c" : "#dc3545"};color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">
+                            ${safeDownloadUrl ? "Visit GAMAT Store" : "Open My Dashboard"}
                           </a>
                         </div>
                       </td>
@@ -125,7 +135,7 @@ export default async function handler(req, res) {
         from: fromEmail,
         to: [to],
         reply_to: adminEmail,
-        subject: `Receipt: ${itemTitle} (${safeRef})`,
+        subject: `${isFree ? "Your Download" : "Receipt"}: ${itemTitle} (${safeRef})`,
         html,
       });
 

@@ -351,8 +351,9 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     setIsProcessing(true);
     const txRef = generateTxRef("STR");
 
-    const subtotal = checkoutProduct.price;
-    const discountAmount = couponDiscount > 0 ? Math.round((subtotal * couponDiscount) / 100) : 0;
+    const isFreeItem = Boolean(checkoutProduct.isFree || checkoutProduct.price === 0);
+    const subtotal = isFreeItem ? 0 : checkoutProduct.price;
+    const discountAmount = !isFreeItem && couponDiscount > 0 ? Math.round((subtotal * couponDiscount) / 100) : 0;
     const totalAmount = Math.max(0, subtotal - discountAmount);
 
     const onFinishPayment = (finalTxRef: string, methodUsed: "card" | "transfer") => {
@@ -367,7 +368,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
         vat: 0,
         amount: totalAmount,
         method: methodUsed,
-        coupon: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
+        coupon: !isFreeItem && couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       });
 
       void sendReceiptEmail({
@@ -376,8 +377,9 @@ export default function StorePage({ categoryParam }: StorePageProps) {
         itemTitle: checkoutProduct.title,
         amount: totalAmount,
         reference: finalTxRef,
-        method: methodUsed,
-        category: "Digital Store Purchase",
+        method: isFreeItem ? "Free Access" : methodUsed,
+        category: isFreeItem ? "Free Resource" : "Digital Store Purchase",
+        downloadUrl: checkoutProduct.downloadUrl,
       });
 
       setPurchasedTxRef(finalTxRef);
