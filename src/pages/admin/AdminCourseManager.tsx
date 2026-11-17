@@ -420,22 +420,22 @@ export function AdminCourseManager() {
       title="Course Manager"
       subtitle="Create courses with full curriculum, listing icons, colours and lesson videos."
       action={
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 sm:gap-3 w-full sm:w-auto">
           <button onClick={() => exportCsv("managed-courses.csv", rows.map((c) => ({
             Title: c.title, Tag: c.tag, Level: c.level, Price: c.price,
             Modules: c.modules?.length ?? 0,
             Lessons: c.modules?.reduce((n, m) => n + m.lessons.length, 0) ?? 0,
             ExamQuestions: getCourseQuiz(c.id)?.questions.length ?? 0,
             Published: c.published ? "Yes" : "No",
-          })))} className="btn-outline-dark !py-2.5"><Download className="h-4 w-4" /> Export</button>
+          })))} className="btn-outline-dark !py-2.5 w-full sm:w-auto justify-center cursor-pointer"><Download className="h-4 w-4 shrink-0" /> Export</button>
           <button
             type="button"
             onClick={() => openExam(managedCourses[0] || COURSES[0])}
-            className="btn-outline-dark !py-2.5 text-brand hover:border-brand"
+            className="btn-outline-dark !py-2.5 w-full sm:w-auto justify-center text-brand hover:border-brand cursor-pointer"
           >
-            <FileQuestion className="h-4 w-4" /> Exam Questions
+            <FileQuestion className="h-4 w-4 shrink-0" /> Exam Questions
           </button>
-          <button onClick={() => openEdit()} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> Add course</button>
+          <button onClick={() => openEdit()} className="btn-primary !py-2.5 col-span-2 sm:col-span-1 w-full sm:w-auto justify-center cursor-pointer"><Plus className="h-4 w-4 shrink-0" /> Add course</button>
         </div>
       }
     >
