@@ -47,3 +47,24 @@ export async function sendEnquiryEmail(params: {
     // Non-blocking
   }
 }
+
+export async function sendAffiliateEmail(params: {
+  to: string;
+  affiliateName: string;
+  eventKind: "signup" | "commission";
+  referralCode: string;
+  referredName?: string;
+  itemTitle?: string;
+  commissionAmount?: number;
+}): Promise<void> {
+  if (!params.to) return;
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "affiliate", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}

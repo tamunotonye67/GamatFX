@@ -243,6 +243,81 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, id: userRes.data?.id });
     }
 
+    if (type === "affiliate") {
+      const { to, affiliateName, eventKind = "signup", referralCode, referredName, itemTitle, commissionAmount } = body;
+      if (!to) {
+        return res.status(400).json({ ok: false, message: "Missing recipient email (to)" });
+      }
+
+      const safeAffName = escapeHtml(affiliateName || "Ambassador");
+      const safeCode = escapeHtml(referralCode || "");
+      const safeRefName = escapeHtml(referredName || "A new trader");
+      const safeItem = escapeHtml(itemTitle || "");
+      const isCommission = eventKind === "commission" && Number(commissionAmount) > 0;
+      const commLabel = isCommission ? `₦${Number(commissionAmount).toLocaleString("en-NG")}` : "";
+
+      const subject = isCommission
+        ? `You earned ${commLabel} affiliate commission!`
+        : `New referral signup with your code ${referralCode || ""}`.trim();
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr>
+                <td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#16181c;padding:28px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX AFFILIATE</p>
+                        <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">${isCommission ? `Commission Earned: ${commLabel}` : "New Referral Signup!"}</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                          Hi <strong>${safeAffName}</strong>, ${
+                            isCommission
+                              ? `<strong>${safeRefName}</strong> just completed a purchase using your referral link${safeItem ? ` (<strong>${safeItem}</strong>)` : ""}. Your commission of <strong style="color:#dc3545;">${commLabel}</strong> has been credited to your affiliate balance!`
+                              : `<strong>${safeRefName}</strong> just created a GAMAT FX account using your referral link${safeCode ? ` (<code>${safeCode}</code>)` : ""}. When they enroll in a course or purchase from the store, you'll earn your affiliate commission automatically.`
+                          }
+                        </p>
+                        <div style="text-align:center;margin-top:24px;">
+                          <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">
+                            View Affiliate Dashboard
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:16px 28px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;">
+                        GAMAT FX Academy · Partner &amp; Affiliate Program
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject,
+        html,
+      });
+
+      if (!result.ok) {
+        return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send affiliate email" });
+      }
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
     return res.status(400).json({ ok: false, message: "Unsupported email type" });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });

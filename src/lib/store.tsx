@@ -57,6 +57,7 @@ import {
 import { generateTxRef } from "./bachs";
 import { formatAccountName, formatStudentName, formatAffiliateCardName, capitalizeWord } from "./formatName";
 import { triggerDiscoveryForNewRegistration, fetchSupabaseDiscoveryResponses } from "./discoverySurvey";
+import { sendAffiliateEmail } from "./email";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -2202,13 +2203,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const activeRef = getActiveReferralCode();
       if (activeRef) {
+        const cleanRef = activeRef.trim().toUpperCase();
+        const matchedProfile = affiliateProfiles.find(
+          (a) => a.referralCode.trim().toUpperCase() === cleanRef
+        );
         setAffiliateProfiles((prev) =>
           prev.map((a) =>
-            a.referralCode.trim().toUpperCase() === activeRef.trim().toUpperCase()
+            a.referralCode.trim().toUpperCase() === cleanRef
               ? { ...a, totalSignups: (a.totalSignups || 0) + 1 }
               : a
           )
         );
+        if (matchedProfile) {
+          const referrer = accounts.find((a) => a.id === matchedProfile.userId);
+          if (referrer?.email) {
+            void sendAffiliateEmail({
+              to: referrer.email,
+              affiliateName: referrer.firstName || referrer.name,
+              eventKind: "signup",
+              referralCode: matchedProfile.referralCode,
+              referredName: `${acc.firstName} ${acc.lastName}`.trim(),
+            });
+          }
+        }
       }
     } catch {}
 
@@ -2623,6 +2640,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   : a
               )
             );
+            const referrer = accounts.find((a) => a.id === affiliate.userId);
+            if (referrer?.email) {
+              void sendAffiliateEmail({
+                to: referrer.email,
+                affiliateName: referrer.firstName || referrer.name,
+                eventKind: "commission",
+                referralCode: affiliate.referralCode,
+                referredName: p.userName,
+                itemTitle: p.courseTitle,
+                commissionAmount: commissionAmt,
+              });
+            }
           }
         }
       }
