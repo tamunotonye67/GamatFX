@@ -1,0 +1,145 @@
+/**
+ * Vercel Cron Function: 24-Hour Event Reminder Emails
+ * Runs daily via vercel.json cron (`0 8 * * *`) and emails confirmed attendees
+ * whose event starts tomorrow.
+ */
+
+const MONTHS = {
+  january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+  july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+};
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function parseEventDateUtc(ev) {
+  const year = parseInt(ev.year, 10);
+  const month = MONTHS[String(ev.month || "").trim().toLowerCase()];
+  const day = parseInt(ev.day, 10);
+  if (!year || month === undefined || !day) return null;
+  return new Date(Date.UTC(year, month, day));
+}
+
+export default async function handler(req, res) {
+  const apiKey = (process.env.RESEND_API_KEY || "").trim();
+  if (!apiKey) {
+    return res.status(200).json({ ok: false, skipped: true, message: "RESEND_API_KEY not set" });
+  }
+
+  const supabaseUrl =
+    (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim() ||
+    "https://pbbtiazbpolvajjsqirs.supabase.co";
+  const supabaseKey =
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "").trim() ||
+    "sb_publishable_FnEN-7WZtC0_qvoNApQNSw__c9KqANV";
+
+  const fromEmail =
+    (process.env.EVENT_FROM_EMAIL || "").trim() ||
+    "GAMAT FX Academy <events@gamatfxacademy.com>";
+
+  try {
+    const [evRes, regRes] = await Promise.all([
+      fetch(`${supabaseUrl}/rest/v1/events?select=*&status=eq.published`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      }),
+      fetch(`${supabaseUrl}/rest/v1/registrations?select=*&status=eq.confirmed`, {
+        headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      }),
+    ]);
+
+    if (!evRes.ok || !regRes.ok) {
+      return res.status(200).json({ ok: false, message: "Could not query Supabase events/registrations" });
+    }
+
+    const events = await evRes.json();
+    const registrations = await regRes.json();
+
+    const now = new Date();
+    const tomorrowUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+
+    const tomorrowEvents = new Map();
+    for (const ev of events || []) {
+      const d = parseEventDateUtc(ev);
+      if (d && d.getTime() === tomorrowUtc.getTime()) {
+        tomorrowEvents.set(ev.id, ev);
+      }
+    }
+
+    if (tomorrowEvents.size === 0) {
+      return res.status(200).json({ ok: true, sent: 0, message: "No events scheduled for tomorrow." });
+    }
+
+    let sent = 0;
+    for (const reg of registrations || []) {
+      const ev = tomorrowEvents.get(reg.event_id);
+      if (!ev || !reg.email) continue;
+
+      const safeName = escapeHtml(reg.name || "Trader");
+      const safeTitle = escapeHtml(ev.title || reg.event_title || "GAMAT FX Event");
+      const safeTicket = escapeHtml(reg.ticket || "");
+      const safeTime = escapeHtml(ev.time || "");
+      const safeLocation = escapeHtml(ev.location || "");
+      const ticketUrl = `https://gamatfxacademy.com/#/events?ticket=${encodeURIComponent(reg.ticket || "")}`;
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">EVENT REMINDER</p>
+                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">See You Tomorrow!</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeName}</strong>, just a quick reminder that <strong>${safeTitle}</strong> is tomorrow!
+                      </p>
+                      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;padding:16px;font-size:13px;color:#374151;">
+                        ${safeTicket ? `<tr><td style="padding:5px 0;color:#6b7280;width:100px;">Ticket</td><td style="padding:5px 0;font-weight:700;color:#dc3545;">${safeTicket}</td></tr>` : ""}
+                        ${safeTime ? `<tr><td style="padding:5px 0;color:#6b7280;">Time</td><td style="padding:5px 0;font-weight:600;color:#111827;">${safeTime}</td></tr>` : ""}
+                        ${safeLocation ? `<tr><td style="padding:5px 0;color:#6b7280;">Location</td><td style="padding:5px 0;font-weight:600;color:#111827;">${safeLocation}</td></tr>` : ""}
+                      </table>
+                      <div style="text-align:center;margin-top:22px;">
+                        <a href="${ticketUrl}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Ticket &amp; QR Code</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const mailRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [reg.email],
+          subject: `Reminder: ${ev.title || reg.event_title} is Tomorrow!`,
+          html,
+        }),
+      });
+      if (mailRes.ok) sent += 1;
+    }
+
+    return res.status(200).json({ ok: true, sent });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: err?.message || "Reminder cron failed" });
+  }
+}

@@ -64,6 +64,7 @@ import {
   sendEventCancelledEmail,
   sendTeamBioEmail,
   sendForumReplyEmail,
+  sendReviewSubmittedEmail,
 } from "./email";
 
 export const CERTIFICATE_FEE = 10000;
@@ -4678,6 +4679,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     setReviews((prev) => [rev, ...prev]);
     saveSupabaseReview(rev);
+    void sendReviewSubmittedEmail({
+      userName: formatAccountName(user),
+      userEmail: user.email,
+      targetType: d.targetType,
+      targetTitle: d.targetTitle,
+      rating: rev.rating,
+      comment: rev.comment,
+    });
     return { ok: true, review: rev };
   }, [user]);
 

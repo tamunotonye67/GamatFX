@@ -12,6 +12,7 @@ import {
   saveDiscoveryResponse,
   type DiscoverySourceId,
 } from "../lib/discoverySurvey";
+import { sendDiscoverySurveyEmail } from "../lib/email";
 
 function SourceIcon({ id, active }: { id: DiscoverySourceId; active: boolean }) {
   const cls = `h-4 w-4 shrink-0 transition-colors duration-150 ${
@@ -227,6 +228,13 @@ export default function DiscoverySurveyModal() {
       sourceId: selectedId,
       detail: detail.trim() || undefined,
       userId: user?.id,
+      userName: user ? formatAccountName(user) : undefined,
+      userEmail: user?.email,
+      route: pathname,
+    });
+    void sendDiscoverySurveyEmail({
+      sourceId: selectedId,
+      detail: detail.trim() || undefined,
       userName: user ? formatAccountName(user) : undefined,
       userEmail: user?.email,
       route: pathname,

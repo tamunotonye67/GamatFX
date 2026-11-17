@@ -779,6 +779,61 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 
+    if (type === "review_submitted") {
+      const { userName, userEmail, targetType, targetTitle, rating, comment } = body;
+      const safeName = escapeHtml(userName || "Student");
+      const safeTarget = escapeHtml(targetTitle || targetType || "Academy");
+      const safeComment = escapeHtml(comment || "").replace(/\n/g, "<br/>");
+      const stars = "★".repeat(Math.max(1, Math.min(5, Number(rating || 5))));
+
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">New Student Review (${stars})</h2>
+            <p><strong>Student:</strong> ${safeName}${userEmail ? ` (${escapeHtml(userEmail)})` : ""}<br/>
+            <strong>For:</strong> ${safeTarget}</p>
+            <div style="background:#f4f5f7;padding:14px;border-radius:10px;line-height:1.6;">${safeComment}</div>
+            <p><a href="https://gamatfxacademy.com/#/reviews">View Reviews</a></p>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [adminEmail],
+        ...(userEmail ? { reply_to: userEmail } : {}),
+        subject: `New ${rating || 5}★ Review from ${userName || "Student"}: ${targetTitle || ""}`.trim(),
+        html: adminHtml,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to notify admin" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "discovery_survey") {
+      const { sourceId, detail, userName, userEmail, route } = body;
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">New Discovery Survey Response</h2>
+            <p><strong>Source:</strong> ${escapeHtml(sourceId || "")}<br/>
+            ${detail ? `<strong>Detail:</strong> ${escapeHtml(detail)}<br/>` : ""}
+            <strong>User:</strong> ${escapeHtml(userName || "Visitor")}${userEmail ? ` (${escapeHtml(userEmail)})` : ""}<br/>
+            ${route ? `<strong>Page:</strong> ${escapeHtml(route)}` : ""}</p>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [adminEmail],
+        ...(userEmail ? { reply_to: userEmail } : {}),
+        subject: `Discovery Survey: ${sourceId || "Response"}${userName ? ` — ${userName}` : ""}`,
+        html: adminHtml,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send discovery alert" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
     return res.status(400).json({ ok: false, message: "Unsupported email type" });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });

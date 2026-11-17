@@ -216,3 +216,40 @@ export async function sendForumReplyEmail(params: {
     // Non-blocking
   }
 }
+
+export async function sendReviewSubmittedEmail(params: {
+  userName: string;
+  userEmail?: string;
+  targetType: string;
+  targetTitle: string;
+  rating: number;
+  comment: string;
+}): Promise<void> {
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "review_submitted", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
+
+export async function sendDiscoverySurveyEmail(params: {
+  sourceId: string;
+  detail?: string;
+  userName?: string;
+  userEmail?: string;
+  route?: string;
+}): Promise<void> {
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "discovery_survey", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
