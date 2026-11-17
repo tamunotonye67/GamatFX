@@ -759,7 +759,7 @@ export function AdminCompanyAssets() {
             </div>
 
             {/* Live A4 Letterhead Preview (Printable) */}
-            <div className={`${mobileView === "preview" ? "block" : "hidden lg:block"} min-w-0`}>
+            <div className={`${mobileView === "preview" ? "block" : "hidden lg:block"} print:block min-w-0`}>
               <div
                 id="printable-letterhead"
                 className="w-full max-w-[210mm] min-h-[480px] sm:min-h-[240mm] lg:min-h-[297mm] rounded-2xl border border-line bg-white p-5 sm:p-10 lg:p-[18mm_16mm] shadow-xl font-sans relative flex flex-col justify-between mx-auto overflow-hidden"

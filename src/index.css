@@ -457,6 +457,8 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     color: #16181c !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 
   /* Hide screen chrome & controls when printing */
