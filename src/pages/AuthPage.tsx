@@ -5,6 +5,7 @@ import { navigate } from "../lib/router";
 import { useStore, storeCredential } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { signInWithGoogleSupabase, resetPasswordForEmailSupabase, updatePasswordSupabase } from "../lib/supabaseAuth";
+import { sendVerificationEmail } from "../lib/email";
 import { getActiveReferralCode } from "../lib/affiliate";
 import {
   AlertCircle,

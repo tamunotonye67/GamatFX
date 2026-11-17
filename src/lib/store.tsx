@@ -60,6 +60,7 @@ import { triggerDiscoveryForNewRegistration, fetchSupabaseDiscoveryResponses } f
 import {
   sendAffiliateEmail,
   sendWelcomeEmail,
+  sendVerificationEmail,
   sendPayoutEmail,
   sendEventCancelledEmail,
   sendTeamBioEmail,
