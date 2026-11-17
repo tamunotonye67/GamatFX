@@ -269,7 +269,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                   )
                 ) : (
                   <button onClick={startAssessment} className="btn-primary">
-                    <RotateCcw className="h-4 w-4" /> Retake 50-Question Exam
+                    <RotateCcw className="h-4 w-4" /> Retake Exam
                   </button>
                 )}
                 <button onClick={() => navigate(courseUrl)} className="btn-outline-dark">
