@@ -48,18 +48,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, message: "Missing required fields (to, ticket, eventTitle)" });
     }
 
-    const zeptoKey = (process.env.ZEPTOMAIL_API_KEY || "").trim();
-    const resendKey = (process.env.RESEND_API_KEY || "").trim();
+    const apiKey = (process.env.RESEND_API_KEY || "").trim();
 
-    if (!zeptoKey && !resendKey) {
+    if (!apiKey) {
       return res.status(200).json({
         ok: false,
         skipped: true,
-        message: "Neither ZEPTOMAIL_API_KEY nor RESEND_API_KEY is configured in environment variables.",
+        message: "RESEND_API_KEY is not configured in environment variables.",
       });
     }
 
-    const rawFrom = (process.env.EVENT_FROM_EMAIL || "").trim();
+    const fromEmail =
+      (process.env.EVENT_FROM_EMAIL || "").trim() ||
+      "GAMAT FX Academy <onboarding@resend.dev>";
+
     const safeName = escapeHtml(name || "Trader");
     const safeTicket = escapeHtml(ticket);
     const safeTitle = escapeHtml(eventTitle);
@@ -141,52 +143,10 @@ export default async function handler(req, res) {
       </html>
     `;
 
-    // 1. Send via Zoho ZeptoMail if ZEPTOMAIL_API_KEY is configured
-    if (zeptoKey) {
-      const zeptoUrl =
-        (process.env.ZEPTOMAIL_API_URL || "").trim() ||
-        "https://api.zeptomail.com/v1.1/email";
-      const fromAddress =
-        (rawFrom.match(/<([^>]+)>/)?.[1] || rawFrom || "events@gamatfxacademy.com").trim();
-      const fromName =
-        (rawFrom.includes("<") ? rawFrom.split("<")[0].trim() : "") || "GAMAT FX Academy";
-      const authHeader = zeptoKey.startsWith("Zoho-enczapikey")
-        ? zeptoKey
-        : `Zoho-enczapikey ${zeptoKey}`;
-
-      const zeptoRes = await fetch(zeptoUrl, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: authHeader,
-        },
-        body: JSON.stringify({
-          from: { address: fromAddress, name: fromName },
-          to: [{ email_address: { address: to, name: name || "Trader" } }],
-          subject,
-          htmlbody: html,
-        }),
-      });
-
-      const zeptoData = await zeptoRes.json().catch(() => ({}));
-      if (!zeptoRes.ok) {
-        return res.status(zeptoRes.status).json({
-          ok: false,
-          provider: "zeptomail",
-          message: zeptoData?.message || zeptoData?.error?.message || "Failed to send via Zoho ZeptoMail",
-        });
-      }
-
-      return res.status(200).json({ ok: true, provider: "zeptomail", id: zeptoData?.request_id });
-    }
-
-    // 2. Otherwise send via Resend
-    const fromEmail = rawFrom || "GAMAT FX Academy <onboarding@resend.dev>";
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${resendKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -201,12 +161,11 @@ export default async function handler(req, res) {
     if (!resendRes.ok) {
       return res.status(resendRes.status).json({
         ok: false,
-        provider: "resend",
         message: data?.message || "Failed to send confirmation email",
       });
     }
 
-    return res.status(200).json({ ok: true, provider: "resend", id: data?.id });
+    return res.status(200).json({ ok: true, id: data?.id });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });
   }
