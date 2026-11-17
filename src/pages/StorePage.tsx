@@ -378,8 +378,14 @@ export default function StorePage({ categoryParam }: StorePageProps) {
         amount: totalAmount,
         reference: finalTxRef,
         method: isFreeItem ? "Free Access" : methodUsed,
-        category: isFreeItem ? "Free Resource" : "Digital Store Purchase",
+        category: checkoutProduct.isPreorder
+          ? "Pre-Order Reservation"
+          : isFreeItem
+            ? "Free Resource"
+            : "Digital Store Purchase",
         downloadUrl: checkoutProduct.downloadUrl,
+        isPreorder: Boolean(checkoutProduct.isPreorder),
+        releaseDate: checkoutProduct.preorderReleaseDate,
       });
 
       setPurchasedTxRef(finalTxRef);

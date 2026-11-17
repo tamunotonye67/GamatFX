@@ -12,6 +12,8 @@ export async function sendReceiptEmail(params: {
   method?: string;
   category?: string;
   downloadUrl?: string;
+  isPreorder?: boolean;
+  releaseDate?: string;
 }): Promise<void> {
   if (!params.to) return;
   try {

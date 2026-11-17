@@ -60,7 +60,7 @@ export default async function handler(req, res) {
       "hello@gamatfxacademy.com";
 
     if (type === "receipt") {
-      const { to, name, itemTitle, amount, reference, method, category = "Enrollment", downloadUrl } = body;
+      const { to, name, itemTitle, amount, reference, method, category = "Enrollment", downloadUrl, isPreorder, releaseDate } = body;
       if (!to || !itemTitle) {
         return res.status(400).json({ ok: false, message: "Missing required receipt fields (to, itemTitle)" });
       }
@@ -70,6 +70,7 @@ export default async function handler(req, res) {
       const safeRef = escapeHtml(reference || "N/A");
       const safeMethod = escapeHtml(method || "Online Payment");
       const safeCategory = escapeHtml(category);
+      const safeRelease = releaseDate ? escapeHtml(releaseDate) : "";
       const isFree = !(Number(amount) > 0);
       const amountLabel = isFree
         ? "Free (₦0)"
@@ -78,6 +79,18 @@ export default async function handler(req, res) {
         downloadUrl && /^https?:\/\//i.test(String(downloadUrl).trim())
           ? String(downloadUrl).trim()
           : "";
+
+      const heading = isPreorder
+        ? "Pre-Order Confirmed"
+        : isFree
+          ? "Your Free Download Is Ready"
+          : "Payment Receipt";
+
+      const intro = isPreorder
+        ? `Hi <strong>${safeName}</strong>, your pre-order reservation for <strong>${safeTitle}</strong> is confirmed! We'll notify you as soon as the full release goes live${safeRelease ? ` (expected <strong>${safeRelease}</strong>)` : ""}.`
+        : isFree
+          ? `Hi <strong>${safeName}</strong>, thank you! Here is your free access to <strong>${safeTitle}</strong>.`
+          : `Hi <strong>${safeName}</strong>, thank you! Your payment for <strong>${safeTitle}</strong> has been confirmed.`;
 
       const html = `
         <!DOCTYPE html>
@@ -91,17 +104,18 @@ export default async function handler(req, res) {
                     <tr>
                       <td style="background:#16181c;padding:28px;text-align:center;">
                         <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
-                        <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">${isFree ? "Your Free Download Is Ready" : "Payment Receipt"}</h1>
+                        <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">${heading}</h1>
                       </td>
                     </tr>
                     <tr>
                       <td style="padding:28px;">
                         <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
-                          Hi <strong>${safeName}</strong>, thank you! ${isFree ? `Here is your free access to <strong>${safeTitle}</strong>.` : `Your payment for <strong>${safeTitle}</strong> has been confirmed.`}
+                          ${intro}
                         </p>
                         <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;padding:16px;font-size:13px;color:#374151;">
                           <tr><td style="padding:6px 0;color:#6b7280;width:130px;">Type</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeCategory}</td></tr>
                           <tr><td style="padding:6px 0;color:#6b7280;">Item</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeTitle}</td></tr>
+                          ${safeRelease ? `<tr><td style="padding:6px 0;color:#6b7280;">Expected Release</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeRelease}</td></tr>` : ""}
                           <tr><td style="padding:6px 0;color:#6b7280;">Amount</td><td style="padding:6px 0;font-weight:700;color:#dc3545;">${amountLabel}</td></tr>
                           <tr><td style="padding:6px 0;color:#6b7280;">Reference</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeRef}</td></tr>
                           <tr><td style="padding:6px 0;color:#6b7280;">Method</td><td style="padding:6px 0;font-weight:600;color:#111827;">${safeMethod}</td></tr>
@@ -109,7 +123,7 @@ export default async function handler(req, res) {
                         <div style="text-align:center;margin-top:24px;">
                           ${
                             safeDownloadUrl
-                              ? `<a href="${escapeHtml(safeDownloadUrl)}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">Download File Now</a>`
+                              ? `<a href="${escapeHtml(safeDownloadUrl)}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">${isPreorder ? "Download Early-Access Pass" : "Download File Now"}</a>`
                               : ""
                           }
                           <a href="${safeDownloadUrl ? "https://gamatfxacademy.com/#/store" : "https://gamatfxacademy.com/#/dashboard"}" style="display:inline-block;background:${safeDownloadUrl ? "#16181c" : "#dc3545"};color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">
@@ -135,7 +149,7 @@ export default async function handler(req, res) {
         from: fromEmail,
         to: [to],
         reply_to: adminEmail,
-        subject: `${isFree ? "Your Download" : "Receipt"}: ${itemTitle} (${safeRef})`,
+        subject: `${isPreorder ? "Pre-Order Confirmed" : isFree ? "Your Download" : "Receipt"}: ${itemTitle} (${safeRef})`,
         html,
       });
 
