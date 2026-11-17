@@ -131,7 +131,7 @@ export type Account = {
   /** Extra permissions granted on top of the level. */
   extraPermissions?: Permission[];
   jobTitle?: string;
-  status: "active" | "suspended";
+  status: "active" | "pending_verification" | "suspended";
   joined: string;
 };
 
@@ -1292,8 +1292,9 @@ type Ctx = {
   isAdmin: boolean;
   authLoading: boolean;
   authError: string | null;
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
-  signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string; avatar?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string };
+  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean; email?: string }> | { ok: boolean; error?: string; needsVerification?: boolean; email?: string };
+  signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string; avatar?: string }) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean; email?: string }> | { ok: boolean; error?: string; needsVerification?: boolean; email?: string };
+  markEmailVerified: (email: string) => void;
   logout: () => void;
   updateProfile: (patch: Partial<User>) => void;
 
@@ -1729,6 +1730,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         (a) => a.id === uid || (userEmail && a.email.toLowerCase() === userEmail)
       );
       if (localMatch) {
+        if (localMatch.status === "pending_verification") {
+          await supabase.auth.signOut().catch(() => {});
+          return;
+        }
         setSessionId(localMatch.id);
         return;
       }
@@ -1742,6 +1747,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle();
           if (existingRow) {
             const acc = rowToAccount(existingRow as SupabaseAccountRow);
+            if (acc.status === "pending_verification") {
+              await supabase.auth.signOut().catch(() => {});
+              return;
+            }
             setAccounts((prev) => {
               const next = prev.some((a) => a.id === acc.id) ? prev : [...prev, acc];
               write(K.accounts, next);
@@ -1809,6 +1818,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
+        if (authActionInProgressRef.current) return;
         setAuthError(null);
         await syncAuthUser(session.user);
         setAuthLoading(false);
@@ -2143,8 +2153,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         !deleted.has(a.id.toLowerCase()) &&
         !deleted.has(email)
     );
-    if (activeExisting) return { ok: false, error: "An account with this email already exists." };
+    if (activeExisting && activeExisting.status !== "pending_verification") {
+      return { ok: false, error: "An account with this email already exists." };
+    }
     if (d.password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
+
+    // If an unverified account already exists for this email, resend verification email cleanly
+    if (activeExisting && activeExisting.status === "pending_verification") {
+      const verifyRes = await sendVerificationEmail({
+        to: email,
+        name: `${activeExisting.firstName} ${activeExisting.lastName}`.trim() || activeExisting.firstName,
+      });
+      if (!verifyRes.ok) {
+        return { ok: false, error: verifyRes.error || "Could not send verification email." };
+      }
+      return { ok: true, needsVerification: true, email };
+    }
 
     // Unmark any previous deletion tombstones for this email before registering
     unmarkDeletedAccount("", email);
@@ -2161,7 +2185,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       country: d.country?.trim() || "Nigeria",
       avatar: d.avatar || undefined,
       role: "student" as const,
-      status: "active" as const,
+      status: "pending_verification" as const,
     };
 
     // 1. Primary: Register in Supabase Auth & Database
@@ -2169,6 +2193,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     let res: { ok: boolean; account?: Account; error?: string };
     try {
       res = await signUpSupabaseUser(email, d.password, newAccData);
+      await signOutSupabaseUser().catch(() => {});
     } finally {
       authActionInProgressRef.current = false;
     }
@@ -2182,7 +2207,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     const acc: Account = res.account
-      ? { ...res.account, password: d.password }
+      ? { ...res.account, password: d.password, status: "pending_verification" }
       : {
           ...newAccData,
           id: uid("u"),
@@ -2204,8 +2229,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       write(K.accounts, next);
       return next;
     });
-    setSessionId(acc.id);
-    write(K.session, acc.id);
 
     // Attribute referral signup if referral code exists
     try {
@@ -2237,14 +2260,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
 
-    triggerDiscoveryForNewRegistration(acc.id, email);
-    void sendWelcomeEmail({
+    const verifyRes = await sendVerificationEmail({
       to: email,
       name: `${acc.firstName} ${acc.lastName}`.trim() || acc.firstName,
     });
+    if (!verifyRes.ok) {
+      return { ok: false, error: verifyRes.error || "Account created, but failed to send verification email." };
+    }
 
-    return { ok: true };
-  }, [accounts]);
+    return { ok: true, needsVerification: true, email };
+  }, [accounts, affiliateProfiles]);
+
+  const markEmailVerified: Ctx["markEmailVerified"] = useCallback((rawEmail: string) => {
+    const cleanEmail = rawEmail.trim().toLowerCase();
+    if (!cleanEmail) return;
+    let verifiedAcc: Account | undefined;
+    setAccounts((prev) => {
+      const next = prev.map((a) => {
+        if (a.email.toLowerCase() === cleanEmail) {
+          verifiedAcc = { ...a, status: "active" };
+          return verifiedAcc;
+        }
+        return a;
+      });
+      write(K.accounts, next);
+      return next;
+    });
+    if (verifiedAcc) {
+      void saveSupabaseAccount(verifiedAcc);
+      triggerDiscoveryForNewRegistration(verifiedAcc.id, cleanEmail);
+      void sendWelcomeEmail({
+        to: cleanEmail,
+        name: `${verifiedAcc.firstName} ${verifiedAcc.lastName}`.trim() || verifiedAcc.firstName,
+      });
+    }
+  }, []);
 
   const login: Ctx["login"] = useCallback(async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
@@ -2281,6 +2331,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           return {
             ok: false,
             error: "This account has been deleted. Please sign up to create a new account.",
+          };
+        }
+        if (res.account.status === "pending_verification") {
+          setSessionId(null);
+          write(K.session, null);
+          signOutSupabaseUser().catch(() => {});
+          return {
+            ok: false,
+            error: "Please verify your email address before logging in. Check your inbox (and spam folder) for your verification link.",
+            needsVerification: true,
+            email: cleanEmail,
           };
         }
         const authedAcc = { ...res.account, password };
@@ -2323,6 +2384,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         if (found.status === "suspended") {
           return { ok: false, error: "This account has been suspended. Contact support." };
+        }
+        if (found.status === "pending_verification") {
+          return {
+            ok: false,
+            error: "Please verify your email address before logging in. Check your inbox (and spam folder) for your verification link.",
+            needsVerification: true,
+            email: cleanEmail,
+          };
         }
 
         const isPasswordMatch =
@@ -2376,6 +2445,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         if (supaAcc.status === "suspended") {
           return { ok: false, error: "This account has been suspended. Contact support." };
+        }
+        if (supaAcc.status === "pending_verification") {
+          return {
+            ok: false,
+            error: "Please verify your email address before logging in. Check your inbox (and spam folder) for your verification link.",
+            needsVerification: true,
+            email: cleanEmail,
+          };
         }
 
         if (
@@ -4692,7 +4769,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value: Ctx = {
     user, isAuthed: !!user, isAdmin: user?.role === "admin", authLoading, authError,
-    login, signup, logout, updateProfile,
+    login, signup, markEmailVerified, logout, updateProfile,
     enrollments: myEnrollments, isEnrolled, getEnrollment, enroll,
     toggleLesson, setLastLesson, progressOf, stats,
     priceOf, courseSettings,

@@ -1,9 +1,20 @@
+import crypto from "node:crypto";
+
 /**
  * Vercel Serverless Function: General Transactional Emails via Resend
  * Supports:
  *  - type: "receipt" (Course, Certificate, or Store purchase receipt)
  *  - type: "enquiry" (Contact / Service enquiry confirmation to user + notification to academy)
+ *  - type: "email_verification" (Account email verification link)
+ *  - and other transactional notifications
  */
+
+function signVerificationToken(email, exp, secret) {
+  return crypto
+    .createHmac("sha256", secret)
+    .update(`${email}|${exp}`)
+    .digest("hex");
+}
 
 function escapeHtml(str) {
   return String(str || "")
@@ -831,6 +842,80 @@ export default async function handler(req, res) {
         html: adminHtml,
       });
       if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send discovery alert" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "email_verification") {
+      const { to, name, origin } = body;
+      const cleanEmail = String(to || "").trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes("@")) {
+        return res.status(400).json({ ok: false, message: "Valid recipient email is required" });
+      }
+      const secret = (process.env.VERIFY_SECRET || apiKey).trim();
+      const exp = Date.now() + 24 * 60 * 60 * 1000;
+      const sig = signVerificationToken(cleanEmail, exp, secret);
+      const rawOrigin = String(origin || "").trim().replace(/\/+$/, "");
+      const baseOrigin = /^https?:\/\/[^/\s]+$/i.test(rawOrigin)
+        ? rawOrigin
+        : "https://gamatfxacademy.com";
+      const verifyUrl = `${baseOrigin}/#/verify-email?email=${encodeURIComponent(cleanEmail)}&exp=${exp}&sig=${sig}`;
+      const safeName = escapeHtml(name || "Trader");
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px;">
+              <tr>
+                <td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#0f172a;padding:28px 32px;text-align:center;">
+                        <p style="margin:0;color:#60a5fa;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">GAMAT FX ACADEMY</p>
+                        <h1 style="margin:8px 0 0;color:#ffffff;font-size:22px;font-weight:800;">Verify your email address</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px 32px;">
+                        <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">Hi ${safeName},</p>
+                        <p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#374151;">
+                          Thanks for signing up with <strong>GAMAT FX Academy</strong>! Please confirm your email address to activate your account and access your student dashboard.
+                        </p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+                          <tr>
+                            <td align="center">
+                              <a href="${verifyUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:14px 28px;border-radius:12px;">
+                                Verify Email Address
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                        <p style="margin:0 0 10px;font-size:13px;color:#6b7280;line-height:1.5;">
+                          This link expires in 24 hours. If the button above doesn’t work, copy and paste this link into your browser:
+                        </p>
+                        <p style="margin:0 0 18px;font-size:12px;word-break:break-all;color:#2563eb;">
+                          <a href="${verifyUrl}" style="color:#2563eb;">${escapeHtml(verifyUrl)}</a>
+                        </p>
+                        <p style="margin:0;font-size:12px;color:#9ca3af;">
+                          If you didn’t create a GAMAT FX Academy account, you can safely ignore this email.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [cleanEmail],
+        subject: "Verify your GAMAT FX Academy email address",
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send verification email" });
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 

@@ -253,3 +253,31 @@ export async function sendDiscoverySurveyEmail(params: {
     // Non-blocking
   }
 }
+
+export async function sendVerificationEmail(params: {
+  to: string;
+  name?: string;
+  origin?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "email_verification",
+        to: params.to,
+        name: params.name,
+        origin:
+          params.origin ||
+          (typeof window !== "undefined" ? window.location.origin : undefined),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      return { ok: false, error: data.message || "Could not send verification email." };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Network error sending verification email." };
+  }
+}

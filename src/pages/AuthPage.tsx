@@ -379,6 +379,9 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   if (isAuthed) {
     return (
@@ -397,10 +400,15 @@ export function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setUnverifiedEmail(null);
+    setResendMsg(null);
     try {
       const res = await login(email, password);
       if (!res.ok) {
         setError(res.error ?? "Unable to log in.");
+        if (res.needsVerification && res.email) {
+          setUnverifiedEmail(res.email);
+        }
         setLoading(false);
         return;
       }
@@ -596,6 +604,9 @@ export function SignUpPage() {
     avatar: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   if (isAuthed) {
     return (
@@ -606,6 +617,58 @@ export function SignUpPage() {
           cta="Go to Dashboard"
           to="/dashboard"
         />
+      </AuthShell>
+    );
+  }
+
+  if (pendingEmail) {
+    return (
+      <AuthShell mode="signup">
+        <div className="rounded-3xl border border-line bg-white p-8 sm:p-10 text-center shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+            <Mail className="h-7 w-7" />
+          </div>
+          <h2 className="mt-5 font-display text-2xl font-bold text-ink">Verify your email</h2>
+          <p className="mt-2 text-sm text-muted leading-relaxed">
+            We’ve sent a verification link to <strong className="text-ink">{pendingEmail}</strong>.
+            Click the link in your inbox (or spam folder) to activate your account before logging in.
+          </p>
+          {resendMsg && (
+            <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+              {resendMsg}
+            </p>
+          )}
+          <div className="mt-6 space-y-3">
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="btn-primary w-full"
+            >
+              Go to Log In <ArrowUpRight className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              disabled={resending}
+              onClick={async () => {
+                setResending(true);
+                setResendMsg(null);
+                const r = await sendVerificationEmail({
+                  to: pendingEmail,
+                  name: `${form.firstName} ${form.lastName}`.trim(),
+                });
+                setResending(false);
+                setResendMsg(
+                  r.ok
+                    ? "A fresh verification link has been sent to your email."
+                    : r.error || "Unable to resend verification email."
+                );
+              }}
+              className="w-full rounded-xl border border-line py-2.5 text-sm font-semibold text-ink hover:bg-gray-50 transition cursor-pointer disabled:opacity-60"
+            >
+              {resending ? "Sending..." : "Resend verification email"}
+            </button>
+          </div>
+        </div>
       </AuthShell>
     );
   }
@@ -626,6 +689,10 @@ export function SignUpPage() {
     });
     if (!res.ok) {
       setError(res.error ?? "Unable to create account.");
+      return;
+    }
+    if (res.needsVerification) {
+      setPendingEmail(res.email || form.email.trim().toLowerCase());
       return;
     }
     navigate(nextTarget());
@@ -1031,6 +1098,110 @@ export function ResetPasswordPage() {
                 {loading ? "Updating password..." : "Update Password"}
               </button>
             </form>
+          </>
+        )}
+      </div>
+    </AuthShell>
+  );
+}
+
+export function VerifyEmailPage() {
+  const { markEmailVerified } = useStore();
+  const [status, setStatus] = useState<"verifying" | "verified" | "error">("verifying");
+  const [message, setMessage] = useState("Verifying your email address...");
+  const [verifiedEmail, setVerifiedEmail] = useState<string>("");
+
+  useEffect(() => {
+    const hashQuery = window.location.hash.split("?")[1] || "";
+    const params = new URLSearchParams(hashQuery || window.location.search);
+    const email = (params.get("email") || "").trim().toLowerCase();
+    const exp = params.get("exp") || "";
+    const sig = params.get("sig") || "";
+
+    if (!email || !exp || !sig) {
+      setStatus("error");
+      setMessage("This verification link is incomplete or invalid.");
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/verify-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, exp, sig }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (res.ok && data.ok) {
+          setVerifiedEmail(data.email || email);
+          markEmailVerified(data.email || email);
+          setStatus("verified");
+          setMessage("Your email address has been verified! You can now log in to your account.");
+        } else {
+          setStatus("error");
+          setMessage(data.message || "Unable to verify this link. It may have expired.");
+        }
+      } catch {
+        if (cancelled) return;
+        setStatus("error");
+        setMessage("Network error while verifying your email. Please try again.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [markEmailVerified]);
+
+  return (
+    <AuthShell mode="login">
+      <div className="rounded-3xl border border-line bg-white p-8 sm:p-10 text-center shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+        {status === "verifying" && (
+          <>
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+              <Mail className="h-7 w-7 animate-pulse" />
+            </div>
+            <h1 className="mt-5 font-display text-2xl font-bold text-ink">Verifying your email</h1>
+            <p className="mt-2 text-sm text-muted">{message}</p>
+          </>
+        )}
+        {status === "verified" && (
+          <>
+            <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500" />
+            <h1 className="mt-5 font-display text-2xl font-bold text-ink">Email verified!</h1>
+            <p className="mt-2 text-sm text-muted">
+              {verifiedEmail ? (
+                <>
+                  <strong className="text-ink">{verifiedEmail}</strong> is now active.{" "}
+                </>
+              ) : null}
+              {message}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="btn-primary mt-6 w-full"
+            >
+              Continue to Log In <ArrowUpRight className="h-4 w-4" />
+            </button>
+          </>
+        )}
+        {status === "error" && (
+          <>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <h1 className="mt-4 font-display text-xl font-bold text-ink">Verification failed</h1>
+            <p className="mt-2 text-sm text-muted leading-relaxed">{message}</p>
+            <button
+              type="button"
+              onClick={() => navigate("/login")}
+              className="btn-primary mt-6 w-full"
+            >
+              Back to Log In
+            </button>
           </>
         )}
       </div>

@@ -16,7 +16,7 @@ import HowItWorksPage from "./pages/HowItWorksPage";
 import FaqPage from "./pages/FaqPage";
 import ContactPage from "./pages/ContactPage";
 import { TermsPage, PrivacyPage } from "./pages/LegalPage";
-import { LoginPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage } from "./pages/AuthPage";
+import { LoginPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/AuthPage";
 import { AdminDashboard, AdminStudents, AdminCourses } from "./pages/admin/AdminMain";
 import { AdminPayments, AdminEvents, AdminRegistrations, AdminSettings } from "./pages/admin/AdminOps";
 import { AdminEnquiries } from "./pages/admin/AdminEnquiries";
@@ -130,6 +130,7 @@ const staticPages: Record<string, React.ComponentType> = {
   "/contact": ContactPage,
   "/login": LoginPage,
   "/signup": SignUpPage,
+  "/verify-email": VerifyEmailPage,
   "/forgot-password": ForgotPasswordPage,
   "/reset-password": ResetPasswordPage,
   "/dashboard": DashboardPage,
@@ -239,7 +240,7 @@ export default function App() {
   }
 
   const isAdminRoute = route === "/admin" || route.startsWith("/admin/");
-  const isAuthRoute = route === "/login" || route === "/signup" || route === "/forgot-password" || route === "/reset-password";
+  const isAuthRoute = route === "/login" || route === "/signup" || route === "/forgot-password" || route === "/reset-password" || route === "/verify-email";
   const bare = BARE.some((b) => route === b || route.startsWith(`${b}/`));
   const slimFooter = SLIM_FOOTER.some((p) => route === p || route.startsWith(`${p}/`));
 
