@@ -1696,6 +1696,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           };
         }
 
+        if (resolvedAcc.status === "pending_verification") {
+          resolvedAcc = { ...resolvedAcc, status: "active" };
+        }
+
         const finalAcc = resolvedAcc;
         recentlyCreatedRef.current.set(finalAcc.id, { account: finalAcc, ts: Date.now() });
         unmarkDeletedAccount(finalAcc.id, userEmail);
@@ -1719,6 +1723,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         write(K.session, finalAcc.id);
         if (isBrandNewOAuth) {
           triggerDiscoveryForNewRegistration(finalAcc.id, userEmail);
+          if (userEmail) {
+            void sendWelcomeEmail({
+              to: userEmail,
+              name: `${finalAcc.firstName} ${finalAcc.lastName}`.trim() || finalAcc.firstName,
+            });
+          }
         }
         await saveSupabaseAccount(finalAcc);
         return;
