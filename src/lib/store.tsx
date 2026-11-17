@@ -57,7 +57,7 @@ import {
 import { generateTxRef } from "./bachs";
 import { formatAccountName, formatStudentName, formatAffiliateCardName, capitalizeWord } from "./formatName";
 import { triggerDiscoveryForNewRegistration, fetchSupabaseDiscoveryResponses } from "./discoverySurvey";
-import { sendAffiliateEmail } from "./email";
+import { sendAffiliateEmail, sendWelcomeEmail, sendPayoutEmail } from "./email";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -2230,6 +2230,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } catch {}
 
     triggerDiscoveryForNewRegistration(acc.id, email);
+    void sendWelcomeEmail({
+      to: email,
+      name: `${acc.firstName} ${acc.lastName}`.trim() || acc.firstName,
+    });
 
     return { ok: true };
   }, [accounts]);
@@ -3933,6 +3937,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           : p
       )
     );
+    void sendPayoutEmail({
+      to: user.email,
+      affiliateName: formatAccountName(user),
+      eventKind: "requested",
+      amount,
+      method,
+      details: details.trim(),
+    });
     return { ok: true };
   }, [user, affiliateProfiles, affiliateSettings]);
 
@@ -3947,11 +3959,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const approvePayoutRequest: Ctx["approvePayoutRequest"] = useCallback((id, note) => {
     let reqAmount = 0;
     let reqUserId = "";
+    let reqEmail = "";
+    let reqName = "";
+    let reqMethod = "bank";
     setPayoutRequests((prev) =>
       prev.map((r) => {
         if (r.id === id) {
           reqAmount = r.amount;
           reqUserId = r.affiliateUserId;
+          reqEmail = r.affiliateEmail;
+          reqName = r.affiliateName;
+          reqMethod = r.method;
           return {
             ...r,
             status: "paid",
@@ -3968,17 +3986,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           p.userId === reqUserId ? { ...p, paidOut: (p.paidOut || 0) + reqAmount } : p
         )
       );
+      if (reqEmail) {
+        void sendPayoutEmail({
+          to: reqEmail,
+          affiliateName: reqName,
+          eventKind: "paid",
+          amount: reqAmount,
+          method: reqMethod,
+          note,
+        });
+      }
     }
   }, []);
 
   const rejectPayoutRequest: Ctx["rejectPayoutRequest"] = useCallback((id, note) => {
     let reqAmount = 0;
     let reqUserId = "";
+    let reqEmail = "";
+    let reqName = "";
+    let reqMethod = "bank";
     setPayoutRequests((prev) =>
       prev.map((r) => {
         if (r.id === id) {
           reqAmount = r.amount;
           reqUserId = r.affiliateUserId;
+          reqEmail = r.affiliateEmail;
+          reqName = r.affiliateName;
+          reqMethod = r.method;
           return {
             ...r,
             status: "rejected",
@@ -3995,6 +4029,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           p.userId === reqUserId ? { ...p, pendingBalance: (p.pendingBalance || 0) + reqAmount } : p
         )
       );
+      if (reqEmail) {
+        void sendPayoutEmail({
+          to: reqEmail,
+          affiliateName: reqName,
+          eventKind: "rejected",
+          amount: reqAmount,
+          method: reqMethod,
+          note,
+        });
+      }
     }
   }, []);
 

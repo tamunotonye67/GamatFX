@@ -5,6 +5,7 @@ import { useStore, type Giveaway, type GiveawayWinner, type Account } from "../.
 import { formatAccountName, capitalizeWord } from "../../lib/formatName";
 import { uploadCourseAsset } from "../../lib/supabaseStorage";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
+import { sendGiveawayWinnerEmail } from "../../lib/email";
 import {
   Gift, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff, UserPlus, X, Upload,
 } from "lucide-react";
@@ -99,6 +100,10 @@ export function AdminGiveaways() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!edit) return;
+    const prevGiveaway = edit.id ? giveaways.find((g) => g.id === edit.id) : undefined;
+    const prevWinnerIds = new Set((prevGiveaway?.winners ?? []).map((w) => w.userId || w.name));
+    const nextStatus = (edit.status as Giveaway["status"]) ?? "draft";
+
     const res = saveGiveaway({
       id: edit.id,
       title: edit.title ?? "",
@@ -108,10 +113,27 @@ export function AdminGiveaways() {
       image: edit.image ? normalizeImageUrl(edit.image, DEFAULT_FALLBACK_IMAGES.event) : undefined,
       taggedClubId: edit.taggedClubId,
       taggedClubName: edit.taggedClubName,
-      status: (edit.status as Giveaway["status"]) ?? "draft",
+      status: nextStatus,
       winners: edit.winners,
     });
     if (!res.ok) { setErr(res.error ?? "Could not save."); return; }
+
+    if (nextStatus === "published") {
+      for (const w of edit.winners) {
+        const key = w.userId || w.name;
+        if (prevWinnerIds.has(key)) continue;
+        const acc = w.userId ? admin.accounts.find((a) => a.id === w.userId) : undefined;
+        if (acc?.email) {
+          void sendGiveawayWinnerEmail({
+            to: acc.email,
+            name: w.name,
+            giveawayTitle: edit.title ?? "GAMAT FX Giveaway",
+            reward: edit.reward ?? "Community Reward",
+          });
+        }
+      }
+    }
+
     setEdit(null);
   };
 

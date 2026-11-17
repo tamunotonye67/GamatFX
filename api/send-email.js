@@ -332,6 +332,251 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 
+    if (type === "welcome") {
+      const { to, name } = body;
+      if (!to) return res.status(400).json({ ok: false, message: "Missing recipient email (to)" });
+      const safeName = escapeHtml(name || "Trader");
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr>
+                <td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#16181c;padding:28px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
+                        <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">Welcome to GAMAT FX!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                          Hi <strong>${safeName}</strong>, welcome aboard! Your student account is ready. Explore our institutional order-flow courses, free store resources, live events, and community forum.
+                        </p>
+                        <div style="text-align:center;margin-top:24px;">
+                          <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">
+                            Open My Dashboard
+                          </a>
+                          <a href="https://gamatfxacademy.com/#/courses" style="display:inline-block;background:#16181c;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;margin:0 6px 10px;">
+                            Browse Courses
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:16px 28px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;">
+                        GAMAT FX Academy · Institutional Trading Education
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: "Welcome to GAMAT FX Academy!",
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send welcome email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "payout") {
+      const { to, affiliateName, eventKind = "requested", amount, method, details, note } = body;
+      const safeName = escapeHtml(affiliateName || "Ambassador");
+      const safeMethod = escapeHtml(method || "bank");
+      const safeDetails = escapeHtml(details || "");
+      const safeNote = note ? escapeHtml(note) : "";
+      const amountLabel = `₦${Number(amount || 0).toLocaleString("en-NG")}`;
+
+      if (eventKind === "requested") {
+        const adminHtml = `
+          <!DOCTYPE html>
+          <html>
+            <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+              <h2 style="margin:0 0 12px;">New Affiliate Payout Request: ${amountLabel}</h2>
+              <p><strong>Ambassador:</strong> ${safeName} (${escapeHtml(to || "")})<br/>
+              <strong>Amount:</strong> ${amountLabel}<br/>
+              <strong>Method:</strong> ${safeMethod}<br/>
+              <strong>Details:</strong> ${safeDetails}</p>
+              <p><a href="https://gamatfxacademy.com/#/admin/affiliates">Review in Admin Affiliates</a></p>
+            </body>
+          </html>
+        `;
+        const result = await sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          ...(to ? { reply_to: to } : {}),
+          subject: `Payout Request: ${amountLabel} — ${affiliateName || "Ambassador"}`,
+          html: adminHtml,
+        });
+        if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to notify admin" });
+        return res.status(200).json({ ok: true, id: result.data?.id });
+      }
+
+      if (!to) return res.status(400).json({ ok: false, message: "Missing recipient email (to)" });
+      const isPaid = eventKind === "paid";
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX AFFILIATE</p>
+                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">${isPaid ? `Payout Sent: ${amountLabel}` : "Payout Request Update"}</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeName}</strong>, ${
+                          isPaid
+                            ? `your affiliate payout of <strong style="color:#dc3545;">${amountLabel}</strong> via <strong>${safeMethod}</strong> has been processed and marked as paid.`
+                            : `your affiliate payout request of <strong>${amountLabel}</strong> could not be processed and the balance has been returned to your affiliate wallet.`
+                        }
+                      </p>
+                      ${safeNote ? `<div style="background:#f9fafb;border-radius:10px;padding:12px 14px;font-size:13px;color:#374151;margin-bottom:16px;"><strong>Note:</strong> ${safeNote}</div>` : ""}
+                      <div style="text-align:center;margin-top:20px;">
+                        <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Dashboard</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: isPaid ? `Payout Processed: ${amountLabel}` : `Payout Request Returned: ${amountLabel}`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send payout email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "quiz_passed") {
+      const { to, name, courseTitle, score, courseId } = body;
+      if (!to || !courseTitle) return res.status(400).json({ ok: false, message: "Missing required fields (to, courseTitle)" });
+      const safeName = escapeHtml(name || "Student");
+      const safeCourse = escapeHtml(courseTitle);
+      const safeScore = Number(score || 0);
+      const certUrl = `https://gamatfxacademy.com/#/quiz/${encodeURIComponent(courseId || "")}`;
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX CERTIFICATION</p>
+                      <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">Congratulations — You Passed!</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeName}</strong>, you passed the final assessment for <strong>${safeCourse}</strong> with a score of <strong style="color:#dc3545;">${safeScore}%</strong>!
+                      </p>
+                      <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#4b5563;">
+                        Your official GAMAT FX Academy certificate is ready to view or unlock.
+                      </p>
+                      <div style="text-align:center;">
+                        <a href="${certUrl}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">
+                          Claim Your Certificate
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `Exam Passed (${safeScore}%): ${courseTitle}`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send quiz email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "giveaway_winner") {
+      const { to, name, giveawayTitle, reward } = body;
+      if (!to || !giveawayTitle) return res.status(400).json({ ok: false, message: "Missing required fields (to, giveawayTitle)" });
+      const safeName = escapeHtml(name || "Trader");
+      const safeTitle = escapeHtml(giveawayTitle);
+      const safeReward = escapeHtml(reward || "Community Reward");
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX GIVEAWAY</p>
+                      <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">You Won a Giveaway!</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                        Congratulations <strong>${safeName}</strong>! You were selected as a winner in <strong>${safeTitle}</strong>.
+                      </p>
+                      <div style="background:#fdf2f4;border:1px dashed #dc3545;border-radius:12px;padding:14px;text-align:center;margin-bottom:20px;">
+                        <p style="margin:0;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Your Reward</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#dc3545;">${safeReward}</p>
+                      </div>
+                      <div style="text-align:center;">
+                        <a href="https://gamatfxacademy.com/#/giveaways" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">
+                          View Giveaway Announcement
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `Congratulations! You won: ${giveawayTitle}`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send giveaway email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
     return res.status(400).json({ ok: false, message: "Unsupported email type" });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });

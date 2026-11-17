@@ -10,6 +10,8 @@ import {
   HelpCircle, Filter, Check, ShieldCheck,
 } from "lucide-react";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
+import { sendQuizPassedEmail } from "../lib/email";
+import { formatAccountName } from "../lib/formatName";
 
 export default function QuizPage({ courseId }: { courseId: string }) {
   const { isAuthed, isEnrolled, submitAttempt, bestAttempt, progressOf, managedCourses, getCourseQuiz, user, isCourseEnrolledOrPaid, isCertificateUnlocked } = useStore();
@@ -67,6 +69,15 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   function finish() {
     setShowSubmitModal(false);
     const a = submitAttempt(rawId, answers, activeQuestions);
+    if (a.passed && user?.email) {
+      void sendQuizPassedEmail({
+        to: user.email,
+        name: formatAccountName(user),
+        courseTitle: course?.title || rawId,
+        score: a.score,
+        courseId: rawId,
+      });
+    }
     setResult(a);
     setStarted(false);
     window.scrollTo({ top: 0 });
