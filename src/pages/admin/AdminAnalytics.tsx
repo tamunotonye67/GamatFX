@@ -445,9 +445,9 @@ export function AdminAnalytics() {
             <Card className="p-5 sm:p-6">
               <div className="flex flex-col items-start gap-2.5 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <h3 className="font-display text-base font-bold text-ink flex items-start gap-2">
-                    <Compass className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-                    <span>Acquisition Channels — How Visitors &amp; Students Heard About Us</span>
+                  <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
+                    <Compass className="h-5 w-5 shrink-0 text-brand" />
+                    <span>Acquisition Channels</span>
                   </h3>
                   <p className="text-xs text-muted mt-1">
                     Responses collected from the newcomer &amp; visitor discovery popup across the platform.
