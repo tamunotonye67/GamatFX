@@ -274,7 +274,7 @@ export function AdminShell({ title, subtitle, action, children }: {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-hidden pt-[72px] lg:pl-64">
+      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-clip pt-[72px] lg:pl-64">
         <div className="min-w-0 w-full flex-1">
           <main className="min-w-0 w-full p-4 sm:p-5 lg:p-8">
             {notifOpen ? (
@@ -641,20 +641,38 @@ export function SearchBar({ value, onChange, placeholder }: {
 export function Modal({ open = true, onClose, title, subtitle, children, wide }: {
   open?: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; wide?: boolean;
 }) {
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center">
-      <div className={`w-full ${wide ? "max-w-3xl" : "max-w-lg"} rounded-3xl border border-line bg-white shadow-2xl`}>
-        <div className="flex items-start justify-between border-b border-line px-6 py-4">
-          <div>
-            <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
+    <div
+      className="fixed inset-0 z-[70] flex items-end justify-center overflow-hidden overscroll-none bg-ink/60 p-0 backdrop-blur-xs sm:items-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={`w-full ${wide ? "sm:max-w-3xl" : "sm:max-w-lg"} rounded-t-3xl sm:rounded-3xl border border-line bg-white shadow-2xl flex flex-col max-h-[90dvh] sm:max-h-[88dvh]`}
+      >
+        <div className="pt-2.5 pb-1 flex justify-center sm:hidden shrink-0">
+          <div className="h-1 w-10 rounded-full bg-slate-300" />
+        </div>
+        <div className="flex items-start justify-between gap-3 border-b border-line px-4 sm:px-6 py-3.5 sm:py-4 shrink-0">
+          <div className="min-w-0">
+            <h3 className="font-display text-base sm:text-lg font-bold text-ink truncate">{title}</h3>
             {subtitle && <p className="text-xs text-muted mt-0.5">{subtitle}</p>}
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted transition hover:bg-cream hover:text-brand cursor-pointer" aria-label="Close">
+          <button onClick={onClose} className="shrink-0 rounded-lg p-1.5 text-muted transition hover:bg-cream hover:text-brand cursor-pointer" aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="max-h-[75vh] overflow-y-auto p-6">{children}</div>
+        <div className="overflow-y-auto overscroll-contain p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );

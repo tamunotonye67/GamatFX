@@ -925,9 +925,9 @@ export function AdminCourses() {
         <div className="space-y-4">
           <p className="text-sm text-muted">{allCourses.find((c) => c.id === editing)?.title || getCourse(editing ?? "")?.title}</p>
           <Field label="Price (₦)" type="number" value={price} onChange={(v) => setPrice(Number(v))} />
-          <div className="flex justify-end gap-3 pt-2">
-            <button onClick={() => setEditing(null)} className="btn-outline-dark !py-2.5">Cancel</button>
-            <button onClick={() => { if (editing) admin.setCourseSetting(editing, { price }); setEditing(null); }} className="btn-primary !py-2.5">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
+            <button onClick={() => setEditing(null)} className="btn-outline-dark !py-2.5 w-full sm:w-auto justify-center cursor-pointer">Cancel</button>
+            <button onClick={() => { if (editing) admin.setCourseSetting(editing, { price }); setEditing(null); }} className="btn-primary !py-2.5 w-full sm:w-auto justify-center cursor-pointer">
               <Save className="h-4 w-4" /> Save price
             </button>
           </div>
