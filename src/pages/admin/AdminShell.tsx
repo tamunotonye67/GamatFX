@@ -48,7 +48,7 @@ export function AdminShell({ title, subtitle, action, children }: {
   const route = useRoute();
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifFilter, setNotifFilter] = useState<"all" | "unread" | "registration" | "payment" | "content">("all");
+  const [notifFilter, setNotifFilter] = useState<"all" | "unread" | "registration" | "payment" | "events" | "enquiries" | "content">("all");
   const asideRef = useRef<HTMLElement | null>(null);
 
   // Restore left sidebar scroll position synchronously before paint so it never jumps back to top
@@ -157,13 +157,19 @@ export function AdminShell({ title, subtitle, action, children }: {
       return isNotifUnread(item);
     }
     if (notifFilter === "registration") {
-      return item.type === "registration" || item.type === "event_reg";
+      return item.type === "registration";
     }
     if (notifFilter === "payment") {
       return item.type === "payment" || item.type === "refund";
     }
+    if (notifFilter === "events") {
+      return item.type === "event_reg";
+    }
+    if (notifFilter === "enquiries") {
+      return item.type === "enquiry";
+    }
     if (notifFilter === "content") {
-      return item.type === "article" || item.type === "team_bio" || item.type === "enquiry";
+      return item.type === "article" || item.type === "team_bio" || item.type === "certificate";
     }
     return true;
   });
@@ -308,31 +314,35 @@ export function AdminShell({ title, subtitle, action, children }: {
                   )}
                 </div>
 
-                {/* Filter Tabs */}
-                <div className="mb-5 flex flex-wrap items-center gap-2">
-                  {[
-                    { id: "all", label: `All (${notifs.length})` },
-                    { id: "unread", label: `Unread (${unreadCount})` },
-                    { id: "registration", label: "Students" },
-                    { id: "payment", label: "Payments" },
-                    { id: "content", label: "Content & Team" },
-                  ].map((tab) => {
-                    const active = notifFilter === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setNotifFilter(tab.id as typeof notifFilter)}
-                        className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
-                          active
-                            ? "bg-ink text-white shadow-xs"
-                            : "border border-line bg-white text-muted hover:border-ink/30 hover:text-ink"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
+                {/* Filter Tabs (Sticky Horizontal Scroll) */}
+                <div className="sticky top-[72px] z-20 -mx-4 sm:-mx-5 lg:mx-0 mb-5 bg-cream/95 backdrop-blur-xs px-4 sm:px-5 lg:px-0 py-2.5 border-b border-line/60 lg:border-none">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    {[
+                      { id: "all", label: `All (${notifs.length})` },
+                      { id: "unread", label: `Unread (${unreadCount})` },
+                      { id: "registration", label: "Students" },
+                      { id: "payment", label: "Payments" },
+                      { id: "events", label: "Events" },
+                      { id: "enquiries", label: "Enquiries" },
+                      { id: "content", label: "Content & Team" },
+                    ].map((tab) => {
+                      const active = notifFilter === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          onClick={() => setNotifFilter(tab.id as typeof notifFilter)}
+                          className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition cursor-pointer ${
+                            active
+                              ? "bg-ink text-white shadow-xs"
+                              : "border border-line bg-white text-muted hover:border-ink/30 hover:text-ink"
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Activity Feed Cards */}
