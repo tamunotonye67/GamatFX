@@ -827,15 +827,18 @@ export function AdminWhiteboard() {
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-line flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-muted">Action: "{res.actionLabel}"</span>
-                    <div className="flex items-center gap-2">
+                  <div className="pt-2 border-t border-line flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-bold text-muted min-w-0 truncate">Action: "{res.actionLabel}"</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => openEditResourceModal(res)}
-                        className="px-3 py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-slate-700 hover:text-brand text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                        title="Edit Guide"
+                        aria-label="Edit Guide"
+                        className="p-2 sm:px-3 sm:py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-white text-slate-700 hover:text-brand text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Pencil className="h-3.5 w-3.5" /> Edit Guide
+                        <Pencil className="h-3.5 w-3.5 shrink-0" />
+                        <span className="hidden sm:inline">Edit Guide</span>
                       </button>
                       <button
                         type="button"
