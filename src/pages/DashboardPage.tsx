@@ -1134,14 +1134,19 @@ export default function DashboardPage() {
 
         {/* Compute enrolled & paid courses for this student */}
         {(() => {
+          const resolveCourse = (id: string) =>
+            getCourse(id) || store.managedCourses.find((m) => m.id === id);
+
           const studentEnrolledCourses: { id: string; title: string; isPaid?: boolean; enrolledAt?: string }[] = [];
 
-          // 1. From active enrollments
+          // 1. From active enrollments (exclude store items / events)
           enrollments.forEach((e) => {
-            const course = getCourse(e.courseId);
-            const title = course?.title || e.courseId;
+            if (e.courseId.startsWith("store-") || e.courseId.startsWith("event-")) return;
+            const course = resolveCourse(e.courseId);
+            if (!course) return;
+            const title = course.title;
             const isPaid =
-              (course?.price ?? 0) > 0 ||
+              (course.price ?? 0) > 0 ||
               myPayments.some((p) => p.courseId === e.courseId && p.status === "paid");
             if (!studentEnrolledCourses.some((item) => item.title.toLowerCase() === title.toLowerCase())) {
               studentEnrolledCourses.push({
@@ -1153,16 +1158,13 @@ export default function DashboardPage() {
             }
           });
 
-          // 2. From confirmed payments
+          // 2. From confirmed course payments (strictly exclude store-* and event-* purchases)
           myPayments
-            .filter((p) => p.status === "paid")
+            .filter((p) => p.status === "paid" && !p.courseId.startsWith("store-") && !p.courseId.startsWith("event-"))
             .forEach((p) => {
-              const course = getCourse(p.courseId);
-              const title =
-                course?.title ||
-                (p.courseId.startsWith("store-")
-                  ? p.courseId.replace("store-", "").replace(/-/g, " ").toUpperCase()
-                  : p.courseId);
+              const course = resolveCourse(p.courseId);
+              if (!course) return;
+              const title = course.title;
               if (!studentEnrolledCourses.some((item) => item.title.toLowerCase() === title.toLowerCase())) {
                 studentEnrolledCourses.push({
                   id: p.courseId,
@@ -1173,12 +1175,19 @@ export default function DashboardPage() {
               }
             });
 
+          const catalogCourses = [
+            ...COURSES.map((c) => ({ id: c.id, title: c.title, price: c.price })),
+            ...store.managedCourses
+              .filter((m) => m.published !== false && !COURSES.some((c) => c.id === m.id))
+              .map((m) => ({ id: m.id, title: m.title, price: m.price })),
+          ];
+
           return (
             <AffiliateCard
               profile={profile}
               avatarUrl={user.avatar}
               enrolledCourses={studentEnrolledCourses}
-              availableCourses={COURSES.map((c) => ({ id: c.id, title: c.title, price: c.price }))}
+              availableCourses={catalogCourses}
               commissionPercent={commissionPercent}
               minimumPayoutAmount={minPayout}
               onUpdateQuote={(quote) => store.updateMyAffiliateProfile({ personalQuote: quote })}
