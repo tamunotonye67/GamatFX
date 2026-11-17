@@ -232,21 +232,23 @@ export function AdminEvents() {
           const taken = e.capacity - left;
           const pct = e.capacity ? Math.round((taken / e.capacity) * 100) : 0;
           return (
-            <Card key={e.id} className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex gap-4">
-                  <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl bg-ink text-white">
-                    <span className="text-[10px] font-bold uppercase text-brand-light">{e.month.slice(0, 3)}</span>
-                    <span className="font-display text-xl font-extrabold leading-none">{e.day}</span>
+            <Card key={e.id} className="p-4 sm:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3 sm:items-start sm:gap-4">
+                  <div className="flex h-12 w-12 sm:h-16 sm:w-16 shrink-0 flex-col items-center justify-center rounded-xl sm:rounded-2xl bg-ink text-white">
+                    <span className="text-[9px] sm:text-[10px] font-bold uppercase text-brand-light">{e.month.slice(0, 3)}</span>
+                    <span className="font-display text-lg sm:text-xl font-extrabold leading-none">{e.day}</span>
                   </div>
                   <div className="min-w-0">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <Badge tone={e.type === "Online" ? "ink" : e.type === "Hybrid" ? "amber" : "red"}>{e.type}</Badge>
                       <Badge tone={e.status === "published" ? "green" : "gray"}>{e.status}</Badge>
                     </div>
-                    <h3 className="mt-2 font-display text-base font-bold leading-snug text-ink">{e.title}</h3>
-                    <p className="mt-1 text-xs text-muted">{e.location}</p>
-                    <p className="mt-0.5 text-xs text-muted">{e.time} · {e.price ? naira(e.price) : "Free"}</p>
+                    <div className="hidden sm:block">
+                      <h3 className="mt-2 font-display text-base font-bold leading-snug text-ink">{e.title}</h3>
+                      <p className="mt-1 text-xs text-muted">{e.location}</p>
+                      <p className="mt-0.5 text-xs text-muted">{e.time} · {e.price ? naira(e.price) : "Free"}</p>
+                    </div>
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
@@ -257,7 +259,16 @@ export function AdminEvents() {
                 </div>
               </div>
 
-              <div className="mt-5">
+              <div className="mt-3 sm:hidden">
+                <h3 className="font-display text-base font-bold leading-snug text-ink">{e.title}</h3>
+                <p className="mt-1 text-xs text-muted">{e.location}</p>
+                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <span className="text-muted">{e.time}</span>
+                  <span className="font-bold text-ink">{e.price ? naira(e.price) : "Free"}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 sm:mt-5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-ink">{taken} / {e.capacity} seats filled</span>
                   <span className={`font-bold ${left === 0 ? "text-brand" : "text-muted"}`}>{left === 0 ? "SOLD OUT" : `${left} left`}</span>
