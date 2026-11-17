@@ -661,8 +661,8 @@ export function AdminAffiliates() {
             </div>
 
             {/* Header matching website style */}
-            <div className="flex items-center justify-between border-b border-line px-6 py-4">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-start sm:items-center justify-between gap-3 border-b border-line px-4 sm:px-6 py-4">
+              <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                 {selectedProfile.avatar ? (
                   <img
                     src={selectedProfile.avatar}
@@ -674,20 +674,20 @@ export function AdminAffiliates() {
                     {formatAffiliateCardName(selectedProfile.cardDisplayName || selectedProfile.userName).slice(0, 2).toUpperCase()}
                   </div>
                 )}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-display text-base font-bold text-ink truncate">
-                      {formatAffiliateCardName(selectedProfile.cardDisplayName || selectedProfile.userName)}
-                    </h4>
-                    <span className="rounded-full bg-cream border border-line px-2 py-0.5 text-[10px] font-semibold text-muted">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-display text-sm sm:text-base font-bold text-ink truncate">
+                    {formatAffiliateCardName(selectedProfile.cardDisplayName || selectedProfile.userName)}
+                  </h4>
+                  <p className="text-xs text-muted truncate mt-0.5">{selectedProfile.userEmail}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-semibold text-muted whitespace-nowrap">
                       {selectedProfile.enrolledCourseTitle || "Forex Foundations"}
                     </span>
                   </div>
-                  <p className="text-xs text-muted truncate">{selectedProfile.userEmail}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
