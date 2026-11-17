@@ -6,10 +6,16 @@
 export default async function handler(req, res) {
   const query = req.query || {};
   const ref = (query.ref || "").trim().toUpperCase();
+  const ticket = (query.ticket || "").trim().toUpperCase();
+  const text = (query.text || "").trim();
 
-  const targetUrl = ref
-    ? `https://gamatfxacademy.com/#/signup?ref=${encodeURIComponent(ref)}`
-    : "https://gamatfxacademy.com/#/signup";
+  const targetUrl = text
+    ? text
+    : ticket
+      ? `https://gamatfxacademy.com/#/events?ticket=${encodeURIComponent(ticket)}`
+      : ref
+        ? `https://gamatfxacademy.com/#/signup?ref=${encodeURIComponent(ref)}`
+        : "https://gamatfxacademy.com/#/signup";
 
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=560x560&margin=20&format=png&data=${encodeURIComponent(targetUrl)}`;
 

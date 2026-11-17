@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHero from "../components/PageHero";
 import PageCta from "../components/PageCta";
 import { useReveal } from "../lib/useReveal";
@@ -7,10 +7,118 @@ import { navigate } from "../lib/router";
 import { naira } from "../lib/courses";
 import { formatAccountName, formatStudentName } from "../lib/formatName";
 import { CONTACT } from "../lib/contact";
+import { generateTxRef, payWithBachs } from "../lib/bachs";
 import {
   MapPin, CalendarDays, Clock, ArrowUpRight, Users, Video, Ticket,
-  CheckCircle2, AlertCircle, Copy, Loader2, Ban,
+  CheckCircle2, AlertCircle, Copy, Loader2, Ban, CalendarPlus, Download,
+  Mail, CreditCard, Sparkles,
 } from "lucide-react";
+
+const MONTHS: Record<string, number> = {
+  january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+  july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+};
+
+function parseEventTimes(ev?: EventItem): { start: Date; end: Date } {
+  const now = new Date();
+  const year = ev ? parseInt(ev.year, 10) || now.getFullYear() : now.getFullYear();
+  const monthIdx = ev ? (MONTHS[ev.month.trim().toLowerCase()] ?? now.getMonth()) : now.getMonth();
+  const day = ev ? parseInt(ev.day, 10) || 1 : 1;
+
+  let startHour = 10;
+  let startMin = 0;
+  if (ev?.time) {
+    const m = ev.time.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+    if (m) {
+      let h = parseInt(m[1], 10);
+      const min = m[2] ? parseInt(m[2], 10) : 0;
+      const ampm = m[3]?.toUpperCase();
+      if (ampm === "PM" && h < 12) h += 12;
+      if (ampm === "AM" && h === 12) h = 0;
+      startHour = h;
+      startMin = min;
+    }
+  }
+  const start = new Date(year, monthIdx, day, startHour, startMin, 0);
+  const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+  return { start, end };
+}
+
+function toIcsUtc(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+}
+
+function googleCalendarUrl(ev: EventItem | undefined, ticket: Registration): string {
+  const { start, end } = parseEventTimes(ev);
+  const details = `Ticket: ${ticket.ticket}\nAttendee: ${ticket.name}\n\n${ev?.description || "GAMAT FX Academy Event"}`;
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: ticket.eventTitle,
+    dates: `${toIcsUtc(start)}/${toIcsUtc(end)}`,
+    details,
+    location: ev?.location || "Port Harcourt / Online",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function downloadIcsFile(ev: EventItem | undefined, ticket: Registration) {
+  const { start, end } = parseEventTimes(ev);
+  const escapeIcs = (s: string) => s.replace(/\\/g, "\\\\").replace(/,/g, "\\,").replace(/;/g, "\\;").replace(/\n/g, "\\n");
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//GAMAT FX Academy//Events//EN",
+    "BEGIN:VEVENT",
+    `UID:${ticket.id}@gamatfxacademy.com`,
+    `DTSTAMP:${toIcsUtc(new Date())}`,
+    `DTSTART:${toIcsUtc(start)}`,
+    `DTEND:${toIcsUtc(end)}`,
+    `SUMMARY:${escapeIcs(ticket.eventTitle)}`,
+    `LOCATION:${escapeIcs(ev?.location || "GAMAT FX Academy")}`,
+    `DESCRIPTION:${escapeIcs(`Ticket: ${ticket.ticket} | Attendee: ${ticket.name}`)}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `gamatfx-${ticket.ticket.toLowerCase()}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function sendEventConfirmationEmail(
+  reg: Registration,
+  ev?: EventItem
+): Promise<{ status: "sent" | "skipped" | "error"; message?: string }> {
+  try {
+    const res = await fetch("/api/send-event-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: reg.email,
+        name: reg.name,
+        ticket: reg.ticket,
+        eventTitle: reg.eventTitle,
+        eventDate: reg.eventDate,
+        eventTime: ev?.time || "",
+        eventLocation: ev?.location || "",
+        price: reg.amountPaid ?? ev?.price ?? 0,
+        paymentRef: reg.paymentRef || "",
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) return { status: "sent" };
+    if (data.skipped) return { status: "skipped", message: data.message };
+    return { status: "error", message: data.message || "Could not send email." };
+  } catch {
+    return { status: "skipped", message: "Email service unavailable in local preview." };
+  }
+}
 
 const past = [
   { month: "July", day: "13", year: "2026", type: "Physical", title: "July Mentorship Intake Graduation", body: "38 students graduated from our July cohort.", location: "Port Harcourt, Nigeria" },
@@ -101,7 +209,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 /* ------------------------------ Registration ------------------------------ */
 
 function RegistrationForm({ preset }: { preset: string }) {
-  const { events, seatsLeft, registerForEvent, user, isAuthed } = useStore();
+  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, myRegistrations, admin, user, isAuthed } = useStore();
   const [eventId, setEventId] = useState(preset || events[0]?.id || "");
   const [name, setName] = useState(user ? formatAccountName(user) : "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -110,56 +218,283 @@ function RegistrationForm({ preset }: { preset: string }) {
   const [error, setError] = useState<string | null>(null);
   const [ticket, setTicket] = useState<Registration | null>(null);
   const [copied, setCopied] = useState(false);
+  const [emailState, setEmailState] = useState<"idle" | "sending" | "sent" | "skipped" | "error">("idle");
+  const [qrFallback, setQrFallback] = useState(false);
+
+  // Optional pre-event survey state
+  const [experience, setExperience] = useState("Beginner (0–1 yr)");
+  const [goal, setGoal] = useState("Learn Order Flow & Liquidity");
+  const [question, setQuestion] = useState("");
+  const [surveySaved, setSurveySaved] = useState(false);
+
+  // If user opens /events?ticket=... from their confirmation email, display their ticket
+  useEffect(() => {
+    const hashQuery = window.location.hash.includes("?") ? window.location.hash.split("?")[1] : "";
+    const searchParams = new URLSearchParams(window.location.search || hashQuery);
+    const ticketParam = searchParams.get("ticket")?.trim().toUpperCase();
+    if (!ticketParam) return;
+    const found =
+      myRegistrations.find((r) => r.ticket.toUpperCase() === ticketParam) ||
+      admin.registrations.find((r) => r.ticket.toUpperCase() === ticketParam);
+    if (found) {
+      setTicket(found);
+      setEmailState("sent");
+      if (found.survey?.submittedAt) setSurveySaved(true);
+    }
+  }, [myRegistrations, admin.registrations]);
 
   // keep the select in sync when a card button is pressed
   if (preset && preset !== eventId && !ticket && !busy) setEventId(preset);
 
   const chosen = events.find((e) => e.id === eventId);
   const left = chosen ? seatsLeft(chosen.id) : 0;
+  const isPaid = !!(chosen && chosen.price > 0);
+
+  const triggerEmail = async (reg: Registration, ev?: EventItem) => {
+    setEmailState("sending");
+    const result = await sendEventConfirmationEmail(reg, ev);
+    setEmailState(result.status);
+  };
+
+  const finalizeRegistration = (paymentRef?: string, amountPaid?: number) => {
+    const res = registerForEvent({
+      eventId,
+      name: formatStudentName(name.trim()),
+      email,
+      phone,
+      paymentRef,
+      amountPaid,
+    });
+    setBusy(false);
+    if (!res.ok || !res.registration) {
+      setError(res.error ?? "Registration failed.");
+      return;
+    }
+    setQrFallback(false);
+    setSurveySaved(false);
+    setTicket(res.registration);
+    void triggerEmail(res.registration, chosen);
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const check = canRegisterForEvent({ eventId, email });
+    if (!check.ok) {
+      setError(check.error ?? "Unable to register for this event.");
+      return;
+    }
+
     setBusy(true);
+
+    if (isPaid && chosen) {
+      void payWithBachs({
+        amount: chosen.price,
+        currency: "NGN",
+        email: email.trim(),
+        name: formatStudentName(name.trim()),
+        phone: phone.trim(),
+        reference: generateTxRef("EVT"),
+        metadata: {
+          type: "event_registration",
+          eventId: chosen.id,
+          eventTitle: chosen.title,
+        },
+        onSuccess: (session) => {
+          finalizeRegistration(session.reference, chosen.price);
+        },
+        onClose: () => {
+          setBusy(false);
+        },
+        onError: (err) => {
+          setBusy(false);
+          setError(err.message || "Payment was not completed.");
+        },
+      });
+      return;
+    }
+
     window.setTimeout(() => {
-      const res = registerForEvent({ eventId, name: formatStudentName(name.trim()), email, phone });
-      setBusy(false);
-      if (!res.ok) { setError(res.error ?? "Registration failed."); return; }
-      setTicket(res.registration!);
-    }, 900);
+      finalizeRegistration();
+    }, 600);
   };
 
   if (ticket) {
+    const ticketEvent = events.find((e) => e.id === ticket.eventId) || chosen;
+    const ticketVerifyUrl = `https://gamatfxacademy.com/#/events?ticket=${encodeURIComponent(ticket.ticket)}`;
+    const qrSrc = qrFallback
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=12&data=${encodeURIComponent(ticketVerifyUrl)}`
+      : `/api/qr?ticket=${encodeURIComponent(ticket.ticket)}`;
+
+    const handleSurveySubmit = (evForm: React.FormEvent) => {
+      evForm.preventDefault();
+      saveRegistrationSurvey(ticket.id, {
+        experience,
+        goal,
+        question: question.trim() || undefined,
+      });
+      setSurveySaved(true);
+    };
+
     return (
       <div className="rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-8 text-center backdrop-blur-sm">
         <CheckCircle2 className="mx-auto h-14 w-14 text-brand" />
-        <h3 className="mt-5 font-display text-2xl font-bold">You're registered!</h3>
-        <p className="mt-2 text-white/65">
-          A confirmation has been sent to <strong className="text-white">{ticket.email}</strong>.
-        </p>
+        <h3 className="mt-4 font-display text-2xl font-bold">You're registered!</h3>
 
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2 text-sm text-white/70">
+          <Mail className="h-4 w-4 text-brand-light shrink-0" />
+          {emailState === "sending" && <span>Sending confirmation email to <strong className="text-white">{ticket.email}</strong>…</span>}
+          {emailState === "sent" && <span>Confirmation email sent to <strong className="text-white">{ticket.email}</strong>.</span>}
+          {(emailState === "skipped" || emailState === "idle") && (
+            <span>Ticket confirmed for <strong className="text-white">{ticket.email}</strong>.</span>
+          )}
+          {emailState === "error" && (
+            <span>Ticket confirmed! Could not reach email server — save your ticket below.</span>
+          )}
+          {emailState !== "sending" && (
+            <button
+              type="button"
+              onClick={() => void triggerEmail(ticket, ticketEvent)}
+              className="text-xs font-semibold text-brand-light underline hover:text-white cursor-pointer"
+            >
+              Resend email
+            </button>
+          )}
+        </div>
+
+        {/* Ticket + QR Code */}
         <div className="mt-6 rounded-2xl border border-dashed border-brand/50 bg-brand/10 p-4 sm:p-6">
-          <p className="text-xs uppercase tracking-widest text-white/50">Your ticket number</p>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-extrabold tracking-wider text-brand-light break-all">{ticket.ticket}</p>
-          <button
-            onClick={() => { void navigator.clipboard?.writeText(ticket.ticket); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 transition hover:text-white">
-            <Copy className="h-3.5 w-3.5" /> {copied ? "Copied!" : "Copy ticket"}
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
+            <div className="shrink-0 rounded-xl bg-white p-2 shadow-md">
+              <img
+                src={qrSrc}
+                alt={`QR code for ticket ${ticket.ticket}`}
+                onError={() => { if (!qrFallback) setQrFallback(true); }}
+                className="h-28 w-28 rounded-lg object-contain"
+              />
+            </div>
+            <div className="text-center sm:text-left">
+              <p className="text-xs uppercase tracking-widest text-white/50">Your ticket number</p>
+              <p className="mt-1.5 font-display text-2xl sm:text-3xl font-extrabold tracking-wider text-brand-light break-all">{ticket.ticket}</p>
+              {ticket.paymentRef && (
+                <p className="mt-1 text-[11px] text-emerald-300 font-semibold">
+                  Paid {ticket.amountPaid ? naira(ticket.amountPaid) : ""} · Ref: {ticket.paymentRef}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => { void navigator.clipboard?.writeText(ticket.ticket); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 transition hover:text-white cursor-pointer">
+                <Copy className="h-3.5 w-3.5" /> {copied ? "Copied!" : "Copy ticket"}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="mt-5 space-y-1 text-sm text-white/70">
           <p className="font-semibold text-white">{ticket.eventTitle}</p>
-          <p>{ticket.eventDate}</p>
+          <p>{ticket.eventDate}{ticketEvent?.time ? ` · ${ticketEvent.time}` : ""}</p>
+          {ticketEvent?.location && <p className="text-xs text-white/50">{ticketEvent.location}</p>}
         </div>
 
-        <div className="mt-7 flex flex-wrap justify-center gap-3">
-          {isAuthed ? (
-            <button onClick={() => navigate("/dashboard")} className="btn-primary">View in Dashboard</button>
+        {/* Add to Calendar */}
+        <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+          <a
+            href={googleCalendarUrl(ticketEvent, ticket)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+          >
+            <CalendarPlus className="h-3.5 w-3.5 text-brand-light" /> Add to Google Calendar
+          </a>
+          <button
+            type="button"
+            onClick={() => downloadIcsFile(ticketEvent, ticket)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10 cursor-pointer"
+          >
+            <Download className="h-3.5 w-3.5 text-brand-light" /> Download .ICS
+          </button>
+        </div>
+
+        {/* Optional Pre-Event Survey */}
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5 text-left">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-light">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Quick Pre-Event Prep (Optional)</span>
+          </div>
+          {surveySaved ? (
+            <p className="mt-2 text-xs sm:text-sm text-emerald-300 font-medium">
+              Thanks! Your prep notes are saved for the desk team.
+            </p>
           ) : (
-            <button onClick={() => navigate("/signup")} className="btn-primary">Create an Account</button>
+            <form onSubmit={handleSurveySubmit} className="mt-3 space-y-3">
+              <p className="text-xs text-white/60">
+                Help Chief Mentor Tonye &amp; the desk tailor this session to you.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Experience level</label>
+                  <select
+                    value={experience}
+                    onChange={(e) => setExperience(e.target.value)}
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-brand"
+                  >
+                    <option value="Beginner (0–1 yr)" className="bg-ink">Beginner (0–1 yr)</option>
+                    <option value="Intermediate (1–3 yrs)" className="bg-ink">Intermediate (1–3 yrs)</option>
+                    <option value="Advanced (3+ yrs)" className="bg-ink">Advanced (3+ yrs)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Main goal</label>
+                  <select
+                    value={goal}
+                    onChange={(e) => setGoal(e.target.value)}
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-brand"
+                  >
+                    <option value="Learn Order Flow & Liquidity" className="bg-ink">Learn Order Flow &amp; Liquidity</option>
+                    <option value="Funded Account Prep" className="bg-ink">Funded Account Prep</option>
+                    <option value="Risk & Psychology" className="bg-ink">Risk &amp; Psychology</option>
+                    <option value="Live Q&A & Networking" className="bg-ink">Live Q&amp;A &amp; Networking</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-white/60">Any question for the mentor?</label>
+                <input
+                  type="text"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Optional — e.g. How to spot London session traps?"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/35 outline-none focus:border-brand"
+                />
+              </div>
+              <button type="submit" className="btn-primary !py-2 !px-4 text-xs">
+                Save Prep Notes
+              </button>
+            </form>
           )}
-          <button onClick={() => { setTicket(null); setName(""); setEmail(""); setPhone(""); }} className="btn-ghost">
+        </div>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {isAuthed ? (
+            <button type="button" onClick={() => navigate("/dashboard")} className="btn-primary">View in Dashboard</button>
+          ) : (
+            <button type="button" onClick={() => navigate("/signup")} className="btn-primary">Create an Account</button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setTicket(null);
+              setName("");
+              setEmail("");
+              setPhone("");
+              setEmailState("idle");
+              setSurveySaved(false);
+              setQuestion("");
+            }}
+            className="btn-ghost"
+          >
             Register someone else
           </button>
         </div>
@@ -203,10 +538,20 @@ function RegistrationForm({ preset }: { preset: string }) {
         <Input label="Phone / WhatsApp" type="tel" value={phone} onChange={setPhone} ph={CONTACT.phone} />
 
         <button type="submit" disabled={busy || left === 0} className="btn-primary w-full disabled:opacity-60">
-          {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Reserving your seat…</> : <><Ticket className="h-4 w-4" /> Confirm Registration</>}
+          {busy ? (
+            <><Loader2 className="h-4 w-4 animate-spin" /> {isPaid ? "Opening secure checkout…" : "Reserving your seat…"}</>
+          ) : isPaid && chosen ? (
+            <><CreditCard className="h-4 w-4" /> Proceed to Payment • {naira(chosen.price)}</>
+          ) : (
+            <><Ticket className="h-4 w-4" /> Confirm Registration</>
+          )}
         </button>
         <p className="text-center text-xs text-white/40">
-          {isAuthed ? "This ticket will be saved to your dashboard." : "Registering as a guest — create an account to track your tickets."}
+          {isPaid
+            ? "Your seat & ticket are issued immediately after payment confirmation."
+            : isAuthed
+              ? "This ticket will be saved to your dashboard."
+              : "Registering as a guest — create an account to track your tickets."}
         </p>
       </div>
     </form>

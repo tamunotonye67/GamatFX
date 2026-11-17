@@ -797,6 +797,14 @@ export type Registration = {
   ticket: string;
   status: "confirmed" | "cancelled";
   createdAt: string;
+  paymentRef?: string;
+  amountPaid?: number;
+  survey?: {
+    experience?: string;
+    goal?: string;
+    question?: string;
+    submittedAt?: string;
+  };
 };
 
 export type CourseSetting = { price?: number; published?: boolean };
@@ -1302,8 +1310,10 @@ type Ctx = {
   events: EventItem[];
   allEvents: EventItem[];
   seatsLeft: (eventId: string) => number;
-  registerForEvent: (d: { eventId: string; name: string; email: string; phone: string }) =>
+  canRegisterForEvent: (d: { eventId: string; email: string }) => { ok: boolean; error?: string };
+  registerForEvent: (d: { eventId: string; name: string; email: string; phone: string; paymentRef?: string; amountPaid?: number }) =>
     { ok: boolean; error?: string; registration?: Registration };
+  saveRegistrationSurvey: (id: string, survey: NonNullable<Registration["survey"]>) => void;
   myRegistrations: Registration[];
   cancelRegistration: (id: string) => void;
 
@@ -2638,7 +2648,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return Math.max(0, ev.capacity - taken);
   }, [events, registrations]);
 
-  const registerForEvent: Ctx["registerForEvent"] = useCallback((d) => {
+  const canRegisterForEvent: Ctx["canRegisterForEvent"] = useCallback((d) => {
     const ev = events.find((e) => e.id === d.eventId);
     if (!ev) return { ok: false, error: "That event could not be found." };
     const email = d.email.trim().toLowerCase();
@@ -2648,6 +2658,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (dup) return { ok: false, error: "This email is already registered for that event." };
     const taken = registrations.filter((r) => r.eventId === d.eventId && r.status === "confirmed").length;
     if (taken >= ev.capacity) return { ok: false, error: "Sorry — this event is fully booked." };
+    return { ok: true };
+  }, [events, registrations]);
+
+  const registerForEvent: Ctx["registerForEvent"] = useCallback((d) => {
+    const check = canRegisterForEvent({ eventId: d.eventId, email: d.email });
+    if (!check.ok) return check;
+    const ev = events.find((e) => e.id === d.eventId)!;
+    const email = d.email.trim().toLowerCase();
 
     const reg: Registration = {
       id: uid("reg"),
@@ -2661,11 +2679,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ticket: ticketCode(),
       status: "confirmed",
       createdAt: new Date().toISOString(),
+      ...(d.paymentRef ? { paymentRef: d.paymentRef } : {}),
+      ...(typeof d.amountPaid === "number" ? { amountPaid: d.amountPaid } : {}),
     };
     setRegistrations((p) => [reg, ...p]);
     saveSupabaseRegistration(reg);
     return { ok: true, registration: reg };
-  }, [events, registrations, sessionId]);
+  }, [canRegisterForEvent, events, sessionId]);
+
+  const saveRegistrationSurvey: Ctx["saveRegistrationSurvey"] = useCallback((id, survey) => {
+    const payload = { ...survey, submittedAt: survey.submittedAt || new Date().toISOString() };
+    setRegistrations((p) =>
+      p.map((r) => {
+        if (r.id === id) {
+          const updated: Registration = { ...r, survey: payload };
+          saveSupabaseRegistration(updated);
+          return updated;
+        }
+        return r;
+      })
+    );
+  }, []);
 
   const myRegistrations = useMemo(
     () => registrations.filter((r) => (sessionId && r.userId === sessionId) || (user && r.email === user.email)),
@@ -4538,8 +4572,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toggleLesson, setLastLesson, progressOf, stats,
     priceOf, courseSettings,
     recordPayment, myPayments,
-    events: publicEvents, allEvents: events, seatsLeft, registerForEvent,
-    myRegistrations, cancelRegistration,
+    events: publicEvents, allEvents: events, seatsLeft, canRegisterForEvent, registerForEvent,
+    saveRegistrationSurvey, myRegistrations, cancelRegistration,
     isStaff: user?.role === "staff",
     can, permissions,
     attempts: myAttempts, submitAttempt, bestAttempt, hasPassedQuiz,
