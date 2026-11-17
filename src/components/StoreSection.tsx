@@ -64,7 +64,7 @@ export default function StoreSection() {
           <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-rose-300">
             BESTSELLING TRADING SUITE
           </p>
-          <h2 className="mt-3 sm:mt-4 font-display text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
+          <h2 className="mt-3 sm:mt-4 font-display text-[32px] sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.12]">
             Institutional Order <br />
             Flow in <span className="text-brand">Print &amp; Code</span>
           </h2>
