@@ -140,3 +140,79 @@ export async function sendGiveawayWinnerEmail(params: {
     // Non-blocking
   }
 }
+
+export async function sendEventCancelledEmail(params: {
+  to: string;
+  name: string;
+  eventTitle: string;
+  eventDate?: string;
+  ticket?: string;
+}): Promise<void> {
+  if (!params.to) return;
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "event_cancelled", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
+
+export async function sendMentorshipSurveyEmail(params: {
+  userEmail?: string;
+  userName: string;
+  courseOrPlan: string;
+  experienceLevel?: string;
+  tradingPath: string;
+  challenges: string;
+  longTermGoals: string;
+  availability: string;
+}): Promise<void> {
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "mentorship_survey", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
+
+export async function sendTeamBioEmail(params: {
+  to?: string;
+  name: string;
+  role: string;
+  eventKind: "submitted" | "approved" | "rejected";
+}): Promise<void> {
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "team_bio", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
+
+export async function sendForumReplyEmail(params: {
+  to: string;
+  authorName: string;
+  replierName: string;
+  threadTitle: string;
+  replyPreview: string;
+}): Promise<void> {
+  if (!params.to) return;
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "forum_reply", ...params }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}

@@ -10,7 +10,7 @@ import {
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { getActiveReferralCode } from "../lib/affiliate";
 import { formatAccountName } from "../lib/formatName";
-import { sendReceiptEmail } from "../lib/email";
+import { sendReceiptEmail, sendMentorshipSurveyEmail } from "../lib/email";
 
 type Method = "card" | "transfer" | "crypto";
 
@@ -568,6 +568,15 @@ function MentorshipSurveyCard({ user, courseId }: { user: any; courseId: string 
     };
     
     localStorage.setItem(`gamat_survey_${user?.id}_${courseId}`, JSON.stringify(surveyData));
+    void sendMentorshipSurveyEmail({
+      userEmail: user?.email,
+      userName: formatAccountName(user),
+      courseOrPlan: courseId,
+      tradingPath,
+      challenges,
+      longTermGoals,
+      availability,
+    });
     setSubmitted(true);
   };
 

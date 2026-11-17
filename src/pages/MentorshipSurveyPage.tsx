@@ -4,6 +4,7 @@ import PageCta from "../components/PageCta";
 import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import { formatAccountName } from "../lib/formatName";
+import { sendMentorshipSurveyEmail } from "../lib/email";
 import { Lock, ArrowUpRight, Video } from "lucide-react";
 
 export default function MentorshipSurveyPage() {
@@ -40,6 +41,16 @@ export default function MentorshipSurveyPage() {
       submittedAt: new Date().toISOString(),
     };
     localStorage.setItem(`gamat_survey_${user?.id}_${planId}`, JSON.stringify(surveyData));
+    void sendMentorshipSurveyEmail({
+      userEmail: user?.email,
+      userName: formatAccountName(user),
+      courseOrPlan: planTitles[planId] || planId,
+      experienceLevel,
+      tradingPath,
+      challenges,
+      longTermGoals,
+      availability,
+    });
 
     // Proceed to Mentorship Checkout Page
     navigate(`/checkout/mentorship-${planId}`);

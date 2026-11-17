@@ -577,6 +577,208 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 
+    if (type === "event_cancelled") {
+      const { to, name, eventTitle, eventDate, ticket } = body;
+      if (!to || !eventTitle) return res.status(400).json({ ok: false, message: "Missing required fields (to, eventTitle)" });
+      const safeName = escapeHtml(name || "Attendee");
+      const safeTitle = escapeHtml(eventTitle);
+      const safeDate = escapeHtml(eventDate || "");
+      const safeTicket = escapeHtml(ticket || "");
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX EVENTS</p>
+                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">Registration Cancelled</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeName}</strong>, your registration for <strong>${safeTitle}</strong>${safeDate ? ` (${safeDate})` : ""}${safeTicket ? ` — Ticket <code>${safeTicket}</code>` : ""} — has been cancelled and your seat has been released.
+                      </p>
+                      <div style="text-align:center;margin-top:20px;">
+                        <a href="https://gamatfxacademy.com/#/events" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">Browse Upcoming Events</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `Cancelled: ${eventTitle}${ticket ? ` (${ticket})` : ""}`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send cancellation email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "mentorship_survey") {
+      const { userEmail, userName, courseOrPlan, experienceLevel, tradingPath, challenges, longTermGoals, availability } = body;
+      const safeName = escapeHtml(userName || "Student");
+      const safeEmail = escapeHtml(userEmail || "");
+      const safePlan = escapeHtml(courseOrPlan || "Mentorship");
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">New Mentorship Onboarding Survey</h2>
+            <p><strong>Student:</strong> ${safeName} (${safeEmail})<br/>
+            <strong>Track/Plan:</strong> ${safePlan}<br/>
+            ${experienceLevel ? `<strong>Experience:</strong> ${escapeHtml(experienceLevel)}<br/>` : ""}
+            <strong>Market Focus:</strong> ${escapeHtml(tradingPath || "")}<br/>
+            <strong>Availability:</strong> ${escapeHtml(availability || "")}</p>
+            ${challenges ? `<p><strong>Challenges:</strong><br/>${escapeHtml(challenges).replace(/\n/g, "<br/>")}</p>` : ""}
+            ${longTermGoals ? `<p><strong>Long-Term Goals:</strong><br/>${escapeHtml(longTermGoals).replace(/\n/g, "<br/>")}</p>` : ""}
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [adminEmail],
+        ...(userEmail ? { reply_to: userEmail } : {}),
+        subject: `Mentorship Survey: ${userName || userEmail || "Student"} (${courseOrPlan || "Mentorship"})`,
+        html: adminHtml,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send survey alert" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "team_bio") {
+      const { to, name, role, eventKind = "submitted" } = body;
+      const safeName = escapeHtml(name || "Team Member");
+      const safeRole = escapeHtml(role || "Contributor");
+
+      if (eventKind === "submitted") {
+        const adminHtml = `
+          <!DOCTYPE html>
+          <html>
+            <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+              <h2 style="margin:0 0 12px;">New Team Bio Submission</h2>
+              <p><strong>Name:</strong> ${safeName} (${escapeHtml(to || "")})<br/>
+              <strong>Role:</strong> ${safeRole}</p>
+              <p><a href="https://gamatfxacademy.com/#/admin/team">Review in Admin Team</a></p>
+            </body>
+          </html>
+        `;
+        const result = await sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          ...(to ? { reply_to: to } : {}),
+          subject: `Team Bio Submitted: ${name || "Staff"} (${role || ""})`,
+          html: adminHtml,
+        });
+        if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to notify admin" });
+        return res.status(200).json({ ok: true, id: result.data?.id });
+      }
+
+      if (!to) return res.status(400).json({ ok: false, message: "Missing recipient email (to)" });
+      const approved = eventKind === "approved";
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX TEAM</p>
+                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">${approved ? "Team Bio Approved!" : "Team Bio Update"}</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeName}</strong>, ${
+                          approved
+                            ? `your team profile (<strong>${safeRole}</strong>) has been approved and is now live on the GAMAT FX Academy team page.`
+                            : `your recent team profile submission (<strong>${safeRole}</strong>) was not approved. Please update your bio in the dashboard and resubmit.`
+                        }
+                      </p>
+                      <div style="text-align:center;margin-top:20px;">
+                        <a href="https://gamatfxacademy.com/#/about" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Team Page</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: approved ? "Your GAMAT FX Team Bio is Live!" : "Update on Your Team Bio Submission",
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send team bio email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "forum_reply") {
+      const { to, authorName, replierName, threadTitle, replyPreview } = body;
+      if (!to || !threadTitle) return res.status(400).json({ ok: false, message: "Missing required fields (to, threadTitle)" });
+      const safeAuthor = escapeHtml(authorName || "Trader");
+      const safeReplier = escapeHtml(replierName || "A community member");
+      const safeThread = escapeHtml(threadTitle);
+      const safePreview = escapeHtml(replyPreview || "").slice(0, 300);
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX COMMUNITY</p>
+                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">New Reply to Your Thread</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeAuthor}</strong>, <strong>${safeReplier}</strong> replied to your forum post <strong>"${safeThread}"</strong>:
+                      </p>
+                      ${safePreview ? `<div style="background:#f9fafb;border-left:3px solid #dc3545;padding:12px 14px;border-radius:0 10px 10px 0;font-size:13px;color:#374151;line-height:1.6;margin-bottom:20px;">${safePreview}</div>` : ""}
+                      <div style="text-align:center;">
+                        <a href="https://gamatfxacademy.com/#/forum" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Reply in Forum</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `New reply: ${threadTitle}`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send forum reply email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
     return res.status(400).json({ ok: false, message: "Unsupported email type" });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });

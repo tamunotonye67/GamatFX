@@ -57,7 +57,14 @@ import {
 import { generateTxRef } from "./bachs";
 import { formatAccountName, formatStudentName, formatAffiliateCardName, capitalizeWord } from "./formatName";
 import { triggerDiscoveryForNewRegistration, fetchSupabaseDiscoveryResponses } from "./discoverySurvey";
-import { sendAffiliateEmail, sendWelcomeEmail, sendPayoutEmail } from "./email";
+import {
+  sendAffiliateEmail,
+  sendWelcomeEmail,
+  sendPayoutEmail,
+  sendEventCancelledEmail,
+  sendTeamBioEmail,
+  sendForumReplyEmail,
+} from "./email";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -2744,6 +2751,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (r.id === id) {
         const updated: Registration = { ...r, status: "cancelled" };
         saveSupabaseRegistration(updated);
+        if (r.email) {
+          void sendEventCancelledEmail({
+            to: r.email,
+            name: r.name,
+            eventTitle: r.eventTitle,
+            eventDate: r.eventDate,
+            ticket: r.ticket,
+          });
+        }
         return updated;
       }
       return r;
@@ -3570,6 +3586,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setTeamBios((prev) => [submission, ...prev.filter((x) => !(x.userId === sessionId && x.status === "pending"))]);
+    void sendTeamBioEmail({
+      to: user.email,
+      name: formatAccountName(user),
+      role: b.role.trim(),
+      eventKind: "submitted",
+    });
     return { ok: true };
   }, [sessionId, user]);
 
@@ -3578,6 +3600,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!sub) return;
     const now = new Date().toISOString();
     setTeamBios((prev) => prev.map((b) => (b.id === id ? { ...b, status, reviewedAt: now } : b)));
+    if (sub.email) {
+      void sendTeamBioEmail({
+        to: sub.email,
+        name: sub.name,
+        role: sub.role,
+        eventKind: status === "approved" ? "approved" : "rejected",
+      });
+    }
 
     if (status === "approved" && publish) {
       const expertise = sub.expertiseText.split("\n").map((s) => s.trim()).filter(Boolean);
@@ -3695,6 +3725,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       };
       setReplies((p) => [...p, r]);
       saveSupabaseReply(r);
+      const thread = threads.find((t) => t.id === threadId);
+      if (thread && thread.authorId !== user.id) {
+        const author = accounts.find((a) => a.id === thread.authorId);
+        if (author?.email) {
+          void sendForumReplyEmail({
+            to: author.email,
+            authorName: thread.authorName,
+            replierName: displayName(),
+            threadTitle: thread.title,
+            replyPreview: body.trim() || "(Image attachment)",
+          });
+        }
+      }
       return { ok: true };
     },
     toggleThreadLike: (id) => {
