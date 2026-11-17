@@ -2203,9 +2203,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     let res: { ok: boolean; account?: Account; error?: string };
     try {
       res = await signUpSupabaseUser(email, d.password, newAccData);
-      await signOutSupabaseUser().catch(() => {});
+    } catch (err: any) {
+      res = { ok: false, error: err?.message || "Unable to register account." };
     } finally {
-      authActionInProgressRef.current = false;
+      void signOutSupabaseUser().catch(() => {});
+      setTimeout(() => {
+        authActionInProgressRef.current = false;
+      }, 400);
     }
 
     if (!res.ok) {
@@ -2228,7 +2232,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     recentlyCreatedRef.current.set(acc.id, { account: acc, ts: Date.now() });
 
     if (!res.account) {
-      await saveSupabaseAccount(acc);
+      try {
+        await saveSupabaseAccount(acc);
+      } catch {}
     }
 
     setAccounts((p) => {

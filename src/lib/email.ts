@@ -259,10 +259,13 @@ export async function sendVerificationEmail(params: {
   name?: string;
   origin?: string;
 }): Promise<{ ok: boolean; error?: string }> {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), 12000) : null;
   try {
     const res = await fetch("/api/send-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: controller?.signal,
       body: JSON.stringify({
         type: "email_verification",
         to: params.to,
@@ -278,6 +281,11 @@ export async function sendVerificationEmail(params: {
     }
     return { ok: true };
   } catch (err: any) {
+    if (err?.name === "AbortError") {
+      return { ok: false, error: "Verification email request timed out. Please try again." };
+    }
     return { ok: false, error: err?.message || "Network error sending verification email." };
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }

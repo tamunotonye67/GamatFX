@@ -604,6 +604,7 @@ export function SignUpPage() {
     avatar: "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [resendMsg, setResendMsg] = useState<string | null>(null);
@@ -680,22 +681,31 @@ export function SignUpPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedCountry = COUNTRIES.find((c) => c.name === form.country) || COUNTRIES[0];
-    const fullPhone = form.phone.trim() ? `${selectedCountry.code} ${form.phone.trim()}` : undefined;
+    if (loading) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const selectedCountry = COUNTRIES.find((c) => c.name === form.country) || COUNTRIES[0];
+      const fullPhone = form.phone.trim() ? `${selectedCountry.code} ${form.phone.trim()}` : undefined;
 
-    const res = await signup({
-      ...form,
-      phone: fullPhone,
-    });
-    if (!res.ok) {
-      setError(res.error ?? "Unable to create account.");
-      return;
+      const res = await signup({
+        ...form,
+        phone: fullPhone,
+      });
+      if (!res.ok) {
+        setError(res.error ?? "Unable to create account.");
+        return;
+      }
+      if (res.needsVerification) {
+        setPendingEmail(res.email || form.email.trim().toLowerCase());
+        return;
+      }
+      navigate(nextTarget());
+    } catch (err: any) {
+      setError(err?.message || "Unable to create account. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    if (res.needsVerification) {
-      setPendingEmail(res.email || form.email.trim().toLowerCase());
-      return;
-    }
-    navigate(nextTarget());
   };
 
   return (
@@ -804,8 +814,8 @@ export function SignUpPage() {
               </span>
             </label>
 
-            <button type="submit" className="btn-primary w-full">
-              Create Account
+            <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
+              {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
         </div>
