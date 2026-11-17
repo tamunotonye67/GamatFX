@@ -472,6 +472,10 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     visibility: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    text-rendering: geometricPrecision !important;
+    -webkit-font-smoothing: antialiased !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   /* Isolate student enrollment share card centered at exact 2.76 x 4.75 in aspect */
@@ -523,17 +527,19 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  #printable-invoice *, #printable-receipt * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
 
-  /* Ensure modal backdrop and overlays are completely invisible and transparent when printing */
+  /* Ensure modal backdrop and scroll wrappers never force low-DPI bitmap rasterization in PDF/print */
   .fixed.inset-0,
+  .fixed.inset-0 > div,
+  .fixed.inset-0 > div > div,
   .backdrop-blur-sm,
   .backdrop-blur-xs {
     background: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    max-height: none !important;
   }
 }

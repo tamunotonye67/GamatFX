@@ -388,14 +388,18 @@ export async function exportAffiliateCardAsPng(
   avatarUrl?: string,
   theme: AffiliateCardTheme = "red"
 ): Promise<string> {
-  // Exact 2.76 x 4.75 inches at 300 DPI = 828 x 1425 px
+  // Exact 2.76 x 4.75 inches at 600 DPI (2x supersampled 828 x 1425 = 1656 x 2850 px)
+  const SCALE = 2;
   const width = 828;
   const height = 1425;
   const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = width * SCALE;
+  canvas.height = height * SCALE;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Could not create canvas context");
+  ctx.scale(SCALE, SCALE);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   const isRed = theme === "red";
   const cardRadius = 60;
@@ -701,7 +705,7 @@ export async function exportAffiliateCardAsPng(
   ctx.stroke();
 
   const targetUrl = getSignupReferralUrl(profile.referralCode);
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=265x265&margin=8&data=${encodeURIComponent(targetUrl)}`;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=8&data=${encodeURIComponent(targetUrl)}`;
 
   try {
     const qrImg = new Image();

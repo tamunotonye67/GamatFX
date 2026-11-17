@@ -128,7 +128,7 @@ export default function AffiliateCard({
   const [captionCollapsibleOpen, setCaptionCollapsibleOpen] = useState(false);
 
   const referralUrl = getSignupReferralUrl(profile.referralCode);
-  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(referralUrl)}`;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=8&data=${encodeURIComponent(referralUrl)}`;
 
   const rawDisplayName = cardDisplayName.trim() || profile.userName || "Student Trader";
   const activeDisplayName = formatStudentName(rawDisplayName);

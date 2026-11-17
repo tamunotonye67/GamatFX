@@ -30,10 +30,14 @@ export function renderCertificate(
   data: CertData,
   teamProfiles?: { name: string; role: string; published?: boolean }[]
 ): HTMLCanvasElement {
+  const SCALE = 2; // 4000 x 2828 px (~340 DPI A4 landscape print quality)
   const canvas = document.createElement("canvas");
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = W * SCALE;
+  canvas.height = H * SCALE;
   const c = canvas.getContext("2d")!;
+  c.scale(SCALE, SCALE);
+  c.imageSmoothingEnabled = true;
+  c.imageSmoothingQuality = "high";
 
   /* ---------- background ---------- */
   c.fillStyle = "#ffffff";

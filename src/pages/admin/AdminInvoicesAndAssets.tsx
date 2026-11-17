@@ -377,12 +377,14 @@ export function AdminCompanyAssets() {
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const width = variant === "icon" ? 512 : 960;
-      const height = variant === "icon" ? 512 : 200;
+      const width = variant === "icon" ? 2048 : 3840;
+      const height = variant === "icon" ? 2048 : 800;
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (ctx) {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
         const pngUrl = canvas.toDataURL("image/png");
         const a = document.createElement("a");
