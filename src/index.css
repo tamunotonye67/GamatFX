@@ -461,6 +461,14 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     height: auto !important;
   }
 
+  /* Prevent invisible background content from spawning a blank 2nd page on single-sheet prints */
+  html:has(#printable-letterhead, #printable-invoice, #printable-receipt, #student-enrollment-card),
+  body:has(#printable-letterhead, #printable-invoice, #printable-receipt, #student-enrollment-card) {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+
   /* Hide screen chrome & controls when printing */
   body * {
     visibility: hidden !important;
