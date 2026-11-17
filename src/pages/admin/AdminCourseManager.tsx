@@ -834,19 +834,19 @@ export function AdminCourseManager() {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 border-t border-line pt-4">
               {edit.id ? (
                 <button
                   type="button"
                   onClick={() => openExam({ id: edit.id!, title: edit.title || "Course" })}
-                  className="btn-outline-dark !py-2.5 text-brand hover:border-brand"
+                  className="btn-outline-dark !py-2.5 w-full sm:w-auto justify-center text-brand hover:border-brand cursor-pointer"
                 >
-                  <FileQuestion className="h-4 w-4" /> Manage Exam Questions
+                  <FileQuestion className="h-4 w-4 shrink-0" /> Manage Exam Questions
                 </button>
-              ) : <div />}
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setEdit(null)} disabled={savingCourse} className="btn-outline-dark !py-2.5 disabled:opacity-50">Cancel</button>
-                <button type="submit" disabled={savingCourse} className="btn-primary !py-2.5 disabled:opacity-50"><Save className="h-4 w-4" /> {savingCourse ? "Saving..." : "Save course"}</button>
+              ) : <div className="hidden sm:block" />}
+              <div className="grid grid-cols-2 sm:flex gap-2.5 sm:gap-3 w-full sm:w-auto">
+                <button type="button" onClick={() => setEdit(null)} disabled={savingCourse} className="btn-outline-dark !py-2.5 w-full sm:w-auto justify-center disabled:opacity-50 cursor-pointer">Cancel</button>
+                <button type="submit" disabled={savingCourse} className="btn-primary !py-2.5 w-full sm:w-auto justify-center disabled:opacity-50 cursor-pointer"><Save className="h-4 w-4 shrink-0" /> {savingCourse ? "Saving..." : "Save course"}</button>
               </div>
             </div>
           </form>
