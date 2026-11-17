@@ -7,7 +7,7 @@ import { naira, compactNaira } from "../../lib/courses";
 import Logo from "../../components/Logo";
 import {
   Receipt, Download, Printer, Plus, FileText, CheckCircle2, ShieldCheck,
-  Image, AlertTriangle, Wallet, Upload, X, RotateCcw
+  Image, AlertTriangle, Wallet, Upload, X, RotateCcw, Eye, Pencil
 } from "lucide-react";
 import { uploadCompanyAsset } from "../../lib/supabaseStorage";
 
@@ -336,6 +336,7 @@ export function AdminInvoices() {
 
 export function AdminCompanyAssets() {
   const [tab, setTab] = useState<"logos" | "letterhead">("logos");
+  const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
 
   // Editable Letterhead State
   const [refNo, setRefNo] = useState("GFX/OFF/2026/089");
@@ -581,115 +582,141 @@ export function AdminCompanyAssets() {
       )}
 
       {tab === "letterhead" && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Action Header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-white p-6 shadow-sm">
-            <div>
-              <h3 className="font-display text-lg font-bold text-ink">Official A4 Letterheaded Paper Generator</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-4 sm:p-6 shadow-sm">
+            <div className="min-w-0">
+              <h3 className="font-display text-base sm:text-lg font-bold text-ink">Letterheaded Paper</h3>
               <p className="text-xs text-muted mt-0.5">
-                Customize official company correspondence and print or save as A4 formatted letterhead PDF.
+                Customize and export official A4 company correspondence.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto shrink-0">
               <button
                 type="button"
                 onClick={handlePrintLetterhead}
-                className="btn-primary !py-2.5 text-xs font-bold flex items-center gap-2"
+                className="btn-primary !py-2.5 !px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Printer className="h-4 w-4" /> Print / Save A4 Letterhead PDF
+                <Printer className="h-4 w-4 shrink-0" />
+                <span>Print / PDF</span>
               </button>
               <button
                 type="button"
                 onClick={handleDownloadDocxTemplate}
-                className="btn-outline-dark !py-2.5 text-xs font-bold flex items-center gap-2"
+                className="btn-outline-dark !py-2.5 !px-3.5 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Download className="h-4 w-4" /> Download Text Template
+                <Download className="h-4 w-4 shrink-0" />
+                <span>Export TXT</span>
               </button>
             </div>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[1fr_1.3fr]">
+          {/* Mobile Edit / Preview Switcher */}
+          <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-line bg-white p-1.5 shadow-sm lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileView("edit")}
+              className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition cursor-pointer ${
+                mobileView === "edit" ? "bg-ink text-white shadow-xs" : "text-muted hover:text-ink"
+              }`}
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileView("preview")}
+              className={`flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition cursor-pointer ${
+                mobileView === "preview" ? "bg-ink text-white shadow-xs" : "text-muted hover:text-ink"
+              }`}
+            >
+              <Eye className="h-3.5 w-3.5" /> Live Preview
+            </button>
+          </div>
+
+          <div className="grid gap-6 lg:gap-8 lg:grid-cols-[1fr_1.25fr] items-start">
             {/* Form Customizer */}
-            <div className="rounded-3xl border border-line bg-white p-6 shadow-sm space-y-4 text-xs">
-              <h4 className="font-display text-sm font-bold text-ink border-b border-line pb-2">
-                Edit Letter Details
-              </h4>
+            <div className={`${mobileView === "edit" ? "block" : "hidden lg:block"} rounded-2xl sm:rounded-3xl border border-line bg-white p-4 sm:p-6 shadow-sm space-y-4`}>
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h4 className="font-display text-sm font-bold text-ink">Document Details</h4>
+                <span className="text-[11px] font-medium text-muted">Auto-updates preview</span>
+              </div>
 
-              <div>
-                <label className="block font-bold text-ink uppercase tracking-wider mb-1">Reference Number</label>
-                <input
-                  type="text"
-                  value={refNo}
-                  onChange={(e) => setRefNo(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs font-bold outline-none focus:border-brand"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Reference No.</label>
+                  <input
+                    type="text"
+                    value={refNo}
+                    onChange={(e) => setRefNo(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm sm:text-xs font-bold text-ink outline-none transition focus:border-brand focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Document Date</label>
+                  <input
+                    type="text"
+                    value={letterDate}
+                    onChange={(e) => setLetterDate(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm sm:text-xs font-semibold text-ink outline-none transition focus:border-brand focus:bg-white"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block font-bold text-ink uppercase tracking-wider mb-1">Document Date</label>
-                <input
-                  type="text"
-                  value={letterDate}
-                  onChange={(e) => setLetterDate(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs font-semibold outline-none focus:border-brand"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-ink uppercase tracking-wider mb-1">Recipient Name / Title</label>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Recipient</label>
                 <input
                   type="text"
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs font-semibold outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm sm:text-xs font-semibold text-ink outline-none transition focus:border-brand focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-ink uppercase tracking-wider mb-1">Letter Subject</label>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Subject</label>
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs font-bold outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm sm:text-xs font-bold text-ink outline-none transition focus:border-brand focus:bg-white"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-ink uppercase tracking-wider mb-1">Letter Content Body</label>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Letter Body</label>
                 <textarea
                   rows={6}
                   value={bodyText}
                   onChange={(e) => setBodyText(e.target.value)}
-                  className="w-full rounded-xl border border-line bg-cream p-3 text-xs outline-none focus:border-brand leading-relaxed"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-sm sm:text-xs text-ink outline-none transition focus:border-brand focus:bg-white leading-relaxed"
                 />
               </div>
 
-              {/* Upload Signature Control (Above Signatory Name) */}
+              {/* Upload Signature Control */}
               <div>
-                <label className="block font-bold text-ink uppercase tracking-wider mb-1">
-                  Upload Official Signature
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Official Signature
                 </label>
-                <div className="rounded-xl border border-dashed border-line bg-cream p-3 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     {signatureUrl ? (
-                      <div className="h-10 w-28 rounded border border-line bg-white p-1 flex items-center justify-center overflow-hidden">
+                      <div className="h-10 w-28 rounded-lg border border-slate-200 bg-white p-1 flex items-center justify-center overflow-hidden">
                         <img src={signatureUrl} alt="Signature Preview" className="h-full w-full object-contain" />
                       </div>
                     ) : (
-                      <span className="text-[10px] text-muted font-medium">No signature file uploaded (using default cursive)</span>
+                      <span className="text-xs text-muted">Using cursive signature</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-white transition hover:bg-brand">
-                      <Upload className="h-3.5 w-3.5" /> Upload File
+                  <div className="flex items-center gap-2 shrink-0">
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-ink px-3 py-2 text-xs font-bold text-white transition hover:bg-brand">
+                      <Upload className="h-3.5 w-3.5" /> Upload
                       <input type="file" accept="image/*" onChange={handleSignatureUpload} className="hidden" />
                     </label>
                     {signatureUrl && (
                       <button
                         type="button"
                         onClick={() => setSignatureUrl(null)}
-                        className="rounded-lg border border-line bg-white px-2 py-1.5 text-xs font-bold text-muted hover:text-brand"
+                        className="rounded-lg border border-slate-200 bg-white p-2 text-xs font-bold text-muted hover:text-brand cursor-pointer"
                         title="Remove uploaded signature"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -699,85 +726,95 @@ export function AdminCompanyAssets() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-ink uppercase tracking-wider mb-1">Signatory Name</label>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Signatory Name</label>
                   <input
                     type="text"
                     value={signatoryName}
                     onChange={(e) => setSignatoryName(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs font-bold outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm sm:text-xs font-bold text-ink outline-none transition focus:border-brand focus:bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-ink uppercase tracking-wider mb-1">Signatory Title</label>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Signatory Title</label>
                   <input
                     type="text"
                     value={signatoryTitle}
                     onChange={(e) => setSignatoryTitle(e.target.value)}
-                    className="w-full rounded-xl border border-line bg-cream p-2.5 text-xs font-semibold outline-none focus:border-brand"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm sm:text-xs font-semibold text-ink outline-none transition focus:border-brand focus:bg-white"
                   />
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setMobileView("preview")}
+                className="w-full rounded-xl bg-ink py-3 text-xs font-bold text-white flex items-center justify-center gap-2 lg:hidden cursor-pointer"
+              >
+                <Eye className="h-4 w-4" /> Preview A4 Letterhead
+              </button>
             </div>
 
             {/* Live A4 Letterhead Preview (Printable) */}
-            <div
-              id="printable-letterhead"
-              className="w-full max-w-[210mm] min-h-[297mm] rounded-2xl border-2 border-line bg-white p-[20mm_16mm] shadow-2xl font-sans space-y-6 relative flex flex-col justify-between mx-auto my-0"
-            >
-              {/* Top Accent Gradient Bar */}
-              <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-brand via-amber-500 to-brand" />
+            <div className={`${mobileView === "preview" ? "block" : "hidden lg:block"} min-w-0`}>
+              <div
+                id="printable-letterhead"
+                className="w-full max-w-[210mm] min-h-[480px] sm:min-h-[240mm] lg:min-h-[297mm] rounded-2xl border border-line bg-white p-5 sm:p-10 lg:p-[18mm_16mm] shadow-xl font-sans relative flex flex-col justify-between mx-auto overflow-hidden"
+              >
+                {/* Top Accent Gradient Bar */}
+                <div className="absolute top-0 left-0 right-0 h-2.5 sm:h-3 bg-gradient-to-r from-brand via-amber-500 to-brand" />
 
-              <div>
-                {/* Header */}
-                <div className="flex items-center justify-between border-b-2 border-brand pb-4">
-                  <Logo variant="dark" asDiv />
-                  <div className="text-right text-[10px] text-muted space-y-0.5">
-                    <p className="font-bold text-ink">RC: 1849204</p>
-                    <p>Tax ID: 29402948-001</p>
-                    <p>www.gamatfxacademy.com</p>
+                <div>
+                  {/* Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-brand pb-4 pt-2 sm:pt-0">
+                    <Logo variant="dark" asDiv />
+                    <div className="text-left sm:text-right text-[10px] text-muted space-y-0.5">
+                      <p className="font-bold text-ink">RC: 1849204</p>
+                      <p>Tax ID: 29402948-001</p>
+                      <p>www.gamatfxacademy.com</p>
+                    </div>
+                  </div>
+
+                  {/* Ref & Date */}
+                  <div className="flex flex-wrap justify-between gap-2 text-xs text-muted pt-4">
+                    <p><strong className="text-ink font-bold">Ref:</strong> {refNo}</p>
+                    <p><strong className="text-ink font-bold">Date:</strong> {letterDate}</p>
+                  </div>
+
+                  {/* Recipient & Subject */}
+                  <div className="mt-5 sm:mt-6 space-y-2 text-xs">
+                    <p className="font-extrabold text-ink text-sm">{recipient}</p>
+                    <p className="font-extrabold text-brand text-xs uppercase tracking-wide border-l-2 border-brand pl-2.5 py-0.5 leading-relaxed">
+                      {subject}
+                    </p>
+                  </div>
+
+                  {/* Body */}
+                  <div className="mt-5 sm:mt-6 text-xs text-ink/90 leading-relaxed whitespace-pre-wrap font-sans">
+                    {bodyText}
                   </div>
                 </div>
 
-                {/* Ref & Date */}
-                <div className="flex justify-between text-xs text-muted pt-4">
-                  <p><strong className="text-ink font-bold">Ref:</strong> {refNo}</p>
-                  <p><strong className="text-ink font-bold">Date:</strong> {letterDate}</p>
-                </div>
+                {/* Signatory & Footer */}
+                <div className="space-y-5 sm:space-y-6 pt-8">
+                  <div className="text-left space-y-1">
+                    <p className="text-xs text-muted font-medium">Sincerely,</p>
+                    {signatureUrl ? (
+                      <div className="py-1">
+                        <img src={signatureUrl} alt="Official Signature" className="h-12 w-auto max-w-[180px] object-contain" />
+                      </div>
+                    ) : (
+                      <p className="font-script text-xl font-bold text-ink italic py-1">{signatoryName}</p>
+                    )}
+                    <p className="text-xs font-extrabold text-ink">{signatoryName}</p>
+                    <p className="text-[11px] text-muted font-semibold">{signatoryTitle}</p>
+                  </div>
 
-                {/* Recipient & Subject */}
-                <div className="mt-6 space-y-2 text-xs">
-                  <p className="font-extrabold text-ink text-sm">{recipient}</p>
-                  <p className="font-extrabold text-brand text-xs uppercase tracking-wide border-l-2 border-brand pl-2 py-0.5">
-                    {subject}
-                  </p>
-                </div>
-
-                {/* Body */}
-                <div className="mt-6 text-xs text-ink/90 leading-relaxed whitespace-pre-wrap font-sans">
-                  {bodyText}
-                </div>
-              </div>
-
-              {/* Signatory & Footer */}
-              <div className="space-y-6 pt-8">
-                <div className="text-left space-y-1">
-                  <p className="text-xs text-muted font-medium">Sincerely,</p>
-                  {signatureUrl ? (
-                    <div className="py-1">
-                      <img src={signatureUrl} alt="Official Signature" className="h-12 w-auto max-w-[180px] object-contain" />
-                    </div>
-                  ) : (
-                    <p className="font-script text-xl font-bold text-ink italic py-1">{signatoryName}</p>
-                  )}
-                  <p className="text-xs font-extrabold text-ink">{signatoryName}</p>
-                  <p className="text-[11px] text-muted font-semibold">{signatoryTitle}</p>
-                </div>
-
-                <div className="border-t border-line pt-3 flex flex-wrap items-center justify-between text-[10px] text-muted">
-                  <p>📍 12 Institutional Way, Victoria Island, Lagos, Nigeria</p>
-                  <p>📞 +234 800 GAMAT FX · ✉️ support@gamatfxacademy.com</p>
+                  <div className="border-t border-line pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[10px] text-muted">
+                    <p>12 Institutional Way, Victoria Island, Lagos, Nigeria</p>
+                    <p>+234 800 GAMAT FX · support@gamatfxacademy.com</p>
+                  </div>
                 </div>
               </div>
             </div>
