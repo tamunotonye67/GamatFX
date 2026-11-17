@@ -452,7 +452,7 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
 
 @media print {
   @page {
-    size: A4 portrait;
+    size: auto;
     margin: 0;
   }
 
@@ -461,6 +461,8 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     color: #16181c !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
     overflow: visible !important;
     height: auto !important;
   }
@@ -474,9 +476,10 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
   }
 
   #print-portal,
@@ -492,19 +495,22 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
 
   #print-portal {
     display: block !important;
-    width: 100% !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   #print-portal #printable-letterhead {
     position: relative !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 98vh !important;
-    height: auto !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 95vh !important;
+    min-height: 0 !important;
+    max-height: 98vh !important;
+    overflow: hidden !important;
     box-sizing: border-box !important;
-    padding: 16mm 14mm !important;
+    padding: 14mm 12mm !important;
     margin: 0 !important;
     border: none !important;
     border-radius: 0 !important;
@@ -517,10 +523,12 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
   #print-portal #printable-invoice,
   #print-portal #printable-receipt {
     position: relative !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 98vh !important;
-    height: auto !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 95vh !important;
+    min-height: 0 !important;
+    max-height: 98vh !important;
+    overflow: hidden !important;
     box-sizing: border-box !important;
     margin: 0 !important;
     padding: 0 !important;
