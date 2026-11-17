@@ -553,20 +553,20 @@ export function AdminAffiliates() {
 
       {/* TAB 4: Affiliate Settings */}
       {tab === "settings" && (
-        <div className="max-w-2xl rounded-2xl border border-line bg-white p-6 sm:p-8 shadow-sm">
-          <h3 className="font-display text-lg font-extrabold text-ink">
-            Affiliate Program Configuration
+        <div className="max-w-2xl rounded-2xl border border-line bg-white p-4 sm:p-7 shadow-xs">
+          <h3 className="font-display text-base sm:text-lg font-extrabold text-ink">
+            Program Settings
           </h3>
-          <p className="mt-1 text-xs text-muted">
-            Configure commission percentages, minimum payout limits, and friend discounts.
+          <p className="mt-0.5 text-xs text-muted">
+            Configure commission rates, referral discounts, and payout limits.
           </p>
 
-          <form onSubmit={handleSaveSettings} className="mt-6 space-y-5">
-            <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
-                Ambassador Commission Percentage (%)
+          <form onSubmit={handleSaveSettings} className="mt-5 space-y-5">
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-muted">
+                Ambassador Commission (%)
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <input
                   type="number"
                   min={1}
@@ -575,19 +575,19 @@ export function AdminAffiliates() {
                   onChange={(e) =>
                     setSettingsForm({ ...settingsForm, defaultCommissionPercent: e.target.value === "" ? 0 : Number(e.target.value) })
                   }
-                  className="w-36 rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
+                  className="w-full sm:w-36 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white shadow-2xs px-3.5 py-2.5 text-sm font-bold text-ink focus:border-brand focus:ring-2 focus:ring-brand/10 focus:outline-none transition"
                 />
                 <span className="text-xs text-muted">
-                  Default: 15% (e.g. ₦15,000 on a ₦100,000 course sale)
+                  Default: 15% (e.g. ₦15,000 on a ₦100,000 sale)
                 </span>
               </div>
             </div>
 
-            <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
-                Friend / Referred Student Welcome Discount (%)
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-muted">
+                Referral Discount (%)
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <input
                   type="number"
                   min={0}
@@ -596,19 +596,19 @@ export function AdminAffiliates() {
                   onChange={(e) =>
                     setSettingsForm({ ...settingsForm, affiliateDiscountPercent: e.target.value === "" ? 0 : Number(e.target.value) })
                   }
-                  className="w-36 rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
+                  className="w-full sm:w-36 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white shadow-2xs px-3.5 py-2.5 text-sm font-bold text-ink focus:border-brand focus:ring-2 focus:ring-brand/10 focus:outline-none transition"
                 />
                 <span className="text-xs text-muted">
-                  Applied automatically at checkout when referred by an ambassador
+                  Applied automatically at checkout for referred students
                 </span>
               </div>
             </div>
 
-            <div>
-              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted">
-                Minimum Withdrawal Payout Threshold (₦)
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-muted">
+                Minimum Payout (₦)
               </label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <input
                   type="number"
                   step={1000}
@@ -617,25 +617,25 @@ export function AdminAffiliates() {
                   onChange={(e) =>
                     setSettingsForm({ ...settingsForm, minimumPayoutAmount: e.target.value === "" ? 0 : Number(e.target.value) })
                   }
-                  className="w-44 rounded-xl border border-line bg-cream px-4 py-3 text-sm font-bold text-ink focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/15 focus:outline-none transition shadow-2xs"
+                  className="w-full sm:w-44 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white shadow-2xs px-3.5 py-2.5 text-sm font-bold text-ink focus:border-brand focus:ring-2 focus:ring-brand/10 focus:outline-none transition"
                 />
                 <span className="text-xs text-muted">
-                  Students can only request payout once balance reaches this threshold
+                  Minimum balance required before requesting a payout
                 </span>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-line flex items-center justify-between">
+            <div className="pt-4 border-t border-line flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <button
                 type="submit"
-                className="rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
+                className="w-full sm:w-auto rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer text-center"
               >
                 Save Settings
               </button>
 
               {settingsSaved && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                  <Check className="h-4 w-4" /> Settings updated successfully
+                <span className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-emerald-600">
+                  <Check className="h-4 w-4 shrink-0" /> Settings updated successfully
                 </span>
               )}
             </div>
