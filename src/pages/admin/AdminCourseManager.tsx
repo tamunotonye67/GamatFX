@@ -607,35 +607,23 @@ export function AdminCourseManager() {
             </section>
 
             {/* Media */}
-            <section className="space-y-4">
+            <section className="space-y-3">
               <h4 className="font-display text-sm font-bold uppercase tracking-wide text-muted">Cover media</h4>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">
-                    Course Poster Image
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={edit.poster ?? ""}
-                      onChange={(e) => setEdit({ ...edit, poster: e.target.value })}
-                      onBlur={() => {
-                        if (edit.poster?.trim()) {
-                          const norm = normalizeImageUrl(edit.poster.trim());
-                          if (norm && norm !== edit.poster) setEdit((prev) => prev ? { ...prev, poster: norm } : null);
-                        }
-                      }}
-                      placeholder="Image URL (https://… or Google Drive / Dropbox link)"
-                      className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
-                    />
+                {/* Course Poster Card */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                      Course Poster
+                    </label>
                     <button
                       type="button"
                       disabled={uploadingPoster}
                       onClick={() => posterFileRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-ink shadow-2xs transition hover:border-brand hover:text-brand cursor-pointer disabled:opacity-50"
                     >
                       <Upload className="h-3.5 w-3.5" />
-                      <span>{uploadingPoster ? "Uploading..." : "Upload Poster"}</span>
+                      <span>{uploadingPoster ? "Uploading..." : "Upload"}</span>
                     </button>
                     <input
                       ref={posterFileRef}
@@ -645,44 +633,58 @@ export function AdminCourseManager() {
                       className="hidden"
                     />
                   </div>
+
+                  <input
+                    type="text"
+                    inputMode="url"
+                    value={edit.poster ?? ""}
+                    onChange={(e) => setEdit({ ...edit, poster: e.target.value })}
+                    onBlur={() => {
+                      if (edit.poster?.trim()) {
+                        const norm = normalizeImageUrl(edit.poster.trim());
+                        if (norm && norm !== edit.poster) setEdit((prev) => prev ? { ...prev, poster: norm } : null);
+                      }
+                    }}
+                    placeholder="Paste image URL (https://… or Drive link)"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm sm:text-xs text-ink outline-none transition focus:border-brand"
+                  />
+
                   {edit.poster && (
-                    <div className="mt-2.5 flex items-center gap-3">
-                      <img
-                        src={normalizeImageUrl(edit.poster, DEFAULT_FALLBACK_IMAGES.course)}
-                        onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
-                        alt="Course poster preview"
-                        className="h-14 w-24 rounded-lg object-cover border border-line shadow-xs bg-white"
-                      />
-                      <div className="text-xs">
-                        <span className="font-semibold text-ink block">Poster Preview</span>
-                        <button
-                          type="button"
-                          onClick={() => setEdit({ ...edit, poster: "" })}
-                          className="text-[11px] text-muted hover:text-brand underline cursor-pointer"
-                        >
-                          Clear image
-                        </button>
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={normalizeImageUrl(edit.poster, DEFAULT_FALLBACK_IMAGES.course)}
+                          onError={handleImageError(DEFAULT_FALLBACK_IMAGES.course)}
+                          alt="Course poster preview"
+                          className="h-12 w-20 shrink-0 rounded-lg object-cover border border-line bg-slate-100"
+                        />
+                        <span className="text-xs font-semibold text-ink truncate">Poster Preview</span>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => setEdit({ ...edit, poster: "" })}
+                        className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-muted hover:bg-rose-50 hover:text-brand transition cursor-pointer"
+                      >
+                        Clear
+                      </button>
                     </div>
                   )}
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Preview video URL</label>
-                  <div className="flex gap-2">
-                    <input
-                      value={edit.video ?? ""}
-                      onChange={(e) => setEdit({ ...edit, video: e.target.value })}
-                      placeholder="https://…/preview.mp4"
-                      className="w-full rounded-xl border border-line bg-cream px-3 py-2 text-xs outline-none focus:border-brand focus:bg-white"
-                    />
+
+                {/* Preview Video Card */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                      Preview Video
+                    </label>
                     <button
                       type="button"
                       disabled={uploadingVideoKey === "preview"}
                       onClick={() => previewVideoFileRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-line bg-cream px-3 py-2 text-xs font-bold text-ink transition hover:border-brand hover:bg-white cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-ink shadow-2xs transition hover:border-brand hover:text-brand cursor-pointer disabled:opacity-50"
                     >
                       <Upload className="h-3.5 w-3.5" />
-                      <span>{uploadingVideoKey === "preview" ? "Uploading..." : "Upload Video"}</span>
+                      <span>{uploadingVideoKey === "preview" ? "Uploading..." : "Upload"}</span>
                     </button>
                     <input
                       ref={previewVideoFileRef}
@@ -692,6 +694,15 @@ export function AdminCourseManager() {
                       className="hidden"
                     />
                   </div>
+
+                  <input
+                    type="text"
+                    inputMode="url"
+                    value={edit.video ?? ""}
+                    onChange={(e) => setEdit({ ...edit, video: e.target.value })}
+                    placeholder="https://…/preview.mp4"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm sm:text-xs text-ink outline-none transition focus:border-brand"
+                  />
                 </div>
               </div>
             </section>
