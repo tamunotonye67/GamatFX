@@ -864,83 +864,85 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-ink/60 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[70] flex items-end justify-center overflow-hidden bg-ink/60 p-0 backdrop-blur-sm sm:items-center sm:p-4 print:block print:p-0"
       onClick={onClose}
     >
-      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl print:max-w-none print:max-h-none print:overflow-visible print:rounded-none" onClick={(e) => e.stopPropagation()}>
         {/* Document */}
         <div
           id={isReceipt ? "printable-receipt" : "printable-invoice"}
-          className="overflow-hidden rounded-3xl bg-white text-ink shadow-[0_30px_80px_-30px_rgba(22,24,28,0.55)]"
+          className="overflow-hidden rounded-t-3xl sm:rounded-3xl bg-white text-ink shadow-[0_30px_80px_-30px_rgba(22,24,28,0.55)] flex flex-col justify-between print:rounded-none"
         >
-          {/* Brand header */}
-          <div className="relative flex items-center justify-between gap-3 bg-ink px-6 py-5">
-            <Logo variant="light" asDiv />
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/50">
-                {isReceipt ? "Receipt" : "Invoice"}
-              </p>
-              <p className="mt-0.5 font-mono text-xs font-semibold text-white">{docNo}</p>
-            </div>
-            <span className="absolute inset-x-0 bottom-0 h-[3px] bg-brand" />
-          </div>
-
-          {/* Amount hero */}
-          <div className="px-6 pt-6 text-center">
-            <p className="text-xs font-medium text-muted">{isReceipt ? "Amount paid" : "Amount due"}</p>
-            <p className="mt-1 font-display text-3xl font-extrabold tracking-tight tabular-nums">{naira(p.amount)}</p>
-            <div className="mt-3 flex items-center justify-center gap-2 text-[11px]">
-              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-bold uppercase tracking-wide ring-1 ${statusTone}`}>
-                {p.status === "paid" && <CheckCircle2 className="h-3 w-3" />}
-                {p.status === "refunded" && <RotateCcw className="h-3 w-3" />}
-                {p.status}
-              </span>
-              <span className="text-muted">{fmtDate(p.createdAt)}</span>
-            </div>
-          </div>
-
-          {/* Parties & meta */}
-          <div className="mx-6 mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-cream p-4 text-xs ring-1 ring-line">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">{isReceipt ? "Received from" : "Billed to"}</p>
-              <p className="mt-1 truncate font-semibold text-ink">{p.userName}</p>
-              <p className="truncate text-muted">{p.userEmail}</p>
-            </div>
-            <div className="min-w-0 text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Payment method</p>
-              <p className="mt-1 truncate font-semibold text-ink">{method}</p>
-              <p className="truncate text-muted">Ref {p.ref}</p>
-            </div>
-          </div>
-
-          {/* Line item */}
-          <div className="px-6 pt-6">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Item</p>
-            <div className="mt-2 flex items-start justify-between gap-4">
-              <p className="text-sm font-semibold leading-snug text-ink">{p.courseTitle}</p>
-              <p className="shrink-0 text-sm font-semibold tabular-nums">{naira(p.subtotal ?? p.amount)}</p>
+          <div>
+            {/* Brand header */}
+            <div className="relative flex items-center justify-between gap-3 bg-ink px-6 py-5 print:px-12 print:py-8">
+              <Logo variant="light" asDiv />
+              <div className="text-right">
+                <p className="text-[10px] print:text-xs font-bold uppercase tracking-[0.22em] text-white/50">
+                  {isReceipt ? "Receipt" : "Invoice"}
+                </p>
+                <p className="mt-0.5 font-mono text-xs print:text-sm font-semibold text-white">{docNo}</p>
+              </div>
+              <span className="absolute inset-x-0 bottom-0 h-[3px] bg-brand" />
             </div>
 
-            <div className="mt-4 space-y-2 border-t border-dashed border-line pt-4 text-xs">
-              {rows.map((r) => (
-                <div key={r.label} className="flex justify-between">
-                  <span className="text-muted">{r.label}</span>
-                  <span className={`tabular-nums font-medium ${r.tone ?? "text-ink"}`}>{r.value}</span>
-                </div>
-              ))}
+            {/* Amount hero */}
+            <div className="px-6 pt-6 text-center print:px-12 print:pt-12">
+              <p className="text-xs print:text-sm font-medium text-muted">{isReceipt ? "Amount paid" : "Amount due"}</p>
+              <p className="mt-1 font-display text-3xl print:text-5xl font-extrabold tracking-tight tabular-nums">{naira(p.amount)}</p>
+              <div className="mt-3 flex items-center justify-center gap-2 text-[11px] print:text-xs">
+                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-bold uppercase tracking-wide ring-1 ${statusTone}`}>
+                  {p.status === "paid" && <CheckCircle2 className="h-3 w-3" />}
+                  {p.status === "refunded" && <RotateCcw className="h-3 w-3" />}
+                  {p.status}
+                </span>
+                <span className="text-muted">{fmtDate(p.createdAt)}</span>
+              </div>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
-              <span className="text-sm font-bold">{isReceipt ? "Total paid" : "Total due"}</span>
-              <span className="font-display text-lg font-extrabold tabular-nums text-brand">{naira(p.amount)}</span>
+
+            {/* Parties & meta */}
+            <div className="mx-6 mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-cream p-4 text-xs ring-1 ring-line print:mx-12 print:mt-10 print:p-6 print:text-sm">
+              <div className="min-w-0">
+                <p className="text-[10px] print:text-xs font-bold uppercase tracking-wider text-muted">{isReceipt ? "Received from" : "Billed to"}</p>
+                <p className="mt-1 truncate font-semibold text-ink">{p.userName}</p>
+                <p className="truncate text-muted">{p.userEmail}</p>
+              </div>
+              <div className="min-w-0 text-right">
+                <p className="text-[10px] print:text-xs font-bold uppercase tracking-wider text-muted">Payment method</p>
+                <p className="mt-1 truncate font-semibold text-ink">{method}</p>
+                <p className="truncate text-muted">Ref {p.ref}</p>
+              </div>
+            </div>
+
+            {/* Line item */}
+            <div className="px-6 pt-6 print:px-12 print:pt-10">
+              <p className="text-[10px] print:text-xs font-bold uppercase tracking-wider text-muted">Item</p>
+              <div className="mt-2 flex items-start justify-between gap-4">
+                <p className="text-sm print:text-base font-semibold leading-snug text-ink">{p.courseTitle}</p>
+                <p className="shrink-0 text-sm print:text-base font-semibold tabular-nums">{naira(p.subtotal ?? p.amount)}</p>
+              </div>
+
+              <div className="mt-4 space-y-2 border-t border-dashed border-line pt-4 text-xs print:mt-6 print:space-y-3 print:pt-6 print:text-sm">
+                {rows.map((r) => (
+                  <div key={r.label} className="flex justify-between">
+                    <span className="text-muted">{r.label}</span>
+                    <span className={`tabular-nums font-medium ${r.tone ?? "text-ink"}`}>{r.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between border-t border-line pt-3 print:mt-6 print:pt-5">
+                <span className="text-sm print:text-base font-bold">{isReceipt ? "Total paid" : "Total due"}</span>
+                <span className="font-display text-lg print:text-2xl font-extrabold tabular-nums text-brand">{naira(p.amount)}</span>
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="mt-6 flex items-center gap-3 border-t border-line bg-cream/60 px-6 py-4">
+          <div className="mt-6 flex items-center gap-3 border-t border-line bg-cream/60 px-6 py-4 print:px-12 print:py-8">
             <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isReceipt ? "bg-emerald-50 text-emerald-600" : "bg-brand-light text-brand"}`}>
               {isReceipt ? <ShieldCheck className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
             </span>
-            <p className="text-[11px] leading-relaxed text-muted">
+            <p className="text-[11px] print:text-xs leading-relaxed text-muted">
               {isReceipt
                 ? "Payment verified and processed securely via Bachs. Thank you for learning with GAMAT Fx Academy."
                 : "Pay securely via Bachs — card, bank transfer or crypto. Questions? support@gamatfxacademy.com"}
