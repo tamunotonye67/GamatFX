@@ -182,14 +182,14 @@ export function AdminAnalytics() {
       title="Analytics & Intelligence"
       subtitle="Deep real-time performance insights across revenue, enrollments, quizzes, events, and community engagement."
       action={
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Time Range Filter Selector */}
-          <div className="flex items-center rounded-xl border border-line bg-cream p-1 text-xs font-semibold">
+          <div className="flex flex-1 min-w-0 items-center rounded-xl border border-line bg-cream p-1 text-[11px] sm:text-xs font-semibold overflow-x-auto no-scrollbar">
             {(["all", "30days", "thisMonth", "thisYear"] as TimeRange[]).map((r) => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
-                className={`rounded-lg px-3 py-1.5 transition-all ${
+                className={`flex-1 sm:flex-initial whitespace-nowrap shrink-0 rounded-lg px-2.5 sm:px-3 py-1.5 transition-all cursor-pointer ${
                   range === r ? "bg-brand text-white shadow-xs font-bold" : "text-muted hover:text-ink"
                 }`}
               >
@@ -198,8 +198,15 @@ export function AdminAnalytics() {
             ))}
           </div>
 
-          <button onClick={handleExport} className="btn-primary !py-2.5">
-            <Download className="h-4 w-4" /> Export Report
+          <button
+            type="button"
+            onClick={handleExport}
+            title="Export Report"
+            aria-label="Export Report"
+            className="btn-primary shrink-0 !p-2.5 sm:!px-5 sm:!py-2.5 cursor-pointer"
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export Report</span>
           </button>
         </div>
       }
