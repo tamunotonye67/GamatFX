@@ -178,7 +178,7 @@ const staticPages: Record<string, React.ComponentType> = {
 };
 
 /** Routes rendered without the marketing chrome. */
-const BARE = ["/login", "/signup", "/forgot-password", "/reset-password", "/checkout", "/learn", "/admin", "/quiz"];
+const BARE = ["/login", "/signup", "/forgot-password", "/reset-password", "/verify-email", "/checkout", "/learn", "/admin", "/quiz"];
 
 /** Interactive & workspace routes that keep the Navbar but use a slim 1-line copyright bar instead of the full marketing Footer. */
 const SLIM_FOOTER = ["/fun", "/dashboard", "/mentorship-survey", "/forum", "/store"];
