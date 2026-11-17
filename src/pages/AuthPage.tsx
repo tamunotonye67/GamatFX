@@ -1167,8 +1167,8 @@ export function VerifyEmailPage() {
   }, [markEmailVerified]);
 
   return (
-    <AuthShell mode="login">
-      <div className="rounded-3xl border border-line bg-white p-8 sm:p-10 text-center shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
+    <div className="mx-auto flex min-h-[75vh] w-full max-w-md items-center justify-center px-4 py-12">
+      <div className="w-full rounded-3xl border border-line bg-white p-8 sm:p-10 text-center shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)]">
         {status === "verifying" && (
           <>
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 text-brand">
@@ -1216,6 +1216,6 @@ export function VerifyEmailPage() {
           </>
         )}
       </div>
-    </AuthShell>
+    </div>
   );
 }

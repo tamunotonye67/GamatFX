@@ -281,7 +281,7 @@ export default function App() {
         <main key={route} className="flex-1 w-full max-w-full overflow-x-clip animate-[fadeIn_.35s_ease]">
           {content}
         </main>
-        {slimFooter ? (
+        {route === "/verify-email" ? null : slimFooter ? (
           <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50 whitespace-nowrap">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
