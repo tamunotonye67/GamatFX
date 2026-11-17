@@ -876,7 +876,7 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
         >
           <div>
             {/* Brand header */}
-            <div className="relative flex items-center justify-between gap-3 bg-ink px-6 py-5 print:px-12 print:py-8">
+            <div className="relative flex items-center justify-between gap-3 bg-ink px-6 py-5 print:px-10 print:py-6">
               <Logo variant="light" asDiv />
               <div className="text-right">
                 <p className="text-[10px] print:text-xs font-bold uppercase tracking-[0.22em] text-white/50">
@@ -888,9 +888,9 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
             </div>
 
             {/* Amount hero */}
-            <div className="px-6 pt-6 text-center print:px-12 print:pt-12">
+            <div className="px-6 pt-6 text-center print:px-10 print:pt-8">
               <p className="text-xs print:text-sm font-medium text-muted">{isReceipt ? "Amount paid" : "Amount due"}</p>
-              <p className="mt-1 font-display text-3xl print:text-5xl font-extrabold tracking-tight tabular-nums">{naira(p.amount)}</p>
+              <p className="mt-1 font-display text-3xl print:text-4xl font-extrabold tracking-tight tabular-nums">{naira(p.amount)}</p>
               <div className="mt-3 flex items-center justify-center gap-2 text-[11px] print:text-xs">
                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-bold uppercase tracking-wide ring-1 ${statusTone}`}>
                   {p.status === "paid" && <CheckCircle2 className="h-3 w-3" />}
@@ -902,7 +902,7 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
             </div>
 
             {/* Parties & meta */}
-            <div className="mx-6 mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-cream p-4 text-xs ring-1 ring-line print:mx-12 print:mt-10 print:p-6 print:text-sm">
+            <div className="mx-6 mt-6 grid grid-cols-2 gap-4 rounded-2xl bg-cream p-4 text-xs ring-1 ring-line print:mx-10 print:mt-6 print:p-5 print:text-sm">
               <div className="min-w-0">
                 <p className="text-[10px] print:text-xs font-bold uppercase tracking-wider text-muted">{isReceipt ? "Received from" : "Billed to"}</p>
                 <p className="mt-1 truncate font-semibold text-ink">{p.userName}</p>
@@ -916,14 +916,14 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
             </div>
 
             {/* Line item */}
-            <div className="px-6 pt-6 print:px-12 print:pt-10">
+            <div className="px-6 pt-6 print:px-10 print:pt-6">
               <p className="text-[10px] print:text-xs font-bold uppercase tracking-wider text-muted">Item</p>
               <div className="mt-2 flex items-start justify-between gap-4">
                 <p className="text-sm print:text-base font-semibold leading-snug text-ink">{p.courseTitle}</p>
                 <p className="shrink-0 text-sm print:text-base font-semibold tabular-nums">{naira(p.subtotal ?? p.amount)}</p>
               </div>
 
-              <div className="mt-4 space-y-2 border-t border-dashed border-line pt-4 text-xs print:mt-6 print:space-y-3 print:pt-6 print:text-sm">
+              <div className="mt-4 space-y-2 border-t border-dashed border-line pt-4 text-xs print:mt-5 print:space-y-2.5 print:pt-5 print:text-sm">
                 {rows.map((r) => (
                   <div key={r.label} className="flex justify-between">
                     <span className="text-muted">{r.label}</span>
@@ -931,7 +931,7 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
                   </div>
                 ))}
               </div>
-              <div className="mt-3 flex items-center justify-between border-t border-line pt-3 print:mt-6 print:pt-5">
+              <div className="mt-3 flex items-center justify-between border-t border-line pt-3 print:mt-4 print:pt-4">
                 <span className="text-sm print:text-base font-bold">{isReceipt ? "Total paid" : "Total due"}</span>
                 <span className="font-display text-lg print:text-2xl font-extrabold tabular-nums text-brand">{naira(p.amount)}</span>
               </div>
@@ -939,7 +939,7 @@ export function BillingDocument({ kind, payment: p, onClose, onPrint }: {
           </div>
 
           {/* Footer */}
-          <div className="mt-6 flex items-center gap-3 border-t border-line bg-cream/60 px-6 py-4 print:px-12 print:py-8">
+          <div className="mt-6 flex items-center gap-3 border-t border-line bg-cream/60 px-6 py-4 print:mt-4 print:px-10 print:py-5">
             <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isReceipt ? "bg-emerald-50 text-emerald-600" : "bg-brand-light text-brand"}`}>
               {isReceipt ? <ShieldCheck className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
             </span>
