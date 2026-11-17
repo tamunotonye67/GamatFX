@@ -5,6 +5,7 @@ import { getCourse, naira, asCourse } from "../lib/courses";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { formatAccountName } from "../lib/formatName";
 import { navigate } from "../lib/router";
+import { sendReceiptEmail } from "../lib/email";
 
 interface CertificatePaymentModalProps {
   courseId: string;
@@ -54,7 +55,17 @@ export default function CertificatePaymentModal({
         student_name: formatAccountName(user),
       },
       onSuccess: async (session) => {
-        await payCertificateFee(courseId, "card", session.reference || txRef);
+        const finalRef = session.reference || txRef;
+        await payCertificateFee(courseId, "card", finalRef);
+        void sendReceiptEmail({
+          to: user.email,
+          name: formatAccountName(user),
+          itemTitle: `Official Certificate: ${course?.title || courseId}`,
+          amount: fee,
+          reference: finalRef,
+          method: "card",
+          category: "Certificate Fee",
+        });
         setProcessing(false);
         setSuccess(true);
         if (onSuccess) onSuccess();

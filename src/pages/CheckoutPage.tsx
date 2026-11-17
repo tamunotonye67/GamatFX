@@ -10,6 +10,7 @@ import {
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { getActiveReferralCode } from "../lib/affiliate";
 import { formatAccountName } from "../lib/formatName";
+import { sendReceiptEmail } from "../lib/email";
 
 type Method = "card" | "transfer" | "crypto";
 
@@ -181,6 +182,15 @@ export default function CheckoutPage({ id }: { id: string }) {
       try {
         sessionStorage.removeItem("gamat_claimed_coupon");
       } catch {}
+      void sendReceiptEmail({
+        to: user!.email,
+        name: formatAccountName(user),
+        itemTitle: isCertCheckout ? `Official Certificate: ${course.title}` : course.title,
+        amount: finalTotal,
+        reference: ref,
+        method: selectedMethod,
+        category: isCertCheckout ? "Certificate Fee" : "Course Enrollment",
+      });
       setProcessing(false);
       setDone(true);
       window.scrollTo({ top: 0 });

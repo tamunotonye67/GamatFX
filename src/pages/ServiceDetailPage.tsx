@@ -6,6 +6,7 @@ import { formatAccountName, formatStudentName } from "../lib/formatName";
 import { navigate } from "../lib/router";
 import { useReveal } from "../lib/useReveal";
 import { CONTACT } from "../lib/contact";
+import { sendEnquiryEmail } from "../lib/email";
 import {
   GraduationCap, Building2, Briefcase, Megaphone, ChevronRight, BadgeCheck,
   ArrowUpRight, CheckCircle2, Loader2, AlertCircle, Send, Plus, Copy,
@@ -261,6 +262,17 @@ function EnquiryForm({ service, pkg, setPkg }: {
         packageName: pkg || undefined,
         name: formatStudentName(f.name.trim()), email: f.email, phone: f.phone,
         company: f.company || undefined, budget: f.budget, message: f.message,
+      });
+      void sendEnquiryEmail({
+        to: f.email,
+        name: formatStudentName(f.name.trim()),
+        phone: f.phone,
+        serviceTitle: service.title,
+        packageName: pkg || undefined,
+        budget: f.budget,
+        company: f.company || undefined,
+        message: f.message,
+        ref: enq.ref,
       });
       setBusy(false);
       setRefCode(enq.ref);

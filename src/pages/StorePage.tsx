@@ -50,6 +50,7 @@ import {
   Phone,
 } from "lucide-react";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
+import { sendReceiptEmail } from "../lib/email";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "sales";
 
@@ -367,6 +368,16 @@ export default function StorePage({ categoryParam }: StorePageProps) {
         amount: totalAmount,
         method: methodUsed,
         coupon: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
+      });
+
+      void sendReceiptEmail({
+        to: buyerEmail.trim(),
+        name: cleanBuyer,
+        itemTitle: checkoutProduct.title,
+        amount: totalAmount,
+        reference: finalTxRef,
+        method: methodUsed,
+        category: "Digital Store Purchase",
       });
 
       setPurchasedTxRef(finalTxRef);

@@ -3,6 +3,7 @@ import PageHero from "../components/PageHero";
 import { navigate } from "../lib/router";
 import { CONTACT } from "../lib/contact";
 import { useStore } from "../lib/store";
+import { sendEnquiryEmail } from "../lib/email";
 import {
   Mail,
   Phone,
@@ -43,13 +44,22 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitEnquiry({
+    const fullName = `${form.firstName} ${form.lastName}`.trim();
+    const enq = submitEnquiry({
       serviceSlug: "general-contact",
       serviceTitle: form.subject || "General Enquiry",
-      name: `${form.firstName} ${form.lastName}`.trim(),
+      name: fullName,
       email: form.email,
       phone: form.phone,
       message: form.message,
+    });
+    void sendEnquiryEmail({
+      to: form.email,
+      name: fullName,
+      phone: form.phone,
+      serviceTitle: form.subject || "General Enquiry",
+      message: form.message,
+      ref: enq.ref,
     });
     setSent(true);
   };
