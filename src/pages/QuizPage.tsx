@@ -306,17 +306,13 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               Complete this comprehensive 50-question examination to earn your official GAMAT Fx Academy Certificate for <strong className="text-ink">{course.title}</strong>.
             </p>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {isFreeCert ? (
+            {isFreeCert && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 border border-emerald-200">
                   <Check className="h-3.5 w-3.5" /> Certificate Included Free with Course Enrollment
                 </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-light px-3 py-1 text-xs font-bold text-brand">
-                  Direct Exam · ₦10,000 fee on passing to issue certificate
-                </span>
-              )}
-            </div>
+              </div>
+            )}
 
             {best && (
               <div className={`mt-6 rounded-2xl border p-4 ${best.passed ? "border-emerald-200 bg-emerald-50" : "border-line bg-cream"}`}>
