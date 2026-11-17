@@ -136,6 +136,32 @@ img, video, canvas {
   animation-play-state: paused;
 }
 
+.playbook-marquee-wrap {
+  container-type: inline-size;
+}
+
+@keyframes playbookHorizontalFlow {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(calc(-100% + 100cqw), 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-playbook-flow {
+  animation: playbookHorizontalFlow 18s ease-in-out infinite;
+  will-change: transform;
+}
+
+.playbook-marquee-wrap:hover .animate-playbook-flow,
+.playbook-marquee-wrap:active .animate-playbook-flow {
+  animation-play-state: paused;
+}
+
 @keyframes shimmer {
   100% {
     transform: translateX(100%);

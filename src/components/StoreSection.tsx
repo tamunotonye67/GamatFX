@@ -11,6 +11,39 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+const PLAYBOOK_HIGHLIGHTS = [
+  {
+    title: "280 Pages",
+    description: "Full color with 120+ annotated trade setups",
+    accent: true,
+  },
+  {
+    title: "FVG & OB Rules",
+    description: "Step-by-step smart money validation criteria",
+    accent: false,
+  },
+  {
+    title: "Session Killzones",
+    description: "London Judas swings & NY continuation timing",
+    accent: false,
+  },
+  {
+    title: "Liquidity Maps",
+    description: "Buy-side & sell-side stop sweep identification",
+    accent: false,
+  },
+  {
+    title: "Desk Cheatsheets",
+    description: "Quick multi-timeframe confirmation cards",
+    accent: false,
+  },
+  {
+    title: "Risk Protocol",
+    description: "Institutional position sizing & drawdown rules",
+    accent: false,
+  },
+];
+
 export default function StoreSection() {
   const [isHovered, setIsHovered] = useState(false);
   const [rotate, setRotate] = useState({ x: 8, y: -18 });
@@ -240,32 +273,47 @@ export default function StoreSection() {
                 Written by Chief Mentor Tonye and the GAMAT Senior Trading Desk, this comprehensive 280-page playbook decodes the exact algorithms institutions use to accumulate orders, trigger stop runs, and execute clean session continuations.
               </p>
 
-              {/* Key Highlights (Clean 6-Point Grid, perfectly balanced across all screen sizes) */}
-              <div className="mt-5 sm:mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3.5">
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-xs sm:text-sm md:text-base font-black text-rose-300">280 Pages</p>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-400 leading-snug">Full color with 120+ annotated trade setups</p>
+              {/* Key Highlights: Mobile single-line back-and-forth horizontal flow + sm+ 3-column grid */}
+              <div className="mt-5 sm:hidden playbook-marquee-wrap w-full overflow-hidden">
+                <div className="flex flex-nowrap gap-2.5 w-max animate-playbook-flow py-0.5">
+                  {PLAYBOOK_HIGHLIGHTS.map((item) => (
+                    <div
+                      key={item.title}
+                      className="w-[172px] shrink-0 rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm"
+                    >
+                      <p
+                        className={`font-display text-xs font-black ${
+                          item.accent ? "text-rose-300" : "text-white"
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-[10px] text-slate-400 leading-snug">
+                        {item.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-xs sm:text-sm md:text-base font-black text-white">FVG &amp; OB Rules</p>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-400 leading-snug">Step-by-step smart money validation criteria</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-xs sm:text-sm md:text-base font-black text-white">Session Killzones</p>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-400 leading-snug">London Judas swings &amp; NY continuation timing</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-xs sm:text-sm md:text-base font-black text-white">Liquidity Maps</p>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-400 leading-snug">Buy-side &amp; sell-side stop sweep identification</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-xs sm:text-sm md:text-base font-black text-white">Desk Cheatsheets</p>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-400 leading-snug">Quick multi-timeframe confirmation cards</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 sm:p-3.5 backdrop-blur-sm">
-                  <p className="font-display text-xs sm:text-sm md:text-base font-black text-white">Risk Protocol</p>
-                  <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-slate-400 leading-snug">Institutional position sizing &amp; drawdown rules</p>
-                </div>
+              </div>
+
+              <div className="mt-6 hidden sm:grid sm:grid-cols-3 gap-3.5">
+                {PLAYBOOK_HIGHLIGHTS.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-xl border border-white/10 bg-white/5 p-3.5 backdrop-blur-sm"
+                  >
+                    <p
+                      className={`font-display text-sm md:text-base font-black ${
+                        item.accent ? "text-rose-300" : "text-white"
+                      }`}
+                    >
+                      {item.title}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400 leading-snug">
+                      {item.description}
+                    </p>
+                  </div>
+                ))}
               </div>
 
               {/* Action Buttons: Direct Book Purchase + Full Store */}
