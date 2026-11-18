@@ -153,6 +153,20 @@ export function AdminStaff() {
 
 function StaffForm({ account, onDone }: { account?: Account; onDone: () => void }) {
   const { admin } = useStore();
+  const promotableUsers = useMemo(
+    () =>
+      admin.accounts
+        .filter((a) => a.role === "student" && a.status !== "suspended")
+        .sort((a, b) => formatAccountName(a).localeCompare(formatAccountName(b))),
+    [admin.accounts]
+  );
+
+  const [mode, setMode] = useState<"promote" | "create">(
+    !account && promotableUsers.length > 0 ? "promote" : "create"
+  );
+  const [userSearch, setUserSearch] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+
   const [f, setF] = useState({
     firstName: account?.firstName ?? "", lastName: account?.lastName ?? "",
     email: account?.email ?? "", jobTitle: account?.jobTitle ?? "",
@@ -164,6 +178,19 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
   const [extra, setExtra] = useState<Permission[]>(account?.extraPermissions ?? []);
   const [err, setErr] = useState<string | null>(null);
 
+  const filteredPromotable = useMemo(() => {
+    const query = userSearch.trim().toLowerCase();
+    if (!query) return promotableUsers.slice(0, 30);
+    return promotableUsers
+      .filter((u) => `${formatAccountName(u)} ${u.email}`.toLowerCase().includes(query))
+      .slice(0, 30);
+  }, [promotableUsers, userSearch]);
+
+  const selectedUser = useMemo(
+    () => promotableUsers.find((u) => u.id === selectedUserId) ?? null,
+    [promotableUsers, selectedUserId]
+  );
+
   const inherited = f.role === "admin" ? ALL_PERMISSIONS : LEVEL_PERMISSIONS[f.staffLevel];
 
   const toggle = (p: Permission) =>
@@ -171,6 +198,35 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErr(null);
+
+    if (account) {
+      const patch = {
+        firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()),
+        jobTitle: f.jobTitle.trim() || undefined,
+        role: f.role, staffLevel: f.role === "staff" ? f.staffLevel : undefined,
+        extraPermissions: f.role === "admin" ? [] : extra,
+        status: f.status as Account["status"],
+      };
+      admin.updateAccount(account.id, { ...patch, ...(f.password ? { password: f.password } : {}) });
+      onDone(); return;
+    }
+
+    if (mode === "promote") {
+      if (!selectedUser) {
+        setErr("Please select an existing registered user to promote.");
+        return;
+      }
+      admin.updateAccount(selectedUser.id, {
+        jobTitle: f.jobTitle.trim() || undefined,
+        role: f.role,
+        staffLevel: f.role === "staff" ? f.staffLevel : undefined,
+        extraPermissions: f.role === "admin" ? [] : extra,
+        status: f.status as Account["status"],
+      });
+      onDone(); return;
+    }
+
     const patch = {
       firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()),
       jobTitle: f.jobTitle.trim() || undefined,
@@ -178,10 +234,6 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
       extraPermissions: f.role === "admin" ? [] : extra,
       status: f.status as Account["status"],
     };
-    if (account) {
-      admin.updateAccount(account.id, { ...patch, ...(f.password ? { password: f.password } : {}) });
-      onDone(); return;
-    }
     if (!f.firstName.trim() || !f.lastName.trim()) { setErr("Please enter a full name."); return; }
     if (f.password.length < 6) { setErr("Password must be at least 6 characters."); return; }
     const res = admin.createAccount({ ...patch, email: f.email, password: f.password } as Omit<Account, "id" | "joined">);
@@ -193,11 +245,77 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
     <form onSubmit={submit} className="space-y-5">
       {err && <p className="rounded-xl border border-brand/30 bg-brand-light p-3 text-sm text-ink/80">{err}</p>}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="First name" value={f.firstName} onChange={(v) => setF({ ...f, firstName: v })} />
-        <Field label="Last name" value={f.lastName} onChange={(v) => setF({ ...f, lastName: v })} />
-      </div>
-      {!account && <Field label="Work email" type="email" value={f.email} onChange={(v) => setF({ ...f, email: v })} ph="writer@gamatfxacademy.com" />}
+      {!account && (
+        <div className="grid grid-cols-2 gap-2 rounded-xl border border-line bg-cream p-1">
+          <button
+            type="button"
+            onClick={() => { setMode("promote"); setErr(null); }}
+            className={`rounded-lg py-2 text-xs font-bold transition cursor-pointer ${
+              mode === "promote" ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+            }`}
+          >
+            Promote existing user ({promotableUsers.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode("create"); setErr(null); }}
+            className={`rounded-lg py-2 text-xs font-bold transition cursor-pointer ${
+              mode === "create" ? "bg-white text-ink shadow-sm" : "text-muted hover:text-ink"
+            }`}
+          >
+            Create new account
+          </button>
+        </div>
+      )}
+
+      {!account && mode === "promote" ? (
+        <div className="space-y-3">
+          <Field
+            label="Find registered user"
+            value={userSearch}
+            onChange={setUserSearch}
+            ph="Search by name or email…"
+          />
+          <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-white divide-y divide-line">
+            {filteredPromotable.length ? (
+              filteredPromotable.map((u) => {
+                const active = u.id === selectedUserId;
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => { setSelectedUserId(u.id); setErr(null); }}
+                    className={`flex w-full items-center justify-between px-3.5 py-2.5 text-left text-sm transition cursor-pointer ${
+                      active ? "bg-brand-light/70 text-ink" : "hover:bg-cream/60"
+                    }`}
+                  >
+                    <span>
+                      <span className="block font-semibold text-ink">{formatAccountName(u)}</span>
+                      <span className="block text-xs text-muted">{u.email}</span>
+                    </span>
+                    <span className={`text-xs font-bold ${active ? "text-brand" : "text-muted"}`}>
+                      {active ? "Selected ✓" : "Select"}
+                    </span>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="p-4 text-center text-xs text-muted">
+                No matching registered student accounts found.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="First name" value={f.firstName} onChange={(v) => setF({ ...f, firstName: v })} />
+            <Field label="Last name" value={f.lastName} onChange={(v) => setF({ ...f, lastName: v })} />
+          </div>
+          {!account && <Field label="Work email" type="email" value={f.email} onChange={(v) => setF({ ...f, email: v })} ph="writer@gamatfxacademy.com" />}
+        </>
+      )}
+
       <Field label="Job title" value={f.jobTitle} onChange={(v) => setF({ ...f, jobTitle: v })} ph="Content Writer" />
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -250,12 +368,17 @@ function StaffForm({ account, onDone }: { account?: Account; onDone: () => void 
         </p>
       )}
 
-      <Field label={account ? "Reset password (optional)" : "Temporary password"} value={f.password}
-        onChange={(v) => setF({ ...f, password: v })} ph="Min. 6 characters" />
+      {(account || mode === "create") && (
+        <Field label={account ? "Reset password (optional)" : "Temporary password"} value={f.password}
+          onChange={(v) => setF({ ...f, password: v })} ph="Min. 6 characters" />
+      )}
 
       <div className="flex justify-end gap-3 pt-1">
         <button type="button" onClick={onDone} className="btn-outline-dark !py-2.5">Cancel</button>
-        <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> {account ? "Save access" : "Create worker"}</button>
+        <button type="submit" className="btn-primary !py-2.5">
+          <Save className="h-4 w-4" />{" "}
+          {account ? "Save access" : mode === "promote" ? "Promote to role" : "Create worker"}
+        </button>
       </div>
     </form>
   );

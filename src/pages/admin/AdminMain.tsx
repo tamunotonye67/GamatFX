@@ -783,7 +783,9 @@ function StudentForm({ account, onDone }: { account?: Account; onDone: () => voi
     if (account) {
       admin.updateAccount(account.id, {
         firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()), phone: f.phone, country: f.country,
-        role: f.role as Account["role"], status: f.status as Account["status"],
+        role: f.role as Account["role"],
+        staffLevel: f.role === "staff" ? (account.staffLevel ?? "author") : undefined,
+        status: f.status as Account["status"],
         ...(f.password ? { password: f.password } : {}),
       });
       onDone(); return;
@@ -791,7 +793,9 @@ function StudentForm({ account, onDone }: { account?: Account; onDone: () => voi
     if (!f.password || f.password.length < 6) { setErr("Password must be at least 6 characters."); return; }
     const res = admin.createAccount({
       firstName: capitalizeWord(f.firstName.trim()), lastName: capitalizeWord(f.lastName.trim()), email: f.email, password: f.password,
-      phone: f.phone, country: f.country, role: f.role as Account["role"], status: f.status as Account["status"],
+      phone: f.phone, country: f.country, role: f.role as Account["role"],
+      staffLevel: f.role === "staff" ? "author" : undefined,
+      status: f.status as Account["status"],
     });
     if (!res.ok) { setErr(res.error ?? "Could not create account."); return; }
     onDone();
@@ -811,7 +815,7 @@ function StudentForm({ account, onDone }: { account?: Account; onDone: () => voi
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Select label="Role" value={f.role} onChange={(v) => setF({ ...f, role: v as Account["role"] })}
-          options={[{ v: "student", l: "Student" }, { v: "admin", l: "Admin" }]} />
+          options={[{ v: "student", l: "Student" }, { v: "staff", l: "Staff" }, { v: "admin", l: "Admin" }]} />
         <Select label="Status" value={f.status} onChange={(v) => setF({ ...f, status: v as Account["status"] })}
           options={[{ v: "active", l: "Active" }, { v: "suspended", l: "Suspended" }]} />
       </div>
