@@ -1782,14 +1782,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const searchParams = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(
-          window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash
-        );
+        const hashRaw = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+        const hashParams = new URLSearchParams(hashRaw);
+        const hashQueryParams = new URLSearchParams(hashRaw.includes("?") ? hashRaw.split("?")[1] : "");
         const urlErr =
           searchParams.get("error_description") ||
           searchParams.get("error") ||
           hashParams.get("error_description") ||
-          hashParams.get("error");
+          hashParams.get("error") ||
+          hashQueryParams.get("oauth_error");
         if (urlErr) {
           setAuthError(urlErr);
           try {
@@ -1800,6 +1801,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         let { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           setAuthError(error.message);
+        }
+
+        const googleIdToken = hashQueryParams.get("google_id_token");
+        if (googleIdToken) {
+          try {
+            window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#/`);
+          } catch {}
+          const idRes = await supabase.auth.signInWithIdToken({
+            provider: "google",
+            token: googleIdToken,
+          });
+          if (idRes.error) {
+            setAuthError(idRes.error.message);
+          } else if (idRes.data?.session) {
+            session = idRes.data.session;
+          }
         }
 
         const code = searchParams.get("code");

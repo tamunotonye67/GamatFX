@@ -379,9 +379,22 @@ export async function deleteSupabaseAccount(id: string, email?: string): Promise
   }
 }
 
-/** Signs in or signs up a user using Google OAuth via Supabase. */
+/** Signs in or signs up a user using direct Google OAuth on our domain (with Supabase OAuth fallback). */
 export async function signInWithGoogleSupabase(): Promise<{ ok: boolean; error?: string }> {
   try {
+    try {
+      const startRes = await fetch("/api/auth/google-start?mode=url");
+      if (startRes.ok) {
+        const startData = await startRes.json().catch(() => ({}));
+        if (startData?.ok && startData?.url) {
+          window.location.href = startData.url;
+          return { ok: true };
+        }
+      }
+    } catch {
+      // Fall back to Supabase OAuth if direct endpoint is unavailable
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
