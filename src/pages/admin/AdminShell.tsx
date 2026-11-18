@@ -244,28 +244,21 @@ export function AdminShell({ title, subtitle, action, children }: {
           </h1>
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2.5 sm:gap-3.5">
-          {/* In-Page Notification Center Toggle Button (no flyout) */}
+          {/* In-Page Notification Center Toggle Button */}
           <button
             type="button"
             onClick={() => setNotifOpen((v) => !v)}
-            className={`relative inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-bold transition ${
+            className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition cursor-pointer ${
               notifOpen
-                ? "border-brand bg-brand text-white shadow-md shadow-brand/20"
+                ? "border-brand bg-brand-light text-brand"
                 : "border-line bg-cream text-ink hover:border-brand hover:bg-white"
             }`}
-            title="Toggle Activity & Notifications View"
+            title={notifOpen ? `Back to ${title}` : "Activity & Notifications"}
             aria-label="Notifications"
           >
-            <Bell className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">
-              {notifOpen ? `Back to ${title}` : "Activity"}
-            </span>
+            <Bell className="h-5 w-5 shrink-0" />
             {unreadCount > 0 && (
-              <span
-                className={`flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-black ${
-                  notifOpen ? "bg-white text-brand" : "bg-brand text-white"
-                }`}
-              >
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white shadow-sm">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
