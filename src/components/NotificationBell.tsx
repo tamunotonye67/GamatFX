@@ -12,7 +12,9 @@ type NotifItem = {
 };
 
 export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
-  const { user, myRegistrations, events, attempts, threads, replies } = useStore();
+  const { user, myRegistrations = [], events = [], attempts = [], forum } = useStore();
+  const threads = forum?.threads ?? [];
+  const replies = forum?.replies ?? [];
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
