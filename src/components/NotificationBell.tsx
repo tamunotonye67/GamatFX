@@ -479,7 +479,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
       {/* Notification List */}
       {visibleItems.length ? (
-        <div className="flex-1 overflow-y-auto overscroll-contain p-2.5 space-y-1.5 bg-white">
+        <div className="flex-1 overflow-y-auto overscroll-contain divide-y divide-line/60 bg-white">
           {visibleItems.map((n) => {
             const unread = !readIds.includes(n.id);
             const { Icon, badgeBg, iconBg, cardBg, dotBg } = styleFor(n.kind);
@@ -493,7 +493,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
                   setOpen(false);
                   navigate(n.to);
                 }}
-                className={`flex w-full items-start gap-3.5 rounded-2xl px-3.5 py-3 text-left transition cursor-pointer ${
+                className={`flex w-full items-start gap-3.5 px-5 py-3.5 text-left transition cursor-pointer ${
                   unread ? cardBg : "hover:bg-cream/70"
                 }`}
               >
@@ -538,7 +538,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           })}
 
           {remainingCount > 0 && (
-            <div className="pt-2 pb-1">
+            <div className="p-3 bg-white">
               <button
                 type="button"
                 onClick={() => setVisibleCount((c) => c + 10)}
