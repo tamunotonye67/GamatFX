@@ -362,3 +362,26 @@ export async function sendMentionEmail(params: {
     return { ok: false, error: err?.message || "Network error sending mention notification." };
   }
 }
+
+export async function sendSecurityAlertEmail(params: {
+  to: string;
+  name: string;
+  eventTitle: string;
+  details: string;
+  timeLabel?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "security_alert", ...params }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      return { ok: false, error: data.message || "Failed to send security alert." };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Network error sending security alert." };
+  }
+}

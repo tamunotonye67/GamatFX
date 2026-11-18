@@ -5,7 +5,8 @@ import { navigate } from "../lib/router";
 import { useStore, storeCredential } from "../lib/store";
 import { supabase } from "../lib/supabase";
 import { signInWithGoogleSupabase, resetPasswordForEmailSupabase, updatePasswordSupabase } from "../lib/supabaseAuth";
-import { sendVerificationEmail } from "../lib/email";
+import { sendVerificationEmail, sendSecurityAlertEmail } from "../lib/email";
+import { recordSecurityActivity, getDeviceSummary } from "../lib/securityNotifs";
 import { getActiveReferralCode } from "../lib/affiliate";
 import {
   AlertCircle,
@@ -1034,6 +1035,18 @@ export function ResetPasswordPage() {
 
     if (session?.user?.email) {
       storeCredential(session.user.email, password);
+      const device = getDeviceSummary();
+      recordSecurityActivity(session.user.id, {
+        title: "Password Updated",
+        body: `Your password was updated from ${device}.`,
+        to: "/dashboard?tab=profile",
+      });
+      void sendSecurityAlertEmail({
+        to: session.user.email,
+        name: session.user.user_metadata?.first_name || session.user.email.split("@")[0],
+        eventTitle: "Your Password Was Updated",
+        details: `Your GAMAT Fx Academy password was changed from ${device}.`,
+      });
     }
 
     setSuccess(true);

@@ -24,6 +24,7 @@ import {
 import { useStore } from "../lib/store";
 import { getCourse } from "../lib/courses";
 import { formatAccountName } from "../lib/formatName";
+import { getSecurityActivities } from "../lib/securityNotifs";
 import { navigate } from "../lib/router";
 
 type NotifKind =
@@ -93,6 +94,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     affiliateCommissions = [],
     payoutRequests = [],
     myStorePurchases = [],
+    teamBios = [],
+    hasPassedQuiz,
   } = useStore();
   const threads = forum?.threads ?? [];
   const replies = forum?.replies ?? [];
@@ -552,6 +555,104 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       });
     }
 
+    // 16. Security & Login / Password Alerts
+    getSecurityActivities(user.id).forEach((sec) => {
+      list.push({
+        id: sec.id,
+        title: sec.title,
+        body: sec.body,
+        to: sec.to,
+        kind: "account",
+        time: sec.time,
+      });
+    });
+
+    // 17. Team Bio Submission Status
+    teamBios
+      .filter((b) => b.userId === user.id && (b.status === "approved" || b.status === "rejected"))
+      .forEach((b) => {
+        list.push({
+          id: `teambio_${b.id}_${b.status}`,
+          title: b.status === "approved" ? "Team Bio Approved & Published!" : "Team Bio Needs Updates",
+          body:
+            b.status === "approved"
+              ? "Your mentor/staff profile is now live on the Team page."
+              : b.adminNote || "Please review admin feedback and resubmit your Team Bio.",
+          to: "/dashboard?tab=team-bio",
+          kind: "account",
+          time: b.reviewedAt || b.createdAt,
+        });
+      });
+
+    // 18. 100% Lessons Completed (Exam Ready) & Quiz Retake Nudge
+    enrollments.forEach((enr) => {
+      const course = getCourse(enr.courseId);
+      if (!course || !course.lessons?.length) return;
+      const passed = hasPassedQuiz ? hasPassedQuiz(course.id) : false;
+      if (!passed && enr.completedLessons.length >= course.lessons.length) {
+        list.push({
+          id: `exam_ready_${course.id}`,
+          title: `Exam Ready: ${course.title}`,
+          body: "You completed all lessons! Take your final exam to earn your certificate.",
+          to: `/quiz/${course.id}`,
+          kind: "cert",
+          time: enr.enrolledAt,
+        });
+      }
+    });
+
+    const latestFailedByCourse = new Map<string, (typeof attempts)[number]>();
+    attempts.forEach((a) => {
+      if (!a.passed && !(hasPassedQuiz && hasPassedQuiz(a.courseId))) {
+        const prev = latestFailedByCourse.get(a.courseId);
+        if (!prev || +new Date(a.submittedAt) > +new Date(prev.submittedAt)) {
+          latestFailedByCourse.set(a.courseId, a);
+        }
+      }
+    });
+    latestFailedByCourse.forEach((a) => {
+      const course = getCourse(a.courseId);
+      list.push({
+        id: `retake_${a.id}`,
+        title: `Almost there (${a.score}%) — Retake Exam`,
+        body: `Review ${course?.title || a.courseId} and try again to unlock your certificate.`,
+        to: `/quiz/${a.courseId}`,
+        kind: "course",
+        time: a.submittedAt,
+      });
+    });
+
+    // 19. Upcoming Event Countdown (within next 48 hours)
+    const nowMs = Date.now();
+    myRegistrations
+      .filter((r) => r.status === "confirmed")
+      .forEach((r) => {
+        const ev = events.find((e) => e.id === r.eventId);
+        if (!ev) return;
+        const evMs = +new Date(ev.date);
+        if (!Number.isNaN(evMs) && evMs > nowMs && evMs - nowMs <= 48 * 3600 * 1000) {
+          list.push({
+            id: `ev_soon_${r.id}`,
+            title: `Starts Soon: ${ev.title}`,
+            body: `Happening ${ev.date} · Keep your ticket (${r.ticketCode}) ready!`,
+            to: "/dashboard?tab=events",
+            kind: "event",
+            time: r.createdAt,
+          });
+        }
+      });
+
+    // 20. Wallet Balance Activity
+    if ((user.walletBalance ?? 0) > 0) {
+      list.push({
+        id: `wallet_${user.id}_${user.walletBalance}`,
+        title: `Wallet Balance: ₦${(user.walletBalance ?? 0).toLocaleString()}`,
+        body: "Use your wallet balance toward courses, store gear, or payouts.",
+        to: "/dashboard?tab=wallet",
+        kind: "affiliate",
+      });
+    }
+
     return list
       .sort((a, b) => {
         const ta = a.time ? +new Date(a.time) : Number.MAX_SAFE_INTEGER;
@@ -561,6 +662,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       .slice(0, 40);
   }, [
     user,
+    open,
     accounts,
     enquiries,
     myRegistrations,
@@ -580,6 +682,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     affiliateCommissions,
     payoutRequests,
     myStorePurchases,
+    teamBios,
+    hasPassedQuiz,
   ]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;

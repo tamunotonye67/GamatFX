@@ -68,7 +68,9 @@ import {
   sendReviewSubmittedEmail,
   sendMentionEmail,
   sendMentorshipBookingEmail,
+  sendSecurityAlertEmail,
 } from "./email";
+import { recordSecurityActivity, getDeviceSummary } from "./securityNotifs";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -1832,6 +1834,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           });
           if (idRes.data?.session) {
             session = idRes.data.session;
+            const u = session.user;
+            if (u?.id && u?.email) {
+              const device = getDeviceSummary();
+              recordSecurityActivity(u.id, {
+                title: "New Google Sign-In Detected",
+                body: `Signed in via Google from ${device}.`,
+                to: "/dashboard?tab=profile",
+              });
+              void sendSecurityAlertEmail({
+                to: u.email,
+                name: u.user_metadata?.first_name || u.user_metadata?.full_name || u.email.split("@")[0],
+                eventTitle: "New Sign-In to Your Account",
+                details: `A new Google sign-in was detected from ${device}.`,
+              });
+            }
           } else if (idRes.error) {
             // Fallback: decode verified Google ID token payload if Supabase provider Client ID differs
             let syncedFallback = false;
@@ -2457,6 +2474,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         });
         setSessionId(authedAcc.id);
         write(K.session, authedAcc.id);
+        const device = getDeviceSummary();
+        recordSecurityActivity(authedAcc.id, {
+          title: "New Sign-In Detected",
+          body: `Signed in from ${device}.`,
+          to: "/dashboard?tab=profile",
+        });
+        void sendSecurityAlertEmail({
+          to: authedAcc.email,
+          name: formatAccountName(authedAcc),
+          eventTitle: "New Sign-In to Your Account",
+          details: `A new sign-in was detected from ${device}.`,
+        });
         return { ok: true };
       }
 
