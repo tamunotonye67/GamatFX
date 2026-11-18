@@ -320,6 +320,8 @@ export async function sendMentorshipBookingEmail(params: {
   timeSlot: string;
   topic: string;
   notes?: string;
+  mode?: "request" | "confirmed" | "declined";
+  meetingLink?: string;
 }): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch("/api/send-email", {
@@ -334,5 +336,29 @@ export async function sendMentorshipBookingEmail(params: {
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err?.message || "Network error sending booking confirmation." };
+  }
+}
+
+export async function sendMentionEmail(params: {
+  to: string;
+  mentionedName: string;
+  senderName: string;
+  contextTitle: string;
+  preview: string;
+  url?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "mention_notification", ...params }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      return { ok: false, error: data.message || "Failed to send mention notification." };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Network error sending mention notification." };
   }
 }

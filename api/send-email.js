@@ -1071,7 +1071,7 @@ export default async function handler(req, res) {
     }
 
     if (type === "mentorship_booking") {
-      const { to, name, date, timeSlot, topic, notes } = body;
+      const { to, name, date, timeSlot, topic, notes, mode = "confirmed", meetingLink } = body;
       if (!to || !date || !timeSlot) {
         return res.status(400).json({ ok: false, message: "Missing booking fields (to, date, timeSlot)." });
       }
@@ -1080,6 +1080,71 @@ export default async function handler(req, res) {
       const safeSlot = escapeHtml(timeSlot);
       const safeTopic = escapeHtml(topic || "1-on-1 Trading Mentorship");
       const safeNotes = notes ? escapeHtml(notes).replace(/\n/g, "<br/>") : "";
+      const safeLink = meetingLink ? escapeHtml(meetingLink) : "";
+
+      if (mode === "request") {
+        const adminRequestHtml = `
+          <!DOCTYPE html>
+          <html>
+            <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+              <h2 style="margin:0 0 12px;">New 1-on-1 Mentorship Request (Pending Confirmation)</h2>
+              <p><strong>Student:</strong> ${safeName} (${escapeHtml(to)})<br/>
+              <strong>Topic:</strong> ${safeTopic}<br/>
+              <strong>Requested Date:</strong> ${safeDate}<br/>
+              <strong>Time:</strong> ${safeSlot} (WAT)${safeNotes ? `<br/><strong>Notes:</strong> ${safeNotes}` : ""}</p>
+              <p style="margin-top:16px;">
+                <a href="https://gamatfxacademy.com/#/admin/enquiries" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:13px;padding:10px 18px;border-radius:9999px;">Review &amp; Confirm in Admin</a>
+              </p>
+            </body>
+          </html>
+        `;
+        const adminRes = await sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          reply_to: to,
+          subject: `1-on-1 Request Pending: ${name || to} (${date} · ${timeSlot})`,
+          html: adminRequestHtml,
+        });
+        if (!adminRes.ok) return res.status(adminRes.status).json({ ok: false, message: adminRes.data?.message || "Failed to notify admin" });
+        return res.status(200).json({ ok: true, id: adminRes.data?.id });
+      }
+
+      if (mode === "declined") {
+        const declinedHtml = `
+          <!DOCTYPE html>
+          <html>
+            <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+                <tr><td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#16181c;padding:26px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
+                        <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">1-on-1 Slot Unavailable</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <p style="margin:0 0 14px;font-size:15px;">Hi <strong>${safeName}</strong>, unfortunately your requested 1-on-1 mentorship slot (<strong>${safeDate} at ${safeSlot} WAT</strong>) is not available.</p>
+                        <p style="margin:0;font-size:14px;color:#4b5563;">Please pick another date or time slot from your <a href="https://gamatfxacademy.com/#/dashboard" style="color:#dc3545;font-weight:700;">Student Dashboard</a>.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+          </html>
+        `;
+        const result = await sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [to],
+          reply_to: adminEmail,
+          subject: `1-on-1 Mentorship Update: Please pick a new slot`,
+          html: declinedHtml,
+        });
+        if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send email" });
+        return res.status(200).json({ ok: true, id: result.data?.id });
+      }
 
       const studentHtml = `
         <!DOCTYPE html>
@@ -1097,14 +1162,15 @@ export default async function handler(req, res) {
                     </tr>
                     <tr>
                       <td style="padding:28px;">
-                        <p style="margin:0 0 14px;font-size:15px;">Hi <strong>${safeName}</strong>, your 1-on-1 mentorship session has been booked:</p>
+                        <p style="margin:0 0 14px;font-size:15px;">Hi <strong>${safeName}</strong>, your 1-on-1 mentorship session has been confirmed by our team:</p>
                         <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:16px;font-size:14px;line-height:1.7;">
                           <strong>Topic:</strong> ${safeTopic}<br/>
                           <strong>Date:</strong> ${safeDate}<br/>
                           <strong>Time:</strong> ${safeSlot} (WAT)
                           ${safeNotes ? `<br/><strong>Notes:</strong> ${safeNotes}` : ""}
+                          ${safeLink ? `<br/><strong>Meeting Link:</strong> <a href="${safeLink}" style="color:#dc3545;font-weight:700;">${safeLink}</a>` : ""}
                         </div>
-                        <p style="margin:18px 0 0;font-size:13px;color:#6b7280;">Our mentor team will share the meeting link before your session starts. Reply to this email if you need to reschedule.</p>
+                        <p style="margin:18px 0 0;font-size:13px;color:#6b7280;">${safeLink ? "Click the meeting link above at your scheduled time." : "Our mentor team will share the meeting link before your session starts."} Reply to this email if you need to reschedule.</p>
                       </td>
                     </tr>
                   </table>
@@ -1115,36 +1181,68 @@ export default async function handler(req, res) {
         </html>
       `;
 
-      const adminHtml = `
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `1-on-1 Mentorship Confirmed: ${date} at ${timeSlot}`,
+        html: studentHtml,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send booking email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
+    if (type === "mention_notification") {
+      const { to, mentionedName, senderName, contextTitle, preview, url } = body;
+      if (!to || !senderName) {
+        return res.status(400).json({ ok: false, message: "Missing required fields (to, senderName)" });
+      }
+      const safeMentioned = escapeHtml(mentionedName || "Trader");
+      const safeSender = escapeHtml(senderName);
+      const safeContext = escapeHtml(contextTitle || "the GAMAT FX Community");
+      const safePreview = escapeHtml(preview || "").slice(0, 300);
+      const targetUrl = url && String(url).startsWith("http")
+        ? String(url)
+        : `https://gamatfxacademy.com${url || "/#/forum"}`;
+
+      const html = `
         <!DOCTYPE html>
         <html>
-          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
-            <h2 style="margin:0 0 12px;">New 1-on-1 Mentorship Booking</h2>
-            <p><strong>Student:</strong> ${safeName} (${escapeHtml(to)})<br/>
-            <strong>Topic:</strong> ${safeTopic}<br/>
-            <strong>Date:</strong> ${safeDate}<br/>
-            <strong>Time:</strong> ${safeSlot} (WAT)${safeNotes ? `<br/><strong>Notes:</strong> ${safeNotes}` : ""}</p>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:28px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX COMMUNITY</p>
+                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">You Were Tagged</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#374151;">
+                        Hi <strong>${safeMentioned}</strong>, <strong>${safeSender}</strong> mentioned you in <strong>${safeContext}</strong>:
+                      </p>
+                      ${safePreview ? `<div style="background:#f9fafb;border-left:3px solid #dc3545;padding:12px 14px;border-radius:0 10px 10px 0;font-size:13px;color:#374151;line-height:1.6;margin-bottom:20px;">${safePreview}</div>` : ""}
+                      <div style="text-align:center;">
+                        <a href="${escapeHtml(targetUrl)}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Message</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
           </body>
         </html>
       `;
-
-      const [result] = await Promise.all([
-        sendResendEmail(apiKey, {
-          from: fromEmail,
-          to: [to],
-          reply_to: adminEmail,
-          subject: `1-on-1 Mentorship Confirmed: ${date} at ${timeSlot}`,
-          html: studentHtml,
-        }),
-        sendResendEmail(apiKey, {
-          from: fromEmail,
-          to: [adminEmail],
-          reply_to: to,
-          subject: `New 1-on-1 Booking: ${name || to} (${date} · ${timeSlot})`,
-          html: adminHtml,
-        }).catch(() => null),
-      ]);
-      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send booking email" });
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `${senderName} tagged you in ${contextTitle || "GAMAT FX Community"}`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send mention email" });
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 

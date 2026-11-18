@@ -1,15 +1,7 @@
-import { useState } from "react";
-import { CalendarDays, Clock, CheckCircle2, Video } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CalendarDays, Clock, CheckCircle2, Video, Hourglass, XCircle, ExternalLink } from "lucide-react";
 import { sendMentorshipBookingEmail } from "../lib/email";
-
-type Booking = {
-  id: string;
-  date: string;
-  timeSlot: string;
-  topic: string;
-  notes?: string;
-  bookedAt: string;
-};
+import { useStore } from "../lib/store";
 
 const TIME_SLOTS = [
   "10:00 AM",
@@ -35,15 +27,36 @@ export default function MentorshipBookingTab({
   userEmail: string;
   userName: string;
 }) {
-  const storageKey = `gamat.mentorship_bookings.${userId}`;
-  const [bookings, setBookings] = useState<Booking[]>(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { admin, submitEnquiry } = useStore();
+
+  const bookings = useMemo(() => {
+    const emailLower = userEmail.toLowerCase();
+    return admin.enquiries
+      .filter(
+        (e) =>
+          e.serviceSlug === "sys_mentorship_booking" &&
+          (e.userId === userId || e.email.toLowerCase() === emailLower)
+      )
+      .map((e) => {
+        const [date = "", timeSlot = ""] = (e.packageName || "").split(" · ");
+        const state =
+          e.budget === "confirmed" || e.status === "contacted"
+            ? "confirmed"
+            : e.budget === "declined" || e.status === "closed"
+            ? "declined"
+            : "pending";
+        return {
+          id: e.id,
+          topic: e.serviceTitle,
+          date,
+          timeSlot,
+          notes: e.message === "1-on-1 Mentorship Request" ? "" : e.message,
+          meetingLink: e.company || "",
+          state,
+          createdAt: e.createdAt,
+        };
+      });
+  }, [admin.enquiries, userId, userEmail]);
 
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const [date, setDate] = useState(tomorrow);
@@ -59,35 +72,31 @@ export default function MentorshipBookingTab({
     setSubmitting(true);
     setFeedback(null);
 
-    const res = await sendMentorshipBookingEmail({
+    submitEnquiry({
+      serviceSlug: "sys_mentorship_booking",
+      serviceTitle: topic,
+      packageName: `${date} · ${timeSlot}`,
+      name: userName,
+      email: userEmail,
+      phone: "",
+      budget: "pending",
+      message: notes.trim() || "1-on-1 Mentorship Request",
+    });
+
+    await sendMentorshipBookingEmail({
       to: userEmail,
       name: userName,
       date,
       timeSlot,
       topic,
       notes: notes.trim() || undefined,
+      mode: "request",
     });
-
-    const entry: Booking = {
-      id: `bk_${Date.now()}`,
-      date,
-      timeSlot,
-      topic,
-      notes: notes.trim() || undefined,
-      bookedAt: new Date().toISOString(),
-    };
-    const next = [entry, ...bookings];
-    setBookings(next);
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(next));
-    } catch {}
 
     setSubmitting(false);
     setNotes("");
     setFeedback(
-      res.ok
-        ? `Session booked for ${date} at ${timeSlot}! A confirmation email has been sent.`
-        : `Session saved for ${date} at ${timeSlot}.`
+      `Request submitted for ${date} at ${timeSlot} (WAT)! An admin will review and confirm your slot—you'll receive an email once approved.`
     );
   };
 
@@ -96,10 +105,10 @@ export default function MentorshipBookingTab({
       <div className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-xs">
         <div className="flex items-center gap-2">
           <Video className="h-5 w-5 text-brand" />
-          <h2 className="font-display text-lg font-bold text-ink">Book a 1-on-1 Mentorship Session</h2>
+          <h2 className="font-display text-lg font-bold text-ink">Request a 1-on-1 Mentorship Session</h2>
         </div>
         <p className="mt-1 text-sm text-muted">
-          Pick a convenient date and time slot (WAT) to review your charts and progress with a GAMAT mentor.
+          Pick a preferred date and time slot (WAT). Once an admin confirms availability, your confirmation email and meeting link will be sent.
         </p>
 
         {feedback && (
@@ -166,7 +175,7 @@ export default function MentorshipBookingTab({
           <div className="sm:col-span-2">
             <button type="submit" disabled={submitting} className="btn-primary w-full sm:w-auto disabled:opacity-60">
               <CalendarDays className="h-4 w-4" />
-              {submitting ? "Booking session..." : "Confirm 1-on-1 Session"}
+              {submitting ? "Submitting request..." : "Request 1-on-1 Session"}
             </button>
           </div>
         </form>
@@ -174,7 +183,7 @@ export default function MentorshipBookingTab({
 
       <div className="rounded-2xl border border-line bg-white overflow-hidden shadow-xs">
         <div className="border-b border-line px-5 py-4">
-          <h3 className="font-display text-base font-bold text-ink">Your Booked Sessions</h3>
+          <h3 className="font-display text-base font-bold text-ink">Your 1-on-1 Requests</h3>
         </div>
         {bookings.length ? (
           <div className="divide-y divide-line">
@@ -185,15 +194,35 @@ export default function MentorshipBookingTab({
                   <p className="text-xs text-muted">
                     {b.date} · {b.timeSlot} WAT {b.notes ? `— ${b.notes}` : ""}
                   </p>
+                  {b.state === "confirmed" && b.meetingLink && (
+                    <a
+                      href={b.meetingLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+                    >
+                      Join Session <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
                 </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                  Confirmed
-                </span>
+                {b.state === "confirmed" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Confirmed
+                  </span>
+                ) : b.state === "declined" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+                    <XCircle className="h-3.5 w-3.5" /> Slot Unavailable
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+                    <Hourglass className="h-3.5 w-3.5" /> Pending Confirmation
+                  </span>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="p-6 text-center text-sm text-muted">No 1-on-1 sessions booked yet.</p>
+          <p className="p-6 text-center text-sm text-muted">No 1-on-1 sessions requested yet.</p>
         )}
       </div>
     </div>

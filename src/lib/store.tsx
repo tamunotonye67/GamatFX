@@ -66,6 +66,8 @@ import {
   sendTeamBioEmail,
   sendForumReplyEmail,
   sendReviewSubmittedEmail,
+  sendMentionEmail,
+  sendMentorshipBookingEmail,
 } from "./email";
 
 export const CERTIFICATE_FEE = 10000;
@@ -1475,6 +1477,7 @@ type Ctx = {
     posts: StaffPost[];
     enquiries: ServiceEnquiry[];
     setEnquiryStatus: (id: string, status: ServiceEnquiry["status"]) => void;
+    resolveMentorshipBooking: (id: string, action: "confirmed" | "declined", meetingLink?: string) => Promise<{ ok: boolean; error?: string }>;
     deleteEnquiry: (id: string) => void;
     kpis: {
       students: number; admins: number; revenue: number; refunded: number;
@@ -3885,6 +3888,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, [replies, accounts]);
 
+  const notifyMentionedUsers = useCallback((text: string, contextTitle: string, url: string, excludeIds: string[] = []) => {
+    if (!user || !text) return;
+    const matches = Array.from(text.matchAll(/@([a-zA-Z0-9._-]+)/g)).map((m) => m[1].toLowerCase());
+    if (!matches.length) return;
+    const handles = new Set(matches);
+    const excluded = new Set([user.id, ...excludeIds]);
+    const notified = new Set<string>();
+    const senderName = formatAccountName(user);
+    for (const acc of accounts) {
+      if (excluded.has(acc.id) || notified.has(acc.id) || !acc.email) continue;
+      const nick = (acc.nickname || "").replace(/\s+/g, "").toLowerCase();
+      const full = `${acc.firstName || ""}${acc.lastName || ""}`.replace(/\s+/g, "").toLowerCase();
+      const first = (acc.firstName || "").replace(/\s+/g, "").toLowerCase();
+      if ((nick && handles.has(nick)) || (full && handles.has(full)) || (first && handles.has(first))) {
+        notified.add(acc.id);
+        void sendMentionEmail({
+          to: acc.email,
+          mentionedName: formatAccountName(acc),
+          senderName,
+          contextTitle,
+          preview: text.trim().slice(0, 260),
+          url,
+        });
+      }
+    }
+  }, [user, accounts]);
+
   const forum: Ctx["forum"] = {
     channels: FORUM_CHANNELS,
     threads: rehydratedThreads,
@@ -3907,6 +3937,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       };
       setThreads((p) => [t, ...p]);
       saveSupabaseThread(t);
+      notifyMentionedUsers(t.body, `Forum: ${t.title}`, "/#/forum");
       return { ok: true, id: t.id };
     },
     createReply: (threadId, body, image) => {
@@ -3921,9 +3952,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setReplies((p) => [...p, r]);
       saveSupabaseReply(r);
       const thread = threads.find((t) => t.id === threadId);
+      const excludeFromMention: string[] = [];
       if (thread && thread.authorId !== user.id) {
         const author = accounts.find((a) => a.id === thread.authorId);
         if (author?.email) {
+          excludeFromMention.push(author.id);
           void sendForumReplyEmail({
             to: author.email,
             authorName: thread.authorName,
@@ -3933,6 +3966,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           });
         }
       }
+      notifyMentionedUsers(r.body, thread ? `Forum: ${thread.title}` : "GAMAT FX Forum", "/#/forum", excludeFromMention);
       return { ok: true };
     },
     toggleThreadLike: (id) => {
@@ -4302,6 +4336,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (item) saveSupabaseEnquiry(item);
         return updated;
       }),
+    resolveMentorshipBooking: async (id, action, meetingLink) => {
+      const target = enquiries.find((e) => e.id === id);
+      if (!target) return { ok: false, error: "Booking not found." };
+      const nextStatus: ServiceEnquiry["status"] = action === "confirmed" ? "contacted" : "closed";
+      const cleanLink = meetingLink?.trim() || undefined;
+      const updatedItem: ServiceEnquiry = {
+        ...target,
+        budget: action,
+        status: nextStatus,
+        company: cleanLink || target.company,
+      };
+      setEnquiries((p) => p.map((e) => (e.id === id ? updatedItem : e)));
+      saveSupabaseEnquiry(updatedItem);
+      const [date = "", timeSlot = ""] = (target.packageName || "").split(" · ");
+      return await sendMentorshipBookingEmail({
+        to: target.email,
+        name: target.name,
+        date: date || "Scheduled Date",
+        timeSlot: timeSlot || "Scheduled Time",
+        topic: target.serviceTitle,
+        notes: target.message === "1-on-1 Mentorship Request" ? undefined : target.message,
+        mode: action,
+        meetingLink: cleanLink,
+      });
+    },
     deleteEnquiry: (id) => setEnquiries((p) => p.filter((e) => e.id !== id)),
     kpis,
     revenueByMonth,
@@ -4708,8 +4767,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
     };
     setClubMessages((prev) => [msg, ...prev]);
+    notifyMentionedUsers(msg.content, `Trading Club: ${club.name}`, "/#/fun");
     return { ok: true };
-  }, [sessionId, user, clubs]);
+  }, [sessionId, user, clubs, notifyMentionedUsers]);
 
   const toggleClubMessageVote: Ctx["toggleClubMessageVote"] = useCallback((messageId, vote) => {
     if (!sessionId) return;
