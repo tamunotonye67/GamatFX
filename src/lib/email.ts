@@ -385,3 +385,23 @@ export async function sendSecurityAlertEmail(params: {
     return { ok: false, error: err?.message || "Network error sending security alert." };
   }
 }
+
+export async function sendBirthdayEmail(params: {
+  to: string;
+  name: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "birthday_greeting", ...params }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      return { ok: false, error: data.message || "Failed to send birthday email." };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Network error sending birthday email." };
+  }
+}

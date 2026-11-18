@@ -20,11 +20,13 @@ import {
   Wallet,
   ShieldCheck,
   Gift,
+  Cake,
 } from "lucide-react";
 import { useStore } from "../lib/store";
 import { getCourse } from "../lib/courses";
 import { formatAccountName } from "../lib/formatName";
 import { getSecurityActivities } from "../lib/securityNotifs";
+import { sendBirthdayEmail } from "../lib/email";
 import { navigate } from "../lib/router";
 
 type NotifKind =
@@ -42,7 +44,8 @@ type NotifKind =
   | "sotw"
   | "affiliate"
   | "store"
-  | "account";
+  | "account"
+  | "birthday";
 
 type NotifItem = {
   id: string;
@@ -170,6 +173,28 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       document.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  useEffect(() => {
+    if (!user?.birthday || !user?.email) return;
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const todayMmDd = `${mm}-${dd}`;
+    const match = String(user.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/);
+    if (!match || match[1] !== todayMmDd) return;
+
+    const year = now.getFullYear();
+    const sentKey = `gamat.bday_emailed.${user.id}.${year}`;
+    try {
+      if (localStorage.getItem(sentKey)) return;
+      localStorage.setItem(sentKey, "1");
+    } catch {}
+
+    sendBirthdayEmail({
+      to: user.email,
+      name: user.firstName || formatAccountName(user),
+    }).catch(() => {});
+  }, [user]);
 
   const items = useMemo<NotifItem[]>(() => {
     if (!user) return [];
@@ -756,6 +781,49 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
+    // 24. Birthday Notifications (user's own birthday + community members' birthdays)
+    const bdayNow = new Date();
+    const todayYear = bdayNow.getFullYear();
+    const todayMmDd = `${String(bdayNow.getMonth() + 1).padStart(2, "0")}-${String(bdayNow.getDate()).padStart(2, "0")}`;
+    const todayStartIso = new Date(todayYear, bdayNow.getMonth(), bdayNow.getDate()).toISOString();
+
+    const userBdayMatch = user.birthday ? String(user.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/) : null;
+    if (userBdayMatch && userBdayMatch[1] === todayMmDd) {
+      const first = user.firstName || formatAccountName(user);
+      list.push({
+        id: `bday_self_${user.id}_${todayYear}`,
+        title: `Happy Birthday, ${first}! 🎉`,
+        body: "Wishing you a joyful birthday and winning trades from everyone at GAMAT FX Academy!",
+        to: "/dashboard?tab=profile",
+        kind: "birthday",
+        time: todayStartIso,
+        actorName: formatAccountName(user),
+        actorAvatar: user.avatar,
+      });
+    }
+
+    accounts
+      .filter((a) => {
+        if (a.id === user.id || !a.birthday) return false;
+        if (a.status && a.status !== "active") return false;
+        const m = String(a.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/);
+        return m ? m[1] === todayMmDd : false;
+      })
+      .slice(0, 5)
+      .forEach((bAcc) => {
+        const bName = formatAccountName(bAcc);
+        list.push({
+          id: `bday_peer_${bAcc.id}_${todayYear}`,
+          title: `Today is ${bName}'s Birthday! 🎂`,
+          body: "Wish them a happy birthday in the Student Forum!",
+          to: "/forum",
+          kind: "birthday",
+          time: todayStartIso,
+          actorName: bName,
+          actorAvatar: bAcc.avatar,
+        });
+      });
+
     return list
       .sort((a, b) => {
         const ta = a.time ? +new Date(a.time) : Number.MAX_SAFE_INTEGER;
@@ -817,6 +885,14 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
   const styleFor = (kind: NotifKind) => {
     switch (kind) {
+      case "birthday":
+        return {
+          Icon: Cake,
+          badgeBg: "bg-gradient-to-br from-rose-500 to-amber-500 text-white",
+          iconBg: "bg-rose-500/12 text-rose-600",
+          cardBg: "bg-rose-500/[0.06] hover:bg-rose-500/[0.11]",
+          dotBg: "bg-rose-500",
+        };
       case "like":
         return {
           Icon: Heart,

@@ -1303,6 +1303,56 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 
+    if (type === "birthday_greeting") {
+      const { to, name } = body;
+      if (!to) {
+        return res.status(400).json({ ok: false, message: "Missing required field (to)" });
+      }
+      const safeName = escapeHtml(name || "Trader");
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr><td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="background:#16181c;padding:30px;text-align:center;">
+                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
+                      <h1 style="margin:8px 0 0;font-size:24px;font-weight:800;color:#ffffff;">Happy Birthday, ${safeName}!</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px;">
+                      <p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#374151;">
+                        Wishing you a phenomenal birthday and an extraordinary year ahead, <strong>${safeName}</strong>!
+                      </p>
+                      <p style="margin:0 0 20px;font-size:14px;line-height:1.65;color:#4b5563;">
+                        From everyone at GAMAT Fx Academy, may your new year bring sharp discipline, high-probability setups, and consistent growth both on and off the charts.
+                      </p>
+                      <div style="text-align:center;">
+                        <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">Visit Your Dashboard</a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td></tr>
+            </table>
+          </body>
+        </html>
+      `;
+      const result = await sendResendEmail(apiKey, {
+        from: fromEmail,
+        to: [to],
+        reply_to: adminEmail,
+        subject: `Happy Birthday, ${name || "Trader"}! — GAMAT Fx Academy`,
+        html,
+      });
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send birthday email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
     return res.status(400).json({ ok: false, message: "Unsupported email type" });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });

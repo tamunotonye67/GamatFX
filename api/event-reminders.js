@@ -71,74 +71,184 @@ export default async function handler(req, res) {
       }
     }
 
-    if (tomorrowEvents.size === 0) {
-      return res.status(200).json({ ok: true, sent: 0, message: "No events scheduled for tomorrow." });
+    let eventRemindersSent = 0;
+    if (tomorrowEvents.size > 0) {
+      for (const reg of registrations || []) {
+        const ev = tomorrowEvents.get(reg.event_id);
+        if (!ev || !reg.email) continue;
+
+        const safeName = escapeHtml(reg.name || "Trader");
+        const safeTitle = escapeHtml(ev.title || reg.event_title || "GAMAT FX Event");
+        const safeTicket = escapeHtml(reg.ticket || "");
+        const safeTime = escapeHtml(ev.time || "");
+        const safeLocation = escapeHtml(ev.location || "");
+        const ticketUrl = `https://gamatfxacademy.com/#/events?ticket=${encodeURIComponent(reg.ticket || "")}`;
+
+        const html = `
+          <!DOCTYPE html>
+          <html>
+            <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+                <tr><td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#16181c;padding:28px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">EVENT REMINDER</p>
+                        <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">See You Tomorrow!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+                          Hi <strong>${safeName}</strong>, just a quick reminder that <strong>${safeTitle}</strong> is tomorrow!
+                        </p>
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;padding:16px;font-size:13px;color:#374151;">
+                          ${safeTicket ? `<tr><td style="padding:5px 0;color:#6b7280;width:100px;">Ticket</td><td style="padding:5px 0;font-weight:700;color:#dc3545;">${safeTicket}</td></tr>` : ""}
+                          ${safeTime ? `<tr><td style="padding:5px 0;color:#6b7280;">Time</td><td style="padding:5px 0;font-weight:600;color:#111827;">${safeTime}</td></tr>` : ""}
+                          ${safeLocation ? `<tr><td style="padding:5px 0;color:#6b7280;">Location</td><td style="padding:5px 0;font-weight:600;color:#111827;">${safeLocation}</td></tr>` : ""}
+                        </table>
+                        <div style="text-align:center;margin-top:22px;">
+                          <a href="${ticketUrl}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Ticket &amp; QR Code</a>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+          </html>
+        `;
+
+        const mailRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [reg.email],
+            subject: `Reminder: ${ev.title || reg.event_title} is Tomorrow!`,
+            html,
+          }),
+        });
+        if (mailRes.ok) eventRemindersSent += 1;
+      }
     }
 
-    let sent = 0;
-    for (const reg of registrations || []) {
-      const ev = tomorrowEvents.get(reg.event_id);
-      if (!ev || !reg.email) continue;
+    // Daily Birthday Check & Email Dispatch
+    let birthdayEmailsSent = 0;
+    const todayMm = String(now.getUTCMonth() + 1).padStart(2, "0");
+    const todayDd = String(now.getUTCDate()).padStart(2, "0");
+    const todayMmDd = `${todayMm}-${todayDd}`;
 
-      const safeName = escapeHtml(reg.name || "Trader");
-      const safeTitle = escapeHtml(ev.title || reg.event_title || "GAMAT FX Event");
-      const safeTicket = escapeHtml(reg.ticket || "");
-      const safeTime = escapeHtml(ev.time || "");
-      const safeLocation = escapeHtml(ev.location || "");
-      const ticketUrl = `https://gamatfxacademy.com/#/events?ticket=${encodeURIComponent(reg.ticket || "")}`;
+    const accRes = await fetch(
+      `${supabaseUrl}/rest/v1/accounts?select=id,email,first_name,last_name,nickname,birthday,status`,
+      { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+    );
 
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
-              <tr><td align="center">
-                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
-                  <tr>
-                    <td style="background:#16181c;padding:28px;text-align:center;">
-                      <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">EVENT REMINDER</p>
-                      <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">See You Tomorrow!</h1>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:28px;">
-                      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
-                        Hi <strong>${safeName}</strong>, just a quick reminder that <strong>${safeTitle}</strong> is tomorrow!
-                      </p>
-                      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:12px;padding:16px;font-size:13px;color:#374151;">
-                        ${safeTicket ? `<tr><td style="padding:5px 0;color:#6b7280;width:100px;">Ticket</td><td style="padding:5px 0;font-weight:700;color:#dc3545;">${safeTicket}</td></tr>` : ""}
-                        ${safeTime ? `<tr><td style="padding:5px 0;color:#6b7280;">Time</td><td style="padding:5px 0;font-weight:600;color:#111827;">${safeTime}</td></tr>` : ""}
-                        ${safeLocation ? `<tr><td style="padding:5px 0;color:#6b7280;">Location</td><td style="padding:5px 0;font-weight:600;color:#111827;">${safeLocation}</td></tr>` : ""}
-                      </table>
-                      <div style="text-align:center;margin-top:22px;">
-                        <a href="${ticketUrl}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">View Ticket &amp; QR Code</a>
-                      </div>
-                    </td>
-                  </tr>
-                </table>
-              </td></tr>
-            </table>
-          </body>
-        </html>
-      `;
-
-      const mailRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [reg.email],
-          subject: `Reminder: ${ev.title || reg.event_title} is Tomorrow!`,
-          html,
-        }),
+    if (accRes.ok) {
+      const accounts = await accRes.json();
+      const celebrants = (accounts || []).filter((acc) => {
+        if (!acc?.email || !acc?.birthday) return false;
+        if (acc.status && acc.status !== "active") return false;
+        const bday = String(acc.birthday).trim();
+        const match = bday.match(/^\d{4}-(\d{2}-\d{2})/);
+        return match ? match[1] === todayMmDd : false;
       });
-      if (mailRes.ok) sent += 1;
+
+      const academyFrom =
+        (process.env.ACADEMY_FROM_EMAIL || "").trim() ||
+        "GAMAT FX Academy <noreply@gamatfxacademy.com>";
+
+      for (const acc of celebrants) {
+        const displayName =
+          [acc.first_name, acc.last_name].filter(Boolean).join(" ").trim() ||
+          acc.nickname ||
+          "Trader";
+        const firstName = escapeHtml(acc.first_name || displayName);
+
+        const bdayHtml = `
+          <!DOCTYPE html>
+          <html>
+            <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+                <tr><td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#be123c,#dc3545);padding:32px 28px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffe4e6;">BIRTHDAY CELEBRATION</p>
+                        <h1 style="margin:10px 0 0;font-size:26px;font-weight:800;color:#ffffff;">Happy Birthday, ${firstName}!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#374151;">
+                          Wishing you a joyful birthday and a year filled with growth, discipline, and winning trades!
+                        </p>
+                        <p style="margin:0 0 22px;font-size:14px;line-height:1.6;color:#4b5563;">
+                          Everyone at <strong>GAMAT FX Academy</strong> is celebrating you today. Stop by the Student Forum to say hello to the community!
+                        </p>
+                        <div style="text-align:center;">
+                          <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">Visit Your Dashboard</a>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+          </html>
+        `;
+
+        const mailRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: academyFrom,
+            to: [acc.email],
+            subject: `Happy Birthday, ${acc.first_name || displayName}! — GAMAT FX Academy`,
+            html: bdayHtml,
+          }),
+        });
+        if (mailRes.ok) birthdayEmailsSent += 1;
+      }
+
+      if (celebrants.length > 0) {
+        const adminEmail = (process.env.ADMIN_NOTIFY_EMAIL || "hello@gamatfxacademy.com").trim();
+        const namesList = celebrants
+          .map((c) => {
+            const full = [c.first_name, c.last_name].filter(Boolean).join(" ").trim() || c.nickname || c.email;
+            return `<li style="margin:4px 0;"><strong>${escapeHtml(full)}</strong> (${escapeHtml(c.email)})</li>`;
+          })
+          .join("");
+
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: academyFrom,
+            to: [adminEmail],
+            subject: `Today's Birthdays (${celebrants.length}) — GAMAT FX Academy`,
+            html: `
+              <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#16181c;padding:20px;">
+                <h2 style="margin:0 0 12px;">Today's Birthday Celebrants (${celebrants.length})</h2>
+                <p style="margin:0 0 12px;color:#4b5563;">Automated birthday greetings were sent to:</p>
+                <ul style="padding-left:20px;margin:0;">${namesList}</ul>
+              </div>
+            `,
+          }),
+        });
+      }
     }
 
-    return res.status(200).json({ ok: true, sent });
+    return res.status(200).json({ ok: true, eventRemindersSent, birthdayEmailsSent });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Reminder cron failed" });
   }
