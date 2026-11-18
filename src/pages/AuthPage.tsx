@@ -449,7 +449,7 @@ export function LoginPage() {
             </div>
             <h1 className="mt-5 font-display text-2xl font-extrabold text-ink">Check your email inbox</h1>
             <p className="mt-2.5 text-sm text-muted leading-relaxed">
-              We sent a password reset link to <span className="font-semibold text-ink">{email}</span>. Open your mailbox and click the link to reset your password.
+              We sent a password reset link to <span className="font-semibold text-ink">{email}</span>. It usually arrives within 1–2 minutes — please check your Spam or Promotions folder if you don&apos;t see it.
             </p>
             <div className="mt-8 space-y-3">
               <button

@@ -727,7 +727,13 @@ export default function AffiliateCard({
             <textarea
               rows={3}
               value={inviteMessage}
-              onChange={(e) => setInviteMessage(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setInviteMessage(val);
+                if (val.trim()) {
+                  onUpdateQuote?.(val);
+                }
+              }}
               onBlur={() => {
                 const trimmed = inviteMessage.trim();
                 if (trimmed && trimmed !== profile.personalQuote) {

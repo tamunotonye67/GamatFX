@@ -438,8 +438,17 @@ export async function resetPasswordForEmailSupabase(email: string): Promise<{ ok
   try {
     const siteOrigin = typeof window !== "undefined" && window.location.origin ? window.location.origin : "https://gamatfxacademy.com";
     const redirectTo = `${siteOrigin}/reset-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
+    const req = supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
+    const timeout = new Promise<{ error: { message: string } }>((resolve) =>
+      setTimeout(() => resolve({ error: { message: "__TIMEOUT__" } }), 10000)
+    );
+    const { error } = await Promise.race([req, timeout]);
     if (error) {
+      if (error.message === "__TIMEOUT__") {
+        return {
+          ok: true,
+        };
+      }
       if (error.message.toLowerCase().includes("rate limit") || error.message.toLowerCase().includes("rate_limit")) {
         return {
           ok: false,
