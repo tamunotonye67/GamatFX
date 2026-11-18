@@ -289,3 +289,50 @@ export async function sendVerificationEmail(params: {
     if (timer) clearTimeout(timer);
   }
 }
+
+export async function sendBroadcastEmail(params: {
+  recipients: string[];
+  subject: string;
+  message: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+}): Promise<{ ok: boolean; sent?: number; failed?: number; error?: string }> {
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "broadcast", ...params }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      return { ok: false, error: data.message || "Failed to send broadcast." };
+    }
+    return { ok: true, sent: data.sent ?? params.recipients.length, failed: data.failed ?? 0 };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Network error sending broadcast." };
+  }
+}
+
+export async function sendMentorshipBookingEmail(params: {
+  to: string;
+  name: string;
+  date: string;
+  timeSlot: string;
+  topic: string;
+  notes?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "mentorship_booking", ...params }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.ok === false) {
+      return { ok: false, error: data.message || "Failed to send booking confirmation." };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err?.message || "Network error sending booking confirmation." };
+  }
+}

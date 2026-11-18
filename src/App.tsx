@@ -24,6 +24,8 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import { BlogPage, BlogPostPage } from "./pages/BlogPage";
 import { ForumPage, ForumChannelPage, ForumThreadPage } from "./pages/ForumPage";
 import { AdminStaff, AdminPosts } from "./pages/admin/AdminStaff";
+import { AdminBroadcast } from "./pages/admin/AdminBroadcast";
+import VerifyCertificatePage from "./pages/VerifyCertificatePage";
 import QuizPage from "./pages/QuizPage";
 import FunZonePage from "./pages/fun/FunZonePage";
 import QuizArcadePage from "./pages/fun/QuizArcadePage";
@@ -175,6 +177,8 @@ const staticPages: Record<string, React.ComponentType> = {
   "/admin/giveaways": AdminGiveaways,
   "/admin/course-manager": AdminCourseManager,
   "/admin/student-of-the-week": AdminStudentOfTheWeek,
+  "/admin/broadcast": AdminBroadcast,
+  "/verify-certificate": VerifyCertificatePage,
 };
 
 /** Routes rendered without the marketing chrome. */

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import NotificationBell from "./NotificationBell";
 import {
   Menu,
   X,
@@ -505,7 +506,9 @@ export default function Navbar() {
         {/* Right actions */}
         <div className="flex items-center gap-2">
           {isAuthed && user ? (
-            <div ref={userRef} className="relative hidden sm:block">
+            <>
+              <NotificationBell scrolled={scrolled} />
+              <div ref={userRef} className="relative hidden sm:block">
               <button
                 type="button"
                 onClick={() => setUserOpen((v) => !v)}
@@ -557,6 +560,7 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
+            </>
           ) : (
             <>
               <button

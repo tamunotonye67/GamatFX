@@ -8,7 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
-  TrendingUp, History, Copy, Building2, CreditCard, Check, X,
+  TrendingUp, History, Copy, Building2, CreditCard, Check, X, Video,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -23,12 +23,16 @@ import { formatAccountName, formatStudentName, capitalizeWord } from "../lib/for
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
 import { useSolidNavbar } from "../lib/chrome";
+import TradeJournalTab from "../components/TradeJournalTab";
+import MentorshipBookingTab from "../components/MentorshipBookingTab";
 
-type Tab = "overview" | "courses" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
+type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
 const baseTabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "courses", label: "My Courses", icon: BookOpen },
+  { id: "journal", label: "Trade Journal", icon: TrendingUp },
+  { id: "booking", label: "1-on-1 Booking", icon: Video },
   { id: "certificates", label: "Certificates", icon: Award },
   { id: "affiliate", label: "Invite & Earn", icon: Share2 },
   { id: "wallet", label: "Wallet", icon: Wallet },
@@ -501,6 +505,8 @@ export default function DashboardPage() {
         <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
+          {tab === "journal" && <TradeJournalTab userId={user.id} />}
+          {tab === "booking" && <MentorshipBookingTab userId={user.id} userEmail={user.email} userName={formatAccountName(user)} />}
           {tab === "certificates" && <Certificates completed={certifiedIds} pendingPayment={pendingPaymentCertIds} pending={awaitingQuizIds} name={formatAccountName(user)} />}
           {tab === "affiliate" && <AffiliateSection />}
           {tab === "wallet" && <WalletSection />}
@@ -2726,7 +2732,10 @@ function CertificateCard({ data }: { data: CertData }) {
           <p className="font-display text-base font-bold text-ink">{data.course}</p>
           <p className="mt-0.5 text-xs text-muted">Serial {data.serial} · Issued {data.date}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button onClick={() => navigate("/verify-certificate")} className="btn-outline-dark !py-2.5">
+            <ShieldCheck className="h-4 w-4" /> Verify Online
+          </button>
           <button onClick={() => { const w = window.open(""); if (w && src) w.document.write(`<img src="${src}" style="width:100%">`); }}
             className="btn-outline-dark !py-2.5">
             <Eye className="h-4 w-4" /> View full size

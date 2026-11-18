@@ -7,7 +7,7 @@ import {
   Ticket, Settings, LogOut, Menu, X, ShieldAlert, Search, Inbox,
   FileText, UserCog, Newspaper, Sun, Library, Gift, Contact, Award, Bell,
   Check, Tag, BarChart3, Receipt, FolderDown, Presentation, ArrowUpRight,
-  ShoppingBag, Share2,
+  ShoppingBag, Share2, Send,
 } from "lucide-react";
 
 /** Persist the Admin sidebar scroll position across route changes so clicking an item never jumps back to top. */
@@ -28,6 +28,7 @@ export const nav = [
   { to: "/admin/events", label: "Events", icon: CalendarDays },
   { to: "/admin/registrations", label: "Registrations", icon: Ticket },
   { to: "/admin/enquiries", label: "Enquiries", icon: Inbox },
+  { to: "/admin/broadcast", label: "Email Broadcast", icon: Send },
   { to: "/admin/posts", label: "Blog Articles", icon: FileText },
   { to: "/admin/news", label: "News Events", icon: Newspaper },
   { to: "/admin/outlooks", label: "Daily Outlook", icon: Sun },

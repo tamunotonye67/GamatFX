@@ -986,6 +986,168 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, id: result.data?.id });
     }
 
+    if (type === "broadcast") {
+      const { recipients, subject, message, ctaLabel, ctaUrl } = body;
+      const list = Array.isArray(recipients)
+        ? Array.from(
+            new Set(
+              recipients
+                .map((r) => String(r || "").trim().toLowerCase())
+                .filter((r) => r.includes("@"))
+            )
+          )
+        : [];
+      if (!list.length || !subject || !message) {
+        return res.status(400).json({ ok: false, message: "Recipients, subject, and message are required." });
+      }
+      const safeSubject = escapeHtml(subject);
+      const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+      const safeCtaLabel = ctaLabel ? escapeHtml(ctaLabel) : "";
+      const safeCtaUrl =
+        ctaUrl && /^https?:\/\//i.test(String(ctaUrl).trim())
+          ? String(ctaUrl).trim()
+          : "";
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr>
+                <td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#16181c;padding:26px 28px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
+                        <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">${safeSubject}</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <div style="font-size:15px;line-height:1.7;color:#374151;">${safeMessage}</div>
+                        ${
+                          safeCtaUrl && safeCtaLabel
+                            ? `<div style="text-align:center;margin-top:26px;">
+                                <a href="${safeCtaUrl}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">
+                                  ${safeCtaLabel}
+                                </a>
+                              </div>`
+                            : ""
+                        }
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:16px 28px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;font-size:12px;color:#6b7280;">
+                        GAMAT FX Academy · Institutional Trading Education
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+      `;
+
+      let sent = 0;
+      let failed = 0;
+      for (let i = 0; i < list.length; i += 40) {
+        const batch = list.slice(i, i + 40);
+        const r = await sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          bcc: batch,
+          reply_to: adminEmail,
+          subject: String(subject),
+          html,
+        });
+        if (r.ok) sent += batch.length;
+        else failed += batch.length;
+      }
+      if (sent === 0 && failed > 0) {
+        return res.status(502).json({ ok: false, message: "Failed to deliver broadcast emails." });
+      }
+      return res.status(200).json({ ok: true, sent, failed });
+    }
+
+    if (type === "mentorship_booking") {
+      const { to, name, date, timeSlot, topic, notes } = body;
+      if (!to || !date || !timeSlot) {
+        return res.status(400).json({ ok: false, message: "Missing booking fields (to, date, timeSlot)." });
+      }
+      const safeName = escapeHtml(name || "Student");
+      const safeDate = escapeHtml(date);
+      const safeSlot = escapeHtml(timeSlot);
+      const safeTopic = escapeHtml(topic || "1-on-1 Trading Mentorship");
+      const safeNotes = notes ? escapeHtml(notes).replace(/\n/g, "<br/>") : "";
+
+      const studentHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="margin:0;padding:0;background:#f4f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:28px 14px;">
+              <tr>
+                <td align="center">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+                    <tr>
+                      <td style="background:#16181c;padding:26px;text-align:center;">
+                        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fda4af;">GAMAT FX ACADEMY</p>
+                        <h1 style="margin:8px 0 0;font-size:22px;font-weight:800;color:#ffffff;">1-on-1 Session Confirmed</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px;">
+                        <p style="margin:0 0 14px;font-size:15px;">Hi <strong>${safeName}</strong>, your 1-on-1 mentorship session has been booked:</p>
+                        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:16px;font-size:14px;line-height:1.7;">
+                          <strong>Topic:</strong> ${safeTopic}<br/>
+                          <strong>Date:</strong> ${safeDate}<br/>
+                          <strong>Time:</strong> ${safeSlot} (WAT)
+                          ${safeNotes ? `<br/><strong>Notes:</strong> ${safeNotes}` : ""}
+                        </div>
+                        <p style="margin:18px 0 0;font-size:13px;color:#6b7280;">Our mentor team will share the meeting link before your session starts. Reply to this email if you need to reschedule.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+      `;
+
+      const adminHtml = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#16181c;padding:20px;">
+            <h2 style="margin:0 0 12px;">New 1-on-1 Mentorship Booking</h2>
+            <p><strong>Student:</strong> ${safeName} (${escapeHtml(to)})<br/>
+            <strong>Topic:</strong> ${safeTopic}<br/>
+            <strong>Date:</strong> ${safeDate}<br/>
+            <strong>Time:</strong> ${safeSlot} (WAT)${safeNotes ? `<br/><strong>Notes:</strong> ${safeNotes}` : ""}</p>
+          </body>
+        </html>
+      `;
+
+      const [result] = await Promise.all([
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [to],
+          reply_to: adminEmail,
+          subject: `1-on-1 Mentorship Confirmed: ${date} at ${timeSlot}`,
+          html: studentHtml,
+        }),
+        sendResendEmail(apiKey, {
+          from: fromEmail,
+          to: [adminEmail],
+          reply_to: to,
+          subject: `New 1-on-1 Booking: ${name || to} (${date} · ${timeSlot})`,
+          html: adminHtml,
+        }).catch(() => null),
+      ]);
+      if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send booking email" });
+      return res.status(200).json({ ok: true, id: result.data?.id });
+    }
+
     return res.status(400).json({ ok: false, message: "Unsupported email type" });
   } catch (err) {
     return res.status(500).json({ ok: false, message: err?.message || "Email server error" });
