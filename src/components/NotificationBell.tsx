@@ -27,6 +27,7 @@ import { getCourse } from "../lib/courses";
 import { formatAccountName } from "../lib/formatName";
 import { getSecurityActivities } from "../lib/securityNotifs";
 import { sendBirthdayEmail } from "../lib/email";
+import { getNotifPrefs, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 import { navigate } from "../lib/router";
 
 type NotifKind =
@@ -174,8 +175,22 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     };
   }, []);
 
+  const [prefs, setPrefs] = useState<NotifPrefs>(() => getNotifPrefs(user?.id));
+  const seenAnnouncedRef = useRef<Set<string> | null>(null);
+
   useEffect(() => {
-    if (!user?.birthday || !user?.email) return;
+    setPrefs(getNotifPrefs(user?.id));
+    seenAnnouncedRef.current = null;
+  }, [user?.id]);
+
+  useEffect(() => {
+    const onPrefsChanged = () => setPrefs(getNotifPrefs(user?.id));
+    window.addEventListener("gamat-notif-prefs-changed", onPrefsChanged);
+    return () => window.removeEventListener("gamat-notif-prefs-changed", onPrefsChanged);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.birthday || !user?.email || !prefs.emailBirthdays) return;
     const now = new Date();
     const mm = String(now.getMonth() + 1).padStart(2, "0");
     const dd = String(now.getDate()).padStart(2, "0");
@@ -194,7 +209,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       to: user.email,
       name: user.firstName || formatAccountName(user),
     }).catch(() => {});
-  }, [user]);
+  }, [user, prefs.emailBirthdays]);
 
   const items = useMemo<NotifItem[]>(() => {
     if (!user) return [];
@@ -379,7 +394,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     }
 
     // 6. XP Ranking / Leaderboard Rivalry Notifications
-    if (combatLeaderboard.length > 0) {
+    if (prefs.inAppRivalry && combatLeaderboard.length > 0) {
       const myXp = combat?.xp ?? 0;
       const myIdx = combatLeaderboard.findIndex((r) => r.userId === user.id);
 
@@ -782,47 +797,49 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       });
 
     // 24. Birthday Notifications (user's own birthday + community members' birthdays)
-    const bdayNow = new Date();
-    const todayYear = bdayNow.getFullYear();
-    const todayMmDd = `${String(bdayNow.getMonth() + 1).padStart(2, "0")}-${String(bdayNow.getDate()).padStart(2, "0")}`;
-    const todayStartIso = new Date(todayYear, bdayNow.getMonth(), bdayNow.getDate()).toISOString();
+    if (prefs.inAppBirthdays) {
+      const bdayNow = new Date();
+      const todayYear = bdayNow.getFullYear();
+      const todayMmDd = `${String(bdayNow.getMonth() + 1).padStart(2, "0")}-${String(bdayNow.getDate()).padStart(2, "0")}`;
+      const todayStartIso = new Date(todayYear, bdayNow.getMonth(), bdayNow.getDate()).toISOString();
 
-    const userBdayMatch = user.birthday ? String(user.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/) : null;
-    if (userBdayMatch && userBdayMatch[1] === todayMmDd) {
-      const first = user.firstName || formatAccountName(user);
-      list.push({
-        id: `bday_self_${user.id}_${todayYear}`,
-        title: `Happy Birthday, ${first}! 🎉`,
-        body: "Wishing you a joyful birthday and winning trades from everyone at GAMAT FX Academy!",
-        to: "/dashboard?tab=profile",
-        kind: "birthday",
-        time: todayStartIso,
-        actorName: formatAccountName(user),
-        actorAvatar: user.avatar,
-      });
-    }
-
-    accounts
-      .filter((a) => {
-        if (a.id === user.id || !a.birthday) return false;
-        if (a.status && a.status !== "active") return false;
-        const m = String(a.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/);
-        return m ? m[1] === todayMmDd : false;
-      })
-      .slice(0, 5)
-      .forEach((bAcc) => {
-        const bName = formatAccountName(bAcc);
+      const userBdayMatch = user.birthday ? String(user.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/) : null;
+      if (userBdayMatch && userBdayMatch[1] === todayMmDd) {
+        const first = user.firstName || formatAccountName(user);
         list.push({
-          id: `bday_peer_${bAcc.id}_${todayYear}`,
-          title: `Today is ${bName}'s Birthday! 🎂`,
-          body: "Wish them a happy birthday in the Student Forum!",
-          to: "/forum",
+          id: `bday_self_${user.id}_${todayYear}`,
+          title: `Happy Birthday, ${first}! 🎉`,
+          body: "Wishing you a joyful birthday and winning trades from everyone at GAMAT FX Academy!",
+          to: "/dashboard?tab=profile",
           kind: "birthday",
           time: todayStartIso,
-          actorName: bName,
-          actorAvatar: bAcc.avatar,
+          actorName: formatAccountName(user),
+          actorAvatar: user.avatar,
         });
-      });
+      }
+
+      accounts
+        .filter((a) => {
+          if (a.id === user.id || !a.birthday) return false;
+          if (a.status && a.status !== "active") return false;
+          const m = String(a.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/);
+          return m ? m[1] === todayMmDd : false;
+        })
+        .slice(0, 5)
+        .forEach((bAcc) => {
+          const bName = formatAccountName(bAcc);
+          list.push({
+            id: `bday_peer_${bAcc.id}_${todayYear}`,
+            title: `Today is ${bName}'s Birthday! 🎂`,
+            body: "Wish them a happy birthday in the Student Forum!",
+            to: "/forum",
+            kind: "birthday",
+            time: todayStartIso,
+            actorName: bName,
+            actorAvatar: bAcc.avatar,
+          });
+        });
+    }
 
     return list
       .sort((a, b) => {
@@ -856,7 +873,43 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     teamBios,
     myPosts,
     hasPassedQuiz,
+    prefs.inAppRivalry,
+    prefs.inAppBirthdays,
   ]);
+
+  useEffect(() => {
+    if (!user) return;
+    const currentIds = items.map((i) => i.id);
+    if (seenAnnouncedRef.current === null) {
+      seenAnnouncedRef.current = new Set(currentIds);
+      return;
+    }
+    const newlyArrived = items.filter((i) => !seenAnnouncedRef.current!.has(i.id) && !readIds.includes(i.id));
+    currentIds.forEach((id) => seenAnnouncedRef.current!.add(id));
+    if (newlyArrived.length === 0) return;
+
+    if (prefs.soundEnabled) {
+      playNotificationChime();
+    }
+    if (
+      prefs.browserNotifications &&
+      typeof Notification !== "undefined" &&
+      Notification.permission === "granted"
+    ) {
+      const top = newlyArrived[0];
+      try {
+        const notif = new Notification(top.title, {
+          body: top.body,
+          tag: top.id,
+        });
+        notif.onclick = () => {
+          window.focus();
+          navigate(top.to);
+          notif.close();
+        };
+      } catch {}
+    }
+  }, [items, readIds, user, prefs.soundEnabled, prefs.browserNotifications]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;
   const visibleItems = items.slice(0, visibleCount);

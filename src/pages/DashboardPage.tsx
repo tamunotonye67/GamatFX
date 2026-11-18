@@ -8,7 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
-  TrendingUp, History, Copy, Building2, CreditCard, Check, X, Video,
+  TrendingUp, History, Copy, Building2, CreditCard, Check, X, Video, Bell, Volume2,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -25,6 +25,7 @@ import CertificatePaymentModal from "../components/CertificatePaymentModal";
 import { useSolidNavbar } from "../lib/chrome";
 import TradeJournalTab from "../components/TradeJournalTab";
 import MentorshipBookingTab from "../components/MentorshipBookingTab";
+import { getNotifPrefs, setNotifPrefs, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 
 type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
@@ -520,6 +521,9 @@ export default function DashboardPage() {
         </aside>
 
         <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
+          {!user.birthday && tab !== "profile" && (
+            <BirthdayOnboardingBanner userId={user.id} onGoToProfile={() => setTab("profile")} />
+          )}
           {tab === "overview" && <Overview />}
           {tab === "courses" && <MyCourses />}
           {tab === "journal" && <TradeJournalTab userId={user.id} />}
@@ -2498,7 +2502,8 @@ function ProfileTab({
       : "";
 
   return (
-    <form onSubmit={save} className="space-y-6">
+    <div className="space-y-6">
+      <form onSubmit={save} className="space-y-6">
       {/* Avatar + identity */}
       <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
         <h2 className="font-display text-xl font-bold text-ink">Profile picture</h2>
@@ -2702,6 +2707,211 @@ function ProfileTab({
         </div>
       </div>
     </form>
+      <NotificationPreferencesCard userId={user.id} />
+    </div>
+  );
+}
+
+function BirthdayOnboardingBanner({ userId, onGoToProfile }: { userId: string; onGoToProfile: () => void }) {
+  const key = `gamat.bday_prompt_dismissed.${userId}`;
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(key) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  if (dismissed) return null;
+
+  const dismiss = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem(key, "1");
+    } catch {}
+  };
+
+  return (
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white px-5 py-4 shadow-xs">
+      <div className="flex items-start sm:items-center gap-3.5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-xs">
+          <Cake className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="font-display text-sm font-extrabold text-ink">Add your birthday to celebrate with the community!</p>
+          <p className="mt-0.5 text-xs text-muted">
+            Save your date of birth in your Profile tab to receive birthday wishes from the academy and a celebratory email on your special day.
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 ml-auto">
+        <button
+          type="button"
+          onClick={onGoToProfile}
+          className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
+        >
+          <Cake className="h-3.5 w-3.5" /> Add Birthday
+        </button>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Dismiss birthday reminder"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-muted hover:text-ink transition cursor-pointer"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NotificationPreferencesCard({ userId }: { userId: string }) {
+  const [prefs, setPrefs] = useState<NotifPrefs>(() => getNotifPrefs(userId));
+  const [savedToast, setSavedToast] = useState(false);
+  const [permState, setPermState] = useState<string>(() =>
+    typeof Notification !== "undefined" ? Notification.permission : "unsupported"
+  );
+
+  useEffect(() => {
+    setPrefs(getNotifPrefs(userId));
+  }, [userId]);
+
+  const updatePref = async (key: keyof NotifPrefs, value: boolean) => {
+    let nextVal = value;
+    if (key === "browserNotifications" && value) {
+      if (typeof Notification === "undefined") {
+        setPermState("unsupported");
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        const res = await Notification.requestPermission();
+        setPermState(res);
+        if (res !== "granted") {
+          nextVal = false;
+        }
+      } else {
+        setPermState("granted");
+      }
+    }
+    if (key === "soundEnabled" && value) {
+      playNotificationChime();
+    }
+    const next = { ...prefs, [key]: nextVal };
+    setPrefs(next);
+    setNotifPrefs(userId, next);
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 1800);
+  };
+
+  const rows: {
+    key: keyof NotifPrefs;
+    title: string;
+    desc: string;
+    icon: React.ElementType;
+  }[] = [
+    {
+      key: "browserNotifications",
+      title: "Browser Push Notifications",
+      desc:
+        permState === "denied"
+          ? "Blocked by browser settings — allow notifications for this site to enable."
+          : permState === "unsupported"
+          ? "Browser notifications are not supported on this device."
+          : "Show desktop/mobile pop-up alerts when new activity arrives.",
+      icon: Bell,
+    },
+    {
+      key: "soundEnabled",
+      title: "Notification Sound",
+      desc: "Play a subtle chime when a new unread notification arrives.",
+      icon: Volume2,
+    },
+    {
+      key: "inAppBirthdays",
+      title: "Birthday Alerts (In-App)",
+      desc: "Show your birthday banner and community members' birthdays in the bell.",
+      icon: Cake,
+    },
+    {
+      key: "inAppRivalry",
+      title: "Leaderboard Rivalry Alerts",
+      desc: "Get XP rank-up and challenger nudges in your notification feed.",
+      icon: TrendingUp,
+    },
+    {
+      key: "emailBirthdays",
+      title: "Birthday Greeting Emails",
+      desc: "Receive a celebratory Happy Birthday email from GAMAT FX Academy.",
+      icon: Cake,
+    },
+    {
+      key: "emailMentions",
+      title: "Forum @Mention Emails",
+      desc: "Receive an email when another trader tags you in a discussion.",
+      icon: Send,
+    },
+    {
+      key: "emailEvents",
+      title: "24-Hour Event Reminder Emails",
+      desc: "Receive an email reminder the day before your registered events.",
+      icon: CalendarDays,
+    },
+  ];
+
+  return (
+    <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_18px_50px_-32px_rgba(22,24,28,0.3)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-display text-xl font-bold text-ink">Notification Preferences</h2>
+          <p className="mt-1 text-sm text-muted">
+            Choose how you receive alerts, sounds, and email updates.
+          </p>
+        </div>
+        {savedToast && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+          </span>
+        )}
+      </div>
+
+      <div className="mt-5 divide-y divide-line/70">
+        {rows.map((r) => {
+          const active = prefs[r.key];
+          const Icon = r.icon;
+          const disabled =
+            r.key === "browserNotifications" && (permState === "denied" || permState === "unsupported");
+          return (
+            <div key={r.key} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
+              <div className="flex items-start gap-3 min-w-0">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cream text-brand">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-ink">{r.title}</p>
+                  <p className="text-xs text-muted leading-relaxed">{r.desc}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={active}
+                disabled={disabled}
+                onClick={() => updatePref(r.key, !active)}
+                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                  active ? "bg-brand" : "bg-line"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition ${
+                    active ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
