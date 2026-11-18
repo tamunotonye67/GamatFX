@@ -144,9 +144,84 @@ function parse(): string {
   return "/";
 }
 
+const ROUTE_META: Record<string, { title: string; description: string }> = {
+  "/": {
+    title: "GAMAT Fx Academy | Premier Forex Trading Education & Mentorship",
+    description: "GAMAT Fx Academy — premier forex trading education, mentorship, and a results-driven community.",
+  },
+  "/courses": {
+    title: "Trading Courses | GAMAT Fx Academy",
+    description: "Master institutional order flow, price action, risk management, and trading psychology with structured courses.",
+  },
+  "/services": {
+    title: "1-on-1 Mentorship & Services | GAMAT Fx Academy",
+    description: "Book 1-on-1 mentorship, portfolio reviews, and specialized trader coaching at GAMAT Fx Academy.",
+  },
+  "/events": {
+    title: "Live Events & Bootcamps | GAMAT Fx Academy",
+    description: "Register for upcoming trading bootcamps, live workshops, and community meetups.",
+  },
+  "/forum": {
+    title: "Student Forum | GAMAT Fx Academy",
+    description: "Discuss charts, share wins and lessons, and connect with mentors and fellow traders.",
+  },
+  "/outlook": {
+    title: "Market Outlooks | GAMAT Fx Academy",
+    description: "Weekly institutional market breakdowns, key liquidity levels, and pair outlooks.",
+  },
+  "/news": {
+    title: "Academy News | GAMAT Fx Academy",
+    description: "Latest announcements, updates, and articles from GAMAT Fx Academy.",
+  },
+  "/giveaways": {
+    title: "Community Giveaways | GAMAT Fx Academy",
+    description: "Funded account challenges, store gear, and scholarship giveaways for GAMAT Fx Academy students.",
+  },
+  "/verify-certificate": {
+    title: "Verify Certificate | GAMAT Fx Academy",
+    description: "Verify the authenticity of an official GAMAT Fx Academy course completion certificate.",
+  },
+  "/store": {
+    title: "Academy Store | GAMAT Fx Academy",
+    description: "Official GAMAT Fx Academy merchandise, trading journals, and trader gear.",
+  },
+  "/dashboard": {
+    title: "Student Dashboard | GAMAT Fx Academy",
+    description: "Track your courses, trade journal, certificates, 1-on-1 bookings, and affiliate earnings.",
+  },
+  "/admin": {
+    title: "Admin Panel | GAMAT Fx Academy",
+    description: "GAMAT Fx Academy administration and operations portal.",
+  },
+};
+
+function setMetaTag(selector: string, content: string) {
+  try {
+    const el = document.querySelector(selector);
+    if (el) el.setAttribute("content", content);
+  } catch {}
+}
+
+export function syncRouteMeta(route: string) {
+  if (typeof document === "undefined") return;
+  const base = "/" + (route.split("/").filter(Boolean)[0] || "");
+  const meta = ROUTE_META[route] || ROUTE_META[base] || ROUTE_META["/"];
+  document.title = meta.title;
+  setMetaTag('meta[name="description"]', meta.description);
+  setMetaTag('meta[property="og:title"]', meta.title);
+  setMetaTag('meta[property="og:description"]', meta.description);
+  setMetaTag('meta[name="twitter:title"]', meta.title);
+  setMetaTag('meta[name="twitter:description"]', meta.description);
+  setMetaTag('meta[property="og:url"]', `https://gamatfxacademy.com/#${route}`);
+}
+
 /** Current path, e.g. "/courses/price-action-mastery". */
 export function useRoute(): string {
   const [route, setRoute] = useState<string>(() => parse());
+
+  useEffect(() => {
+    syncRouteMeta(route);
+  }, [route]);
 
   useEffect(() => {
     const onChange = () => setRoute(parse());

@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Gift,
   Cake,
+  Search,
 } from "lucide-react";
 import { useStore } from "../lib/store";
 import { getCourse } from "../lib/courses";
@@ -109,6 +110,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
   const [open, setOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const ref = useRef<HTMLDivElement | null>(null);
   const mobilePanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -924,8 +927,19 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
   }, [items, readIds, user, open, prefs.soundEnabled, prefs.browserNotifications]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;
-  const visibleItems = items.slice(0, visibleCount);
-  const remainingCount = Math.max(0, items.length - visibleCount);
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return items.filter((i) => {
+      if (unreadOnly && readIds.includes(i.id)) return false;
+      if (q) {
+        const hay = `${i.title} ${i.body} ${i.actorName || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [items, readIds, unreadOnly, searchQuery]);
+  const visibleItems = filteredItems.slice(0, visibleCount);
+  const remainingCount = Math.max(0, filteredItems.length - visibleCount);
 
   const persistRead = (next: string[]) => {
     setReadIds(next);
@@ -1071,6 +1085,41 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
             <X className="h-4 w-4" />
           </button>
         </div>
+      </div>
+
+      {/* Search & Unread Filter */}
+      <div className="flex items-center gap-2 border-b border-line bg-white px-4 py-2.5 shrink-0">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search notifications…"
+            className="w-full rounded-full border border-line bg-cream/60 py-1.5 pl-8 pr-7 text-xs text-ink placeholder-muted/70 outline-none focus:border-brand focus:bg-white transition"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-ink cursor-pointer"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setUnreadOnly((v) => !v)}
+          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold border transition cursor-pointer ${
+            unreadOnly
+              ? "border-brand bg-brand text-white"
+              : "border-line bg-cream/60 text-ink hover:bg-cream"
+          }`}
+        >
+          Unread{unreadCount > 0 ? ` (${unreadCount})` : ""}
+        </button>
       </div>
 
       {/* Notification List */}

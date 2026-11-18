@@ -14,7 +14,7 @@ import {
 /* ============================= Dashboard ============================= */
 
 export function AdminDashboard() {
-  const { admin } = useStore();
+  const { admin, saveCoupon } = useStore();
   const { kpis, revenueByMonth, payments, accounts, registrations } = admin;
   const max = Math.max(...revenueByMonth.map((r) => r.value), 1);
 
@@ -49,6 +49,7 @@ export function AdminDashboard() {
   }, [admin.enrollments]);
 
   const [sentWishIds, setSentWishIds] = useState<string[]>([]);
+  const [giftedCouponMap, setGiftedCouponMap] = useState<Record<string, string>>({});
   const upcomingBirthdays = useMemo(() => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -296,20 +297,47 @@ export function AdminDashboard() {
                       {daysAway === 0 ? "Today 🎉" : daysAway === 1 ? `Tomorrow (${label})` : `In ${daysAway}d (${label})`}
                     </Badge>
                     {daysAway === 0 && (
-                      <button
-                        type="button"
-                        disabled={sent}
-                        onClick={() => {
-                          setSentWishIds((prev) => [...prev, a.id]);
-                          void sendBirthdayEmail({
-                            to: a.email,
-                            name: a.firstName || formatAccountName(a),
-                          });
-                        }}
-                        className="rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition disabled:opacity-50 cursor-pointer"
-                      >
-                        {sent ? "Wish Sent ✓" : "Send Wish Email"}
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          disabled={sent}
+                          onClick={() => {
+                            setSentWishIds((prev) => [...prev, a.id]);
+                            void sendBirthdayEmail({
+                              to: a.email,
+                              name: a.firstName || formatAccountName(a),
+                            });
+                          }}
+                          className="rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition disabled:opacity-50 cursor-pointer"
+                        >
+                          {sent ? "Wish Sent ✓" : "Send Wish Email"}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={Boolean(giftedCouponMap[a.id])}
+                          onClick={() => {
+                            const tag = (a.firstName || "TRADER").replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6) || "TRADER";
+                            const yr = String(new Date().getFullYear()).slice(-2);
+                            const code = `BDAY-${tag}-${yr}`;
+                            const res = saveCoupon({
+                              code,
+                              discountPercent: 15,
+                              maxUses: 1,
+                              applicableTo: "all",
+                              status: "active",
+                            });
+                            if (res.ok) {
+                              setGiftedCouponMap((prev) => ({ ...prev, [a.id]: code }));
+                              try {
+                                void navigator.clipboard.writeText(code);
+                              } catch {}
+                            }
+                          }}
+                          className="rounded-full border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-60 cursor-pointer"
+                        >
+                          {giftedCouponMap[a.id] ? `Coupon: ${giftedCouponMap[a.id]} ✓` : "Gift 15% Coupon"}
+                        </button>
+                      </>
                     )}
                   </div>
                 </li>
