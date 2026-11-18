@@ -95,6 +95,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     payoutRequests = [],
     myStorePurchases = [],
     teamBios = [],
+    myPosts = [],
     hasPassedQuiz,
   } = useStore();
   const threads = forum?.threads ?? [];
@@ -299,18 +300,24 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
-    // 5. Trading Club Activity (messages & @mentions in user's club)
+    // 5. Trading Club Activity (messages, direct replies, likes & @mentions in user's club)
     if (userClub) {
+      const myClubMsgIds = new Set(
+        clubMessages.filter((m) => m.clubId === userClub.id && m.userId === user.id).map((m) => m.id)
+      );
       clubMessages
         .filter((m) => m.clubId === userClub.id && m.userId !== user.id)
         .slice(0, 4)
         .forEach((m) => {
           const actor = accountById.get(m.userId);
           const mentioned = hasMention(m.content);
+          const isDirectReply = Boolean(m.replyToId && myClubMsgIds.has(m.replyToId));
           list.push({
             id: `club_${m.id}`,
             title: mentioned
               ? `${m.userName} tagged you in ${userClub.name}`
+              : isDirectReply
+              ? `${m.userName} replied to you in ${userClub.name}`
               : `New message in ${userClub.name}`,
             body: `${m.userName}: ${m.content ? m.content.slice(0, 80) : "Shared an image"}`,
             to: `/fun/clubs?club=${userClub.id}`,
@@ -319,6 +326,30 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
             actorName: m.userName,
             actorAvatar: actor?.avatar || m.userAvatar,
           });
+        });
+
+      clubMessages
+        .filter((m) => m.clubId === userClub.id && m.userId === user.id)
+        .forEach((m) => {
+          const likers = (m.likes || []).filter((id) => id !== user.id);
+          if (likers.length > 0) {
+            const firstAcc = accountById.get(likers[0]);
+            const firstLiker = nameById.get(likers[0]) || "Someone";
+            const who =
+              likers.length === 1
+                ? firstLiker
+                : `${firstLiker} & ${likers.length - 1} other${likers.length > 2 ? "s" : ""}`;
+            list.push({
+              id: `club_like_${m.id}_${likers.length}`,
+              title: `${who} liked your message in ${userClub.name}`,
+              body: m.content ? m.content.slice(0, 80) : "Your club message",
+              to: `/fun/clubs?club=${userClub.id}`,
+              kind: "like",
+              time: m.createdAt,
+              actorName: firstLiker,
+              actorAvatar: firstAcc?.avatar,
+            });
+          }
         });
     }
 
@@ -653,6 +684,78 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       });
     }
 
+    // 21. Trade Journal Milestones & 7-Day Reminder
+    try {
+      const rawJournal = localStorage.getItem(`gamat.trade_journal.${user.id}`);
+      const journalTrades = rawJournal ? (JSON.parse(rawJournal) as { id: string; date?: string; createdAt?: string }[]) : [];
+      const count = journalTrades.length;
+      const milestone = count >= 25 ? 25 : count >= 10 ? 10 : count >= 5 ? 5 : 0;
+      if (milestone > 0) {
+        list.push({
+          id: `journal_ms_${user.id}_${milestone}`,
+          title: `Trade Journal Milestone: ${milestone}+ Trades Logged!`,
+          body: "Consistency builds edge. Review your win rate and RRR in your Trade Journal.",
+          to: "/dashboard?tab=journal",
+          kind: "course",
+        });
+      }
+      if (count > 0) {
+        const latestMs = Math.max(
+          ...journalTrades.map((t) => +new Date(t.createdAt || t.date || 0)).filter((n) => !Number.isNaN(n))
+        );
+        if (latestMs > 0 && nowMs - latestMs > 7 * 24 * 3600 * 1000) {
+          list.push({
+            id: `journal_nudge_${user.id}_${Math.floor(latestMs / 86400000)}`,
+            title: "Time to update your Trade Journal",
+            body: "You haven't logged a trade in over 7 days — keep your trading log current.",
+            to: "/dashboard?tab=journal",
+            kind: "course",
+          });
+        }
+      }
+    } catch {}
+
+    // 22. New Referral Sign-Ups (even before purchase)
+    accounts
+      .filter(
+        (a) =>
+          a.id !== user.id &&
+          a.referredBy &&
+          (a.referredBy === user.id || (user.affiliateCode && a.referredBy === user.affiliateCode))
+      )
+      .slice(0, 4)
+      .forEach((refAcc) => {
+        const refName = formatAccountName(refAcc);
+        list.push({
+          id: `ref_signup_${refAcc.id}`,
+          title: `New Referral Sign-Up: ${refName}`,
+          body: `${refName} joined GAMAT Fx Academy using your referral link!`,
+          to: "/dashboard?tab=affiliate",
+          kind: "affiliate",
+          time: refAcc.createdAt,
+          actorName: refName,
+          actorAvatar: refAcc.avatar,
+        });
+      });
+
+    // 23. Staff Post Updates
+    myPosts
+      .filter((p) => p.status === "published" || p.status === "rejected")
+      .slice(0, 3)
+      .forEach((p) => {
+        list.push({
+          id: `post_${p.id}_${p.status}`,
+          title: p.status === "published" ? `Post Published: ${p.title}` : `Post Needs Edits: ${p.title}`,
+          body:
+            p.status === "published"
+              ? "Your article is now live on GAMAT Fx Academy."
+              : "Check your Posts tab for status updates.",
+          to: "/dashboard?tab=posts",
+          kind: "news",
+          time: p.updatedAt || p.createdAt,
+        });
+      });
+
     return list
       .sort((a, b) => {
         const ta = a.time ? +new Date(a.time) : Number.MAX_SAFE_INTEGER;
@@ -683,6 +786,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     payoutRequests,
     myStorePurchases,
     teamBios,
+    myPosts,
     hasPassedQuiz,
   ]);
 
