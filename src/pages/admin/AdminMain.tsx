@@ -4,10 +4,11 @@ import { useStore, type Account } from "../../lib/store";
 import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse, type Course } from "../../lib/courses";
 import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { formatAccountName, formatStudentName, capitalizeWord } from "../../lib/formatName";
+import { sendBirthdayEmail } from "../../lib/email";
 import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
-  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Trophy,
+  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Trophy, Cake,
 } from "lucide-react";
 
 /* ============================= Dashboard ============================= */
@@ -46,6 +47,30 @@ export function AdminDashboard() {
       .sort((a, b) => b.n - a.n)
       .slice(0, 5);
   }, [admin.enrollments]);
+
+  const [sentWishIds, setSentWishIds] = useState<string[]>([]);
+  const upcomingBirthdays = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const list: { account: Account; daysAway: number; label: string }[] = [];
+    for (const a of accounts) {
+      if (!a.birthday || (a.status && a.status !== "active")) continue;
+      const m = String(a.birthday).trim().match(/^\d{4}-(\d{2})-(\d{2})/);
+      if (!m) continue;
+      const month = Number(m[1]) - 1;
+      const day = Number(m[2]);
+      let next = new Date(now.getFullYear(), month, day);
+      if (next.getTime() < todayStart) {
+        next = new Date(now.getFullYear() + 1, month, day);
+      }
+      const daysAway = Math.round((next.getTime() - todayStart) / 86400000);
+      if (daysAway <= 14) {
+        const label = next.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+        list.push({ account: a, daysAway, label });
+      }
+    }
+    return list.sort((a, b) => a.daysAway - b.daysAway);
+  }, [accounts]);
 
   return (
     <AdminShell title="Dashboard" subtitle="A live overview of your academy's performance.">
@@ -229,6 +254,71 @@ export function AdminDashboard() {
             </table>
           </div>
         ) : <p className="px-6 py-10 text-center text-sm text-muted">No event registrations yet.</p>}
+      </Card>
+
+      {/* Upcoming birthdays */}
+      <Card className="mt-6 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600">
+              <Cake className="h-4 w-4" />
+            </span>
+            <div>
+              <h3 className="font-display text-base font-bold text-ink">Upcoming Birthdays</h3>
+              <p className="text-xs text-muted">Today &amp; next 14 days</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-cream px-2.5 py-1 text-xs font-bold text-ink">
+            {upcomingBirthdays.length}
+          </span>
+        </div>
+        {upcomingBirthdays.length ? (
+          <ul className="divide-y divide-line">
+            {upcomingBirthdays.map(({ account: a, daysAway, label }) => {
+              const sent = sentWishIds.includes(a.id);
+              return (
+                <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {a.avatar ? (
+                      <img src={a.avatar} alt={formatAccountName(a)} className="h-9 w-9 rounded-full object-cover border border-line" />
+                    ) : (
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-xs font-bold text-rose-700">
+                        {(capitalizeWord(a.firstName)[0] ?? "") + (capitalizeWord(a.lastName)[0] ?? "")}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-ink">{formatAccountName(a)}</p>
+                      <p className="truncate text-xs text-muted">{a.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge tone={daysAway === 0 ? "red" : "amber"}>
+                      {daysAway === 0 ? "Today 🎉" : daysAway === 1 ? `Tomorrow (${label})` : `In ${daysAway}d (${label})`}
+                    </Badge>
+                    {daysAway === 0 && (
+                      <button
+                        type="button"
+                        disabled={sent}
+                        onClick={() => {
+                          setSentWishIds((prev) => [...prev, a.id]);
+                          void sendBirthdayEmail({
+                            to: a.email,
+                            name: a.firstName || formatAccountName(a),
+                          });
+                        }}
+                        className="rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition disabled:opacity-50 cursor-pointer"
+                      >
+                        {sent ? "Wish Sent ✓" : "Send Wish Email"}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="px-6 py-8 text-center text-sm text-muted">No student birthdays in the next 14 days.</p>
+        )}
       </Card>
     </AdminShell>
   );

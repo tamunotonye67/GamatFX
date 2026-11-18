@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export type NotifPrefs = {
   browserNotifications: boolean;
   soundEnabled: boolean;
@@ -37,6 +39,31 @@ export function setNotifPrefs(userId: string, prefs: NotifPrefs): void {
     localStorage.setItem(keyFor(userId), JSON.stringify(prefs));
     window.dispatchEvent(new CustomEvent("gamat-notif-prefs-changed", { detail: { userId } }));
   } catch {}
+  void syncNotifPrefsToSupabase(userId, prefs);
+}
+
+export async function syncNotifPrefsToSupabase(userId: string, prefs: NotifPrefs): Promise<void> {
+  try {
+    await supabase.auth.updateUser({ data: { notif_prefs: prefs } });
+  } catch {}
+  try {
+    await supabase.from("accounts").update({ notif_prefs: prefs }).eq("id", userId);
+  } catch {}
+}
+
+export async function hydrateNotifPrefsFromSupabase(userId?: string): Promise<NotifPrefs> {
+  const local = getNotifPrefs(userId);
+  if (!userId || typeof window === "undefined") return local;
+  try {
+    const { data } = await supabase.auth.getUser();
+    const remote = data?.user?.user_metadata?.notif_prefs;
+    if (remote && typeof remote === "object") {
+      const merged = { ...DEFAULT_NOTIF_PREFS, ...remote, ...local };
+      localStorage.setItem(keyFor(userId), JSON.stringify(merged));
+      return merged;
+    }
+  } catch {}
+  return local;
 }
 
 export function playNotificationChime(): void {

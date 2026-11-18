@@ -71,6 +71,7 @@ import {
   sendSecurityAlertEmail,
 } from "./email";
 import { recordSecurityActivity, getDeviceSummary } from "./securityNotifs";
+import { getNotifPrefs } from "./notifPrefs";
 
 export const CERTIFICATE_FEE = 10000;
 
@@ -3932,14 +3933,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const first = (acc.firstName || "").replace(/\s+/g, "").toLowerCase();
       if ((nick && handles.has(nick)) || (full && handles.has(full)) || (first && handles.has(first))) {
         notified.add(acc.id);
-        void sendMentionEmail({
-          to: acc.email,
-          mentionedName: formatAccountName(acc),
-          senderName,
-          contextTitle,
-          preview: text.trim().slice(0, 260),
-          url,
-        });
+        const remoteOptOut = (acc as { notifPrefs?: { emailMentions?: boolean } }).notifPrefs?.emailMentions === false;
+        if (!remoteOptOut && getNotifPrefs(acc.id).emailMentions !== false) {
+          void sendMentionEmail({
+            to: acc.email,
+            mentionedName: formatAccountName(acc),
+            senderName,
+            contextTitle,
+            preview: text.trim().slice(0, 260),
+            url,
+          });
+        }
       }
     }
   }, [user, accounts]);

@@ -71,11 +71,30 @@ export default async function handler(req, res) {
       }
     }
 
+    let accRes = await fetch(
+      `${supabaseUrl}/rest/v1/accounts?select=id,email,first_name,last_name,nickname,birthday,status,notif_prefs`,
+      { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+    );
+    if (!accRes.ok) {
+      accRes = await fetch(
+        `${supabaseUrl}/rest/v1/accounts?select=id,email,first_name,last_name,nickname,birthday,status`,
+        { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+      );
+    }
+    const accounts = accRes.ok ? await accRes.json() : [];
+    const accountByEmail = new Map(
+      (accounts || [])
+        .filter((a) => a?.email)
+        .map((a) => [String(a.email).trim().toLowerCase(), a])
+    );
+
     let eventRemindersSent = 0;
     if (tomorrowEvents.size > 0) {
       for (const reg of registrations || []) {
         const ev = tomorrowEvents.get(reg.event_id);
         if (!ev || !reg.email) continue;
+        const regAcc = accountByEmail.get(String(reg.email).trim().toLowerCase());
+        if (regAcc?.notif_prefs && regAcc.notif_prefs.emailEvents === false) continue;
 
         const safeName = escapeHtml(reg.name || "Trader");
         const safeTitle = escapeHtml(ev.title || reg.event_title || "GAMAT FX Event");
@@ -142,16 +161,11 @@ export default async function handler(req, res) {
     const todayDd = String(now.getUTCDate()).padStart(2, "0");
     const todayMmDd = `${todayMm}-${todayDd}`;
 
-    const accRes = await fetch(
-      `${supabaseUrl}/rest/v1/accounts?select=id,email,first_name,last_name,nickname,birthday,status`,
-      { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
-    );
-
     if (accRes.ok) {
-      const accounts = await accRes.json();
       const celebrants = (accounts || []).filter((acc) => {
         if (!acc?.email || !acc?.birthday) return false;
         if (acc.status && acc.status !== "active") return false;
+        if (acc.notif_prefs && acc.notif_prefs.emailBirthdays === false) return false;
         const bday = String(acc.birthday).trim();
         const match = bday.match(/^\d{4}-(\d{2}-\d{2})/);
         return match ? match[1] === todayMmDd : false;

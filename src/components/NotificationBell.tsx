@@ -877,6 +877,14 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     prefs.inAppBirthdays,
   ]);
 
+  const [liveToast, setLiveToast] = useState<NotifItem | null>(null);
+
+  useEffect(() => {
+    if (!liveToast) return;
+    const t = window.setTimeout(() => setLiveToast(null), 6000);
+    return () => window.clearTimeout(t);
+  }, [liveToast]);
+
   useEffect(() => {
     if (!user) return;
     const currentIds = items.map((i) => i.id);
@@ -888,6 +896,11 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     currentIds.forEach((id) => seenAnnouncedRef.current!.add(id));
     if (newlyArrived.length === 0) return;
 
+    const top = newlyArrived[0];
+    if (!open) {
+      setLiveToast(top);
+    }
+
     if (prefs.soundEnabled) {
       playNotificationChime();
     }
@@ -896,7 +909,6 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       typeof Notification !== "undefined" &&
       Notification.permission === "granted"
     ) {
-      const top = newlyArrived[0];
       try {
         const notif = new Notification(top.title, {
           body: top.body,
@@ -909,7 +921,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         };
       } catch {}
     }
-  }, [items, readIds, user, prefs.soundEnabled, prefs.browserNotifications]);
+  }, [items, readIds, user, open, prefs.soundEnabled, prefs.browserNotifications]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;
   const visibleItems = items.slice(0, visibleCount);
@@ -1189,6 +1201,71 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           >
             {panelContent}
           </div>,
+          document.body
+        )}
+
+      {/* Live in-app toast popup */}
+      {liveToast &&
+        !open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          (() => {
+            const { Icon, badgeBg, iconBg } = styleFor(liveToast.kind);
+            return (
+              <div
+                role="status"
+                className="fixed bottom-4 right-4 left-4 sm:left-auto sm:w-[360px] z-[110] rounded-2xl border border-line bg-white p-3.5 shadow-[0_20px_50px_-15px_rgba(22,24,28,0.3)] flex items-start gap-3 animate-in fade-in slide-in-from-bottom-3"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    markOneRead(liveToast.id);
+                    const target = liveToast.to;
+                    setLiveToast(null);
+                    navigate(target);
+                  }}
+                  className="flex flex-1 items-start gap-3 text-left min-w-0 cursor-pointer"
+                >
+                  <div className="relative shrink-0 mt-0.5">
+                    {liveToast.actorName ? (
+                      liveToast.actorAvatar ? (
+                        <img
+                          src={liveToast.actorAvatar}
+                          alt={liveToast.actorName}
+                          className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
+                        />
+                      ) : (
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-xs font-bold text-white">
+                          {getInitials(liveToast.actorName)}
+                        </span>
+                      )
+                    ) : (
+                      <span className={`flex h-10 w-10 items-center justify-center rounded-full ${iconBg}`}>
+                        <Icon className="h-5 w-5" />
+                      </span>
+                    )}
+                    {liveToast.actorName && (
+                      <span className={`absolute -bottom-0.5 -right-0.5 flex h-4.5 w-4.5 items-center justify-center rounded-full ring-2 ring-white ${badgeBg}`}>
+                        <Icon className="h-2.5 w-2.5" />
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-extrabold text-ink leading-snug line-clamp-1">{liveToast.title}</p>
+                    <p className="mt-0.5 text-xs text-muted line-clamp-2 leading-relaxed">{liveToast.body}</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Dismiss notification"
+                  onClick={() => setLiveToast(null)}
+                  className="shrink-0 rounded-full p-1 text-muted hover:bg-cream hover:text-ink transition cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            );
+          })(),
           document.body
         )}
     </div>

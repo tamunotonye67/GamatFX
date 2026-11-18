@@ -25,7 +25,7 @@ import CertificatePaymentModal from "../components/CertificatePaymentModal";
 import { useSolidNavbar } from "../lib/chrome";
 import TradeJournalTab from "../components/TradeJournalTab";
 import MentorshipBookingTab from "../components/MentorshipBookingTab";
-import { getNotifPrefs, setNotifPrefs, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
+import { getNotifPrefs, setNotifPrefs, hydrateNotifPrefsFromSupabase, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 
 type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
 
@@ -2774,6 +2774,7 @@ function NotificationPreferencesCard({ userId }: { userId: string }) {
 
   useEffect(() => {
     setPrefs(getNotifPrefs(userId));
+    void hydrateNotifPrefsFromSupabase(userId).then((merged) => setPrefs(merged));
   }, [userId]);
 
   const updatePref = async (key: keyof NotifPrefs, value: boolean) => {
@@ -2933,14 +2934,39 @@ function Input({ label, value, onChange, ph }: { label: string; value: string; o
 
 /** Inline preview of the real landscape certificate + PNG download. */
 function CertificateCard({ data }: { data: CertData }) {
-  const { publishedTeam } = useStore();
+  const { publishedTeam, forum } = useStore();
   const [src, setSrc] = useState<string>("");
+  const [sharedForum, setSharedForum] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     // Render on the next frame so fonts are ready.
     const t = window.setTimeout(() => setSrc(certificatePreview(data, publishedTeam)), 60);
     return () => window.clearTimeout(t);
   }, [data.name, data.course, data.serial, publishedTeam]);
+
+  const handleShareToForum = () => {
+    if (sharedForum) return;
+    const res = forum.createThread({
+      channelId: "wins-losses",
+      title: `Earned my ${data.course} Certificate! 🎓`,
+      body: `Excited to share that I just completed ${data.course} at GAMAT FX Academy! (Certificate Serial: ${data.serial})`,
+      image: src || undefined,
+    });
+    if (res.ok) {
+      setSharedForum(true);
+      window.setTimeout(() => navigate("/forum/wins-losses"), 700);
+    }
+  };
+
+  const handleCopyVerifyLink = () => {
+    const url = `${window.location.origin}/#/verify-certificate?serial=${encodeURIComponent(data.serial)}`;
+    try {
+      void navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      window.setTimeout(() => setCopiedLink(false), 2000);
+    } catch {}
+  };
 
   return (
     <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_20px_55px_-32px_rgba(22,24,28,0.35)]">
@@ -2959,7 +2985,14 @@ function CertificateCard({ data }: { data: CertData }) {
           <p className="font-display text-base font-bold text-ink">{data.course}</p>
           <p className="mt-0.5 text-xs text-muted">Serial {data.serial} · Issued {data.date}</p>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2.5">
+          <button onClick={handleShareToForum} disabled={sharedForum} className="btn-outline-dark !py-2.5">
+            <Share2 className="h-4 w-4" /> {sharedForum ? "Shared to Forum ✓" : "Share to Forum"}
+          </button>
+          <button onClick={handleCopyVerifyLink} className="btn-outline-dark !py-2.5">
+            {copiedLink ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+            {copiedLink ? "Link Copied" : "Copy Verify Link"}
+          </button>
           <button onClick={() => navigate("/verify-certificate")} className="btn-outline-dark !py-2.5">
             <ShieldCheck className="h-4 w-4" /> Verify Online
           </button>
