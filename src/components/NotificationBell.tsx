@@ -11,12 +11,13 @@ import {
   Video,
   X,
   Inbox,
+  Flame,
 } from "lucide-react";
 import { useStore } from "../lib/store";
 import { formatAccountName } from "../lib/formatName";
 import { navigate } from "../lib/router";
 
-type NotifKind = "forum" | "like" | "mention" | "mentorship" | "event" | "cert";
+type NotifKind = "forum" | "like" | "mention" | "xp" | "mentorship" | "event" | "cert";
 
 type NotifItem = {
   id: string;
@@ -25,6 +26,8 @@ type NotifItem = {
   to: string;
   kind: NotifKind;
   time?: string;
+  actorName?: string;
+  actorAvatar?: string;
 };
 
 type FilterTab = "all" | "unread" | "forum" | "activity";
@@ -42,8 +45,23 @@ function timeAgo(iso?: string): string {
   return `${days}d ago`;
 }
 
+function getInitials(name?: string): string {
+  if (!name) return "GF";
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase() || "GF";
+}
+
 export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
-  const { user, myRegistrations = [], events = [], attempts = [], forum, admin } = useStore();
+  const {
+    user,
+    myRegistrations = [],
+    events = [],
+    attempts = [],
+    forum,
+    admin,
+    combat,
+    combatLeaderboard = [],
+  } = useStore();
   const threads = forum?.threads ?? [];
   const replies = forum?.replies ?? [];
   const accounts = admin?.accounts ?? [];
@@ -103,6 +121,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
   const items = useMemo<NotifItem[]>(() => {
     if (!user) return [];
     const list: NotifItem[] = [];
+    const accountById = new Map(accounts.map((a) => [a.id, a]));
     const nameById = new Map(accounts.map((a) => [a.id, formatAccountName(a)]));
 
     // 1. Forum replies / comments on user's threads
@@ -113,6 +132,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     replies
       .filter((r) => myThreadIds.has(r.threadId) && r.authorId !== user.id)
       .forEach((r) => {
+        const actor = accountById.get(r.authorId);
         list.push({
           id: `rep_${r.id}`,
           title: `${r.authorName} replied to "${threadTitleById.get(r.threadId) || "your thread"}"`,
@@ -120,6 +140,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           to: "/forum",
           kind: "forum",
           time: r.createdAt,
+          actorName: r.authorName,
+          actorAvatar: actor?.avatar || r.authorAvatar,
         });
       });
 
@@ -127,8 +149,12 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     myThreads.forEach((t) => {
       const likers = (t.likes || []).filter((id) => id !== user.id);
       if (likers.length > 0) {
+        const firstAcc = accountById.get(likers[0]);
         const firstLiker = nameById.get(likers[0]) || "Someone";
-        const who = likers.length === 1 ? firstLiker : `${firstLiker} & ${likers.length - 1} other${likers.length > 2 ? "s" : ""}`;
+        const who =
+          likers.length === 1
+            ? firstLiker
+            : `${firstLiker} & ${likers.length - 1} other${likers.length > 2 ? "s" : ""}`;
         list.push({
           id: `tlike_${t.id}_${likers.length}`,
           title: `${who} liked your thread`,
@@ -136,6 +162,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           to: "/forum",
           kind: "like",
           time: t.createdAt,
+          actorName: firstLiker,
+          actorAvatar: firstAcc?.avatar,
         });
       }
     });
@@ -146,8 +174,12 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       .forEach((r) => {
         const likers = (r.likes || []).filter((id) => id !== user.id);
         if (likers.length > 0) {
+          const firstAcc = accountById.get(likers[0]);
           const firstLiker = nameById.get(likers[0]) || "Someone";
-          const who = likers.length === 1 ? firstLiker : `${firstLiker} & ${likers.length - 1} other${likers.length > 2 ? "s" : ""}`;
+          const who =
+            likers.length === 1
+              ? firstLiker
+              : `${firstLiker} & ${likers.length - 1} other${likers.length > 2 ? "s" : ""}`;
           list.push({
             id: `rlike_${r.id}_${likers.length}`,
             title: `${who} liked your comment`,
@@ -155,6 +187,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
             to: "/forum",
             kind: "like",
             time: r.createdAt,
+            actorName: firstLiker,
+            actorAvatar: firstAcc?.avatar,
           });
         }
       });
@@ -180,6 +214,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     threads
       .filter((t) => t.authorId !== user.id && hasMention(t.body))
       .forEach((t) => {
+        const actor = accountById.get(t.authorId);
         list.push({
           id: `tment_${t.id}`,
           title: `${t.authorName} tagged you in "${t.title}"`,
@@ -187,12 +222,15 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           to: "/forum",
           kind: "mention",
           time: t.createdAt,
+          actorName: t.authorName,
+          actorAvatar: actor?.avatar || t.authorAvatar,
         });
       });
 
     replies
       .filter((r) => r.authorId !== user.id && !myThreadIds.has(r.threadId) && hasMention(r.body))
       .forEach((r) => {
+        const actor = accountById.get(r.authorId);
         list.push({
           id: `rment_${r.id}`,
           title: `${r.authorName} tagged you in a reply`,
@@ -200,10 +238,56 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           to: "/forum",
           kind: "mention",
           time: r.createdAt,
+          actorName: r.authorName,
+          actorAvatar: actor?.avatar || r.authorAvatar,
         });
       });
 
-    // 5. 1-on-1 Mentorship updates
+    // 5. XP Ranking / Leaderboard Rivalry Notifications
+    if (combatLeaderboard.length > 0) {
+      const myXp = combat?.xp ?? 0;
+      const myIdx = combatLeaderboard.findIndex((r) => r.userId === user.id);
+
+      // Someone ahead of the user -> "Catch up with [name]!"
+      const rival =
+        myIdx > 0
+          ? combatLeaderboard[myIdx - 1]
+          : myIdx === -1
+          ? combatLeaderboard.find((r) => r.userId !== user.id)
+          : undefined;
+
+      if (rival && rival.xp > myXp) {
+        const gap = rival.xp - myXp;
+        list.push({
+          id: `xp_up_${rival.userId}_${rival.xp}`,
+          title: `Catch up with ${rival.name}!`,
+          body: `${rival.name} is ${gap} XP ahead (${rival.xp} XP). Join the Arcade & Quizzes to climb the leaderboard!`,
+          to: "/fun",
+          kind: "xp",
+          time: new Date().toISOString(),
+          actorName: rival.name,
+          actorAvatar: rival.avatar,
+        });
+      }
+
+      // Someone right behind the user -> "Don't let [name] beat you!"
+      const challenger = myIdx >= 0 && myIdx + 1 < combatLeaderboard.length ? combatLeaderboard[myIdx + 1] : undefined;
+      if (challenger) {
+        const lead = Math.max(0, myXp - challenger.xp);
+        list.push({
+          id: `xp_def_${challenger.userId}_${challenger.xp}`,
+          title: `Don't let ${challenger.name} beat you!`,
+          body: `${challenger.name} is only ${lead} XP behind your #${myIdx + 1} rank. Keep your streak alive!`,
+          to: "/fun",
+          kind: "xp",
+          time: new Date().toISOString(),
+          actorName: challenger.name,
+          actorAvatar: challenger.avatar,
+        });
+      }
+    }
+
+    // 6. 1-on-1 Mentorship updates
     const emailLower = user.email.toLowerCase();
     enquiries
       .filter(
@@ -224,7 +308,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
-    // 6. Confirmed event tickets
+    // 7. Confirmed event tickets
     myRegistrations
       .filter((r) => r.status === "confirmed")
       .forEach((r) => {
@@ -241,7 +325,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         }
       });
 
-    // 7. Passed course exams / certificates
+    // 8. Passed course exams / certificates
     attempts
       .filter((a) => a.passed)
       .forEach((a) => {
@@ -258,14 +342,15 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     return list
       .sort((a, b) => (+new Date(b.time || 0)) - (+new Date(a.time || 0)))
       .slice(0, 25);
-  }, [user, accounts, enquiries, myRegistrations, events, attempts, threads, replies]);
+  }, [user, accounts, enquiries, myRegistrations, events, attempts, threads, replies, combat, combatLeaderboard]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;
 
   const filteredItems = useMemo(() => {
     if (filter === "unread") return items.filter((i) => !readIds.includes(i.id));
     if (filter === "forum") return items.filter((i) => i.kind === "forum" || i.kind === "like" || i.kind === "mention");
-    if (filter === "activity") return items.filter((i) => i.kind === "mentorship" || i.kind === "event" || i.kind === "cert");
+    if (filter === "activity")
+      return items.filter((i) => i.kind === "xp" || i.kind === "mentorship" || i.kind === "event" || i.kind === "cert");
     return items;
   }, [items, filter, readIds]);
 
@@ -290,13 +375,59 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
   if (!user) return null;
 
-  const iconFor = (kind: NotifKind) => {
-    if (kind === "like") return { Icon: Heart, bg: "bg-rose-50 text-rose-600" };
-    if (kind === "mention") return { Icon: AtSign, bg: "bg-amber-50 text-amber-700" };
-    if (kind === "mentorship") return { Icon: Video, bg: "bg-indigo-50 text-indigo-600" };
-    if (kind === "event") return { Icon: CalendarDays, bg: "bg-emerald-50 text-emerald-700" };
-    if (kind === "cert") return { Icon: Award, bg: "bg-purple-50 text-purple-700" };
-    return { Icon: MessageSquare, bg: "bg-brand-light text-brand" };
+  const styleFor = (kind: NotifKind) => {
+    switch (kind) {
+      case "like":
+        return {
+          Icon: Heart,
+          badgeBg: "bg-rose-500 text-white",
+          iconBg: "bg-rose-500/10 text-rose-600",
+          cardBg: "bg-rose-500/[0.05] hover:bg-rose-500/[0.10]",
+          dotBg: "bg-rose-500",
+        };
+      case "forum":
+        return {
+          Icon: MessageSquare,
+          badgeBg: "bg-sky-500 text-white",
+          iconBg: "bg-sky-500/10 text-sky-600",
+          cardBg: "bg-sky-500/[0.05] hover:bg-sky-500/[0.10]",
+          dotBg: "bg-sky-500",
+        };
+      case "mention":
+        return {
+          Icon: AtSign,
+          badgeBg: "bg-amber-500 text-white",
+          iconBg: "bg-amber-500/10 text-amber-700",
+          cardBg: "bg-amber-500/[0.06] hover:bg-amber-500/[0.11]",
+          dotBg: "bg-amber-500",
+        };
+      case "xp":
+        return {
+          Icon: Flame,
+          badgeBg: "bg-purple-600 text-white",
+          iconBg: "bg-purple-500/10 text-purple-600",
+          cardBg: "bg-purple-500/[0.05] hover:bg-purple-500/[0.10]",
+          dotBg: "bg-purple-600",
+        };
+      case "cert":
+        return {
+          Icon: Award,
+          badgeBg: "bg-purple-600 text-white",
+          iconBg: "bg-purple-500/10 text-purple-600",
+          cardBg: "bg-purple-500/[0.05] hover:bg-purple-500/[0.10]",
+          dotBg: "bg-purple-600",
+        };
+      case "event":
+      case "mentorship":
+      default:
+        return {
+          Icon: kind === "mentorship" ? Video : CalendarDays,
+          badgeBg: "bg-emerald-500 text-white",
+          iconBg: "bg-emerald-500/10 text-emerald-600",
+          cardBg: "bg-emerald-500/[0.05] hover:bg-emerald-500/[0.10]",
+          dotBg: "bg-emerald-500",
+        };
+    }
   };
 
   const panelContent = (
@@ -341,7 +472,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           ["all", "All"],
           ["unread", "Unread"],
           ["forum", "Forum"],
-          ["activity", "Sessions & Certs"],
+          ["activity", "XP & Sessions"],
         ] as [FilterTab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -360,10 +491,10 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
       {/* Notification List */}
       {filteredItems.length ? (
-        <div className="flex-1 overflow-y-auto divide-y divide-line">
+        <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5 bg-white">
           {filteredItems.map((n) => {
             const unread = !readIds.includes(n.id);
-            const { Icon, bg } = iconFor(n.kind);
+            const { Icon, badgeBg, iconBg, cardBg, dotBg } = styleFor(n.kind);
             const ago = timeAgo(n.time);
             return (
               <button
@@ -374,19 +505,44 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
                   setOpen(false);
                   navigate(n.to);
                 }}
-                className={`flex w-full items-start gap-3.5 px-5 py-4 text-left transition hover:bg-cream/60 cursor-pointer ${
-                  unread ? "bg-brand-light/20" : ""
+                className={`flex w-full items-start gap-3.5 rounded-2xl px-3.5 py-3 text-left transition cursor-pointer ${
+                  unread ? cardBg : "hover:bg-cream/70"
                 }`}
               >
-                <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-                  <Icon className="h-4 w-4" />
-                </span>
+                {/* Facebook-style circular avatar with attached corner icon badge */}
+                <div className="relative shrink-0 mt-0.5">
+                  {n.actorName ? (
+                    n.actorAvatar ? (
+                      <img
+                        src={n.actorAvatar}
+                        alt={n.actorName}
+                        className="h-11 w-11 rounded-full object-cover ring-2 ring-white shadow-xs"
+                      />
+                    ) : (
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-ink/85 to-ink text-xs font-bold text-white ring-2 ring-white shadow-xs">
+                        {getInitials(n.actorName)}
+                      </span>
+                    )
+                  ) : (
+                    <span className={`flex h-11 w-11 items-center justify-center rounded-full ${iconBg}`}>
+                      <Icon className="h-5 w-5" />
+                    </span>
+                  )}
+                  {n.actorName && (
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full ring-2 ring-white shadow-xs ${badgeBg}`}
+                    >
+                      <Icon className="h-2.5 w-2.5" />
+                    </span>
+                  )}
+                </div>
+
                 <span className="min-w-0 flex-1">
                   <span className="flex items-start justify-between gap-2">
                     <span className="text-xs sm:text-[13px] font-bold text-ink leading-snug">{n.title}</span>
-                    {unread && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
+                    {unread && <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${dotBg}`} />}
                   </span>
-                  <span className="mt-1 block line-clamp-2 text-xs text-muted leading-relaxed">{n.body}</span>
+                  <span className="mt-0.5 block line-clamp-2 text-xs text-muted leading-relaxed">{n.body}</span>
                   {ago && <span className="mt-1 block text-[10px] font-semibold text-muted/80">{ago}</span>}
                 </span>
               </button>
@@ -400,7 +556,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           </span>
           <p className="mt-3 font-display text-sm font-bold text-ink">No notifications here</p>
           <p className="mt-1 text-xs text-muted">
-            Forum replies, likes, @mentions, mentorship confirmations, and certificates will show up here.
+            Forum replies, likes, @mentions, XP rankings, mentorship confirmations, and certificates will show up here.
           </p>
         </div>
       )}
