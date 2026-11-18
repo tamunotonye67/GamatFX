@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import PageHero from "../../components/PageHero";
 import PageCta from "../../components/PageCta";
 import { useStore, type TradingClub } from "../../lib/store";
@@ -26,6 +26,19 @@ export default function ClubBuilderPage() {
   const [focusFilter, setFocusFilter] = useState("All");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [activeModalClub, setActiveModalClub] = useState<TradingClub | null>(null);
+
+  useEffect(() => {
+    const syncClubFromUrl = () => {
+      const qStr = window.location.hash.split("?")[1] || "";
+      const clubId = new URLSearchParams(qStr).get("club");
+      if (!clubId) return;
+      const found = clubs.find((c) => c.id === clubId);
+      if (found) setActiveModalClub(found);
+    };
+    syncClubFromUrl();
+    window.addEventListener("hashchange", syncClubFromUrl);
+    return () => window.removeEventListener("hashchange", syncClubFromUrl);
+  }, [clubs]);
 
   // Create form state
   const [form, setForm] = useState({

@@ -111,6 +111,23 @@ export default function DashboardPage() {
     } catch {}
   };
 
+  useEffect(() => {
+    const validTabs: Tab[] = [
+      "overview", "courses", "journal", "booking", "certificates",
+      "affiliate", "wallet", "events", "billing", "posts", "team-bio", "profile",
+    ];
+    const syncTabFromUrl = () => {
+      const qStr = window.location.hash.split("?")[1] || "";
+      const param = new URLSearchParams(qStr).get("tab") as Tab | null;
+      if (param && validTabs.includes(param)) {
+        setTab(param);
+      }
+    };
+    syncTabFromUrl();
+    window.addEventListener("hashchange", syncTabFromUrl);
+    return () => window.removeEventListener("hashchange", syncTabFromUrl);
+  }, []);
+
   /* Affiliate Ad Popup State & Periodic Reminder */
   const [showAffiliateAd, setShowAffiliateAd] = useState(false);
 

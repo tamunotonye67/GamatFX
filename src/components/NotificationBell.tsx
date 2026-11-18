@@ -176,17 +176,19 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     // 1. Forum replies / comments on user's threads
     const myThreads = threads.filter((t) => t.authorId === user.id);
     const myThreadIds = new Set(myThreads.map((t) => t.id));
+    const threadById = new Map(threads.map((t) => [t.id, t]));
     const threadTitleById = new Map(threads.map((t) => [t.id, t.title]));
 
     replies
       .filter((r) => myThreadIds.has(r.threadId) && r.authorId !== user.id)
       .forEach((r) => {
         const actor = accountById.get(r.authorId);
+        const parent = threadById.get(r.threadId);
         list.push({
           id: `rep_${r.id}`,
           title: `${r.authorName} replied to "${threadTitleById.get(r.threadId) || "your thread"}"`,
           body: r.body ? r.body.slice(0, 90) : "Attached an image",
-          to: "/forum",
+          to: parent ? `/forum/${parent.channelId}/${parent.id}` : "/forum",
           kind: "forum",
           time: r.createdAt,
           actorName: r.authorName,
@@ -208,7 +210,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `tlike_${t.id}_${likers.length}`,
           title: `${who} liked your thread`,
           body: t.title,
-          to: "/forum",
+          to: `/forum/${t.channelId}/${t.id}`,
           kind: "like",
           time: t.createdAt,
           actorName: firstLiker,
@@ -225,6 +227,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         if (likers.length > 0) {
           const firstAcc = accountById.get(likers[0]);
           const firstLiker = nameById.get(likers[0]) || "Someone";
+          const parent = threadById.get(r.threadId);
           const who =
             likers.length === 1
               ? firstLiker
@@ -233,7 +236,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
             id: `rlike_${r.id}_${likers.length}`,
             title: `${who} liked your comment`,
             body: r.body ? r.body.slice(0, 90) : "Your forum comment",
-            to: "/forum",
+            to: parent ? `/forum/${parent.channelId}/${parent.id}` : "/forum",
             kind: "like",
             time: r.createdAt,
             actorName: firstLiker,
@@ -268,7 +271,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `tment_${t.id}`,
           title: `${t.authorName} tagged you in "${t.title}"`,
           body: t.body.slice(0, 90),
-          to: "/forum",
+          to: `/forum/${t.channelId}/${t.id}`,
           kind: "mention",
           time: t.createdAt,
           actorName: t.authorName,
@@ -280,11 +283,12 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       .filter((r) => r.authorId !== user.id && !myThreadIds.has(r.threadId) && hasMention(r.body))
       .forEach((r) => {
         const actor = accountById.get(r.authorId);
+        const parent = threadById.get(r.threadId);
         list.push({
           id: `rment_${r.id}`,
           title: `${r.authorName} tagged you in a reply`,
           body: r.body.slice(0, 90),
-          to: "/forum",
+          to: parent ? `/forum/${parent.channelId}/${parent.id}` : "/forum",
           kind: "mention",
           time: r.createdAt,
           actorName: r.authorName,
@@ -306,7 +310,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
               ? `${m.userName} tagged you in ${userClub.name}`
               : `New message in ${userClub.name}`,
             body: `${m.userName}: ${m.content ? m.content.slice(0, 80) : "Shared an image"}`,
-            to: "/fun",
+            to: `/fun/clubs?club=${userClub.id}`,
             kind: mentioned ? "mention" : "club",
             time: m.createdAt,
             actorName: m.userName,
@@ -333,7 +337,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `xp_up_${rival.userId}_${rival.xp}`,
           title: `Catch up with ${rival.name}!`,
           body: `${rival.name} is ${gap} XP ahead (${rival.xp} XP). Join the Arcade & Quizzes to climb the leaderboard!`,
-          to: "/fun",
+          to: "/fun/market-combat",
           kind: "xp",
           actorName: rival.name,
           actorAvatar: rival.avatar,
@@ -347,7 +351,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `xp_def_${challenger.userId}_${challenger.xp}`,
           title: `Don't let ${challenger.name} beat you!`,
           body: `${challenger.name} is only ${lead} XP behind your #${myIdx + 1} rank. Keep your streak alive!`,
-          to: "/fun",
+          to: "/fun/market-combat",
           kind: "xp",
           actorName: challenger.name,
           actorAvatar: challenger.avatar,
@@ -370,7 +374,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `ment_${b.id}_${confirmed ? "ok" : "no"}`,
           title: confirmed ? "1-on-1 Mentorship Confirmed" : "1-on-1 Slot Unavailable",
           body: `${b.serviceTitle} · ${b.packageName} WAT`,
-          to: "/dashboard",
+          to: "/dashboard?tab=booking",
           kind: "mentorship",
           time: b.createdAt,
         });
@@ -384,7 +388,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `course_${enr.id}`,
           title: `Course Unlocked: ${course.title}`,
           body: `${enr.completedLessons.length} lesson${enr.completedLessons.length === 1 ? "" : "s"} completed — continue learning`,
-          to: `/courses/${course.id}`,
+          to: `/learn/${course.id}`,
           kind: "course",
           time: enr.enrolledAt,
         });
@@ -396,7 +400,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         id: `onboard_${user.id}`,
         title: "Complete your first quiz to earn XP!",
         body: "Jump into the Quiz & Trading Arcade to get ranked on the student leaderboard.",
-        to: "/fun",
+        to: "/fun/quiz",
         kind: "xp",
       });
     }
@@ -407,7 +411,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         id: `outlook_${o.id}`,
         title: `New Market Outlook: ${o.pair}`,
         body: `${o.bias} · ${o.title}`,
-        to: "/outlooks",
+        to: `/outlook/${o.id}`,
         kind: "news",
         time: o.createdAt,
       });
@@ -418,7 +422,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         id: `news_${n.id}`,
         title: `Academy News: ${n.title}`,
         body: n.summary || "Read the latest update from GAMAT Fx Academy",
-        to: "/news",
+        to: `/news/${n.id}`,
         kind: "news",
         time: n.publishedAt,
       });
@@ -436,7 +440,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         body: iWon
           ? `Reward: ${g.reward} — Check your Giveaway details!`
           : `Reward: ${g.reward}${firstWinner ? ` · Congrats to ${firstWinner.name}!` : ""}`,
-        to: "/giveaways",
+        to: `/giveaways/${g.id}`,
         kind: "giveaway",
         time: g.announcedAt || g.createdAt,
         actorName: firstWinner?.name,
@@ -452,7 +456,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           ? "You're Student of the Week!"
           : `Student of the Week: ${studentOfTheWeek.studentName}`,
         body: `${studentOfTheWeek.track} · ${studentOfTheWeek.weekPeriod}`,
-        to: "/student-of-the-week",
+        to: "/fun/student-of-the-week",
         kind: "sotw",
         time: studentOfTheWeek.createdAt,
         actorName: studentOfTheWeek.studentName,
@@ -469,7 +473,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `aff_${c.id}`,
           title: `Affiliate Commission Earned (+₦${c.commissionAmount.toLocaleString()})`,
           body: `${c.referredUserName} enrolled via your referral link`,
-          to: "/dashboard",
+          to: "/dashboard?tab=affiliate",
           kind: "affiliate",
           time: c.createdAt,
         });
@@ -488,7 +492,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
               ? "Payout Request Declined"
               : `Payout Requested (₦${p.amount.toLocaleString()})`,
           body: `Status: ${p.status.toUpperCase()}`,
-          to: "/dashboard",
+          to: "/dashboard?tab=affiliate",
           kind: "affiliate",
           time: p.resolvedAt || p.createdAt,
         });
@@ -500,7 +504,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         id: `store_${ord.id}`,
         title: `Store Order Confirmed: ${ord.courseTitle}`,
         body: `₦${ord.amount.toLocaleString()} · Ref ${ord.ref}`,
-        to: "/store",
+        to: "/dashboard?tab=billing",
         kind: "store",
         time: ord.createdAt,
       });
@@ -516,7 +520,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
             id: `ev_${r.id}`,
             title: `Ticket Confirmed: ${ev.title}`,
             body: `${ev.date} · Ticket ${r.ticketCode}`,
-            to: "/dashboard",
+            to: "/dashboard?tab=events",
             kind: "event",
             time: r.createdAt,
           });
@@ -531,7 +535,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `cert_${a.id}`,
           title: "Course Exam Passed!",
           body: `Score ${a.score}% — Check your Certificates tab`,
-          to: "/dashboard",
+          to: "/dashboard?tab=certificates",
           kind: "cert",
           time: a.submittedAt,
         });
