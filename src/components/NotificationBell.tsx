@@ -12,12 +12,36 @@ import {
   X,
   Inbox,
   Flame,
+  Trophy,
+  Users,
+  BookOpen,
+  TrendingUp,
+  ShoppingBag,
+  Wallet,
+  ShieldCheck,
+  Gift,
 } from "lucide-react";
 import { useStore } from "../lib/store";
+import { getCourse } from "../lib/courses";
 import { formatAccountName } from "../lib/formatName";
 import { navigate } from "../lib/router";
 
-type NotifKind = "forum" | "like" | "mention" | "xp" | "mentorship" | "event" | "cert";
+type NotifKind =
+  | "forum"
+  | "like"
+  | "mention"
+  | "xp"
+  | "mentorship"
+  | "event"
+  | "cert"
+  | "club"
+  | "course"
+  | "news"
+  | "giveaway"
+  | "sotw"
+  | "affiliate"
+  | "store"
+  | "account";
 
 type NotifItem = {
   id: string;
@@ -55,10 +79,20 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     myRegistrations = [],
     events = [],
     attempts = [],
+    enrollments = [],
     forum,
     admin,
     combat,
     combatLeaderboard = [],
+    userClub,
+    clubMessages = [],
+    publishedOutlooks = [],
+    publishedNews = [],
+    publishedGiveaways = [],
+    studentOfTheWeek,
+    affiliateCommissions = [],
+    payoutRequests = [],
+    myStorePurchases = [],
   } = useStore();
   const threads = forum?.threads ?? [];
   const replies = forum?.replies ?? [];
@@ -258,12 +292,34 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
-    // 5. XP Ranking / Leaderboard Rivalry Notifications
+    // 5. Trading Club Activity (messages & @mentions in user's club)
+    if (userClub) {
+      clubMessages
+        .filter((m) => m.clubId === userClub.id && m.userId !== user.id)
+        .slice(0, 4)
+        .forEach((m) => {
+          const actor = accountById.get(m.userId);
+          const mentioned = hasMention(m.content);
+          list.push({
+            id: `club_${m.id}`,
+            title: mentioned
+              ? `${m.userName} tagged you in ${userClub.name}`
+              : `New message in ${userClub.name}`,
+            body: `${m.userName}: ${m.content ? m.content.slice(0, 80) : "Shared an image"}`,
+            to: "/fun",
+            kind: mentioned ? "mention" : "club",
+            time: m.createdAt,
+            actorName: m.userName,
+            actorAvatar: actor?.avatar || m.userAvatar,
+          });
+        });
+    }
+
+    // 6. XP Ranking / Leaderboard Rivalry Notifications
     if (combatLeaderboard.length > 0) {
       const myXp = combat?.xp ?? 0;
       const myIdx = combatLeaderboard.findIndex((r) => r.userId === user.id);
 
-      // Someone ahead of the user -> "Catch up with [name]!"
       const rival =
         myIdx > 0
           ? combatLeaderboard[myIdx - 1]
@@ -284,7 +340,6 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       }
 
-      // Someone right behind the user -> "Don't let [name] beat you!"
       const challenger = myIdx >= 0 && myIdx + 1 < combatLeaderboard.length ? combatLeaderboard[myIdx + 1] : undefined;
       if (challenger) {
         const lead = Math.max(0, myXp - challenger.xp);
@@ -300,7 +355,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       }
     }
 
-    // 6. 1-on-1 Mentorship updates
+    // 7. 1-on-1 Mentorship updates
     const emailLower = user.email.toLowerCase();
     enquiries
       .filter(
@@ -321,7 +376,137 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
-    // 7. Confirmed event tickets
+    // 8. Course & Lesson Updates + Onboarding prompt
+    enrollments.slice(0, 3).forEach((enr) => {
+      const course = getCourse(enr.courseId);
+      if (course) {
+        list.push({
+          id: `course_${enr.id}`,
+          title: `Course Unlocked: ${course.title}`,
+          body: `${enr.completedLessons.length} lesson${enr.completedLessons.length === 1 ? "" : "s"} completed — continue learning`,
+          to: `/courses/${course.id}`,
+          kind: "course",
+          time: enr.enrolledAt,
+        });
+      }
+    });
+
+    if ((combat?.xp ?? 0) === 0 && attempts.length === 0) {
+      list.push({
+        id: `onboard_${user.id}`,
+        title: "Complete your first quiz to earn XP!",
+        body: "Jump into the Quiz & Trading Arcade to get ranked on the student leaderboard.",
+        to: "/fun",
+        kind: "xp",
+      });
+    }
+
+    // 9. Market Outlooks & Academy News
+    publishedOutlooks.slice(0, 2).forEach((o) => {
+      list.push({
+        id: `outlook_${o.id}`,
+        title: `New Market Outlook: ${o.pair}`,
+        body: `${o.bias} · ${o.title}`,
+        to: "/outlooks",
+        kind: "news",
+        time: o.createdAt,
+      });
+    });
+
+    publishedNews.slice(0, 2).forEach((n) => {
+      list.push({
+        id: `news_${n.id}`,
+        title: `Academy News: ${n.title}`,
+        body: n.summary || "Read the latest update from GAMAT Fx Academy",
+        to: "/news",
+        kind: "news",
+        time: n.publishedAt,
+      });
+    });
+
+    // 10. Giveaways & Student of the Week
+    publishedGiveaways.slice(0, 2).forEach((g) => {
+      const iWon = (g.winners || []).some(
+        (w) => w.userId === user.id || w.name.toLowerCase() === formatAccountName(user).toLowerCase()
+      );
+      const firstWinner = g.winners?.[0];
+      list.push({
+        id: `giveaway_${g.id}`,
+        title: iWon ? `You Won a Giveaway: ${g.title}!` : `Giveaway Winners: ${g.title}`,
+        body: iWon
+          ? `Reward: ${g.reward} — Check your Giveaway details!`
+          : `Reward: ${g.reward}${firstWinner ? ` · Congrats to ${firstWinner.name}!` : ""}`,
+        to: "/giveaways",
+        kind: "giveaway",
+        time: g.announcedAt || g.createdAt,
+        actorName: firstWinner?.name,
+        actorAvatar: firstWinner?.avatar,
+      });
+    });
+
+    if (studentOfTheWeek && studentOfTheWeek.studentName) {
+      const isMe = studentOfTheWeek.studentId === user.id;
+      list.push({
+        id: `sotw_${studentOfTheWeek.id}_${studentOfTheWeek.weekPeriod}`,
+        title: isMe
+          ? "You're Student of the Week!"
+          : `Student of the Week: ${studentOfTheWeek.studentName}`,
+        body: `${studentOfTheWeek.track} · ${studentOfTheWeek.weekPeriod}`,
+        to: "/student-of-the-week",
+        kind: "sotw",
+        time: studentOfTheWeek.createdAt,
+        actorName: studentOfTheWeek.studentName,
+        actorAvatar: studentOfTheWeek.avatar,
+      });
+    }
+
+    // 11. Affiliate Commissions & Payouts
+    affiliateCommissions
+      .filter((c) => c.affiliateUserId === user.id)
+      .slice(0, 3)
+      .forEach((c) => {
+        list.push({
+          id: `aff_${c.id}`,
+          title: `Affiliate Commission Earned (+₦${c.commissionAmount.toLocaleString()})`,
+          body: `${c.referredUserName} enrolled via your referral link`,
+          to: "/dashboard",
+          kind: "affiliate",
+          time: c.createdAt,
+        });
+      });
+
+    payoutRequests
+      .filter((p) => p.affiliateUserId === user.id)
+      .slice(0, 3)
+      .forEach((p) => {
+        list.push({
+          id: `payreq_${p.id}_${p.status}`,
+          title:
+            p.status === "paid"
+              ? `Payout Sent (₦${p.amount.toLocaleString()})`
+              : p.status === "rejected"
+              ? "Payout Request Declined"
+              : `Payout Requested (₦${p.amount.toLocaleString()})`,
+          body: `Status: ${p.status.toUpperCase()}`,
+          to: "/dashboard",
+          kind: "affiliate",
+          time: p.resolvedAt || p.createdAt,
+        });
+      });
+
+    // 12. Store & Order Updates
+    myStorePurchases.slice(0, 3).forEach((ord) => {
+      list.push({
+        id: `store_${ord.id}`,
+        title: `Store Order Confirmed: ${ord.courseTitle}`,
+        body: `₦${ord.amount.toLocaleString()} · Ref ${ord.ref}`,
+        to: "/store",
+        kind: "store",
+        time: ord.createdAt,
+      });
+    });
+
+    // 13. Confirmed event tickets
     myRegistrations
       .filter((r) => r.status === "confirmed")
       .forEach((r) => {
@@ -338,7 +523,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         }
       });
 
-    // 8. Passed course exams / certificates
+    // 14. Passed course exams / certificates
     attempts
       .filter((a) => a.passed)
       .forEach((a) => {
@@ -352,6 +537,17 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
+    // 15. Account & Role Promotion
+    if (user.role === "staff" || user.role === "admin") {
+      list.push({
+        id: `role_${user.id}_${user.role}`,
+        title: user.role === "admin" ? "Admin Access Active" : "Staff Role Active",
+        body: "You have elevated team permissions on GAMAT Fx Academy.",
+        to: "/admin",
+        kind: "account",
+      });
+    }
+
     return list
       .sort((a, b) => {
         const ta = a.time ? +new Date(a.time) : Number.MAX_SAFE_INTEGER;
@@ -359,7 +555,28 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         return tb - ta;
       })
       .slice(0, 40);
-  }, [user, accounts, enquiries, myRegistrations, events, attempts, threads, replies, combat, combatLeaderboard]);
+  }, [
+    user,
+    accounts,
+    enquiries,
+    myRegistrations,
+    events,
+    attempts,
+    enrollments,
+    threads,
+    replies,
+    combat,
+    combatLeaderboard,
+    userClub,
+    clubMessages,
+    publishedOutlooks,
+    publishedNews,
+    publishedGiveaways,
+    studentOfTheWeek,
+    affiliateCommissions,
+    payoutRequests,
+    myStorePurchases,
+  ]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;
   const visibleItems = items.slice(0, visibleCount);
@@ -404,35 +621,61 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           cardBg: "bg-sky-500/[0.05] hover:bg-sky-500/[0.10]",
           dotBg: "bg-sky-500",
         };
-      case "mention":
+      case "club":
         return {
-          Icon: AtSign,
+          Icon: Users,
+          badgeBg: "bg-indigo-500 text-white",
+          iconBg: "bg-indigo-500/10 text-indigo-600",
+          cardBg: "bg-indigo-500/[0.05] hover:bg-indigo-500/[0.10]",
+          dotBg: "bg-indigo-500",
+        };
+      case "mention":
+      case "news":
+        return {
+          Icon: kind === "news" ? TrendingUp : AtSign,
           badgeBg: "bg-amber-500 text-white",
           iconBg: "bg-amber-500/10 text-amber-700",
           cardBg: "bg-amber-500/[0.06] hover:bg-amber-500/[0.11]",
           dotBg: "bg-amber-500",
         };
       case "xp":
-        return {
-          Icon: Flame,
-          badgeBg: "bg-purple-600 text-white",
-          iconBg: "bg-purple-500/10 text-purple-600",
-          cardBg: "bg-purple-500/[0.05] hover:bg-purple-500/[0.10]",
-          dotBg: "bg-purple-600",
-        };
       case "cert":
+      case "giveaway":
+      case "sotw":
+      case "account":
         return {
-          Icon: Award,
+          Icon:
+            kind === "xp"
+              ? Flame
+              : kind === "giveaway"
+              ? Gift
+              : kind === "sotw"
+              ? Trophy
+              : kind === "account"
+              ? ShieldCheck
+              : Award,
           badgeBg: "bg-purple-600 text-white",
           iconBg: "bg-purple-500/10 text-purple-600",
           cardBg: "bg-purple-500/[0.05] hover:bg-purple-500/[0.10]",
           dotBg: "bg-purple-600",
         };
+      case "course":
+      case "affiliate":
+      case "store":
       case "event":
       case "mentorship":
       default:
         return {
-          Icon: kind === "mentorship" ? Video : CalendarDays,
+          Icon:
+            kind === "course"
+              ? BookOpen
+              : kind === "affiliate"
+              ? Wallet
+              : kind === "store"
+              ? ShoppingBag
+              : kind === "mentorship"
+              ? Video
+              : CalendarDays,
           badgeBg: "bg-emerald-500 text-white",
           iconBg: "bg-emerald-500/10 text-emerald-600",
           cardBg: "bg-emerald-500/[0.05] hover:bg-emerald-500/[0.10]",
