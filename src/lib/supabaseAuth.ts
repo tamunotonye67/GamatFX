@@ -323,9 +323,34 @@ export async function saveSupabaseAccount(acc: Account): Promise<{ ok: boolean; 
   try {
     const cleanEmail = acc.email.trim().toLowerCase();
     const row = accountToRow({ ...acc, email: cleanEmail });
-    await supabase.from("accounts").delete().eq("email", cleanEmail).neq("id", acc.id);
+
+    // Check if an existing row for this email already exists under a different ID
+    const { data: existingByEmail } = await supabase
+      .from("accounts")
+      .select("id")
+      .eq("email", cleanEmail)
+      .maybeSingle();
+
+    if (existingByEmail && existingByEmail.id && existingByEmail.id !== acc.id) {
+      const { id: _ignoreId, ...patchWithoutId } = row;
+      const { error: updateErr } = await supabase
+        .from("accounts")
+        .update(patchWithoutId)
+        .eq("id", existingByEmail.id);
+      if (!updateErr) return { ok: true };
+    }
+
     const { error } = await supabase.from("accounts").upsert(row, { onConflict: "id" });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      // Fallback: try updating directly by email
+      const { id: _ignoreId, ...patchWithoutId } = row;
+      const { error: emailUpdateErr } = await supabase
+        .from("accounts")
+        .update(patchWithoutId)
+        .eq("email", cleanEmail);
+      if (!emailUpdateErr) return { ok: true };
+      return { ok: false, error: error.message };
+    }
     return { ok: true };
   } catch (err: any) {
     return { ok: false, error: err.message || "Failed to save account to Supabase" };

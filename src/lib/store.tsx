@@ -1701,6 +1701,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           resolvedAcc = { ...resolvedAcc, status: "active" };
         }
 
+        if (userEmail) {
+          try {
+            const raw = localStorage.getItem("gamat.avatar_override.v1");
+            if (raw) {
+              const map = JSON.parse(raw);
+              const ov = map?.[userEmail];
+              if (ov && ov.avatar !== undefined) {
+                resolvedAcc = { ...resolvedAcc, avatar: ov.avatar };
+              }
+            }
+          } catch {}
+        }
+
         const finalAcc = resolvedAcc;
         recentlyCreatedRef.current.set(finalAcc.id, { account: finalAcc, ts: Date.now() });
         unmarkDeletedAccount(finalAcc.id, userEmail);
@@ -2378,7 +2391,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             email: cleanEmail,
           };
         }
-        const authedAcc = { ...res.account, password };
+        let authedAcc = { ...res.account, password };
+        try {
+          const rawOv = localStorage.getItem("gamat.avatar_override.v1");
+          if (rawOv) {
+            const ovMap = JSON.parse(rawOv);
+            const ov = ovMap?.[cleanEmail];
+            if (ov && ov.avatar !== undefined) {
+              authedAcc = { ...authedAcc, avatar: ov.avatar };
+              void saveSupabaseAccount(authedAcc).then((s) => {
+                if (s.ok) {
+                  try {
+                    const r = localStorage.getItem("gamat.avatar_override.v1");
+                    if (r) {
+                      const m = JSON.parse(r);
+                      delete m[cleanEmail];
+                      localStorage.setItem("gamat.avatar_override.v1", JSON.stringify(m));
+                    }
+                  } catch {}
+                }
+              });
+            }
+          }
+        } catch {}
         storeCredential(cleanEmail, password);
         unmarkDeletedAccount(authedAcc.id, cleanEmail);
         recentlyCreatedRef.current.set(authedAcc.id, { account: authedAcc, ts: Date.now() });
@@ -2549,15 +2584,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     setAccounts((p) => {
       const updatedAccounts = p.map((a) => (a.id === sessionId ? { ...a, ...cleanPatch } : a));
+      write(K.accounts, updatedAccounts);
       const current = updatedAccounts.find((a) => a.id === sessionId);
       if (current) {
+        const cleanEmail = current.email.trim().toLowerCase();
+        if (cleanPatch.avatar !== undefined) {
+          try {
+            const raw = localStorage.getItem("gamat.avatar_override.v1");
+            const map = raw ? JSON.parse(raw) : {};
+            map[cleanEmail] = { avatar: cleanPatch.avatar, ts: Date.now() };
+            localStorage.setItem("gamat.avatar_override.v1", JSON.stringify(map));
+          } catch {}
+        }
         recentlyUpdatedAccountsRef.current.set(current.id, {
           account: current,
           ts: Date.now(),
           persistLocal: false,
         });
         saveSupabaseAccount(current).then((res) => {
-          if (!res.ok) {
+          if (res.ok) {
+            if (cleanPatch.avatar !== undefined) {
+              try {
+                const raw = localStorage.getItem("gamat.avatar_override.v1");
+                if (raw) {
+                  const map = JSON.parse(raw);
+                  delete map[cleanEmail];
+                  localStorage.setItem("gamat.avatar_override.v1", JSON.stringify(map));
+                }
+              } catch {}
+            }
+          } else {
             console.warn("Supabase profile save failed (preserving local update):", res.error);
             recentlyUpdatedAccountsRef.current.set(current.id, {
               account: current,
