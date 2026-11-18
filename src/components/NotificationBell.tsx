@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   CalendarDays,
@@ -51,6 +52,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<FilterTab>("all");
   const ref = useRef<HTMLDivElement | null>(null);
+  const mobilePanelRef = useRef<HTMLDivElement | null>(null);
 
   const readKey = user ? `gamat.notif_read.${user.id}` : "";
   const [readIds, setReadIds] = useState<string[]>(() => {
@@ -78,7 +80,14 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        ref.current &&
+        !ref.current.contains(target) &&
+        (!mobilePanelRef.current || !mobilePanelRef.current.contains(target))
+      ) {
+        setOpen(false);
+      }
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -290,6 +299,114 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     return { Icon: MessageSquare, bg: "bg-brand-light text-brand" };
   };
 
+  const panelContent = (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-line bg-cream/80 px-5 py-4 backdrop-blur-sm shrink-0">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white">
+            <Bell className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="font-display text-base font-extrabold text-ink leading-none">Notifications</h3>
+            <p className="mt-1 text-[11px] font-medium text-muted">
+              {unreadCount > 0 ? `${unreadCount} unread update${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllRead}
+              className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-brand border border-line hover:bg-brand-light transition cursor-pointer"
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Close notifications"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-ink hover:bg-cream transition cursor-pointer sm:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Filter Pills */}
+      <div className="flex items-center gap-1.5 border-b border-line bg-white px-4 py-2.5 overflow-x-auto shrink-0">
+        {([
+          ["all", "All"],
+          ["unread", "Unread"],
+          ["forum", "Forum"],
+          ["activity", "Sessions & Certs"],
+        ] as [FilterTab, string][]).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer ${
+              filter === key
+                ? "bg-ink text-white"
+                : "bg-cream text-muted hover:text-ink"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Notification List */}
+      {filteredItems.length ? (
+        <div className="flex-1 overflow-y-auto divide-y divide-line">
+          {filteredItems.map((n) => {
+            const unread = !readIds.includes(n.id);
+            const { Icon, bg } = iconFor(n.kind);
+            const ago = timeAgo(n.time);
+            return (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => {
+                  markOneRead(n.id);
+                  setOpen(false);
+                  navigate(n.to);
+                }}
+                className={`flex w-full items-start gap-3.5 px-5 py-4 text-left transition hover:bg-cream/60 cursor-pointer ${
+                  unread ? "bg-brand-light/20" : ""
+                }`}
+              >
+                <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bg}`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-start justify-between gap-2">
+                    <span className="text-xs sm:text-[13px] font-bold text-ink leading-snug">{n.title}</span>
+                    {unread && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
+                  </span>
+                  <span className="mt-1 block line-clamp-2 text-xs text-muted leading-relaxed">{n.body}</span>
+                  {ago && <span className="mt-1 block text-[10px] font-semibold text-muted/80">{ago}</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cream text-muted">
+            <Inbox className="h-6 w-6" />
+          </span>
+          <p className="mt-3 font-display text-sm font-bold text-ink">No notifications here</p>
+          <p className="mt-1 text-xs text-muted">
+            Forum replies, likes, @mentions, mentorship confirmations, and certificates will show up here.
+          </p>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -309,117 +426,31 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         )}
       </button>
 
+      {/* Desktop popover */}
       {open && (
         <div
-          className="fixed inset-0 z-[70] flex flex-col bg-white sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[400px] sm:max-h-[540px] sm:rounded-2xl sm:border sm:border-line sm:shadow-[0_24px_60px_-15px_rgba(22,24,28,0.28)] overflow-hidden"
+          className="hidden sm:flex sm:flex-col sm:absolute sm:right-0 sm:top-full sm:mt-3 sm:w-[400px] sm:max-h-[540px] sm:rounded-2xl sm:border sm:border-line sm:bg-white sm:shadow-[0_24px_60px_-15px_rgba(22,24,28,0.28)] z-[70] overflow-hidden"
           role="dialog"
           aria-label="Notifications"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-line bg-cream/80 px-5 py-4 backdrop-blur-sm">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white">
-                <Bell className="h-4 w-4" />
-              </span>
-              <div>
-                <h3 className="font-display text-base font-extrabold text-ink leading-none">Notifications</h3>
-                <p className="mt-1 text-[11px] font-medium text-muted">
-                  {unreadCount > 0 ? `${unreadCount} unread update${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {unreadCount > 0 && (
-                <button
-                  type="button"
-                  onClick={markAllRead}
-                  className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-brand border border-line hover:bg-brand-light transition cursor-pointer"
-                >
-                  <CheckCheck className="h-3.5 w-3.5" /> Mark all read
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="Close notifications"
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-ink hover:bg-cream transition cursor-pointer sm:hidden"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 border-b border-line bg-white px-4 py-2.5 overflow-x-auto">
-            {([
-              ["all", "All"],
-              ["unread", "Unread"],
-              ["forum", "Forum"],
-              ["activity", "Sessions & Certs"],
-            ] as [FilterTab, string][]).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setFilter(key)}
-                className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer ${
-                  filter === key
-                    ? "bg-ink text-white"
-                    : "bg-cream text-muted hover:text-ink"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Notification List */}
-          {filteredItems.length ? (
-            <div className="flex-1 overflow-y-auto divide-y divide-line">
-              {filteredItems.map((n) => {
-                const unread = !readIds.includes(n.id);
-                const { Icon, bg } = iconFor(n.kind);
-                const ago = timeAgo(n.time);
-                return (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => {
-                      markOneRead(n.id);
-                      setOpen(false);
-                      navigate(n.to);
-                    }}
-                    className={`flex w-full items-start gap-3.5 px-5 py-4 text-left transition hover:bg-cream/60 cursor-pointer ${
-                      unread ? "bg-brand-light/20" : ""
-                    }`}
-                  >
-                    <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-start justify-between gap-2">
-                        <span className="text-xs sm:text-[13px] font-bold text-ink leading-snug">{n.title}</span>
-                        {unread && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
-                      </span>
-                      <span className="mt-1 block line-clamp-2 text-xs text-muted leading-relaxed">{n.body}</span>
-                      {ago && <span className="mt-1 block text-[10px] font-semibold text-muted/80">{ago}</span>}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cream text-muted">
-                <Inbox className="h-6 w-6" />
-              </span>
-              <p className="mt-3 font-display text-sm font-bold text-ink">No notifications here</p>
-              <p className="mt-1 text-xs text-muted">
-                Forum replies, likes, @mentions, mentorship confirmations, and certificates will show up here.
-              </p>
-            </div>
-          )}
+          {panelContent}
         </div>
       )}
+
+      {/* Mobile full-screen drawer portaled to document.body to escape header transform-gpu */}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={mobilePanelRef}
+            className="fixed inset-0 z-[100] flex flex-col bg-white sm:hidden overflow-hidden"
+            role="dialog"
+            aria-label="Notifications"
+          >
+            {panelContent}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
