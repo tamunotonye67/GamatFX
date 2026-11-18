@@ -30,8 +30,6 @@ type NotifItem = {
   actorAvatar?: string;
 };
 
-type FilterTab = "all" | "unread" | "forum" | "activity";
-
 function timeAgo(iso?: string): string {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
@@ -68,7 +66,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
   const enquiries = admin?.enquiries ?? [];
 
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<FilterTab>("all");
+  const [visibleCount, setVisibleCount] = useState(6);
   const ref = useRef<HTMLDivElement | null>(null);
   const mobilePanelRef = useRef<HTMLDivElement | null>(null);
 
@@ -95,6 +93,23 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       setReadIds([]);
     }
   }, [readKey]);
+
+  useEffect(() => {
+    if (!open) {
+      setVisibleCount(6);
+      return;
+    }
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+    const prevOverflow = document.body.style.overflow;
+    if (isMobile) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      if (isMobile) {
+        document.body.style.overflow = prevOverflow;
+      }
+    };
+  }, [open]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -264,7 +279,6 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           body: `${rival.name} is ${gap} XP ahead (${rival.xp} XP). Join the Arcade & Quizzes to climb the leaderboard!`,
           to: "/fun",
           kind: "xp",
-          time: new Date().toISOString(),
           actorName: rival.name,
           actorAvatar: rival.avatar,
         });
@@ -280,7 +294,6 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           body: `${challenger.name} is only ${lead} XP behind your #${myIdx + 1} rank. Keep your streak alive!`,
           to: "/fun",
           kind: "xp",
-          time: new Date().toISOString(),
           actorName: challenger.name,
           actorAvatar: challenger.avatar,
         });
@@ -340,19 +353,17 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       });
 
     return list
-      .sort((a, b) => (+new Date(b.time || 0)) - (+new Date(a.time || 0)))
-      .slice(0, 25);
+      .sort((a, b) => {
+        const ta = a.time ? +new Date(a.time) : Number.MAX_SAFE_INTEGER;
+        const tb = b.time ? +new Date(b.time) : Number.MAX_SAFE_INTEGER;
+        return tb - ta;
+      })
+      .slice(0, 40);
   }, [user, accounts, enquiries, myRegistrations, events, attempts, threads, replies, combat, combatLeaderboard]);
 
   const unreadCount = items.filter((i) => !readIds.includes(i.id)).length;
-
-  const filteredItems = useMemo(() => {
-    if (filter === "unread") return items.filter((i) => !readIds.includes(i.id));
-    if (filter === "forum") return items.filter((i) => i.kind === "forum" || i.kind === "like" || i.kind === "mention");
-    if (filter === "activity")
-      return items.filter((i) => i.kind === "xp" || i.kind === "mentorship" || i.kind === "event" || i.kind === "cert");
-    return items;
-  }, [items, filter, readIds]);
+  const visibleItems = items.slice(0, visibleCount);
+  const remainingCount = Math.max(0, items.length - visibleCount);
 
   const persistRead = (next: string[]) => {
     setReadIds(next);
@@ -433,7 +444,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
   const panelContent = (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-line bg-cream/80 px-5 py-4 backdrop-blur-sm shrink-0">
+      <div className="flex items-center justify-between border-b border-line bg-cream px-5 py-4 shrink-0">
         <div className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white">
             <Bell className="h-4 w-4" />
@@ -466,33 +477,10 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         </div>
       </div>
 
-      {/* Filter Pills */}
-      <div className="flex items-center gap-1.5 border-b border-line bg-white px-4 py-2.5 overflow-x-auto shrink-0">
-        {([
-          ["all", "All"],
-          ["unread", "Unread"],
-          ["forum", "Forum"],
-          ["activity", "XP & Sessions"],
-        ] as [FilterTab, string][]).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setFilter(key)}
-            className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold transition cursor-pointer ${
-              filter === key
-                ? "bg-ink text-white"
-                : "bg-cream text-muted hover:text-ink"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
       {/* Notification List */}
-      {filteredItems.length ? (
-        <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5 bg-white">
-          {filteredItems.map((n) => {
+      {visibleItems.length ? (
+        <div className="flex-1 overflow-y-auto overscroll-contain p-2.5 space-y-1.5 bg-white">
+          {visibleItems.map((n) => {
             const unread = !readIds.includes(n.id);
             const { Icon, badgeBg, iconBg, cardBg, dotBg } = styleFor(n.kind);
             const ago = timeAgo(n.time);
@@ -548,6 +536,18 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
               </button>
             );
           })}
+
+          {remainingCount > 0 && (
+            <div className="pt-2 pb-1">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((c) => c + 10)}
+                className="w-full rounded-xl border border-line bg-cream/70 py-2.5 text-xs font-bold text-ink hover:bg-cream transition cursor-pointer"
+              >
+                Show previous notifications ({remainingCount} more)
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
