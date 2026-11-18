@@ -374,7 +374,7 @@ function Success({
 /* ------------------------------- Pages ------------------------------- */
 
 export function LoginPage() {
-  const { login, isAuthed } = useStore();
+  const { login, isAuthed, authError } = useStore();
   const [view, setView] = useState<"login" | "forgot" | "sent">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -526,7 +526,7 @@ export function LoginPage() {
               <GoogleAuthButton label="Sign in with Google" />
 
               <form onSubmit={handleLogin} className="space-y-5">
-                {error && <ErrorBox msg={error} />}
+                {(error || authError) && <ErrorBox msg={(error || authError)!} />}
                 <Input
                   label="Email address"
                   type="email"

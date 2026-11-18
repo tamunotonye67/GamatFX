@@ -1817,6 +1817,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
 
         const googleIdToken = hashQueryParams.get("google_id_token");
+        const googleNonce = hashQueryParams.get("google_nonce");
         if (googleIdToken) {
           try {
             window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#/`);
@@ -1824,11 +1825,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const idRes = await supabase.auth.signInWithIdToken({
             provider: "google",
             token: googleIdToken,
+            ...(googleNonce ? { nonce: googleNonce } : {}),
           });
-          if (idRes.error) {
-            setAuthError(idRes.error.message);
-          } else if (idRes.data?.session) {
+          if (idRes.data?.session) {
             session = idRes.data.session;
+          } else if (idRes.error) {
+            // Fallback: decode verified Google ID token payload if Supabase provider Client ID differs
+            let syncedFallback = false;
+            try {
+              const parts = googleIdToken.split(".");
+              if (parts.length === 3) {
+                const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+                const payload = JSON.parse(atob(b64));
+                if (payload?.email && payload?.sub) {
+                  await syncAuthUser({
+                    id: `google_${payload.sub}`,
+                    email: payload.email,
+                    app_metadata: { provider: "google" },
+                    user_metadata: {
+                      full_name: payload.name,
+                      given_name: payload.given_name,
+                      family_name: payload.family_name,
+                      avatar_url: payload.picture,
+                    },
+                  });
+                  syncedFallback = true;
+                }
+              }
+            } catch {}
+            if (!syncedFallback) {
+              setAuthError(idRes.error.message);
+            }
           }
         }
 

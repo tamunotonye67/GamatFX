@@ -30,8 +30,11 @@ function parseCookies(cookieHeader) {
 export default async function handler(req, res) {
   const origin = getOrigin(req);
   const isHttps = origin.startsWith("https://");
-  const clearCookie = `gamat_oauth_state=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps ? "; Secure" : ""}`;
-  res.setHeader("Set-Cookie", clearCookie);
+  const clearFlags = `Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps ? "; Secure" : ""}`;
+  res.setHeader("Set-Cookie", [
+    `gamat_oauth_state=; ${clearFlags}`,
+    `gamat_oauth_nonce=; ${clearFlags}`,
+  ]);
 
   const failRedirect = (msg) =>
     res.redirect(302, `${origin}/#/login?oauth_error=${encodeURIComponent(msg)}`);
@@ -75,9 +78,13 @@ export default async function handler(req, res) {
       return failRedirect(tokenData.error_description || tokenData.error || "Failed to exchange Google token.");
     }
 
+    const nonceParam = cookies.gamat_oauth_nonce
+      ? `&google_nonce=${encodeURIComponent(cookies.gamat_oauth_nonce)}`
+      : "";
+
     return res.redirect(
       302,
-      `${origin}/#/?google_id_token=${encodeURIComponent(tokenData.id_token)}`
+      `${origin}/#/?google_id_token=${encodeURIComponent(tokenData.id_token)}${nonceParam}`
     );
   } catch (err) {
     return failRedirect(err?.message || "Unexpected error during Google sign-in.");

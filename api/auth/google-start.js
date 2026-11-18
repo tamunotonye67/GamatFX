@@ -36,12 +36,15 @@ export default async function handler(req, res) {
   const origin = getOrigin(req);
   const redirectUri = `${origin}/api/auth/google-callback`;
   const state = crypto.randomBytes(24).toString("hex");
+  const rawNonce = crypto.randomBytes(24).toString("hex");
+  const hashedNonce = crypto.createHash("sha256").update(rawNonce).digest("hex");
 
   const isHttps = origin.startsWith("https://");
-  res.setHeader(
-    "Set-Cookie",
-    `gamat_oauth_state=${state}; Path=/; HttpOnly; SameSite=Lax; Max-Age=600${isHttps ? "; Secure" : ""}`
-  );
+  const cookieFlags = `Path=/; HttpOnly; SameSite=Lax; Max-Age=600${isHttps ? "; Secure" : ""}`;
+  res.setHeader("Set-Cookie", [
+    `gamat_oauth_state=${state}; ${cookieFlags}`,
+    `gamat_oauth_nonce=${rawNonce}; ${cookieFlags}`,
+  ]);
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -49,6 +52,7 @@ export default async function handler(req, res) {
     response_type: "code",
     scope: "openid email profile",
     state,
+    nonce: hashedNonce,
     prompt: "select_account",
   });
 
