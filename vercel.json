@@ -3,6 +3,17 @@
     { "source": "/join", "destination": "/api/join" },
     { "source": "/qr.png", "destination": "/api/qr" },
     { "source": "/qr", "destination": "/api/qr" },
+    {
+      "source": "/((?!api/|images/|assets/|favicon\\.svg).*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|LinkedInBot|Discordbot|Slackbot|Applebot).*"
+        }
+      ],
+      "destination": "/api/preview?path=/$1"
+    },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "crons": [

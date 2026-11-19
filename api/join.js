@@ -21,9 +21,7 @@ export default function handler(req, res) {
     ? `https://gamatfxacademy.com/#/signup?ref=${encodeURIComponent(ref)}`
     : "https://gamatfxacademy.com/#/signup";
 
-  const qrThumbnailUrl = ref
-    ? `https://gamatfxacademy.com/qr.png?ref=${encodeURIComponent(ref)}`
-    : "https://gamatfxacademy.com/images/og-share-card-square.png";
+  const bannerUrl = "https://gamatfxacademy.com/images/og-banner.jpg";
 
   const html = `<!doctype html>
 <html lang="en">
@@ -40,21 +38,20 @@ export default function handler(req, res) {
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
 
-  <!-- WhatsApp & Telegram Square Box Thumbnail: Show ONLY the QR code -->
-  <meta property="og:image" content="${qrThumbnailUrl}" />
-  <meta property="og:image:secure_url" content="${qrThumbnailUrl}" />
-  <meta property="og:image:type" content="image/png" />
-  <meta property="og:image:width" content="600" />
-  <meta property="og:image:height" content="600" />
-  <meta property="og:image:alt" content="GAMAT Fx Academy Enrollment QR Code" />
+  <meta property="og:image" content="${bannerUrl}" />
+  <meta property="og:image:secure_url" content="${bannerUrl}" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="675" />
+  <meta property="og:image:alt" content="GAMAT Fx Academy — Premier Forex Trading Education & Mentorship" />
 
-  <link rel="image_src" href="${qrThumbnailUrl}" />
+  <link rel="image_src" href="${bannerUrl}" />
 
-  <!-- Twitter & Telegram: 'summary' card ensures a clean square box thumbnail instead of stretched banner -->
-  <meta name="twitter:card" content="summary" />
+  <!-- Twitter / X / Telegram Large Card Preview -->
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
-  <meta name="twitter:image" content="${qrThumbnailUrl}" />
+  <meta name="twitter:image" content="${bannerUrl}" />
 
   <!-- Instant Human Redirect -->
   <meta http-equiv="refresh" content="0;url=${redirectUrl}" />
