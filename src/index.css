@@ -15,8 +15,9 @@
 }
 
 html {
-  overflow-x: clip;
+  overflow-x: hidden;
   overscroll-behavior-x: none;
+  touch-action: pan-y;
   max-width: 100%;
   width: 100%;
   scroll-behavior: smooth;
@@ -26,15 +27,17 @@ html {
 body {
   @apply bg-cream text-ink-soft antialiased;
   font-family: var(--font-sans);
-  overflow-x: clip;
+  overflow-x: hidden;
   overscroll-behavior-x: none;
+  touch-action: pan-y;
   max-width: 100%;
   width: 100%;
   position: relative;
 }
 
 #root {
-  overflow-x: clip;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   max-width: 100%;
   width: 100%;
 }
