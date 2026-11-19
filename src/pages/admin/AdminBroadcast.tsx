@@ -16,7 +16,7 @@ type BroadcastLog = {
 const LOG_KEY = "gamat.broadcast_logs.v1";
 
 export function AdminBroadcast() {
-  const { admin, managedCourses } = useStore();
+  const { admin, events = [], managedCourses = [] } = useStore();
   const [audience, setAudience] = useState<"all_students" | "enrolled" | "events" | "custom">("all_students");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
   const [selectedEventId, setSelectedEventId] = useState<string>("all");
@@ -212,7 +212,7 @@ export function AdminBroadcast() {
                     v: "all",
                     l: `All Events (${new Set(admin.registrations.filter((r) => r.status === "confirmed" && r.email).map((r) => r.email.trim().toLowerCase())).size} confirmed)`,
                   },
-                  ...admin.events.map((ev) => {
+                  ...(events ?? []).map((ev) => {
                     const count = new Set(
                       admin.registrations
                         .filter((r) => r.status === "confirmed" && r.email && r.eventId === ev.id)
