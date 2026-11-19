@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Send, Users, BookOpen, CalendarDays, CheckCircle2, AlertCircle } from "lucide-react";
 import { AdminShell, Card, StatCard, Select, Field } from "./AdminShell";
 import { useStore } from "../../lib/store";
+import { COURSES, COURSE_ALIASES } from "../../lib/courses";
 import { sendBroadcastEmail } from "../../lib/email";
 
 type BroadcastLog = {
@@ -15,8 +16,9 @@ type BroadcastLog = {
 const LOG_KEY = "gamat.broadcast_logs.v1";
 
 export function AdminBroadcast() {
-  const { admin } = useStore();
+  const { admin, managedCourses } = useStore();
   const [audience, setAudience] = useState<"all_students" | "enrolled" | "events" | "custom">("all_students");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
   const [selectedEventId, setSelectedEventId] = useState<string>("all");
   const [customEmails, setCustomEmails] = useState("");
   const [subject, setSubject] = useState("");
@@ -34,6 +36,15 @@ export function AdminBroadcast() {
     }
   });
 
+  const allCourses = useMemo(() => {
+    const map = new Map<string, { id: string; title: string }>();
+    COURSES.forEach((c) => map.set(c.id, { id: c.id, title: c.title }));
+    managedCourses.forEach((m) => {
+      if (!map.has(m.id)) map.set(m.id, { id: m.id, title: m.title });
+    });
+    return Array.from(map.values());
+  }, [managedCourses]);
+
   const recipients = useMemo(() => {
     if (audience === "all_students") {
       return Array.from(
@@ -45,7 +56,14 @@ export function AdminBroadcast() {
       );
     }
     if (audience === "enrolled") {
-      const enrolledIds = new Set(admin.enrollments.map((e) => e.userId));
+      const enrolledIds = new Set(
+        admin.enrollments
+          .filter((e) => {
+            if (selectedCourseId === "all") return true;
+            return e.courseId === selectedCourseId || COURSE_ALIASES[e.courseId] === selectedCourseId;
+          })
+          .map((e) => e.userId)
+      );
       return Array.from(
         new Set(
           admin.accounts
@@ -76,7 +94,7 @@ export function AdminBroadcast() {
           .filter((e) => e.includes("@"))
       )
     );
-  }, [audience, selectedEventId, customEmails, admin.accounts, admin.enrollments, admin.registrations]);
+  }, [audience, selectedCourseId, selectedEventId, customEmails, admin.accounts, admin.enrollments, admin.registrations]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,6 +176,31 @@ export function AdminBroadcast() {
                 { v: "custom", l: "Custom Email List" },
               ]}
             />
+
+            {audience === "enrolled" && (
+              <Select
+                label="Select Course"
+                value={selectedCourseId}
+                onChange={setSelectedCourseId}
+                options={[
+                  {
+                    v: "all",
+                    l: `All Courses (${new Set(admin.enrollments.map((e) => e.userId)).size} enrolled)`,
+                  },
+                  ...allCourses.map((c) => {
+                    const count = new Set(
+                      admin.enrollments
+                        .filter((e) => e.courseId === c.id || COURSE_ALIASES[e.courseId] === c.id)
+                        .map((e) => e.userId)
+                    ).size;
+                    return {
+                      v: c.id,
+                      l: `${c.title} (${count} enrolled)`,
+                    };
+                  }),
+                ]}
+              />
+            )}
 
             {audience === "events" && (
               <Select
