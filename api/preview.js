@@ -1,7 +1,8 @@
 /**
  * Vercel Serverless Function: /api/preview
- * Serves section-specific Open Graph & Twitter Card metadata to social media crawlers
- * (WhatsApp, Facebook, X/Twitter, Telegram, LinkedIn, Discord, Slack) for shared links.
+ * Serves section-specific and item-specific (store products, courses) Open Graph &
+ * Twitter Card metadata to social media crawlers (WhatsApp, Facebook, X/Twitter,
+ * Telegram, LinkedIn, Discord, Slack).
  */
 
 const ROUTE_PREVIEWS = {
@@ -66,19 +67,62 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-export default function handler(req, res) {
+function resolvePublicImage(raw, fallback) {
+  const s = String(raw || "").trim();
+  if (!s || s.startsWith("data:")) return fallback;
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (s.startsWith("/")) return `https://gamatfxacademy.com${s}`;
+  return fallback;
+}
+
+export default async function handler(req, res) {
   const rawPath = String(req.query?.path || "/").trim();
   const cleanPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
-  const baseSegment = "/" + (cleanPath.split("/").filter(Boolean)[0] || "");
+  const parts = cleanPath.split("/").filter(Boolean);
+  const baseSegment = "/" + (parts[0] || "");
+  const productId = String(req.query?.product || "").trim();
+  const courseId = baseSegment === "/courses" && parts[1] ? parts[1] : "";
+  const lookupId = productId || courseId;
 
-  const meta = ROUTE_PREVIEWS[cleanPath] || ROUTE_PREVIEWS[baseSegment] || {
+  let meta = ROUTE_PREVIEWS[cleanPath] || ROUTE_PREVIEWS[baseSegment] || {
     title: "GAMAT Fx Academy | Premier Forex Trading Education & Mentorship",
-    description: "Premier forex trading education, 1-on-1 mentorship, institutional order-flow training, and a results-driven trading community.",
+    description:
+      "Premier forex trading education, 1-on-1 mentorship, institutional order-flow training, and a results-driven trading community.",
     image: "https://gamatfxacademy.com/images/og-banner.jpg",
   };
 
-  const pageUrl = `https://gamatfxacademy.com${cleanPath === "/" ? "" : cleanPath}`;
-  const redirectUrl = `https://gamatfxacademy.com/#${cleanPath}`;
+  if (lookupId) {
+    try {
+      const supabaseUrl =
+        (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim() ||
+        "https://pbbtiazbpolvajjsqirs.supabase.co";
+      const supabaseKey =
+        (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "").trim() ||
+        "sb_publishable_FnEN-7WZtC0_qvoNApQNSw__c9KqANV";
+
+      const r = await fetch(
+        `${supabaseUrl}/rest/v1/courses?id=eq.${encodeURIComponent(lookupId)}&select=id,title,short,desc,price,poster,tag&limit=1`,
+        { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+      );
+      if (r.ok) {
+        const rows = await r.json();
+        const item = rows && rows[0];
+        if (item && item.title) {
+          const priceNum = Number(item.price) || 0;
+          const priceLabel = priceNum > 0 ? `₦${priceNum.toLocaleString()}` : "Free";
+          meta = {
+            title: `${item.title} (${priceLabel}) | GAMAT Fx Academy`,
+            description: String(item.short || item.desc || meta.description).slice(0, 220),
+            image: resolvePublicImage(item.poster, meta.image),
+          };
+        }
+      }
+    } catch {}
+  }
+
+  const querySuffix = productId ? `?product=${encodeURIComponent(productId)}` : "";
+  const pageUrl = `https://gamatfxacademy.com${cleanPath === "/" ? "" : cleanPath}${querySuffix}`;
+  const redirectUrl = `https://gamatfxacademy.com/#${cleanPath}${querySuffix}`;
 
   const html = `<!doctype html>
 <html lang="en">
