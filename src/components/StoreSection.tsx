@@ -109,7 +109,7 @@ export default function StoreSection() {
         {/* 2-Column Showcase: 3D Hardcover Book + Authoritative Narrative */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-14 items-center">
           {/* LEFT: 3D Hardcover Book Presentation */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center">
+          <div className="lg:col-span-5 min-w-0 flex flex-col items-center justify-center">
             <div
               className="relative w-full max-w-[270px] sm:max-w-[340px] md:max-w-[370px] lg:max-w-[380px] py-4 sm:py-8 cursor-pointer select-none"
               style={{ perspective: "1400px" }}
@@ -258,8 +258,8 @@ export default function StoreSection() {
           </div>
 
           {/* RIGHT: Clear Narrative, Flagship Book Overview & Tools Access Gateway */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
-            <div className="w-full max-w-xl mx-auto lg:mx-0">
+          <div className="lg:col-span-7 min-w-0 flex flex-col justify-center">
+            <div className="w-full min-w-0 max-w-xl mx-auto lg:mx-0">
               <span className="inline-flex items-center gap-1.5 rounded-md bg-white/5 border border-white/10 px-2.5 py-1 text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
                 AVAILABLE IN HIGH-RES PDF

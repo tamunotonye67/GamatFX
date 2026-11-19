@@ -17,6 +17,7 @@
 html {
   overflow-x: clip;
   overscroll-behavior-x: none;
+  touch-action: pan-y;
   max-width: 100%;
   width: 100%;
   scroll-behavior: smooth;
@@ -28,6 +29,7 @@ body {
   font-family: var(--font-sans);
   overflow-x: clip;
   overscroll-behavior-x: none;
+  touch-action: pan-y;
   max-width: 100%;
   width: 100%;
   position: relative;
@@ -35,12 +37,22 @@ body {
 
 #root {
   overflow-x: clip;
+  overscroll-behavior-x: none;
   max-width: 100%;
   width: 100%;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 img, video, canvas {
   max-width: 100%;
+}
+
+.container-x > *,
+.grid > * {
+  min-width: 0;
 }
 
 @media (max-width: 640px) {

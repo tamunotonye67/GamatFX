@@ -611,7 +611,7 @@ export default function Navbar() {
       aria-label="Mobile Navigation"
       aria-hidden={!open}
       className={`fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-[86vw] max-w-[350px] flex-col border-l border-line bg-white shadow-[-16px_0_50px_rgba(0,0,0,0.22)] overscroll-none touch-none transform-gpu will-change-transform [backface-visibility:hidden] transition-transform duration-300 ease-out lg:hidden ${
-        open ? "translate-x-0" : "translate-x-full pointer-events-none"
+        open ? "translate-x-0 visible" : "translate-x-full invisible pointer-events-none"
       }`}
     >
       {/* Drawer Header */}

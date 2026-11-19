@@ -62,7 +62,7 @@ export default function ServiceGallery() {
   const active = SLIDES[i];
 
   return (
-    <div className="w-full px-2 py-5 sm:px-12 sm:py-10">
+    <div className="w-full overflow-x-clip px-2 py-5 sm:px-12 sm:py-10">
       <div
         ref={stage}
         onMouseEnter={() => setPaused(true)}

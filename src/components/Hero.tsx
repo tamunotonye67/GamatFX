@@ -75,8 +75,8 @@ export default function Hero() {
           </div>
 
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,0.75fr)] lg:gap-14 xl:gap-20">
-            <div className="max-w-3xl lg:max-w-none">
-              <h1 className="font-display text-[1.72rem] min-[375px]:text-[1.9rem] min-[410px]:text-[2.1rem] font-extrabold leading-[1.12] tracking-[-0.025em] sm:tracking-tight sm:text-5xl md:text-6xl">
+            <div className="min-w-0 max-w-3xl lg:max-w-none">
+              <h1 className="font-display text-[1.45rem] min-[360px]:text-[1.68rem] min-[375px]:text-[1.9rem] min-[410px]:text-[2.1rem] font-extrabold leading-[1.12] tracking-[-0.025em] sm:tracking-tight sm:text-5xl md:text-6xl">
                 <span className="max-sm:block max-sm:whitespace-nowrap">Build elite traders</span>{" "}
                 <span className="max-sm:block max-sm:whitespace-nowrap">
                   through <span className="text-brand">high-quality</span>
@@ -89,18 +89,18 @@ export default function Hero() {
                 consistent profitability.
               </p>
 
-              <div className="mt-7 sm:mt-9 mb-2.5 sm:mb-3.5 flex flex-nowrap items-center gap-2.5 sm:gap-4">
+              <div className="mt-7 sm:mt-9 mb-2.5 sm:mb-3.5 flex flex-wrap min-[375px]:flex-nowrap items-center gap-2 min-[375px]:gap-2.5 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => navigate("/courses")}
-                  className="btn-primary flex-1 justify-center whitespace-nowrap !px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                  className="btn-primary w-full min-[375px]:w-auto min-[375px]:flex-1 justify-center whitespace-nowrap !px-3 min-[375px]:!px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
                   Explore Courses <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/how-it-works")}
-                  className="btn-ghost group flex-1 justify-center whitespace-nowrap !px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                  className="btn-ghost group w-full min-[375px]:w-auto min-[375px]:flex-1 justify-center whitespace-nowrap !px-3 min-[375px]:!px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
                   <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 transition-transform group-hover:scale-110" />
                   Watch How It Works
