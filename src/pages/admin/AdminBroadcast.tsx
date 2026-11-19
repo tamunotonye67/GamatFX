@@ -17,6 +17,7 @@ const LOG_KEY = "gamat.broadcast_logs.v1";
 export function AdminBroadcast() {
   const { admin } = useStore();
   const [audience, setAudience] = useState<"all_students" | "enrolled" | "events" | "custom">("all_students");
+  const [selectedEventId, setSelectedEventId] = useState<string>("all");
   const [customEmails, setCustomEmails] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -57,7 +58,12 @@ export function AdminBroadcast() {
       return Array.from(
         new Set(
           admin.registrations
-            .filter((r) => r.status === "confirmed" && r.email)
+            .filter(
+              (r) =>
+                r.status === "confirmed" &&
+                r.email &&
+                (selectedEventId === "all" || r.eventId === selectedEventId)
+            )
             .map((r) => r.email.trim().toLowerCase())
         )
       );
@@ -70,7 +76,7 @@ export function AdminBroadcast() {
           .filter((e) => e.includes("@"))
       )
     );
-  }, [audience, customEmails, admin.accounts, admin.enrollments, admin.registrations]);
+  }, [audience, selectedEventId, customEmails, admin.accounts, admin.enrollments, admin.registrations]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +158,31 @@ export function AdminBroadcast() {
                 { v: "custom", l: "Custom Email List" },
               ]}
             />
+
+            {audience === "events" && (
+              <Select
+                label="Select Event"
+                value={selectedEventId}
+                onChange={setSelectedEventId}
+                options={[
+                  {
+                    v: "all",
+                    l: `All Events (${new Set(admin.registrations.filter((r) => r.status === "confirmed" && r.email).map((r) => r.email.trim().toLowerCase())).size} confirmed)`,
+                  },
+                  ...admin.events.map((ev) => {
+                    const count = new Set(
+                      admin.registrations
+                        .filter((r) => r.status === "confirmed" && r.email && r.eventId === ev.id)
+                        .map((r) => r.email.trim().toLowerCase())
+                    ).size;
+                    return {
+                      v: ev.id,
+                      l: `${ev.title} (${count} confirmed)`,
+                    };
+                  }),
+                ]}
+              />
+            )}
 
             {audience === "custom" && (
               <div>
