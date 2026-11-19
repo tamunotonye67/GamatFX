@@ -995,7 +995,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                       </div>
                     </div>
 
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-line pt-3 sm:pt-0 sm:pl-6 shrink-0 gap-3">
+                    <div className="flex flex-wrap sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 sm:border-l border-line pt-3 sm:pt-0 sm:pl-6 shrink-0 gap-3">
                       <div className="text-left sm:text-right">
                         <div className="font-display text-xl font-bold text-ink flex items-baseline sm:justify-end">
                           {prod.isFree || prod.price === 0 ? (
@@ -1013,7 +1013,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           onClick={() => openQuickView(prod)}

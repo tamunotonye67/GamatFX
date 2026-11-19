@@ -89,7 +89,7 @@ export default function Hero() {
                 consistent profitability.
               </p>
 
-              <div className="mt-7 sm:mt-9 mb-2.5 sm:mb-3.5 flex flex-nowrap items-center gap-2.5 sm:gap-4">
+              <div className="mt-7 sm:mt-9 mb-2.5 sm:mb-3.5 flex flex-wrap items-center gap-2.5 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => navigate("/courses")}

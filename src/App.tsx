@@ -269,7 +269,7 @@ export default function App() {
       <ErrorBoundary>
         <div className="flex min-h-screen flex-col bg-cream overflow-x-clip w-full max-w-full">
           <div className="flex-1 w-full max-w-full overflow-x-clip">{content}</div>
-          <div className="border-t border-line bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50 whitespace-nowrap">
+          <div className="border-t border-line bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
           </div>
@@ -286,7 +286,7 @@ export default function App() {
           {content}
         </main>
         {route === "/verify-email" ? null : slimFooter ? (
-          <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50 whitespace-nowrap">
+          <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
           </footer>

@@ -1123,7 +1123,7 @@ export default function DashboardPage() {
                   Enrollments are generally non-refundable. If you have exceptional circumstances (e.g. within 7 days of purchase without accessing materials), our support team can review your request.
                 </p>
               </div>
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
                 <a
                   href={CONTACT.whatsappHref}
                   target="_blank"
@@ -2190,7 +2190,7 @@ function WalletSection({
               </div>
             )}
 
-            <div className="flex items-center gap-2.5 pt-2">
+            <div className="flex flex-wrap items-center gap-2.5 pt-2">
               <button
                 type="submit"
                 className="btn-primary !py-2.5 !px-5 !text-xs cursor-pointer shadow-sm"

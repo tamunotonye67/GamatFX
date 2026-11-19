@@ -253,7 +253,7 @@ export default function Footer() {
 
         {/* Copyright bar */}
         <div className="container-x flex flex-col items-center justify-between gap-4 border-t border-white/10 py-7 text-sm text-white/50 sm:flex-row">
-          <p className="whitespace-nowrap text-center text-xs sm:text-sm text-white/55 sm:text-left">
+          <p className="text-center text-xs sm:text-sm text-white/55 sm:text-left">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/80">GAMAT Fx Academy</span>
             {" · "}All rights reserved.

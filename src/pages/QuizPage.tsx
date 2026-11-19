@@ -398,7 +398,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
               </div>
             )}
 
-            <div className="mt-8 grid grid-cols-2 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
+            <div className="mt-8 grid grid-cols-1 min-[360px]:grid-cols-2 sm:flex sm:flex-wrap gap-2.5 sm:gap-3">
               <button onClick={startAssessment} className="btn-primary !py-3 !px-4 sm:!px-7 font-bold text-sm w-full sm:w-auto justify-center whitespace-nowrap cursor-pointer">
                 Begin Exam
               </button>

@@ -777,7 +777,7 @@ export default function AffiliateCard({
                 />
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={copyLink}
