@@ -15,7 +15,7 @@ export default function About() {
     <section id="about" className="section bg-cream overflow-hidden">
       <div ref={ref} className="container-x grid items-center gap-10 lg:gap-14 lg:grid-cols-2">
         {/* Copy + stats */}
-        <div className={`reveal ${visible ? "is-visible" : ""}`}>
+        <div className={`reveal ${visible ? "is-visible" : ""} min-w-0`}>
           <span className="eyebrow">About Us · Part of GAMAT</span>
           <h2 className="section-title mt-4">
             Why learn from us as a{" "}
@@ -32,7 +32,7 @@ export default function About() {
             the foreign exchange market and trade with confidence.
           </p>
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-light/70 px-3.5 py-1.5 text-xs font-semibold text-brand">
+          <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-2xl sm:rounded-full border border-brand/25 bg-brand-light/70 px-3.5 py-1.5 text-xs font-semibold text-brand">
             <ShieldCheck className="h-4 w-4 shrink-0" />
             <span>GAMAT — Growth and Mentorship Academy with Taylor</span>
           </div>

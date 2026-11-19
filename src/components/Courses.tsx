@@ -43,8 +43,8 @@ export default function Courses() {
                 } reveal ${visible ? "is-visible" : ""}`}
                 style={{ transitionDelay: `${i * 110}ms` }}
               >
-                <div className="relative bg-ink p-6">
-                  <div className="flex items-center justify-between">
+                <div className="relative bg-ink p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="chip">{c.tag}</span>
                     {c.featured && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white">
@@ -59,7 +59,7 @@ export default function Courses() {
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col p-6">
+                <div className="flex flex-1 flex-col p-5 sm:p-6">
                   <h3 className="font-display text-lg font-bold leading-snug text-ink">
                     {c.title}
                   </h3>
@@ -77,7 +77,7 @@ export default function Courses() {
                     </span>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-line pt-5">
+                  <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
                     <div>
                       <p className="text-xs text-muted">{owned ? "Owned" : "One-time"}</p>
                       <p className="font-display text-2xl font-extrabold text-ink">

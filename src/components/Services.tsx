@@ -34,11 +34,11 @@ export default function Services() {
       <div ref={ref} className="container-x grid items-center gap-12 lg:grid-cols-2">
         {/* No `reveal` here — its transform would create a containing block
             and break the gallery's absolutely-positioned layers. */}
-        <div className="flex justify-center lg:justify-start">
+        <div className="min-w-0 flex justify-center lg:justify-start">
           <ServiceGallery />
         </div>
 
-        <div className={`reveal ${visible ? "is-visible" : ""}`}>
+        <div className={`reveal ${visible ? "is-visible" : ""} min-w-0`}>
           <span className="eyebrow">What we offer</span>
           <h2 className="section-title mt-4">Services</h2>
           <p className="mt-4 text-muted">
@@ -50,13 +50,13 @@ export default function Services() {
             {services.map((s, i) => (
               <div
                 key={s.title}
-                className={`card reveal ${visible ? "is-visible" : ""} !flex !flex-row !items-start !gap-4 !p-5`}
+                className={`card reveal ${visible ? "is-visible" : ""} !flex !flex-row !items-start !gap-3.5 sm:!gap-4 !p-4 sm:!p-5`}
                 style={{ transitionDelay: `${i * 90}ms` }}
               >
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
                   <s.icon className="h-5 w-5" />
                 </span>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h4 className="font-display text-base font-bold text-ink">
                     {s.title}
                   </h4>

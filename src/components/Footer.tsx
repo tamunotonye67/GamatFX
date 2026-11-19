@@ -91,7 +91,7 @@ export default function Footer() {
       {/* Footer body */}
       <div className="border-t border-white/10">
         <div className="container-x grid grid-cols-1 gap-8 sm:gap-10 py-10 sm:py-14 sm:grid-cols-3 lg:grid-cols-5">
-          <div className="sm:col-span-3 lg:col-span-2">
+          <div className="min-w-0 sm:col-span-3 lg:col-span-2">
             <Logo variant="light" />
             <p className="mt-4 sm:mt-5 max-w-sm text-sm leading-relaxed text-white/60">
               A hub for financial education and digital empowerment — building elite
@@ -103,9 +103,9 @@ export default function Footer() {
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-light" />
                 <span>{CONTACT.city}</span>
               </p>
-              <p className="flex items-center gap-3">
+              <p className="flex items-center gap-3 min-w-0">
                 <Mail className="h-4 w-4 shrink-0 text-brand-light" />
-                <a href={`mailto:${CONTACT.email}`} className="truncate transition hover:text-white">{CONTACT.email}</a>
+                <a href={`mailto:${CONTACT.email}`} className="min-w-0 truncate transition hover:text-white">{CONTACT.email}</a>
               </p>
               <p className="flex items-center gap-3">
                 <Phone className="h-4 w-4 shrink-0 text-brand-light" />

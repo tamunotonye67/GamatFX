@@ -42,8 +42,17 @@ body {
   width: 100%;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 img, video, canvas {
   max-width: 100%;
+}
+
+.container-x > *,
+.grid > * {
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
@@ -178,7 +187,7 @@ img, video, canvas {
   }
 
   .section {
-    @apply py-14 sm:py-20 md:py-28;
+    @apply py-12 sm:py-20 md:py-28;
   }
 
   .btn-primary {
@@ -218,7 +227,7 @@ img, video, canvas {
   }
 
   .card {
-    @apply rounded-2xl border border-line bg-white p-5 sm:p-7 shadow-[0_10px_40px_-20px_rgba(22,24,28,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_-25px_rgba(22,24,28,0.35)];
+    @apply rounded-2xl border border-line bg-white p-4 sm:p-7 shadow-[0_10px_40px_-20px_rgba(22,24,28,0.25)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_-25px_rgba(22,24,28,0.35)];
   }
 
   .chip {

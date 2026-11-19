@@ -62,26 +62,26 @@ export default function ServiceGallery() {
   const active = SLIDES[i];
 
   return (
-    <div className="w-full px-4 py-6 sm:px-12 sm:py-10">
+    <div className="w-full px-2 py-5 sm:px-12 sm:py-10">
       <div
         ref={stage}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => { setPaused(false); setTilt({ x: 0, y: 0 }); }}
         onMouseMove={onMove}
-        className="relative mx-auto w-full max-w-[340px] sm:max-w-[400px]"
+        className="relative mx-auto w-full max-w-[290px] min-[360px]:max-w-[320px] sm:max-w-[400px]"
         style={{ perspective: "1400px" }}
       >
         {/* Ambient glow that shifts colour with the slide */}
         <div
-          className="pointer-events-none absolute -inset-6 sm:-inset-10 -z-10 rounded-[3rem] blur-3xl transition-all duration-1000"
+          className="pointer-events-none absolute -inset-3 sm:-inset-10 -z-10 rounded-[3rem] blur-3xl transition-all duration-1000"
           style={{ background: `radial-gradient(circle at 40% 30%, ${active.accent}38, transparent 65%)` }}
         />
 
         {/* Rotating dashed ring */}
-        <div className="pointer-events-none absolute -inset-3 sm:-inset-6 -z-10 animate-[spinSlow_26s_linear_infinite] rounded-[2.5rem] border-2 border-dashed border-brand/20" />
+        <div className="pointer-events-none absolute -inset-1.5 sm:-inset-6 -z-10 animate-[spinSlow_26s_linear_infinite] rounded-[2.5rem] border-2 border-dashed border-brand/20" />
 
         {/* Vector dot grid */}
-        <svg className="pointer-events-none absolute -bottom-6 -left-5 sm:-bottom-8 sm:-left-9 h-20 w-20 sm:h-24 sm:w-24 text-brand/25" viewBox="0 0 96 96" aria-hidden="true">
+        <svg className="pointer-events-none absolute -bottom-4 left-0 sm:-bottom-8 sm:-left-9 h-16 w-16 sm:h-24 sm:w-24 text-brand/25" viewBox="0 0 96 96" aria-hidden="true">
           {Array.from({ length: 4 }).flatMap((_, r) =>
             Array.from({ length: 4 }).map((__, c) => (
               <circle key={`${r}-${c}`} cx={10 + c * 25} cy={10 + r * 25} r="3.5" fill="currentColor"
@@ -92,7 +92,7 @@ export default function ServiceGallery() {
         </svg>
 
         {/* Corner accent */}
-        <div className="pointer-events-none absolute -right-3 -top-3 sm:-right-5 sm:-top-5 h-20 w-20 sm:h-24 sm:w-24 rounded-tr-[2rem] border-r-4 border-t-4 transition-colors duration-1000"
+        <div className="pointer-events-none absolute right-0 -top-2 sm:-right-5 sm:-top-5 h-16 w-16 sm:h-24 sm:w-24 rounded-tr-[2rem] border-r-4 border-t-4 transition-colors duration-1000"
           style={{ borderColor: `${active.accent}66` }} />
 
         {/* ---------------- 3D stage ---------------- */}
@@ -159,7 +159,7 @@ export default function ServiceGallery() {
         </div>
 
         {/* Progress ring */}
-        <div className="pointer-events-none absolute -left-2 -top-2 sm:-left-3 sm:-top-3 z-40">
+        <div className="pointer-events-none absolute left-0 -top-2 sm:-left-3 sm:-top-3 z-40">
           <svg width="48" height="48" viewBox="0 0 54 54" className="-rotate-90 sm:h-[54px] sm:w-[54px]">
             <circle cx="27" cy="27" r="23" fill="rgba(22,24,28,.75)" stroke="rgba(255,255,255,.14)" strokeWidth="2" />
             <circle
@@ -178,21 +178,21 @@ export default function ServiceGallery() {
         </div>
 
         {/* Floating stat chips */}
-        <div className="pointer-events-none absolute -left-2 sm:-left-7 top-16 sm:top-24 z-40 animate-[float_5s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-3 py-2 sm:px-4 sm:py-3 shadow-2xl">
+        <div className="pointer-events-none absolute left-0 sm:-left-7 top-16 sm:top-24 z-40 animate-[float_5s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-2.5 py-1.5 sm:px-4 sm:py-3 shadow-2xl">
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-brand text-white"><TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
+            <span className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-brand text-white"><TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
             <div>
-              <p className="font-display text-sm sm:text-base font-extrabold leading-none text-ink">1,000+</p>
+              <p className="font-display text-xs sm:text-base font-extrabold leading-none text-ink">1,000+</p>
               <p className="text-[10px] sm:text-[11px] text-muted">Trained</p>
             </div>
           </div>
         </div>
 
-        <div className="pointer-events-none absolute -right-2 sm:-right-7 bottom-24 sm:bottom-32 z-40 animate-[floatAlt_6s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-3 py-2 sm:px-4 sm:py-3 shadow-2xl">
+        <div className="pointer-events-none absolute right-0 sm:-right-7 bottom-24 sm:bottom-32 z-40 animate-[floatAlt_6s_ease-in-out_infinite] rounded-2xl border border-line bg-white px-2.5 py-1.5 sm:px-4 sm:py-3 shadow-2xl">
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-ink text-white"><Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
+            <span className="flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-ink text-white"><Briefcase className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></span>
             <div>
-              <p className="font-display text-sm sm:text-base font-extrabold leading-none text-ink">4</p>
+              <p className="font-display text-xs sm:text-base font-extrabold leading-none text-ink">4</p>
               <p className="text-[10px] sm:text-[11px] text-muted">Core services</p>
             </div>
           </div>

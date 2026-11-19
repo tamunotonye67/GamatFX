@@ -93,16 +93,16 @@ export default function Hero() {
                 <button
                   type="button"
                   onClick={() => navigate("/courses")}
-                  className="btn-primary flex-1 justify-center whitespace-nowrap !px-2.5 min-[360px]:!px-3.5 !py-2.5 !text-[11px] min-[360px]:!text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                  className="btn-primary w-full min-[360px]:w-auto min-[360px]:flex-1 justify-center whitespace-nowrap !px-3 min-[360px]:!px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
                   Explore Courses <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/how-it-works")}
-                  className="btn-ghost group flex-1 justify-center whitespace-nowrap !px-2.5 min-[360px]:!px-3.5 !py-2.5 !text-[11px] min-[360px]:!text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                  className="btn-ghost group w-full min-[360px]:w-auto min-[360px]:flex-1 justify-center whitespace-nowrap !px-3 min-[360px]:!px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
-                  <PlayCircle className="h-3.5 w-3.5 min-[360px]:h-4 min-[360px]:w-4 sm:h-5 sm:w-5 shrink-0 transition-transform group-hover:scale-110" />
+                  <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 transition-transform group-hover:scale-110" />
                   Watch How It Works
                 </button>
               </div>

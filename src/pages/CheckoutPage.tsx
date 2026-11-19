@@ -392,14 +392,14 @@ export default function CheckoutPage({ id }: { id: string }) {
 
         <div className="mt-5 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-[1.3fr_1fr]">
           {/* Payment form */}
-          <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-6 sm:p-9 shadow-[0_20px_50px_-30px_rgba(22,24,28,0.25)]">
+          <form onSubmit={pay} className="rounded-3xl border border-line bg-white p-4 sm:p-9 shadow-[0_20px_50px_-30px_rgba(22,24,28,0.25)]">
             {/* Simple, Modern Header */}
             <div>
               <span className="text-[11px] font-bold uppercase tracking-widest text-brand">Checkout</span>
               <h1 className="mt-1 font-display text-2xl font-extrabold text-ink sm:text-3xl">
                 Complete Enrollment
               </h1>
-              <p className="mt-2 text-xs text-muted sm:text-sm">
+              <p className="mt-2 break-words text-xs text-muted sm:text-sm">
                 Enrolling as <strong className="text-ink font-semibold">{formatAccountName(user)}</strong> ({user?.email})
               </p>
             </div>
@@ -410,22 +410,22 @@ export default function CheckoutPage({ id }: { id: string }) {
                 Payment Method
               </label>
 
-              <div className="flex items-center justify-between rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-4 transition">
-                <div className="flex items-center gap-3.5">
-                  <div className="flex h-10 w-24 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2.5">
+              <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-brand/20 bg-brand/[0.03] p-3 sm:p-4 transition">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-20 sm:w-24 shrink-0 items-center justify-center rounded-xl bg-white border border-line shadow-xs px-2">
                     <img
                       src="/images/bachs-logo.png"
                       alt="Bachs"
                       className="h-4.5 w-auto object-contain"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-bold text-ink">Bachs Checkout</p>
                     <p className="text-xs text-muted">Card, Bank Transfer, or Crypto</p>
                   </div>
                 </div>
 
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-white shadow-xs">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-xs">
                   <Check className="h-3.5 w-3.5 stroke-[3]" />
                 </div>
               </div>
