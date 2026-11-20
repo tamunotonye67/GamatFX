@@ -156,6 +156,7 @@ import {
   type HubLessonItem,
 } from "../lib/whiteboardHubData";
 import { useStore } from "../lib/store";
+import { loadWhiteboardFromCloud, saveWhiteboardToCloud } from "../lib/whiteboardSync";
 
 /* Custom Forex SVG Icons (Ultra-Minimalist Lucide-Style Line Art) */
 const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
@@ -2296,6 +2297,86 @@ export default function WhiteboardPage() {
       localStorage.setItem("gamat_whiteboard_active_tab_id", activeTabId);
     } catch (e) {}
   }, [activeTabId]);
+
+  /* -------------------------- Cross-Device R2 Cloud Sync ------------------- */
+  const cloudReadyRef = useRef(false);
+  const skipNextCloudSaveRef = useRef(false);
+
+  useEffect(() => {
+    cloudReadyRef.current = false;
+    if (!user?.id) return;
+    let cancelled = false;
+
+    loadWhiteboardFromCloud(user.id).then((cloud) => {
+      if (cancelled) return;
+      if (cloud && Array.isArray(cloud.tabs) && cloud.tabs.length > 0) {
+        let localUpdatedAt = 0;
+        try {
+          localUpdatedAt = Number(localStorage.getItem(`gamat_whiteboard_updated_at_${user.id}`) || "0");
+        } catch {}
+
+        if (cloud.updatedAt > localUpdatedAt) {
+          skipNextCloudSaveRef.current = true;
+          const nextTabId = cloud.activeTabId || cloud.tabs[0].id;
+          const active = cloud.tabs.find((t: any) => t.id === nextTabId) || cloud.tabs[0];
+          setTabs(cloud.tabs);
+          setActiveTabId(nextTabId);
+          if (active) {
+            setShapes(Array.isArray(active.shapes) ? active.shapes : []);
+            if (active.theme) setBgGrid(active.theme);
+            if (typeof active.snapToGrid === "boolean") setSnapToGrid(active.snapToGrid);
+          }
+          if (Array.isArray(cloud.savedDrafts)) {
+            setSavedDrafts(cloud.savedDrafts);
+            try {
+              localStorage.setItem("gamat_fx_saved_drafts", JSON.stringify(cloud.savedDrafts));
+            } catch {}
+          }
+          if (Array.isArray(cloud.trashedTabs)) {
+            setTrashedTabs(cloud.trashedTabs);
+            try {
+              localStorage.setItem("gamat_fx_trashed_tabs", JSON.stringify(cloud.trashedTabs));
+            } catch {}
+          }
+          try {
+            localStorage.setItem("gamat_whiteboard_active_tabs", JSON.stringify(cloud.tabs));
+            localStorage.setItem("gamat_whiteboard_active_tab_id", nextTabId);
+            localStorage.setItem(`gamat_whiteboard_updated_at_${user.id}`, String(cloud.updatedAt));
+          } catch {}
+        }
+      }
+      cloudReadyRef.current = true;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !cloudReadyRef.current) return;
+    if (skipNextCloudSaveRef.current) {
+      skipNextCloudSaveRef.current = false;
+      return;
+    }
+
+    const now = Date.now();
+    try {
+      localStorage.setItem(`gamat_whiteboard_updated_at_${user.id}`, String(now));
+    } catch {}
+
+    const timer = window.setTimeout(() => {
+      void saveWhiteboardToCloud(user.id, {
+        tabs,
+        activeTabId,
+        savedDrafts,
+        trashedTabs,
+        updatedAt: now,
+      });
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [user?.id, tabs, activeTabId, savedDrafts, trashedTabs]);
 
   /* -------------------------- Page Scroll Lock & LocalStorage Initializer --- */
 

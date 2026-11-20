@@ -17,7 +17,7 @@ function encodeRfc3986(str) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
+  if (req.method !== "POST" && req.method !== "GET") {
     return res.status(405).json({ ok: false, message: "Method not allowed" });
   }
 
@@ -32,6 +32,19 @@ export default async function handler(req, res) {
       ok: false,
       configured: false,
       message: "Cloudflare R2 is not configured yet.",
+    });
+  }
+
+  if (req.method === "GET") {
+    const rawKey = String(req.query?.key || "").replace(/^\/+/, "");
+    if (!rawKey || rawKey.includes("..")) {
+      return res.status(400).json({ ok: false, message: "Invalid object key" });
+    }
+    const encodedKey = rawKey.split("/").map(encodeRfc3986).join("/");
+    return res.status(200).json({
+      ok: true,
+      configured: true,
+      publicUrl: `${publicBase}/${encodedKey}`,
     });
   }
 
