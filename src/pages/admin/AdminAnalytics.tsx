@@ -53,7 +53,7 @@ export function AdminAnalytics() {
     const onFocus = () => {
       if (document.visibilityState === "visible") refreshRemote();
     };
-    const interval = window.setInterval(refreshRemote, 15000);
+    const interval = window.setInterval(refreshRemote, 120000);
     window.addEventListener("gamat:discovery-updated", refreshLocal);
     window.addEventListener("storage", refreshLocal);
     window.addEventListener("focus", onFocus);

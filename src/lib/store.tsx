@@ -2109,71 +2109,139 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   /* Load all entities from Supabase database, auto-seed if empty & subscribe to Realtime events */
   useEffect(() => {
-    const refreshAllFromSupabase = () => {
-      fetchSupabaseAccounts().then((res) => {
-        if (res.ok) {
-          reconcileAccountsWithSupabase(res.accounts);
-        }
-      });
-      fetchSupabaseEnrollments().then((r) => {
-        if (Array.isArray(r)) setAllEnrollments(r);
-      });
-      fetchSupabasePayments().then((r) => {
-        if (Array.isArray(r)) {
-          const deleted = getDeletedPaymentIds();
-          const active = r.filter((p) => !deleted.has(p.id?.toLowerCase()) && !deleted.has(p.ref?.toLowerCase()));
-          setPayments(active);
-        }
-      });
-      fetchSupabaseEvents().then((r) => r.length && setEvents(r));
-      fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
-      fetchSupabaseThreads().then((r) => r.length && setThreads(r));
-      fetchSupabaseReplies().then((r) => r.length && setReplies(r));
-      fetchSupabaseClubs().then((r) => r.length && setClubs(r));
-      fetchSupabaseClubMessages().then((r) => r.length && setClubMessages(r));
-      fetchSupabaseNews().then((r) => r.length && setNews(r));
-      fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
-      fetchSupabaseEnquiries().then((r) => {
-        if (r !== null) setEnquiries(r);
-      });
-      fetchSupabaseDiscoveryResponses();
-      fetchSupabaseCoupons().then((r) => {
-        if (r.length) {
-          setCoupons((prev) => normalizeCoupons(prev, r));
-        }
-      });
-      fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
-      fetchSupabaseSOTW().then((res) => {
-        if (res.active) {
-          setStudentOfTheWeek(res.active);
-          write(K.studentOfTheWeek, res.active);
-        }
-        if (res.all.length > 0) {
-          setStudentOfTheWeekHistory(res.all);
-          write(K.sotwHistory, res.all);
-        }
-      });
-      fetchSupabaseReviews().then((r) => r.length && setReviews(r));
-      fetchSupabaseAffiliateSettings().then((s) => {
-        if (s) setAffiliateSettings(s);
-      });
-      fetchSupabaseStoreProducts().then((supaProds) => {
-        if (supaProds && supaProds.length > 0) {
-          setStoreProducts((prev) => {
-            const map = new Map<string, StoreProduct>();
-            SEED_STORE_PRODUCTS.forEach((p) => map.set(p.id, p));
-            prev.forEach((p) => map.set(p.id, p));
-            supaProds.forEach((p) => map.set(p.id, p));
-            const merged = Array.from(map.values());
-            saveStoredProducts(merged);
-            return merged;
+    let lastFullSyncAt = 0;
+    const FULL_SYNC_COOLDOWN_MS = 180_000; // 3 minutes
+
+    const refreshTable = (table: string) => {
+      switch (table) {
+        case "accounts":
+          fetchSupabaseAccounts().then((res) => {
+            if (res.ok) reconcileAccountsWithSupabase(res.accounts);
           });
-        }
-      });
+          break;
+        case "enrollments":
+          fetchSupabaseEnrollments().then((r) => {
+            if (Array.isArray(r)) setAllEnrollments(r);
+          });
+          break;
+        case "payments":
+          fetchSupabasePayments().then((r) => {
+            if (Array.isArray(r)) {
+              const deleted = getDeletedPaymentIds();
+              const active = r.filter((p) => !deleted.has(p.id?.toLowerCase()) && !deleted.has(p.ref?.toLowerCase()));
+              setPayments(active);
+            }
+          });
+          break;
+        case "events":
+          fetchSupabaseEvents().then((r) => r.length && setEvents(r));
+          break;
+        case "registrations":
+          fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
+          break;
+        case "forum_threads":
+          fetchSupabaseThreads().then((r) => r.length && setThreads(r));
+          break;
+        case "forum_replies":
+          fetchSupabaseReplies().then((r) => r.length && setReplies(r));
+          break;
+        case "trading_clubs":
+          fetchSupabaseClubs().then((r) => r.length && setClubs(r));
+          break;
+        case "club_messages":
+          fetchSupabaseClubMessages().then((r) => r.length && setClubMessages(r));
+          break;
+        case "news":
+          fetchSupabaseNews().then((r) => r.length && setNews(r));
+          break;
+        case "outlooks":
+          fetchSupabaseOutlooks().then((r) => r.length && setOutlooks(r));
+          break;
+        case "service_enquiries":
+          fetchSupabaseEnquiries().then((r) => {
+            if (r !== null) setEnquiries(r);
+          });
+          break;
+        case "discovery_survey_responses":
+          fetchSupabaseDiscoveryResponses();
+          break;
+        case "coupons":
+          fetchSupabaseCoupons().then((r) => {
+            if (r.length) {
+              setCoupons((prev) => normalizeCoupons(prev, r));
+            }
+          });
+          break;
+        case "giveaways":
+          fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
+          break;
+        case "student_of_the_week":
+          fetchSupabaseSOTW().then((res) => {
+            if (res.active) {
+              setStudentOfTheWeek(res.active);
+              write(K.studentOfTheWeek, res.active);
+            }
+            if (res.all.length > 0) {
+              setStudentOfTheWeekHistory(res.all);
+              write(K.sotwHistory, res.all);
+            }
+          });
+          break;
+        case "reviews":
+          fetchSupabaseReviews().then((r) => r.length && setReviews(r));
+          break;
+        case "affiliate_settings":
+          fetchSupabaseAffiliateSettings().then((s) => {
+            if (s) setAffiliateSettings(s);
+          });
+          break;
+        case "store_products":
+          fetchSupabaseStoreProducts().then((supaProds) => {
+            if (supaProds && supaProds.length > 0) {
+              setStoreProducts((prev) => {
+                const map = new Map<string, StoreProduct>();
+                SEED_STORE_PRODUCTS.forEach((p) => map.set(p.id, p));
+                prev.forEach((p) => map.set(p.id, p));
+                supaProds.forEach((p) => map.set(p.id, p));
+                const merged = Array.from(map.values());
+                saveStoredProducts(merged);
+                return merged;
+              });
+            }
+          });
+          break;
+      }
+    };
+
+    const refreshAllFromSupabase = (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastFullSyncAt < FULL_SYNC_COOLDOWN_MS) return;
+      lastFullSyncAt = now;
+
+      const isSignedIn = Boolean(read<string | null>(K.session, null));
+      [
+        "accounts",
+        "events",
+        "forum_threads",
+        "forum_replies",
+        "trading_clubs",
+        "club_messages",
+        "news",
+        "outlooks",
+        "coupons",
+        "giveaways",
+        "student_of_the_week",
+        "reviews",
+        "affiliate_settings",
+        "store_products",
+        ...(isSignedIn
+          ? ["enrollments", "payments", "registrations", "service_enquiries", "discovery_survey_responses"]
+          : []),
+      ].forEach(refreshTable);
     };
 
     // 1. Fetch initial records
-    refreshAllFromSupabase();
+    refreshAllFromSupabase(true);
 
     // 2. Auto-seed Supabase database if tables are empty
     seedSupabaseDatabaseIfEmpty({
@@ -2186,7 +2254,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       giveaways,
     });
 
-    // 3. Subscribe to live Realtime database updates
+    // 3. Subscribe to live Realtime database updates (only refresh the specific changed table)
     const unsubscribe = subscribeToSupabaseRealtime((table, eventType, payload) => {
       if (table === "accounts" && eventType === "DELETE" && payload?.old?.id) {
         const deletedId = payload.old.id;
@@ -2201,16 +2269,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           setAllEnrollments((prev) => prev.filter((e) => e.userId !== deletedId));
         }
       }
-      refreshAllFromSupabase();
+      refreshTable(table);
     });
 
-    // 4. Refresh whenever tab regains focus or visibility
-    const onFocus = () => refreshAllFromSupabase();
+    // 4. Refresh when tab regains focus/visibility (throttled to once every 3 minutes)
+    const onFocus = () => {
+      if (document.visibilityState === "hidden") return;
+      refreshAllFromSupabase(false);
+    };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onFocus);
 
-    // 5. Periodic polling sync every 20 seconds
-    const interval = setInterval(refreshAllFromSupabase, 20000);
+    // 5. Gentle 5-minute fallback sync only while tab is visible (Realtime handles live updates)
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        refreshAllFromSupabase(false);
+      }
+    }, 300_000);
 
     return () => {
       unsubscribe();
