@@ -957,7 +957,16 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
         notif.onclick = () => {
           window.focus();
-          navigate(top.to);
+          if (top.to === "/birthday-card") {
+            setBdayModal({
+              recipientName: top.actorName || (user ? formatAccountName(user) : "Trader"),
+              recipientAvatar: top.actorAvatar || user?.avatar,
+              couponCode: top.couponCode,
+              discountPercent: top.discountPercent,
+            });
+          } else {
+            navigate(top.to);
+          }
           notif.close();
         };
       } catch {}
