@@ -221,16 +221,17 @@ export default function DashboardPage() {
   const handleCropModalComplete = async (croppedBlob: Blob, croppedDataUrl: string) => {
     closeCropModal();
     if (!user) return;
-    store.updateProfile({ avatar: croppedDataUrl });
     try {
       const croppedFile = new File([croppedBlob], `avatar_${user.id}_${Date.now()}.jpg`, { type: "image/jpeg" });
       const res = await uploadAvatar(user.id, croppedFile);
       if (res.ok && res.url) {
         store.updateProfile({ avatar: res.url });
+        return;
       }
     } catch (e) {
       console.warn("Avatar cloud upload fallback:", e);
     }
+    store.updateProfile({ avatar: croppedDataUrl });
   };
 
   // All academy courses available for learning and certification assessments

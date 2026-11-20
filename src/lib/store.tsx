@@ -1958,15 +1958,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ? existing.password
             : supaAcc.password || "password123");
 
-        const recentUpdate = recentlyUpdatedAccountsRef.current.get(supaAcc.id);
+        let recentUpdate = recentlyUpdatedAccountsRef.current.get(supaAcc.id);
+        if (!recentUpdate) {
+          for (const entry of recentlyUpdatedAccountsRef.current.values()) {
+            if (entry.account.email.trim().toLowerCase() === cleanEmail) {
+              recentUpdate = entry;
+              break;
+            }
+          }
+        }
         const isRecentValid = recentUpdate && (recentUpdate.persistLocal || Date.now() - recentUpdate.ts < 120000);
         if (recentUpdate && !isRecentValid) {
-          recentlyUpdatedAccountsRef.current.delete(supaAcc.id);
+          recentlyUpdatedAccountsRef.current.delete(recentUpdate.account.id);
         }
 
-        const mergedAcc: Account = isRecentValid
-          ? { ...supaAcc, ...recentUpdate.account, password: preservedPassword }
+        let mergedAcc: Account = isRecentValid
+          ? { ...supaAcc, ...recentUpdate!.account, id: supaAcc.id, password: preservedPassword }
           : { ...supaAcc, password: preservedPassword };
+
+        try {
+          const rawOv = localStorage.getItem("gamat.avatar_override.v1");
+          if (rawOv) {
+            const ovMap = JSON.parse(rawOv);
+            const ov = ovMap?.[cleanEmail];
+            if (ov && ov.avatar !== undefined) {
+              mergedAcc = { ...mergedAcc, avatar: ov.avatar };
+            }
+          }
+        } catch {}
 
         map.set(supaAcc.id, mergedAcc);
       });
@@ -2745,8 +2764,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 const raw = localStorage.getItem("gamat.avatar_override.v1");
                 if (raw) {
                   const map = JSON.parse(raw);
-                  delete map[cleanEmail];
-                  localStorage.setItem("gamat.avatar_override.v1", JSON.stringify(map));
+                  if (map[cleanEmail]?.avatar === cleanPatch.avatar) {
+                    delete map[cleanEmail];
+                    localStorage.setItem("gamat.avatar_override.v1", JSON.stringify(map));
+                  }
                 }
               } catch {}
             }

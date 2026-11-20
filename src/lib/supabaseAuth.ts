@@ -333,25 +333,35 @@ export async function saveSupabaseAccount(acc: Account): Promise<{ ok: boolean; 
 
     if (existingByEmail && existingByEmail.id && existingByEmail.id !== acc.id) {
       const { id: _ignoreId, ...patchWithoutId } = row;
-      const { error: updateErr } = await supabase
+      const { data: updatedRows, error: updateErr } = await supabase
         .from("accounts")
         .update(patchWithoutId)
-        .eq("id", existingByEmail.id);
-      if (!updateErr) return { ok: true };
+        .eq("id", existingByEmail.id)
+        .select("id");
+      if (!updateErr && updatedRows && updatedRows.length > 0) return { ok: true };
     }
 
-    const { error } = await supabase.from("accounts").upsert(row, { onConflict: "id" });
-    if (error) {
-      // Fallback: try updating directly by email
-      const { id: _ignoreId, ...patchWithoutId } = row;
-      const { error: emailUpdateErr } = await supabase
-        .from("accounts")
-        .update(patchWithoutId)
-        .eq("email", cleanEmail);
-      if (!emailUpdateErr) return { ok: true };
-      return { ok: false, error: error.message };
+    const { data: upsertedRows, error } = await supabase
+      .from("accounts")
+      .upsert(row, { onConflict: "id" })
+      .select("id");
+    if (!error && upsertedRows && upsertedRows.length > 0) {
+      return { ok: true };
     }
-    return { ok: true };
+
+    // Fallback: try updating directly by email
+    const { id: _ignoreId, ...patchWithoutId } = row;
+    const { data: emailRows, error: emailUpdateErr } = await supabase
+      .from("accounts")
+      .update(patchWithoutId)
+      .eq("email", cleanEmail)
+      .select("id");
+    if (!emailUpdateErr && emailRows && emailRows.length > 0) return { ok: true };
+
+    return {
+      ok: false,
+      error: error?.message || emailUpdateErr?.message || "Account row was not updated in Supabase.",
+    };
   } catch (err: any) {
     return { ok: false, error: err.message || "Failed to save account to Supabase" };
   }
