@@ -256,6 +256,19 @@ export async function uploadStoreAsset(productId: string, file: File, prefix = "
   return { ok: true, url: dataUrl, fileName: file.name };
 }
 
+/**
+ * Uploads any general image (forum screenshots, club chat images, news/outlook covers, SOTW photos)
+ * directly to Cloudflare R2 ($0 egress), falling back to a compressed data URL if R2 is unavailable.
+ */
+export async function uploadPublicImage(folder: string, file: File): Promise<string> {
+  const cleanFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, "") || "media";
+  const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "") || "jpg";
+  const key = `${cleanFolder}/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+  const r2Url = await tryUploadToR2(key, file);
+  if (r2Url) return r2Url;
+  return fileToDataUrl(file);
+}
+
 /** Utility to convert a File object to a Base64 data URL, automatically compressing images to prevent storage quota exhaustion */
 export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve) => {

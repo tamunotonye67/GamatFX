@@ -4,6 +4,7 @@ import PageCta from "../../components/PageCta";
 import { useStore, type TradingClub } from "../../lib/store";
 import { navigate } from "../../lib/router";
 import { useReveal } from "../../lib/useReveal";
+import { uploadPublicImage } from "../../lib/supabaseStorage";
 import {
   Users, UserPlus, Crown, Shield, Zap,
   Search, CheckCircle2, AlertCircle, Plus, LogOut, Info, X, Award,
@@ -556,14 +557,11 @@ function ClubModalContent({ club, onClose }: { club: TradingClub; onClose: () =>
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [clubMessages, club.id]);
 
-  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (reader.result) setImage(String(reader.result));
-    };
-    reader.readAsDataURL(file);
+    const url = await uploadPublicImage("clubs", file);
+    if (url) setImage(url);
   };
 
   const handleSend = (e: React.FormEvent) => {

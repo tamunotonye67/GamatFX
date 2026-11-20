@@ -3,6 +3,7 @@ import PageHero from "../components/PageHero";
 import { useStore, type ForumThread } from "../lib/store";
 import { navigate } from "../lib/router";
 import { formatAccountName, capitalizeWord } from "../lib/formatName";
+import { uploadPublicImage } from "../lib/supabaseStorage";
 import {
   MessagesSquare, HelpCircle, LineChart, Brain, Trophy, BookMarked, HandHeart,
   Heart, MessageCircle, Pin, Trash2, Send, Search, ChevronRight,
@@ -159,24 +160,12 @@ function readForumImage(file: File): Promise<string> {
       reject(new Error("Image must be under 4MB."));
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const max = 1280;
-        const scale = Math.min(1, max / Math.max(img.width, img.height));
-        const cv = document.createElement("canvas");
-        cv.width = Math.round(img.width * scale);
-        cv.height = Math.round(img.height * scale);
-        const ctx = cv.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, cv.width, cv.height);
-        resolve(cv.toDataURL("image/jpeg", 0.82));
-      };
-      img.onerror = () => reject(new Error("Could not read that image."));
-      img.src = reader.result as string;
-    };
-    reader.onerror = () => reject(new Error("Could not read that image."));
-    reader.readAsDataURL(file);
+    uploadPublicImage("forum", file)
+      .then((url) => {
+        if (url) resolve(url);
+        else reject(new Error("Could not read that image."));
+      })
+      .catch(() => reject(new Error("Could not read that image.")));
   });
 }
 

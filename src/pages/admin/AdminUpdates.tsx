@@ -3,6 +3,7 @@ import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Emp
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type NewsItem, type OutlookItem } from "../../lib/store";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
+import { uploadPublicImage } from "../../lib/supabaseStorage";
 import {
   Newspaper, Sun, Plus, Pencil, Trash2, Save, Download,
   Eye, CheckCircle2, EyeOff,
@@ -29,16 +30,13 @@ export function AdminNews() {
     impact: "medium", pair: "", status: "draft", image: "/images/hero.jpg",
   });
 
-  const handleImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (edit && reader.result) {
-        setEdit({ ...edit, image: String(reader.result) });
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!file || !edit) return;
+    const url = await uploadPublicImage("news", file);
+    if (url) {
+      setEdit((prev) => (prev ? { ...prev, image: url } : prev));
+    }
   };
 
   const submit = (e: React.FormEvent) => {
