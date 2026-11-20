@@ -1,13 +1,60 @@
 import { supabase } from "./supabase";
 
+const CF_MEDIA_BASE = (import.meta.env.VITE_CLOUDFLARE_MEDIA_URL || "").trim().replace(/\/+$/, "");
+
 /**
- * Uploads a user avatar image to the Supabase Storage 'avatars' bucket.
+ * Rewrites public Supabase Storage URLs to go through your Cloudflare Worker cache
+ * when VITE_CLOUDFLARE_MEDIA_URL is configured (no-op otherwise).
+ */
+export function toEdgeMediaUrl(url: string): string {
+  if (!url || !CF_MEDIA_BASE) return url;
+  return url.replace(
+    /^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\/public\//i,
+    `${CF_MEDIA_BASE}/storage/v1/object/public/`
+  );
+}
+
+/**
+ * Attempts to upload directly to Cloudflare R2 ($0 egress) via /api/r2-presign.
+ * Returns null if R2 is not configured yet so callers seamlessly fall back to Supabase Storage.
+ */
+async function tryUploadToR2(key: string, file: File): Promise<string | null> {
+  try {
+    const res = await fetch("/api/r2-presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key,
+        contentType: file.type || "application/octet-stream",
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    if (!data?.ok || !data?.uploadUrl || !data?.publicUrl) return null;
+
+    const putRes = await fetch(data.uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type || "application/octet-stream" },
+      body: file,
+    });
+    if (!putRes.ok) return null;
+    return data.publicUrl as string;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Uploads a user avatar image to Cloudflare R2 (if configured) or Supabase Storage 'avatars' bucket.
  * Returns the public CDN URL of the uploaded image.
  */
 export async function uploadAvatar(userId: string, file: File): Promise<{ ok: boolean; url?: string; error?: string }> {
   try {
     const fileExt = file.name.split(".").pop() || "jpg";
     const filePath = `user_${userId}_${Date.now()}.${fileExt}`;
+
+    const r2Url = await tryUploadToR2(`avatars/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url };
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -21,7 +68,7 @@ export async function uploadAvatar(userId: string, file: File): Promise<{ ok: bo
     }
 
     const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    return { ok: true, url: publicUrl };
+    return { ok: true, url: toEdgeMediaUrl(publicUrl) };
   } catch (err: any) {
     console.warn("Avatar upload fallback triggered:", err);
     const dataUrl = await fileToDataUrl(file);
@@ -38,6 +85,9 @@ export async function uploadCourseAsset(courseId: string, file: File): Promise<{
     const fileExt = file.name.split(".").pop() || "jpg";
     const filePath = `course_${courseId}_${Date.now()}.${fileExt}`;
 
+    const r2Url = await tryUploadToR2(`course-materials/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url };
+
     const { error: uploadError } = await supabase.storage
       .from("course-materials")
       .upload(filePath, file, { upsert: true });
@@ -49,7 +99,7 @@ export async function uploadCourseAsset(courseId: string, file: File): Promise<{
     }
 
     const { data: { publicUrl } } = supabase.storage.from("course-materials").getPublicUrl(filePath);
-    return { ok: true, url: publicUrl };
+    return { ok: true, url: toEdgeMediaUrl(publicUrl) };
   } catch (err: any) {
     const dataUrl = await fileToDataUrl(file);
     return { ok: true, url: dataUrl };
@@ -57,7 +107,7 @@ export async function uploadCourseAsset(courseId: string, file: File): Promise<{
 }
 
 /**
- * Uploads a course preview or lesson video to the Supabase Storage 'course-materials' bucket.
+ * Uploads a course preview or lesson video to Cloudflare R2 (if configured) or Supabase Storage 'course-materials' bucket.
  * Falls back to a data URL only for small clips (<= 2.5MB) so localStorage is never exhausted.
  */
 export async function uploadCourseVideo(courseId: string, file: File): Promise<{ ok: boolean; url?: string; error?: string }> {
@@ -70,6 +120,9 @@ export async function uploadCourseVideo(courseId: string, file: File): Promise<{
     const fileExt = (file.name.split(".").pop() || "mp4").toLowerCase();
     const filePath = `videos/course_${courseId || "new"}_${Date.now()}.${fileExt}`;
 
+    const r2Url = await tryUploadToR2(`course-materials/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url };
+
     const { error: uploadError } = await supabase.storage
       .from("course-materials")
       .upload(filePath, file, {
@@ -79,7 +132,7 @@ export async function uploadCourseVideo(courseId: string, file: File): Promise<{
 
     if (!uploadError) {
       const { data: { publicUrl } } = supabase.storage.from("course-materials").getPublicUrl(filePath);
-      return { ok: true, url: publicUrl };
+      return { ok: true, url: toEdgeMediaUrl(publicUrl) };
     }
 
     console.warn("Supabase course video upload notice:", uploadError.message);
@@ -104,13 +157,16 @@ export async function uploadCourseVideo(courseId: string, file: File): Promise<{
 }
 
 /**
- * Uploads a company logo or official signature to the Supabase Storage 'company-assets' bucket.
+ * Uploads a company logo or official signature to Cloudflare R2 (if configured) or Supabase Storage 'company-assets' bucket.
  * Returns the public CDN URL of the uploaded asset.
  */
 export async function uploadCompanyAsset(assetKey: string, file: File): Promise<{ ok: boolean; url?: string; error?: string }> {
   try {
     const fileExt = file.name.split(".").pop() || "png";
     const filePath = `asset_${assetKey}_${Date.now()}.${fileExt}`;
+
+    const r2Url = await tryUploadToR2(`company-assets/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url };
 
     const { error: uploadError } = await supabase.storage
       .from("company-assets")
@@ -123,7 +179,7 @@ export async function uploadCompanyAsset(assetKey: string, file: File): Promise<
     }
 
     const { data: { publicUrl } } = supabase.storage.from("company-assets").getPublicUrl(filePath);
-    return { ok: true, url: publicUrl };
+    return { ok: true, url: toEdgeMediaUrl(publicUrl) };
   } catch (err: any) {
     const dataUrl = await fileToDataUrl(file);
     return { ok: true, url: dataUrl };
@@ -142,13 +198,16 @@ export function formatBytes(bytes: number, decimals = 1): string {
 
 /**
  * Uploads a store digital deliverable file (e.g. PDF, ZIP, EA .ex4/.ex5, indicator scripts)
- * to Supabase Storage with graceful fallback to Base64 data URL.
+ * to Cloudflare R2 (if configured) or Supabase Storage with graceful fallback to Base64 data URL.
  */
 export async function uploadStoreFile(productId: string, file: File): Promise<{ ok: boolean; url: string; fileName: string; fileSize: string; error?: string }> {
   const sizeStr = formatBytes(file.size);
   try {
     const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const filePath = `store_files/${productId || "prod"}_${Date.now()}_${cleanName}`;
+
+    const r2Url = await tryUploadToR2(`course-materials/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url, fileName: file.name, fileSize: sizeStr };
 
     const bucket = "course-materials";
     const { error: uploadError } = await supabase.storage
@@ -157,7 +216,7 @@ export async function uploadStoreFile(productId: string, file: File): Promise<{ 
 
     if (!uploadError) {
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      return { ok: true, url: publicUrl, fileName: file.name, fileSize: sizeStr };
+      return { ok: true, url: toEdgeMediaUrl(publicUrl), fileName: file.name, fileSize: sizeStr };
     }
     console.warn("Supabase store file upload notice:", uploadError.message);
   } catch (err: any) {
@@ -177,13 +236,16 @@ export async function uploadStoreAsset(productId: string, file: File, prefix = "
     const fileExt = file.name.split(".").pop() || "jpg";
     const filePath = `store_${prefix}_${productId || "prod"}_${Date.now()}.${fileExt}`;
 
+    const r2Url = await tryUploadToR2(`course-materials/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url, fileName: file.name };
+
     const { error: uploadError } = await supabase.storage
       .from("course-materials")
       .upload(filePath, file, { upsert: true });
 
     if (!uploadError) {
       const { data: { publicUrl } } = supabase.storage.from("course-materials").getPublicUrl(filePath);
-      return { ok: true, url: publicUrl, fileName: file.name };
+      return { ok: true, url: toEdgeMediaUrl(publicUrl), fileName: file.name };
     }
     console.warn("Supabase store asset upload notice:", uploadError.message);
   } catch (err: any) {

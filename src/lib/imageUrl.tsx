@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toEdgeMediaUrl } from "./supabaseStorage";
 
 export const DEFAULT_FALLBACK_IMAGES = {
   course: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
@@ -69,7 +70,7 @@ export function normalizeImageUrl(url?: string | null, fallback?: string): strin
     return `https://i.imgur.com/${imgurMatch[1]}.jpg`;
   }
 
-  return clean;
+  return toEdgeMediaUrl(clean);
 }
 
 /**
