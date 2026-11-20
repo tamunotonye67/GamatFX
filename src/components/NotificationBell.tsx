@@ -1183,7 +1183,16 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
                 onClick={() => {
                   markOneRead(n.id);
                   setOpen(false);
-                  navigate(n.to);
+                  if (n.to === "/birthday-card") {
+                    setBdayModal({
+                      recipientName: n.actorName || (user ? formatAccountName(user) : "Trader"),
+                      recipientAvatar: n.actorAvatar || user?.avatar,
+                      couponCode: n.couponCode,
+                      discountPercent: n.discountPercent,
+                    });
+                  } else {
+                    navigate(n.to);
+                  }
                 }}
                 className={`flex w-full items-start gap-3.5 px-5 py-3.5 text-left transition cursor-pointer ${
                   unread ? cardBg : "hover:bg-cream/70"
