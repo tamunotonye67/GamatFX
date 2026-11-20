@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/r2-presign", "destination": "/api/create-checkout?__r2=1" },
     { "source": "/join", "destination": "/api/join" },
     { "source": "/qr.png", "destination": "/api/qr" },
     { "source": "/qr", "destination": "/api/qr" },
