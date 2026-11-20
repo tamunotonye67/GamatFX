@@ -488,7 +488,7 @@ export default function HistofactPage() {
                     Showing <strong>{(currentPage - 1) * CARDS_PER_PAGE + 1}–{Math.min(currentPage * CARDS_PER_PAGE, filteredFacts.length)}</strong> of <strong>{filteredFacts.length}</strong> cards
                   </p>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 max-w-full">
                     <button
                       onClick={() => {
                         if (currentPage > 1) {
@@ -502,7 +502,7 @@ export default function HistofactPage() {
                       Previous
                     </button>
 
-                    <div className="flex items-center gap-1 overflow-x-auto max-w-[280px] sm:max-w-none py-1">
+                    <div className="flex items-center gap-1 overflow-x-auto max-w-full sm:max-w-none py-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                         <button
                           key={pageNum}
@@ -510,7 +510,7 @@ export default function HistofactPage() {
                             setCurrentPage(pageNum);
                             window.scrollTo({ top: 400, behavior: "smooth" });
                           }}
-                          className={`h-9 w-9 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer ${
+                          className={`h-9 w-9 shrink-0 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer ${
                             currentPage === pageNum
                               ? "bg-brand text-white shadow-md shadow-brand/20"
                               : "border border-line bg-white text-ink/80 hover:border-brand hover:text-brand"

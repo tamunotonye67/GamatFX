@@ -324,6 +324,8 @@ export function AdminDashboard() {
                               discountPercent: 15,
                               maxUses: 1,
                               applicableTo: "all",
+                              recipientUserId: a.id,
+                              recipientName: formatAccountName(a),
                               status: "active",
                             });
                             if (res.ok) {
@@ -331,11 +333,17 @@ export function AdminDashboard() {
                               try {
                                 void navigator.clipboard.writeText(code);
                               } catch {}
+                              void sendBirthdayEmail({
+                                to: a.email,
+                                name: a.firstName || formatAccountName(a),
+                                couponCode: code,
+                                discountPercent: 15,
+                              });
                             }
                           }}
                           className="rounded-full border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink hover:bg-white transition disabled:opacity-60 cursor-pointer"
                         >
-                          {giftedCouponMap[a.id] ? `Coupon: ${giftedCouponMap[a.id]} ✓` : "Gift 15% Coupon"}
+                          {giftedCouponMap[a.id] ? `Gifted & Emailed: ${giftedCouponMap[a.id]} ✓` : "Gift 15% Coupon"}
                         </button>
                       </>
                     )}

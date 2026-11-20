@@ -338,6 +338,8 @@ export type Coupon = {
   applicableTo: "all" | "courses" | "services" | "events" | "store" | "single_product";
   targetProductId?: string;
   targetProductTitle?: string;
+  recipientUserId?: string;
+  recipientName?: string;
   status: "active" | "disabled";
   createdAt: string;
 };

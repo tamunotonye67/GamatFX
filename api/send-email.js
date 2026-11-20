@@ -1304,11 +1304,22 @@ export default async function handler(req, res) {
     }
 
     if (type === "birthday_greeting") {
-      const { to, name } = body;
+      const { to, name, couponCode, discountPercent } = body;
       if (!to) {
         return res.status(400).json({ ok: false, message: "Missing required field (to)" });
       }
       const safeName = escapeHtml(name || "Trader");
+      const safeCode = couponCode ? escapeHtml(String(couponCode).trim().toUpperCase()) : "";
+      const pct = Number(discountPercent) > 0 ? Number(discountPercent) : 15;
+      const couponBlock = safeCode
+        ? `
+          <div style="margin:0 0 22px;padding:18px;border-radius:14px;background:#fffbeb;border:2px dashed #f59e0b;text-align:center;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#b45309;">YOUR BIRTHDAY GIFT • ${pct}% OFF</p>
+            <p style="margin:0 0 8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:22px;font-weight:900;letter-spacing:2px;color:#16181c;">${safeCode}</p>
+            <p style="margin:0;font-size:12px;color:#78350f;">Apply this code at checkout on any course, mentorship, or store item.</p>
+          </div>
+        `
+        : "";
 
       const html = `
         <!DOCTYPE html>
@@ -1331,8 +1342,9 @@ export default async function handler(req, res) {
                       <p style="margin:0 0 20px;font-size:14px;line-height:1.65;color:#4b5563;">
                         From everyone at GAMAT Fx Academy, may your new year bring sharp discipline, high-probability setups, and consistent growth both on and off the charts.
                       </p>
+                      ${couponBlock}
                       <div style="text-align:center;">
-                        <a href="https://gamatfxacademy.com/#/dashboard" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">Visit Your Dashboard</a>
+                        <a href="https://gamatfxacademy.com/#/${safeCode ? "courses" : "dashboard"}" style="display:inline-block;background:#dc3545;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:13px 26px;border-radius:9999px;">${safeCode ? `Claim Your ${pct}% Birthday Gift` : "Visit Your Dashboard"}</a>
                       </div>
                     </td>
                   </tr>
@@ -1346,7 +1358,9 @@ export default async function handler(req, res) {
         from: fromEmail,
         to: [to],
         reply_to: adminEmail,
-        subject: `Happy Birthday, ${name || "Trader"}! — GAMAT Fx Academy`,
+        subject: safeCode
+          ? `Happy Birthday, ${name || "Trader"}! Here's a ${pct}% Birthday Gift — GAMAT Fx Academy`
+          : `Happy Birthday, ${name || "Trader"}! — GAMAT Fx Academy`,
         html,
       });
       if (!result.ok) return res.status(result.status).json({ ok: false, message: result.data?.message || "Failed to send birthday email" });

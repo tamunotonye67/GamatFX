@@ -155,7 +155,7 @@ export default function Testimonials() {
         </div>
 
         {/* Mobile 2-line counter-scrolling marquee (< md) */}
-        <div className="mt-10 space-y-5 md:hidden -mx-4 overflow-hidden py-3">
+        <div className="mt-10 space-y-5 md:hidden overflow-hidden py-3 [contain:layout_paint]">
           {/* Line 1: Right to Left */}
           <div className="flex w-max animate-marquee-left">
             {row1.map((r, idx) => (

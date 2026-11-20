@@ -389,6 +389,8 @@ export async function sendSecurityAlertEmail(params: {
 export async function sendBirthdayEmail(params: {
   to: string;
   name: string;
+  couponCode?: string;
+  discountPercent?: number;
 }): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch("/api/send-email", {

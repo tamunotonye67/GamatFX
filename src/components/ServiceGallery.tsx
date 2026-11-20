@@ -68,17 +68,17 @@ export default function ServiceGallery() {
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => { setPaused(false); setTilt({ x: 0, y: 0 }); }}
         onMouseMove={onMove}
-        className="relative mx-auto w-full max-w-[290px] min-[360px]:max-w-[320px] sm:max-w-[400px]"
+        className="relative mx-auto w-full max-w-[260px] min-[360px]:max-w-[285px] sm:max-w-[400px]"
         style={{ perspective: "1400px" }}
       >
         {/* Ambient glow that shifts colour with the slide */}
         <div
-          className="pointer-events-none absolute -inset-3 sm:-inset-10 -z-10 rounded-[3rem] blur-3xl transition-all duration-1000"
+          className="pointer-events-none absolute -inset-2 sm:-inset-10 -z-10 rounded-[3rem] blur-3xl transition-all duration-1000"
           style={{ background: `radial-gradient(circle at 40% 30%, ${active.accent}38, transparent 65%)` }}
         />
 
         {/* Rotating dashed ring */}
-        <div className="pointer-events-none absolute -inset-1.5 sm:-inset-6 -z-10 animate-[spinSlow_26s_linear_infinite] rounded-[2.5rem] border-2 border-dashed border-brand/20" />
+        <div className="pointer-events-none absolute inset-1 sm:-inset-6 -z-10 animate-[spinSlow_26s_linear_infinite] rounded-[2.5rem] border-2 border-dashed border-brand/20" />
 
         {/* Vector dot grid */}
         <svg className="pointer-events-none absolute -bottom-4 left-0 sm:-bottom-8 sm:-left-9 h-16 w-16 sm:h-24 sm:w-24 text-brand/25" viewBox="0 0 96 96" aria-hidden="true">

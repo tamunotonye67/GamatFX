@@ -17,7 +17,7 @@
 html {
   overflow-x: clip;
   overscroll-behavior-x: none;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   max-width: 100%;
   width: 100%;
   scroll-behavior: smooth;
@@ -29,7 +29,7 @@ body {
   font-family: var(--font-sans);
   overflow-x: clip;
   overscroll-behavior-x: none;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
   max-width: 100%;
   width: 100%;
   position: relative;
@@ -40,6 +40,14 @@ body {
   overscroll-behavior-x: none;
   max-width: 100%;
   width: 100%;
+}
+
+@media (max-width: 1023px) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
 }
 
 *, *::before, *::after {
@@ -113,6 +121,8 @@ img, video, canvas {
 
 .animate-cursor-ticker {
   animation: cursorTicker 14s linear infinite;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 @keyframes marqueeLeft {
@@ -135,10 +145,14 @@ img, video, canvas {
 
 .animate-marquee-left {
   animation: marqueeLeft 38s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .animate-marquee-right {
   animation: marqueeRight 38s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .animate-marquee-left:hover,
@@ -177,6 +191,40 @@ img, video, canvas {
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes bdayBalloonFloat {
+  0% {
+    transform: translate3d(0, 110vh, 0) rotate(-4deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.95;
+  }
+  50% {
+    transform: translate3d(18px, 45vh, 0) rotate(5deg);
+  }
+  90% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(-14px, -25vh, 0) rotate(-6deg);
+    opacity: 0;
+  }
+}
+
+@keyframes bdayConfettiFall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotateZ(0deg) rotateX(0deg);
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(24px, 108vh, 0) rotateZ(540deg) rotateX(360deg);
+    opacity: 0;
   }
 }
 

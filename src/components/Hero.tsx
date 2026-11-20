@@ -51,14 +51,14 @@ export default function Hero() {
           {/* Animated Synced Latest Event Announcement */}
           <div
             data-aos-delay="100"
-            className="mt-4 sm:mt-6 md:mt-8 mb-6 sm:mb-8 inline-flex max-w-full w-fit items-center gap-2 sm:gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-1.5 pr-3 sm:py-2 sm:pl-2 sm:pr-4 backdrop-blur-sm"
+            className="mt-4 sm:mt-6 md:mt-8 mb-6 sm:mb-8 inline-flex max-w-full w-full sm:w-fit items-center gap-2 sm:gap-3 rounded-full border border-white/15 bg-white/5 py-1.5 pl-1.5 pr-3 sm:py-2 sm:pl-2 sm:pr-4 backdrop-blur-sm overflow-hidden"
           >
             <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-brand via-rose-600 to-brand px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold text-white shadow-md animate-pulse shrink-0">
               <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> New
             </span>
 
             {/* Gliding Event Line moving out of the slim white terminal cursor and disappearing before Register button */}
-            <div className="relative flex min-w-0 flex-1 items-center overflow-hidden max-w-[185px] xs:max-w-[230px] sm:max-w-[360px] md:max-w-[440px] [mask-image:linear-gradient(to_right,rgba(0,0,0,1)_82%,rgba(0,0,0,0)_100%)]">
+            <div className="relative flex min-w-0 flex-1 items-center overflow-hidden sm:max-w-[360px] md:max-w-[440px] [mask-image:linear-gradient(to_right,rgba(0,0,0,1)_82%,rgba(0,0,0,0)_100%)]">
               <span className="inline-block h-3.5 w-[2px] bg-white animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.9)] mr-2 shrink-0 z-10" />
               <div className="whitespace-nowrap animate-cursor-ticker text-xs sm:text-sm text-white/85">
                 <span className="font-semibold text-white">{latestEvent.month} {latestEvent.day}</span> · {latestEvent.title} — seats filling fast.
@@ -76,7 +76,7 @@ export default function Hero() {
 
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,0.75fr)] lg:gap-14 xl:gap-20">
             <div className="min-w-0 max-w-3xl lg:max-w-none">
-              <h1 className="font-display text-[1.45rem] min-[360px]:text-[1.68rem] min-[375px]:text-[1.9rem] min-[410px]:text-[2.1rem] font-extrabold leading-[1.12] tracking-[-0.025em] sm:tracking-tight sm:text-5xl md:text-6xl">
+              <h1 className="font-display text-[1.32rem] min-[360px]:text-[1.5rem] min-[375px]:text-[1.62rem] min-[410px]:text-[1.82rem] font-extrabold leading-[1.12] tracking-[-0.025em] sm:tracking-tight sm:text-5xl md:text-6xl">
                 <span className="max-sm:block max-sm:whitespace-nowrap">Build elite traders</span>{" "}
                 <span className="max-sm:block max-sm:whitespace-nowrap">
                   through <span className="text-brand">high-quality</span>
@@ -89,18 +89,18 @@ export default function Hero() {
                 consistent profitability.
               </p>
 
-              <div className="mt-7 sm:mt-9 mb-2.5 sm:mb-3.5 flex flex-wrap min-[375px]:flex-nowrap items-center gap-2 min-[375px]:gap-2.5 sm:gap-4">
+              <div className="mt-7 sm:mt-9 mb-2.5 sm:mb-3.5 flex flex-wrap min-[400px]:flex-nowrap items-center gap-2 min-[400px]:gap-2.5 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => navigate("/courses")}
-                  className="btn-primary w-full min-[375px]:w-auto min-[375px]:flex-1 justify-center whitespace-nowrap !px-3 min-[375px]:!px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                  className="btn-primary w-full min-[400px]:w-auto min-[400px]:flex-1 justify-center whitespace-nowrap !px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
                   Explore Courses <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate("/how-it-works")}
-                  className="btn-ghost group w-full min-[375px]:w-auto min-[375px]:flex-1 justify-center whitespace-nowrap !px-3 min-[375px]:!px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
+                  className="btn-ghost group w-full min-[400px]:w-auto min-[400px]:flex-1 justify-center whitespace-nowrap !px-3.5 !py-2.5 !text-xs sm:flex-initial sm:!px-6 sm:!py-3.5 sm:!text-sm"
                 >
                   <PlayCircle className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 transition-transform group-hover:scale-110" />
                   Watch How It Works

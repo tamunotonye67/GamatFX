@@ -30,6 +30,7 @@ import { getSecurityActivities } from "../lib/securityNotifs";
 import { sendBirthdayEmail } from "../lib/email";
 import { getNotifPrefs, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 import { navigate } from "../lib/router";
+import BirthdayWishModal from "./BirthdayWishModal";
 
 type NotifKind =
   | "forum"
@@ -58,6 +59,8 @@ type NotifItem = {
   time?: string;
   actorName?: string;
   actorAvatar?: string;
+  couponCode?: string;
+  discountPercent?: number;
 };
 
 function timeAgo(iso?: string): string {
@@ -102,6 +105,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     teamBios = [],
     myPosts = [],
     hasPassedQuiz,
+    coupons = [],
   } = useStore();
   const threads = forum?.threads ?? [];
   const replies = forum?.replies ?? [];
@@ -109,6 +113,12 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
   const enquiries = admin?.enquiries ?? [];
 
   const [open, setOpen] = useState(false);
+  const [bdayModal, setBdayModal] = useState<{
+    recipientName: string;
+    recipientAvatar?: string;
+    couponCode?: string;
+    discountPercent?: number;
+  } | null>(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -799,27 +809,55 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         });
       });
 
-    // 24. Birthday Notifications (user's own birthday + community members' birthdays)
+    // 24. Birthday Notifications (user's own birthday + gifted birthday coupon + community members' birthdays)
     if (prefs.inAppBirthdays) {
       const bdayNow = new Date();
       const todayYear = bdayNow.getFullYear();
       const todayMmDd = `${String(bdayNow.getMonth() + 1).padStart(2, "0")}-${String(bdayNow.getDate()).padStart(2, "0")}`;
       const todayStartIso = new Date(todayYear, bdayNow.getMonth(), bdayNow.getDate()).toISOString();
 
+      const first = user.firstName || formatAccountName(user);
+      const nameTag = first.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6);
+      const userBdayCoupons = (coupons || []).filter((c) => {
+        if (c.status !== "active") return false;
+        if ((c.usedCount || 0) >= (c.maxUses || 1)) return false;
+        if (c.recipientUserId && c.recipientUserId === user.id) return true;
+        return Boolean(nameTag && c.code.toUpperCase().startsWith(`BDAY-${nameTag}-`));
+      });
+      const primaryBdayCoupon = userBdayCoupons[0];
+
       const userBdayMatch = user.birthday ? String(user.birthday).trim().match(/^\d{4}-(\d{2}-\d{2})/) : null;
       if (userBdayMatch && userBdayMatch[1] === todayMmDd) {
-        const first = user.firstName || formatAccountName(user);
         list.push({
           id: `bday_self_${user.id}_${todayYear}`,
           title: `Happy Birthday, ${first}! 🎉`,
-          body: "Wishing you a joyful birthday and winning trades from everyone at GAMAT FX Academy!",
-          to: "/dashboard?tab=profile",
+          body: primaryBdayCoupon
+            ? `Tap to open your birthday card & claim your ${primaryBdayCoupon.discountPercent}% OFF gift (${primaryBdayCoupon.code})!`
+            : "Tap to open your birthday wish card from everyone at GAMAT FX Academy!",
+          to: "/birthday-card",
           kind: "birthday",
           time: todayStartIso,
           actorName: formatAccountName(user),
           actorAvatar: user.avatar,
+          couponCode: primaryBdayCoupon?.code,
+          discountPercent: primaryBdayCoupon?.discountPercent,
         });
       }
+
+      userBdayCoupons.forEach((c) => {
+        list.push({
+          id: `bday_coupon_${c.id}`,
+          title: `🎁 Birthday Gift: ${c.discountPercent}% OFF!`,
+          body: `You've been gifted birthday coupon ${c.code}. Tap to open your wish card & copy your code!`,
+          to: "/birthday-card",
+          kind: "birthday",
+          time: c.createdAt || todayStartIso,
+          actorName: formatAccountName(user),
+          actorAvatar: user.avatar,
+          couponCode: c.code,
+          discountPercent: c.discountPercent,
+        });
+      });
 
       accounts
         .filter((a) => {
@@ -1270,8 +1308,18 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
                   onClick={() => {
                     markOneRead(liveToast.id);
                     const target = liveToast.to;
+                    const toastCopy = liveToast;
                     setLiveToast(null);
-                    navigate(target);
+                    if (target === "/birthday-card") {
+                      setBdayModal({
+                        recipientName: toastCopy.actorName || (user ? formatAccountName(user) : "Trader"),
+                        recipientAvatar: toastCopy.actorAvatar || user?.avatar,
+                        couponCode: toastCopy.couponCode,
+                        discountPercent: toastCopy.discountPercent,
+                      });
+                    } else {
+                      navigate(target);
+                    }
                   }}
                   className="flex flex-1 items-start gap-3 text-left min-w-0 cursor-pointer"
                 >
@@ -1317,6 +1365,15 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           })(),
           document.body
         )}
+
+      <BirthdayWishModal
+        open={Boolean(bdayModal)}
+        onClose={() => setBdayModal(null)}
+        recipientName={bdayModal?.recipientName || ""}
+        recipientAvatar={bdayModal?.recipientAvatar}
+        couponCode={bdayModal?.couponCode}
+        discountPercent={bdayModal?.discountPercent}
+      />
     </div>
   );
 }

@@ -111,7 +111,7 @@ export default function StoreSection() {
           {/* LEFT: 3D Hardcover Book Presentation */}
           <div className="lg:col-span-5 min-w-0 flex flex-col items-center justify-center">
             <div
-              className="relative w-full max-w-[270px] sm:max-w-[340px] md:max-w-[370px] lg:max-w-[380px] py-4 sm:py-8 cursor-pointer select-none"
+              className="relative w-full max-w-[235px] min-[360px]:max-w-[265px] sm:max-w-[340px] md:max-w-[370px] lg:max-w-[380px] py-4 sm:py-8 cursor-pointer select-none"
               style={{ perspective: "1400px" }}
               onMouseMove={handleMouseMove}
               onMouseEnter={() => setIsHovered(true)}
@@ -274,7 +274,7 @@ export default function StoreSection() {
               </p>
 
               {/* Key Highlights: Mobile single-line back-and-forth horizontal flow + sm+ 3-column grid */}
-              <div className="mt-5 sm:hidden playbook-marquee-wrap w-full overflow-hidden">
+              <div className="mt-5 sm:hidden playbook-marquee-wrap w-full overflow-hidden [contain:layout_paint]">
                 <div className="flex flex-nowrap gap-2.5 w-max animate-playbook-flow py-0.5">
                   {PLAYBOOK_HIGHLIGHTS.map((item) => (
                     <div

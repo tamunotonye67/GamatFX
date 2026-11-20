@@ -244,7 +244,7 @@ export default function LiveChartPage() {
                 </div>
               </div>
 
-              <svg viewBox={`0 0 ${W} ${H}`} className={`w-full bg-[#0d0f12] ${isFullscreen ? "" : "h-[240px] sm:h-[340px]"}`} preserveAspectRatio="xMidYMid slice" style={isFullscreen ? { height: "calc(100vh - 180px)" } : undefined}>
+              <svg viewBox={`0 0 ${W} ${H}`} className={`w-full overflow-hidden bg-[#0d0f12] ${isFullscreen ? "" : "h-[240px] sm:h-[340px]"}`} preserveAspectRatio="xMidYMid slice" style={isFullscreen ? { height: "calc(100vh - 180px)" } : undefined}>
                 {/* Grid */}
                 {Array.from({ length: 5 }).map((_, i) => (
                   <line key={i} x1="0" x2={W} y1={(H / 4) * i} y2={(H / 4) * i} stroke="rgba(255,255,255,.05)" strokeWidth="1" />
