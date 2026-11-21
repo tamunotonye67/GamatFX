@@ -3998,6 +3998,19 @@ export default function WhiteboardPage() {
     isDrawing.current = true;
 
     if (activeTool === "text") {
+      // Allow resizing selected text shapes directly while Text tool is active
+      for (const id of selectedShapeIds) {
+        const s = shapes.find((sh) => sh.id === id && sh.type === "text" && !sh.isLocked && !sh.isHidden);
+        if (s) {
+          const handle = getResizeHandleHit(pt, s);
+          if (handle) {
+            isDrawing.current = false;
+            setActiveResizeHandle({ shapeId: s.id, handle });
+            return;
+          }
+        }
+      }
+
       // Check if clicking on an existing text shape
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && s.type === "text" && isPointInShape(pt, s));
       if (hitShape) {
@@ -15473,8 +15486,77 @@ export default function WhiteboardPage() {
                     whiteSpace: isParagraph ? "pre-wrap" : "pre",
                     wordBreak: isParagraph ? "break-word" : "normal",
                   }}
-                  className="bg-white/10 border border-dashed border-brand/60 rounded-[2px] outline-none px-1 -mx-1 py-0 m-0 resize-none overflow-hidden caret-brand shadow-none font-sans placeholder:text-slate-400/50 placeholder:font-normal"
+                  className="bg-white/10 border border-dashed border-brand/60 rounded-[2px] outline-none px-1 -mx-1 py-0 m-0 resize-none overflow-hidden caret-brand shadow-none font-sans placeholder:text-slate-400/50 placeholder:font-normal block"
                 />
+                {isParagraph && (
+                  <>
+                    {(
+                      [
+                        { h: "tl", cls: "-top-1.5 -left-1.5 cursor-nwse-resize" },
+                        { h: "tm", cls: "-top-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize" },
+                        { h: "tr", cls: "-top-1.5 -right-1.5 cursor-nesw-resize" },
+                        { h: "mr", cls: "top-1/2 -translate-y-1/2 -right-1.5 cursor-ew-resize" },
+                        { h: "br", cls: "-bottom-1.5 -right-1.5 cursor-nwse-resize" },
+                        { h: "bm", cls: "-bottom-1.5 left-1/2 -translate-x-1/2 cursor-ns-resize" },
+                        { h: "bl", cls: "-bottom-1.5 -left-1.5 cursor-nesw-resize" },
+                        { h: "ml", cls: "top-1/2 -translate-y-1/2 -left-1.5 cursor-ew-resize" },
+                      ] as const
+                    ).map(({ h, cls }) => {
+                      const startParagraphHandleResize = (clientX: number, clientY: number) => {
+                        textCreatedTimeRef.current = Date.now();
+                        const canvasEl = canvasRef.current;
+                        if (!canvasEl) return;
+
+                        const updateFromClient = (cx: number, cy: number) => {
+                          textCreatedTimeRef.current = Date.now();
+                          const rect = canvasEl.getBoundingClientRect();
+                          const pt = {
+                            x: (cx - rect.left - pan.x) / zoom,
+                            y: (cy - rect.top - pan.y) / zoom,
+                          };
+                          setShapes((prev) =>
+                            prev.map((s) => (s.id === editingShape.id ? resizeShapePoints(s, h, pt) : s))
+                          );
+                        };
+
+                        const onMouseMove = (ev: MouseEvent) => updateFromClient(ev.clientX, ev.clientY);
+                        const onTouchMove = (ev: TouchEvent) => {
+                          if (ev.touches[0]) updateFromClient(ev.touches[0].clientX, ev.touches[0].clientY);
+                        };
+                        const cleanup = () => {
+                          window.removeEventListener("mousemove", onMouseMove);
+                          window.removeEventListener("mouseup", cleanup);
+                          window.removeEventListener("touchmove", onTouchMove);
+                          window.removeEventListener("touchend", cleanup);
+                          textCreatedTimeRef.current = Date.now();
+                          inlineTextRef.current?.focus();
+                        };
+
+                        window.addEventListener("mousemove", onMouseMove);
+                        window.addEventListener("mouseup", cleanup);
+                        window.addEventListener("touchmove", onTouchMove, { passive: true });
+                        window.addEventListener("touchend", cleanup);
+                      };
+
+                      return (
+                        <span
+                          key={h}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            startParagraphHandleResize(e.clientX, e.clientY);
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            if (e.touches[0]) startParagraphHandleResize(e.touches[0].clientX, e.touches[0].clientY);
+                          }}
+                          className={`absolute ${cls} w-2.5 h-2.5 bg-white border-2 border-brand rounded-[2px] shadow-xs hover:scale-125 transition-transform z-10`}
+                          title="Drag to resize paragraph bounds"
+                        />
+                      );
+                    })}
+                  </>
+                )}
               </div>
             );
           })()}
@@ -17577,6 +17659,21 @@ function resizeShapePoints(
   if (!pts.length) return shape;
 
   if (shape.type === "text") {
+    if (pts.length >= 2) {
+      let minX = Math.min(pts[0].x, pts[1].x);
+      let maxX = Math.max(pts[0].x, pts[1].x);
+      let minY = Math.min(pts[0].y, pts[1].y);
+      let maxY = Math.max(pts[0].y, pts[1].y);
+      if (handle.includes("l")) minX = Math.min(maxX - 40, pt.x);
+      if (handle.includes("r")) maxX = Math.max(minX + 40, pt.x);
+      if (handle.includes("t")) minY = Math.min(maxY - 24, pt.y);
+      if (handle.includes("b")) maxY = Math.max(minY + 24, pt.y);
+      return {
+        ...shape,
+        points: [{ x: minX, y: minY }, { x: maxX, y: maxY }],
+      };
+    }
+
     const b = getShapeBounds(shape);
     const origH = Math.max(10, b.maxY - b.minY);
     let newH = origH;
