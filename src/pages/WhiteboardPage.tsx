@@ -12349,8 +12349,8 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "pen" && (
-                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Pen Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-60 sm:w-64 max-w-[calc(100vw-3.75rem)] max-h-[70dvh] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1 text-slate-800">
+                  <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Pen Tools</p>
                   <FlyoutToolItem
                     toolKey="pencil"
                     label="Pen"
