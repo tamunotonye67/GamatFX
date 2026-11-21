@@ -12710,7 +12710,7 @@ export default function WhiteboardPage() {
           {/* Bottom Actions */}
           <div className="w-full pt-2 mt-1.5 border-t border-slate-200/80 flex flex-col items-center gap-1">
             {/* Modern Circular Stroke & Fill Color Control */}
-            <div className="w-full flex flex-col items-center py-2.5 px-1.5 rounded-xl bg-slate-100/70 border border-slate-200/70 select-none mb-0.5" title="Stroke & Fill Color Tools">
+            <div className="w-full flex flex-col items-center py-2.5 px-1.5 rounded-xl bg-slate-100 border border-slate-300/80 shadow-inner select-none mb-0.5" title="Stroke & Fill Color Tools">
               {/* Hidden native color pickers */}
               <input
                 ref={strokeColorInputRef}
@@ -12742,14 +12742,14 @@ export default function WhiteboardPage() {
                   }}
                   className={`absolute top-0 left-0 w-[14px] h-[14px] rounded-full transition-all cursor-pointer flex items-center justify-center ${
                     activeColorTarget === "stroke"
-                      ? "z-20 shadow-sm ring-1.5 ring-brand ring-offset-1"
-                      : "z-10 shadow-xs ring-1 ring-black/15 hover:scale-105"
+                      ? "z-20 shadow-sm ring-1.5 ring-brand ring-offset-1 ring-offset-slate-100"
+                      : "z-10 shadow-xs ring-1 ring-slate-900/25 hover:scale-105"
                   }`}
                   style={{ backgroundColor: strokeColor }}
                   title={`Stroke Color: ${strokeColor} (Click to change)`}
                   aria-label={`Stroke Color: ${strokeColor}`}
                 >
-                  <span className="w-[6px] h-[6px] rounded-full bg-white ring-1 ring-black/10" />
+                  <span className="w-[6px] h-[6px] rounded-full bg-white ring-1 ring-slate-900/20" />
                 </button>
 
                 {/* Fill Swatch (Bottom-right, solid orb) */}
@@ -12761,8 +12761,8 @@ export default function WhiteboardPage() {
                   }}
                   className={`absolute bottom-0 right-0 w-[14px] h-[14px] rounded-full transition-all cursor-pointer overflow-hidden ${
                     activeColorTarget === "fill"
-                      ? "z-20 shadow-sm ring-1.5 ring-brand ring-offset-1"
-                      : "z-10 shadow-xs ring-1 ring-black/15 hover:scale-105"
+                      ? "z-20 shadow-sm ring-1.5 ring-brand ring-offset-1 ring-offset-slate-100"
+                      : "z-10 shadow-xs ring-1 ring-slate-900/25 hover:scale-105"
                   }`}
                   style={{ backgroundColor: fillColor }}
                   title={`Fill Color: ${fillColor} (Click to change)`}
@@ -12777,7 +12777,7 @@ export default function WhiteboardPage() {
               </div>
 
               {/* Micro Utility Row: Default B&W & Swap */}
-              <div className="w-full flex items-center justify-center gap-0.5 mt-2 pt-1.5 border-t border-slate-200/70">
+              <div className="w-full flex items-center justify-center gap-0.5 mt-2 pt-1.5 border-t border-slate-300/70">
                 <button
                   type="button"
                   onClick={handleResetDefaultColors}
@@ -12787,18 +12787,18 @@ export default function WhiteboardPage() {
                 >
                   <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none">
                     <circle cx="9" cy="9" r="3.5" fill="#0f172a" />
-                    <circle cx="5" cy="5" r="3.5" fill="#ffffff" stroke="#64748b" strokeWidth="1.2" />
+                    <circle cx="5" cy="5" r="3.5" fill="#ffffff" stroke="#334155" strokeWidth="1.3" />
                   </svg>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleSwapColors}
-                  className="w-3.5 h-3.5 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs transition cursor-pointer"
+                  className="w-3.5 h-3.5 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-950 hover:bg-white hover:shadow-2xs transition cursor-pointer"
                   title="Swap Stroke ↔ Fill (X)"
                   aria-label="Swap Stroke and Fill"
                 >
-                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2.5 5.5V3.5a1.5 1.5 0 0 1 1.5-1.5h6.5" />
                     <polyline points="8.5 0.5 10.5 2 8.5 3.5" />
                     <path d="M11.5 8.5v2a1.5 1.5 0 0 1-1.5 1.5H3.5" />
