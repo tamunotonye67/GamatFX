@@ -10044,42 +10044,42 @@ export default function WhiteboardPage() {
 
         {/* TAB 8: GOLDEN RATIO & GEOMETRY LAYOUTS ENGINE */}
         {tabKey === "geometry" && (
-          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+          <div className="space-y-3.5 animate-in fade-in duration-150 text-slate-800">
             {/* Golden Ratio (Phi) Harmonic Math Calculator */}
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2.5 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Compass className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Golden Ratio (Φ 1.618) Calculator
+                  <Compass className="h-3.5 w-3.5 text-brand stroke-[1.75]" /> Golden Ratio
                 </span>
-                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-slate-300 text-slate-800">
-                  Harmonics
+                <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
+                  Φ 1.618
                 </span>
               </div>
-              <p className="text-[10.5px] text-slate-600 leading-snug font-normal">
-                Compute harmonic Fibonacci extensions, golden ratios, and dynamic geometric proportions for precise chart analysis.
+              <p className="text-[11px] text-slate-500 leading-relaxed font-normal">
+                Harmonic Fibonacci extensions and geometric proportions for chart analysis.
               </p>
 
               {/* Live Phi Dimension Calculator */}
-              <div className="space-y-2 bg-slate-200/70 p-2.5 border border-slate-300">
-                <div className="flex items-center justify-between text-xs font-semibold">
-                  <span className="text-slate-700">Base Unit (A):</span>
-                  <span className="font-mono text-slate-900 font-bold">100.0 px / pips</span>
+              <div className="space-y-2 bg-white rounded-xl p-2.5 border border-slate-200/80">
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <span className="text-slate-500">Base Unit (A)</span>
+                  <span className="font-mono text-slate-900 font-bold">100.0 px</span>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
-                  <div className="p-1.5 bg-white border border-slate-300">
-                    <span className="text-[9px] text-slate-500 block">Golden Major (Φ 1.618)</span>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
+                    <span className="text-[9.5px] text-slate-500 block">Major (1.618)</span>
                     <span className="font-bold text-slate-900">161.8 px</span>
                   </div>
-                  <div className="p-1.5 bg-white border border-slate-300">
-                    <span className="text-[9px] text-slate-500 block">Golden Minor (0.618)</span>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
+                    <span className="text-[9.5px] text-slate-500 block">Minor (0.618)</span>
                     <span className="font-bold text-slate-900">61.8 px</span>
                   </div>
-                  <div className="p-1.5 bg-white border border-slate-300">
-                    <span className="text-[9px] text-slate-500 block">Fib Extension (2.618)</span>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
+                    <span className="text-[9.5px] text-slate-500 block">Ext (2.618)</span>
                     <span className="font-bold text-slate-900">261.8 px</span>
                   </div>
-                  <div className="p-1.5 bg-white border border-slate-300">
-                    <span className="text-[9px] text-slate-500 block">Deep Pullback (0.786)</span>
+                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
+                    <span className="text-[9.5px] text-slate-500 block">Pullback (0.786)</span>
                     <span className="font-bold text-slate-900">78.6 px</span>
                   </div>
                 </div>
@@ -10087,35 +10087,35 @@ export default function WhiteboardPage() {
             </div>
 
             {/* Geometric Composition & Symmetry Analyzer */}
-            <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-2 shadow-xs">
-              <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Grid className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Canvas Composition Matrix
+                  <Grid className="h-3.5 w-3.5 text-brand stroke-[1.75]" /> Composition
                 </span>
-                <span className="text-[9px] text-slate-500 font-mono">Layout Guides</span>
+                <span className="text-[10px] text-slate-400 font-medium">Guides</span>
               </div>
 
               <div className="space-y-1.5 text-xs text-slate-700">
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
                   <div>
-                    <p className="font-bold text-slate-900">Rule of Thirds</p>
-                    <p className="text-[10px] text-slate-600">3x3 harmonic focal intersection power points</p>
+                    <p className="font-semibold text-slate-900">Rule of Thirds</p>
+                    <p className="text-[10.5px] text-slate-500">3×3 focal intersection points</p>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-800">1:1:1 Ratio</span>
+                  <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">1:1:1</span>
                 </div>
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
                   <div>
-                    <p className="font-bold text-slate-900">Dynamic Symmetry</p>
-                    <p className="text-[10px] text-slate-600">Root-2 & Root-3 harmonic diagonal armatures</p>
+                    <p className="font-semibold text-slate-900">Dynamic Symmetry</p>
+                    <p className="text-[10.5px] text-slate-500">Root-2 & Root-3 diagonals</p>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-800">1.414 / 1.732</span>
+                  <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">1.414</span>
                 </div>
-                <div className="flex items-center justify-between p-2 bg-slate-200/80 border border-slate-300">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
                   <div>
-                    <p className="font-bold text-slate-900">Isometric Projection</p>
-                    <p className="text-[10px] text-slate-600">30° / 60° isometric spatial perspective</p>
+                    <p className="font-semibold text-slate-900">Isometric</p>
+                    <p className="text-[10.5px] text-slate-500">30° / 60° spatial grid</p>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-slate-800">30° Grid</span>
+                  <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">30°</span>
                 </div>
               </div>
             </div>
@@ -10165,33 +10165,33 @@ export default function WhiteboardPage() {
           const projectedBalanceLoss = calcBalance - riskDollars;
 
           return (
-            <div className="space-y-3 animate-in fade-in duration-150 text-slate-800">
+            <div className="space-y-3.5 animate-in fade-in duration-150 text-slate-800">
               {/* PRIMARY CALCULATOR CONTROLS CARD */}
-              <div className="rounded-none border border-slate-300 bg-slate-100 p-3 space-y-3 shadow-xs">
-                <div className="flex items-center justify-between border-b border-slate-300 pb-1.5">
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3">
+                <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Calculator className="h-3.5 w-3.5 text-slate-700 stroke-[1.5]" /> Position Size Calculator
+                    <Calculator className="h-3.5 w-3.5 text-brand stroke-[1.75]" /> Position Size
                   </span>
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300">
-                    Live Reactive Math
+                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Live
                   </span>
                 </div>
 
                 {/* Account Balance & Quick Presets */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-slate-700">Account Balance ($)</label>
-                    <span className="text-[9.5px] font-mono text-slate-500 font-bold">${calcBalance.toLocaleString()}</span>
+                    <label className="text-[10.5px] font-semibold text-slate-600">Balance ($)</label>
+                    <span className="text-[10px] font-mono text-slate-500 font-semibold">${calcBalance.toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-bold text-slate-500">$</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-slate-400">$</span>
                     <input
                       type="number"
                       min={100}
                       step={500}
                       value={calcBalance}
                       onChange={(e) => setCalcBalance(Math.max(10, Number(e.target.value) || 0))}
-                      className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition"
                       placeholder="10000"
                     />
                   </div>
@@ -10202,10 +10202,10 @@ export default function WhiteboardPage() {
                         key={preset}
                         type="button"
                         onClick={() => setCalcBalance(preset)}
-                        className={`py-0.5 text-[9px] font-mono font-bold border transition cursor-pointer ${
+                        className={`py-1 rounded-lg text-[9.5px] font-mono font-semibold border transition cursor-pointer ${
                           calcBalance === preset
-                            ? "bg-slate-800 text-white border-slate-800"
-                            : "bg-white hover:bg-slate-200 text-slate-700 border-slate-300"
+                            ? "bg-slate-900 text-white border-slate-900"
+                            : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
                         }`}
                       >
                         ${preset >= 1000 ? `${preset / 1000}k` : preset}
@@ -10216,11 +10216,11 @@ export default function WhiteboardPage() {
 
                 {/* Instrument / Currency Pair */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-700">Trading Instrument</label>
+                  <label className="text-[10.5px] font-semibold text-slate-600">Instrument</label>
                   <select
                     value={calcPair}
                     onChange={(e) => setCalcPair(e.target.value)}
-                    className="w-full rounded-none border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 cursor-pointer"
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 cursor-pointer transition"
                   >
                     {Object.entries(PAIR_CONFIG).map(([key, spec]) => (
                       <option key={key} value={key}>
@@ -10231,21 +10231,21 @@ export default function WhiteboardPage() {
                 </div>
 
                 {/* Risk Mode (% vs $) and Stop Loss Pips */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   {/* Risk Section */}
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-bold text-slate-700">
+                      <label className="text-[10.5px] font-semibold text-slate-600">
                         Risk ({calcRiskMode === "percent" ? "%" : "$"})
                       </label>
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-0.5 bg-slate-200/70 p-0.5 rounded-md">
                         <button
                           type="button"
                           onClick={() => setCalcRiskMode("percent")}
-                          className={`px-1 py-0.2 text-[8.5px] font-bold cursor-pointer border ${
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer transition ${
                             calcRiskMode === "percent"
-                              ? "bg-slate-800 text-white border-slate-800"
-                              : "bg-white text-slate-600 border-slate-300"
+                              ? "bg-white text-slate-900 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                         >
                           %
@@ -10253,10 +10253,10 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => setCalcRiskMode("cash")}
-                          className={`px-1 py-0.2 text-[8.5px] font-bold cursor-pointer border ${
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer transition ${
                             calcRiskMode === "cash"
-                              ? "bg-slate-800 text-white border-slate-800"
-                              : "bg-white text-slate-600 border-slate-300"
+                              ? "bg-white text-slate-900 shadow-2xs"
+                              : "text-slate-500 hover:text-slate-900"
                           }`}
                         >
                           $
@@ -10272,7 +10272,7 @@ export default function WhiteboardPage() {
                         step={0.25}
                         value={calcRiskPct}
                         onChange={(e) => setCalcRiskPct(Math.max(0.01, Number(e.target.value) || 0))}
-                        className="w-full rounded-none border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 font-mono"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono transition"
                       />
                     ) : (
                       <input
@@ -10281,22 +10281,22 @@ export default function WhiteboardPage() {
                         step={10}
                         value={calcRiskCash}
                         onChange={(e) => setCalcRiskCash(Math.max(1, Number(e.target.value) || 0))}
-                        className="w-full rounded-none border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 font-mono"
+                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono transition"
                       />
                     )}
 
                     {/* Quick Risk Pill Presets */}
                     {calcRiskMode === "percent" && (
-                      <div className="grid grid-cols-4 gap-0.5 pt-0.5">
+                      <div className="grid grid-cols-4 gap-1 pt-0.5">
                         {[0.5, 1.0, 2.0, 3.0].map((pct) => (
                           <button
                             key={pct}
                             type="button"
                             onClick={() => setCalcRiskPct(pct)}
-                            className={`py-0.5 text-[8.5px] font-mono font-bold border transition cursor-pointer ${
+                            className={`py-0.5 rounded-md text-[9px] font-mono font-semibold border transition cursor-pointer ${
                               calcRiskPct === pct
-                                ? "bg-slate-800 text-white border-slate-800"
-                                : "bg-white hover:bg-slate-200 text-slate-600 border-slate-300"
+                                ? "bg-slate-900 text-white border-slate-900"
+                                : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
                             }`}
                           >
                             {pct}%
@@ -10308,7 +10308,7 @@ export default function WhiteboardPage() {
 
                   {/* Stop Loss (Pips) */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-700">Stop Loss (Pips)</label>
+                    <label className="text-[10.5px] font-semibold text-slate-600">Stop Loss (Pips)</label>
                     <input
                       type="number"
                       min={1}
@@ -10316,19 +10316,19 @@ export default function WhiteboardPage() {
                       step={1}
                       value={calcSlPips}
                       onChange={(e) => setCalcSlPips(Math.max(0.5, Number(e.target.value) || 0))}
-                      className="w-full rounded-none border border-slate-300 bg-white px-2 py-1 text-xs font-bold text-slate-900 outline-none focus:border-slate-700 font-mono"
+                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono transition"
                     />
                     {/* Quick SL presets */}
-                    <div className="grid grid-cols-4 gap-0.5 pt-0.5">
+                    <div className="grid grid-cols-4 gap-1 pt-0.5">
                       {[10, 20, 30, 50].map((pips) => (
                         <button
                           key={pips}
                           type="button"
                           onClick={() => setCalcSlPips(pips)}
-                          className={`py-0.5 text-[8.5px] font-mono font-bold border transition cursor-pointer ${
+                          className={`py-0.5 rounded-md text-[9px] font-mono font-semibold border transition cursor-pointer ${
                             calcSlPips === pips
-                              ? "bg-slate-800 text-white border-slate-800"
-                              : "bg-white hover:bg-slate-200 text-slate-600 border-slate-300"
+                              ? "bg-slate-900 text-white border-slate-900"
+                              : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
                           }`}
                         >
                           {pips}p
@@ -10339,10 +10339,10 @@ export default function WhiteboardPage() {
                 </div>
 
                 {/* Target Risk-to-Reward (R:R) */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-slate-700">Target Risk-to-Reward (R:R)</label>
-                    <span className="text-[10px] font-mono font-bold text-blue-700">1 : {calcTargetRR}</span>
+                    <label className="text-[10.5px] font-semibold text-slate-600">Target R:R</label>
+                    <span className="text-[10.5px] font-mono font-bold text-brand">1 : {calcTargetRR}</span>
                   </div>
                   <div className="grid grid-cols-5 gap-1">
                     {[1.5, 2.0, 3.0, 4.0, 5.0].map((rr) => (
@@ -10350,10 +10350,10 @@ export default function WhiteboardPage() {
                         key={rr}
                         type="button"
                         onClick={() => setCalcTargetRR(rr)}
-                        className={`py-1 text-[9.5px] font-mono font-bold border transition cursor-pointer ${
+                        className={`py-1 rounded-lg text-[9.5px] font-mono font-semibold border transition cursor-pointer ${
                           calcTargetRR === rr
-                            ? "bg-blue-700 text-white border-blue-700"
-                            : "bg-white hover:bg-slate-200 text-slate-700 border-slate-300"
+                            ? "bg-brand text-white border-brand shadow-2xs"
+                            : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
                         }`}
                       >
                         1:{rr}
@@ -10364,20 +10364,20 @@ export default function WhiteboardPage() {
               </div>
 
               {/* HERO RESULT DISPLAY CARD */}
-              <div className="rounded-none border border-slate-300 bg-slate-200/90 p-3 space-y-2.5 shadow-inner">
-                <div className="flex items-center justify-between border-b border-slate-300 pb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                    Recommended Position Size
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">
+                    Lot Size
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-emerald-800 bg-emerald-100 px-1 py-0.2 border border-emerald-300">
-                    {actualRiskPct.toFixed(1)}% Account Risk
+                  <span className="text-[9.5px] font-mono font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                    {actualRiskPct.toFixed(1)}% Risk
                   </span>
                 </div>
 
                 {/* Main Lot Size Hero Display */}
-                <div className="p-2.5 bg-white border border-slate-300 text-center space-y-0.5">
-                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Standard Lots</span>
-                  <span className="text-2xl font-black font-mono text-emerald-700 tracking-tight block">
+                <div className="p-3 rounded-xl bg-white border border-slate-200/80 text-center space-y-0.5">
+                  <span className="text-[9.5px] text-slate-400 font-semibold uppercase tracking-wider block">Standard Lots</span>
+                  <span className="text-2xl font-black font-mono text-emerald-600 tracking-tight block">
                     {standardLots.toFixed(2)} <span className="text-xs text-slate-600 font-bold">Lots</span>
                   </span>
                   <div className="flex items-center justify-center gap-3 text-[10px] font-mono text-slate-600 pt-1 border-t border-slate-100">
@@ -15387,28 +15387,28 @@ export default function WhiteboardPage() {
 
       const pTitle =
         panelKey === "inspector"
-          ? "Inspector"
+          ? "Design"
           : panelKey === "layers"
           ? `Layers (${shapes.length})`
           : panelKey === "character"
-          ? "Character"
+          ? "Text"
           : panelKey === "drafts"
-          ? "Diagrams & Drafts"
+          ? "Drafts"
           : panelKey === "samples"
-          ? "Templates"
+          ? "Presets"
           : panelKey === "trash"
           ? `Trash (${trashedTabs.length})`
           : panelKey === "grid_guides"
-          ? "Grid & Snap"
+          ? "Grid"
           : panelKey === "geometry"
-          ? "Golden Ratio & Geometry"
+          ? "Ratio"
           : panelKey === "patterns"
-          ? "Line Patterns"
+          ? "Stroke"
           : panelKey === "sessions"
-          ? "Market Sessions & Killzones"
+          ? "Sessions"
           : panelKey === "risk_calc"
-          ? "Position Size & Risk Calculator"
-          : "Economic News Calendar";
+          ? "Risk"
+          : "News";
 
       const PIcon =
         panelKey === "inspector"
@@ -15451,19 +15451,19 @@ export default function WhiteboardPage() {
               [panelKey]: { ...prev[panelKey], zIndex: newZ },
             }));
           }}
-          className="fixed w-64 sm:w-80 max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] max-h-[75dvh] sm:max-h-[82vh] rounded-2xl border border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden select-none animate-in zoom-in-95 duration-150 transition-shadow shadow-slate-900/15"
+          className="fixed w-72 sm:w-80 max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] max-h-[75dvh] sm:max-h-[82vh] rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-xl flex flex-col shadow-[0_20px_50px_-12px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 overflow-hidden select-none animate-in zoom-in-95 duration-150"
         >
           {/* Draggable Titlebar */}
           <div
             onMouseDown={(e) => handleFloatingPanelDragStart(e, panelKey)}
             onTouchStart={(e) => handleFloatingPanelDragStart(e, panelKey)}
-            className="border-b border-line p-2 px-2.5 bg-slate-50/90 shrink-0 z-10 flex items-center justify-between cursor-move touch-none"
+            className="border-b border-slate-200/70 px-3.5 py-2.5 bg-white/80 backdrop-blur-md shrink-0 z-10 flex items-center justify-between cursor-move touch-none"
             title="Drag anywhere on canvas"
           >
-            <div className="flex items-center gap-1.5 text-xs font-black text-ink min-w-0">
+            <div className="flex items-center gap-2 text-[13px] font-bold text-slate-900 tracking-tight min-w-0">
               <GripHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              <span className="p-0.5 rounded bg-white border border-line text-brand shrink-0">
-                <PIcon className="h-3 w-3" />
+              <span className="w-6 h-6 rounded-lg bg-brand-light text-brand flex items-center justify-center shrink-0">
+                <PIcon className="h-3.5 w-3.5" />
               </span>
               <span className="truncate">{pTitle}</span>
             </div>
@@ -15472,36 +15472,36 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => dockIndividualPanel(panelKey)}
-                className="p-1 rounded-md text-slate-500 hover:text-brand hover:bg-brand-light transition cursor-pointer flex items-center gap-0.5 text-[10px] font-bold"
-                title="Attach / Dock back to right sidebar group"
+                className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-brand hover:bg-brand-light transition-colors cursor-pointer"
+                title="Dock back to sidebar"
               >
-                <Pin className="h-3 w-3" />
+                <Pin className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 onClick={() => closeIndividualPanel(panelKey)}
-                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 title="Close floating panel"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
 
           {/* Floating Panel Scrollable Body */}
-          <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 [scrollbar-width:thin]">
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 [scrollbar-width:thin]">
             {renderTabBody(panelKey)}
           </div>
 
           {/* Footer with Dock button */}
-          <div className="border-t border-line px-3 py-1.5 bg-slate-50/70 text-[9px] text-muted flex items-center justify-between font-bold shrink-0">
-            <span className="text-slate-400">Floating Window</span>
+          <div className="border-t border-slate-200/70 px-3.5 py-2 bg-slate-50/80 text-[10px] text-slate-500 flex items-center justify-between font-semibold shrink-0">
+            <span className="text-slate-400">Floating</span>
             <button
               type="button"
               onClick={() => dockIndividualPanel(panelKey)}
-              className="text-brand hover:underline cursor-pointer font-bold flex items-center gap-1"
+              className="text-brand hover:underline cursor-pointer font-semibold flex items-center gap-1"
             >
-              <Pin className="h-2.5 w-2.5" /> Dock to Sidebar
+              <Pin className="h-3 w-3" /> Dock
             </button>
           </div>
         </aside>
@@ -15520,39 +15520,39 @@ export default function WhiteboardPage() {
             className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 cursor-move touch-none select-none"
             title="Drag to undock and move panel anywhere"
           >
-            <div className="flex items-center gap-1.5 text-xs font-black text-ink">
+            <div className="flex items-center gap-2 text-[13px] font-bold text-slate-900 tracking-tight">
               <GripHorizontal className="h-3.5 w-3.5 text-slate-400" />
               <span>
                 {rightPanelTab === "inspector"
-                  ? "Inspector"
+                  ? "Design"
                   : rightPanelTab === "layers"
                   ? `Layers (${shapes.length})`
                   : rightPanelTab === "character"
-                  ? "Character"
+                  ? "Text"
                   : rightPanelTab === "drafts"
                   ? "Drafts"
                   : rightPanelTab === "samples"
-                  ? "Samples"
+                  ? "Presets"
                   : rightPanelTab === "trash"
-                  ? "Trash Bin"
+                  ? "Trash"
                   : rightPanelTab === "grid_guides"
-                  ? "Grid & Snap"
+                  ? "Grid"
                   : rightPanelTab === "geometry"
-                  ? "Golden Ratio & Geometry"
+                  ? "Ratio"
                   : rightPanelTab === "patterns"
-                  ? "Line Patterns"
+                  ? "Stroke"
                   : rightPanelTab === "sessions"
-                  ? "Market Sessions"
+                  ? "Sessions"
                   : rightPanelTab === "risk_calc"
-                  ? "Position Size & Risk"
-                  : "Economic Calendar"}
+                  ? "Risk"
+                  : "News"}
               </span>
             </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => detachIndividualPanel(rightPanelTab)}
-                className="p-1 rounded-md text-slate-500 hover:text-brand hover:bg-brand-light transition cursor-pointer flex items-center gap-1 text-[10px] font-bold"
+                className="px-2 py-1 rounded-lg text-slate-500 hover:text-brand hover:bg-brand-light transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-semibold"
                 title={`Detach "${rightPanelTab}" to float anywhere`}
               >
                 <ExternalLink className="h-3 w-3" /> Detach
@@ -15560,38 +15560,38 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                 title="Close Panel"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
 
           {/* Nested Tab Switcher - 4 Functional Groups with 3 tabs each */}
-          <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200 w-full justify-between">
+          <div className="flex items-center gap-1 rounded-xl bg-slate-100/90 p-1 border border-slate-200/60 w-full justify-between">
             {["inspector", "layers", "character"].includes(rightPanelTab) ? (
-              /* Group 1: Workspace Tools (Inspector, Layers, Character) */
+              /* Group 1: Workspace Tools (Design, Layers, Text) */
               <>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("inspector")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "inspector" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <SlidersHorizontal className="h-3 w-3" /> Inspector
+                  <SlidersHorizontal className="h-3 w-3 hidden sm:inline shrink-0" /> Design
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("layers")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "layers" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Layers className="h-3 w-3" />
+                  <Layers className="h-3 w-3 hidden sm:inline shrink-0" />
                   <span>Layers</span>
-                  <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-black leading-tight ${
+                  <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-bold leading-tight ${
                     rightPanelTab === "layers" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
                   }`}>
                     {shapes.length}
@@ -15600,104 +15600,118 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("character")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "character" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <CharacterIcon className="h-3 w-3" /> Character
+                  <CharacterIcon className="h-3 w-3 hidden sm:inline shrink-0" /> Text
                 </button>
               </>
             ) : ["drafts", "samples", "trash"].includes(rightPanelTab) ? (
-              /* Group 2: File & Management (Drafts, Samples, Trash) */
+              /* Group 2: File & Management (Drafts, Presets, Trash) */
               <>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("drafts")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "drafts" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "drafts" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <FileText className="h-3 w-3" /> Drafts ({tabs.length + savedDrafts.length})
+                  <FileText className="h-3 w-3 hidden sm:inline shrink-0" />
+                  <span>Drafts</span>
+                  <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-bold leading-tight ${
+                    rightPanelTab === "drafts" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
+                  }`}>
+                    {tabs.length + savedDrafts.length}
+                  </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("samples")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "samples" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "samples" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <LayoutTemplate className="h-3 w-3" /> Samples
+                  <LayoutTemplate className="h-3 w-3 hidden sm:inline shrink-0" /> Presets
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("trash")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "trash" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "trash" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Archive className="h-3 w-3" /> Trash ({trashedTabs.length})
+                  <Archive className="h-3 w-3 hidden sm:inline shrink-0" />
+                  <span>Trash</span>
+                  {trashedTabs.length > 0 && (
+                    <span className={`px-1 py-0.2 rounded-full text-[8.5px] font-bold leading-tight ${
+                      rightPanelTab === "trash" ? "bg-brand-light text-brand" : "bg-slate-200 text-slate-700"
+                    }`}>
+                      {trashedTabs.length}
+                    </span>
+                  )}
                 </button>
               </>
             ) : ["grid_guides", "geometry", "patterns"].includes(rightPanelTab) ? (
-              /* Group 3: Grid, Geometry & Patterns (Grid & Snap, Golden Ratio/Geometry, Line Patterns) */
+              /* Group 3: Grid, Ratio & Stroke */
               <>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("grid_guides")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "grid_guides" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "grid_guides" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Grid className="h-3 w-3" /> Grid & Snap
+                  <Grid className="h-3 w-3 hidden sm:inline shrink-0" /> Grid
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("geometry")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "geometry" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "geometry" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Compass className="h-3 w-3" /> Geometry
+                  <Compass className="h-3 w-3 hidden sm:inline shrink-0" /> Ratio
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("patterns")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "patterns" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "patterns" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Spline className="h-3 w-3" /> Patterns
+                  <Spline className="h-3 w-3 hidden sm:inline shrink-0" /> Stroke
                 </button>
               </>
             ) : (
-              /* Group 4: Forex & Institutional Trading (Sessions Radar, Risk Calculator, Economic News) */
+              /* Group 4: Forex & Institutional Trading (Sessions, Risk, News) */
               <>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("sessions")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "sessions" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "sessions" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Globe className="h-3 w-3" /> Sessions
+                  <Globe className="h-3 w-3 hidden sm:inline shrink-0" /> Sessions
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("risk_calc")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "risk_calc" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "risk_calc" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Calculator className="h-3 w-3" /> Risk Calc
+                  <Calculator className="h-3 w-3 hidden sm:inline shrink-0" /> Risk
                 </button>
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("economic_calendar")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                    rightPanelTab === "economic_calendar" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    rightPanelTab === "economic_calendar" ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
-                  <Calendar className="h-3 w-3" /> Calendar
+                  <Calendar className="h-3 w-3 hidden sm:inline shrink-0" /> News
                 </button>
               </>
             )}
@@ -15705,7 +15719,7 @@ export default function WhiteboardPage() {
         </div>
 
         {/* INDEPENDENTLY SCROLLABLE CONTENT BODY */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-3 [scrollbar-width:thin]">
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 [scrollbar-width:thin]">
           {renderTabBody(rightPanelTab)}
         </div>
 
