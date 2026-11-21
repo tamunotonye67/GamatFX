@@ -2230,12 +2230,14 @@ export default function WhiteboardPage() {
   const [editingTextShapeId, setEditingTextShapeId] = useState<string | null>(null);
   const [inlineTextValue, setInlineTextValue] = useState<string>("");
   const inlineTextRef = useRef<HTMLTextAreaElement | null>(null);
+  const inlineTextOriginalRef = useRef<{ id: string; text: string; isNew: boolean } | null>(null);
   const textCreatedTimeRef = useRef<number>(0);
   const pendingImagePos = useRef<{ x: number; y: number } | null>(null);
 
   const commitInlineText = (targetId?: string) => {
     const idToCommit = targetId || editingTextShapeId;
     if (!idToCommit) return;
+    inlineTextOriginalRef.current = null;
     setEditingTextShapeId(null);
     setShapes((prev) => {
       const target = prev.find((s) => s.id === idToCommit);
@@ -2245,6 +2247,31 @@ export default function WhiteboardPage() {
       }
       return prev;
     });
+  };
+
+  const cancelInlineText = (targetId?: string) => {
+    const idToCancel = targetId || editingTextShapeId;
+    if (!idToCancel) return;
+    const orig = inlineTextOriginalRef.current;
+    inlineTextOriginalRef.current = null;
+    setEditingTextShapeId(null);
+    if (orig && orig.id === idToCancel) {
+      if (orig.isNew) {
+        setShapes((prev) => prev.filter((s) => s.id !== idToCancel));
+      } else {
+        setShapes((prev) =>
+          prev.map((s) => (s.id === idToCancel ? { ...s, text: orig.text } : s))
+        );
+      }
+    } else {
+      setShapes((prev) => {
+        const target = prev.find((s) => s.id === idToCancel);
+        if (target && (!target.text || !target.text.trim())) {
+          return prev.filter((s) => s.id !== idToCancel);
+        }
+        return prev;
+      });
+    }
   };
 
   // Auto-focus and select all text when inline editor opens
@@ -4015,6 +4042,7 @@ export default function WhiteboardPage() {
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && s.type === "text" && isPointInShape(pt, s));
       if (hitShape) {
         if (!hitShape.isLocked) {
+          inlineTextOriginalRef.current = { id: hitShape.id, text: hitShape.text || "", isNew: false };
           setEditingTextShapeId(hitShape.id);
           setInlineTextValue(hitShape.text || "");
           setSelectedShapeIds([hitShape.id]);
@@ -4440,6 +4468,7 @@ export default function WhiteboardPage() {
         };
 
         textCreatedTimeRef.current = Date.now();
+        inlineTextOriginalRef.current = { id: newId, text: "", isNew: true };
         setShapes((prev) => [...prev, newTextShape]);
         setEditingTextShapeId(newId);
         setInlineTextValue("");
@@ -4552,6 +4581,7 @@ export default function WhiteboardPage() {
         return;
       }
       if (hitShape.type === "text") {
+        inlineTextOriginalRef.current = { id: hitShape.id, text: hitShape.text || "", isNew: false };
         setEditingTextShapeId(hitShape.id);
         setInlineTextValue(hitShape.text || "");
         setSelectedShapeIds([hitShape.id]);
@@ -15463,7 +15493,7 @@ export default function WhiteboardPage() {
                     e.stopPropagation();
                     if (e.key === "Escape") {
                       e.preventDefault();
-                      commitInlineText(editingTextShapeId);
+                      cancelInlineText(editingTextShapeId);
                     }
                   }}
                   onBlur={() => {
@@ -15486,8 +15516,42 @@ export default function WhiteboardPage() {
                     whiteSpace: isParagraph ? "pre-wrap" : "pre",
                     wordBreak: isParagraph ? "break-word" : "normal",
                   }}
-                  className="bg-white/10 border border-dashed border-brand/60 rounded-[2px] outline-none px-1 -mx-1 py-0 m-0 resize-none overflow-hidden caret-brand shadow-none font-sans placeholder:text-slate-400/50 placeholder:font-normal block"
+                  className={`outline-none py-0 m-0 resize-none overflow-hidden caret-brand shadow-none font-sans placeholder:text-slate-400/50 placeholder:font-normal block ${
+                    isParagraph
+                      ? "bg-white/10 border border-dashed border-brand/60 rounded-[2px] px-1 -mx-1"
+                      : "bg-transparent border-none p-0"
+                  }`}
                 />
+                {/* Photoshop-style Confirm (✓) & Cancel (✕) Floating Pill */}
+                <div
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  className={`absolute ${
+                    screenY < 42 ? "top-full mt-2" : "bottom-full mb-2"
+                  } left-0 flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1 shadow-lg ring-1 ring-slate-900/5 z-20`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => cancelInlineText(editingTextShapeId)}
+                    className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    title="Cancel (Esc)"
+                    aria-label="Cancel text edit"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => commitInlineText(editingTextShapeId)}
+                    className="w-6 h-6 rounded-lg flex items-center justify-center bg-emerald-500 text-white hover:bg-emerald-600 shadow-2xs transition-colors cursor-pointer"
+                    title="Confirm (Click outside)"
+                    aria-label="Confirm text edit"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 {isParagraph && (
                   <>
                     {(
