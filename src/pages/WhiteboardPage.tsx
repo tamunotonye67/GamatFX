@@ -16835,8 +16835,6 @@ function WhiteboardToolBtn({
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
         className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
-          hasFlyout ? "pr-2.5" : ""
-        } ${
           active
             ? "bg-brand-light text-brand font-bold ring-1 ring-brand/25 shadow-xs"
             : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-900"
@@ -16849,16 +16847,18 @@ function WhiteboardToolBtn({
               e.stopPropagation();
               onFlyoutToggle?.(e);
             }}
-            className={`absolute inset-y-0 right-0 w-3.5 rounded-r-xl flex items-center justify-center pointer-events-auto transition-colors cursor-pointer ${
+            className={`absolute right-0 bottom-0 p-1 pointer-events-auto transition-colors cursor-pointer ${
               isFlyoutOpen
-                ? "bg-brand/15 text-brand"
+                ? "text-brand"
                 : active
-                  ? "text-brand/60 hover:bg-brand/15 hover:text-brand"
-                  : "text-slate-400 hover:bg-slate-200/75 hover:text-slate-800"
+                  ? "text-brand/70 hover:text-brand"
+                  : "text-slate-400/80 group-hover:text-slate-600 hover:!text-brand"
             }`}
             title="Click arrow or right-click to view group tools"
           >
-            <ChevronDown className={`w-2.5 h-2.5 stroke-[2.25] transition-transform duration-150 ${isFlyoutOpen ? "-rotate-90" : ""}`} />
+            <svg viewBox="0 0 6 6" className="w-[5px] h-[5px] fill-current block" aria-hidden="true">
+              <path d="M5.2 0.8C5.6 0.4 6 0.6 6 1.1V5.2C6 5.64 5.64 6 5.2 6H1.1C0.6 6 0.4 5.6 0.8 5.2L5.2 0.8Z" />
+            </svg>
           </span>
         )}
       </button>
