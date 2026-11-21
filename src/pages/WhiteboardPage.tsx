@@ -10992,13 +10992,13 @@ export default function WhiteboardPage() {
       {/* Interactive Create New Canvas & Environment Setup Modal */}
       {renderCreateCanvasModal()}
 
-      {/* Floating Draggable Favorites Toolbar */}
+      {/* Floating Draggable Favorites Toolbar (tablet/desktop only; mobile uses streamlined left dock) */}
       {favoritedTools.length > 0 && showFavoritesBar && (
         <div
           ref={favBarRef}
           onMouseDown={handleFavDragStart}
           onTouchStart={handleFavDragStart}
-          className="fixed z-[150] flex flex-col sm:flex-row items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none max-h-[calc(100dvh-6rem)] sm:max-h-none sm:max-w-[calc(100vw-2rem)]"
+          className="fixed z-[150] hidden md:flex flex-row items-center gap-1 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl animate-in fade-in cursor-move touch-none select-none max-w-[calc(100vw-2rem)]"
           style={{
             left: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.x, window.innerWidth - 44)) : favPos.x,
             top: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.y, window.innerHeight - 44)) : favPos.y,
@@ -11008,8 +11008,7 @@ export default function WhiteboardPage() {
             className="cursor-move px-1 py-0.5 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0 touch-none"
             title="Drag Favorites Toolbar Anywhere on Page"
           >
-            <GripHorizontal className="h-4 w-4 sm:hidden" />
-            <GripVertical className="hidden sm:block h-4 w-4" />
+            <GripVertical className="h-4 w-4" />
           </div>
           {favoritedTools.map((tKey) => {
             const IconComponent = getToolIcon(tKey);
@@ -11020,7 +11019,7 @@ export default function WhiteboardPage() {
                 onClick={() => {
                   if (!favMovedRef.current) selectTool(tKey);
                 }}
-                className={`h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-xl flex items-center justify-center transition touch-none ${
+                className={`h-8 w-8 shrink-0 rounded-xl flex items-center justify-center transition touch-none ${
                   activeTool === tKey ? "bg-brand text-white shadow-md" : "text-slate-700 hover:bg-cream"
                 }`}
                 title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
@@ -11032,24 +11031,26 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar - Slim h-11 with Edge-to-Edge Full-Height Dividers */}
-      {/* Main Header Bar - Restored h-16 Height with Edge-to-Edge Full-Height Dividers & Full-Cell Hover States */}
-      <header className="h-14 sm:h-16 border-b border-line bg-white px-2 sm:px-4 md:px-5 flex items-center justify-between gap-1.5 sm:gap-4 shrink-0 z-[60] relative shadow-xs">
+      {/* Main Header Bar - Modern Sleek Studio Bar */}
+      <header className="h-13 sm:h-15 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-2 sm:px-4 md:px-5 flex items-center justify-between gap-1.5 sm:gap-3 shrink-0 z-[60] relative shadow-2xs">
         {/* Left Section: GAMAT Logo & Board Title */}
-        <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0 h-full min-w-0">
-          <div className="scale-90 sm:scale-100 origin-left flex items-center shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3.5 shrink-0 h-full min-w-0">
+          <div className="flex sm:hidden items-center shrink-0">
+            <Logo variant="dark" size="sm" asDiv />
+          </div>
+          <div className="hidden sm:flex items-center shrink-0">
             <Logo variant="dark" asDiv />
           </div>
-          <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
-          <span className="hidden lg:inline text-[16px] font-extrabold text-slate-900 tracking-tight">
+          <span className="h-6 w-px bg-slate-200 shrink-0 hidden md:inline" />
+          <span className="hidden lg:inline text-[15px] font-extrabold text-slate-900 tracking-tight">
             Technical Analysis Whiteboard
           </span>
         </div>
 
-        {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
-        <div className="flex items-center gap-1 sm:gap-2.5 h-full shrink-0">
-          {/* Compact Ash Grey Overlay Menu Bar */}
-          <div ref={topMenubarRef} className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11px] sm:text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
+        {/* Right Section: Modern Pill Menu Bar + Export + User Avatar */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 h-full min-w-0 shrink">
+          {/* Modern Pill Menu Bar */}
+          <div ref={topMenubarRef} className="ash-menubar-container flex items-center h-8 sm:h-9 min-w-0 text-[11px] sm:text-xs font-medium text-slate-700 bg-slate-100/90 rounded-xl border border-slate-200/90 p-0.5 shadow-2xs gap-0.5">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -11063,8 +11064,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
-                  fileMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-lg transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
+                  fileMenuOpen ? "bg-white text-slate-950 shadow-2xs font-bold" : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="File Operations"
               >
@@ -11072,7 +11073,7 @@ export default function WhiteboardPage() {
               </button>
 
               {fileMenuOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-1.5 sm:w-64 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -11205,8 +11206,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
-                  editMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-lg transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
+                  editMenuOpen ? "bg-white text-slate-950 shadow-2xs font-bold" : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="Edit Operations"
               >
@@ -11214,7 +11215,7 @@ export default function WhiteboardPage() {
               </button>
 
               {editMenuOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:top-full sm:mt-1.5 sm:w-64 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -11379,8 +11380,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
-                  viewMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-lg transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
+                  viewMenuOpen ? "bg-white text-slate-950 shadow-2xs font-bold" : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="View Operations"
               >
@@ -11388,7 +11389,7 @@ export default function WhiteboardPage() {
               </button>
 
               {viewMenuOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:top-full sm:mt-1.5 sm:w-64 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in space-y-0.5 text-slate-800 max-h-[80dvh] overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => {
@@ -11535,8 +11536,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-none transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
-                  insertMenuOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                className={`h-full flex items-center px-1.5 sm:px-2.5 rounded-lg transition cursor-pointer text-[11px] sm:text-xs font-semibold ${
+                  insertMenuOpen ? "bg-white text-slate-950 shadow-2xs font-bold" : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="Insert Tools, Shapes & Strategy"
               >
@@ -11545,7 +11546,7 @@ export default function WhiteboardPage() {
 
               {/* Insert Popover */}
               {insertMenuOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-1 sm:w-72 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80dvh] overflow-y-auto [scrollbar-width:thin]">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:left-0 sm:right-auto sm:top-full sm:mt-1.5 sm:w-72 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5 max-h-[80dvh] overflow-y-auto [scrollbar-width:thin]">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Trading & SMC Setups</p>
                   
                   <button
@@ -11810,17 +11811,17 @@ export default function WhiteboardPage() {
                   setBgOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full self-stretch flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 bg-brand hover:bg-brand-dark text-white font-extrabold text-[11px] sm:text-xs transition cursor-pointer shadow-xs rounded-none ${
+                className={`h-full self-stretch flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 bg-brand hover:bg-brand-dark text-white font-extrabold text-[11px] sm:text-xs transition cursor-pointer shadow-xs rounded-lg ${
                   exportOpen ? "bg-brand-dark" : ""
                 }`}
                 title="Export Diagram (PNG, JPEG, SVG)"
               >
-                <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white shrink-0 stroke-[1.75]" />
-                <span>Export</span>
+                <Download className="h-3.5 w-3.5 text-white shrink-0 stroke-[2]" />
+                <span className="hidden sm:inline">Export</span>
               </button>
 
               {exportOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1 sm:w-64 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1.5 sm:w-64 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Export Format</p>
 
                   {/* PNG Option */}
@@ -12160,7 +12161,7 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside ref={leftDockRef} className="left-dock-container w-9 sm:w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none">
+            <aside ref={leftDockRef} className="left-dock-container w-9 sm:w-10 border-r border-slate-200/80 bg-white/95 backdrop-blur-md py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-2xs select-none overflow-y-auto no-scrollbar">
           <div className="w-full flex flex-col items-center divide-y divide-line">
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
