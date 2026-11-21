@@ -12648,114 +12648,102 @@ export default function WhiteboardPage() {
           </div>
 
           {/* Bottom Actions */}
-          <div className="w-full border-t border-line flex flex-col items-center divide-y divide-line">
-            {/* Standard Minimalist Stroke & Fill Color, Default B&W, and Swap Control */}
-            <div className="w-full flex flex-col items-center py-1 sm:py-1.5 px-1 select-none" title="Stroke & Fill Color Tools">
-              {/* Top micro utility row: Default B&W on left, Swap on right */}
-              <div className="w-[23px] flex items-center justify-between mb-0.5">
-                {/* Reset to Default Black & White (D / Shift+D) */}
-                <button
-                  type="button"
-                  onClick={handleResetDefaultColors}
-                  className="w-3 h-3 flex items-center justify-center rounded-[2px] hover:bg-slate-100 transition cursor-pointer text-slate-700"
-                  title="Default Black and White (Shift+D)"
-                  aria-label="Default Black and White"
-                >
-                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none">
-                    {/* Black bottom-right square */}
-                    <rect x="5" y="5" width="8" height="8" fill="#000000" rx="1" />
-                    {/* White top-left square with border */}
-                    <rect x="1" y="1" width="8" height="8" fill="#ffffff" stroke="#64748b" strokeWidth="1" rx="1" />
-                  </svg>
-                </button>
+          <div className="w-full pt-2 mt-1.5 border-t border-slate-200/80 flex flex-col items-center gap-1">
+            {/* Modern Circular Stroke & Fill Color Control */}
+            <div className="w-full flex flex-col items-center py-1.5 px-1 rounded-xl bg-slate-100/70 border border-slate-200/70 select-none mb-0.5" title="Stroke & Fill Color Tools">
+              {/* Hidden native color pickers */}
+              <input
+                ref={strokeColorInputRef}
+                type="color"
+                value={strokeColor.startsWith("#") ? strokeColor : "#000000"}
+                onChange={(e) => applyColorToSelected(e.target.value)}
+                className="sr-only pointer-events-none"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+              <input
+                ref={fillColorInputRef}
+                type="color"
+                value={fillColor.startsWith("#") ? fillColor : "#ffffff"}
+                onChange={(e) => applyFillColorToSelected(e.target.value)}
+                className="sr-only pointer-events-none"
+                tabIndex={-1}
+                aria-hidden="true"
+              />
 
-                {/* Swap Stroke ↔ Fill (X) */}
-                <button
-                  type="button"
-                  onClick={handleSwapColors}
-                  className="w-3 h-3 flex items-center justify-center rounded-[2px] text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
-                  title="Swap Stroke ↔ Fill (X)"
-                  aria-label="Swap Stroke and Fill"
-                >
-                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2.5 5.5V3.5a1.5 1.5 0 0 1 1.5-1.5h6.5" />
-                    <polyline points="8.5 0.5 10.5 2 8.5 3.5" />
-                    <path d="M11.5 8.5v2a1.5 1.5 0 0 1-1.5 1.5H3.5" />
-                    <polyline points="5.5 13.5 3.5 12 5.5 10.5" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Overlapping Color Swatches Container */}
-              <div className="relative w-[23px] h-[23px]">
-                {/* Hidden native color pickers */}
-                <input
-                  ref={strokeColorInputRef}
-                  type="color"
-                  value={strokeColor.startsWith("#") ? strokeColor : "#000000"}
-                  onChange={(e) => applyColorToSelected(e.target.value)}
-                  className="sr-only pointer-events-none"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                />
-                <input
-                  ref={fillColorInputRef}
-                  type="color"
-                  value={fillColor.startsWith("#") ? fillColor : "#ffffff"}
-                  onChange={(e) => applyFillColorToSelected(e.target.value)}
-                  className="sr-only pointer-events-none"
-                  tabIndex={-1}
-                  aria-hidden="true"
-                />
-
-                {/* Stroke Swatch (Top-left, overlapping):
-                    Illustrator-style hollow frame so users can tell it's the STROKE */}
+              {/* Overlapping Circular Color Orbs */}
+              <div className="relative w-[26px] h-[26px]">
+                {/* Stroke Swatch (Top-left, hollow ring orb) */}
                 <button
                   type="button"
                   onClick={() => {
                     setActiveColorTarget("stroke");
                     strokeColorInputRef.current?.click();
                   }}
-                  className={`absolute top-0 left-0 w-[14.5px] h-[14.5px] rounded-[2.5px] transition-all cursor-pointer flex items-center justify-center ${
+                  className={`absolute top-0 left-0 w-[16px] h-[16px] rounded-full transition-all cursor-pointer flex items-center justify-center ${
                     activeColorTarget === "stroke"
-                      ? "z-20 shadow-md ring-1.5 ring-brand ring-offset-0.5 scale-102"
-                      : "z-10 shadow-xs ring-1 ring-black/20 hover:scale-105"
+                      ? "z-20 shadow-md ring-2 ring-brand ring-offset-1 scale-105"
+                      : "z-10 shadow-xs ring-1 ring-black/15 hover:scale-105"
                   }`}
-                  style={{
-                    backgroundColor: strokeColor,
-                  }}
+                  style={{ backgroundColor: strokeColor }}
                   title={`Stroke Color: ${strokeColor} (Click to change)`}
                   aria-label={`Stroke Color: ${strokeColor}`}
                 >
-                  {/* Hollow center showing it's a stroke / outline */}
-                  <span className="w-[6.5px] h-[6.5px] rounded-[1px] bg-white border border-black/10 shadow-inner" />
+                  <span className="w-[7px] h-[7px] rounded-full bg-white ring-1 ring-black/10" />
                 </button>
 
-                {/* Fill Swatch (Bottom-right, overlapping):
-                    Solid square showing it's the FILL */}
+                {/* Fill Swatch (Bottom-right, solid orb) */}
                 <button
                   type="button"
                   onClick={() => {
                     setActiveColorTarget("fill");
                     fillColorInputRef.current?.click();
                   }}
-                  className={`absolute bottom-0 right-0 w-[14.5px] h-[14.5px] rounded-[2.5px] transition-all cursor-pointer overflow-hidden ${
+                  className={`absolute bottom-0 right-0 w-[16px] h-[16px] rounded-full transition-all cursor-pointer overflow-hidden ${
                     activeColorTarget === "fill"
-                      ? "z-20 shadow-md ring-1.5 ring-brand ring-offset-0.5 scale-102"
-                      : "z-10 shadow-xs ring-1 ring-black/20 hover:scale-105"
+                      ? "z-20 shadow-md ring-2 ring-brand ring-offset-1 scale-105"
+                      : "z-10 shadow-xs ring-1 ring-black/15 hover:scale-105"
                   }`}
-                  style={{
-                    backgroundColor: fillColor,
-                  }}
+                  style={{ backgroundColor: fillColor }}
                   title={`Fill Color: ${fillColor} (Click to change)`}
                   aria-label={`Fill Color: ${fillColor}`}
                 >
-                  {/* If fillStyle is 'none', show classic transparent red slash */}
                   {fillStyle === "none" && (
                     <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <span className="w-[130%] h-[1.2px] bg-rose-500 transform -rotate-45" />
+                      <span className="w-[130%] h-[1.5px] bg-rose-500 transform -rotate-45" />
                     </span>
                   )}
+                </button>
+              </div>
+
+              {/* Micro Utility Row: Default B&W & Swap */}
+              <div className="w-full flex items-center justify-center gap-0.5 mt-1.5 pt-1 border-t border-slate-200/70">
+                <button
+                  type="button"
+                  onClick={handleResetDefaultColors}
+                  className="w-3.5 h-3.5 flex items-center justify-center rounded-md hover:bg-white hover:shadow-2xs transition cursor-pointer"
+                  title="Default Black and White (Shift+D)"
+                  aria-label="Default Black and White"
+                >
+                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none">
+                    <circle cx="9" cy="9" r="3.5" fill="#0f172a" />
+                    <circle cx="5" cy="5" r="3.5" fill="#ffffff" stroke="#64748b" strokeWidth="1.2" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSwapColors}
+                  className="w-3.5 h-3.5 flex items-center justify-center rounded-md text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-2xs transition cursor-pointer"
+                  title="Swap Stroke ↔ Fill (X)"
+                  aria-label="Swap Stroke and Fill"
+                >
+                  <svg viewBox="0 0 14 14" className="w-2.5 h-2.5 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2.5 5.5V3.5a1.5 1.5 0 0 1 1.5-1.5h6.5" />
+                    <polyline points="8.5 0.5 10.5 2 8.5 3.5" />
+                    <path d="M11.5 8.5v2a1.5 1.5 0 0 1-1.5 1.5H3.5" />
+                    <polyline points="5.5 13.5 3.5 12 5.5 10.5" />
+                  </svg>
                 </button>
               </div>
             </div>
