@@ -16888,24 +16888,33 @@ function WhiteboardToolBtn({
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && !isFlyoutOpen && (
         <div
-          className="hidden sm:block absolute left-full ml-2.5 w-52 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md text-slate-800 p-3 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2.5"
+          className="hidden sm:block absolute left-full ml-2.5 w-60 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-xl text-slate-800 p-2.5 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-50 animate-in fade-in slide-in-from-left-2 duration-150 pointer-events-none space-y-2.5"
           style={popoverPos.bottom !== undefined ? { bottom: popoverPos.bottom } : { top: popoverPos.top ?? 0 }}
         >
-          {/* Visual Thumbnail Preview with Soft Curved Container and Uniform Square Aspect Ratio */}
-          <div className="w-full aspect-square rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center overflow-hidden relative shadow-inner p-1">
-            <ToolGifAnimation toolKey={toolKey} />
+          {/* Visual Thumbnail Preview on subtle dot-grid mini-canvas */}
+          <div className="w-full h-28 rounded-xl border border-slate-200/70 bg-gradient-to-br from-slate-50 via-white to-slate-100/80 flex items-center justify-center overflow-hidden relative p-2">
+            <div
+              className="absolute inset-0 opacity-45 pointer-events-none"
+              style={{
+                backgroundImage: "radial-gradient(#cbd5e1 1px, transparent 1px)",
+                backgroundSize: "10px 10px",
+              }}
+            />
+            <div className="relative z-10 w-24 h-24 flex items-center justify-center">
+              <ToolGifAnimation toolKey={toolKey} />
+            </div>
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
-              <h4 className="font-bold text-xs text-slate-900 tracking-tight">{explanation.title}</h4>
+          <div className="px-1 pb-0.5 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="font-bold text-[13px] text-slate-900 tracking-tight truncate">{explanation.title}</h4>
               {explanation.shortcut && (
-                <span className="text-[9px] font-mono font-bold bg-slate-100 border border-slate-200 text-slate-700 px-1.5 py-0.5 rounded-md">
+                <span className="shrink-0 text-[10px] font-mono font-semibold bg-brand-light text-brand border border-brand/15 px-1.5 py-0.5 rounded-md">
                   {explanation.shortcut}
                 </span>
               )}
             </div>
-            <p className="text-[10.5px] text-slate-600 leading-snug font-normal">{explanation.desc}</p>
+            <p className="text-[11px] text-slate-500 leading-relaxed font-normal">{explanation.desc}</p>
           </div>
         </div>
       )}
