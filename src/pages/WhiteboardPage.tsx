@@ -17716,6 +17716,15 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
 }
 
+let _textMeasureCtx: CanvasRenderingContext2D | null = null;
+function getTextMeasureCtx(): CanvasRenderingContext2D | null {
+  if (_textMeasureCtx) return _textMeasureCtx;
+  if (typeof document === "undefined") return null;
+  const c = document.createElement("canvas");
+  _textMeasureCtx = c.getContext("2d");
+  return _textMeasureCtx;
+}
+
 function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: number; maxY: number } {
   const pts = shape.points;
   if (!pts || !pts.length) return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
@@ -17754,33 +17763,71 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
     const requiredH = Math.max(baseH, 36 + lineCount * lineHeight + padding + 10);
     maxY = minY + requiredH;
   } else if (shape.type === "text") {
+    const fFamily = shape.fontFamily || "Inter, sans-serif";
     const fSize = shape.fontSize || 16;
+    const fWeight = shape.fontWeight || "normal";
+    const fStyle = shape.fontStyle || "normal";
+    const tTransform = shape.textTransform || "none";
     const lHeight = shape.lineHeight ? shape.lineHeight * fSize : fSize * 1.35;
+
+    let txt = shape.text || "Text";
+    if (tTransform === "uppercase") txt = txt.toUpperCase();
+    else if (tTransform === "lowercase") txt = txt.toLowerCase();
+    else if (tTransform === "capitalize") txt = txt.replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const mCtx = getTextMeasureCtx();
+    if (mCtx) {
+      mCtx.font = `${fStyle === "italic" ? "italic " : ""}${fWeight === "bold" ? "bold " : ""}${fSize}px ${fFamily}`;
+    }
+
+    const rawLines = txt.split("\n");
     if (pts.length >= 2) {
       const boxW = Math.max(60, Math.abs(pts[1].x - pts[0].x));
       const boxH = Math.max(28, Math.abs(pts[1].y - pts[0].y));
       minX = Math.min(pts[0].x, pts[1].x);
       minY = Math.min(pts[0].y, pts[1].y);
-      const rawLines = (shape.text || "Text").split("\n");
-      const charsPerLine = Math.max(4, Math.floor(boxW / (fSize * 0.56)));
-      const estWrappedCount = rawLines.reduce((acc, l) => acc + Math.max(1, Math.ceil(l.length / charsPerLine)), 0);
+
+      let wrappedCount = 0;
+      if (mCtx) {
+        rawLines.forEach((rawLine) => {
+          if (!rawLine) {
+            wrappedCount += 1;
+            return;
+          }
+          const words = rawLine.split(/(\s+)/);
+          let current = "";
+          words.forEach((word) => {
+            const test = current + word;
+            if (current && mCtx.measureText(test).width > boxW) {
+              wrappedCount += 1;
+              current = word.trimStart();
+            } else {
+              current = test;
+            }
+          });
+          if (current) wrappedCount += 1;
+        });
+      } else {
+        const charsPerLine = Math.max(4, Math.floor(boxW / (fSize * 0.56)));
+        wrappedCount = rawLines.reduce((acc, l) => acc + Math.max(1, Math.ceil(l.length / charsPerLine)), 0);
+      }
       maxX = minX + boxW;
-      maxY = Math.max(minY + boxH, minY + estWrappedCount * lHeight);
+      maxY = Math.max(minY + boxH, minY + Math.max(1, wrappedCount) * lHeight);
     } else {
-      const lines = (shape.text || "Text").split("\n");
-      const maxLineLen = Math.max(...lines.map((l) => l.length), 1);
-      const estW = Math.max(40, maxLineLen * (fSize * 0.62));
-      const totalH = Math.max(fSize, lines.length * lHeight);
+      const measuredW = mCtx
+        ? Math.max(12, ...rawLines.map((l) => mCtx.measureText(l || " ").width))
+        : Math.max(20, Math.max(...rawLines.map((l) => l.length), 1) * (fSize * 0.52));
+      const totalH = Math.max(fSize * 1.15, (rawLines.length - 1) * lHeight + fSize * 1.15);
 
       if (shape.textAlign === "center") {
-        minX = pts[0].x - estW / 2;
-        maxX = pts[0].x + estW / 2;
+        minX = pts[0].x - measuredW / 2;
+        maxX = pts[0].x + measuredW / 2;
       } else if (shape.textAlign === "right") {
-        minX = pts[0].x - estW;
+        minX = pts[0].x - measuredW;
         maxX = pts[0].x;
       } else {
         minX = pts[0].x;
-        maxX = pts[0].x + estW;
+        maxX = pts[0].x + measuredW;
       }
       minY = pts[0].y;
       maxY = pts[0].y + totalH;
@@ -17882,7 +17929,7 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
 
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
-  const pad = 0;
+  const pad = shape.type === "text" ? 4 : 0;
 
   // High-priority edge grab for Long and Short positions (top edge for TP/SL, bottom edge for SL/TP)
   if ((shape.type === "long" || shape.type === "short") && pts.length >= 2) {
@@ -19347,7 +19394,7 @@ function renderWhiteboardShape(
     let minY = b.minY;
     let maxY = b.maxY;
 
-    const pad = 0;
+    const pad = shape.type === "text" ? 4 : 0;
     ctx.strokeStyle = "rgba(59, 130, 246, 0.65)";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
