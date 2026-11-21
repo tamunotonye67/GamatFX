@@ -12710,7 +12710,7 @@ export default function WhiteboardPage() {
           {/* Bottom Actions */}
           <div className="w-full pt-2 mt-1.5 border-t border-slate-200/80 flex flex-col items-center gap-1">
             {/* Modern Circular Stroke & Fill Color Control */}
-            <div className="w-full flex flex-col items-center py-1.5 px-1 rounded-xl bg-slate-100/70 border border-slate-200/70 select-none mb-0.5" title="Stroke & Fill Color Tools">
+            <div className="w-full flex flex-col items-center py-2.5 px-1.5 rounded-xl bg-slate-100/70 border border-slate-200/70 select-none mb-0.5" title="Stroke & Fill Color Tools">
               {/* Hidden native color pickers */}
               <input
                 ref={strokeColorInputRef}
@@ -12732,7 +12732,7 @@ export default function WhiteboardPage() {
               />
 
               {/* Overlapping Circular Color Orbs */}
-              <div className="relative w-[26px] h-[26px]">
+              <div className="relative w-[22px] h-[22px]">
                 {/* Stroke Swatch (Top-left, hollow ring orb) */}
                 <button
                   type="button"
@@ -12740,16 +12740,16 @@ export default function WhiteboardPage() {
                     setActiveColorTarget("stroke");
                     strokeColorInputRef.current?.click();
                   }}
-                  className={`absolute top-0 left-0 w-[16px] h-[16px] rounded-full transition-all cursor-pointer flex items-center justify-center ${
+                  className={`absolute top-0 left-0 w-[14px] h-[14px] rounded-full transition-all cursor-pointer flex items-center justify-center ${
                     activeColorTarget === "stroke"
-                      ? "z-20 shadow-md ring-2 ring-brand ring-offset-1 scale-105"
+                      ? "z-20 shadow-sm ring-1.5 ring-brand ring-offset-1"
                       : "z-10 shadow-xs ring-1 ring-black/15 hover:scale-105"
                   }`}
                   style={{ backgroundColor: strokeColor }}
                   title={`Stroke Color: ${strokeColor} (Click to change)`}
                   aria-label={`Stroke Color: ${strokeColor}`}
                 >
-                  <span className="w-[7px] h-[7px] rounded-full bg-white ring-1 ring-black/10" />
+                  <span className="w-[6px] h-[6px] rounded-full bg-white ring-1 ring-black/10" />
                 </button>
 
                 {/* Fill Swatch (Bottom-right, solid orb) */}
@@ -12759,9 +12759,9 @@ export default function WhiteboardPage() {
                     setActiveColorTarget("fill");
                     fillColorInputRef.current?.click();
                   }}
-                  className={`absolute bottom-0 right-0 w-[16px] h-[16px] rounded-full transition-all cursor-pointer overflow-hidden ${
+                  className={`absolute bottom-0 right-0 w-[14px] h-[14px] rounded-full transition-all cursor-pointer overflow-hidden ${
                     activeColorTarget === "fill"
-                      ? "z-20 shadow-md ring-2 ring-brand ring-offset-1 scale-105"
+                      ? "z-20 shadow-sm ring-1.5 ring-brand ring-offset-1"
                       : "z-10 shadow-xs ring-1 ring-black/15 hover:scale-105"
                   }`}
                   style={{ backgroundColor: fillColor }}
@@ -12777,7 +12777,7 @@ export default function WhiteboardPage() {
               </div>
 
               {/* Micro Utility Row: Default B&W & Swap */}
-              <div className="w-full flex items-center justify-center gap-0.5 mt-1.5 pt-1 border-t border-slate-200/70">
+              <div className="w-full flex items-center justify-center gap-0.5 mt-2 pt-1.5 border-t border-slate-200/70">
                 <button
                   type="button"
                   onClick={handleResetDefaultColors}
