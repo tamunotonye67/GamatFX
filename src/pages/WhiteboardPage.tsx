@@ -10759,48 +10759,132 @@ export default function WhiteboardPage() {
                 )}
               </div>
 
-              {/* 1. Line Patterns & Dash Presets */}
-              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                  <span>Line Pattern Style</span>
-                  <span className="text-[9px] text-brand font-black capitalize">{currentStyle}</span>
-                </label>
-                <div className="grid grid-cols-3 gap-1.5">
+              {/* 1. Stroke: Color & Weight */}
+              <div className="space-y-2.5 pb-3 border-b border-slate-200/70">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800">Stroke</span>
+                  <span className="text-[10.5px] font-mono text-slate-400 uppercase">{currentColor}</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <label
+                    className="relative flex items-center gap-2 flex-1 h-8 px-2 rounded-lg bg-slate-100/80 hover:bg-slate-100 border border-slate-200/60 cursor-pointer transition-colors"
+                    title="Pick stroke color"
+                  >
+                    <span
+                      className="w-4 h-4 rounded-sm border border-black/10 shrink-0"
+                      style={{ backgroundColor: currentColor }}
+                    />
+                    <span className="text-[11px] font-mono font-medium text-slate-700 uppercase">
+                      {currentColor}
+                    </span>
+                    <input
+                      type="color"
+                      value={currentColor.startsWith("#") ? currentColor : "#0f172a"}
+                      onChange={(e) => {
+                        setStrokeColor(e.target.value);
+                        applyToTargetOrSelection({ color: e.target.value, strokeColor: e.target.value });
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+
+                  <div className="flex items-center bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
+                    {[1, 2, 3, 5, 8].map((w) => (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => {
+                          setStrokeWidth(w);
+                          applyToTargetOrSelection({ strokeWidth: w });
+                        }}
+                        title={`${w}px`}
+                        className={`px-2 h-7 rounded-md text-[10.5px] font-semibold transition-all cursor-pointer ${
+                          currentStrokeWidth === w
+                            ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                            : "text-slate-500 hover:text-slate-800"
+                        }`}
+                      >
+                        {w}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Swatches */}
+                <div className="flex items-center justify-between gap-1 pt-0.5">
                   {[
-                    { id: "solid", label: "Solid", desc: "━━━━" },
-                    { id: "dashed", label: "Dashed", desc: "╍ ╍ ╍" },
-                    { id: "dotted", label: "Dotted", desc: "• • • •" },
-                    { id: "dash-dot", label: "Dash-Dot", desc: "╍ • ╍ •" },
-                    { id: "long-dash", label: "Long Dash", desc: "━━  ━━" },
+                    "#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b",
+                    "#8b5cf6", "#06b6d4", "#ec4899", "#64748b", "#ffffff",
+                  ].map((col) => {
+                    const active = currentColor.toLowerCase() === col.toLowerCase();
+                    return (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => {
+                          setStrokeColor(col);
+                          applyToTargetOrSelection({ color: col, strokeColor: col });
+                        }}
+                        style={{ backgroundColor: col }}
+                        title={col}
+                        className={`w-4.5 h-4.5 rounded-full border border-black/15 transition-transform cursor-pointer ${
+                          active ? "scale-115 ring-2 ring-slate-900 ring-offset-1" : "hover:scale-110"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Pattern (Icon-only Figma segmented bar) */}
+              <div className="space-y-2 pb-3 border-b border-slate-200/70">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800">Pattern</span>
+                  <span className="text-[10.5px] text-slate-400 capitalize">{currentStyle.replace("-", " ")}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
+                  {[
+                    { id: "solid", label: "Solid", dash: "" },
+                    { id: "dashed", label: "Dashed", dash: "5 3" },
+                    { id: "dotted", label: "Dotted", dash: "1.5 3.5" },
+                    { id: "dash-dot", label: "Dash-Dot", dash: "6 2.5 1.5 2.5" },
+                    { id: "long-dash", label: "Long Dash", dash: "9 4" },
                   ].map((pat) => (
                     <button
                       key={pat.id}
                       type="button"
+                      title={pat.label}
                       onClick={() => {
                         setActiveLinePattern(pat.id as any);
                         applyToTargetOrSelection({ lineStyle: pat.id as any });
-                        showToast(`Line Pattern: ${pat.label}`);
                       }}
-                      className={`p-2 rounded-xl border text-center font-bold transition flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                      className={`h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                         currentStyle === pat.id
-                          ? "bg-brand text-white border-brand shadow-xs"
-                          : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                          ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                          : "text-slate-500 hover:text-slate-800"
                       }`}
                     >
-                      <span className="text-[11px] font-bold">{pat.label}</span>
-                      <span className="text-[9px] tracking-widest opacity-80 font-mono">{pat.desc}</span>
+                      <svg width="24" height="6" viewBox="0 0 24 6" fill="none">
+                        <line
+                          x1="2"
+                          y1="3"
+                          x2="22"
+                          y2="3"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeDasharray={pat.dash || undefined}
+                        />
+                      </svg>
                     </button>
                   ))}
                 </div>
 
-                {/* Custom Dash Length if Dashed */}
                 {(currentStyle === "dashed" || currentStyle === "long-dash") && (
-                  <div className="space-y-1 pt-1 border-t border-line">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-muted">
-                      <span>Dash Segment Length</span>
-                      <span className="text-brand font-black">{targetShape?.dashLength || activeDashLength}px</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-1">
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <span className="text-[10.5px] text-slate-500">Dash</span>
+                    <div className="flex items-center bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
                       {[4, 8, 12, 18].map((dLen) => (
                         <button
                           key={dLen}
@@ -10808,15 +10892,14 @@ export default function WhiteboardPage() {
                           onClick={() => {
                             setActiveDashLength(dLen);
                             applyToTargetOrSelection({ dashLength: dLen });
-                            showToast(`Dash length: ${dLen}px`);
                           }}
-                          className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-semibold cursor-pointer transition-all ${
                             (targetShape?.dashLength || activeDashLength) === dLen
-                              ? "bg-brand text-white border-brand"
-                              : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                              : "text-slate-500 hover:text-slate-800"
                           }`}
                         >
-                          {dLen}px
+                          {dLen}
                         </button>
                       ))}
                     </div>
@@ -10824,203 +10907,201 @@ export default function WhiteboardPage() {
                 )}
               </div>
 
-              {/* 2. Line Thickness & Color */}
-              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-muted">Line Thickness</label>
-                  <span className="text-[10px] font-black text-brand">{currentStrokeWidth}px</span>
+              {/* 3. Endpoints & Cap (Icon-driven) */}
+              <div className="space-y-2.5 pb-3 border-b border-slate-200/70">
+                <span className="text-[11px] font-semibold text-slate-800 block">Endpoints</span>
+
+                {/* Start & End Icon Bars */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10.5px] text-slate-500 w-9 shrink-0">Start</span>
+                    <div className="grid grid-cols-5 gap-0.5 flex-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
+                      {[
+                        { id: "none", label: "None" },
+                        { id: "arrow", label: "Arrow" },
+                        { id: "circle", label: "Dot" },
+                        { id: "diamond", label: "Diamond" },
+                        { id: "bar", label: "Bar" },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          title={`Start: ${t.label}`}
+                          onClick={() => {
+                            setActiveArrowStart(t.id as any);
+                            applyToTargetOrSelection({ arrowStart: t.id as any });
+                          }}
+                          className={`h-7 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                            currentStartArrow === t.id
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+                            <line x1="4" y1="6" x2="14" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            {t.id === "arrow" && <path d="M7 2.5L3 6L7 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />}
+                            {t.id === "circle" && <circle cx="4.5" cy="6" r="2.2" fill="currentColor" />}
+                            {t.id === "diamond" && <path d="M4.5 3.2L7.2 6L4.5 8.8L1.8 6Z" fill="currentColor" />}
+                            {t.id === "bar" && <line x1="3.5" y1="2.5" x2="3.5" y2="9.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />}
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10.5px] text-slate-500 w-9 shrink-0">End</span>
+                    <div className="grid grid-cols-5 gap-0.5 flex-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
+                      {[
+                        { id: "none", label: "None" },
+                        { id: "arrow", label: "Arrow" },
+                        { id: "circle", label: "Dot" },
+                        { id: "diamond", label: "Diamond" },
+                        { id: "bar", label: "Bar" },
+                      ].map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          title={`End: ${t.label}`}
+                          onClick={() => {
+                            setActiveArrowEnd(t.id as any);
+                            applyToTargetOrSelection({ arrowEnd: t.id as any });
+                          }}
+                          className={`h-7 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                            currentEndArrow === t.id
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+                            <line x1="2" y1="6" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            {t.id === "arrow" && <path d="M9 2.5L13 6L9 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />}
+                            {t.id === "circle" && <circle cx="11.5" cy="6" r="2.2" fill="currentColor" />}
+                            {t.id === "diamond" && <path d="M11.5 3.2L14.2 6L11.5 8.8L8.8 6Z" fill="currentColor" />}
+                            {t.id === "bar" && <line x1="12.5" y1="2.5" x2="12.5" y2="9.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />}
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Line Cap (Icon-only) */}
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <span className="text-[10.5px] text-slate-500 w-9 shrink-0">Cap</span>
+                    <div className="grid grid-cols-3 gap-0.5 flex-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
+                      {[
+                        { id: "round", label: "Round" },
+                        { id: "butt", label: "Flat" },
+                        { id: "square", label: "Square" },
+                      ].map((cap) => (
+                        <button
+                          key={cap.id}
+                          type="button"
+                          title={`Cap: ${cap.label}`}
+                          onClick={() => {
+                            setActiveLineCap(cap.id as any);
+                            applyToTargetOrSelection({ lineCap: cap.id as any });
+                          }}
+                          className={`h-7 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                            currentCap === cap.id
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          <svg width="20" height="10" viewBox="0 0 20 10" fill="none">
+                            <line
+                              x1="4"
+                              y1="5"
+                              x2="16"
+                              y2="5"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              strokeLinecap={cap.id as "round" | "butt" | "square"}
+                            />
+                            <circle cx="4" cy="5" r="1" fill={currentCap === cap.id ? "#ffffff" : "#f1f5f9"} />
+                          </svg>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-5 gap-1">
-                  {[1, 2, 3, 5, 8].map((w) => (
-                    <button
-                      key={w}
-                      type="button"
-                      onClick={() => {
-                        setStrokeWidth(w);
-                        applyToTargetOrSelection({ strokeWidth: w });
-                        showToast(`Thickness: ${w}px`);
-                      }}
-                      className={`py-1.5 rounded-xl border text-[10.5px] font-black cursor-pointer ${
-                        currentStrokeWidth === w
-                          ? "bg-brand text-white border-brand shadow-2xs"
-                          : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+              </div>
+
+              {/* 4. Effects */}
+              <div className="space-y-1.5 pb-2">
+                <span className="text-[11px] font-semibold text-slate-800 block">Effects</span>
+
+                <label className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                  <span className="text-[11px] font-medium text-slate-700">Glow</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={currentGlow}
+                    onClick={() => {
+                      const next = !currentGlow;
+                      setActiveLineGlow(next);
+                      applyToTargetOrSelection({ isGlowing: next });
+                    }}
+                    className={`w-8 h-4.5 rounded-full transition-colors p-0.5 cursor-pointer ${
+                      currentGlow ? "bg-slate-900" : "bg-slate-200"
+                    }`}
+                  >
+                    <span
+                      className={`block w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform ${
+                        currentGlow ? "translate-x-3.5" : "translate-x-0"
                       }`}
-                    >
-                      {w}px
-                    </button>
-                  ))}
-                </div>
+                    />
+                  </button>
+                </label>
 
-                {/* Color Swatches */}
-                <div className="space-y-1.5 pt-1 border-t border-line">
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted">
-                    <span>Line Color</span>
-                    <span className="font-mono text-ink uppercase font-bold">{currentColor}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {[
-                      "#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b",
-                      "#8b5cf6", "#06b6d4", "#ec4899", "#64748b", "#ffffff"
-                    ].map((col) => (
-                      <button
-                        key={col}
-                        type="button"
-                        onClick={() => {
-                          setStrokeColor(col);
-                          applyToTargetOrSelection({ color: col, strokeColor: col });
-                          showToast(`Line Color updated`);
-                        }}
-                        style={{ backgroundColor: col }}
-                        className={`w-5 h-5 rounded border border-slate-300 shadow-2xs transition-transform cursor-pointer ${
-                          currentColor.toLowerCase() === col.toLowerCase() ? "scale-125 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
-                        }`}
-                        title={col}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Terminal Endpoints & Arrowheads */}
-              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted">Endpoint Terminals</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Start Point */}
-                  <div className="space-y-1">
-                    <span className="text-[9.5px] font-bold text-slate-500">Start Terminal</span>
-                    <select
-                      value={currentStartArrow}
-                      onChange={(e) => {
-                        setActiveArrowStart(e.target.value as any);
-                        applyToTargetOrSelection({ arrowStart: e.target.value as any });
-                        showToast(`Start Terminal: ${e.target.value}`);
-                      }}
-                      className="w-full rounded-xl border border-line bg-slate-50 p-1.5 text-[10.5px] font-bold text-ink outline-none focus:border-brand cursor-pointer"
-                    >
-                      <option value="none">None (Plain)</option>
-                      <option value="arrow">Arrow Head ◀</option>
-                      <option value="circle">Circle Dot ●</option>
-                      <option value="diamond">Diamond ◆</option>
-                      <option value="bar">Flat Bar ▎</option>
-                    </select>
-                  </div>
-
-                  {/* End Point */}
-                  <div className="space-y-1">
-                    <span className="text-[9.5px] font-bold text-slate-500">End Terminal</span>
-                    <select
-                      value={currentEndArrow}
-                      onChange={(e) => {
-                        setActiveArrowEnd(e.target.value as any);
-                        applyToTargetOrSelection({ arrowEnd: e.target.value as any });
-                        showToast(`End Terminal: ${e.target.value}`);
-                      }}
-                      className="w-full rounded-xl border border-line bg-slate-50 p-1.5 text-[10.5px] font-bold text-ink outline-none focus:border-brand cursor-pointer"
-                    >
-                      <option value="none">None (Plain)</option>
-                      <option value="arrow">Arrow Head ▶</option>
-                      <option value="circle">Circle Dot ●</option>
-                      <option value="diamond">Diamond ◆</option>
-                      <option value="bar">Flat Bar ▎</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Line Caps */}
-                <div className="space-y-1 pt-1 border-t border-line">
-                  <span className="text-[9.5px] font-bold text-slate-500">Line Cap & Join Style</span>
-                  <div className="grid grid-cols-3 gap-1">
-                    {[
-                      { id: "round", label: "Round" },
-                      { id: "butt", label: "Flat (Butt)" },
-                      { id: "square", label: "Square" },
-                    ].map((cap) => (
-                      <button
-                        key={cap.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveLineCap(cap.id as any);
-                          applyToTargetOrSelection({ lineCap: cap.id as any });
-                          showToast(`Line Cap: ${cap.label}`);
-                        }}
-                        className={`py-1 rounded-lg border text-[10px] font-bold cursor-pointer ${
-                          currentCap === cap.id
-                            ? "bg-brand text-white border-brand"
-                            : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        {cap.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Effects: Glow & Infinite Ray Projection */}
-              <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted">Effects & Projections</label>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <div>
-                    <span className="font-bold text-[11px] text-ink block">Neon Stroke Glow</span>
-                    <span className="text-[9px] text-muted">Adds luminous neon outer glow</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={currentGlow}
-                    onChange={(e) => {
-                      setActiveLineGlow(e.target.checked);
-                      applyToTargetOrSelection({ isGlowing: e.target.checked });
-                      showToast(e.target.checked ? "Neon Glow Enabled" : "Neon Glow Disabled");
+                <label className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                  <span className="text-[11px] font-medium text-slate-700">Infinite Ray</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={currentRay}
+                    onClick={() => {
+                      const next = !currentRay;
+                      setActiveIsRay(next);
+                      applyToTargetOrSelection({ isRay: next });
                     }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <div>
-                    <span className="font-bold text-[11px] text-ink block">Infinite Ray Mode</span>
-                    <span className="text-[9px] text-muted">Extends line infinitely across chart bounds</span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={currentRay}
-                    onChange={(e) => {
-                      setActiveIsRay(e.target.checked);
-                      applyToTargetOrSelection({ isRay: e.target.checked });
-                      showToast(e.target.checked ? "Ray Projection Enabled" : "Ray Projection Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
+                    className={`w-8 h-4.5 rounded-full transition-colors p-0.5 cursor-pointer ${
+                      currentRay ? "bg-slate-900" : "bg-slate-200"
+                    }`}
+                  >
+                    <span
+                      className={`block w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform ${
+                        currentRay ? "translate-x-3.5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                </label>
               </div>
 
-              {/* Batch Actions */}
-              <div className="space-y-1.5 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const lineShapeTypes: Tool[] = ["line", "arrow", "bezier", "fibo", "orderblock", "fvg", "bos", "liquidity", "pencil", "rectangle", "circle", "diamond"];
-                    setShapes((prev) =>
-                      prev.map((s) =>
-                        lineShapeTypes.includes(s.type) && !s.isLocked
-                          ? {
-                              ...s,
-                              lineStyle: currentStyle,
-                              strokeWidth: currentStrokeWidth,
-                              lineCap: currentCap,
-                              isGlowing: currentGlow,
-                            }
-                          : s
-                      )
-                    );
-                    showToast(`Applied line pattern "${currentStyle}" to all lines on canvas!`);
-                  }}
-                  className="w-full py-2 rounded-xl border border-brand bg-brand-light text-brand text-[11px] font-extrabold hover:bg-brand hover:text-white transition shadow-2xs cursor-pointer"
-                >
-                  Apply Pattern to All Lines on Canvas
-                </button>
-              </div>
+              {/* Apply to All */}
+              <button
+                type="button"
+                onClick={() => {
+                  const lineShapeTypes: Tool[] = ["line", "arrow", "bezier", "fibo", "orderblock", "fvg", "bos", "liquidity", "pencil", "rectangle", "circle", "diamond"];
+                  setShapes((prev) =>
+                    prev.map((s) =>
+                      lineShapeTypes.includes(s.type) && !s.isLocked
+                        ? {
+                            ...s,
+                            lineStyle: currentStyle,
+                            strokeWidth: currentStrokeWidth,
+                            lineCap: currentCap,
+                            isGlowing: currentGlow,
+                          }
+                        : s
+                    )
+                  );
+                  showToast(`Applied style to all lines`);
+                }}
+                className="w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-[11px] font-medium transition-colors cursor-pointer"
+              >
+                Apply to all lines
+              </button>
             </div>
           );
         })()}
