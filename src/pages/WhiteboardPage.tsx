@@ -3137,8 +3137,8 @@ export default function WhiteboardPage() {
 
     // Render All Shapes (Back-to-Front)
     shapes.forEach((s) => {
-      if (!s.isHidden) {
-        const isSel = selectedShapeIds.includes(s.id) && s.id !== editingTextShapeId;
+      if (!s.isHidden && s.id !== editingTextShapeId) {
+        const isSel = selectedShapeIds.includes(s.id);
         renderWhiteboardShape(ctx, s, isSel, defaultRiskReward, activeTool);
       }
     });
@@ -4017,7 +4017,8 @@ export default function WhiteboardPage() {
       }
 
       // Start marquee drag to distinguish Point Text (click) vs Paragraph Text (drag area)
-      isDrawing.current = false;
+      isDrawing.current = true;
+      dragStartPt.current = pt;
       setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, mode: "text" });
       return;
     }
@@ -4251,9 +4252,9 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // 3. Selection or Marquee Zoom Box Drag
-    if (isDrawing.current && dragStartPt.current && (activeTool === "select" || activeTool === "zoom" || activeTool === "marquee_zoom")) {
-      const mode = (activeTool === "zoom" || activeTool === "marquee_zoom") ? "zoom" : "select";
+    // 3. Selection, Marquee Zoom, or Paragraph Text Box Drag
+    if (isDrawing.current && dragStartPt.current && (activeTool === "select" || activeTool === "zoom" || activeTool === "marquee_zoom" || activeTool === "text")) {
+      const mode = activeTool === "text" ? "text" : (activeTool === "zoom" || activeTool === "marquee_zoom") ? "zoom" : "select";
       setMarqueeBox({
         x1: dragStartPt.current.x,
         y1: dragStartPt.current.y,
