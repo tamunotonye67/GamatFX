@@ -16835,6 +16835,8 @@ function WhiteboardToolBtn({
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
         className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+          hasFlyout ? "pr-2.5" : ""
+        } ${
           active
             ? "bg-brand-light text-brand font-bold ring-1 ring-brand/25 shadow-xs"
             : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-900"
@@ -16847,16 +16849,16 @@ function WhiteboardToolBtn({
               e.stopPropagation();
               onFlyoutToggle?.(e);
             }}
-            className={`absolute -right-0.5 -bottom-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center pointer-events-auto transition-all duration-150 cursor-pointer ring-1 shadow-2xs ${
+            className={`absolute inset-y-0 right-0 w-3.5 rounded-r-xl flex items-center justify-center pointer-events-auto transition-colors cursor-pointer ${
               isFlyoutOpen
-                ? "bg-brand text-white ring-brand scale-105"
+                ? "bg-brand/15 text-brand"
                 : active
-                  ? "bg-white text-brand ring-brand/30 hover:bg-brand hover:text-white hover:ring-brand"
-                  : "bg-white/95 text-slate-400 ring-slate-200/90 group-hover:text-slate-700 group-hover:ring-slate-300 hover:!bg-brand hover:!text-white hover:!ring-brand"
+                  ? "text-brand/60 hover:bg-brand/15 hover:text-brand"
+                  : "text-slate-400 hover:bg-slate-200/75 hover:text-slate-800"
             }`}
             title="Click arrow or right-click to view group tools"
           >
-            <ChevronRight className={`w-2.5 h-2.5 stroke-[2.5] transition-transform duration-150 ${isFlyoutOpen ? "rotate-90" : ""}`} />
+            <ChevronDown className={`w-2.5 h-2.5 stroke-[2.25] transition-transform duration-150 ${isFlyoutOpen ? "-rotate-90" : ""}`} />
           </span>
         )}
       </button>
