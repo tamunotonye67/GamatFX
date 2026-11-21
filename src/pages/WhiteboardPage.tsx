@@ -12843,7 +12843,7 @@ export default function WhiteboardPage() {
         <main className="flex-1 relative overflow-hidden">
           {/* Vertical Floating Tool Options Strip (Size & Color) at far bottom-left next to tools */}
           {["eraser", "pencil", "highlighter", "line", "arrow", "bezier", "rectangle", "circle", "diamond", "text", "sticky", "annotation"].includes(activeTool) && (
-            <div className="absolute bottom-14 sm:bottom-16 left-2.5 sm:left-4 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none animate-in fade-in duration-150">
+            <div className="absolute bottom-3 left-2.5 sm:bottom-4 sm:left-3.5 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none animate-in fade-in duration-150">
               {activeTool === "eraser" ? (
                 <>
                   {[
@@ -12958,8 +12958,8 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* Bottom Zoom & Navigation Bar */}
-          <div className="absolute bottom-2.5 left-2.5 sm:bottom-4 sm:left-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-line bg-white/95 p-1 sm:p-1.5 backdrop-blur shadow-lg text-xs font-bold select-none">
+          {/* Bottom Zoom & Navigation Bar (Figma-standard bottom-right) */}
+          <div className="absolute bottom-3 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-slate-200/90 bg-white/95 p-1 sm:p-1.5 backdrop-blur-md shadow-lg ring-1 ring-slate-900/5 text-xs font-bold select-none">
             {/* Zoom Out Button */}
             <button
               type="button"
@@ -13003,7 +13003,7 @@ export default function WhiteboardPage() {
 
               {/* Zoom & View Options Dropdown Popover */}
               {zoomMenuOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-48 max-w-[calc(100vw-5rem)] rounded-xl border border-line bg-white p-1.5 shadow-2xl z-50 animate-in fade-in space-y-1">
+                <div className="absolute bottom-full right-0 mb-2 w-48 max-w-[calc(100vw-5rem)] rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-xl p-1.5 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1">
                   {/* Screen Views / Fit Options */}
                   <div className="space-y-0.5 pb-1 border-b border-slate-100">
                     <button
