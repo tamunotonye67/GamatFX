@@ -1034,7 +1034,7 @@ const CANVAS_THEMES = [
 
 const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?: string }> = {
   select: {
-    title: "Select Tool",
+    title: "Select",
     desc: "Click to select, move or drag corner handles to resize. Hold Alt while dragging to duplicate objects.",
     shortcut: "V / Alt+Drag",
   },
@@ -1044,122 +1044,122 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     shortcut: "A",
   },
   hand: {
-    title: "Pan Tool",
+    title: "Pan",
     desc: "Click and drag anywhere on the canvas background to move around your diagram.",
     shortcut: "H / Space",
   },
   pencil: {
-    title: "Freehand Pen",
+    title: "Pen",
     desc: "Draw freehand diagrams, market trendlines, and handwritten teaching annotations.",
     shortcut: "P",
   },
   highlighter: {
-    title: "Highlighter Pen",
+    title: "Highlighter",
     desc: "Highlight key order block zones and price structures with translucent yellow ink.",
     shortcut: "Shift+P",
   },
   rectangle: {
-    title: "Rectangle Zone Box",
+    title: "Rectangle",
     desc: "Draw rectangular boxes for Support, Resistance, Supply & Demand, or Order Block zones.",
     shortcut: "R",
   },
   circle: {
-    title: "Circle Node",
+    title: "Circle",
     desc: "Draw circular target nodes, stop loss circles, or price liquidity levels.",
     shortcut: "C",
   },
   diamond: {
-    title: "Decision Diamond",
+    title: "Diamond",
     desc: "Draw decision tree diamonds for trading rules, entry triggers, and risk matrices.",
     shortcut: "D",
   },
   line: {
-    title: "Straight Line",
+    title: "Line",
     desc: "Draw clean straight trendlines, support/resistance levels, or chart boundary lines.",
     shortcut: "Shift+L",
   },
   arrow: {
-    title: "Connector Arrow",
+    title: "Arrow",
     desc: "Draw directional trend arrows to show price movement and liquidity flow.",
     shortcut: "A",
   },
   bezier: {
-    title: "Chart Pattern Path",
+    title: "Pattern Path",
     desc: "Draw continuous multi-point Forex chart patterns (Head & Shoulders, Flags, Triangles). Double-click to complete.",
     shortcut: "B",
   },
   sticky: {
-    title: "Teaching Sticky Note",
+    title: "Sticky Note",
     desc: "Add colorful teaching sticky notes to write trading rules, teaching tips, or trade setups.",
     shortcut: "N",
   },
   text: {
-    title: "Text Label Tool",
+    title: "Text",
     desc: "Click anywhere on the whiteboard to add clear text titles, price levels, or notes.",
     shortcut: "T",
   },
   annotation: {
-    title: "Annotation Leader Line",
+    title: "Annotation",
     desc: "Draw a leader line from any object with an attached callout annotation label badge.",
     shortcut: "W",
   },
   eraser: {
-    title: "Precision Eraser",
+    title: "Eraser",
     desc: "Erases only the exact line stroke segments touched by the eraser tip without deleting whole shapes.",
     shortcut: "E",
   },
   zoom: {
-    title: "Zoom Tool",
+    title: "Zoom",
     desc: "Click to zoom into details or use your mouse scroll wheel to zoom in and out smoothly.",
     shortcut: "Z / Scroll",
   },
   fibo: {
-    title: "Fibonacci Retracement",
+    title: "Fibonacci",
     desc: "Draw Golden Ratio Fibonacci levels (0.618 Golden Pocket, 0.5 Equilibrium, 0.786, 0.382) between Swing Low and Swing High.",
     shortcut: "F",
   },
   long: {
-    title: "Long Position Calculator",
+    title: "Long Position",
     desc: "Long Position tool showing Green Take Profit target, Red Stop Loss zone, and Risk-to-Reward ratio.",
     shortcut: "L",
   },
   short: {
-    title: "Short Position Calculator",
+    title: "Short Position",
     desc: "Short Position tool showing Red Stop Loss zone, Green Take Profit target, and Risk-to-Reward ratio.",
     shortcut: "S",
   },
   orderblock: {
-    title: "Order Block (OB / POI Zone)",
+    title: "Order Block",
     desc: "Draw institutional supply & demand Order Blocks with 50% Mean Threshold (MT) mitigation line.",
     shortcut: "O",
   },
   fvg: {
-    title: "Fair Value Gap (FVG / Imbalance)",
+    title: "Fair Value Gap",
     desc: "Draw 3-candle price imbalance Fair Value Gaps with 50% Consequent Encroachment (C.E.) midline.",
     shortcut: "G",
   },
   bos: {
-    title: "Break of Structure (BOS / CHoCH)",
+    title: "Break of Structure",
     desc: "Draw market structure shift trendlines labeled with BOS (Trend Continuation) or CHoCH (Trend Reversal).",
     shortcut: "K",
   },
   liquidity: {
-    title: "Liquidity Pool ($$$ / BSL / SSL)",
+    title: "Liquidity Pool",
     desc: "Mark Buy-Side (BSL) and Sell-Side (SSL) liquidity sweep pools and equal highs/lows.",
     shortcut: "Q",
   },
   candle: {
-    title: "Candle Tool (Candlestick)",
+    title: "Candlestick",
     desc: "Draw authentic Forex & Crypto candlesticks with dynamic wicks, body, and bullish/bearish auto-detection.",
     shortcut: "U",
   },
   bullish_candle: {
-    title: "Bullish Candlestick",
+    title: "Bullish Candle",
     desc: "Draw an authentic green Bullish Candlestick with upper and lower wicks.",
     shortcut: "U",
   },
   bearish_candle: {
-    title: "Bearish Candlestick",
+    title: "Bearish Candle",
     desc: "Draw an authentic red Bearish Candlestick with upper and lower wicks.",
     shortcut: "J",
   },
@@ -1174,7 +1174,7 @@ const TOOL_EXPLANATIONS: Record<string, { title: string; desc: string; shortcut?
     shortcut: "K",
   },
   image: {
-    title: "Image Tool",
+    title: "Image",
     desc: "Upload and insert PNG, JPG, or SVG images directly onto the canvas.",
     shortcut: "Ctrl+I",
   },
@@ -12188,7 +12188,7 @@ export default function WhiteboardPage() {
 
                   <FlyoutToolItem
                     toolKey="select"
-                    label="Select Tool"
+                    label="Select"
                     icon={MousePointer}
                     isActive={activeSelectTool === "select" && activeTool === "select"}
                     isFavorited={favoritedTools.includes("select")}
@@ -12353,7 +12353,7 @@ export default function WhiteboardPage() {
                   <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Pen Tools</p>
                   <FlyoutToolItem
                     toolKey="pencil"
-                    label="Freehand Pen"
+                    label="Pen"
                     icon={Pencil}
                     isActive={activePenTool === "pencil"}
                     isFavorited={favoritedTools.includes("pencil")}
@@ -12397,7 +12397,7 @@ export default function WhiteboardPage() {
                   <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Shape and Object Tools</p>
                   <FlyoutToolItem
                     toolKey="rectangle"
-                    label="Rectangle Zone"
+                    label="Rectangle"
                     icon={Square}
                     isActive={activeShapeTool === "rectangle"}
                     isFavorited={favoritedTools.includes("rectangle")}
@@ -12407,7 +12407,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="circle"
-                    label="Circle Node"
+                    label="Circle"
                     icon={Circle}
                     isActive={activeShapeTool === "circle"}
                     isFavorited={favoritedTools.includes("circle")}
@@ -12417,7 +12417,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="diamond"
-                    label="Decision Diamond"
+                    label="Diamond"
                     icon={Diamond}
                     isActive={activeShapeTool === "diamond"}
                     isFavorited={favoritedTools.includes("diamond")}
@@ -12429,7 +12429,7 @@ export default function WhiteboardPage() {
                   <p className="px-2.5 py-0.5 text-[9px] font-bold uppercase text-slate-400 tracking-wider">Media & Objects</p>
                   <FlyoutToolItem
                     toolKey="image"
-                    label="Image Tool"
+                    label="Image"
                     icon={ImageIcon}
                     isActive={activeTool === "image"}
                     isFavorited={favoritedTools.includes("image")}
@@ -12468,7 +12468,7 @@ export default function WhiteboardPage() {
                   <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Line & Path Tools</p>
                   <FlyoutToolItem
                     toolKey="line"
-                    label="Straight Line"
+                    label="Line"
                     icon={Minus}
                     isActive={activeLineTool === "line"}
                     isFavorited={favoritedTools.includes("line")}
@@ -12478,7 +12478,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="arrow"
-                    label="Connector Arrow"
+                    label="Arrow"
                     icon={ArrowUpRight}
                     isActive={activeLineTool === "arrow"}
                     isFavorited={favoritedTools.includes("arrow")}
@@ -12488,7 +12488,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="bezier"
-                    label="Chart Pattern Path"
+                    label="Pattern Path"
                     icon={Activity}
                     isActive={activeLineTool === "bezier"}
                     isFavorited={favoritedTools.includes("bezier")}
@@ -12522,7 +12522,7 @@ export default function WhiteboardPage() {
                   <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Text & Annotation Tools</p>
                   <FlyoutToolItem
                     toolKey="text"
-                    label="Text Label (T)"
+                    label="Text"
                     icon={Type}
                     isActive={activeNoteTool === "text"}
                     isFavorited={favoritedTools.includes("text")}
@@ -12532,7 +12532,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="annotation"
-                    label="Annotation Leader (W)"
+                    label="Annotation"
                     icon={AnnotationIcon}
                     isActive={activeNoteTool === "annotation"}
                     isFavorited={favoritedTools.includes("annotation")}
@@ -12542,7 +12542,7 @@ export default function WhiteboardPage() {
                   />
                   <FlyoutToolItem
                     toolKey="sticky"
-                    label="Sticky Note (N)"
+                    label="Sticky Note"
                     icon={StickyNote}
                     isActive={activeNoteTool === "sticky"}
                     isFavorited={favoritedTools.includes("sticky")}
