@@ -17736,28 +17736,48 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
 
   if (shape.type === "circle" && pts.length >= 2) {
     const r = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-    minX = pts[0].x - r;
-    maxX = pts[0].x + r;
-    minY = pts[0].y - r;
-    maxY = pts[0].y + r;
+    const halfStroke = (shape.strokeWidth || 1) / 2;
+    minX = pts[0].x - r - halfStroke;
+    maxX = pts[0].x + r + halfStroke;
+    minY = pts[0].y - r - halfStroke;
+    maxY = pts[0].y + r + halfStroke;
   } else if (shape.type === "sticky") {
     const p0 = pts[0];
     const p1 = pts.length >= 2 ? pts[1] : { x: p0.x + 200, y: p0.y + 160 };
     minX = Math.min(p0.x, p1.x);
-    maxX = Math.max(p0.x, p1.x);
     minY = Math.min(p0.y, p1.y);
+    const w = Math.max(80, Math.abs(p1.x - p0.x));
+    maxX = minX + w;
     const baseH = Math.max(60, Math.abs(p1.y - p0.y));
-    const w = Math.max(80, maxX - minX);
     const fSize = shape.fontSize || 14;
     const padding = 16;
     const maxTextWidth = Math.max(20, w - padding * 2);
     const lineHeight = fSize * 1.35;
     let lineCount = 0;
     if (shape.text) {
+      const mCtx = getTextMeasureCtx();
+      if (mCtx) {
+        mCtx.font = `${shape.fontWeight === "bold" ? "bold " : ""}${fSize}px Inter, -apple-system, sans-serif`;
+      }
       const rawLines = shape.text.split("\n");
       rawLines.forEach((rL) => {
-        const estCharPerLine = Math.max(1, Math.floor(maxTextWidth / (fSize * 0.55)));
-        lineCount += Math.max(1, Math.ceil((rL.length || 1) / estCharPerLine));
+        if (mCtx) {
+          const words = rL.split(" ");
+          let currentLine = "";
+          words.forEach((word) => {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            if (mCtx.measureText(testLine).width > maxTextWidth && currentLine) {
+              lineCount += 1;
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
+          });
+          if (currentLine) lineCount += 1;
+        } else {
+          const estCharPerLine = Math.max(1, Math.floor(maxTextWidth / (fSize * 0.55)));
+          lineCount += Math.max(1, Math.ceil((rL.length || 1) / estCharPerLine));
+        }
       });
     }
     const requiredH = Math.max(baseH, 36 + lineCount * lineHeight + padding + 10);
@@ -17835,14 +17855,20 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
   } else if (shape.type === "annotation" && pts.length >= 2) {
     const p0 = pts[0];
     const p1 = pts[1];
-    const estBadgeW = Math.max(55, (shape.text || "Annotation").length * 7 + 20);
+    const textStr = shape.text || "Annotation";
+    const mCtx = getTextMeasureCtx();
+    let badgeW = Math.max(50, textStr.length * 6 + 18);
+    if (mCtx) {
+      mCtx.font = "bold 11px Inter, -apple-system, sans-serif";
+      badgeW = Math.max(50, mCtx.measureText(textStr).width + 18);
+    }
     const isRight = p1.x >= p0.x;
-    const badgeLeft = isRight ? p1.x : p1.x - estBadgeW;
-    const badgeRight = isRight ? p1.x + estBadgeW : p1.x;
-    minX = Math.min(p0.x, badgeLeft);
-    maxX = Math.max(p0.x, badgeRight);
-    minY = Math.min(p0.y, p1.y - 14);
-    maxY = Math.max(p0.y, p1.y + 14);
+    const badgeLeft = isRight ? p1.x : p1.x - badgeW;
+    const badgeRight = isRight ? p1.x + badgeW : p1.x;
+    minX = Math.min(p0.x - 4, badgeLeft);
+    maxX = Math.max(p0.x + 4, badgeRight);
+    minY = Math.min(p0.y - 4, p1.y - 11);
+    maxY = Math.max(p0.y + 4, p1.y + 11);
   } else if ((shape.type === "orderblock" || shape.type === "fvg") && pts.length >= 2) {
     const boxW = Math.abs(pts[1].x - pts[0].x) || 160;
     const boxH = Math.abs(pts[1].y - pts[0].y) || 60;
@@ -17880,10 +17906,22 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
       ? shape.fiboLevels.filter((l) => l.enabled !== false)
       : DEFAULT_FIBO_LEVELS;
     const yCoords = levels.map((l) => y1 + height * l.ratio).concat([y1, y2]);
+    let maxLabelW = 30;
+    const mCtx = getTextMeasureCtx();
+    if (mCtx) {
+      mCtx.font = "bold 8.5px Inter, -apple-system, sans-serif";
+      maxLabelW = Math.max(
+        16,
+        ...levels.map((lvl) => {
+          const displayLabel = lvl.label ? lvl.label.split(" ")[0] : `${(lvl.ratio * 100).toFixed(1)}%`;
+          return mCtx.measureText(displayLabel).width;
+        })
+      );
+    }
     minX = Math.min(x1, x2);
-    maxX = Math.max(x1, x2) + 60;
-    minY = Math.min(...yCoords);
-    maxY = Math.max(...yCoords);
+    maxX = Math.max(x1, x2) + 6 + maxLabelW;
+    minY = Math.min(...yCoords) - 4;
+    maxY = Math.max(...yCoords) + 4;
   } else if ((shape.type === "long" || shape.type === "short") && pts.length >= 2) {
     const x1 = pts[0].x;
     const yEntry = pts[0].y;
@@ -17901,6 +17939,38 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
       minY = yEntry - stopH;
       maxY = yEntry + targetH;
     }
+  } else if (shape.type === "highlighter") {
+    const halfStroke = (shape.strokeWidth && shape.strokeWidth > 5 ? shape.strokeWidth : 18) / 2;
+    minX -= halfStroke;
+    maxX += halfStroke;
+    minY -= halfStroke;
+    maxY += halfStroke;
+  } else if (
+    shape.type === "pencil" ||
+    shape.type === "line" ||
+    shape.type === "arrow" ||
+    shape.type === "rectangle" ||
+    shape.type === "diamond" ||
+    shape.type === "bezier"
+  ) {
+    const halfStroke = Math.max(
+      (shape.strokeWidth || 1) / 2,
+      shape.type === "arrow" ? 5 : shape.type === "bezier" ? 4 : 0
+    );
+    minX -= halfStroke;
+    maxX += halfStroke;
+    minY -= halfStroke;
+    maxY += halfStroke;
+    if (maxX - minX < 4) {
+      const cx = (minX + maxX) / 2;
+      minX = cx - 2;
+      maxX = cx + 2;
+    }
+    if (maxY - minY < 4) {
+      const cy = (minY + maxY) / 2;
+      minY = cy - 2;
+      maxY = cy + 2;
+    }
   }
   return { minX, maxX, minY, maxY };
 }
@@ -17916,6 +17986,12 @@ function isShapeInMarquee(shape: Shape, mMinX: number, mMaxX: number, mMinY: num
   return overlapX && overlapY;
 }
 
+function getSelectionPad(shape: Shape): number {
+  if (shape.type === "text") return 4;
+  if (shape.type === "annotation" || shape.type === "fibo" || shape.type === "bos" || shape.type === "liquidity") return 3;
+  return 2;
+}
+
 /** Check hit test on 8 resize handle nodes (4 corners + 4 center edges) */
 function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeHandle | null {
   const pts = shape.points;
@@ -17929,7 +18005,7 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
 
   const midX = (minX + maxX) / 2;
   const midY = (minY + maxY) / 2;
-  const pad = shape.type === "text" ? 4 : 0;
+  const pad = getSelectionPad(shape);
 
   // High-priority edge grab for Long and Short positions (top edge for TP/SL, bottom edge for SL/TP)
   if ((shape.type === "long" || shape.type === "short") && pts.length >= 2) {
@@ -19394,7 +19470,7 @@ function renderWhiteboardShape(
     let minY = b.minY;
     let maxY = b.maxY;
 
-    const pad = shape.type === "text" ? 4 : 0;
+    const pad = getSelectionPad(shape);
     ctx.strokeStyle = "rgba(59, 130, 246, 0.65)";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
