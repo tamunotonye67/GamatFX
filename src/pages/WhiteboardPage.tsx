@@ -9817,13 +9817,13 @@ export default function WhiteboardPage() {
               </div>
             </div>
 
-            {/* 1. Grid Style Selector */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center justify-between">
-                <span>Grid Style</span>
-                <span className="text-[9px] text-brand font-medium capitalize">{bgGrid}</span>
-              </label>
-              <div className="grid grid-cols-3 gap-1.5">
+            {/* 1. Grid */}
+            <div className="space-y-2 pb-3 border-b border-slate-200/70">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-800">Grid</span>
+                <span className="text-[10.5px] text-slate-400 capitalize">{bgGrid}</span>
+              </div>
+              <div className="grid grid-cols-5 gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
                 {[
                   { id: "dots", label: "Dots Matrix" },
                   { id: "lines", label: "Graph Lines" },
@@ -9834,249 +9834,233 @@ export default function WhiteboardPage() {
                   <button
                     key={item.id}
                     type="button"
+                    title={item.label}
                     onClick={() => {
                       setBgGrid(item.id as any);
-                      showToast(`Switched grid to ${item.label}`);
                     }}
-                    className={`py-1.5 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    className={`h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                       bgGrid === item.id
-                        ? "bg-brand text-white border-brand shadow-xs"
-                        : "bg-slate-50 border-line text-slate-700 hover:bg-slate-100"
+                        ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                        : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
-                    {item.label}
+                    {item.id === "dots" && (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <circle cx="4" cy="4" r="1.2" /><circle cx="8" cy="4" r="1.2" /><circle cx="12" cy="4" r="1.2" />
+                        <circle cx="4" cy="8" r="1.2" /><circle cx="8" cy="8" r="1.2" /><circle cx="12" cy="8" r="1.2" />
+                        <circle cx="4" cy="12" r="1.2" /><circle cx="8" cy="12" r="1.2" /><circle cx="12" cy="12" r="1.2" />
+                      </svg>
+                    )}
+                    {item.id === "lines" && (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2">
+                        <path d="M2 5.5H14M2 10.5H14M5.5 2V14M10.5 2V14" />
+                      </svg>
+                    )}
+                    {item.id === "blank" && (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+                        <rect x="2.5" y="2.5" width="11" height="11" rx="2" />
+                      </svg>
+                    )}
+                    {item.id === "dark" && (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="#0f172a" stroke="currentColor" strokeWidth="1.2" />
+                        <path d="M3 6.5H13M3 10H13M6.5 3V13M10 3V13" stroke="#475569" strokeWidth="0.9" />
+                      </svg>
+                    )}
+                    {item.id === "chalkboard" && (
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="#14532d" stroke="currentColor" strokeWidth="1.2" />
+                        <path d="M5 9.5L7.5 6.5L10 9L11.5 7.5" stroke="#bbf7d0" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* 2. Snap to Grid & Tolerance */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1">
-                  <Magnet className="h-3 w-3 text-brand" /> Snap Engine Controls
-                </label>
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${snapToGrid ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                  {snapToGrid ? "Active" : "Disabled"}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Snap to Grid</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToGrid}
-                    onChange={(e) => {
-                      setSnapToGrid(e.target.checked);
-                      showToast(e.target.checked ? "Snap to Grid Enabled" : "Snap to Grid Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Snap to Objects & Vertices</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToObjects}
-                    onChange={(e) => {
-                      setSnapToObjects(e.target.checked);
-                      showToast(e.target.checked ? "Snap to Objects Enabled" : "Snap to Objects Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Snap to Guidelines</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToGuides}
-                    onChange={(e) => {
-                      setSnapToGuides(e.target.checked);
-                      showToast(e.target.checked ? "Snap to Guidelines Enabled" : "Snap to Guidelines Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-line">
-                  <span className="font-bold text-[11px] text-ink">Constrain Angles (15° / 45° / 90°)</span>
-                  <input
-                    type="checkbox"
-                    checked={snapToAngles}
-                    onChange={(e) => {
-                      setSnapToAngles(e.target.checked);
-                      showToast(e.target.checked ? "Angle Snapping Enabled" : "Angle Snapping Disabled");
-                    }}
-                    className="accent-brand cursor-pointer h-4 w-4"
-                  />
-                </div>
-              </div>
-
-              {/* Grid Snap Size */}
-              <div className="space-y-1 pt-1">
-                <div className="flex items-center justify-between text-[10px] font-bold text-muted">
-                  <span>Grid Step Size</span>
-                  <span className="text-brand font-black">{gridSnapSize}px</span>
-                </div>
-                <div className="grid grid-cols-4 gap-1">
+            {/* 2. Snap */}
+            <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+              <div className="flex items-center justify-between pb-0.5">
+                <span className="text-[11px] font-semibold text-slate-800">Snap</span>
+                <div className="flex items-center bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60" title="Grid step size">
                   {[5, 10, 20, 40].map((sz) => (
                     <button
                       key={sz}
                       type="button"
-                      onClick={() => {
-                        setGridSnapSize(sz);
-                        showToast(`Grid Step: ${sz}px`);
-                      }}
-                      className={`py-1 rounded-lg border text-[10px] font-black cursor-pointer ${
-                        gridSnapSize === sz ? "bg-brand text-white border-brand" : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+                      onClick={() => setGridSnapSize(sz)}
+                      className={`px-1.5 py-0.5 rounded-md text-[10px] font-semibold cursor-pointer transition-all ${
+                        gridSnapSize === sz
+                          ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                          : "text-slate-500 hover:text-slate-800"
                       }`}
                     >
-                      {sz}px
+                      {sz}
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* 3. Guidelines Management */}
-            <div className="rounded-2xl border border-line bg-white p-3 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-black uppercase tracking-wider text-muted flex items-center gap-1">
-                  <RulerIcon className="h-3 w-3 text-brand" /> Smart Guidelines ({guidelines.length})
-                </label>
-                <div className="flex items-center gap-1">
+              {[
+                { label: "Grid", checked: snapToGrid, onToggle: () => setSnapToGrid(!snapToGrid) },
+                { label: "Objects", checked: snapToObjects, onToggle: () => setSnapToObjects(!snapToObjects) },
+                { label: "Guides", checked: snapToGuides, onToggle: () => setSnapToGuides(!snapToGuides) },
+                { label: "Angles", title: "Constrain to 15° / 45° / 90°", checked: snapToAngles, onToggle: () => setSnapToAngles(!snapToAngles) },
+              ].map((row) => (
+                <label
+                  key={row.label}
+                  title={row.title}
+                  className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                >
+                  <span className="text-[11px] font-medium text-slate-700">{row.label}</span>
                   <button
                     type="button"
-                    onClick={() => setShowGuidelines(!showGuidelines)}
-                    className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
-                      showGuidelines ? "bg-brand-light text-brand" : "bg-slate-100 text-slate-400"
+                    role="switch"
+                    aria-checked={row.checked}
+                    onClick={row.onToggle}
+                    className={`w-8 h-4.5 rounded-full transition-colors p-0.5 cursor-pointer ${
+                      row.checked ? "bg-slate-900" : "bg-slate-200"
                     }`}
                   >
-                    {showGuidelines ? "Visible" : "Hidden"}
+                    <span
+                      className={`block w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform ${
+                        row.checked ? "translate-x-3.5" : "translate-x-0"
+                      }`}
+                    />
                   </button>
+                </label>
+              ))}
+            </div>
+
+            {/* 3. Guides */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-800">Guides</span>
+                  {guidelines.length > 0 && (
+                    <span className="text-[10px] font-medium text-slate-400">{guidelines.length}</span>
+                  )}
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowGuidelines(!showGuidelines)}
+                  title={showGuidelines ? "Hide guides" : "Show guides"}
+                  className={`p-1 rounded-md transition-colors cursor-pointer ${
+                    showGuidelines ? "text-slate-700 hover:bg-slate-100" : "text-slate-400 hover:bg-slate-100"
+                  }`}
+                >
+                  {showGuidelines ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                </button>
               </div>
 
+              {/* Quick Center Guides */}
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
+                  title="Add horizontal guide at center"
                   onClick={() => {
                     const cy = Math.round((-pan.y + window.innerHeight / 2) / zoom);
                     setGuidelines((prev) => [
                       ...prev,
                       { id: `g_${Date.now()}`, orientation: "horizontal", position: cy, color: "#3b82f6" },
                     ]);
-                    showToast(`Added Horizontal Guide at Y: ${cy}px`);
                   }}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  className="h-7 rounded-lg border border-slate-200/70 bg-slate-100/70 hover:bg-slate-100 text-[11px] font-medium text-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="h-3 w-3" /> + Horizontal (Center)
+                  <Plus className="h-3 w-3 text-slate-500" />
+                  <span>Horizontal</span>
                 </button>
                 <button
                   type="button"
+                  title="Add vertical guide at center"
                   onClick={() => {
                     const cx = Math.round((-pan.x + window.innerWidth / 2) / zoom);
                     setGuidelines((prev) => [
                       ...prev,
                       { id: `g_${Date.now()}`, orientation: "vertical", position: cx, color: "#3b82f6" },
                     ]);
-                    showToast(`Added Vertical Guide at X: ${cx}px`);
                   }}
-                  className="py-1.5 rounded-xl border border-line bg-slate-50 hover:bg-brand-light hover:text-brand hover:border-brand/40 text-[11px] font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  className="h-7 rounded-lg border border-slate-200/70 bg-slate-100/70 hover:bg-slate-100 text-[11px] font-medium text-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="h-3 w-3" /> + Vertical (Center)
+                  <Plus className="h-3 w-3 text-slate-500" />
+                  <span>Vertical</span>
                 </button>
               </div>
 
-              {/* Exact Position / Coordinate Input for Guidelines */}
-              <div className="p-2 rounded-xl bg-slate-50 border border-line space-y-1.5">
-                <div className="text-[10px] font-bold text-ink flex items-center justify-between">
-                  <span>Add Guide at Exact Coordinate</span>
-                  <span className="text-[9px] text-muted font-normal">X or Y position (px)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    id="custom-guide-pos-input"
-                    type="number"
-                    placeholder="e.g. 450"
-                    defaultValue={350}
-                    className="w-24 px-2 py-1 text-[11px] font-mono font-bold bg-white border border-line rounded-lg text-ink focus:outline-none focus:border-brand"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const inp = document.getElementById("custom-guide-pos-input") as HTMLInputElement | null;
-                      const val = inp ? parseInt(inp.value, 10) : NaN;
-                      const pos = isNaN(val) ? 0 : val;
-                      setGuidelines((prev) => [
-                        ...prev,
-                        { id: `g_${Date.now()}`, orientation: "horizontal", position: pos, color: "#3b82f6" },
-                      ]);
-                      showToast(`Added Horizontal Guide at Y: ${pos}px`);
-                    }}
-                    className="flex-1 py-1 text-[10px] font-bold bg-white hover:bg-brand-light hover:text-brand border border-line hover:border-brand/40 rounded-lg transition cursor-pointer text-center"
-                  >
-                    + Y (Horiz)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const inp = document.getElementById("custom-guide-pos-input") as HTMLInputElement | null;
-                      const val = inp ? parseInt(inp.value, 10) : NaN;
-                      const pos = isNaN(val) ? 0 : val;
-                      setGuidelines((prev) => [
-                        ...prev,
-                        { id: `g_${Date.now()}`, orientation: "vertical", position: pos, color: "#3b82f6" },
-                      ]);
-                      showToast(`Added Vertical Guide at X: ${pos}px`);
-                    }}
-                    className="flex-1 py-1 text-[10px] font-bold bg-white hover:bg-brand-light hover:text-brand border border-line hover:border-brand/40 rounded-lg transition cursor-pointer text-center"
-                  >
-                    + X (Vert)
-                  </button>
-                </div>
+              {/* Exact Coordinate Input */}
+              <div className="flex items-center gap-1">
+                <input
+                  id="custom-guide-pos-input"
+                  type="number"
+                  placeholder="px"
+                  defaultValue={350}
+                  className="w-20 h-7 px-2 text-[11px] font-mono bg-slate-100/80 border border-slate-200/70 rounded-lg text-slate-800 focus:outline-none focus:border-slate-400"
+                />
+                <button
+                  type="button"
+                  title="Add horizontal guide at Y"
+                  onClick={() => {
+                    const inp = document.getElementById("custom-guide-pos-input") as HTMLInputElement | null;
+                    const val = inp ? parseInt(inp.value, 10) : NaN;
+                    const pos = isNaN(val) ? 0 : val;
+                    setGuidelines((prev) => [
+                      ...prev,
+                      { id: `g_${Date.now()}`, orientation: "horizontal", position: pos, color: "#3b82f6" },
+                    ]);
+                  }}
+                  className="flex-1 h-7 text-[10.5px] font-medium bg-slate-100/70 hover:bg-slate-100 border border-slate-200/70 rounded-lg text-slate-700 transition cursor-pointer"
+                >
+                  + Y
+                </button>
+                <button
+                  type="button"
+                  title="Add vertical guide at X"
+                  onClick={() => {
+                    const inp = document.getElementById("custom-guide-pos-input") as HTMLInputElement | null;
+                    const val = inp ? parseInt(inp.value, 10) : NaN;
+                    const pos = isNaN(val) ? 0 : val;
+                    setGuidelines((prev) => [
+                      ...prev,
+                      { id: `g_${Date.now()}`, orientation: "vertical", position: pos, color: "#3b82f6" },
+                    ]);
+                  }}
+                  className="flex-1 h-7 text-[10.5px] font-medium bg-slate-100/70 hover:bg-slate-100 border border-slate-200/70 rounded-lg text-slate-700 transition cursor-pointer"
+                >
+                  + X
+                </button>
               </div>
 
-              {/* Guidelines List with editable positions */}
+              {/* Guidelines List */}
               {guidelines.length > 0 && (
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-44 overflow-y-auto pr-0.5">
                   {guidelines.map((g) => (
                     <div
                       key={g.id}
-                      className="flex items-center justify-between p-1.5 rounded-xl bg-slate-50 border border-line text-[10.5px] gap-2"
+                      className="flex items-center justify-between px-2 py-1 rounded-lg bg-slate-50 border border-slate-200/60 text-[11px] gap-2"
                     >
-                      <div className="flex items-center gap-1.5 font-bold text-ink shrink-0">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-700 shrink-0">
                         <span
-                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          className="h-2 w-2 rounded-full shrink-0"
                           style={{ backgroundColor: g.color }}
                         />
-                        <span className="capitalize">{g.orientation === "horizontal" ? "Y (Horiz)" : "X (Vert)"}</span>
+                        <span>{g.orientation === "horizontal" ? "Y" : "X"}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-muted font-mono">{g.orientation === "horizontal" ? "Y:" : "X:"}</span>
-                        <input
-                          type="number"
-                          value={g.position}
-                          onChange={(e) => {
-                            const newPos = parseInt(e.target.value, 10);
-                            if (!isNaN(newPos)) {
-                              setGuidelines((prev) =>
-                                prev.map((item) => (item.id === g.id ? { ...item, position: newPos } : item))
-                              );
-                            }
-                          }}
-                          className="w-16 px-1.5 py-0.5 text-[10.5px] font-mono font-bold bg-white border border-line rounded text-ink focus:outline-none focus:border-brand text-right"
-                        />
-                        <span className="text-[9px] text-muted">px</span>
-                      </div>
+                      <input
+                        type="number"
+                        value={g.position}
+                        onChange={(e) => {
+                          const newPos = parseInt(e.target.value, 10);
+                          if (!isNaN(newPos)) {
+                            setGuidelines((prev) =>
+                              prev.map((item) => (item.id === g.id ? { ...item, position: newPos } : item))
+                            );
+                          }
+                        }}
+                        className="w-16 px-1.5 py-0.5 text-[11px] font-mono bg-white border border-slate-200/80 rounded text-slate-800 focus:outline-none focus:border-slate-400 text-right ml-auto"
+                      />
                       <button
                         type="button"
                         onClick={() => {
                           setGuidelines((prev) => prev.filter((item) => item.id !== g.id));
-                          showToast("Removed guide");
                         }}
                         className="p-0.5 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer shrink-0"
                         title="Delete guide"
@@ -10091,13 +10075,10 @@ export default function WhiteboardPage() {
               {guidelines.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setGuidelines([]);
-                    showToast("Cleared all guidelines");
-                  }}
-                  className="w-full py-1 text-center text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  onClick={() => setGuidelines([])}
+                  className="w-full py-1 text-center text-[10.5px] font-medium text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                 >
-                  Clear All Guidelines
+                  Clear all
                 </button>
               )}
             </div>
