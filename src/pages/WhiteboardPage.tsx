@@ -12840,6 +12840,82 @@ export default function WhiteboardPage() {
 
         {/* Central Whiteboard Drawing Canvas */}
         <main className="flex-1 relative overflow-hidden">
+          {/* Vertical Floating Tool Options Strip (Size & Color) at far bottom-left next to tools */}
+          {["eraser", "pencil", "highlighter", "line", "arrow", "bezier", "rectangle", "circle", "diamond", "text", "sticky", "annotation"].includes(activeTool) && (
+            <div className="absolute bottom-14 sm:bottom-16 left-2.5 sm:left-4 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none animate-in fade-in duration-150">
+              {activeTool === "eraser" ? (
+                <>
+                  {[
+                    { size: 10, dot: "w-1.5 h-1.5" },
+                    { size: 20, dot: "w-2.5 h-2.5" },
+                    { size: 35, dot: "w-3.5 h-3.5" },
+                    { size: 55, dot: "w-4 h-4" },
+                  ].map(({ size, dot }) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        setEraserSize(size);
+                        showToast(`Eraser size: ${size}px`);
+                      }}
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                        eraserSize === size
+                          ? "bg-brand-light text-brand ring-1 ring-brand/30"
+                          : "text-slate-600 hover:bg-slate-100"
+                      }`}
+                      title={`Eraser ${size}px`}
+                    >
+                      <span className={`${dot} rounded-full bg-current block`} />
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {/* Size / Stroke Width Dots */}
+                  {!["text", "sticky", "annotation"].includes(activeTool) && (
+                    <>
+                      {[
+                        { sw: 1, dot: "w-1.5 h-1.5" },
+                        { sw: 2, dot: "w-2 h-2" },
+                        { sw: 4, dot: "w-3 h-3" },
+                        { sw: 8, dot: "w-4 h-4" },
+                      ].map(({ sw, dot }) => (
+                        <button
+                          key={sw}
+                          type="button"
+                          onClick={() => setStrokeWidth(sw)}
+                          className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                            strokeWidth === sw
+                              ? "bg-brand-light text-brand ring-1 ring-brand/30"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                          title={`Size ${sw}px`}
+                        >
+                          <span className={`${dot} rounded-full bg-current block`} />
+                        </button>
+                      ))}
+                      <div className="w-4 h-px bg-slate-200/80 my-0.5" />
+                    </>
+                  )}
+
+                  {/* Quick Vertical Color Dots */}
+                  {PALETTE.slice(0, 6).map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setStrokeColor(c)}
+                      className={`w-4.5 h-4.5 rounded-full border border-slate-200 transition-transform cursor-pointer ${
+                        strokeColor === c ? "scale-115 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
+                      }`}
+                      style={{ backgroundColor: c }}
+                      title={`Color ${c}`}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+
           {/* Bottom Zoom & Navigation Bar */}
           <div className="absolute bottom-2.5 left-2.5 sm:bottom-4 sm:left-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-line bg-white/95 p-1 sm:p-1.5 backdrop-blur shadow-lg text-xs font-bold select-none">
             {/* Zoom Out Button */}
@@ -14638,274 +14714,319 @@ export default function WhiteboardPage() {
                       </button>
                     </div>
 
-                    {/* Insert > Flyout Submenu */}
-                    <div
-                      className="relative"
-                      onMouseEnter={() => setContextSubmenu("insert")}
-                      onMouseLeave={() => setContextSubmenu((prev) => (prev === "insert" ? null : prev))}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setContextSubmenu((prev) => (prev === "insert" ? null : "insert"))}
-                        className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-                          contextSubmenu === "insert" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <Plus className="h-3.5 w-3.5 text-slate-400" /> Insert
-                        </span>
-                        <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
-                      </button>
-
-                      {contextSubmenu === "insert" && (
+                    {/* 1. SELECT / NODE TOOL */}
+                    {(activeTool === "select" || activeTool === "node") && (
+                      <>
                         <div
-                          className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${
-                            openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"
-                          } w-auto sm:w-52 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190] animate-in fade-in duration-100`}
+                          className="relative"
+                          onMouseEnter={() => setContextSubmenu("insert")}
+                          onMouseLeave={() => setContextSubmenu((prev) => (prev === "insert" ? null : prev))}
                         >
                           <button
                             type="button"
-                            onClick={() => { selectTool("fibo"); setContextMenu(null); }}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
+                            onClick={() => setContextSubmenu((prev) => (prev === "insert" ? null : "insert"))}
+                            className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                              contextSubmenu === "insert" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+                            }`}
                           >
                             <span className="flex items-center gap-2">
-                              <Percent className="h-3.5 w-3.5 text-slate-400" /> Fibonacci
+                              <Plus className="h-3.5 w-3.5 text-slate-400" /> Insert
                             </span>
-                            <span className="text-[10px] font-mono text-slate-400">F</span>
+                            <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => { selectTool("long"); setContextMenu(null); }}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                          >
-                            <span className="flex items-center gap-2">
-                              <LongPositionIcon className="h-3.5 w-3.5 text-emerald-600" /> Long Position
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-400">L</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { selectTool("short"); setContextMenu(null); }}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                          >
-                            <span className="flex items-center gap-2">
-                              <ShortPositionIcon className="h-3.5 w-3.5 text-rose-600" /> Short Position
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-400">S</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsStickyMode(true);
-                              setTextModalPos(contextMenu.canvasPt);
-                              selectTool("sticky");
-                              setContextMenu(null);
-                            }}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                          >
-                            <span className="flex items-center gap-2">
-                              <StickyNote className="h-3.5 w-3.5 text-amber-500" /> Sticky Note
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-400">N</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsStickyMode(false);
-                              setTextModalPos(contextMenu.canvasPt);
-                              selectTool("text");
-                              setContextMenu(null);
-                            }}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                          >
-                            <span className="flex items-center gap-2">
-                              <Type className="h-3.5 w-3.5 text-slate-400" /> Text
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-400">T</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              triggerImageUpload(contextMenu.canvasPt);
-                              setContextMenu(null);
-                            }}
-                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                          >
-                            <span className="flex items-center gap-2">
-                              <ImageIcon className="h-3.5 w-3.5 text-slate-400" /> Image
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-400">⌘I</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
 
-                    {/* Tool options > Flyout Submenu (for active drawing/utility tools) */}
-                    {activeTool !== "select" && activeTool !== "node" && (
-                      <div
-                        className="relative"
-                        onMouseEnter={() => setContextSubmenu("toolopts")}
-                        onMouseLeave={() => setContextSubmenu((prev) => (prev === "toolopts" ? null : prev))}
-                      >
+                          {contextSubmenu === "insert" && (
+                            <div
+                              className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${
+                                openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"
+                              } w-auto sm:w-52 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190] animate-in fade-in duration-100`}
+                            >
+                              <button type="button" onClick={() => { selectTool("fibo"); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-2"><Percent className="h-3.5 w-3.5 text-slate-400" /> Fibonacci</span>
+                                <span className="text-[10px] font-mono text-slate-400">F</span>
+                              </button>
+                              <button type="button" onClick={() => { selectTool("long"); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-2"><LongPositionIcon className="h-3.5 w-3.5 text-emerald-600" /> Long Position</span>
+                                <span className="text-[10px] font-mono text-slate-400">L</span>
+                              </button>
+                              <button type="button" onClick={() => { selectTool("short"); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-2"><ShortPositionIcon className="h-3.5 w-3.5 text-rose-600" /> Short Position</span>
+                                <span className="text-[10px] font-mono text-slate-400">S</span>
+                              </button>
+                              <button type="button" onClick={() => { setIsStickyMode(true); setTextModalPos(contextMenu.canvasPt); selectTool("sticky"); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-2"><StickyNote className="h-3.5 w-3.5 text-amber-500" /> Sticky Note</span>
+                                <span className="text-[10px] font-mono text-slate-400">N</span>
+                              </button>
+                              <button type="button" onClick={() => { setIsStickyMode(false); setTextModalPos(contextMenu.canvasPt); selectTool("text"); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-2"><Type className="h-3.5 w-3.5 text-slate-400" /> Text</span>
+                                <span className="text-[10px] font-mono text-slate-400">T</span>
+                              </button>
+                              <button type="button" onClick={() => { triggerImageUpload(contextMenu.canvasPt); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                <span className="flex items-center gap-2"><ImageIcon className="h-3.5 w-3.5 text-slate-400" /> Image</span>
+                                <span className="text-[10px] font-mono text-slate-400">⌘I</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="my-1 h-px bg-slate-200/70" />
                         <button
                           type="button"
-                          onClick={() => setContextSubmenu((prev) => (prev === "toolopts" ? null : "toolopts"))}
-                          className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-                            contextSubmenu === "toolopts" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
-                          }`}
+                          onClick={() => {
+                            const ids = shapes.filter((s) => !s.isHidden).map((s) => s.id);
+                            setSelectedShapeIds(ids);
+                            setContextMenu(null);
+                            showToast(`Selected all ${ids.length} objects`);
+                          }}
+                          className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
-                          <span className="flex items-center gap-2">
-                            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" /> Tool options
-                          </span>
-                          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-slate-400" /> Select all ({shapes.length})</span>
+                          <span className="text-[10px] font-mono text-slate-400">⌘A</span>
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShapes((prev) => prev.map((s) => ({ ...s, isLocked: false })));
+                            setContextMenu(null);
+                            showToast("Unlocked all canvas objects!");
+                          }}
+                          className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                        >
+                          <span className="flex items-center gap-2"><Unlock className="h-3.5 w-3.5 text-slate-400" /> Unlock all</span>
+                        </button>
+                        <div className="my-1 h-px bg-slate-200/70" />
+                        <button type="button" onClick={() => { handleClear(); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
+                          <span className="flex items-center gap-2"><Trash2 className="h-3.5 w-3.5" /> Clear canvas</span>
+                        </button>
+                      </>
+                    )}
 
-                        {contextSubmenu === "toolopts" && (
-                          <div
-                            className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${
-                              openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"
-                            } w-auto sm:w-48 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190] animate-in fade-in duration-100`}
+                    {/* 2. HAND (PAN) TOOL */}
+                    {activeTool === "hand" && (
+                      <>
+                        <button type="button" onClick={() => { setPan({ x: 0, y: 0 }); setZoom(1); setContextMenu(null); showToast("Reset Canvas View (100%)"); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                          <span className="flex items-center gap-2"><Compass className="h-3.5 w-3.5 text-slate-400" /> Reset view</span>
+                          <span className="text-[10px] font-mono text-slate-400">100%</span>
+                        </button>
+                        <button type="button" onClick={() => { setMouseWheelMode(mouseWheelMode === "zoom" ? "pan" : "zoom"); setContextMenu(null); showToast(`Wheel mode: ${mouseWheelMode === "zoom" ? "Pan" : "Zoom"}`); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                          <span>Wheel mode</span>
+                          <span className="text-[10px] font-mono text-slate-400">{mouseWheelMode.toUpperCase()}</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* 3. ZOOM TOOL */}
+                    {(activeTool === "zoom" || activeTool === "marquee_zoom") && (
+                      <>
+                        {[0.5, 1, 1.5, 2].map((zVal) => (
+                          <button
+                            key={zVal}
+                            type="button"
+                            onClick={() => { setZoom(zVal); setContextMenu(null); showToast(`Zoom: ${Math.round(zVal * 100)}%`); }}
+                            className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                           >
-                            {activeTool === "eraser" ? (
-                              <>
-                                <p className="px-3 py-1 text-[10px] font-semibold uppercase text-slate-400 tracking-wider">Radius</p>
-                                {[10, 20, 35, 55].map((er) => (
+                            <span>Zoom {Math.round(zVal * 100)}%</span>
+                            {Math.abs(zoom - zVal) < 0.05 && <Check className="h-3.5 w-3.5 text-brand" />}
+                          </button>
+                        ))}
+                        <div className="my-1 h-px bg-slate-200/70" />
+                        <button type="button" onClick={() => { setPan({ x: 0, y: 0 }); setZoom(1); setContextMenu(null); showToast("Reset Canvas View (100%)"); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                          <span>Reset view</span>
+                          <span className="text-[10px] font-mono text-slate-400">100%</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* 4. ERASER TOOL */}
+                    {activeTool === "eraser" && (
+                      <>
+                        <div
+                          className="relative"
+                          onMouseEnter={() => setContextSubmenu("eraser_size")}
+                          onMouseLeave={() => setContextSubmenu((prev) => (prev === "eraser_size" ? null : prev))}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setContextSubmenu((prev) => (prev === "eraser_size" ? null : "eraser_size"))}
+                            className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                              contextSubmenu === "eraser_size" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2"><Eraser className="h-3.5 w-3.5 text-slate-400" /> Eraser size ({eraserSize}px)</span>
+                            <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                          </button>
+                          {contextSubmenu === "eraser_size" && (
+                            <div className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"} w-auto sm:w-44 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190]`}>
+                              {[10, 20, 35, 55].map((er) => (
+                                <button key={er} type="button" onClick={() => { setEraserSize(er); setContextMenu(null); showToast(`Eraser size: ${er}px`); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                                  <span>{er} px</span>
+                                  {eraserSize === er && <Check className="h-3.5 w-3.5 text-brand" />}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="my-1 h-px bg-slate-200/70" />
+                        <button type="button" onClick={() => { handleClear(); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
+                          <span className="flex items-center gap-2"><Trash2 className="h-3.5 w-3.5" /> Clear canvas</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* 5. EYEDROPPER / PAINT BUCKET */}
+                    {(activeTool === "eyedropper" || activeTool === "paintbucket") && (
+                      <>
+                        <button type="button" onClick={() => { handleSwapColors(); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                          <span>Swap stroke & fill</span>
+                          <span className="text-[10px] font-mono text-slate-400">X</span>
+                        </button>
+                        <button type="button" onClick={() => { handleResetDefaultColors(); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                          <span>Default B/W</span>
+                          <span className="text-[10px] font-mono text-slate-400">⇧D</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* 6. DRAWING, SHAPES, LINES, TEXT & FOREX TOOLS (Context-specific options only) */}
+                    {!["select", "node", "hand", "zoom", "marquee_zoom", "eraser", "eyedropper", "paintbucket"].includes(activeTool) && (
+                      <>
+                        {/* Color > Submenu */}
+                        <div
+                          className="relative"
+                          onMouseEnter={() => setContextSubmenu("canvas_color")}
+                          onMouseLeave={() => setContextSubmenu((prev) => (prev === "canvas_color" ? null : prev))}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setContextSubmenu((prev) => (prev === "canvas_color" ? null : "canvas_color"))}
+                            className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                              contextSubmenu === "canvas_color" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0" style={{ backgroundColor: strokeColor }} />
+                              Color
+                            </span>
+                            <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                          </button>
+                          {contextSubmenu === "canvas_color" && (
+                            <div className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"} w-auto sm:w-52 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl p-2 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190]`}>
+                              <div className="flex items-center justify-between gap-1.5">
+                                {PALETTE.map((c) => (
                                   <button
-                                    key={er}
+                                    key={c}
                                     type="button"
-                                    onClick={() => { setEraserSize(er); setContextMenu(null); showToast(`Eraser radius: ${er}px`); }}
-                                    className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                  >
-                                    <span>{er} px</span>
-                                    {eraserSize === er && <Check className="h-3.5 w-3.5 text-brand" />}
-                                  </button>
+                                    onClick={() => { setStrokeColor(c); setContextMenu(null); }}
+                                    className={`h-5 w-5 rounded-full border border-slate-200 transition-transform cursor-pointer ${
+                                      strokeColor === c ? "scale-115 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
+                                    }`}
+                                    style={{ background: c }}
+                                  />
                                 ))}
-                              </>
-                            ) : activeTool === "zoom" || activeTool === "marquee_zoom" ? (
-                              <>
-                                <p className="px-3 py-1 text-[10px] font-semibold uppercase text-slate-400 tracking-wider">Zoom</p>
-                                {[0.5, 1, 1.5, 2].map((zVal) => (
-                                  <button
-                                    key={zVal}
-                                    type="button"
-                                    onClick={() => { setZoom(zVal); setContextMenu(null); showToast(`Zoom: ${Math.round(zVal * 100)}%`); }}
-                                    className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                  >
-                                    <span>{Math.round(zVal * 100)}%</span>
-                                    {Math.abs(zoom - zVal) < 0.05 && <Check className="h-3.5 w-3.5 text-brand" />}
-                                  </button>
-                                ))}
-                              </>
-                            ) : activeTool === "hand" ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => { setPan({ x: 0, y: 0 }); setZoom(1); setContextMenu(null); showToast("Reset Canvas View (100%)"); }}
-                                  className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                >
-                                  <span>Reset view</span>
-                                  <span className="text-[10px] font-mono text-slate-400">100%</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { setMouseWheelMode(mouseWheelMode === "zoom" ? "pan" : "zoom"); setContextMenu(null); showToast(`Wheel mode: ${mouseWheelMode === "zoom" ? "Pan" : "Zoom"}`); }}
-                                  className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                >
-                                  <span>Wheel mode</span>
-                                  <span className="text-[10px] font-mono text-slate-400">{mouseWheelMode.toUpperCase()}</span>
-                                </button>
-                              </>
-                            ) : activeTool === "eyedropper" || activeTool === "paintbucket" ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => { handleSwapColors(); setContextMenu(null); }}
-                                  className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                >
-                                  <span>Swap colors</span>
-                                  <span className="text-[10px] font-mono text-slate-400">X</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { handleResetDefaultColors(); setContextMenu(null); }}
-                                  className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                >
-                                  <span>Default B/W</span>
-                                  <span className="text-[10px] font-mono text-slate-400">⇧D</span>
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <p className="px-3 py-1 text-[10px] font-semibold uppercase text-slate-400 tracking-wider">Stroke</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Stroke Size > Submenu (for Pen, Highlighter, Shapes, Lines, Forex) */}
+                        {!["text", "sticky", "annotation", "image"].includes(activeTool) && (
+                          <div
+                            className="relative"
+                            onMouseEnter={() => setContextSubmenu("canvas_stroke")}
+                            onMouseLeave={() => setContextSubmenu((prev) => (prev === "canvas_stroke" ? null : prev))}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setContextSubmenu((prev) => (prev === "canvas_stroke" ? null : "canvas_stroke"))}
+                              className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                                contextSubmenu === "canvas_stroke" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <span className="flex items-center gap-2"><SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" /> Size ({strokeWidth}px)</span>
+                              <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                            </button>
+                            {contextSubmenu === "canvas_stroke" && (
+                              <div className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"} w-auto sm:w-44 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190]`}>
                                 {[1, 2, 4, 8].map((sw) => (
-                                  <button
-                                    key={sw}
-                                    type="button"
-                                    onClick={() => { setStrokeWidth(sw); setContextMenu(null); }}
-                                    className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                                  >
+                                  <button key={sw} type="button" onClick={() => { setStrokeWidth(sw); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
                                     <span>{sw} px</span>
                                     {strokeWidth === sw && <Check className="h-3.5 w-3.5 text-brand" />}
                                   </button>
                                 ))}
-                              </>
+                              </div>
                             )}
                           </div>
                         )}
-                      </div>
+
+                        {/* Line Style > Submenu (for Pen, Lines, Shapes) */}
+                        {["pencil", "highlighter", "line", "arrow", "bezier", "rectangle", "circle", "diamond"].includes(activeTool) && (
+                          <div
+                            className="relative"
+                            onMouseEnter={() => setContextSubmenu("canvas_lstyle")}
+                            onMouseLeave={() => setContextSubmenu((prev) => (prev === "canvas_lstyle" ? null : prev))}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setContextSubmenu((prev) => (prev === "canvas_lstyle" ? null : "canvas_lstyle"))}
+                              className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                                contextSubmenu === "canvas_lstyle" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <span className="flex items-center gap-2"><Spline className="h-3.5 w-3.5 text-slate-400" /> Style ({lineStyle})</span>
+                              <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                            </button>
+                            {contextSubmenu === "canvas_lstyle" && (
+                              <div className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"} w-auto sm:w-44 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190]`}>
+                                {(["solid", "dashed", "dotted"] as const).map((ls) => (
+                                  <button key={ls} type="button" onClick={() => { setLineStyle(ls); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 capitalize transition-colors cursor-pointer">
+                                    <span>{ls}</span>
+                                    {lineStyle === ls && <Check className="h-3.5 w-3.5 text-brand" />}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Fill Style > Submenu (for Shapes) */}
+                        {["rectangle", "circle", "diamond"].includes(activeTool) && (
+                          <div
+                            className="relative"
+                            onMouseEnter={() => setContextSubmenu("canvas_fill")}
+                            onMouseLeave={() => setContextSubmenu((prev) => (prev === "canvas_fill" ? null : prev))}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setContextSubmenu((prev) => (prev === "canvas_fill" ? null : "canvas_fill"))}
+                              className={`flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
+                                contextSubmenu === "canvas_fill" ? "bg-slate-100 text-slate-950" : "text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <span className="flex items-center gap-2"><Droplet className="h-3.5 w-3.5 text-slate-400" /> Fill ({fillStyle})</span>
+                              <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+                            </button>
+                            {contextSubmenu === "canvas_fill" && (
+                              <div className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"} w-auto sm:w-44 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190]`}>
+                                {(["translucent", "solid", "none"] as const).map((fs) => (
+                                  <button key={fs} type="button" onClick={() => { setFillStyle(fs); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 capitalize transition-colors cursor-pointer">
+                                    <span>{fs === "none" ? "Outline" : fs}</span>
+                                    {fillStyle === fs && <Check className="h-3.5 w-3.5 text-brand" />}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Image Upload Action */}
+                        {activeTool === "image" && (
+                          <button type="button" onClick={() => { triggerImageUpload(contextMenu.canvasPt); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                            <span className="flex items-center gap-2"><ImageIcon className="h-3.5 w-3.5 text-slate-400" /> Upload image</span>
+                            <span className="text-[10px] font-mono text-slate-400">⌘I</span>
+                          </button>
+                        )}
+                      </>
                     )}
-
-                    <div className="my-1 h-px bg-slate-200/70" />
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const ids = shapes.filter((s) => !s.isHidden).map((s) => s.id);
-                        setSelectedShapeIds(ids);
-                        setContextMenu(null);
-                        showToast(`Selected all ${ids.length} objects`);
-                      }}
-                      className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Check className="h-3.5 w-3.5 text-slate-400" /> Select all ({shapes.length})
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-400">⌘A</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShapes((prev) => prev.map((s) => ({ ...s, isLocked: false })));
-                        setContextMenu(null);
-                        showToast("Unlocked all canvas objects!");
-                      }}
-                      className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Unlock className="h-3.5 w-3.5 text-slate-400" /> Unlock all
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setPan({ x: 0, y: 0 }); setZoom(1); setContextMenu(null); showToast("Reset Canvas View (100%)"); }}
-                      className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Compass className="h-3.5 w-3.5 text-slate-400" /> Reset view
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-400">100%</span>
-                    </button>
-
-                    <div className="my-1 h-px bg-slate-200/70" />
-                    <button
-                      type="button"
-                      onClick={() => { handleClear(); setContextMenu(null); }}
-                      className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Trash2 className="h-3.5 w-3.5" /> Clear canvas
-                      </span>
-                    </button>
                   </div>
                 )}
               </div>
