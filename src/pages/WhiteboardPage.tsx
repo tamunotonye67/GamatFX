@@ -2214,7 +2214,7 @@ export default function WhiteboardPage() {
     return [];
   });
   const [selectedShapeIds, setSelectedShapeIds] = useState<string[]>([]);
-  const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number; mode?: "select" | "zoom" } | null>(null);
+  const [marqueeBox, setMarqueeBox] = useState<{ x1: number; y1: number; x2: number; y2: number; mode?: "select" | "zoom" | "text" } | null>(null);
 
   // Interactive Shape Resizing State
   const [activeResizeHandle, setActiveResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
@@ -3253,7 +3253,7 @@ export default function WhiteboardPage() {
     });
 
     ctx.restore();
-  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio, viewportTick]);
+  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio, viewportTick, editingTextShapeId]);
 
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
@@ -4016,28 +4016,9 @@ export default function WhiteboardPage() {
         commitInlineText(editingTextShapeId);
       }
 
-      // Create new text shape directly at cursor coordinates with clean empty initial text
-      const newId = `shape_txt_${Date.now()}`;
-      const newTextShape: Shape = {
-        id: newId,
-        type: "text",
-        name: "Text Label",
-        color: strokeColor || "#0f172a",
-        fontSize: 16,
-        fontFamily: "Inter, sans-serif",
-        fontWeight: "normal",
-        textAlign: "left",
-        text: "",
-        points: [pt],
-        isLocked: false,
-      };
-
-      textCreatedTimeRef.current = Date.now();
-      setShapes((prev) => [...prev, newTextShape]);
-      setEditingTextShapeId(newId);
-      setInlineTextValue("");
-      setSelectedShapeIds([newId]);
-      setRightPanelTab("character");
+      // Start marquee drag to distinguish Point Text (click) vs Paragraph Text (drag area)
+      isDrawing.current = false;
+      setMarqueeBox({ x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, mode: "text" });
       return;
     }
 
@@ -4423,6 +4404,36 @@ export default function WhiteboardPage() {
           setPan({ x: newPanX, y: newPanY });
           showToast(isZoomOut ? `Zoom Out: ${Math.round(newZoom * 100)}%` : `Zoom In: ${Math.round(newZoom * 100)}%`);
         }
+      } else if (marqueeBox.mode === "text") {
+        const isParagraph = boxW >= 24 || boxH >= 20;
+        const newId = `shape_txt_${Date.now()}`;
+        const textPoints = isParagraph
+          ? [{ x: minX, y: minY }, { x: maxX, y: maxY }]
+          : [{ x: marqueeBox.x1, y: marqueeBox.y1 }];
+
+        const newTextShape: Shape = {
+          id: newId,
+          type: "text",
+          name: isParagraph ? "Paragraph Text" : "Point Text",
+          color: strokeColor || "#0f172a",
+          fontSize: 16,
+          fontFamily: "Inter, sans-serif",
+          fontWeight: "normal",
+          textAlign: "left",
+          text: "",
+          points: textPoints,
+          isLocked: false,
+        };
+
+        textCreatedTimeRef.current = Date.now();
+        setShapes((prev) => [...prev, newTextShape]);
+        setEditingTextShapeId(newId);
+        setInlineTextValue("");
+        setSelectedShapeIds([newId]);
+        setRightPanelTab("character");
+        setTimeout(() => {
+          inlineTextRef.current?.focus();
+        }, 15);
       } else {
         // Marquee Selection Mode
         if (boxW >= 4 || boxH >= 4) {
@@ -15390,15 +15401,22 @@ export default function WhiteboardPage() {
             </div>
           )}
 
-          {/* DIRECT INLINE CANVAS TEXT EDITOR (BEEPER / TYPING AREA LIKE WORD & GRAPHICS SUITES) */}
+          {/* DIRECT INLINE CANVAS TEXT EDITOR (POINT TEXT & PARAGRAPH TEXT) */}
           {editingTextShapeId && (() => {
             const editingShape = shapes.find((s) => s.id === editingTextShapeId);
             if (!editingShape || !editingShape.points[0]) return null;
             const p0 = editingShape.points[0];
-            const screenX = p0.x * zoom + pan.x;
-            const screenY = p0.y * zoom + pan.y;
+            const isParagraph = editingShape.points.length >= 2;
+            const boxLeft = isParagraph ? Math.min(p0.x, editingShape.points[1].x) : p0.x;
+            const boxTop = isParagraph ? Math.min(p0.y, editingShape.points[1].y) : p0.y;
+            const boxW = isParagraph ? Math.max(60, Math.abs(editingShape.points[1].x - p0.x)) : 0;
+            const boxH = isParagraph ? Math.max(28, Math.abs(editingShape.points[1].y - p0.y)) : 0;
+            const screenX = boxLeft * zoom + pan.x;
+            const screenY = boxTop * zoom + pan.y;
             const fSize = (editingShape.fontSize || 16) * zoom;
             const lHeight = (editingShape.lineHeight || 1.35) * fSize;
+            const longestLine = Math.max(1, ...inlineTextValue.split("\n").map((l) => l.length));
+            const estPointW = Math.max(80, (longestLine + 2) * fSize * 0.62);
 
             return (
               <div
@@ -15416,7 +15434,7 @@ export default function WhiteboardPage() {
                   ref={inlineTextRef}
                   autoFocus
                   value={inlineTextValue}
-                  placeholder="Type text here..."
+                  placeholder={isParagraph ? "Type paragraph text..." : "Type here..."}
                   rows={Math.max(1, inlineTextValue.split("\n").length)}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -15424,6 +15442,8 @@ export default function WhiteboardPage() {
                     setShapes((prev) =>
                       prev.map((s) => (s.id === editingTextShapeId ? { ...s, text: val } : s))
                     );
+                    e.target.style.height = "auto";
+                    e.target.style.height = `${e.target.scrollHeight}px`;
                   }}
                   onKeyDown={(e) => {
                     e.stopPropagation();
@@ -15447,8 +15467,12 @@ export default function WhiteboardPage() {
                     fontStyle: editingShape.fontStyle || "normal",
                     textAlign: (editingShape.textAlign as any) || "left",
                     textDecoration: editingShape.textDecoration || "none",
+                    width: isParagraph ? `${boxW * zoom}px` : `${estPointW}px`,
+                    minHeight: isParagraph ? `${boxH * zoom}px` : undefined,
+                    whiteSpace: isParagraph ? "pre-wrap" : "pre",
+                    wordBreak: isParagraph ? "break-word" : "normal",
                   }}
-                  className="bg-transparent border-none outline-none p-0 m-0 resize-none overflow-hidden min-w-[160px] max-w-[800px] rounded-none caret-slate-950 shadow-none font-sans placeholder:text-slate-400/40 placeholder:font-normal"
+                  className="bg-white/10 border border-dashed border-brand/60 rounded-[2px] outline-none px-1 -mx-1 py-0 m-0 resize-none overflow-hidden caret-brand shadow-none font-sans placeholder:text-slate-400/50 placeholder:font-normal"
                 />
               </div>
             );
@@ -17390,23 +17414,35 @@ function getShapeBounds(shape: Shape): { minX: number; maxX: number; minY: numbe
   } else if (shape.type === "text") {
     const fSize = shape.fontSize || 16;
     const lHeight = shape.lineHeight ? shape.lineHeight * fSize : fSize * 1.35;
-    const lines = (shape.text || "Text").split("\n");
-    const maxLineLen = Math.max(...lines.map((l) => l.length), 1);
-    const estW = Math.max(40, maxLineLen * (fSize * 0.62));
-    const totalH = Math.max(fSize, lines.length * lHeight);
-
-    if (shape.textAlign === "center") {
-      minX = pts[0].x - estW / 2;
-      maxX = pts[0].x + estW / 2;
-    } else if (shape.textAlign === "right") {
-      minX = pts[0].x - estW;
-      maxX = pts[0].x;
+    if (pts.length >= 2) {
+      const boxW = Math.max(60, Math.abs(pts[1].x - pts[0].x));
+      const boxH = Math.max(28, Math.abs(pts[1].y - pts[0].y));
+      minX = Math.min(pts[0].x, pts[1].x);
+      minY = Math.min(pts[0].y, pts[1].y);
+      const rawLines = (shape.text || "Text").split("\n");
+      const charsPerLine = Math.max(4, Math.floor(boxW / (fSize * 0.56)));
+      const estWrappedCount = rawLines.reduce((acc, l) => acc + Math.max(1, Math.ceil(l.length / charsPerLine)), 0);
+      maxX = minX + boxW;
+      maxY = Math.max(minY + boxH, minY + estWrappedCount * lHeight);
     } else {
-      minX = pts[0].x;
-      maxX = pts[0].x + estW;
+      const lines = (shape.text || "Text").split("\n");
+      const maxLineLen = Math.max(...lines.map((l) => l.length), 1);
+      const estW = Math.max(40, maxLineLen * (fSize * 0.62));
+      const totalH = Math.max(fSize, lines.length * lHeight);
+
+      if (shape.textAlign === "center") {
+        minX = pts[0].x - estW / 2;
+        maxX = pts[0].x + estW / 2;
+      } else if (shape.textAlign === "right") {
+        minX = pts[0].x - estW;
+        maxX = pts[0].x;
+      } else {
+        minX = pts[0].x;
+        maxX = pts[0].x + estW;
+      }
+      minY = pts[0].y;
+      maxY = pts[0].y + totalH;
     }
-    minY = pts[0].y;
-    maxY = pts[0].y + totalH;
   } else if (shape.type === "annotation" && pts.length >= 2) {
     const p0 = pts[0];
     const p1 = pts[1];
@@ -18793,30 +18829,67 @@ function renderWhiteboardShape(
     else if (tTransform === "lowercase") txt = txt.toLowerCase();
     else if (tTransform === "capitalize") txt = txt.replace(/\b\w/g, (c) => c.toUpperCase());
 
-    const lines = txt.split("\n");
+    const isParagraph = pts.length >= 2;
+    const boxLeft = isParagraph ? Math.min(pts[0].x, pts[1].x) : pts[0].x;
+    const boxTop = isParagraph ? Math.min(pts[0].y, pts[1].y) : pts[0].y;
+    const boxW = isParagraph ? Math.max(60, Math.abs(pts[1].x - pts[0].x)) : 0;
+
     ctx.save();
     ctx.font = `${fStyle === "italic" ? "italic " : ""}${fWeight === "bold" ? "bold " : ""}${fSize}px ${fFamily}`;
     ctx.textAlign = tAlign as CanvasTextAlign;
     ctx.textBaseline = "top";
 
+    const rawLines = txt.split("\n");
+    const lines: string[] = [];
+    if (isParagraph) {
+      rawLines.forEach((rawLine) => {
+        if (!rawLine) {
+          lines.push("");
+          return;
+        }
+        const words = rawLine.split(/(\s+)/);
+        let current = "";
+        words.forEach((word) => {
+          const test = current + word;
+          if (current && ctx.measureText(test).width > boxW) {
+            lines.push(current.trimEnd());
+            current = word.trimStart();
+          } else {
+            current = test;
+          }
+        });
+        if (current) lines.push(current);
+      });
+    } else {
+      lines.push(...rawLines);
+    }
+
+    const anchorX = isParagraph
+      ? tAlign === "center"
+        ? boxLeft + boxW / 2
+        : tAlign === "right"
+          ? boxLeft + boxW
+          : boxLeft
+      : pts[0].x;
+
     lines.forEach((line, idx) => {
-      const lineY = pts[0].y + idx * lHeight;
+      const lineY = boxTop + idx * lHeight;
       if (tBg && tBg !== "transparent") {
         const metrics = ctx.measureText(line);
-        let bgX = pts[0].x;
-        if (tAlign === "center") bgX = pts[0].x - metrics.width / 2;
-        else if (tAlign === "right") bgX = pts[0].x - metrics.width;
+        let bgX = anchorX;
+        if (tAlign === "center") bgX = anchorX - metrics.width / 2;
+        else if (tAlign === "right") bgX = anchorX - metrics.width;
         ctx.fillStyle = tBg;
         ctx.fillRect(bgX - 3, lineY - 2, metrics.width + 6, fSize + 4);
       }
       ctx.fillStyle = tColor;
-      ctx.fillText(line, pts[0].x, lineY);
+      ctx.fillText(line, anchorX, lineY);
 
       if (shape.textDecoration === "underline") {
         const metrics = ctx.measureText(line);
-        let startX = pts[0].x;
-        if (tAlign === "center") startX = pts[0].x - metrics.width / 2;
-        else if (tAlign === "right") startX = pts[0].x - metrics.width;
+        let startX = anchorX;
+        if (tAlign === "center") startX = anchorX - metrics.width / 2;
+        else if (tAlign === "right") startX = anchorX - metrics.width;
         ctx.strokeStyle = tColor;
         ctx.lineWidth = Math.max(1, fSize / 14);
         ctx.beginPath();
@@ -18825,9 +18898,9 @@ function renderWhiteboardShape(
         ctx.stroke();
       } else if (shape.textDecoration === "line-through") {
         const metrics = ctx.measureText(line);
-        let startX = pts[0].x;
-        if (tAlign === "center") startX = pts[0].x - metrics.width / 2;
-        else if (tAlign === "right") startX = pts[0].x - metrics.width;
+        let startX = anchorX;
+        if (tAlign === "center") startX = anchorX - metrics.width / 2;
+        else if (tAlign === "right") startX = anchorX - metrics.width;
         ctx.strokeStyle = tColor;
         ctx.lineWidth = Math.max(1, fSize / 14);
         ctx.beginPath();
