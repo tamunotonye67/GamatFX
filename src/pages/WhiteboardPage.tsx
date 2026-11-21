@@ -12957,6 +12957,39 @@ export default function WhiteboardPage() {
             </div>
           )}
 
+          {/* Custom Figma-Style Color Picker Floating Window */}
+          {colorPickerModal && (
+            <ModernColorPickerPopover
+              target={colorPickerModal.target}
+              strokeColor={strokeColor}
+              fillColor={fillColor}
+              fillStyle={fillStyle}
+              palette={PALETTE}
+              onTargetChange={(t) => {
+                setActiveColorTarget(t);
+                setColorPickerModal({ target: t });
+              }}
+              onChangeStroke={(hex) => applyColorToSelected(hex)}
+              onChangeFill={(hex) => {
+                if (fillStyle === "none") setFillStyle("translucent");
+                applyFillColorToSelected(hex);
+              }}
+              onNoFill={() => {
+                setFillStyle("none");
+                if (selectedShapeIds.length > 0) {
+                  setShapes((prev) =>
+                    prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, fillStyle: "none" } : s))
+                  );
+                }
+              }}
+              onEyedropper={() => {
+                setColorPickerModal(null);
+                activateEyedropper();
+              }}
+              onClose={() => setColorPickerModal(null)}
+            />
+          )}
+
           {/* Bottom Zoom & Navigation Bar (Figma-standard bottom-right) */}
           <div className="absolute bottom-3 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-slate-200/90 bg-white/95 p-1 sm:p-1.5 backdrop-blur-md shadow-lg ring-1 ring-slate-900/5 text-xs font-bold select-none">
             {/* Zoom Out Button */}
@@ -15018,7 +15051,7 @@ export default function WhiteboardPage() {
                             </button>
                             {contextSubmenu === "canvas_lstyle" && (
                               <div className={`max-sm:mx-2 max-sm:my-1 sm:absolute sm:top-0 ${openSubmenuLeft ? "sm:right-full sm:mr-1" : "sm:left-full sm:ml-1"} w-auto sm:w-44 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-xl py-1.5 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/5 z-[190]`}>
-                                {(["solid", "dashed", "dotted"] as const).map((ls) => (
+                                {(["solid", "dashed"] as const).map((ls) => (
                                   <button key={ls} type="button" onClick={() => { setLineStyle(ls); setContextMenu(null); }} className="flex w-full items-center justify-between px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 capitalize transition-colors cursor-pointer">
                                     <span>{ls}</span>
                                     {lineStyle === ls && <Check className="h-3.5 w-3.5 text-brand" />}
