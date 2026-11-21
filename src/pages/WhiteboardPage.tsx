@@ -12979,7 +12979,7 @@ export default function WhiteboardPage() {
               <div
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
-                className="fixed z-[180] w-68 sm:w-72 max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto [scrollbar-width:thin] rounded-2xl border border-line bg-white/98 backdrop-blur-md p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                className="fixed z-[180] w-[264px] sm:w-[276px] max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-1.5rem)] overflow-y-auto [scrollbar-width:thin] rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-xl p-2 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)] animate-in fade-in zoom-in-95 duration-150"
                 style={{ left: contextMenu.x, top: contextMenu.y }}
               >
                 {liveTarget ? (
@@ -14504,24 +14504,39 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
-                    {/* Active Tool Specific Options when right-clicking canvas */}
-                    <div className="px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-                      <p className="text-[9.5px] font-black uppercase tracking-wider text-brand flex items-center gap-1.5">
-                        <TargetIcon className="h-3.5 w-3.5" /> Active Tool: {TOOL_EXPLANATIONS[activeTool]?.title || activeTool.toUpperCase()}
-                      </p>
+                  <div className="space-y-2">
+                    {/* Compact Active Tool Header */}
+                    <div className="px-2.5 py-2 rounded-xl bg-slate-50/90 border border-slate-200/70 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                            <TargetIcon className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-900 truncate">
+                            {TOOL_EXPLANATIONS[activeTool]?.title || activeTool.toUpperCase()}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setContextMenu(null)}
+                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 transition cursor-pointer"
+                          aria-label="Close menu"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
 
                       {activeTool === "eraser" ? (
                         <div className="space-y-1">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase">Eraser Brush Radius</span>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Eraser Radius</span>
                           <div className="grid grid-cols-4 gap-1">
                             {[10, 20, 35, 55].map((er) => (
                               <button
                                 key={er}
                                 type="button"
                                 onClick={() => { setEraserSize(er); showToast(`Eraser radius: ${er}px`); }}
-                                className={`py-1 rounded-md text-[9.5px] font-mono font-bold cursor-pointer ${
-                                  eraserSize === er ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                className={`py-1 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${
+                                  eraserSize === er ? "bg-slate-900 text-white shadow-2xs" : "bg-white border border-slate-200 text-slate-700 hover:border-slate-300"
                                 }`}
                               >
                                 {er}px
@@ -14531,15 +14546,15 @@ export default function WhiteboardPage() {
                         </div>
                       ) : activeTool === "zoom" || activeTool === "marquee_zoom" ? (
                         <div className="space-y-1">
-                          <span className="text-[9px] font-bold text-slate-400 uppercase">Zoom Level Presets</span>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Zoom Presets</span>
                           <div className="grid grid-cols-4 gap-1">
                             {[0.5, 1, 1.5, 2].map((zVal) => (
                               <button
                                 key={zVal}
                                 type="button"
                                 onClick={() => { setZoom(zVal); setContextMenu(null); showToast(`Zoom: ${Math.round(zVal * 100)}%`); }}
-                                className={`py-1 rounded-md text-[9.5px] font-mono font-bold cursor-pointer ${
-                                  Math.abs(zoom - zVal) < 0.05 ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-700"
+                                className={`py-1 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${
+                                  Math.abs(zoom - zVal) < 0.05 ? "bg-slate-900 text-white shadow-2xs" : "bg-white border border-slate-200 text-slate-700 hover:border-slate-300"
                                 }`}
                               >
                                 {Math.round(zVal * 100)}%
@@ -14548,41 +14563,41 @@ export default function WhiteboardPage() {
                           </div>
                         </div>
                       ) : activeTool === "hand" ? (
-                        <div className="grid grid-cols-2 gap-1">
+                        <div className="grid grid-cols-2 gap-1.5">
                           <button
                             type="button"
                             onClick={() => { setPan({ x: 0, y: 0 }); setZoom(1); setContextMenu(null); showToast("Reset Canvas View (100%)"); }}
-                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                            className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 text-[10.5px] font-semibold text-slate-800 hover:border-brand hover:text-brand transition cursor-pointer"
                           >
-                            ⌖ Reset Origin
+                            Reset Origin
                           </button>
                           <button
                             type="button"
                             onClick={() => { setMouseWheelMode(mouseWheelMode === "zoom" ? "pan" : "zoom"); showToast(`Wheel mode: ${mouseWheelMode === "zoom" ? "Pan" : "Zoom"}`); }}
-                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                            className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 text-[10.5px] font-semibold text-slate-800 hover:border-brand hover:text-brand transition cursor-pointer"
                           >
                             Wheel: {mouseWheelMode.toUpperCase()}
                           </button>
                         </div>
                       ) : activeTool === "eyedropper" || activeTool === "paintbucket" ? (
-                        <div className="grid grid-cols-2 gap-1">
+                        <div className="grid grid-cols-2 gap-1.5">
                           <button
                             type="button"
                             onClick={() => { handleSwapColors(); setContextMenu(null); }}
-                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                            className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 text-[10.5px] font-semibold text-slate-800 hover:border-brand hover:text-brand transition cursor-pointer"
                           >
-                            ⇄ Swap Stroke/Fill
+                            Swap Colors
                           </button>
                           <button
                             type="button"
                             onClick={() => { handleResetDefaultColors(); setContextMenu(null); }}
-                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                            className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 text-[10.5px] font-semibold text-slate-800 hover:border-brand hover:text-brand transition cursor-pointer"
                           >
-                            Reset Black/White
+                            Reset B/W
                           </button>
                         </div>
                       ) : activeTool === "select" || activeTool === "node" ? (
-                        <div className="grid grid-cols-2 gap-1">
+                        <div className="grid grid-cols-2 gap-1.5">
                           <button
                             type="button"
                             onClick={() => {
@@ -14591,9 +14606,9 @@ export default function WhiteboardPage() {
                               setContextMenu(null);
                               showToast(`Selected all ${ids.length} objects`);
                             }}
-                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                            className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-white border border-slate-200/90 text-[10.5px] font-semibold text-slate-800 hover:border-brand hover:text-brand transition cursor-pointer"
                           >
-                            Select All ({shapes.length})
+                            <Check className="h-3 w-3 text-brand" /> Select All ({shapes.length})
                           </button>
                           <button
                             type="button"
@@ -14602,15 +14617,15 @@ export default function WhiteboardPage() {
                               setContextMenu(null);
                               showToast("Unlocked all canvas objects!");
                             }}
-                            className="py-1 px-2 rounded-lg bg-white border border-slate-200 text-[9.5px] font-bold text-ink hover:border-brand cursor-pointer"
+                            className="flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-white border border-slate-200/90 text-[10.5px] font-semibold text-slate-800 hover:border-brand hover:text-brand transition cursor-pointer"
                           >
-                            Unlock All 🔓
+                            <Unlock className="h-3 w-3 text-slate-500" /> Unlock All
                           </button>
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 uppercase">
-                            <span>Default Stroke Width</span>
+                          <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                            <span>Stroke Width</span>
                             <span className="font-mono text-slate-600">{strokeWidth}px</span>
                           </div>
                           <div className="grid grid-cols-4 gap-1">
@@ -14619,8 +14634,8 @@ export default function WhiteboardPage() {
                                 key={sw}
                                 type="button"
                                 onClick={() => setStrokeWidth(sw)}
-                                className={`py-0.5 rounded text-[9px] font-mono font-bold cursor-pointer ${
-                                  strokeWidth === sw ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                className={`py-1 rounded-lg text-[10px] font-mono font-bold transition cursor-pointer ${
+                                  strokeWidth === sw ? "bg-slate-900 text-white shadow-2xs" : "bg-white border border-slate-200 text-slate-600"
                                 }`}
                               >
                                 {sw}px
@@ -14631,83 +14646,84 @@ export default function WhiteboardPage() {
                       )}
                     </div>
 
-                    <p className="px-2.5 pt-1 text-[10px] font-black uppercase text-muted tracking-wider">Canvas Quick Tools</p>
+                    {/* 2-Column Modern Quick-Insert Grid */}
+                    <div>
+                      <p className="px-1.5 pb-1.5 text-[9.5px] font-extrabold uppercase text-slate-400 tracking-wider">Quick Insert</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => { selectTool("fibo"); setContextMenu(null); }}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/70 px-2.5 py-2 text-[11px] font-semibold text-slate-800 hover:bg-brand/10 hover:border-brand/30 hover:text-brand transition cursor-pointer"
+                        >
+                          <Percent className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                          <span className="truncate">Fib Tool</span>
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        selectTool("fibo");
-                        setContextMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                    >
-                      <Percent className="h-3.5 w-3.5 text-slate-700" /> Fibonacci Retracement
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => { selectTool("long"); setContextMenu(null); }}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/70 px-2.5 py-2 text-[11px] font-semibold text-slate-800 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition cursor-pointer"
+                        >
+                          <LongPositionIcon className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">Long Box</span>
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        selectTool("long");
-                        setContextMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                    >
-                      <LongPositionIcon className="h-3.5 w-3.5" /> Long Position Box
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => { selectTool("short"); setContextMenu(null); }}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/70 px-2.5 py-2 text-[11px] font-semibold text-slate-800 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-700 transition cursor-pointer"
+                        >
+                          <ShortPositionIcon className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">Short Box</span>
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        selectTool("short");
-                        setContextMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                    >
-                      <ShortPositionIcon className="h-3.5 w-3.5" /> Short Position Box
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsStickyMode(true);
+                            setTextModalPos(contextMenu.canvasPt);
+                            selectTool("sticky");
+                            setContextMenu(null);
+                          }}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/70 px-2.5 py-2 text-[11px] font-semibold text-slate-800 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700 transition cursor-pointer"
+                        >
+                          <StickyNote className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                          <span className="truncate">Sticky Note</span>
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsStickyMode(true);
-                        setTextModalPos(contextMenu.canvasPt);
-                        selectTool("sticky");
-                        setContextMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                    >
-                      <StickyNote className="h-3.5 w-3.5 text-slate-700" /> Add Sticky Note Here
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsStickyMode(false);
+                            setTextModalPos(contextMenu.canvasPt);
+                            selectTool("text");
+                            setContextMenu(null);
+                          }}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/70 px-2.5 py-2 text-[11px] font-semibold text-slate-800 hover:bg-brand/10 hover:border-brand/30 hover:text-brand transition cursor-pointer"
+                        >
+                          <Type className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                          <span className="truncate">Text Label</span>
+                        </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsStickyMode(false);
-                        setTextModalPos(contextMenu.canvasPt);
-                        selectTool("text");
-                        setContextMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                    >
-                      <Type className="h-3.5 w-3.5 text-slate-700" /> Add Text Label Here
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            triggerImageUpload(contextMenu.canvasPt);
+                            setContextMenu(null);
+                          }}
+                          className="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/70 px-2.5 py-2 text-[11px] font-semibold text-slate-800 hover:bg-brand/10 hover:border-brand/30 hover:text-brand transition cursor-pointer"
+                        >
+                          <ImageIcon className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                          <span className="truncate">Image</span>
+                        </button>
+                      </div>
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerImageUpload(contextMenu.canvasPt);
-                        setContextMenu(null);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-ink hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                    >
-                      <ImageIcon className="h-3.5 w-3.5 text-slate-700" /> Insert Image Here
-                    </button>
-
-                    <div className="border-t border-line pt-1 mt-1">
+                    <div className="border-t border-slate-100 pt-1.5">
                       <button
                         type="button"
                         onClick={() => { handleClear(); setContextMenu(null); }}
-                        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        className="flex w-full items-center justify-center gap-1.5 rounded-xl px-2.5 py-1.5 text-[11px] font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5" /> Clear Whiteboard
                       </button>
