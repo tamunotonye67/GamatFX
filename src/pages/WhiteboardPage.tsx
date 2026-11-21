@@ -15718,11 +15718,11 @@ export default function WhiteboardPage() {
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, Management, and Setup Panels */}
-          <aside className="w-9 sm:w-10 border-l border-line bg-white flex flex-col items-center justify-between py-0.5 sm:py-1 shrink-0 z-30 shadow-xs select-none overflow-hidden">
+          <aside className="w-11 sm:w-12 border-l border-slate-200/80 bg-white/95 backdrop-blur-md flex flex-col items-center justify-between py-2 px-1.5 shrink-0 z-30 shadow-[-2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-hidden">
             {/* Top Tool Icons Container: Contains ALL 4 Groups Compactly */}
-            <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center w-full">
+            <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center w-full gap-1.5">
               {/* === GROUP 1: WORKSPACE & CANVAS TOOLS === */}
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center w-full gap-1">
                 {/* 1. Inspector Tool Button */}
                 <button
                   type="button"
@@ -15741,29 +15741,18 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.inspector?.isOpen || (isInspectorOpen && rightPanelTab === "inspector"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.inspector.isOpen ? "Focus Floating Inspector (Detached)" : "Inspector & Properties"}
                 >
-                  <SlidersHorizontal className="h-4 w-4" />
+                  <SlidersHorizontal className="h-4 w-4 shrink-0" />
                   {detachedPanels.inspector.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Drag tab to float)"
-                  onClick={() => detachIndividualPanel("inspector")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 2. Layers Tool Button with Micro Count Badge */}
                 <button
@@ -15783,16 +15772,16 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.layers?.isOpen || (isInspectorOpen && rightPanelTab === "layers"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.layers.isOpen ? `Focus Floating Layers (${shapes.length})` : `Layers (${shapes.length})`}
                 >
-                  <Layers className="h-4 w-4" />
+                  <Layers className="h-4 w-4 shrink-0" />
                   {shapes.length > 0 && (
-                    <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 px-1 min-w-[13px] h-[13px] bg-brand text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-brand text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white shadow-xs">
                       {shapes.length > 99 ? "99+" : shapes.length}
                     </span>
                   )}
@@ -15800,17 +15789,6 @@ export default function WhiteboardPage() {
                     <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Drag tab to float)"
-                  onClick={() => detachIndividualPanel("layers")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 3. Character Typography Panel Button */}
                 <button
@@ -15830,36 +15808,24 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.character?.isOpen || (isInspectorOpen && rightPanelTab === "character"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.character.isOpen ? "Focus Floating Character" : "Character"}
                 >
-                  <CharacterIcon className="h-4 w-4" />
+                  <CharacterIcon className="h-4 w-4 shrink-0" />
                   {detachedPanels.character.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("character")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
               </div>
 
-              {/* Edge-to-Edge Separator Line separating Group 1 and Group 2 */}
-              <div className="w-full h-px bg-line shrink-0 my-0.5 sm:my-1" />
+              <div className="w-5 h-px bg-slate-200/80 shrink-0" />
 
               {/* === GROUP 2: DRAFTS, SAMPLES & TRASH === */}
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center w-full gap-1">
                 {/* 4. Drafts Button */}
                 <button
                   type="button"
@@ -15878,16 +15844,16 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.drafts?.isOpen || (isInspectorOpen && rightPanelTab === "drafts"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.drafts.isOpen ? `Focus Floating Drafts (${tabs.length + savedDrafts.length})` : `Drafts & Diagrams (${tabs.length + savedDrafts.length})`}
                 >
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4 shrink-0" />
                   {tabs.length + savedDrafts.length > 0 && (
-                    <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 px-1 min-w-[13px] h-[13px] bg-slate-700 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-slate-700 text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white shadow-xs">
                       {tabs.length + savedDrafts.length}
                     </span>
                   )}
@@ -15895,17 +15861,6 @@ export default function WhiteboardPage() {
                     <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Drag tab to float)"
-                  onClick={() => detachIndividualPanel("drafts")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 5. Samples & Templates Button */}
                 <button
@@ -15925,29 +15880,18 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.samples?.isOpen || (isInspectorOpen && rightPanelTab === "samples"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.samples.isOpen ? "Focus Floating Templates Gallery" : "Templates Gallery"}
                 >
-                  <LayoutTemplate className="h-4 w-4" />
+                  <LayoutTemplate className="h-4 w-4 shrink-0" />
                   {detachedPanels.samples.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Drag tab to float)"
-                  onClick={() => detachIndividualPanel("samples")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 6. Trash Button */}
                 <button
@@ -15967,16 +15911,16 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.trash?.isOpen || (isInspectorOpen && rightPanelTab === "trash"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.trash.isOpen ? `Focus Floating Trash (${trashedTabs.length})` : `Trash (${trashedTabs.length})`}
                 >
-                  <Archive className="h-4 w-4" />
+                  <Archive className="h-4 w-4 shrink-0" />
                   {trashedTabs.length > 0 && (
-                    <span className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 px-1 min-w-[13px] h-[13px] bg-rose-500 text-white text-[7.5px] font-black rounded-full flex items-center justify-center leading-none border border-white shadow-2xs">
+                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white shadow-xs">
                       {trashedTabs.length}
                     </span>
                   )}
@@ -15984,24 +15928,12 @@ export default function WhiteboardPage() {
                     <span className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("trash")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
               </div>
 
-              {/* Edge-to-Edge Separator Line separating Group 2 and Group 3 */}
-              <div className="w-full h-px bg-line shrink-0 my-0.5 sm:my-1" />
+              <div className="w-5 h-px bg-slate-200/80 shrink-0" />
 
               {/* === GROUP 3: GRID & GUIDES, GEOMETRY, PATTERNS === */}
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center w-full gap-1">
                 {/* 7. Grid, Guidelines & Snap Button */}
                 <button
                   type="button"
@@ -16020,29 +15952,18 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.grid_guides?.isOpen || (isInspectorOpen && rightPanelTab === "grid_guides"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.grid_guides.isOpen ? "Focus Floating Grid & Snap" : "Grid, Guidelines & Snap"}
                 >
-                  <Grid className="h-4 w-4" />
+                  <Grid className="h-4 w-4 shrink-0" />
                   {detachedPanels.grid_guides.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("grid_guides")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 8. Golden Ratio & Geometry Layouts Button */}
                 <button
@@ -16062,29 +15983,18 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.geometry?.isOpen || (isInspectorOpen && rightPanelTab === "geometry"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.geometry?.isOpen ? "Focus Floating Geometry" : "Golden Ratio & Geometry Layouts"}
                 >
-                  <Compass className="h-4 w-4" />
+                  <Compass className="h-4 w-4 shrink-0" />
                   {detachedPanels.geometry?.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("geometry")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 9. Patterns Library Button */}
                 <button
@@ -16104,36 +16014,24 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.patterns?.isOpen || (isInspectorOpen && rightPanelTab === "patterns"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.patterns.isOpen ? "Focus Floating Line Patterns" : "Line Patterns & Stroke Modifier"}
                 >
-                  <Spline className="h-4 w-4" />
+                  <Spline className="h-4 w-4 shrink-0" />
                   {detachedPanels.patterns.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("patterns")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
               </div>
 
-              {/* Edge-to-Edge Separator Line separating Group 3 and Group 4 */}
-              <div className="w-full h-px bg-line shrink-0 my-0.5 sm:my-1" />
+              <div className="w-5 h-px bg-slate-200/80 shrink-0" />
 
               {/* === GROUP 4: FOREX & INSTITUTIONAL TRADING TOOLS === */}
-              <div className="flex flex-col items-center w-full">
+              <div className="flex flex-col items-center w-full gap-1">
                 {/* 10. Market Sessions & Killzones Radar */}
                 <button
                   type="button"
@@ -16152,29 +16050,18 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.sessions?.isOpen || (isInspectorOpen && rightPanelTab === "sessions"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.sessions?.isOpen ? "Focus Floating Market Sessions" : "Market Sessions & Killzones"}
                 >
-                  <Globe className="h-4 w-4" />
+                  <Globe className="h-4 w-4 shrink-0" />
                   {detachedPanels.sessions?.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("sessions")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 11. Position Size & Risk Calculator */}
                 <button
@@ -16194,29 +16081,18 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.risk_calc?.isOpen || (isInspectorOpen && rightPanelTab === "risk_calc"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.risk_calc?.isOpen ? "Focus Floating Risk Calc" : "Position Size & Risk Calculator"}
                 >
-                  <Calculator className="h-4 w-4" />
+                  <Calculator className="h-4 w-4 shrink-0" />
                   {detachedPanels.risk_calc?.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("risk_calc")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
 
                 {/* 12. Economic News Calendar & Alerts */}
                 <button
@@ -16236,34 +16112,23 @@ export default function WhiteboardPage() {
                       }
                     }
                   }}
-                  className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer bg-transparent ${
+                  className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.economic_calendar?.isOpen || (isInspectorOpen && rightPanelTab === "economic_calendar"))
-                      ? "text-rose-600"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.economic_calendar?.isOpen ? "Focus Floating Economic Calendar" : "Economic News Calendar & High-Impact Alerts"}
                 >
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-4 w-4 shrink-0" />
                   {detachedPanels.economic_calendar?.isOpen && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white" />
                   )}
                 </button>
-
-                {/* Horizontal Detachable Indicator Dots */}
-                <div
-                  className="w-full py-0.5 hidden sm:flex items-center justify-center gap-0.5 select-none cursor-grab hover:bg-brand-light/30 transition"
-                  title="Detachable Panel Group (Click to float)"
-                  onClick={() => detachIndividualPanel("economic_calendar")}
-                >
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                  <span className="w-0.5 h-0.5 rounded-full bg-slate-300" />
-                </div>
               </div>
             </div>
 
             {/* Bottom: Collapse / Expand & Detach Trigger */}
-            <div className="border-t border-line w-full flex flex-col items-center divide-y divide-line shrink-0">
+            <div className="w-full pt-2 mt-1.5 border-t border-slate-200/80 flex flex-col items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => {
@@ -16282,17 +16147,19 @@ export default function WhiteboardPage() {
                     detachIndividualPanel(rightPanelTab);
                   }
                 }}
-                className={`w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer ${
-                  Object.values(detachedPanels).some((p) => p.isOpen) ? "text-brand bg-brand-light font-bold" : "text-slate-500 hover:text-ink hover:bg-slate-50"
+                className={`w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+                  Object.values(detachedPanels).some((p) => p.isOpen)
+                    ? "text-brand bg-brand-light ring-1 ring-brand/25 font-bold"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/90"
                 }`}
                 title={Object.values(detachedPanels).some((p) => p.isOpen) ? "Attach all floating panels back to sidebar dock" : "Detach active panel"}
               >
-                {Object.values(detachedPanels).some((p) => p.isOpen) ? <Pin className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                {Object.values(detachedPanels).some((p) => p.isOpen) ? <Pin className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
               </button>
               <button
                 type="button"
                 onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-                className="w-full h-7 sm:h-8 flex items-center justify-center text-slate-400 hover:text-ink hover:bg-slate-50 transition cursor-pointer"
+                className="w-full h-8 sm:h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100/90 transition-all cursor-pointer active:scale-95"
                 title={isInspectorOpen ? "Collapse Panel" : "Expand Panel"}
               >
                 {isInspectorOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
