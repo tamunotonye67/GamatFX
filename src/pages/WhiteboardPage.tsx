@@ -11746,8 +11746,8 @@ export default function WhiteboardPage() {
                   setExportOpen(false);
                   setUserMenuOpen(false);
                 }}
-                className={`h-full flex items-center px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
-                  bgOpen ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                className={`h-full flex items-center px-2.5 rounded-lg transition cursor-pointer text-xs font-semibold ${
+                  bgOpen ? "bg-white text-slate-950 shadow-2xs font-bold" : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="Canvas Background Theme"
               >
@@ -11755,7 +11755,7 @@ export default function WhiteboardPage() {
               </button>
 
               {bgOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1 sm:w-56 rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5">
+                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1.5 sm:w-56 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-0.5">
                   <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Background Grid Theme</p>
                   {CANVAS_THEMES.map((theme) => (
                     <button
@@ -11766,12 +11766,12 @@ export default function WhiteboardPage() {
                         setBgOpen(false);
                         showToast(`Switched canvas to ${theme.name}!`);
                       }}
-                      className={`flex w-full items-center justify-between rounded-none px-2.5 py-1.5 text-left text-xs font-medium transition cursor-pointer ${
-                        bgGrid === theme.id ? "bg-slate-300 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                      className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition cursor-pointer ${
+                        bgGrid === theme.id ? "bg-brand/10 text-brand font-bold" : "text-slate-700 hover:bg-slate-100 hover:text-slate-950"
                       }`}
                     >
                       <span>{theme.name}</span>
-                      {bgGrid === theme.id && <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />}
+                      {bgGrid === theme.id && <span className="h-1.5 w-1.5 rounded-full bg-brand" />}
                     </button>
                   ))}
                 </div>
@@ -11786,14 +11786,14 @@ export default function WhiteboardPage() {
                   setSnapToGrid(!snapToGrid);
                   showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
                 }}
-                className={`h-full flex items-center justify-center gap-1 px-2.5 rounded-none transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center justify-center gap-1 px-2.5 rounded-lg transition cursor-pointer text-xs font-semibold ${
                   snapToGrid
-                    ? "bg-slate-300 text-slate-950 font-bold"
-                    : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+                    ? "bg-white text-brand shadow-2xs font-bold"
+                    : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="Toggle Snap to Grid"
               >
-                <Magnet className={`h-3.5 w-3.5 stroke-[1.5] ${snapToGrid ? "text-slate-900" : "text-slate-600"}`} />
+                <Magnet className={`h-3.5 w-3.5 stroke-[1.75] ${snapToGrid ? "text-brand" : "text-slate-600"}`} />
                 <span>Snap</span>
               </button>
             </div>
