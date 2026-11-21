@@ -10992,13 +10992,13 @@ export default function WhiteboardPage() {
       {/* Interactive Create New Canvas & Environment Setup Modal */}
       {renderCreateCanvasModal()}
 
-      {/* Floating Draggable Favorites Toolbar (tablet/desktop only; mobile uses streamlined left dock) */}
+      {/* Floating Draggable Favorites Toolbar */}
       {favoritedTools.length > 0 && showFavoritesBar && (
         <div
           ref={favBarRef}
           onMouseDown={handleFavDragStart}
           onTouchStart={handleFavDragStart}
-          className="fixed z-[150] hidden md:flex flex-row items-center gap-1 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl animate-in fade-in cursor-move touch-none select-none max-w-[calc(100vw-2rem)]"
+          className="fixed z-[150] flex flex-col sm:flex-row items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none max-h-[calc(100dvh-6rem)] sm:max-h-none sm:max-w-[calc(100vw-2rem)]"
           style={{
             left: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.x, window.innerWidth - 44)) : favPos.x,
             top: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.y, window.innerHeight - 44)) : favPos.y,
@@ -11008,7 +11008,8 @@ export default function WhiteboardPage() {
             className="cursor-move px-1 py-0.5 text-slate-400 hover:text-slate-700 flex items-center justify-center shrink-0 touch-none"
             title="Drag Favorites Toolbar Anywhere on Page"
           >
-            <GripVertical className="h-4 w-4" />
+            <GripHorizontal className="h-4 w-4 sm:hidden" />
+            <GripVertical className="hidden sm:block h-4 w-4" />
           </div>
           {favoritedTools.map((tKey) => {
             const IconComponent = getToolIcon(tKey);
@@ -11019,7 +11020,7 @@ export default function WhiteboardPage() {
                 onClick={() => {
                   if (!favMovedRef.current) selectTool(tKey);
                 }}
-                className={`h-8 w-8 shrink-0 rounded-xl flex items-center justify-center transition touch-none ${
+                className={`h-7 w-7 sm:h-8 sm:w-8 shrink-0 rounded-xl flex items-center justify-center transition touch-none ${
                   activeTool === tKey ? "bg-brand text-white shadow-md" : "text-slate-700 hover:bg-cream"
                 }`}
                 title={TOOL_EXPLANATIONS[tKey]?.title || tKey}
@@ -11031,25 +11032,23 @@ export default function WhiteboardPage() {
         </div>
       )}
 
-      {/* Main Header Bar - Modern Sleek Studio Bar */}
-      <header className="h-13 sm:h-15 border-b border-slate-200/80 bg-white/95 backdrop-blur-md px-2 sm:px-4 md:px-5 flex items-center justify-between gap-1.5 sm:gap-3 shrink-0 z-[60] relative shadow-2xs">
+      {/* Main Header Bar - Slim h-11 with Edge-to-Edge Full-Height Dividers */}
+      {/* Main Header Bar - Restored h-16 Height with Edge-to-Edge Full-Height Dividers & Full-Cell Hover States */}
+      <header className="h-14 sm:h-16 border-b border-line bg-white px-2 sm:px-4 md:px-5 flex items-center justify-between gap-1.5 sm:gap-4 shrink-0 z-[60] relative shadow-xs">
         {/* Left Section: GAMAT Logo & Board Title */}
-        <div className="flex items-center gap-2 sm:gap-3.5 shrink-0 h-full min-w-0">
-          <div className="flex sm:hidden items-center shrink-0">
-            <Logo variant="dark" size="sm" asDiv />
-          </div>
-          <div className="hidden sm:flex items-center shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0 h-full min-w-0">
+          <div className="scale-90 sm:scale-100 origin-left flex items-center shrink-0">
             <Logo variant="dark" asDiv />
           </div>
-          <span className="h-6 w-px bg-slate-200 shrink-0 hidden md:inline" />
-          <span className="hidden lg:inline text-[15px] font-extrabold text-slate-900 tracking-tight">
+          <span className="self-stretch w-px bg-slate-200 shrink-0 hidden sm:inline" />
+          <span className="hidden lg:inline text-[16px] font-extrabold text-slate-900 tracking-tight">
             Technical Analysis Whiteboard
           </span>
         </div>
 
-        {/* Right Section: Modern Pill Menu Bar + Export + User Avatar */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 h-full min-w-0 shrink">
-          {/* Photoshop-Standard Ash Grey Menu Bar */}
+        {/* Right Section: Compact Ash Grey Overlay Menu Bar + Light User Avatar Profile */}
+        <div className="flex items-center gap-1 sm:gap-2.5 h-full shrink-0">
+          {/* Compact Ash Grey Overlay Menu Bar */}
           <div ref={topMenubarRef} className="ash-menubar-container flex items-stretch h-8 shrink-0 text-[11px] sm:text-[11.5px] font-medium text-slate-700 bg-slate-100 rounded-none border border-slate-300 shadow-xs divide-x divide-slate-300">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
@@ -11816,8 +11815,8 @@ export default function WhiteboardPage() {
                 }`}
                 title="Export Diagram (PNG, JPEG, SVG)"
               >
-                <Download className="h-3.5 w-3.5 text-white shrink-0 stroke-[2]" />
-                <span className="hidden sm:inline">Export</span>
+                <Download className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white shrink-0 stroke-[1.75]" />
+                <span>Export</span>
               </button>
 
               {exportOpen && (
