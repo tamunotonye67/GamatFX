@@ -15576,7 +15576,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("inspector")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "inspector" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15585,7 +15585,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("layers")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "layers" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15600,7 +15600,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("character")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "character" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15613,7 +15613,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("drafts")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "drafts" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15622,7 +15622,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("samples")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "samples" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15631,7 +15631,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("trash")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "trash" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15644,7 +15644,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("grid_guides")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "grid_guides" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15653,7 +15653,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("geometry")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "geometry" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15662,7 +15662,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("patterns")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "patterns" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15675,7 +15675,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("sessions")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "sessions" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15684,7 +15684,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("risk_calc")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "risk_calc" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15693,7 +15693,7 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setRightPanelTab("economic_calendar")}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1 rounded-md text-[10.5px] font-bold transition cursor-pointer ${
+                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                     rightPanelTab === "economic_calendar" ? "bg-white text-brand shadow-2xs" : "text-slate-600 hover:text-ink"
                   }`}
                 >
@@ -15710,9 +15710,9 @@ export default function WhiteboardPage() {
         </div>
 
         {/* FIXED Panel Footer Stats */}
-              <div className="border-t border-line px-3 py-2 bg-slate-50 text-[9.5px] text-muted flex items-center justify-between font-bold shrink-0">
-                <span>Layers: {shapes.length}</span>
-                <span>Zoom: {Math.round(zoom * 100)}%</span>
+              <div className="border-t border-slate-200/70 px-3 py-2 bg-slate-50/80 text-[10px] text-slate-500 flex items-center justify-between font-semibold shrink-0">
+                <span>Layers: <strong className="text-slate-700">{shapes.length}</strong></span>
+                <span>Zoom: <strong className="text-slate-700">{Math.round(zoom * 100)}%</strong></span>
               </div>
             </aside>
           )}
