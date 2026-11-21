@@ -2191,6 +2191,7 @@ export default function WhiteboardPage() {
     targetShape: Shape | null;
   } | null>(null);
   const [contextSubmenu, setContextSubmenu] = useState<string | null>(null);
+  const [toolColorPopoverOpen, setToolColorPopoverOpen] = useState(false);
 
   useEffect(() => {
     setContextSubmenu(null);
@@ -12898,19 +12899,60 @@ export default function WhiteboardPage() {
                     </>
                   )}
 
-                  {/* Quick Vertical Color Dots */}
-                  {PALETTE.slice(0, 6).map((c) => (
+                  {/* Single Active Color Circle -> Opens Color Popover */}
+                  <div className="relative">
                     <button
-                      key={c}
                       type="button"
-                      onClick={() => setStrokeColor(c)}
-                      className={`w-4.5 h-4.5 rounded-full border border-slate-200 transition-transform cursor-pointer ${
-                        strokeColor === c ? "scale-115 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
+                      onClick={() => setToolColorPopoverOpen((prev) => !prev)}
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                        toolColorPopoverOpen ? "bg-slate-100 ring-1 ring-slate-300" : "hover:bg-slate-100"
                       }`}
-                      style={{ backgroundColor: c }}
-                      title={`Color ${c}`}
-                    />
-                  ))}
+                      title={`Color (${strokeColor}) — Click to pick`}
+                      aria-label="Pick tool color"
+                    >
+                      <span
+                        className="w-4.5 h-4.5 rounded-full ring-1 ring-slate-900/25 shadow-2xs block"
+                        style={{ backgroundColor: strokeColor }}
+                      />
+                    </button>
+
+                    {toolColorPopoverOpen && (
+                      <div
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
+                        className="absolute left-full bottom-0 ml-2 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-xl p-2 shadow-2xl ring-1 ring-slate-900/5 flex items-center gap-1.5 z-30 animate-in fade-in duration-100"
+                      >
+                        {PALETTE.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                              setStrokeColor(c);
+                              setToolColorPopoverOpen(false);
+                            }}
+                            className={`w-5 h-5 rounded-full border border-slate-200 transition-transform cursor-pointer shrink-0 ${
+                              strokeColor === c ? "scale-115 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
+                            }`}
+                            style={{ backgroundColor: c }}
+                            title={`Color ${c}`}
+                          />
+                        ))}
+                        <label
+                          className="w-5 h-5 rounded-full border border-slate-300 bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 cursor-pointer hover:scale-110 transition-transform shrink-0 flex items-center justify-center"
+                          title="Custom Color"
+                        >
+                          <input
+                            type="color"
+                            value={strokeColor.startsWith("#") ? strokeColor : "#000000"}
+                            onChange={(e) => {
+                              setStrokeColor(e.target.value);
+                            }}
+                            className="sr-only"
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
