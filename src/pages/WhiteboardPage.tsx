@@ -15866,9 +15866,9 @@ export default function WhiteboardPage() {
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, Management, and Setup Panels */}
-          <aside className="w-11 sm:w-12 border-l border-slate-200/80 bg-white/95 backdrop-blur-md flex flex-col items-center justify-between py-2 px-1.5 shrink-0 z-30 shadow-[-2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-hidden">
+          <aside className="w-11 sm:w-12 border-l border-slate-200/80 bg-white/95 backdrop-blur-md flex flex-col items-center justify-between py-2 shrink-0 z-30 shadow-[-2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-hidden">
             {/* Top Tool Icons Container: Contains ALL 4 Groups Compactly */}
-            <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center w-full gap-1.5">
+            <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center w-full px-1.5 py-0.5 gap-1.5">
               {/* === GROUP 1: WORKSPACE & CANVAS TOOLS === */}
               <div className="flex flex-col items-center w-full gap-1">
                 {/* 1. Inspector Tool Button */}
@@ -15891,7 +15891,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.inspector?.isOpen || (isInspectorOpen && rightPanelTab === "inspector"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.inspector.isOpen ? "Focus Floating Inspector (Detached)" : "Inspector & Properties"}
@@ -15922,14 +15922,14 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.layers?.isOpen || (isInspectorOpen && rightPanelTab === "layers"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.layers.isOpen ? `Focus Floating Layers (${shapes.length})` : `Layers (${shapes.length})`}
                 >
                   <Layers className="h-4 w-4 shrink-0" />
                   {shapes.length > 0 && (
-                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-brand text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white shadow-xs">
+                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-brand text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none shadow-xs">
                       {shapes.length > 99 ? "99+" : shapes.length}
                     </span>
                   )}
@@ -15958,7 +15958,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.character?.isOpen || (isInspectorOpen && rightPanelTab === "character"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.character.isOpen ? "Focus Floating Character" : "Character"}
@@ -15994,14 +15994,14 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.drafts?.isOpen || (isInspectorOpen && rightPanelTab === "drafts"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.drafts.isOpen ? `Focus Floating Drafts (${tabs.length + savedDrafts.length})` : `Drafts & Diagrams (${tabs.length + savedDrafts.length})`}
                 >
                   <FileText className="h-4 w-4 shrink-0" />
                   {tabs.length + savedDrafts.length > 0 && (
-                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-slate-700 text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white shadow-xs">
+                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-slate-700 text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none shadow-xs">
                       {tabs.length + savedDrafts.length}
                     </span>
                   )}
@@ -16030,7 +16030,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.samples?.isOpen || (isInspectorOpen && rightPanelTab === "samples"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.samples.isOpen ? "Focus Floating Templates Gallery" : "Templates Gallery"}
@@ -16061,14 +16061,14 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.trash?.isOpen || (isInspectorOpen && rightPanelTab === "trash"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.trash.isOpen ? `Focus Floating Trash (${trashedTabs.length})` : `Trash (${trashedTabs.length})`}
                 >
                   <Archive className="h-4 w-4 shrink-0" />
                   {trashedTabs.length > 0 && (
-                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none ring-2 ring-white shadow-xs">
+                    <span className="absolute top-0.5 right-0.5 px-1 min-w-[14px] h-[14px] bg-rose-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none shadow-xs">
                       {trashedTabs.length}
                     </span>
                   )}
@@ -16102,7 +16102,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.grid_guides?.isOpen || (isInspectorOpen && rightPanelTab === "grid_guides"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.grid_guides.isOpen ? "Focus Floating Grid & Snap" : "Grid, Guidelines & Snap"}
@@ -16133,7 +16133,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.geometry?.isOpen || (isInspectorOpen && rightPanelTab === "geometry"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.geometry?.isOpen ? "Focus Floating Geometry" : "Golden Ratio & Geometry Layouts"}
@@ -16164,7 +16164,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.patterns?.isOpen || (isInspectorOpen && rightPanelTab === "patterns"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.patterns.isOpen ? "Focus Floating Line Patterns" : "Line Patterns & Stroke Modifier"}
@@ -16200,7 +16200,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.sessions?.isOpen || (isInspectorOpen && rightPanelTab === "sessions"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.sessions?.isOpen ? "Focus Floating Market Sessions" : "Market Sessions & Killzones"}
@@ -16231,7 +16231,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.risk_calc?.isOpen || (isInspectorOpen && rightPanelTab === "risk_calc"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.risk_calc?.isOpen ? "Focus Floating Risk Calc" : "Position Size & Risk Calculator"}
@@ -16262,7 +16262,7 @@ export default function WhiteboardPage() {
                   }}
                   className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     (detachedPanels.economic_calendar?.isOpen || (isInspectorOpen && rightPanelTab === "economic_calendar"))
-                      ? "bg-brand-light text-brand ring-1 ring-brand/25 shadow-xs"
+                      ? "bg-brand-light text-brand border border-brand/25 shadow-2xs"
                       : "text-slate-500 hover:bg-slate-100/90 hover:text-slate-900"
                   }`}
                   title={detachedPanels.economic_calendar?.isOpen ? "Focus Floating Economic Calendar" : "Economic News Calendar & High-Impact Alerts"}
