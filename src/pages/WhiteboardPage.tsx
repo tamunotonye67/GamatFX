@@ -16847,12 +16847,16 @@ function WhiteboardToolBtn({
               e.stopPropagation();
               onFlyoutToggle?.(e);
             }}
-            className={`absolute right-0.5 bottom-0.5 p-0.5 rounded-sm pointer-events-auto transition cursor-pointer ${
-              active ? "text-brand/70 hover:text-brand" : "text-slate-400 hover:text-brand"
+            className={`absolute -right-0.5 -bottom-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center pointer-events-auto transition-all duration-150 cursor-pointer ring-1 shadow-2xs ${
+              isFlyoutOpen
+                ? "bg-brand text-white ring-brand scale-105"
+                : active
+                  ? "bg-white text-brand ring-brand/30 hover:bg-brand hover:text-white hover:ring-brand"
+                  : "bg-white/95 text-slate-400 ring-slate-200/90 group-hover:text-slate-700 group-hover:ring-slate-300 hover:!bg-brand hover:!text-white hover:!ring-brand"
             }`}
             title="Click arrow or right-click to view group tools"
           >
-            <span className="block w-1.5 h-1.5 border-r-[1.5px] border-b-[1.5px] border-current rounded-br-[1px]" />
+            <ChevronRight className={`w-2.5 h-2.5 stroke-[2.5] transition-transform duration-150 ${isFlyoutOpen ? "rotate-90" : ""}`} />
           </span>
         )}
       </button>
