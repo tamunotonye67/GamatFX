@@ -2192,6 +2192,7 @@ export default function WhiteboardPage() {
   } | null>(null);
   const [contextSubmenu, setContextSubmenu] = useState<string | null>(null);
   const [toolColorPopoverOpen, setToolColorPopoverOpen] = useState(false);
+  const [colorPickerModal, setColorPickerModal] = useState<{ target: "stroke" | "fill" } | null>(null);
 
   useEffect(() => {
     setContextSubmenu(null);
@@ -12739,7 +12740,7 @@ export default function WhiteboardPage() {
                   type="button"
                   onClick={() => {
                     setActiveColorTarget("stroke");
-                    strokeColorInputRef.current?.click();
+                    setColorPickerModal((prev) => (prev?.target === "stroke" ? null : { target: "stroke" }));
                   }}
                   className={`absolute top-0 left-0 w-[14px] h-[14px] rounded-full transition-all cursor-pointer flex items-center justify-center ${
                     activeColorTarget === "stroke"
@@ -12758,7 +12759,7 @@ export default function WhiteboardPage() {
                   type="button"
                   onClick={() => {
                     setActiveColorTarget("fill");
-                    fillColorInputRef.current?.click();
+                    setColorPickerModal((prev) => (prev?.target === "fill" ? null : { target: "fill" }));
                   }}
                   className={`absolute bottom-0 right-0 w-[14px] h-[14px] rounded-full transition-all cursor-pointer overflow-hidden ${
                     activeColorTarget === "fill"
@@ -12937,19 +12938,17 @@ export default function WhiteboardPage() {
                             title={`Color ${c}`}
                           />
                         ))}
-                        <label
-                          className="w-5 h-5 rounded-full border border-slate-300 bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 cursor-pointer hover:scale-110 transition-transform shrink-0 flex items-center justify-center"
-                          title="Custom Color"
-                        >
-                          <input
-                            type="color"
-                            value={strokeColor.startsWith("#") ? strokeColor : "#000000"}
-                            onChange={(e) => {
-                              setStrokeColor(e.target.value);
-                            }}
-                            className="sr-only"
-                          />
-                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setToolColorPopoverOpen(false);
+                            setActiveColorTarget("stroke");
+                            setColorPickerModal({ target: "stroke" });
+                          }}
+                          className="w-5 h-5 rounded-full border border-slate-300 bg-gradient-to-tr from-rose-500 via-amber-400 to-sky-500 cursor-pointer hover:scale-110 transition-transform shrink-0"
+                          title="Custom Color Window"
+                          aria-label="Open Custom Color Window"
+                        />
                       </div>
                     )}
                   </div>
@@ -19735,3 +19734,273 @@ function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isA
       };
   }
 }
+
+function hexToHsv(hex: string): { h: number; s: number; v: number } {
+  const clean = hex.replace("#", "").trim();
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean.padEnd(6, "0").slice(0, 6);
+  const r = parseInt(full.slice(0, 2), 16) / 255 || 0;
+  const g = parseInt(full.slice(2, 4), 16) / 255 || 0;
+  const b = parseInt(full.slice(4, 6), 16) / 255 || 0;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    else if (max === g) h = ((b - r) / d + 2) * 60;
+    else h = ((r - g) / d + 4) * 60;
+  }
+  const s = max === 0 ? 0 : d / max;
+  const v = max;
+  return { h, s, v };
+}
+
+function hsvToHex(h: number, s: number, v: number): string {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  const toHex = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function ModernColorPickerPopover({
+  target,
+  strokeColor,
+  fillColor,
+  fillStyle,
+  palette,
+  onTargetChange,
+  onChangeStroke,
+  onChangeFill,
+  onNoFill,
+  onEyedropper,
+  onClose,
+}: {
+  target: "stroke" | "fill";
+  strokeColor: string;
+  fillColor: string;
+  fillStyle: string;
+  palette: string[];
+  onTargetChange: (t: "stroke" | "fill") => void;
+  onChangeStroke: (hex: string) => void;
+  onChangeFill: (hex: string) => void;
+  onNoFill: () => void;
+  onEyedropper: () => void;
+  onClose: () => void;
+}) {
+  const activeHex = target === "stroke" ? strokeColor : fillColor;
+  const [hsv, setHsv] = useState(() => hexToHsv(activeHex.startsWith("#") ? activeHex : "#0f172a"));
+  const [hexInput, setHexInput] = useState(activeHex);
+  const padRef = useRef<HTMLDivElement | null>(null);
+  const hueRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const nextHex = target === "stroke" ? strokeColor : fillColor;
+    setHexInput(nextHex);
+    if (nextHex.startsWith("#")) {
+      setHsv(hexToHsv(nextHex));
+    }
+  }, [target, strokeColor, fillColor]);
+
+  const commitColor = (nextHex: string) => {
+    setHexInput(nextHex);
+    if (target === "stroke") onChangeStroke(nextHex);
+    else onChangeFill(nextHex);
+  };
+
+  const handlePadInteract = (clientX: number, clientY: number) => {
+    const el = padRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const v = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
+    const nextHsv = { h: hsv.h, s, v };
+    setHsv(nextHsv);
+    commitColor(hsvToHex(nextHsv.h, nextHsv.s, nextHsv.v));
+  };
+
+  const handleHueInteract = (clientX: number) => {
+    const el = hueRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const h = Math.max(0, Math.min(359, ((clientX - rect.left) / rect.width) * 360));
+    const nextHsv = { h, s: hsv.s, v: hsv.v };
+    setHsv(nextHsv);
+    commitColor(hsvToHex(nextHsv.h, nextHsv.s, nextHsv.v));
+  };
+
+  const startDrag = (onMoveFn: (x: number, y: number) => void, startX: number, startY: number) => {
+    onMoveFn(startX, startY);
+    const onMM = (e: MouseEvent) => onMoveFn(e.clientX, e.clientY);
+    const onTM = (e: TouchEvent) => {
+      if (e.touches[0]) onMoveFn(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const stop = () => {
+      window.removeEventListener("mousemove", onMM);
+      window.removeEventListener("mouseup", stop);
+      window.removeEventListener("touchmove", onTM);
+      window.removeEventListener("touchend", stop);
+    };
+    window.addEventListener("mousemove", onMM);
+    window.addEventListener("mouseup", stop);
+    window.addEventListener("touchmove", onTM, { passive: true });
+    window.addEventListener("touchend", stop);
+  };
+
+  return (
+    <div
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      className="absolute bottom-3 left-14 sm:bottom-4 sm:left-16 z-[220] w-64 max-w-[calc(100vw-4.5rem)] rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-xl p-3 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.28)] ring-1 ring-slate-900/5 space-y-3 select-none animate-in fade-in zoom-in-95 duration-150"
+    >
+      {/* Header: Stroke / Fill Toggle + Eyedropper + Close */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5 border border-slate-200/70">
+          <button
+            type="button"
+            onClick={() => onTargetChange("stroke")}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
+              target === "stroke" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Stroke
+          </button>
+          <button
+            type="button"
+            onClick={() => onTargetChange("fill")}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer ${
+              target === "fill" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Fill
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onEyedropper}
+            className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-brand hover:bg-brand-light transition cursor-pointer"
+            title="Pick color from canvas"
+            aria-label="Eyedropper"
+          >
+            <Pipette className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+            title="Close color picker"
+            aria-label="Close"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 2D Saturation / Brightness Gradient Pad */}
+      <div
+        ref={padRef}
+        onMouseDown={(e) => startDrag(handlePadInteract, e.clientX, e.clientY)}
+        onTouchStart={(e) => {
+          if (e.touches[0]) startDrag(handlePadInteract, e.touches[0].clientX, e.touches[0].clientY);
+        }}
+        className="relative w-full h-36 rounded-xl overflow-hidden cursor-crosshair ring-1 ring-slate-900/10"
+        style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-white to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+        <span
+          className="absolute w-3.5 h-3.5 -ml-1.5 -mt-1.5 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(15,23,42,0.4)] pointer-events-none"
+          style={{
+            left: `${hsv.s * 100}%`,
+            top: `${(1 - hsv.v) * 100}%`,
+            backgroundColor: activeHex,
+          }}
+        />
+      </div>
+
+      {/* Hue Rainbow Slider */}
+      <div
+        ref={hueRef}
+        onMouseDown={(e) => startDrag((x) => handleHueInteract(x), e.clientX, e.clientY)}
+        onTouchStart={(e) => {
+          if (e.touches[0]) startDrag((x) => handleHueInteract(x), e.touches[0].clientX, e.touches[0].clientY);
+        }}
+        className="relative w-full h-3 rounded-full cursor-pointer ring-1 ring-slate-900/10"
+        style={{
+          background: "linear-gradient(to right, #ef4444, #eab308, #22c55e, #06b6d4, #3b82f6, #a855f7, #ef4444)",
+        }}
+      >
+        <span
+          className="absolute top-1/2 -translate-y-1/2 -ml-2 w-4 h-4 rounded-full bg-white border-2 border-slate-900/70 shadow-sm pointer-events-none"
+          style={{ left: `${(hsv.h / 360) * 100}%` }}
+        />
+      </div>
+
+      {/* Hex Input + Live Swatch + No Fill */}
+      <div className="flex items-center gap-2">
+        <span
+          className="w-7 h-7 rounded-lg ring-1 ring-slate-900/20 shrink-0"
+          style={{ backgroundColor: activeHex }}
+        />
+        <input
+          type="text"
+          value={hexInput}
+          onChange={(e) => {
+            const val = e.target.value;
+            setHexInput(val);
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+              setHsv(hexToHsv(val));
+              if (target === "stroke") onChangeStroke(val);
+              else onChangeFill(val);
+            }
+          }}
+          className="flex-1 min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-800 uppercase outline-none focus:border-brand focus:bg-white transition"
+          placeholder="#000000"
+        />
+        {target === "fill" && (
+          <button
+            type="button"
+            onClick={onNoFill}
+            className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition cursor-pointer ${
+              fillStyle === "none"
+                ? "bg-rose-50 text-rose-600 border-rose-200"
+                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+            }`}
+            title="Transparent / No Fill"
+          >
+            None
+          </button>
+        )}
+      </div>
+
+      {/* Quick Preset Swatches */}
+      <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
+        {palette.map((c) => (
+          <button
+            key={c}
+            type="button"
+            onClick={() => {
+              setHsv(hexToHsv(c));
+              commitColor(c);
+            }}
+            className={`w-5 h-5 rounded-full border border-slate-200 transition-transform cursor-pointer ${
+              activeHex.toLowerCase() === c.toLowerCase() ? "scale-115 ring-2 ring-brand ring-offset-1" : "hover:scale-110"
+            }`}
+            style={{ backgroundColor: c }}
+            title={c}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
