@@ -12162,8 +12162,8 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside ref={leftDockRef} className="left-dock-container w-9 sm:w-10 border-r border-slate-300 bg-white py-0 flex flex-col items-center justify-between shrink-0 z-20 shadow-xs select-none overflow-visible">
-          <div className="w-full flex flex-col items-center divide-y divide-line">
+            <aside ref={leftDockRef} className="left-dock-container w-11 sm:w-12 border-r border-slate-200/80 bg-white/95 backdrop-blur-md py-2 px-1.5 flex flex-col items-center justify-between shrink-0 z-20 shadow-[2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-visible">
+          <div className="w-full flex flex-col items-center gap-1">
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
               <WhiteboardToolBtn
@@ -12183,8 +12183,8 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "selection" && (
-                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Selection Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-60 sm:w-64 max-w-[calc(100vw-3.75rem)] max-h-[70dvh] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1 text-slate-800">
+                  <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Selection Tools</p>
 
                   <FlyoutToolItem
                     toolKey="select"
@@ -12244,8 +12244,8 @@ export default function WhiteboardPage() {
               />
 
               {flyoutGroup === "forex" && (
-                <div className="absolute left-full top-0 ml-1.5 w-64 sm:w-72 max-w-[calc(100vw-3.25rem)] rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800 max-h-[70dvh] sm:max-h-[85vh] overflow-y-auto [scrollbar-width:thin]">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Forex & SMC Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-64 sm:w-72 max-w-[calc(100vw-3.75rem)] rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1 text-slate-800 max-h-[70dvh] sm:max-h-[85vh] overflow-y-auto [scrollbar-width:thin]">
+                  <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Forex & SMC Tools</p>
 
                   <FlyoutToolItem
                     toolKey="fibo"
@@ -12393,8 +12393,8 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "shapes" && (
-                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Shape and Object Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-60 sm:w-64 max-w-[calc(100vw-3.75rem)] max-h-[70dvh] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1 text-slate-800">
+                  <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Shape and Object Tools</p>
                   <FlyoutToolItem
                     toolKey="rectangle"
                     label="Rectangle Zone"
@@ -12425,8 +12425,8 @@ export default function WhiteboardPage() {
                     onToggleFavorite={() => toggleFavoriteTool("diamond")}
                     showTooltips={showTooltips}
                   />
-                  <div className="w-full h-px bg-slate-300 my-0.5" />
-                  <p className="px-3 py-0.5 text-[9px] font-black uppercase text-slate-400 tracking-wider">Media & Objects</p>
+                  <div className="w-full h-px bg-slate-200/80 my-1" />
+                  <p className="px-2.5 py-0.5 text-[9px] font-bold uppercase text-slate-400 tracking-wider">Media & Objects</p>
                   <FlyoutToolItem
                     toolKey="image"
                     label="Image Tool"
@@ -12464,8 +12464,8 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "lines" && (
-                <div className="absolute left-full top-0 ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-muted tracking-wider">Line & Path Tools</p>
+                <div className="absolute left-full top-0 ml-2 w-60 sm:w-64 max-w-[calc(100vw-3.75rem)] max-h-[70dvh] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1 text-slate-800">
+                  <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Line & Path Tools</p>
                   <FlyoutToolItem
                     toolKey="line"
                     label="Straight Line"
@@ -12611,8 +12611,8 @@ export default function WhiteboardPage() {
                 showTooltips={showTooltips}
               />
               {flyoutGroup === "colortools" && (
-                <div className="absolute left-full bottom-0 sm:top-0 sm:bottom-auto ml-1.5 w-60 sm:w-64 max-w-[calc(100vw-3.25rem)] max-h-[70dvh] overflow-y-auto rounded-none border border-slate-300 bg-slate-100 p-1.5 shadow-xl z-50 animate-in fade-in space-y-0.5 text-slate-800">
-                  <p className="px-3 py-1 text-[10px] font-black uppercase text-slate-500 tracking-wider">Color & Fill Tools</p>
+                <div className="absolute left-full bottom-0 sm:top-0 sm:bottom-auto ml-2 w-60 sm:w-64 max-w-[calc(100vw-3.75rem)] max-h-[70dvh] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in space-y-1 text-slate-800">
+                  <p className="px-2.5 py-1 text-[10px] font-bold uppercase text-slate-400 tracking-wider">Color & Fill Tools</p>
                   <FlyoutToolItem
                     toolKey="eyedropper"
                     label="Color Picker"
@@ -12764,28 +12764,28 @@ export default function WhiteboardPage() {
               type="button"
               onClick={handleUndo}
               disabled={shapes.length === 0}
-              className="w-full h-7 sm:h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-8 sm:h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
               title="Undo (Ctrl + Z)"
             >
-              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <RotateCcw className="h-4 w-4 shrink-0" />
             </button>
             <button
               type="button"
               onClick={handleRedo}
               disabled={redoStack.length === 0}
-              className="w-full h-7 sm:h-8 flex items-center justify-center text-slate-600 hover:bg-slate-50 hover:text-ink disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-8 sm:h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
               title="Redo (Ctrl + Y)"
             >
-              <RotateCw className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <RotateCw className="h-4 w-4 shrink-0" />
             </button>
             <button
               type="button"
               onClick={handleClear}
               disabled={shapes.length === 0}
-              className="w-full h-7 sm:h-8 flex items-center justify-center text-rose-600 hover:bg-rose-50 disabled:opacity-30 transition cursor-pointer"
+              className="w-full h-8 sm:h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 hover:text-rose-600 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
               title="Clear Whiteboard"
             >
-              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <Trash2 className="h-4 w-4 shrink-0" />
             </button>
           </div>
         </aside>
@@ -16834,23 +16834,25 @@ function WhiteboardToolBtn({
         }}
         onContextMenu={onContextMenu}
         title={explanation?.title || title}
-        className={`relative w-full h-7 sm:h-8 flex items-center justify-center transition cursor-pointer border-l-2 ${
+        className={`relative w-full h-8 sm:h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
           active
-            ? "bg-brand-light text-brand border-brand font-bold"
-            : "text-slate-600 hover:bg-slate-50 hover:text-ink border-transparent"
+            ? "bg-brand-light text-brand font-bold ring-1 ring-brand/25 shadow-xs"
+            : "text-slate-600 hover:bg-slate-100/90 hover:text-slate-900"
         }`}
       >
-        <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+        <Icon className="h-4 w-4 shrink-0" />
         {hasFlyout && (
           <span
             onClick={(e) => {
               e.stopPropagation();
               onFlyoutToggle?.(e);
             }}
-            className="absolute right-0 bottom-0 p-1 pointer-events-auto text-slate-400 hover:text-brand transition cursor-pointer"
+            className={`absolute right-0.5 bottom-0.5 p-0.5 rounded-sm pointer-events-auto transition cursor-pointer ${
+              active ? "text-brand/70 hover:text-brand" : "text-slate-400 hover:text-brand"
+            }`}
             title="Click arrow or right-click to view group tools"
           >
-            <span className="block w-1.5 h-1.5 border-r border-b border-current" />
+            <span className="block w-1.5 h-1.5 border-r-[1.5px] border-b-[1.5px] border-current rounded-br-[1px]" />
           </span>
         )}
       </button>
@@ -16858,19 +16860,19 @@ function WhiteboardToolBtn({
       {/* Rich Interactive Tooltip Popover with Compact Visual Illustration */}
       {showTooltips && isHovered && explanation && !isFlyoutOpen && (
         <div
-          className="hidden sm:block absolute left-full ml-2 w-52 rounded-none border border-slate-300 bg-slate-100 text-slate-800 p-2.5 shadow-xl z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2"
+          className="hidden sm:block absolute left-full ml-2.5 w-52 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md text-slate-800 p-3 shadow-2xl ring-1 ring-slate-900/5 z-50 animate-in fade-in slide-in-from-left-2 pointer-events-none space-y-2.5"
           style={popoverPos.bottom !== undefined ? { bottom: popoverPos.bottom } : { top: popoverPos.top ?? 0 }}
         >
           {/* Visual Thumbnail Preview with Soft Curved Container and Uniform Square Aspect Ratio */}
-          <div className="w-full aspect-square rounded-lg border border-slate-300/90 bg-slate-200/90 flex items-center justify-center overflow-hidden relative shadow-inner p-1">
+          <div className="w-full aspect-square rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center overflow-hidden relative shadow-inner p-1">
             <ToolGifAnimation toolKey={toolKey} />
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-center justify-between border-b border-slate-300 pb-1">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
               <h4 className="font-bold text-xs text-slate-900 tracking-tight">{explanation.title}</h4>
               {explanation.shortcut && (
-                <span className="text-[9px] font-mono font-bold bg-slate-300 text-slate-800 px-1.5 py-0.5 rounded-none">
+                <span className="text-[9px] font-mono font-bold bg-slate-100 border border-slate-200 text-slate-700 px-1.5 py-0.5 rounded-md">
                   {explanation.shortcut}
                 </span>
               )}
