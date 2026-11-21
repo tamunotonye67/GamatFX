@@ -16724,33 +16724,55 @@ function FlyoutToolItem({
   isFavorited,
   onSelect,
   onToggleFavorite,
-  showTooltips = true,
 }: FlyoutToolItemProps) {
+  const shortcut = TOOL_EXPLANATIONS[toolKey]?.shortcut;
   return (
     <div className="relative w-full">
       <button
         type="button"
         onClick={onSelect}
-        className={`flex w-full items-center justify-between rounded-none px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
-          isActive ? "bg-slate-300 text-slate-950 font-bold border-l-2 border-slate-700" : "text-slate-700 hover:bg-slate-200 hover:text-slate-950"
+        className={`group flex w-full items-center justify-between gap-2 rounded-xl px-2 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+          isActive
+            ? "bg-brand-light text-brand font-bold ring-1 ring-brand/20 shadow-2xs"
+            : "text-slate-700 hover:bg-slate-100/90 hover:text-slate-950"
         }`}
       >
-        <span className="flex items-center gap-2.5">
-          <span className="w-4 h-4 flex items-center justify-center shrink-0">
-            <Icon className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" />
+        <span className="flex items-center gap-2.5 min-w-0">
+          <span
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+              isActive
+                ? "bg-brand/15 text-brand"
+                : "bg-slate-100 text-slate-600 group-hover:bg-white group-hover:text-slate-900 group-hover:shadow-2xs"
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5 stroke-[1.75]" />
           </span>
           <span className="truncate">{label}</span>
         </span>
-        <span title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}>
-          <Star
+        <span className="flex items-center gap-1.5 shrink-0">
+          {shortcut && (
+            <span
+              className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md ${
+                isActive ? "bg-brand/10 text-brand" : "bg-slate-100 text-slate-400"
+              }`}
+            >
+              {shortcut}
+            </span>
+          )}
+          <span
+            title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}
             onClick={(e) => {
               e.stopPropagation();
               onToggleFavorite();
             }}
-            className={`h-3.5 w-3.5 cursor-pointer p-0.5 ${
-              isFavorited ? "fill-amber-500 text-amber-500" : "text-slate-400 hover:text-amber-500"
-            }`}
-          />
+            className="p-1 rounded-lg hover:bg-amber-50 transition-colors cursor-pointer"
+          >
+            <Star
+              className={`h-3.5 w-3.5 transition-colors ${
+                isFavorited ? "fill-amber-400 text-amber-500" : "text-slate-300 hover:text-amber-500"
+              }`}
+            />
+          </span>
         </span>
       </button>
     </div>
