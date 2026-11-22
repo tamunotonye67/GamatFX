@@ -1451,28 +1451,21 @@ function MarketSessionsRadarTab() {
 
   return (
     <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
-      {/* 1. MINIMALIST 24H SESSIONS RADAR DIAL */}
-      <div className="border border-slate-300 bg-white p-3 shadow-2xs">
-        {/* Top clock & status bar */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-2.5">
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="font-bold text-xs text-slate-900 tracking-tight flex items-center gap-1">
-              <Globe className="h-3.5 w-3.5 text-slate-700" /> 24H Radar
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-right">
-            <span className="font-mono text-[11px] font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 border border-slate-200">{utcStr}</span>
-            <span className="font-mono text-[10px] text-slate-500 hidden sm:inline">{localStr}</span>
-          </div>
+      {/* Header */}
+      <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+        <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+          <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+            <Globe className="h-3.5 w-3.5" />
+          </span>
+          <span className="truncate">24H Radar</span>
         </div>
+        <span className="font-mono text-[10.5px] font-semibold text-slate-600">{utcStr}</span>
+      </div>
 
-        {/* Circular Radar Visual Dial with clean slate background */}
+      {/* 1. Radar Dial & Liquidity */}
+      <div className="space-y-2 pb-3 border-b border-slate-200/70">
         <div className="relative flex items-center justify-center py-1">
-          <svg viewBox="0 0 200 200" className="w-44 h-44">
+          <svg viewBox="0 0 200 200" className="w-40 h-40">
             <defs>
               <linearGradient id="radarSweep" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
@@ -1480,25 +1473,18 @@ function MarketSessionsRadarTab() {
               </linearGradient>
             </defs>
 
-            {/* Radar Background circle */}
             <circle cx={cx} cy={cy} r={r + 14} fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1.5" />
-
-            {/* Concentric distance rings */}
             <circle cx={cx} cy={cy} r={r * 0.35} fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="2 2" />
             <circle cx={cx} cy={cy} r={r * 0.7} fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3 3" />
             <circle cx={cx} cy={cy} r={r} fill="none" stroke="#94a3b8" strokeWidth="1" />
-
-            {/* Radar Crosshairs */}
             <line x1={cx} y1={cy - r - 8} x2={cx} y2={cy + r + 8} stroke="#e2e8f0" strokeWidth="1" />
             <line x1={cx - r - 8} y1={cy} x2={cx + r + 8} y2={cy} stroke="#e2e8f0" strokeWidth="1" />
 
-            {/* Hour labels (00, 06, 12, 18) */}
             <text x={cx} y={cy - r - 4} textAnchor="middle" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">00h</text>
             <text x={cx + r + 6} y={cy + 2.5} textAnchor="start" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">06h</text>
             <text x={cx} y={cy + r + 10} textAnchor="middle" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">12h</text>
             <text x={cx - r - 6} y={cy + 2.5} textAnchor="end" fill="#64748b" fontSize="7.5" fontWeight="bold" fontFamily="monospace">18h</text>
 
-            {/* Session Arcs on Outer Radar Ring */}
             {sessionStatuses.map((s, idx) => {
               const arcRadius = r + 4 + idx * 2.5;
               return (
@@ -1514,7 +1500,6 @@ function MarketSessionsRadarTab() {
               );
             })}
 
-            {/* Rotating Radar Sweep Beam */}
             <g style={{ transformOrigin: "100px 100px", animation: "spin 6s linear infinite" }}>
               <path
                 d={`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 0 1 ${cx + r * 0.7} ${cy - r * 0.7} Z`}
@@ -1523,31 +1508,28 @@ function MarketSessionsRadarTab() {
               <line x1={cx} y1={cy} x2={cx} y2={cy - r} stroke="#10b981" strokeWidth="1.5" opacity="0.6" />
             </g>
 
-            {/* Center Radar Core */}
             <circle cx={cx} cy={cy} r="14" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1.5" />
             <circle cx={cx} cy={cy} r="3.5" fill="#10b981" />
 
-            {/* Current Live Time Marker Blip on Ring */}
             <circle cx={nowX} cy={nowY} r="5" fill="#ef4444" opacity="0.25" className="animate-ping" />
             <circle cx={nowX} cy={nowY} r="3.5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
           </svg>
         </div>
 
-        {/* Minimalist Liquidity Gauge */}
-        <div className="pt-2 mt-1 border-t border-slate-200 flex items-center justify-between text-[10.5px]">
-          <span className="text-slate-600 font-medium">Market Liquidity</span>
+        <div className="flex items-center justify-between text-[11px] pt-1">
+          <span className="font-medium text-slate-600">Liquidity</span>
           <div className="flex items-center gap-2">
-            <div className="w-20 h-1.5 bg-slate-100 border border-slate-200 overflow-hidden">
+            <div className="w-20 h-1.5 rounded-full bg-slate-100 border border-slate-200/70 overflow-hidden">
               <div
-                className={`h-full transition-all duration-500 ${
+                className={`h-full rounded-full transition-all duration-500 ${
                   overallVol >= 85 ? "bg-emerald-500" : overallVol >= 60 ? "bg-blue-500" : "bg-amber-500"
                 }`}
                 style={{ width: `${overallVol}%` }}
               />
             </div>
-            <span className="font-mono font-bold text-slate-800">{overallVol}%</span>
+            <span className="font-mono font-semibold text-slate-800">{overallVol}%</span>
             {isOverlap && (
-              <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 border border-emerald-300">
+              <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.2 rounded">
                 OVERLAP
               </span>
             )}
@@ -1555,54 +1537,48 @@ function MarketSessionsRadarTab() {
         </div>
       </div>
 
-      {/* 2. LIVE SESSION STATUS CARDS */}
-      <div className="border border-slate-300 bg-white p-3 space-y-2 shadow-2xs">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
-          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-slate-600" /> Active Sessions
-          </span>
-          <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 border border-slate-200">
-            {activeCount} of 4 Open
-          </span>
+      {/* 2. Sessions */}
+      <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-slate-800">Sessions</span>
+          <span className="text-[10.5px] text-slate-400">{activeCount} of 4 open</span>
         </div>
 
         <div className="space-y-1">
           {sessionStatuses.map((s) => (
             <div
               key={s.id}
-              className={`flex items-center justify-between p-2 border text-xs transition-colors ${
+              className={`flex items-center justify-between px-2.5 py-2 rounded-lg border text-xs transition-colors ${
                 s.isOpen
-                  ? "bg-slate-50/80 border-slate-300 shadow-2xs"
-                  : "bg-white border-slate-200 opacity-60"
+                  ? "bg-slate-50/80 border-slate-200/80"
+                  : "bg-white border-slate-200/50 opacity-55"
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.isOpen ? "ring-2 ring-emerald-400/40" : ""}`}
+                  className="h-2 w-2 rounded-full shrink-0"
                   style={{ backgroundColor: s.color }}
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-slate-900 truncate text-[11.5px]">{s.name}</span>
-                    <span className="text-[9px] font-mono font-bold text-slate-500 bg-white px-1 py-0.2 border border-slate-200">
+                    <span className="font-medium text-slate-800 truncate text-[11.5px]">{s.name}</span>
+                    <span className="text-[9px] font-mono font-semibold text-slate-500 bg-white px-1 rounded border border-slate-200/70">
                       {s.short}
                     </span>
                   </div>
-                  <p className="text-[9.5px] text-slate-500 font-mono truncate leading-none mt-0.5">{s.desc}</p>
+                  <p className="text-[9.5px] text-slate-400 font-mono truncate mt-0.5">{s.desc}</p>
                 </div>
               </div>
               <div className="text-right shrink-0 ml-2">
                 <span
-                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 border block ${
-                    s.isOpen
-                      ? "text-emerald-800 bg-emerald-50 border-emerald-300"
-                      : "text-slate-500 bg-slate-100 border-slate-200"
+                  className={`text-[9px] font-semibold px-1.5 py-0.5 rounded inline-block ${
+                    s.isOpen ? "text-emerald-700 bg-emerald-100/80" : "text-slate-500 bg-slate-100"
                   }`}
                 >
                   {s.isOpen ? "ACTIVE" : "CLOSED"}
                 </span>
-                <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
-                  {s.isOpen ? `Closes: ${s.countdown}` : `Opens: ${s.countdown}`}
+                <span className="text-[9.5px] text-slate-400 font-mono block mt-0.5">
+                  {s.countdown}
                 </span>
               </div>
             </div>
@@ -1610,44 +1586,38 @@ function MarketSessionsRadarTab() {
         </div>
       </div>
 
-      {/* 3. ICT KILLZONE WINDOWS */}
-      <div className="border border-slate-300 bg-white p-3 space-y-2 shadow-2xs">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
-          <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-            <Activity className="h-3.5 w-3.5 text-slate-600" /> ICT Killzone Windows
-          </span>
-          <span className="text-[9px] text-slate-500 font-mono">Algorithmic Delivery</span>
+      {/* 3. Killzones */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-slate-800">Killzones</span>
+          <span className="text-[10.5px] text-slate-400">ICT</span>
         </div>
 
         <div className="space-y-1">
           {killzones.map((kz) => (
             <div
               key={kz.name}
-              className={`p-2 border flex items-center justify-between transition-colors ${
+              className={`px-2.5 py-2 rounded-lg border flex items-center justify-between transition-colors ${
                 kz.isActive
-                  ? "bg-amber-50/70 border-amber-300 shadow-2xs"
-                  : "bg-white border-slate-200 opacity-60"
+                  ? "bg-amber-50/70 border-amber-200/80"
+                  : "bg-white border-slate-200/50 opacity-55"
               }`}
             >
               <div className="min-w-0 pr-2">
-                <div className="flex items-center gap-1.5">
-                  <span className={`font-bold text-[11.5px] truncate ${kz.isActive ? "text-amber-950" : "text-slate-800"}`}>
-                    {kz.name}
-                  </span>
-                </div>
-                <span className="text-[9.5px] text-slate-500 block truncate leading-tight mt-0.5">{kz.desc}</span>
+                <span className={`font-medium text-[11.5px] truncate block ${kz.isActive ? "text-amber-950" : "text-slate-800"}`}>
+                  {kz.name}
+                </span>
+                <span className="text-[9.5px] text-slate-400 block truncate mt-0.5">{kz.desc}</span>
               </div>
               <div className="text-right shrink-0 ml-2">
                 <span
-                  className={`text-[9px] font-mono font-bold px-1.5 py-0.5 border block ${
-                    kz.isActive
-                      ? "bg-amber-200 text-amber-950 border-amber-300"
-                      : "bg-slate-100 text-slate-400 border-slate-200"
+                  className={`text-[9px] font-semibold px-1.5 py-0.5 rounded inline-block ${
+                    kz.isActive ? "bg-amber-200/80 text-amber-900" : "bg-slate-100 text-slate-400"
                   }`}
                 >
-                  {kz.isActive ? "LIVE" : "INACTIVE"}
+                  {kz.isActive ? "LIVE" : "OFF"}
                 </span>
-                <span className="text-[9px] text-slate-500 font-mono block mt-0.5">
+                <span className="text-[9.5px] text-slate-400 font-mono block mt-0.5">
                   {kz.timeStr}
                 </span>
               </div>
@@ -9092,22 +9062,23 @@ export default function WhiteboardPage() {
             const isPanelSelected = panelSelectedIds.includes(shape.id);
             const isCanvasSelected = selectedShapeIds.includes(shape.id);
             const IconComponent = getToolIcon(shape.type);
+            const selected = isPanelSelected || isCanvasSelected;
             return (
               <div
                 key={shape.id}
                 onClick={(e) => handleLayerPanelClick(e, shape.id)}
-                className={`group flex items-center justify-between rounded-2xl border p-2 text-xs transition cursor-pointer ${indent ? "ml-4" : ""} ${
-                  isPanelSelected || isCanvasSelected
-                    ? "border-brand bg-brand-light/40 font-bold"
-                    : "border-line bg-cream hover:bg-white"
-                } ${shape.isHidden ? "opacity-40" : ""}`}
+                className={`group flex items-center justify-between rounded-lg px-2 py-1.5 text-[11.5px] transition cursor-pointer ${indent ? "ml-4" : ""} ${
+                  selected
+                    ? "bg-slate-900/5 text-slate-900 font-semibold ring-1 ring-slate-300/80"
+                    : "hover:bg-slate-100/80 text-slate-700"
+                } ${shape.isHidden ? "opacity-45" : ""}`}
               >
                 <div className="flex items-center gap-2 truncate flex-1 min-w-0">
                   <span
-                    className="h-3.5 w-3.5 rounded-full border border-black/20 shrink-0"
+                    className="h-2.5 w-2.5 rounded-full border border-black/15 shrink-0"
                     style={{ background: shape.stickyColor || shape.color }}
                   />
-                  <IconComponent className="h-4 w-4 text-brand shrink-0" />
+                  <IconComponent className={`h-3.5 w-3.5 shrink-0 ${selected ? "text-slate-900" : "text-slate-500"}`} />
                   {editingLayerId === shape.id ? (
                     <input
                       autoFocus
@@ -9118,20 +9089,19 @@ export default function WhiteboardPage() {
                         if (e.key === "Enter") {
                           setShapes((prev) => prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s)));
                           setEditingLayerId(null);
-                          showToast("Renamed layer!");
                         } else if (e.key === "Escape") { setEditingLayerId(null); }
                       }}
                       onBlur={() => {
                         setShapes((prev) => prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s)));
                         setEditingLayerId(null);
                       }}
-                      className="w-28 rounded border border-brand bg-white px-1.5 py-0.5 text-xs font-bold text-ink outline-none"
+                      className="w-28 rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-medium text-slate-900 outline-none"
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
                     <span
                       onDoubleClick={(e) => { e.stopPropagation(); setEditingLayerId(shape.id); setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)); }}
-                      className="truncate text-ink font-bold capitalize flex-1 cursor-text"
+                      className="truncate font-medium capitalize flex-1 cursor-text"
                       title="Double-click to rename"
                     >
                       {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
@@ -9139,38 +9109,35 @@ export default function WhiteboardPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
-                  {editingLayerId !== shape.id && (
-                    <button type="button" onClick={() => { setEditingLayerId(shape.id); setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)); }} className="p-1 rounded text-slate-400 hover:text-brand" title="Rename"><Edit3 className="h-3.5 w-3.5" /></button>
-                  )}
                   {groupId && (
-                    <button type="button" onClick={() => { setLayerGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shape.id) } : g)); showToast("Removed from group"); }} className="p-1 rounded text-slate-400 hover:text-rose-500" title="Remove from group"><FolderMinus className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => { setLayerGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shape.id) } : g)); }} className="p-1 rounded text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Remove from group"><FolderMinus className="h-3 w-3" /></button>
                   )}
-                  <button type="button" onClick={() => moveLayerUp(realIdx)} disabled={realIdx >= shapes.length - 1} className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20" title="Bring Forward"><ArrowUp className="h-3.5 w-3.5" /></button>
-                  <button type="button" onClick={() => moveLayerDown(realIdx)} disabled={realIdx <= 0} className="p-1 rounded text-slate-400 hover:text-brand disabled:opacity-20" title="Send Backward"><ArrowDown className="h-3.5 w-3.5" /></button>
-                  <button type="button" onClick={() => toggleHideShape(shape.id)} className="p-1 rounded text-slate-400 hover:text-blue-600" title={shape.isHidden ? "Unhide" : "Hide"}>{shape.isHidden ? <EyeOff className="h-3.5 w-3.5 text-rose-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}</button>
-                  <button type="button" onClick={() => toggleLockShape(shape.id)} className="p-1 rounded text-slate-400 hover:text-amber-600" title={shape.isLocked ? "Unlock" : "Lock"}>{shape.isLocked ? <Lock className="h-3.5 w-3.5 text-amber-600" /> : <Unlock className="h-3.5 w-3.5 text-slate-400" />}</button>
-                  <button type="button" onClick={() => deleteSelectedObject(shape.id)} className="p-1 rounded text-slate-400 hover:text-rose-600 transition" title={shape.isLocked ? "Cannot delete locked layer" : "Delete"}><Trash2 className={`h-3.5 w-3.5 ${shape.isLocked ? "text-slate-300" : "text-rose-500"}`} /></button>
+                  <button type="button" onClick={() => moveLayerUp(realIdx)} disabled={realIdx >= shapes.length - 1} className="p-1 rounded text-slate-400 hover:text-slate-800 disabled:opacity-20 opacity-0 group-hover:opacity-100 transition-opacity" title="Bring Forward"><ArrowUp className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => moveLayerDown(realIdx)} disabled={realIdx <= 0} className="p-1 rounded text-slate-400 hover:text-slate-800 disabled:opacity-20 opacity-0 group-hover:opacity-100 transition-opacity" title="Send Backward"><ArrowDown className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => toggleHideShape(shape.id)} className={`p-1 rounded hover:text-slate-800 transition-opacity ${shape.isHidden ? "opacity-100 text-slate-600" : "opacity-0 group-hover:opacity-100 text-slate-400"}`} title={shape.isHidden ? "Unhide" : "Hide"}>{shape.isHidden ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</button>
+                  <button type="button" onClick={() => toggleLockShape(shape.id)} className={`p-1 rounded hover:text-slate-800 transition-opacity ${shape.isLocked ? "opacity-100 text-amber-600" : "opacity-0 group-hover:opacity-100 text-slate-400"}`} title={shape.isLocked ? "Unlock" : "Lock"}>{shape.isLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}</button>
+                  <button type="button" onClick={() => deleteSelectedObject(shape.id)} className="p-1 rounded text-slate-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity" title={shape.isLocked ? "Cannot delete locked layer" : "Delete"}><Trash2 className="h-3 w-3" /></button>
                 </div>
               </div>
             );
           };
 
           return (
-            <div className="space-y-3">
-              {/* Header with always-visible New Group button */}
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-muted">Canvas Stack (Top to Bottom)</span>
+            <div className="space-y-2">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/70">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-brand">{shapes.length} Layer{shapes.length !== 1 ? "s" : ""}</span>
-                  <button
-                    type="button"
-                    onClick={() => { setPendingGroupName(`Group ${layerGroups.length + 1}`); setShowGroupNameInput(true); }}
-                    className="p-1 rounded-md border border-slate-300 bg-white text-slate-500 hover:border-brand hover:text-brand transition flex items-center justify-center"
-                    title={panelSelectedIds.length >= 2 ? `Group ${panelSelectedIds.length} selected layers into folder` : "New layer group / folder (shift-click layers to pre-select)"}
-                  >
-                    <FolderPlus className="h-3.5 w-3.5" />
-                  </button>
+                  <span className="text-[11px] font-semibold text-slate-800">Layers</span>
+                  <span className="text-[10.5px] font-medium text-slate-400">{shapes.length}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => { setPendingGroupName(`Group ${layerGroups.length + 1}`); setShowGroupNameInput(true); }}
+                  className="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
+                  title={panelSelectedIds.length >= 2 ? `Group ${panelSelectedIds.length} selected layers` : "New group"}
+                >
+                  <FolderPlus className="h-3.5 w-3.5" />
+                </button>
               </div>
 
               {/* Name input for creating a group */}
@@ -9615,38 +9582,35 @@ export default function WhiteboardPage() {
 
                 {/* TAB 4: DRAFTS & CANVAS MANAGER TAB */}
                 {tabKey === "drafts" && (
-                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
-                    {/* Header Quick Actions */}
-                    <div className="flex items-center justify-between pb-2 border-b border-line">
-                      <div>
-                        <h3 className="font-extrabold text-ink text-sm">Diagrams & Drafts</h3>
-                        <p className="text-[10px] text-muted">{tabs.length} open tab{tabs.length > 1 ? "s" : ""} • {savedDrafts.length} saved draft{savedDrafts.length > 1 ? "s" : ""}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
+                  <div className="space-y-3 animate-in fade-in duration-150 text-xs">
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/70">
+                      <span className="text-[11px] font-semibold text-slate-800">Drafts</span>
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() => handleSaveCurrentDraft(false)}
-                          className="px-2.5 py-1 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center gap-1 cursor-pointer"
-                          title="Save Changes to Current Draft (Overwrite in-place)"
+                          className="h-7 px-2.5 rounded-lg bg-slate-900 text-white text-[11px] font-medium hover:bg-slate-800 transition flex items-center gap-1 cursor-pointer"
+                          title="Save current draft"
                         >
                           <Save className="h-3 w-3" /> Save
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSaveCurrentDraft(true)}
-                          className="px-2 py-1 rounded-lg border border-line bg-white text-slate-700 text-[11px] font-bold hover:bg-slate-50 transition shadow-xs flex items-center gap-1 cursor-pointer"
-                          title="Save as a Brand New Draft Snapshot"
+                          className="h-7 px-2 rounded-lg border border-slate-200/80 bg-slate-100/70 text-slate-700 text-[11px] font-medium hover:bg-slate-100 transition flex items-center gap-1 cursor-pointer"
+                          title="Save as new snapshot"
                         >
-                          <Download className="h-3 w-3" /> Save New
+                          <Download className="h-3 w-3" /> New
                         </button>
                       </div>
                     </div>
 
-                    {/* Active Open Tabs Section */}
-                    <div className="space-y-2">
+                    {/* Open Tabs */}
+                    <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
-                          <FileText className="h-3 w-3" /> Active Open Tabs ({tabs.length}/5)
+                        <span className="text-[11px] font-semibold text-slate-800">
+                          Open Tabs <span className="font-normal text-slate-400">{tabs.length}/5</span>
                         </span>
                         <button
                           type="button"
@@ -9659,46 +9623,46 @@ export default function WhiteboardPage() {
                             }
                           }}
                           disabled={tabs.length >= 5}
-                          className="text-[10.5px] font-bold text-brand hover:underline disabled:opacity-40 flex items-center gap-0.5 cursor-pointer"
+                          className="text-[11px] font-medium text-slate-600 hover:text-slate-900 disabled:opacity-40 flex items-center gap-0.5 cursor-pointer"
                         >
-                          <Plus className="h-3 w-3" /> New Tab
+                          <Plus className="h-3 w-3" /> New
                         </button>
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         {tabs.map((tab) => {
                           const isActive = tab.id === activeTabId;
                           return (
                             <div
                               key={tab.id}
                               onClick={() => handleSelectTab(tab.id)}
-                              className={`p-2 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
+                              className={`group px-2.5 py-2 rounded-lg transition flex items-center justify-between gap-2 cursor-pointer ${
                                 isActive
-                                  ? "border-brand bg-brand-light/40 shadow-xs"
-                                  : "border-line bg-slate-50 hover:bg-white hover:border-slate-300"
+                                  ? "bg-slate-900/5 ring-1 ring-slate-300/80"
+                                  : "hover:bg-slate-100/80"
                               }`}
                             >
                               <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <div className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-brand animate-pulse" : "bg-slate-300"}`} />
+                                <span className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-slate-900" : "bg-slate-300"}`} />
                                 <div className="truncate flex-1">
-                                  <p className={`text-xs truncate font-bold ${isActive ? "text-brand" : "text-ink"}`}>{tab.name}</p>
-                                  <p className="text-[10px] text-muted">{tab.shapes.length} object{tab.shapes.length !== 1 ? "s" : ""}</p>
+                                  <p className={`text-[11.5px] truncate ${isActive ? "font-semibold text-slate-900" : "font-medium text-slate-700"}`}>{tab.name}</p>
+                                  <p className="text-[10px] text-slate-400">{tab.shapes.length} object{tab.shapes.length !== 1 ? "s" : ""}</p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   type="button"
                                   onClick={() => handleStartRenameTab(tab.id, tab.name)}
-                                  className="p-1 text-slate-400 hover:text-ink hover:bg-slate-200 rounded transition cursor-pointer"
-                                  title="Rename Diagram"
+                                  className="p-1 text-slate-400 hover:text-slate-800 rounded transition cursor-pointer"
+                                  title="Rename"
                                 >
                                   <Edit3 className="h-3 w-3" />
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleCloseTab(tab.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                  title="Move to Trash"
+                                  className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                                  title="Delete"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
@@ -9709,27 +9673,26 @@ export default function WhiteboardPage() {
                       </div>
                     </div>
 
-                    {/* Saved Drafts Repository Section */}
-                    <div className="space-y-2 pt-2 border-t border-line">
-                      <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-muted flex items-center gap-1">
-                        <FolderPlus className="h-3 w-3" /> Saved Drafts ({savedDrafts.length})
+                    {/* Saved */}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-semibold text-slate-800 block">
+                        Saved <span className="font-normal text-slate-400">{savedDrafts.length}</span>
                       </span>
 
                       {savedDrafts.length === 0 ? (
-                        <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-muted">
-                          <p className="text-[11px] font-bold">No saved drafts yet</p>
-                          <p className="text-[10px] mt-0.5">Click "Save Draft" to store offline snapshots</p>
+                        <div className="py-4 rounded-lg border border-dashed border-slate-200 text-center text-slate-400 text-[11px]">
+                          No saved drafts yet
                         </div>
                       ) : (
-                        <div className="space-y-1.5 max-h-60 overflow-y-auto [scrollbar-width:thin]">
+                        <div className="space-y-1 max-h-60 overflow-y-auto [scrollbar-width:thin]">
                           {savedDrafts.map((draft) => (
                             <div
                               key={draft.id}
-                              className="p-2.5 rounded-xl border border-line bg-slate-50/80 hover:bg-white transition flex items-center justify-between gap-2"
+                              className="px-2.5 py-2 rounded-lg bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/60 transition flex items-center justify-between gap-2"
                             >
                               <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-ink truncate">{draft.name}</p>
-                                <p className="text-[9.5px] text-muted">
+                                <p className="text-[11.5px] font-medium text-slate-800 truncate">{draft.name}</p>
+                                <p className="text-[10px] text-slate-400">
                                   {draft.shapes.length} objects • {new Date(draft.savedAt).toLocaleDateString()}
                                 </p>
                               </div>
@@ -9737,16 +9700,16 @@ export default function WhiteboardPage() {
                                 <button
                                   type="button"
                                   onClick={() => loadSavedDraft(draft)}
-                                  className="px-2 py-1 bg-brand-light text-brand rounded-lg text-[10.5px] font-bold hover:bg-brand hover:text-white transition cursor-pointer"
-                                  title="Open Draft in Canvas Tab"
+                                  className="px-2 py-1 bg-white border border-slate-200/80 text-slate-700 rounded-md text-[10.5px] font-medium hover:bg-slate-900 hover:text-white hover:border-slate-900 transition cursor-pointer"
+                                  title="Open Draft"
                                 >
                                   Open
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => deleteDraft(draft.id)}
-                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                  title="Delete Draft"
+                                  className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                                  title="Delete"
                                 >
                                   <X className="h-3 w-3" />
                                 </button>
@@ -10181,79 +10144,64 @@ export default function WhiteboardPage() {
 
         {/* TAB 8: GOLDEN RATIO & GEOMETRY LAYOUTS ENGINE */}
         {tabKey === "geometry" && (
-          <div className="space-y-3.5 animate-in fade-in duration-150 text-slate-800">
-            {/* Golden Ratio (Phi) Harmonic Math Calculator */}
-            <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Compass className="h-3.5 w-3.5 text-brand stroke-[1.75]" /> Golden Ratio
+          <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
+            {/* Header */}
+            <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                  <Compass className="h-3.5 w-3.5" />
                 </span>
-                <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
-                  Φ 1.618
-                </span>
+                <span className="truncate">Geometry</span>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed font-normal">
-                Harmonic Fibonacci extensions and geometric proportions for chart analysis.
-              </p>
+              <span className="text-[10px] font-mono font-semibold text-slate-500">Φ 1.618</span>
+            </div>
 
-              {/* Live Phi Dimension Calculator */}
-              <div className="space-y-2 bg-white rounded-xl p-2.5 border border-slate-200/80">
-                <div className="flex items-center justify-between text-[11px] font-semibold">
-                  <span className="text-slate-500">Base Unit (A)</span>
-                  <span className="font-mono text-slate-900 font-bold">100.0 px</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
-                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-                    <span className="text-[9.5px] text-slate-500 block">Major (1.618)</span>
-                    <span className="font-bold text-slate-900">161.8 px</span>
+            {/* Golden Ratio */}
+            <div className="space-y-2 pb-3 border-b border-slate-200/70">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-800">Golden Ratio</span>
+                <span className="text-[10.5px] font-mono text-slate-400">Base 100 px</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
+                {[
+                  { label: "Major (1.618)", val: "161.8 px" },
+                  { label: "Minor (0.618)", val: "61.8 px" },
+                  { label: "Ext (2.618)", val: "261.8 px" },
+                  { label: "Pullback (0.786)", val: "78.6 px" },
+                ].map((item) => (
+                  <div key={item.label} className="px-2.5 py-2 rounded-lg bg-slate-100/70 border border-slate-200/60">
+                    <span className="text-[9.5px] font-sans text-slate-500 block">{item.label}</span>
+                    <span className="font-semibold text-slate-900">{item.val}</span>
                   </div>
-                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-                    <span className="text-[9.5px] text-slate-500 block">Minor (0.618)</span>
-                    <span className="font-bold text-slate-900">61.8 px</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-                    <span className="text-[9.5px] text-slate-500 block">Ext (2.618)</span>
-                    <span className="font-bold text-slate-900">261.8 px</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-                    <span className="text-[9.5px] text-slate-500 block">Pullback (0.786)</span>
-                    <span className="font-bold text-slate-900">78.6 px</span>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Geometric Composition & Symmetry Analyzer */}
-            <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2.5">
+            {/* Composition */}
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Grid className="h-3.5 w-3.5 text-brand stroke-[1.75]" /> Composition
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">Guides</span>
+                <span className="text-[11px] font-semibold text-slate-800">Composition</span>
+                <span className="text-[10.5px] text-slate-400">Guides</span>
               </div>
-
-              <div className="space-y-1.5 text-xs text-slate-700">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
-                  <div>
-                    <p className="font-semibold text-slate-900">Rule of Thirds</p>
-                    <p className="text-[10.5px] text-slate-500">3×3 focal intersection points</p>
+              <div className="space-y-1">
+                {[
+                  { title: "Rule of Thirds", desc: "3×3 focal points", badge: "1:1:1" },
+                  { title: "Dynamic Symmetry", desc: "Root-2 & Root-3", badge: "1.414" },
+                  { title: "Isometric", desc: "30° / 60° grid", badge: "30°" },
+                ].map((row) => (
+                  <div
+                    key={row.title}
+                    className="flex items-center justify-between px-2.5 py-2 rounded-lg bg-slate-50/80 border border-slate-200/60"
+                  >
+                    <div>
+                      <p className="text-[11.5px] font-medium text-slate-800">{row.title}</p>
+                      <p className="text-[10px] text-slate-400">{row.desc}</p>
+                    </div>
+                    <span className="text-[10px] font-mono font-semibold text-slate-600 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-md">
+                      {row.badge}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">1:1:1</span>
-                </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
-                  <div>
-                    <p className="font-semibold text-slate-900">Dynamic Symmetry</p>
-                    <p className="text-[10.5px] text-slate-500">Root-2 & Root-3 diagonals</p>
-                  </div>
-                  <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">1.414</span>
-                </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
-                  <div>
-                    <p className="font-semibold text-slate-900">Isometric</p>
-                    <p className="text-[10.5px] text-slate-500">30° / 60° spatial grid</p>
-                  </div>
-                  <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">30°</span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -10302,264 +10250,212 @@ export default function WhiteboardPage() {
           const projectedBalanceLoss = calcBalance - riskDollars;
 
           return (
-            <div className="space-y-3.5 animate-in fade-in duration-150 text-slate-800">
-              {/* PRIMARY CALCULATOR CONTROLS CARD */}
-              <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Calculator className="h-3.5 w-3.5 text-brand stroke-[1.75]" /> Position Size
+            <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
+              {/* Header */}
+              <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                  <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                    <Calculator className="h-3.5 w-3.5" />
                   </span>
-                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Live
-                  </span>
+                  <span className="truncate">Position Size</span>
                 </div>
+                <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Live
+                </span>
+              </div>
 
-                {/* Account Balance & Quick Presets */}
+              {/* Balance */}
+              <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800">Balance</span>
+                  <span className="text-[10.5px] font-mono text-slate-400">${calcBalance.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center h-8 rounded-lg border border-slate-200/70 bg-slate-100/80 px-2.5 focus-within:border-slate-400 focus-within:bg-white transition">
+                  <span className="text-[11px] font-mono text-slate-400 mr-1.5">$</span>
+                  <input
+                    type="number"
+                    min={100}
+                    step={500}
+                    value={calcBalance}
+                    onChange={(e) => setCalcBalance(Math.max(10, Number(e.target.value) || 0))}
+                    className="w-full bg-transparent text-[11.5px] font-mono font-semibold text-slate-900 outline-none"
+                    placeholder="10000"
+                  />
+                </div>
+                <div className="grid grid-cols-5 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
+                  {[1000, 5000, 10000, 25000, 100000].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setCalcBalance(preset)}
+                      className={`h-6.5 rounded-md text-[10px] font-mono font-semibold transition cursor-pointer ${
+                        calcBalance === preset
+                          ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                    >
+                      ${preset >= 1000 ? `${preset / 1000}k` : preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Instrument */}
+              <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+                <span className="text-[11px] font-semibold text-slate-800 block">Instrument</span>
+                <select
+                  value={calcPair}
+                  onChange={(e) => setCalcPair(e.target.value)}
+                  className="w-full h-8 rounded-lg border border-slate-200/70 bg-slate-100/80 px-2.5 text-[11.5px] font-medium text-slate-800 outline-none focus:border-slate-400 focus:bg-white cursor-pointer transition"
+                >
+                  {Object.entries(PAIR_CONFIG).map(([key, spec]) => (
+                    <option key={key} value={key}>
+                      {spec.label} (${spec.pipVal}/pip)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Risk & Stop Loss */}
+              <div className="grid grid-cols-2 gap-2 pb-3 border-b border-slate-200/70">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10.5px] font-semibold text-slate-600">Balance ($)</label>
-                    <span className="text-[10px] font-mono text-slate-500 font-semibold">${calcBalance.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-400">$</span>
-                    <input
-                      type="number"
-                      min={100}
-                      step={500}
-                      value={calcBalance}
-                      onChange={(e) => setCalcBalance(Math.max(10, Number(e.target.value) || 0))}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition"
-                      placeholder="10000"
-                    />
-                  </div>
-                  {/* Quick Balance Presets */}
-                  <div className="grid grid-cols-5 gap-1">
-                    {[1000, 5000, 10000, 25000, 100000].map((preset) => (
+                    <span className="text-[11px] font-semibold text-slate-800">Risk</span>
+                    <div className="flex items-center gap-0.5 bg-slate-100/80 p-0.5 rounded-md border border-slate-200/60">
                       <button
-                        key={preset}
                         type="button"
-                        onClick={() => setCalcBalance(preset)}
-                        className={`py-1 rounded-lg text-[9.5px] font-mono font-semibold border transition cursor-pointer ${
-                          calcBalance === preset
-                            ? "bg-slate-900 text-white border-slate-900"
-                            : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
+                        onClick={() => setCalcRiskMode("percent")}
+                        className={`px-1.5 py-0.2 rounded text-[9.5px] font-semibold cursor-pointer transition ${
+                          calcRiskMode === "percent" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
-                        ${preset >= 1000 ? `${preset / 1000}k` : preset}
+                        %
                       </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Instrument / Currency Pair */}
-                <div className="space-y-1">
-                  <label className="text-[10.5px] font-semibold text-slate-600">Instrument</label>
-                  <select
-                    value={calcPair}
-                    onChange={(e) => setCalcPair(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 cursor-pointer transition"
-                  >
-                    {Object.entries(PAIR_CONFIG).map(([key, spec]) => (
-                      <option key={key} value={key}>
-                        {spec.label} (${spec.pipVal}/pip)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Risk Mode (% vs $) and Stop Loss Pips */}
-                <div className="grid grid-cols-2 gap-2.5">
-                  {/* Risk Section */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10.5px] font-semibold text-slate-600">
-                        Risk ({calcRiskMode === "percent" ? "%" : "$"})
-                      </label>
-                      <div className="flex items-center gap-0.5 bg-slate-200/70 p-0.5 rounded-md">
-                        <button
-                          type="button"
-                          onClick={() => setCalcRiskMode("percent")}
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer transition ${
-                            calcRiskMode === "percent"
-                              ? "bg-white text-slate-900 shadow-2xs"
-                              : "text-slate-500 hover:text-slate-900"
-                          }`}
-                        >
-                          %
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCalcRiskMode("cash")}
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer transition ${
-                            calcRiskMode === "cash"
-                              ? "bg-white text-slate-900 shadow-2xs"
-                              : "text-slate-500 hover:text-slate-900"
-                          }`}
-                        >
-                          $
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCalcRiskMode("cash")}
+                        className={`px-1.5 py-0.2 rounded text-[9.5px] font-semibold cursor-pointer transition ${
+                          calcRiskMode === "cash" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+                        }`}
+                      >
+                        $
+                      </button>
                     </div>
-
-                    {calcRiskMode === "percent" ? (
-                      <input
-                        type="number"
-                        min={0.1}
-                        max={50}
-                        step={0.25}
-                        value={calcRiskPct}
-                        onChange={(e) => setCalcRiskPct(Math.max(0.01, Number(e.target.value) || 0))}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono transition"
-                      />
-                    ) : (
-                      <input
-                        type="number"
-                        min={1}
-                        step={10}
-                        value={calcRiskCash}
-                        onChange={(e) => setCalcRiskCash(Math.max(1, Number(e.target.value) || 0))}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono transition"
-                      />
-                    )}
-
-                    {/* Quick Risk Pill Presets */}
-                    {calcRiskMode === "percent" && (
-                      <div className="grid grid-cols-4 gap-1 pt-0.5">
-                        {[0.5, 1.0, 2.0, 3.0].map((pct) => (
-                          <button
-                            key={pct}
-                            type="button"
-                            onClick={() => setCalcRiskPct(pct)}
-                            className={`py-0.5 rounded-md text-[9px] font-mono font-semibold border transition cursor-pointer ${
-                              calcRiskPct === pct
-                                ? "bg-slate-900 text-white border-slate-900"
-                                : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
-                            }`}
-                          >
-                            {pct}%
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
-
-                  {/* Stop Loss (Pips) */}
-                  <div className="space-y-1">
-                    <label className="text-[10.5px] font-semibold text-slate-600">Stop Loss (Pips)</label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={1000}
-                      step={1}
-                      value={calcSlPips}
-                      onChange={(e) => setCalcSlPips(Math.max(0.5, Number(e.target.value) || 0))}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 font-mono transition"
-                    />
-                    {/* Quick SL presets */}
-                    <div className="grid grid-cols-4 gap-1 pt-0.5">
-                      {[10, 20, 30, 50].map((pips) => (
+                  <input
+                    type="number"
+                    min={calcRiskMode === "percent" ? 0.1 : 1}
+                    max={calcRiskMode === "percent" ? 50 : undefined}
+                    step={calcRiskMode === "percent" ? 0.25 : 10}
+                    value={calcRiskMode === "percent" ? calcRiskPct : calcRiskCash}
+                    onChange={(e) => {
+                      const val = Number(e.target.value) || 0;
+                      if (calcRiskMode === "percent") setCalcRiskPct(Math.max(0.01, val));
+                      else setCalcRiskCash(Math.max(1, val));
+                    }}
+                    className="w-full h-8 rounded-lg border border-slate-200/70 bg-slate-100/80 px-2.5 text-[11.5px] font-mono font-semibold text-slate-900 outline-none focus:border-slate-400 focus:bg-white transition"
+                  />
+                  {calcRiskMode === "percent" && (
+                    <div className="grid grid-cols-4 gap-0.5 p-0.5 bg-slate-100/80 rounded-md border border-slate-200/60">
+                      {[0.5, 1.0, 2.0, 3.0].map((pct) => (
                         <button
-                          key={pips}
+                          key={pct}
                           type="button"
-                          onClick={() => setCalcSlPips(pips)}
-                          className={`py-0.5 rounded-md text-[9px] font-mono font-semibold border transition cursor-pointer ${
-                            calcSlPips === pips
-                              ? "bg-slate-900 text-white border-slate-900"
-                              : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
+                          onClick={() => setCalcRiskPct(pct)}
+                          className={`py-0.5 rounded text-[9.5px] font-mono font-semibold transition cursor-pointer ${
+                            calcRiskPct === pct ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
                           }`}
                         >
-                          {pips}p
+                          {pct}%
                         </button>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
 
-                {/* Target Risk-to-Reward (R:R) */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10.5px] font-semibold text-slate-600">Target R:R</label>
-                    <span className="text-[10.5px] font-mono font-bold text-brand">1 : {calcTargetRR}</span>
-                  </div>
-                  <div className="grid grid-cols-5 gap-1">
-                    {[1.5, 2.0, 3.0, 4.0, 5.0].map((rr) => (
+                  <span className="text-[11px] font-semibold text-slate-800 block">Stop (Pips)</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={1000}
+                    step={1}
+                    value={calcSlPips}
+                    onChange={(e) => setCalcSlPips(Math.max(0.5, Number(e.target.value) || 0))}
+                    className="w-full h-8 rounded-lg border border-slate-200/70 bg-slate-100/80 px-2.5 text-[11.5px] font-mono font-semibold text-slate-900 outline-none focus:border-slate-400 focus:bg-white transition"
+                  />
+                  <div className="grid grid-cols-4 gap-0.5 p-0.5 bg-slate-100/80 rounded-md border border-slate-200/60">
+                    {[10, 20, 30, 50].map((pips) => (
                       <button
-                        key={rr}
+                        key={pips}
                         type="button"
-                        onClick={() => setCalcTargetRR(rr)}
-                        className={`py-1 rounded-lg text-[9.5px] font-mono font-semibold border transition cursor-pointer ${
-                          calcTargetRR === rr
-                            ? "bg-brand text-white border-brand shadow-2xs"
-                            : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
+                        onClick={() => setCalcSlPips(pips)}
+                        className={`py-0.5 rounded text-[9.5px] font-mono font-semibold transition cursor-pointer ${
+                          calcSlPips === pips ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
                         }`}
                       >
-                        1:{rr}
+                        {pips}
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* HERO RESULT DISPLAY CARD */}
-              <div className="rounded-xl border border-slate-200/80 bg-slate-50/80 p-3.5 space-y-2.5">
+              {/* Target R:R */}
+              <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">
-                    Lot Size
-                  </span>
-                  <span className="text-[9.5px] font-mono font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
-                    {actualRiskPct.toFixed(1)}% Risk
-                  </span>
+                  <span className="text-[11px] font-semibold text-slate-800">Target R:R</span>
+                  <span className="text-[10.5px] font-mono text-slate-500">1 : {calcTargetRR}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
+                  {[1.5, 2.0, 3.0, 4.0, 5.0].map((rr) => (
+                    <button
+                      key={rr}
+                      type="button"
+                      onClick={() => setCalcTargetRR(rr)}
+                      className={`h-7 rounded-md text-[10px] font-mono font-semibold transition cursor-pointer ${
+                        calcTargetRR === rr
+                          ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                    >
+                      1:{rr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Result */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800">Lot Size</span>
+                  <span className="text-[10.5px] font-mono text-slate-400">{actualRiskPct.toFixed(1)}% risk</span>
                 </div>
 
-                {/* Main Lot Size Hero Display */}
-                <div className="p-3 rounded-xl bg-white border border-slate-200/80 text-center space-y-0.5">
-                  <span className="text-[9.5px] text-slate-400 font-semibold uppercase tracking-wider block">Standard Lots</span>
-                  <span className="text-2xl font-black font-mono text-emerald-600 tracking-tight block">
-                    {standardLots.toFixed(2)} <span className="text-xs text-slate-600 font-bold">Lots</span>
+                <div className="p-3 rounded-xl bg-slate-100/70 border border-slate-200/60 text-center space-y-1">
+                  <span className="text-2xl font-bold font-mono text-emerald-600 tracking-tight block">
+                    {standardLots.toFixed(2)} <span className="text-xs text-slate-500 font-semibold">Lots</span>
                   </span>
-                  <div className="flex items-center justify-center gap-3 text-[10px] font-mono text-slate-600 pt-1 border-t border-slate-100">
-                    <span><strong>{miniLots.toFixed(1)}</strong> Minis</span>
+                  <div className="flex items-center justify-center gap-2.5 text-[10px] font-mono text-slate-500">
+                    <span>{miniLots.toFixed(1)} mini</span>
                     <span>•</span>
-                    <span><strong>{microLots}</strong> Micros</span>
+                    <span>{microLots} micro</span>
                     <span>•</span>
-                    <span><strong>{units.toLocaleString()}</strong> Units</span>
+                    <span>{units.toLocaleString()} units</span>
                   </div>
                 </div>
 
-                {/* Risk vs Reward Metrics Matrix */}
                 <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
-                  {/* Risk Amount Box */}
-                  <div className="p-2 bg-rose-50 border border-rose-200 space-y-0.5">
-                    <span className="text-[9px] font-bold text-rose-700 block">Total Risk ($)</span>
-                    <span className="font-extrabold text-rose-800 text-sm block font-mono">
-                      -${riskDollars.toFixed(2)}
-                    </span>
-                    <span className="text-[9.5px] text-rose-600 block">
-                      -{actualRiskPct.toFixed(2)}% ({calcSlPips} Pips)
-                    </span>
+                  <div className="p-2 rounded-lg bg-rose-50/70 border border-rose-200/70 space-y-0.5">
+                    <span className="text-[9.5px] font-sans font-medium text-rose-700 block">Risk</span>
+                    <span className="font-bold text-rose-700 text-[13px] block">-${riskDollars.toFixed(2)}</span>
+                    <span className="text-[9.5px] text-rose-600/80 block">${projectedBalanceLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                   </div>
-
-                  {/* Reward Amount Box */}
-                  <div className="p-2 bg-emerald-50 border border-emerald-200 space-y-0.5">
-                    <span className="text-[9px] font-bold text-emerald-700 block">Target Gain ($)</span>
-                    <span className="font-extrabold text-emerald-800 text-sm block font-mono">
-                      +${rewardDollars.toFixed(2)}
-                    </span>
-                    <span className="text-[9.5px] text-emerald-600 block">
-                      +{(actualRiskPct * calcTargetRR).toFixed(2)}% ({rewardPips} Pips)
-                    </span>
-                  </div>
-                </div>
-
-                {/* Account Balance Outcomes */}
-                <div className="p-2 bg-white border border-slate-300 space-y-1 text-[11px] font-mono">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-600">If Stop Loss Hit:</span>
-                    <span className="font-bold text-rose-700">${projectedBalanceLoss.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-600">If 1:{calcTargetRR} Target Hit:</span>
-                    <span className="font-bold text-emerald-700">${projectedBalanceWin.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <div className="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200/70 space-y-0.5">
+                    <span className="text-[9.5px] font-sans font-medium text-emerald-700 block">Target</span>
+                    <span className="font-bold text-emerald-700 text-[13px] block">+${rewardDollars.toFixed(2)}</span>
+                    <span className="text-[9.5px] text-emerald-600/80 block">${projectedBalanceWin.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                   </div>
                 </div>
               </div>
@@ -10570,15 +10466,15 @@ export default function WhiteboardPage() {
         {/* TAB 11: ECONOMIC NEWS CALENDAR & HIGH-IMPACT ALERTS */}
         {tabKey === "economic_calendar" && (
           <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
-            {/* View Mode Toggle & Live Sync Header */}
-            <div className="flex items-center justify-between gap-2 p-1 bg-white border border-slate-300 shadow-2xs">
-              <div className="flex items-center gap-1">
+            {/* Header: Segmented Mode + Refresh */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="grid grid-cols-2 gap-0.5 flex-1 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
                 <button
                   type="button"
                   onClick={() => setCalendarViewMode("live")}
-                  className={`px-2 py-0.5 text-[11px] font-bold transition-colors ${
+                  className={`h-7 rounded-md text-[11px] font-medium transition cursor-pointer ${
                     calendarViewMode === "live"
-                      ? "bg-slate-100 text-slate-900 border border-slate-300"
+                      ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -10587,13 +10483,13 @@ export default function WhiteboardPage() {
                 <button
                   type="button"
                   onClick={() => setCalendarViewMode("tradingview")}
-                  className={`px-2 py-0.5 text-[11px] font-bold transition-colors ${
+                  className={`h-7 rounded-md text-[11px] font-medium transition cursor-pointer ${
                     calendarViewMode === "tradingview"
-                      ? "bg-slate-100 text-slate-900 border border-slate-300"
+                      ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
-                  TradingView Widget
+                  Widget
                 </button>
               </div>
 
@@ -10601,128 +10497,108 @@ export default function WhiteboardPage() {
                 type="button"
                 onClick={() => fetchLiveCalendarEvents(true)}
                 disabled={isCalendarLoading}
-                className="w-18 shrink-0 flex items-center justify-center gap-1 px-1.5 py-0.5 text-[10px] font-mono text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-75"
-                title="Refresh live economic calendar"
+                className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg text-slate-600 bg-slate-100/80 border border-slate-200/60 hover:bg-slate-100 hover:text-slate-900 transition disabled:opacity-60 cursor-pointer"
+                title="Refresh economic calendar"
               >
-                <RefreshCw className={`h-3 w-3 shrink-0 ${isCalendarLoading ? "animate-spin text-emerald-600" : ""}`} />
-                <span className="truncate">{isCalendarLoading ? "Syncing…" : "Sync"}</span>
+                <RefreshCw className={`h-3.5 w-3.5 ${isCalendarLoading ? "animate-spin text-emerald-600" : ""}`} />
               </button>
             </div>
 
-            {/* TradingView Widget Mode */}
             {calendarViewMode === "tradingview" ? (
               <div className="space-y-2">
                 <TradingViewCalendarWidget />
-                <p className="text-[10px] text-slate-500 text-center font-mono">
-                  Live institutional data streamed via TradingView Events Engine
+                <p className="text-[10px] text-slate-400 text-center">
+                  TradingView Events Engine
                 </p>
               </div>
             ) : (
-              /* Live Feed Mode */
               <div className="space-y-2.5">
-                {/* Next Upcoming High Impact Alert Banner (Clean Minimalist) */}
+                {/* Next High Impact Banner */}
                 {nextHighImpactEvent && (
-                  <div className="p-2 bg-rose-50/80 border border-rose-200 space-y-1.5 shadow-2xs">
+                  <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/70 space-y-1.5">
                     <div className="flex items-center justify-between gap-1.5">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="relative flex h-2 w-2 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
-                        </span>
-                        <span className="text-[11px] font-bold text-rose-900 truncate">
-                          Next High Impact: [{nextHighImpactEvent.country}] {nextHighImpactEvent.title}
+                        <span className="h-2 w-2 rounded-full bg-rose-500 shrink-0" />
+                        <span className="text-[11px] font-semibold text-rose-900 truncate">
+                          [{nextHighImpactEvent.country}] {nextHighImpactEvent.title}
                         </span>
                       </div>
-                      <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 bg-rose-100 text-rose-800 border border-rose-300 shrink-0">
+                      <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-white/80 text-rose-700 border border-rose-200/80 shrink-0">
                         {calendarCountdown || "SOON"}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-600 pt-1 border-t border-rose-200/70">
-                      <span>Forecast: <strong className="text-slate-800">{nextHighImpactEvent.forecast || "N/A"}</strong></span>
-                      <span>Prior: <strong className="text-slate-800">{nextHighImpactEvent.previous || "N/A"}</strong></span>
+                    <div className="flex items-center justify-between gap-2 text-[10px] font-mono text-slate-600 pt-1 border-t border-rose-200/50">
+                      <span className="truncate">Frcst: <strong className="text-slate-800">{nextHighImpactEvent.forecast || "—"}</strong></span>
+                      <span className="truncate">Prior: <strong className="text-slate-800">{nextHighImpactEvent.previous || "—"}</strong></span>
                       <button
                         type="button"
                         onClick={() => stampNewsEventToCanvas(nextHighImpactEvent)}
-                        className="text-[10px] font-bold text-rose-700 hover:text-rose-900 underline cursor-pointer"
+                        className="text-[10px] font-sans font-semibold text-rose-700 hover:text-rose-900 shrink-0 cursor-pointer"
+                        title="Stamp to canvas"
                       >
-                        Stamp to Canvas
+                        + Stamp
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* Minimalist Filter Controls: Impact & Currency */}
-                <div className="p-2 bg-white border border-slate-300 space-y-1.5 shadow-2xs">
-                  <div className="flex items-center justify-between gap-1 text-[10.5px]">
-                    <span className="font-medium text-slate-600">Impact:</span>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setCalendarImpactFilter("all")}
-                        className={`px-1.5 py-0.5 text-[9.5px] font-medium border transition-colors ${
-                          calendarImpactFilter === "all"
-                            ? "bg-slate-100 text-slate-900 border-slate-300 font-bold"
-                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCalendarImpactFilter("med_high")}
-                        className={`px-1.5 py-0.5 text-[9.5px] font-medium border transition-colors ${
-                          calendarImpactFilter === "med_high"
-                            ? "bg-slate-100 text-slate-900 border-slate-300 font-bold"
-                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        Med+High
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCalendarImpactFilter("high")}
-                        className={`px-1.5 py-0.5 text-[9.5px] font-medium border transition-colors ${
-                          calendarImpactFilter === "high"
-                            ? "bg-rose-50 text-rose-800 border-rose-300 font-bold"
-                            : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        High Only
-                      </button>
+                {/* Filters */}
+                <div className="space-y-1.5 pb-2.5 border-b border-slate-200/70">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-slate-800">Impact</span>
+                    <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
+                      {[
+                        { id: "all", label: "All" },
+                        { id: "med_high", label: "Med+" },
+                        { id: "high", label: "High" },
+                      ].map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => setCalendarImpactFilter(f.id as any)}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition cursor-pointer ${
+                            calendarImpactFilter === f.id
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-1 text-[10.5px] pt-1 border-t border-slate-100">
-                    <span className="font-medium text-slate-600">Currency:</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-slate-800">Currency</span>
                     <select
                       value={calendarCurrencyFilter}
                       onChange={(e) => setCalendarCurrencyFilter(e.target.value)}
-                      className="px-1.5 py-0.5 bg-slate-50 border border-slate-300 text-[10.5px] font-mono font-bold text-slate-800 focus:outline-hidden"
+                      className="h-7 px-2 rounded-lg bg-slate-100/80 border border-slate-200/70 text-[10.5px] font-medium text-slate-800 outline-none focus:border-slate-400 cursor-pointer"
                     >
-                      <option value="ALL">ALL Currencies</option>
-                      <option value="USD">USD - US Dollar</option>
-                      <option value="EUR">EUR - Euro</option>
-                      <option value="GBP">GBP - British Pound</option>
-                      <option value="JPY">JPY - Japanese Yen</option>
-                      <option value="AUD">AUD - Australian Dollar</option>
-                      <option value="CAD">CAD - Canadian Dollar</option>
-                      <option value="CHF">CHF - Swiss Franc</option>
-                      <option value="NZD">NZD - New Zealand Dollar</option>
+                      <option value="ALL">All Currencies</option>
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="JPY">JPY</option>
+                      <option value="AUD">AUD</option>
+                      <option value="CAD">CAD</option>
+                      <option value="CHF">CHF</option>
+                      <option value="NZD">NZD</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Event Count and Header */}
-                <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono px-0.5">
-                  <span>{filteredCalendarEvents.length} Release(s)</span>
-                  <span>Institutional Feed</span>
+                {/* Count */}
+                <div className="flex items-center justify-between text-[10.5px] text-slate-400 px-0.5">
+                  <span>{filteredCalendarEvents.length} releases</span>
+                  <span>Live feed</span>
                 </div>
 
-                {/* Event Cards List */}
-                <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-0.5">
+                {/* Event Rows */}
+                <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-0.5">
                   {filteredCalendarEvents.length === 0 ? (
-                    <div className="p-4 bg-white border border-slate-300 text-center text-slate-500 text-xs">
-                      No economic events found for the selected filters.
+                    <div className="py-6 rounded-lg border border-dashed border-slate-200 text-center text-slate-400 text-[11px]">
+                      No events match filters
                     </div>
                   ) : (
                     filteredCalendarEvents.map((evt, idx) => {
@@ -10736,32 +10612,32 @@ export default function WhiteboardPage() {
                       return (
                         <div
                           key={`${evt.title}-${idx}`}
-                          className="p-2 bg-white border border-slate-300 space-y-1 hover:border-slate-400 transition-colors shadow-2xs"
+                          className="p-2.5 rounded-lg bg-slate-50/80 border border-slate-200/70 space-y-1.5 hover:bg-white transition-colors"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <div className="flex items-center gap-1.5 mb-0.5">
-                                <span className="text-[10px] font-mono font-bold px-1 py-0.2 bg-slate-100 text-slate-800 border border-slate-200">
+                              <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                                <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded bg-white border border-slate-200/80 text-slate-700">
                                   {evt.country}
                                 </span>
                                 <span
-                                  className={`text-[8.5px] font-mono font-bold px-1 py-0.2 border ${
+                                  className={`text-[9px] font-semibold px-1.5 py-0.2 rounded ${
                                     isHigh
-                                      ? "bg-rose-50 text-rose-800 border-rose-300"
+                                      ? "bg-rose-100/80 text-rose-700"
                                       : isMed
-                                      ? "bg-amber-50 text-amber-800 border-amber-300"
-                                      : "bg-slate-50 text-slate-600 border-slate-200"
+                                      ? "bg-amber-100/80 text-amber-700"
+                                      : "bg-slate-200/70 text-slate-600"
                                   }`}
                                 >
                                   {evt.impact?.toUpperCase() || "LOW"}
                                 </span>
                                 {isValidDate && (
-                                  <span className="text-[9.5px] font-mono text-slate-500">
+                                  <span className="text-[9.5px] font-mono text-slate-400">
                                     {dateStr} {timeStr}
                                   </span>
                                 )}
                               </div>
-                              <p className="font-bold text-[11.5px] text-slate-900 leading-snug">
+                              <p className="font-medium text-[11.5px] text-slate-800 leading-snug">
                                 {evt.title}
                               </p>
                             </div>
@@ -10769,18 +10645,18 @@ export default function WhiteboardPage() {
                             <button
                               type="button"
                               onClick={() => stampNewsEventToCanvas(evt)}
-                              className="shrink-0 p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
-                              title="Stamp this news event onto Whiteboard canvas"
+                              className="shrink-0 p-1 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition cursor-pointer"
+                              title="Stamp to canvas"
                             >
                               <BookmarkPlus className="h-3.5 w-3.5" />
                             </button>
                           </div>
 
-                          <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-slate-100 text-slate-600">
-                            <span>Frcst: <strong className="text-slate-800">{evt.forecast || "—"}</strong></span>
-                            <span>Prior: <strong className="text-slate-800">{evt.previous || "—"}</strong></span>
+                          <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-slate-200/50 text-slate-500">
+                            <span>Frcst: <strong className="text-slate-700">{evt.forecast || "—"}</strong></span>
+                            <span>Prior: <strong className="text-slate-700">{evt.previous || "—"}</strong></span>
                             {evt.actual && (
-                              <span>Actual: <strong className={isHigh ? "text-rose-700" : "text-slate-900"}>{evt.actual}</strong></span>
+                              <span>Act: <strong className={isHigh ? "text-rose-600" : "text-slate-800"}>{evt.actual}</strong></span>
                             )}
                           </div>
                         </div>
