@@ -7950,19 +7950,14 @@ export default function WhiteboardPage() {
           return (
             <div className="space-y-3 animate-in fade-in duration-150 text-slate-800 text-xs">
               {/* 1. Header: Object / Tool Identity & Lock */}
-              <div className="flex items-center justify-between px-1 py-0.5">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 shrink-0">
+              <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs gap-2">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                  <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
                     <IconComp className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="font-bold text-xs text-slate-900 truncate block">
-                      {selectedShape ? (selectedShape.name || selectedShape.type.toUpperCase()) : "DEFAULT (" + targetTool.toUpperCase() + ")"}
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-sans block">
-                      {selectedShape ? ("ID: " + selectedShape.id.slice(0, 10)) : "Editing tool default properties"}
-                    </span>
-                  </div>
+                  </span>
+                  <span className="truncate capitalize">
+                    {selectedShape ? (selectedShape.name || selectedShape.type) : `${targetTool} Properties`}
+                  </span>
                 </div>
                 {selectedShape && (
                   <div className="flex items-center gap-1">
@@ -9338,19 +9333,14 @@ export default function WhiteboardPage() {
                 {tabKey === "character" && (
                   <div className="space-y-2.5 animate-in fade-in duration-150 text-slate-800 text-xs">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-1 py-0.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 shrink-0">
+                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
                           <CharacterIcon className="h-3.5 w-3.5" />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-bold text-xs text-slate-900 truncate block">
-                            {selectedShape ? `Text: ${selectedShape.name || selectedShape.type.toUpperCase()}` : "Typography"}
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-sans block">
-                            {selectedShape ? "Live Canvas Sync" : "Default Typography"}
-                          </span>
-                        </div>
+                        </span>
+                        <span className="truncate">
+                          {selectedShape ? `Text: ${selectedShape.name || selectedShape.type.toUpperCase()}` : "Typography"}
+                        </span>
                       </div>
                     </div>
 
