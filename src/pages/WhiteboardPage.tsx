@@ -8706,108 +8706,213 @@ export default function WhiteboardPage() {
                 );
               })()}
 
-              {/* 6. Fill Section with Rich RGB/HEX Color Picker */}
-              <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  <span>Fill & Background</span>
-                  <span className="text-[10px] font-bold text-slate-700 capitalize">{curFillStyle}</span>
+              {/* 6. Fill */}
+              <div className="space-y-2.5 pb-3 border-b border-slate-200/70">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800">Fill</span>
+                  <span className="text-[10.5px] text-slate-400 capitalize">{curFillStyle === "translucent" ? "Soft" : curFillStyle}</span>
                 </div>
 
-                {/* Fill Style Pills: Soft / Solid / Gradient / None */}
-                <div className="grid grid-cols-4 gap-1 p-0.5 bg-slate-100 rounded-lg">
+                {/* Fill Style */}
+                <div className="grid grid-cols-4 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
                   {(["translucent", "solid", "gradient", "none"] as const).map((styleOpt) => (
                     <button
                       key={styleOpt}
                       type="button"
                       onClick={() => applyFillStyleToSelected(styleOpt)}
                       disabled={selectedShape?.isLocked}
-                      className={'py-1 rounded-md text-[10px] font-bold capitalize transition cursor-pointer ' + (curFillStyle === styleOpt ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900") + (selectedShape?.isLocked ? " opacity-40 cursor-not-allowed" : "")}
+                      className={`py-1 rounded-md text-[10.5px] font-medium capitalize transition cursor-pointer ${
+                        curFillStyle === styleOpt
+                          ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                          : "text-slate-500 hover:text-slate-800"
+                      }${selectedShape?.isLocked ? " opacity-40 cursor-not-allowed" : ""}`}
                     >
-                      {styleOpt === "translucent" ? "Soft" : styleOpt}
+                      {styleOpt === "translucent" ? "Soft" : styleOpt === "gradient" ? "Grad" : styleOpt}
                     </button>
                   ))}
                 </div>
 
-                {/* Fill Color Row */}
+                {/* Fill Color */}
                 {curFillStyle !== "none" && (
-                  <div className="space-y-3">
-                    <ModernColorField
-                      label="Fill Color"
-                      color={curFillColor}
-                      onChange={(hex) => applyFillColorToSelected(hex)}
-                      pickerKey="fill"
-                      activeKey={activeColorPicker}
-                      setActiveKey={setActiveColorPicker}
-                      disabled={selectedShape?.isLocked}
-                      quickSwatches={["#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#0f172a", "#ffffff"]}
-                    />
-
-                    {/* Gradient End Color (if Gradient mode) */}
-                    {curFillStyle === "gradient" && (
-                      <div className="pt-2 border-t border-slate-100">
-                        <ModernColorField
-                          label="Gradient End Color"
-                          color={curGradientEnd}
-                          onChange={(hex) => applyGradientEndColorToSelected(hex)}
-                          pickerKey="gradientEnd"
-                          activeKey={activeColorPicker}
-                          setActiveKey={setActiveColorPicker}
-                          disabled={selectedShape?.isLocked}
-                          quickSwatches={["#1d4ed8", "#047857", "#b91c1c", "#b45309", "#6d28d9", "#0f172a", "#ffffff"]}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <label
+                        className="relative flex items-center gap-2 flex-1 h-8 px-2 rounded-lg bg-slate-100/80 hover:bg-slate-100 border border-slate-200/60 cursor-pointer transition-colors"
+                        title="Pick fill color"
+                      >
+                        <span
+                          className="w-4 h-4 rounded-sm border border-black/10 shrink-0"
+                          style={{ backgroundColor: curFillColor }}
                         />
+                        <input
+                          type="color"
+                          value={curFillColor.startsWith("#") && curFillColor.length === 7 ? curFillColor : "#ffffff"}
+                          disabled={selectedShape?.isLocked}
+                          onChange={(e) => applyFillColorToSelected(e.target.value)}
+                          className="sr-only"
+                        />
+                        <input
+                          type="text"
+                          value={curFillColor.toUpperCase()}
+                          disabled={selectedShape?.isLocked}
+                          onChange={(e) => {
+                            const val = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
+                            if (/^#[0-9A-Fa-f]{6}$/.test(val)) applyFillColorToSelected(val);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full bg-transparent text-[11px] font-mono font-medium text-slate-700 uppercase outline-none"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-1">
+                      {["#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#0f172a", "#ffffff"].map((col) => {
+                        const active = curFillColor.toLowerCase() === col.toLowerCase();
+                        return (
+                          <button
+                            key={col}
+                            type="button"
+                            disabled={selectedShape?.isLocked}
+                            onClick={() => applyFillColorToSelected(col)}
+                            style={{ backgroundColor: col }}
+                            title={col}
+                            className={`w-4.5 h-4.5 rounded-full border border-black/15 transition-transform cursor-pointer ${
+                              active ? "scale-115 ring-2 ring-slate-900 ring-offset-1" : "hover:scale-110"
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {curFillStyle === "gradient" && (
+                      <div className="pt-1.5 border-t border-slate-100 space-y-1.5">
+                        <span className="text-[10.5px] text-slate-500 block">Gradient end</span>
+                        <div className="flex items-center justify-between gap-1">
+                          {["#1d4ed8", "#047857", "#b91c1c", "#b45309", "#6d28d9", "#0f172a", "#ffffff"].map((col) => {
+                            const active = curGradientEnd.toLowerCase() === col.toLowerCase();
+                            return (
+                              <button
+                                key={col}
+                                type="button"
+                                disabled={selectedShape?.isLocked}
+                                onClick={() => applyGradientEndColorToSelected(col)}
+                                style={{ backgroundColor: col }}
+                                title={col}
+                                className={`w-4.5 h-4.5 rounded-full border border-black/15 transition-transform cursor-pointer ${
+                                  active ? "scale-115 ring-2 ring-slate-900 ring-offset-1" : "hover:scale-110"
+                                }`}
+                              />
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* 7. Stroke / Outline Section with px Field & Color Picker */}
-              <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  <span>Stroke & Outline</span>
-                  <span className="text-[10px] font-mono font-bold text-slate-700">{curStrokeWidth}px</span>
+              {/* 7. Stroke */}
+              <div className="space-y-2.5 pb-3 border-b border-slate-200/70">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800">Stroke</span>
+                  <span className="text-[10.5px] font-mono text-slate-400">{curStrokeWidth}px</span>
                 </div>
 
-                <ModernColorField
-                  label="Stroke Color"
-                  color={curStrokeColor}
-                  onChange={(hex) => applyColorToSelected(hex)}
-                  pickerKey="stroke"
-                  activeKey={activeColorPicker}
-                  setActiveKey={setActiveColorPicker}
-                  disabled={selectedShape?.isLocked}
-                  quickSwatches={["#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#ffffff"]}
-                />
+                {/* Color + Pattern */}
+                <div className="flex items-center gap-1.5">
+                  <label
+                    className="relative flex items-center gap-2 flex-1 h-8 px-2 rounded-lg bg-slate-100/80 hover:bg-slate-100 border border-slate-200/60 cursor-pointer transition-colors"
+                    title="Pick stroke color"
+                  >
+                    <span
+                      className="w-4 h-4 rounded-sm border border-black/10 shrink-0"
+                      style={{ backgroundColor: curStrokeColor }}
+                    />
+                    <input
+                      type="color"
+                      value={curStrokeColor.startsWith("#") && curStrokeColor.length === 7 ? curStrokeColor : "#000000"}
+                      disabled={selectedShape?.isLocked}
+                      onChange={(e) => applyColorToSelected(e.target.value)}
+                      className="sr-only"
+                    />
+                    <input
+                      type="text"
+                      value={curStrokeColor.toUpperCase()}
+                      disabled={selectedShape?.isLocked}
+                      onChange={(e) => {
+                        const val = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
+                        if (/^#[0-9A-Fa-f]{6}$/.test(val)) applyColorToSelected(val);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full bg-transparent text-[11px] font-mono font-medium text-slate-700 uppercase outline-none"
+                    />
+                  </label>
 
-                {/* Stroke Width in px Input Field + Preset Chips */}
-                <div className="space-y-1.5 pt-1 border-t border-slate-100">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold text-slate-500">Width</span>
-                    <div className="w-24 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition font-mono">
-                      <input
-                        type="number"
-                        min={0.5}
-                        max={40}
-                        step={0.5}
-                        value={curStrokeWidth}
-                        disabled={selectedShape?.isLocked}
-                        onChange={(e) => {
-                          const w = Math.max(0.5, parseFloat(e.target.value) || 1);
-                          setStrokeWidth(w);
-                          if (selectedShapeIds.length > 0) {
-                            setShapes((prev) =>
-                              prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s))
-                            );
-                          }
-                        }}
-                        className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-1"
-                      />
-                      <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
-                    </div>
+                  {/* Solid / Dashed Icon Toggle */}
+                  <div className="flex items-center bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60 shrink-0">
+                    {(["solid", "dashed"] as const).map((pat) => {
+                      const active = (selectedShape?.lineStyle || lineStyle) === pat;
+                      return (
+                        <button
+                          key={pat}
+                          type="button"
+                          title={pat === "solid" ? "Solid" : "Dashed"}
+                          disabled={selectedShape?.isLocked}
+                          onClick={() => {
+                            setLineStyle(pat);
+                            if (selectedShapeIds.length > 0) {
+                              setShapes((prev) =>
+                                prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: pat } : s))
+                              );
+                            }
+                          }}
+                          className={`w-8 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer ${
+                            active
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                              : "text-slate-500 hover:text-slate-800"
+                          }`}
+                        >
+                          <svg width="16" height="4" viewBox="0 0 16 4" fill="none">
+                            <line
+                              x1="1"
+                              y1="2"
+                              x2="15"
+                              y2="2"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeDasharray={pat === "dashed" ? "4 3" : undefined}
+                            />
+                          </svg>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
 
-                  {/* Width Quick Chips */}
-                  <div className="grid grid-cols-5 gap-1">
+                {/* Stroke Quick Swatches */}
+                <div className="flex items-center justify-between gap-1">
+                  {["#0f172a", "#3b82f6", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => {
+                    const active = curStrokeColor.toLowerCase() === col.toLowerCase();
+                    return (
+                      <button
+                        key={col}
+                        type="button"
+                        disabled={selectedShape?.isLocked}
+                        onClick={() => applyColorToSelected(col)}
+                        style={{ backgroundColor: col }}
+                        title={col}
+                        className={`w-4.5 h-4.5 rounded-full border border-black/15 transition-transform cursor-pointer ${
+                          active ? "scale-115 ring-2 ring-slate-900 ring-offset-1" : "hover:scale-110"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Weight Row */}
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <div className="grid grid-cols-5 gap-0.5 flex-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
                     {[1, 2, 3, 4, 6].map((w) => (
                       <button
                         key={w}
@@ -8821,108 +8926,111 @@ export default function WhiteboardPage() {
                           }
                         }}
                         disabled={selectedShape?.isLocked}
-                        className={'py-0.5 rounded text-[10px] font-mono font-bold transition cursor-pointer ' + (curStrokeWidth === w ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900")}
+                        title={`${w}px`}
+                        className={`h-7 rounded-md text-[10.5px] font-semibold transition-all cursor-pointer ${
+                          curStrokeWidth === w
+                            ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                            : "text-slate-500 hover:text-slate-800"
+                        }`}
                       >
-                        {w}px
+                        {w}
                       </button>
                     ))}
                   </div>
-                </div>
 
-                {/* Stroke Pattern: Solid / Dashed */}
-                <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-100">
-                  {(["solid", "dashed"] as const).map((pat) => (
-                    <button
-                      key={pat}
-                      type="button"
-                      onClick={() => {
-                        setLineStyle(pat);
+                  <div className="w-16 h-8 flex items-center rounded-lg border border-slate-200/70 bg-slate-100/80 px-2 focus-within:border-slate-400 focus-within:bg-white transition font-mono">
+                    <input
+                      type="number"
+                      min={0.5}
+                      max={40}
+                      step={0.5}
+                      value={curStrokeWidth}
+                      disabled={selectedShape?.isLocked}
+                      onChange={(e) => {
+                        const w = Math.max(0.5, parseFloat(e.target.value) || 1);
+                        setStrokeWidth(w);
                         if (selectedShapeIds.length > 0) {
                           setShapes((prev) =>
-                            prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, lineStyle: pat } : s))
+                            prev.map((s) => (selectedShapeIds.includes(s.id) && !s.isLocked ? { ...s, strokeWidth: w } : s))
                           );
                         }
                       }}
-                      disabled={selectedShape?.isLocked}
-                      className={'py-1 rounded-lg text-xs font-bold capitalize transition cursor-pointer border ' + ((selectedShape?.lineStyle || lineStyle) === pat ? "bg-slate-900 text-white border-slate-900 shadow-2xs" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-white")}
-                    >
-                      {pat}
-                    </button>
-                  ))}
+                      className="w-full bg-transparent font-medium text-[11px] text-slate-800 outline-none text-right pr-0.5"
+                    />
+                    <span className="text-[9.5px] text-slate-400 font-sans select-none">px</span>
+                  </div>
                 </div>
               </div>
 
-              {/* 8. Appearance: Opacity & Corner Radius px Fields */}
-              <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2.5">
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  <span>Appearance</span>
-                  <span className="text-[10px] font-mono font-bold text-slate-700">{curOpacity}%</span>
-                </div>
+              {/* 8. Appearance */}
+              <div className="space-y-2.5 pb-1">
+                <span className="text-[11px] font-semibold text-slate-800 block">Appearance</span>
 
-                {/* Opacity Slider + Input in % */}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                {/* Opacity */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10.5px] text-slate-500 w-12 shrink-0">Opacity</span>
+                  <input
+                    type="range"
+                    min={5}
+                    max={100}
+                    step={1}
+                    value={curOpacity}
+                    onChange={(e) => applyOpacityToSelected(parseInt(e.target.value, 10) / 100)}
+                    disabled={selectedShape?.isLocked}
+                    className="flex-1 accent-slate-900 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+                  />
+                  <div className="w-14 h-7 flex items-center rounded-lg border border-slate-200/70 bg-slate-100/80 px-1.5 focus-within:border-slate-400 focus-within:bg-white transition font-mono">
                     <input
-                      type="range"
+                      type="number"
                       min={5}
                       max={100}
-                      step={1}
                       value={curOpacity}
-                      onChange={(e) => applyOpacityToSelected(parseInt(e.target.value, 10) / 100)}
                       disabled={selectedShape?.isLocked}
-                      className="flex-1 accent-brand h-1.5 bg-slate-100 rounded-lg cursor-pointer"
+                      onChange={(e) => {
+                        const val = Math.max(5, Math.min(100, parseInt(e.target.value, 10) || 5));
+                        applyOpacityToSelected(val / 100);
+                      }}
+                      className="w-full bg-transparent font-medium text-[11px] text-slate-800 outline-none text-right pr-0.5"
                     />
-                    <div className="w-16 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-0.5 focus-within:border-brand focus-within:bg-white transition font-mono">
-                      <input
-                        type="number"
-                        min={5}
-                        max={100}
-                        value={curOpacity}
-                        disabled={selectedShape?.isLocked}
-                        onChange={(e) => {
-                          const val = Math.max(5, Math.min(100, parseInt(e.target.value, 10) || 5));
-                          applyOpacityToSelected(val / 100);
-                        }}
-                        className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
-                      />
-                      <span className="text-[9px] text-slate-400 font-sans select-none">%</span>
-                    </div>
+                    <span className="text-[9.5px] text-slate-400 font-sans select-none">%</span>
                   </div>
                 </div>
 
-                {/* Corner Radius in px Input Field */}
-                <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold text-slate-500">Corner Radius</span>
-                    <div className="w-20 flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 focus-within:border-brand focus-within:bg-white transition font-mono">
-                      <input
-                        type="number"
-                        min={0}
-                        max={60}
-                        value={curRadius}
-                        disabled={selectedShape?.isLocked}
-                        onChange={(e) => {
-                          const rad = Math.max(0, Math.min(60, parseInt(e.target.value, 10) || 0));
-                          applyCornerRadiusToSelected(rad);
-                        }}
-                        className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5"
-                      />
-                      <span className="text-[9px] text-slate-400 font-sans select-none">px</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-1">
+                {/* Radius */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10.5px] text-slate-500 w-12 shrink-0">Radius</span>
+                  <div className="grid grid-cols-5 gap-0.5 flex-1 bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/60">
                     {[0, 4, 8, 16, 24].map((rad) => (
                       <button
                         key={rad}
                         type="button"
                         onClick={() => applyCornerRadiusToSelected(rad)}
                         disabled={selectedShape?.isLocked}
-                        className={'py-0.5 rounded text-[10px] font-mono font-bold transition cursor-pointer ' + (curRadius === rad ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900")}
+                        title={`${rad}px`}
+                        className={`h-7 rounded-md text-[10.5px] font-semibold transition-all cursor-pointer ${
+                          curRadius === rad
+                            ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                            : "text-slate-500 hover:text-slate-800"
+                        }`}
                       >
-                        {rad}px
+                        {rad}
                       </button>
                     ))}
+                  </div>
+                  <div className="w-14 h-7 flex items-center rounded-lg border border-slate-200/70 bg-slate-100/80 px-1.5 focus-within:border-slate-400 focus-within:bg-white transition font-mono">
+                    <input
+                      type="number"
+                      min={0}
+                      max={60}
+                      value={curRadius}
+                      disabled={selectedShape?.isLocked}
+                      onChange={(e) => {
+                        const rad = Math.max(0, Math.min(60, parseInt(e.target.value, 10) || 0));
+                        applyCornerRadiusToSelected(rad);
+                      }}
+                      className="w-full bg-transparent font-medium text-[11px] text-slate-800 outline-none text-right pr-0.5"
+                    />
+                    <span className="text-[9.5px] text-slate-400 font-sans select-none">px</span>
                   </div>
                 </div>
               </div>
@@ -9246,11 +9354,11 @@ export default function WhiteboardPage() {
                       </div>
                     </div>
 
-                    {/* 1. Live Text Content Editor */}
-                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-1.5 shadow-2xs">
-                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        <span>Content</span>
-                        {selectedShape && <span className="text-[9px] text-brand font-semibold">Synced</span>}
+                    {/* 1. Text */}
+                    <div className="space-y-1.5 pb-3 border-b border-slate-200/70">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-slate-800">Text</span>
+                        {selectedShape && <span className="text-[10px] text-slate-400">Synced</span>}
                       </div>
                       <textarea
                         rows={2}
@@ -9261,22 +9369,20 @@ export default function WhiteboardPage() {
                             updateActiveTypography({ text: val });
                           }
                         }}
-                        placeholder={selectedShape ? "Type text or note..." : "Select text on canvas to edit..."}
+                        placeholder={selectedShape ? "Type text..." : "Select text on canvas..."}
                         disabled={!selectedShape}
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50/70 p-2 text-xs font-medium text-slate-900 outline-none focus:border-brand focus:bg-white resize-none transition disabled:opacity-40"
+                        className="w-full rounded-lg border border-slate-200/70 bg-slate-100/70 p-2 text-[11.5px] font-medium text-slate-900 outline-none focus:border-slate-400 focus:bg-white resize-none transition disabled:opacity-40"
                       />
                     </div>
 
-                    {/* 2. Font Family & Size Combined Compact Card */}
-                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2 shadow-2xs">
-                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        <span>Font & Size</span>
-                      </div>
+                    {/* 2. Font */}
+                    <div className="space-y-2 pb-3 border-b border-slate-200/70">
+                      <span className="text-[11px] font-semibold text-slate-800 block">Font</span>
                       <div className="flex items-center gap-1.5">
                         <select
                           value={activeFontFamily}
                           onChange={(e) => updateActiveTypography({ fontFamily: e.target.value })}
-                          className="flex-1 min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 py-1.5 px-2 text-xs font-bold text-slate-800 outline-none focus:border-brand focus:bg-white transition cursor-pointer"
+                          className="flex-1 min-w-0 h-8 rounded-lg border border-slate-200/70 bg-slate-100/80 px-2 text-[11.5px] font-medium text-slate-800 outline-none focus:border-slate-400 focus:bg-white transition cursor-pointer"
                         >
                           <option value="Inter, sans-serif">Inter</option>
                           <option value="Roboto, sans-serif">Roboto</option>
@@ -9287,20 +9393,20 @@ export default function WhiteboardPage() {
                           <option value="'Caveat', cursive, sans-serif">Caveat</option>
                           <option value="'Impact', sans-serif">Impact</option>
                         </select>
-                        <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50/70 p-0.5 shrink-0">
+                        <div className="flex items-center h-8 rounded-lg border border-slate-200/70 bg-slate-100/80 p-0.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ fontSize: Math.max(8, activeFontSize - 2) })}
-                            className="h-6 w-6 rounded flex items-center justify-center text-xs font-black text-slate-600 hover:bg-white hover:text-brand transition cursor-pointer"
+                            className="h-6.5 w-6 rounded-md flex items-center justify-center text-xs font-semibold text-slate-600 hover:bg-white hover:text-slate-900 transition cursor-pointer"
                             title="Decrease Size"
                           >
                             -
                           </button>
-                          <span className="text-xs font-mono font-bold text-slate-800 w-8 text-center">{activeFontSize}</span>
+                          <span className="text-[11px] font-mono font-semibold text-slate-800 w-7 text-center">{activeFontSize}</span>
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ fontSize: Math.min(120, activeFontSize + 2) })}
-                            className="h-6 w-6 rounded flex items-center justify-center text-xs font-black text-slate-600 hover:bg-white hover:text-brand transition cursor-pointer"
+                            className="h-6.5 w-6 rounded-md flex items-center justify-center text-xs font-semibold text-slate-600 hover:bg-white hover:text-slate-900 transition cursor-pointer"
                             title="Increase Size"
                           >
                             +
@@ -9309,16 +9415,16 @@ export default function WhiteboardPage() {
                       </div>
 
                       {/* Quick Size Presets */}
-                      <div className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] pt-0.5">
+                      <div className="grid grid-cols-7 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
                         {[12, 14, 16, 20, 24, 32, 48].map((sz) => (
                           <button
                             key={sz}
                             type="button"
                             onClick={() => updateActiveTypography({ fontSize: sz })}
-                            className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold transition cursor-pointer shrink-0 ${
+                            className={`h-6.5 rounded-md text-[10px] font-semibold transition cursor-pointer ${
                               activeFontSize === sz
-                                ? "bg-brand text-white shadow-2xs"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
+                                : "text-slate-500 hover:text-slate-800"
                             }`}
                           >
                             {sz}
@@ -9327,20 +9433,17 @@ export default function WhiteboardPage() {
                       </div>
                     </div>
 
-                    {/* 3. Style, Alignment & Case Segmented Control Card */}
-                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2 shadow-2xs">
-                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        <span>Format & Align</span>
-                      </div>
+                    {/* 3. Style & Align */}
+                    <div className="space-y-2 pb-3 border-b border-slate-200/70">
+                      <span className="text-[11px] font-semibold text-slate-800 block">Style</span>
 
-                      {/* Style buttons */}
-                      <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-lg">
+                      <div className="grid grid-cols-4 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ fontWeight: activeFontWeight === "bold" ? "normal" : "bold" })}
-                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
                             activeFontWeight === "bold"
-                              ? "bg-white text-slate-900 shadow-2xs"
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
                               : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Bold"
@@ -9350,9 +9453,9 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ fontStyle: activeFontStyle === "italic" ? "normal" : "italic" })}
-                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
                             activeFontStyle === "italic"
-                              ? "bg-white text-slate-900 shadow-2xs"
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
                               : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Italic"
@@ -9362,9 +9465,9 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "underline" ? "none" : "underline" })}
-                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
                             activeTextDecoration === "underline"
-                              ? "bg-white text-slate-900 shadow-2xs"
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
                               : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Underline"
@@ -9374,9 +9477,9 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => updateActiveTypography({ textDecoration: activeTextDecoration === "line-through" ? "none" : "line-through" })}
-                          className={`flex-1 py-1 rounded-md flex items-center justify-center text-xs font-bold transition cursor-pointer ${
+                          className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
                             activeTextDecoration === "line-through"
-                              ? "bg-white text-slate-900 shadow-2xs"
+                              ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80"
                               : "text-slate-500 hover:text-slate-900"
                           }`}
                           title="Strikethrough"
@@ -9385,15 +9488,13 @@ export default function WhiteboardPage() {
                         </button>
                       </div>
 
-                      {/* Alignment and Transform Row */}
                       <div className="grid grid-cols-2 gap-1.5">
-                        {/* Alignment */}
-                        <div className="flex items-center gap-0.5 p-0.5 bg-slate-100/80 rounded-lg">
+                        <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ textAlign: "left" })}
-                            className={`flex-1 py-1 rounded-md flex items-center justify-center transition cursor-pointer ${
-                              activeTextAlign === "left" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextAlign === "left" ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80" : "text-slate-500 hover:text-slate-900"
                             }`}
                             title="Align Left"
                           >
@@ -9402,8 +9503,8 @@ export default function WhiteboardPage() {
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ textAlign: "center" })}
-                            className={`flex-1 py-1 rounded-md flex items-center justify-center transition cursor-pointer ${
-                              activeTextAlign === "center" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextAlign === "center" ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80" : "text-slate-500 hover:text-slate-900"
                             }`}
                             title="Align Center"
                           >
@@ -9412,8 +9513,8 @@ export default function WhiteboardPage() {
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ textAlign: "right" })}
-                            className={`flex-1 py-1 rounded-md flex items-center justify-center transition cursor-pointer ${
-                              activeTextAlign === "right" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextAlign === "right" ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80" : "text-slate-500 hover:text-slate-900"
                             }`}
                             title="Align Right"
                           >
@@ -9421,13 +9522,12 @@ export default function WhiteboardPage() {
                           </button>
                         </div>
 
-                        {/* Case transform */}
-                        <div className="flex items-center gap-0.5 p-0.5 bg-slate-100/80 rounded-lg">
+                        <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ textTransform: "none" })}
-                            className={`flex-1 py-1 rounded-md flex items-center justify-center text-[10px] font-bold transition cursor-pointer ${
-                              activeTextTransform === "none" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextTransform === "none" ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80" : "text-slate-500 hover:text-slate-900"
                             }`}
                             title="Regular"
                           >
@@ -9436,8 +9536,8 @@ export default function WhiteboardPage() {
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ textTransform: "uppercase" })}
-                            className={`flex-1 py-1 rounded-md flex items-center justify-center text-[10px] font-bold transition cursor-pointer ${
-                              activeTextTransform === "uppercase" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextTransform === "uppercase" ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80" : "text-slate-500 hover:text-slate-900"
                             }`}
                             title="UPPERCASE"
                           >
@@ -9446,8 +9546,8 @@ export default function WhiteboardPage() {
                           <button
                             type="button"
                             onClick={() => updateActiveTypography({ textTransform: "lowercase" })}
-                            className={`flex-1 py-1 rounded-md flex items-center justify-center text-[10px] font-bold transition cursor-pointer ${
-                              activeTextTransform === "lowercase" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-900"
+                            className={`h-7 rounded-md flex items-center justify-center transition cursor-pointer ${
+                              activeTextTransform === "lowercase" ? "bg-white text-slate-900 shadow-xs ring-1 ring-slate-200/80" : "text-slate-500 hover:text-slate-900"
                             }`}
                             title="lowercase"
                           >
@@ -9457,25 +9557,27 @@ export default function WhiteboardPage() {
                       </div>
                     </div>
 
-                    {/* 4. Color & Highlight Card */}
-                    <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2 shadow-2xs">
-                      {/* Text Color */}
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Text Color</span>
-                        <div className="flex items-center gap-1.5 p-1.5 bg-slate-50/70 rounded-lg border border-slate-200/60 overflow-x-auto [scrollbar-width:none]">
-                          {["#1e293b", "#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => (
-                            <button
-                              key={col}
-                              type="button"
-                              onClick={() => updateActiveTypography({ textColor: col })}
-                              style={{ backgroundColor: col }}
-                              className={`w-5 h-5 rounded-md border border-slate-300 transition-all hover:scale-105 cursor-pointer shrink-0 ${
-                                activeTextColor.toLowerCase() === col.toLowerCase() ? "ring-2 ring-brand ring-offset-1 ring-offset-white shadow-xs z-10" : ""
-                              }`}
-                              title={col}
-                            />
-                          ))}
-                          <div className="relative w-5 h-5 rounded-md border border-slate-300 overflow-hidden shrink-0 hover:scale-105 transition cursor-pointer flex items-center justify-center bg-white">
+                    {/* 4. Color & Highlight */}
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <span className="text-[11px] font-semibold text-slate-800 block">Color</span>
+                        <div className="flex items-center justify-between gap-1">
+                          {["#1e293b", "#dc3545", "#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ffffff"].map((col) => {
+                            const active = activeTextColor.toLowerCase() === col.toLowerCase();
+                            return (
+                              <button
+                                key={col}
+                                type="button"
+                                onClick={() => updateActiveTypography({ textColor: col })}
+                                style={{ backgroundColor: col }}
+                                className={`w-5 h-5 rounded-full border border-black/15 transition-transform cursor-pointer shrink-0 ${
+                                  active ? "scale-115 ring-2 ring-slate-900 ring-offset-1" : "hover:scale-110"
+                                }`}
+                                title={col}
+                              />
+                            );
+                          })}
+                          <div className="relative w-5 h-5 rounded-full border border-slate-300 overflow-hidden shrink-0 hover:scale-110 transition cursor-pointer flex items-center justify-center bg-slate-100">
                             <input
                               type="color"
                               value={activeTextColor.startsWith("#") && activeTextColor.length === 7 ? activeTextColor : "#1e293b"}
@@ -9483,15 +9585,14 @@ export default function WhiteboardPage() {
                               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                               title="Custom Color"
                             />
-                            <Palette className="h-3 w-3 text-slate-500 pointer-events-none" />
+                            <Palette className="h-3 w-3 text-slate-600 pointer-events-none" />
                           </div>
                         </div>
                       </div>
 
-                      {/* Highlight Background */}
-                      <div className="space-y-1 pt-1 border-t border-slate-100">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Highlight</span>
-                        <div className="flex items-center gap-1.5 p-1.5 bg-slate-50/70 rounded-lg border border-slate-200/60 overflow-x-auto [scrollbar-width:none]">
+                      <div className="space-y-1.5 pt-2 border-t border-slate-200/70">
+                        <span className="text-[11px] font-semibold text-slate-800 block">Highlight</span>
+                        <div className="flex items-center gap-2">
                           {[
                             { color: "transparent", label: "None" },
                             { color: "#fef08a", label: "Yellow" },
@@ -9499,20 +9600,23 @@ export default function WhiteboardPage() {
                             { color: "#bae6fd", label: "Blue" },
                             { color: "#fbcfe8", label: "Pink" },
                             { color: "#fed7aa", label: "Orange" },
-                          ].map((bg) => (
-                            <button
-                              key={bg.color}
-                              type="button"
-                              onClick={() => updateActiveTypography({ textBgColor: bg.color })}
-                              style={{ backgroundColor: bg.color === "transparent" ? "#ffffff" : bg.color }}
-                              className={`w-5 h-5 rounded-md border border-slate-300 transition-all hover:scale-105 flex items-center justify-center text-[9px] font-bold cursor-pointer shrink-0 ${
-                                activeTextBgColor === bg.color ? "ring-2 ring-brand ring-offset-1 ring-offset-white shadow-xs z-10" : ""
-                              }`}
-                              title={bg.label}
-                            >
-                              {bg.color === "transparent" && <span className="text-slate-400 text-[10px]">✕</span>}
-                            </button>
-                          ))}
+                          ].map((bg) => {
+                            const active = activeTextBgColor === bg.color;
+                            return (
+                              <button
+                                key={bg.color}
+                                type="button"
+                                onClick={() => updateActiveTypography({ textBgColor: bg.color })}
+                                style={{ backgroundColor: bg.color === "transparent" ? "#f8fafc" : bg.color }}
+                                className={`w-5 h-5 rounded-full border border-black/15 transition-transform flex items-center justify-center cursor-pointer shrink-0 ${
+                                  active ? "scale-115 ring-2 ring-slate-900 ring-offset-1" : "hover:scale-110"
+                                }`}
+                                title={bg.label}
+                              >
+                                {bg.color === "transparent" && <X className="h-2.5 w-2.5 text-slate-400" />}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
