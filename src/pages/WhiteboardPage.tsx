@@ -12065,100 +12065,82 @@ export default function WhiteboardPage() {
                   setSnapToGrid(!snapToGrid);
                   showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
                 }}
-                className={`h-full flex items-center justify-center gap-1 px-2.5 rounded-lg transition cursor-pointer text-xs font-semibold ${
+                className={`h-full flex items-center justify-center gap-1 px-2.5 rounded-lg transition cursor-pointer text-xs ${
                   snapToGrid
-                    ? "bg-white text-brand shadow-2xs font-bold"
-                    : "text-slate-700 hover:bg-white/70 hover:text-slate-950"
+                    ? "bg-brand hover:bg-brand-dark text-white shadow-xs font-bold"
+                    : "font-semibold text-slate-700 hover:bg-white/70 hover:text-slate-950"
                 }`}
                 title="Toggle Snap to Grid"
               >
-                <Magnet className={`h-3.5 w-3.5 stroke-[1.75] ${snapToGrid ? "text-brand" : "text-slate-600"}`} />
+                <Magnet className={`h-3.5 w-3.5 stroke-[1.75] ${snapToGrid ? "text-white" : "text-slate-600"}`} />
                 <span>Snap</span>
               </button>
             </div>
 
-            {/* 7. EXPORT DROPDOWN */}
-            <div className="relative h-full flex items-stretch">
-              <button
-                type="button"
-                onClick={() => {
-                  setExportOpen(!exportOpen);
-                  setFileMenuOpen(false);
-                  setEditMenuOpen(false);
-                  setViewMenuOpen(false);
-                  setInsertMenuOpen(false);
-                  setBgOpen(false);
-                  setUserMenuOpen(false);
-                }}
-                className={`h-full self-stretch flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 bg-brand hover:bg-brand-dark text-white font-extrabold text-[11px] sm:text-xs transition cursor-pointer shadow-xs rounded-lg ${
-                  exportOpen ? "bg-brand-dark" : ""
-                }`}
-                title="Export Diagram (PNG, JPEG, SVG)"
-              >
-                <Download className="h-3.5 w-3.5 text-white shrink-0 stroke-[2]" />
-                <span className="hidden sm:inline">Export</span>
-              </button>
-
-              {exportOpen && (
-                <div className="max-sm:fixed max-sm:left-2.5 max-sm:right-2.5 max-sm:top-14 max-sm:w-auto sm:absolute sm:right-0 sm:top-full sm:mt-1.5 sm:w-64 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
-                  <p className="px-2.5 py-1 text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Export Format</p>
-
-                  {/* PNG Option */}
-                  <button
-                    type="button"
-                    onClick={() => { handleExport("png"); setExportOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-none p-2 text-left hover:bg-slate-200 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <FileImage className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">PNG Image</p>
-                        <p className="text-[9.5px] text-slate-500">Lossless & Transparent</p>
-                      </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded-none bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
-                      .PNG
-                    </span>
-                  </button>
-
-                  {/* JPEG Option */}
-                  <button
-                    type="button"
-                    onClick={() => { handleExport("jpeg"); setExportOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-none p-2 text-left hover:bg-slate-200 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <FileImage className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">JPEG Photo</p>
-                        <p className="text-[9.5px] text-slate-500">High-Resolution Studio</p>
-                      </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded-none bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
-                      .JPG
-                    </span>
-                  </button>
-
-                  {/* SVG Option */}
-                  <button
-                    type="button"
-                    onClick={() => { handleExport("svg"); setExportOpen(false); }}
-                    className="flex w-full items-center justify-between rounded-none p-2 text-left hover:bg-slate-200 transition cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <FileCode className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
-                      <div>
-                        <p className="text-xs font-semibold text-slate-900">SVG Scalable Vector</p>
-                        <p className="text-[9.5px] text-slate-500">Infinite Resolution XML</p>
-                      </div>
-                    </div>
-                    <span className="px-1.5 py-0.5 rounded-none bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
-                      .SVG
-                    </span>
+            {exportOpen && (
+              <div className="fixed left-2.5 right-2.5 sm:left-auto sm:right-4 top-14 sm:w-64 rounded-xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-1.5 shadow-xl z-[100] animate-in fade-in text-slate-800 space-y-1">
+                <div className="flex items-center justify-between px-2.5 py-1">
+                  <p className="text-[9.5px] font-black uppercase text-slate-500 tracking-wider">Export Format</p>
+                  <button type="button" onClick={() => setExportOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
-              )}
-            </div>
+
+                {/* PNG Option */}
+                <button
+                  type="button"
+                  onClick={() => { handleExport("png"); setExportOpen(false); }}
+                  className="flex w-full items-center justify-between rounded-lg p-2 text-left hover:bg-slate-100 transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileImage className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">PNG Image</p>
+                      <p className="text-[9.5px] text-slate-500">Lossless & Transparent</p>
+                    </div>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
+                    .PNG
+                  </span>
+                </button>
+
+                {/* JPEG Option */}
+                <button
+                  type="button"
+                  onClick={() => { handleExport("jpeg"); setExportOpen(false); }}
+                  className="flex w-full items-center justify-between rounded-lg p-2 text-left hover:bg-slate-100 transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileImage className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">JPEG Photo</p>
+                      <p className="text-[9.5px] text-slate-500">High-Resolution Studio</p>
+                    </div>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
+                    .JPG
+                  </span>
+                </button>
+
+                {/* SVG Option */}
+                <button
+                  type="button"
+                  onClick={() => { handleExport("svg"); setExportOpen(false); }}
+                  className="flex w-full items-center justify-between rounded-lg p-2 text-left hover:bg-slate-100 transition cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileCode className="h-4 w-4 text-slate-600 stroke-[1.5] group-hover:text-slate-950" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900">SVG Scalable Vector</p>
+                      <p className="text-[9.5px] text-slate-500">Infinite Resolution XML</p>
+                    </div>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[9px] font-mono uppercase">
+                    .SVG
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Vertical Divider */}
             <span className="self-stretch w-px bg-slate-300 shrink-0 mx-0.5 hidden sm:inline" />
