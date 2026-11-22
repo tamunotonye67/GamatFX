@@ -4326,9 +4326,6 @@ export default function WhiteboardPage() {
         }
       }
 
-      if (dx !== 0 || dy !== 0) {
-        didAdjustShapeRef.current = true;
-      }
       setShapes((prev) =>
         prev.map((s) => {
           if (selectedShapeIds.includes(s.id) && !s.isLocked) {
