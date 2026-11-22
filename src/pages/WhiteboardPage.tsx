@@ -3004,6 +3004,19 @@ export default function WhiteboardPage() {
         return;
       }
 
+      if (pendingShapeAdjustIds.length > 0) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          commitShapeAdjustment();
+          return;
+        }
+        if (e.key === "Escape") {
+          e.preventDefault();
+          cancelShapeAdjustment();
+          return;
+        }
+      }
+
       if (e.key === "Escape") {
         setSelectedShapeIds([]);
         setActiveTool("select");
@@ -3930,6 +3943,10 @@ export default function WhiteboardPage() {
       // 2. Check if clicked on an unselected shape to select it and activate its nodes
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
       if (hitShape) {
+        if (pendingShapeAdjustIds.length > 0 && !pendingShapeAdjustIds.includes(hitShape.id)) {
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
+        }
         if (!selectedShapeIds.includes(hitShape.id)) {
           setSelectedShapeIds([hitShape.id]);
         }
@@ -3953,7 +3970,10 @@ export default function WhiteboardPage() {
         }
         return;
       } else {
-        if (pendingShapeAdjustIds.length > 0) commitShapeAdjustment();
+        if (pendingShapeAdjustIds.length > 0) {
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
+        }
         setSelectedShapeIds([]);
         setActiveNodeIndex(null);
         isDrawing.current = true;
@@ -3985,7 +4005,8 @@ export default function WhiteboardPage() {
 
       if (hitShape) {
         if (pendingShapeAdjustIds.length > 0 && !pendingShapeAdjustIds.includes(hitShape.id)) {
-          commitShapeAdjustment();
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
         }
         if (hitShape.type === "fibo" && hitShape.fiboLevels && hitShape.fiboLevels.length > 0) {
           setActiveFiboLevels(hitShape.fiboLevels);
@@ -4029,7 +4050,10 @@ export default function WhiteboardPage() {
           showToast("Object is locked 🔒");
         }
       } else {
-        if (pendingShapeAdjustIds.length > 0) commitShapeAdjustment();
+        if (pendingShapeAdjustIds.length > 0) {
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
+        }
         if (!e.shiftKey) {
           setSelectedShapeIds([]);
         }
@@ -4040,7 +4064,10 @@ export default function WhiteboardPage() {
       return;
     }
 
-    if (pendingShapeAdjustIds.length > 0) commitShapeAdjustment();
+    if (pendingShapeAdjustIds.length > 0) {
+      showToast("Confirm (✓) or Cancel (✕) adjustment first");
+      return;
+    }
     // Deselect active shapes when clicking empty canvas to draw
     setSelectedShapeIds([]);
 
