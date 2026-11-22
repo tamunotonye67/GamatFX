@@ -2209,7 +2209,7 @@ export default function WhiteboardPage() {
 
   // Confirm / Cancel floating bar after any shape adjustment (move / resize / node edit)
   const [pendingShapeAdjustIds, setPendingShapeAdjustIds] = useState<string[]>([]);
-  const pendingShapeAdjustRef = useRef<Record<string, Shape>>({});
+  const pendingShapeAdjustRef = useRef<Record<string, Shape | null>>({});
   const didAdjustShapeRef = useRef(false);
 
   const commitShapeAdjustment = () => {
@@ -2220,8 +2220,17 @@ export default function WhiteboardPage() {
 
   const cancelShapeAdjustment = () => {
     const originals = pendingShapeAdjustRef.current;
-    if (Object.keys(originals).length > 0) {
-      setShapes((prev) => prev.map((s) => (originals[s.id] ? originals[s.id] : s)));
+    const keys = Object.keys(originals);
+    if (keys.length > 0) {
+      const toDelete = new Set(keys.filter((id) => originals[id] === null));
+      setShapes((prev) =>
+        prev
+          .filter((s) => !toDelete.has(s.id))
+          .map((s) => (originals[s.id] ? (originals[s.id] as Shape) : s))
+      );
+      if (toDelete.size > 0) {
+        setSelectedShapeIds((prev) => prev.filter((id) => !toDelete.has(id)));
+      }
     }
     pendingShapeAdjustRef.current = {};
     didAdjustShapeRef.current = false;
@@ -4656,6 +4665,8 @@ export default function WhiteboardPage() {
       setRightPanelTab("inspector");
       setCurrentShape(null);
       setRedoStack([]);
+      pendingShapeAdjustRef.current[finalShape.id] = null;
+      setPendingShapeAdjustIds([finalShape.id]);
       if (finalShape.type === "sticky") {
         setActiveTool("select");
         showToast("Created Sticky Note! Select or drag to move/resize, or double-click to edit.");
