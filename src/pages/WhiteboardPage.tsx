@@ -9179,6 +9179,37 @@ export default function WhiteboardPage() {
                   setDragLayerId(null);
                   setDragOverGroupId(null);
                 }}
+                onDragOver={(e) => {
+                  if (dragLayerId && dragLayerId !== shape.id) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }
+                }}
+                onDrop={(e) => {
+                  if (!dragLayerId || dragLayerId === shape.id) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const fromIdx = shapes.findIndex((s) => s.id === dragLayerId);
+                  const toIdx = shapes.findIndex((s) => s.id === shape.id);
+                  if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
+                    setShapes((prev) => {
+                      const next = [...prev];
+                      const [moved] = next.splice(fromIdx, 1);
+                      next.splice(toIdx, 0, moved);
+                      return next;
+                    });
+                  }
+                  if (groupId) {
+                    setLayerGroups((prev) =>
+                      prev.map((g) => {
+                        const filtered = g.shapeIds.filter((id) => id !== dragLayerId);
+                        return g.id === groupId ? { ...g, shapeIds: [...filtered, dragLayerId] } : { ...g, shapeIds: filtered };
+                      })
+                    );
+                  }
+                  setDragLayerId(null);
+                  setDragOverGroupId(null);
+                }}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -9191,7 +9222,7 @@ export default function WhiteboardPage() {
                     : "hover:bg-slate-100/80 text-slate-700"
                 } ${shape.isHidden ? "opacity-45" : ""}`}
               >
-                <div className="flex items-center gap-2 truncate flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 truncate flex-1 min-w-0">
                   <span
                     className="h-2.5 w-2.5 rounded-full border border-black/15 shrink-0"
                     style={{ background: shape.stickyColor || shape.color }}
@@ -9213,14 +9244,14 @@ export default function WhiteboardPage() {
                         setShapes((prev) => prev.map((s) => (s.id === shape.id ? { ...s, name: editingLayerName.trim() || s.name || s.type } : s)));
                         setEditingLayerId(null);
                       }}
-                      className="w-28 rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-medium text-slate-900 outline-none"
+                      className="w-24 rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[11px] font-medium text-slate-900 outline-none"
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
                     <span
                       onDoubleClick={(e) => { e.stopPropagation(); setEditingLayerId(shape.id); setEditingLayerName(shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)); }}
                       className="truncate font-medium capitalize flex-1 cursor-text"
-                      title="Double-click to rename"
+                      title="Double-click to rename • Drag to reorder or group"
                     >
                       {shape.name || (shape.text ? `"${shape.text.slice(0, 14)}..."` : shape.type)}
                     </span>
@@ -9228,31 +9259,34 @@ export default function WhiteboardPage() {
                 </div>
                 <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
                   {groupId && (
-                    <button type="button" onClick={() => { setLayerGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shape.id) } : g)); }} className="p-1 rounded text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Remove from group"><FolderMinus className="h-3 w-3" /></button>
+                    <button type="button" onClick={() => { setLayerGroups((prev) => prev.map((g) => g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shape.id) } : g)); }} className="p-1 rounded text-slate-400 hover:text-rose-500 transition-colors cursor-pointer" title="Remove from group"><FolderMinus className="h-3 w-3" /></button>
                   )}
-                  <button type="button" onClick={() => moveLayerUp(realIdx)} disabled={realIdx >= shapes.length - 1} className="p-1 rounded text-slate-400 hover:text-slate-800 disabled:opacity-20 opacity-0 group-hover:opacity-100 transition-opacity" title="Bring Forward"><ArrowUp className="h-3 w-3" /></button>
-                  <button type="button" onClick={() => moveLayerDown(realIdx)} disabled={realIdx <= 0} className="p-1 rounded text-slate-400 hover:text-slate-800 disabled:opacity-20 opacity-0 group-hover:opacity-100 transition-opacity" title="Send Backward"><ArrowDown className="h-3 w-3" /></button>
-                  <button type="button" onClick={() => toggleHideShape(shape.id)} className={`p-1 rounded hover:text-slate-800 transition-opacity ${shape.isHidden ? "opacity-100 text-slate-600" : "opacity-0 group-hover:opacity-100 text-slate-400"}`} title={shape.isHidden ? "Unhide" : "Hide"}>{shape.isHidden ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</button>
-                  <button type="button" onClick={() => toggleLockShape(shape.id)} className={`p-1 rounded hover:text-slate-800 transition-opacity ${shape.isLocked ? "opacity-100 text-amber-600" : "opacity-0 group-hover:opacity-100 text-slate-400"}`} title={shape.isLocked ? "Unlock" : "Lock"}>{shape.isLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}</button>
-                  <button type="button" onClick={() => deleteSelectedObject(shape.id)} className="p-1 rounded text-slate-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity" title={shape.isLocked ? "Cannot delete locked layer" : "Delete"}><Trash2 className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => moveLayerUp(realIdx)} disabled={realIdx >= shapes.length - 1} className="p-1 rounded text-slate-400 hover:text-slate-800 disabled:opacity-20 transition-colors cursor-pointer" title="Bring Forward"><ArrowUp className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => moveLayerDown(realIdx)} disabled={realIdx <= 0} className="p-1 rounded text-slate-400 hover:text-slate-800 disabled:opacity-20 transition-colors cursor-pointer" title="Send Backward"><ArrowDown className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => toggleHideShape(shape.id)} className={`p-1 rounded hover:text-slate-800 transition-colors cursor-pointer ${shape.isHidden ? "text-slate-700" : "text-slate-400"}`} title={shape.isHidden ? "Unhide" : "Hide"}>{shape.isHidden ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</button>
+                  <button type="button" onClick={() => toggleLockShape(shape.id)} className={`p-1 rounded hover:text-slate-800 transition-colors cursor-pointer ${shape.isLocked ? "text-amber-600" : "text-slate-400"}`} title={shape.isLocked ? "Unlock" : "Lock"}>{shape.isLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}</button>
+                  <button type="button" onClick={() => deleteSelectedObject(shape.id)} className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title={shape.isLocked ? "Cannot delete locked layer" : "Delete"}><Trash2 className="h-3 w-3" /></button>
                 </div>
               </div>
             );
           };
 
           return (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {/* Header */}
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/70">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-slate-800">Layers</span>
+              <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                  <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                    <Layers className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate">Layers</span>
                   <span className="text-[10.5px] font-medium text-slate-400">{shapes.length}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => { setPendingGroupName(`Group ${layerGroups.length + 1}`); setShowGroupNameInput(true); }}
-                  className="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition flex items-center justify-center cursor-pointer"
-                  title={panelSelectedIds.length >= 2 ? `Group ${panelSelectedIds.length} selected layers` : "New group"}
+                  className="p-1 rounded-md text-slate-500 hover:text-slate-900 hover:bg-white transition flex items-center justify-center cursor-pointer"
+                  title={(panelSelectedIds.length > 0 ? panelSelectedIds : selectedShapeIds).length >= 1 ? `Group ${(panelSelectedIds.length > 0 ? panelSelectedIds : selectedShapeIds).length} selected layer(s)` : "New group"}
                 >
                   <FolderPlus className="h-3.5 w-3.5" />
                 </button>
@@ -9375,10 +9409,10 @@ export default function WhiteboardPage() {
                             </span>
                             <span className="text-[10px] text-slate-400 font-mono shrink-0">{memberShapes.length}</span>
                             <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                              <button type="button" onClick={() => toggleGroupHide(group.id)} className={`p-1 rounded hover:text-slate-800 transition-opacity ${allHidden ? "opacity-100 text-slate-700" : "opacity-0 group-hover:opacity-100 text-slate-400"}`} title={allHidden ? "Unhide Group" : "Hide Group"}>{allHidden ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</button>
-                              <button type="button" onClick={() => toggleGroupLock(group.id)} className={`p-1 rounded hover:text-slate-800 transition-opacity ${allLocked ? "opacity-100 text-amber-600" : "opacity-0 group-hover:opacity-100 text-slate-400"}`} title={allLocked ? "Unlock Group" : "Lock Group"}>{allLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}</button>
-                              <button type="button" onClick={() => ungroupLayerGroup(group.id)} className="p-1 rounded text-slate-400 hover:text-slate-800 opacity-0 group-hover:opacity-100 transition-opacity" title="Ungroup"><FolderMinus className="h-3 w-3" /></button>
-                              <button type="button" onClick={() => { if (window.confirm(`Delete group "${group.name}" and all ${memberShapes.length} layers inside?`)) deleteLayerGroup(group.id, true); }} className="p-1 rounded text-slate-400 hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Group & Layers"><Trash2 className="h-3 w-3" /></button>
+                              <button type="button" onClick={() => toggleGroupHide(group.id)} className={`p-1 rounded hover:text-slate-800 transition-colors cursor-pointer ${allHidden ? "text-slate-700" : "text-slate-400"}`} title={allHidden ? "Unhide Group" : "Hide Group"}>{allHidden ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</button>
+                              <button type="button" onClick={() => toggleGroupLock(group.id)} className={`p-1 rounded hover:text-slate-800 transition-colors cursor-pointer ${allLocked ? "text-amber-600" : "text-slate-400"}`} title={allLocked ? "Unlock Group" : "Lock Group"}>{allLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}</button>
+                              <button type="button" onClick={() => ungroupLayerGroup(group.id)} className="p-1 rounded text-slate-400 hover:text-slate-800 transition-colors cursor-pointer" title="Ungroup"><FolderMinus className="h-3 w-3" /></button>
+                              <button type="button" onClick={() => { if (window.confirm(`Delete group "${group.name}" and all ${memberShapes.length} layers inside?`)) deleteLayerGroup(group.id, true); }} className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer" title="Delete Group & Layers"><Trash2 className="h-3 w-3" /></button>
                             </div>
                           </div>
                         )}
@@ -16068,7 +16102,7 @@ export default function WhiteboardPage() {
                 fillStyle,
                 strokeWidth,
                 lineStyle,
-                opacity: toolOpacity,
+                opacity: opacity,
                 cornerRadius,
                 isLocked: autoLockObjects,
                 points: pts,
@@ -16076,7 +16110,7 @@ export default function WhiteboardPage() {
                 stopDistance: stopDist,
                 riskReward: isPos && targetDist && stopDist ? Number((targetDist / stopDist).toFixed(2)) : undefined,
                 text: tool === "sticky" ? "Double-click to edit note" : undefined,
-                stickyColor: tool === "sticky" ? activeStickyColor : undefined,
+                stickyColor: tool === "sticky" ? stickyColor : undefined,
                 fiboLevels: tool === "fibo" ? activeFiboLevels : undefined,
               };
               setShapes((prev) => [...prev, newShape]);
