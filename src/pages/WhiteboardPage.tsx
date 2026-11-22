@@ -9724,18 +9724,24 @@ export default function WhiteboardPage() {
 
                 {/* TAB 5: SAMPLES & TEMPLATES TAB */}
                 {tabKey === "samples" && (
-                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
-                    <div>
-                      <h3 className="font-extrabold text-ink text-sm">Templates</h3>
-                      <p className="text-[10px] text-muted">Pre-configured trading strategies and chart pattern guides</p>
+                  <div className="space-y-3 animate-in fade-in duration-150 text-xs">
+                    {/* Header */}
+                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                          <LayoutTemplate className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="truncate">Templates</span>
+                      </div>
+                      <span className="text-[10.5px] text-slate-400">4</span>
                     </div>
 
-                    <div className="space-y-2.5">
+                    <div className="space-y-1.5">
                       {[
                         {
                           id: "patterns",
                           title: "Double Bottom & Breakout",
-                          desc: "Neckline breakout with structural BOS confirmation",
+                          desc: "Neckline breakout + BOS",
                           shapes: [
                             { id: "s1", type: "line" as Tool, color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: 50, y: 120 }, { x: 250, y: 120 }] },
                             { id: "s2", type: "bezier" as Tool, color: "#10b981", strokeWidth: 2.5, points: [{ x: 60, y: 60 }, { x: 100, y: 120 }, { x: 140, y: 80 }, { x: 180, y: 120 }, { x: 230, y: 40 }] },
@@ -9744,30 +9750,30 @@ export default function WhiteboardPage() {
                         },
                         {
                           id: "smc_strategy",
-                          title: "SMC Strategy & Liquidity Sweep",
-                          desc: "Order Block zone, Fair Value Gap (FVG) and premium sweep",
+                          title: "SMC & Liquidity Sweep",
+                          desc: "Order Block, FVG & sweep",
                           shapes: DEFAULT_SAMPLE_SMC_SHAPES,
                         },
                         {
                           id: "risk_reward",
-                          title: "1:3 Risk to Reward Framework",
-                          desc: "Standard institutional positioning setup with stop loss and TP",
+                          title: "1:3 Risk to Reward",
+                          desc: "Entry, SL & TP framework",
                           shapes: DEFAULT_SAMPLE_RISK_SHAPES,
                         },
                         {
                           id: "eurusd_breakdown",
-                          title: "EUR/USD Multi-Timeframe Map",
-                          desc: "High timeframe liquidity pool and London open session run",
+                          title: "EUR/USD Multi-TF Map",
+                          desc: "HTF liquidity & London open",
                           shapes: DEFAULT_SAMPLE_EURUSD_SHAPES,
                         },
                       ].map((sample) => (
                         <div
                           key={sample.id}
-                          className="rounded-xl border border-line bg-slate-50/80 p-3 hover:bg-white hover:border-brand/40 transition space-y-2"
+                          className="px-2.5 py-2 rounded-lg border border-slate-200/70 bg-slate-50/70 hover:bg-white transition flex items-center justify-between gap-2"
                         >
-                          <div>
-                            <p className="font-extrabold text-ink text-xs">{sample.title}</p>
-                            <p className="text-[10px] text-muted mt-0.5">{sample.desc}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-slate-800 text-[11.5px] truncate">{sample.title}</p>
+                            <p className="text-[10px] text-slate-400 truncate mt-0.5">{sample.desc}</p>
                           </div>
                           <button
                             type="button"
@@ -9781,11 +9787,12 @@ export default function WhiteboardPage() {
                               setTabs((prev) => [...prev, { id: tabKey, name: sample.title, shapes: sample.shapes, theme: "dots", snapToGrid: true }]);
                               setActiveTabId(tabKey);
                               setShapes(sample.shapes);
-                              showToast(`Loaded "${sample.title}" Template!`);
+                              showToast(`Loaded "${sample.title}"`);
                             }}
-                            className="w-full py-1.5 rounded-lg bg-brand text-white text-[11px] font-bold hover:bg-brand/90 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                            className="h-7 px-2.5 rounded-md bg-white border border-slate-200/80 text-slate-700 text-[10.5px] font-medium hover:bg-slate-900 hover:text-white hover:border-slate-900 transition shrink-0 cursor-pointer"
+                            title="Load template in new tab"
                           >
-                            <LayoutTemplate className="h-3 w-3" /> Load Template in New Tab
+                            Load
                           </button>
                         </div>
                       ))}
@@ -9795,13 +9802,16 @@ export default function WhiteboardPage() {
 
                 {/* TAB 6: TRASH MANAGEMENT TAB */}
                 {tabKey === "trash" && (
-                  <div className="space-y-4 animate-in fade-in duration-150 text-xs">
-                    <div className="flex items-center justify-between pb-2 border-b border-line">
-                      <div>
-                        <h3 className="font-extrabold text-ink text-sm">Trash Bin</h3>
-                        <p className="text-[10px] text-muted">{trashedTabs.length} item{trashedTabs.length !== 1 ? "s" : ""} • Deleted items kept for 30 days</p>
+                  <div className="space-y-3 animate-in fade-in duration-150 text-xs">
+                    {/* Header */}
+                    <div className="rounded-xl border border-line bg-slate-50/90 px-3 py-2 flex items-center justify-between shadow-2xs">
+                      <div className="flex items-center gap-2 font-extrabold text-xs text-ink min-w-0">
+                        <span className="p-1 rounded-lg bg-white border border-line text-brand shadow-2xs shrink-0 flex items-center justify-center">
+                          <Archive className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="truncate">Trash</span>
                       </div>
-                      {trashedTabs.length > 0 && (
+                      {trashedTabs.length > 0 ? (
                         <button
                           type="button"
                           onClick={() => {
@@ -9810,46 +9820,48 @@ export default function WhiteboardPage() {
                               showToast("Trash emptied");
                             }
                           }}
-                          className="px-2 py-1 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg text-[10.5px] font-bold transition cursor-pointer"
+                          className="text-[10.5px] font-medium text-rose-600 hover:text-rose-700 cursor-pointer"
                         >
-                          Empty Trash
+                          Empty
                         </button>
+                      ) : (
+                        <span className="text-[10.5px] text-slate-400">0</span>
                       )}
                     </div>
 
                     {trashedTabs.length === 0 ? (
-                      <div className="p-6 rounded-xl border border-dashed border-slate-200 text-center text-muted">
-                        <Archive className="h-6 w-6 text-slate-300 mx-auto mb-1.5" />
-                        <p className="text-xs font-bold text-slate-500">Trash is empty</p>
-                        <p className="text-[10px] mt-0.5 text-muted">Deleted diagram tabs will appear here</p>
+                      <div className="py-8 rounded-lg border border-dashed border-slate-200 text-center text-slate-400">
+                        <Archive className="h-5 w-5 text-slate-300 mx-auto mb-1.5" />
+                        <p className="text-[11px] font-medium text-slate-500">Trash is empty</p>
+                        <p className="text-[10px] mt-0.5 text-slate-400">Kept for 30 days</p>
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-80 overflow-y-auto [scrollbar-width:thin]">
+                      <div className="space-y-1 max-h-80 overflow-y-auto [scrollbar-width:thin]">
                         {trashedTabs.map((item) => (
                           <div
                             key={item.id}
-                            className="p-2.5 rounded-xl border border-line bg-slate-50/90 flex items-center justify-between gap-2"
+                            className="px-2.5 py-2 rounded-lg border border-slate-200/70 bg-slate-50/70 flex items-center justify-between gap-2"
                           >
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-bold text-ink truncate">{item.name}</p>
-                              <p className="text-[9.5px] text-muted">
-                                {item.shapes.length} shapes • Deleted {new Date(item.deletedAt).toLocaleDateString()}
+                              <p className="text-[11.5px] font-medium text-slate-800 truncate">{item.name}</p>
+                              <p className="text-[10px] text-slate-400">
+                                {item.shapes.length} shapes • {new Date(item.deletedAt).toLocaleDateString()}
                               </p>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
                                 onClick={() => restoreTrashedTab(item)}
-                                className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[10.5px] font-bold transition flex items-center gap-1 cursor-pointer"
-                                title="Restore diagram tab"
+                                className="h-7 px-2 rounded-md bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900 text-[10.5px] font-medium transition flex items-center gap-1 cursor-pointer"
+                                title="Restore"
                               >
                                 <RotateCcw className="h-3 w-3" /> Restore
                               </button>
                               <button
                                 type="button"
                                 onClick={() => deleteTrashedTabPermanently(item.id)}
-                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
-                                title="Delete Permanently"
+                                className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                                title="Delete permanently"
                               >
                                 <X className="h-3 w-3" />
                               </button>
