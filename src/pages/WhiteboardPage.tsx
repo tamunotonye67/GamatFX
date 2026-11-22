@@ -2193,6 +2193,52 @@ export default function WhiteboardPage() {
   const [hoveredResizeHandle, setHoveredResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
   const [isAspectLocked, setIsAspectLocked] = useState(false);
 
+  // Layer panel right-click flyout menu
+  const [layerContextMenu, setLayerContextMenu] = useState<{ shapeId: string; x: number; y: number } | null>(null);
+
+  // Click-to-create dimensions popup (W, H, X, Y) for Rectangle, Circle & similar tools
+  const [shapeDimPopup, setShapeDimPopup] = useState<{
+    tool: Tool;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    screenX: number;
+    screenY: number;
+  } | null>(null);
+
+  // Confirm / Cancel floating bar after any shape adjustment (move / resize / node edit)
+  const [pendingShapeAdjustIds, setPendingShapeAdjustIds] = useState<string[]>([]);
+  const pendingShapeAdjustRef = useRef<Record<string, Shape>>({});
+  const didAdjustShapeRef = useRef(false);
+
+  const commitShapeAdjustment = () => {
+    pendingShapeAdjustRef.current = {};
+    didAdjustShapeRef.current = false;
+    setPendingShapeAdjustIds([]);
+  };
+
+  const cancelShapeAdjustment = () => {
+    const originals = pendingShapeAdjustRef.current;
+    if (Object.keys(originals).length > 0) {
+      setShapes((prev) => prev.map((s) => (originals[s.id] ? originals[s.id] : s)));
+    }
+    pendingShapeAdjustRef.current = {};
+    didAdjustShapeRef.current = false;
+    setPendingShapeAdjustIds([]);
+  };
+
+  useEffect(() => {
+    if (!layerContextMenu) return;
+    const close = () => setLayerContextMenu(null);
+    window.addEventListener("mousedown", close);
+    window.addEventListener("scroll", close, true);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [layerContextMenu]);
+
   // Undo/Redo & Active Drawing
   const [redoStack, setRedoStack] = useState<Shape[]>([]);
   const [currentShape, setCurrentShape] = useState<Shape | null>(null);
@@ -3889,9 +3935,17 @@ export default function WhiteboardPage() {
         }
         const nodeIdx = hitShape.points.findIndex((p) => Math.hypot(pt.x - p.x, pt.y - p.y) <= 12);
         if (nodeIdx !== -1 && !hitShape.isLocked) {
+          if (!pendingShapeAdjustRef.current[hitShape.id]) {
+            pendingShapeAdjustRef.current[hitShape.id] = { ...hitShape, points: hitShape.points.map((p) => ({ ...p })) };
+          }
+          didAdjustShapeRef.current = false;
           setActiveNodeIndex({ shapeId: hitShape.id, index: nodeIdx });
           dragStartPt.current = pt;
         } else if (!hitShape.isLocked) {
+          if (!pendingShapeAdjustRef.current[hitShape.id]) {
+            pendingShapeAdjustRef.current[hitShape.id] = { ...hitShape, points: hitShape.points.map((p) => ({ ...p })) };
+          }
+          didAdjustShapeRef.current = false;
           isDraggingShape.current = true;
           dragStartPt.current = pt;
           dragStartOriginalPt.current = pt;
@@ -3899,6 +3953,7 @@ export default function WhiteboardPage() {
         }
         return;
       } else {
+        if (pendingShapeAdjustIds.length > 0) commitShapeAdjustment();
         setSelectedShapeIds([]);
         setActiveNodeIndex(null);
         isDrawing.current = true;
@@ -3914,6 +3969,10 @@ export default function WhiteboardPage() {
       if (selShape && !selShape.isLocked && !selShape.isHidden) {
         const handleHit = getResizeHandleHit(pt, selShape);
         if (handleHit) {
+          if (!pendingShapeAdjustRef.current[selShape.id]) {
+            pendingShapeAdjustRef.current[selShape.id] = { ...selShape, points: selShape.points.map((p) => ({ ...p })) };
+          }
+          didAdjustShapeRef.current = false;
           setActiveResizeHandle({ shapeId: selShape.id, handle: handleHit });
           dragStartPt.current = pt;
           return;
@@ -3925,31 +3984,43 @@ export default function WhiteboardPage() {
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
 
       if (hitShape) {
+        if (pendingShapeAdjustIds.length > 0 && !pendingShapeAdjustIds.includes(hitShape.id)) {
+          commitShapeAdjustment();
+        }
         if (hitShape.type === "fibo" && hitShape.fiboLevels && hitShape.fiboLevels.length > 0) {
           setActiveFiboLevels(hitShape.fiboLevels);
         }
 
         const parentGroup = layerGroups.find((g) => g.shapeIds.includes(hitShape.id));
+        let nextSelIds = selectedShapeIds;
         if (e.shiftKey) {
           if (parentGroup && !e.altKey) {
             const hasAll = parentGroup.shapeIds.every((id) => selectedShapeIds.includes(id));
-            setSelectedShapeIds((prev) =>
-              hasAll
-                ? prev.filter((id) => !parentGroup.shapeIds.includes(id))
-                : Array.from(new Set([...prev, ...parentGroup.shapeIds]))
-            );
+            nextSelIds = hasAll
+              ? selectedShapeIds.filter((id) => !parentGroup.shapeIds.includes(id))
+              : Array.from(new Set([...selectedShapeIds, ...parentGroup.shapeIds]));
+            setSelectedShapeIds(nextSelIds);
           } else {
-            setSelectedShapeIds((prev) => (prev.includes(hitShape.id) ? prev.filter((id) => id !== hitShape.id) : [...prev, hitShape.id]));
+            nextSelIds = selectedShapeIds.includes(hitShape.id) ? selectedShapeIds.filter((id) => id !== hitShape.id) : [...selectedShapeIds, hitShape.id];
+            setSelectedShapeIds(nextSelIds);
           }
         } else if (!selectedShapeIds.includes(hitShape.id)) {
           if (parentGroup && !e.altKey) {
-            setSelectedShapeIds(parentGroup.shapeIds);
+            nextSelIds = parentGroup.shapeIds;
+            setSelectedShapeIds(nextSelIds);
           } else {
-            setSelectedShapeIds([hitShape.id]);
+            nextSelIds = [hitShape.id];
+            setSelectedShapeIds(nextSelIds);
           }
         }
 
         if (!hitShape.isLocked) {
+          shapes.forEach((s) => {
+            if (nextSelIds.includes(s.id) && !s.isLocked && !pendingShapeAdjustRef.current[s.id]) {
+              pendingShapeAdjustRef.current[s.id] = { ...s, points: s.points.map((p) => ({ ...p })) };
+            }
+          });
+          didAdjustShapeRef.current = false;
           isDraggingShape.current = true;
           dragStartPt.current = pt;
           dragStartOriginalPt.current = pt;
@@ -3958,6 +4029,7 @@ export default function WhiteboardPage() {
           showToast("Object is locked 🔒");
         }
       } else {
+        if (pendingShapeAdjustIds.length > 0) commitShapeAdjustment();
         if (!e.shiftKey) {
           setSelectedShapeIds([]);
         }
@@ -3968,6 +4040,7 @@ export default function WhiteboardPage() {
       return;
     }
 
+    if (pendingShapeAdjustIds.length > 0) commitShapeAdjustment();
     // Deselect active shapes when clicking empty canvas to draw
     setSelectedShapeIds([]);
 
@@ -4226,6 +4299,9 @@ export default function WhiteboardPage() {
         }
       }
 
+      if (dx !== 0 || dy !== 0) {
+        didAdjustShapeRef.current = true;
+      }
       setShapes((prev) =>
         prev.map((s) => {
           if (selectedShapeIds.includes(s.id) && !s.isLocked) {
@@ -4244,6 +4320,7 @@ export default function WhiteboardPage() {
     if (activeNodeIndex) {
       const targetShape = shapes.find((s) => s.id === activeNodeIndex.shapeId);
       if (targetShape && !targetShape.isLocked) {
+        didAdjustShapeRef.current = true;
         const newPts = [...targetShape.points];
         newPts[activeNodeIndex.index] = pt;
         setShapes((prev) => prev.map((s) => (s.id === targetShape.id ? { ...s, points: newPts } : s)));
@@ -4255,6 +4332,7 @@ export default function WhiteboardPage() {
     if (activeResizeHandle) {
       const targetShape = shapes.find((s) => s.id === activeResizeHandle.shapeId);
       if (targetShape && !targetShape.isLocked) {
+        didAdjustShapeRef.current = true;
         const resizedShape = resizeShapePoints(targetShape, activeResizeHandle.handle, pt, e.shiftKey || isAspectLocked);
         setShapes((prev) =>
           prev.map((s) => (s.id === targetShape.id ? resizedShape : s))
@@ -4378,7 +4456,13 @@ export default function WhiteboardPage() {
     altDuplicated.current = false;
     setActiveResizeHandle(null);
     setActiveNodeIndex(null);
-    setActiveNodeIndex(null);
+
+    if (didAdjustShapeRef.current && Object.keys(pendingShapeAdjustRef.current).length > 0) {
+      setPendingShapeAdjustIds(Object.keys(pendingShapeAdjustRef.current));
+      didAdjustShapeRef.current = false;
+    } else if (pendingShapeAdjustIds.length === 0) {
+      pendingShapeAdjustRef.current = {};
+    }
 
     // Finalize Multi-Select or Marquee Zoom
     if (marqueeBox) {
@@ -4467,6 +4551,27 @@ export default function WhiteboardPage() {
     lastEraserPt.current = null;
 
     if (currentShape) {
+      const clickDimTools: Tool[] = ["rectangle", "circle", "diamond", "sticky", "orderblock", "fvg", "fibo", "long", "short"];
+      if (clickDimTools.includes(currentShape.type) && currentShape.points.length >= 1) {
+        const p0 = currentShape.points[0];
+        const p1 = currentShape.points.length >= 2 ? currentShape.points[1] : p0;
+        if (Math.abs(p1.x - p0.x) < 6 && Math.abs(p1.y - p0.y) < 6) {
+          const defaultW = currentShape.type === "circle" ? 120 : currentShape.type === "sticky" ? 200 : 160;
+          const defaultH = currentShape.type === "circle" ? 120 : currentShape.type === "sticky" ? 160 : 100;
+          setShapeDimPopup({
+            tool: currentShape.type,
+            x: Math.round(p0.x),
+            y: Math.round(p0.y),
+            w: defaultW,
+            h: defaultH,
+            screenX: p0.x * zoom + pan.x,
+            screenY: p0.y * zoom + pan.y,
+          });
+          setCurrentShape(null);
+          return;
+        }
+      }
+
       let finalPoints = currentShape.points;
       if (currentShape.type === "sticky") {
         const p0 = currentShape.points[0];
@@ -9073,6 +9178,11 @@ export default function WhiteboardPage() {
                 onDragEnd={() => {
                   setDragLayerId(null);
                   setDragOverGroupId(null);
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setLayerContextMenu({ shapeId: shape.id, x: e.clientX, y: e.clientY });
                 }}
                 onClick={(e) => handleLayerPanelClick(e, shape.id)}
                 className={`group flex items-center justify-between rounded-lg px-2 py-1.5 text-[11.5px] transition cursor-pointer ${indent ? "ml-3" : ""} ${
@@ -15888,6 +15998,238 @@ export default function WhiteboardPage() {
                     })}
                   </>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* Confirm (✓) & Cancel (✕) Floating Pill after any Shape Adjustment */}
+          {pendingShapeAdjustIds.length > 0 && !editingTextShapeId && (() => {
+            const target = shapes.find((s) => pendingShapeAdjustIds.includes(s.id));
+            if (!target) return null;
+            const b = getShapeBounds(target);
+            const sx = b.minX * zoom + pan.x;
+            const sy = b.minY * zoom + pan.y;
+            return (
+              <div
+                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onTouchStart={(e) => e.stopPropagation()}
+                style={{
+                  left: Math.max(12, Math.min(sx, (canvasRef.current?.width || 800) - 90)),
+                  top: sy < 48 ? Math.min((b.maxY * zoom + pan.y) + 8, (canvasRef.current?.height || 600) - 44) : Math.max(8, sy - 40),
+                }}
+                className="absolute z-40 flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1 shadow-lg ring-1 ring-slate-900/5"
+              >
+                <button
+                  type="button"
+                  onClick={cancelShapeAdjustment}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                  title="Cancel adjustment"
+                  aria-label="Cancel adjustment"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={commitShapeAdjustment}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center bg-emerald-500 text-white hover:bg-emerald-600 shadow-2xs transition-colors cursor-pointer"
+                  title="Confirm adjustment"
+                  aria-label="Confirm adjustment"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })()}
+
+          {/* Click-to-Create Shape Dimensions Popup (W, H, X, Y) */}
+          {shapeDimPopup && (() => {
+            const createFromPopup = () => {
+              const { tool, x, y, w, h } = shapeDimPopup;
+              const safeW = Math.max(10, w || 100);
+              const safeH = Math.max(10, h || 100);
+              let pts: { x: number; y: number }[] = [{ x, y }, { x: x + safeW, y: y + safeH }];
+              if (tool === "circle") {
+                const cx = x + safeW / 2;
+                const cy = y + safeH / 2;
+                const r = Math.max(safeW, safeH) / 2;
+                pts = [{ x: cx, y: cy }, { x: cx + r, y: cy }];
+              } else if (tool === "long") {
+                pts = [{ x, y: y + safeH }, { x: x + safeW, y }];
+              }
+              const isPos = tool === "long" || tool === "short";
+              const targetDist = isPos ? safeH : undefined;
+              const stopDist = isPos ? Math.max(10, Math.round(safeH / defaultRiskReward)) : undefined;
+              const newShape: Shape = {
+                id: `shape_${Date.now()}`,
+                type: tool,
+                color: strokeColor,
+                strokeColor,
+                fillColor,
+                fillStyle,
+                strokeWidth,
+                lineStyle,
+                opacity: toolOpacity,
+                cornerRadius,
+                isLocked: autoLockObjects,
+                points: pts,
+                targetDistance: targetDist,
+                stopDistance: stopDist,
+                riskReward: isPos && targetDist && stopDist ? Number((targetDist / stopDist).toFixed(2)) : undefined,
+                text: tool === "sticky" ? "Double-click to edit note" : undefined,
+                stickyColor: tool === "sticky" ? activeStickyColor : undefined,
+                fiboLevels: tool === "fibo" ? activeFiboLevels : undefined,
+              };
+              setShapes((prev) => [...prev, newShape]);
+              setSelectedShapeIds([newShape.id]);
+              setRightPanelTab("inspector");
+              setRedoStack([]);
+              setShapeDimPopup(null);
+            };
+            return (
+              <div
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                style={{
+                  left: Math.max(12, Math.min(shapeDimPopup.screenX, (canvasRef.current?.width || 800) - 235)),
+                  top: Math.max(12, Math.min(shapeDimPopup.screenY, (canvasRef.current?.height || 600) - 165)),
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); createFromPopup(); }
+                  if (e.key === "Escape") { e.preventDefault(); setShapeDimPopup(null); }
+                }}
+                className="absolute z-40 w-56 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-2.5 shadow-xl ring-1 ring-slate-900/5 space-y-2 text-xs"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-800 capitalize">{shapeDimPopup.tool}</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setShapeDimPopup(null)}
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      title="Cancel (Esc)"
+                      aria-label="Cancel create shape"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={createFromPopup}
+                      className="w-6 h-6 rounded-lg flex items-center justify-center bg-emerald-500 text-white hover:bg-emerald-600 shadow-2xs transition-colors cursor-pointer"
+                      title="Confirm (Enter)"
+                      aria-label="Confirm create shape"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "W", key: "w" as const, val: shapeDimPopup.w },
+                    { label: "H", key: "h" as const, val: shapeDimPopup.h },
+                    { label: "X", key: "x" as const, val: shapeDimPopup.x },
+                    { label: "Y", key: "y" as const, val: shapeDimPopup.y },
+                  ].map((f) => (
+                    <label key={f.key} className="flex items-center gap-1.5 h-7 px-2 rounded-lg bg-slate-100/80 border border-slate-200/70 focus-within:border-slate-400 focus-within:bg-white">
+                      <span className="text-[10px] font-semibold text-slate-400 w-3">{f.label}</span>
+                      <input
+                        type="number"
+                        autoFocus={f.key === "w"}
+                        value={f.val}
+                        onChange={(e) => {
+                          const n = parseFloat(e.target.value);
+                          setShapeDimPopup((prev) => prev ? { ...prev, [f.key]: isNaN(n) ? 0 : n } : prev);
+                        }}
+                        className="w-full bg-transparent text-[11px] font-mono font-semibold text-slate-800 outline-none text-right"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Layer Panel Simple Right-Click Flyout Menu */}
+          {layerContextMenu && (() => {
+            const targetIdx = shapes.findIndex((s) => s.id === layerContextMenu.shapeId);
+            const targetShape = targetIdx !== -1 ? shapes[targetIdx] : null;
+            if (!targetShape) return null;
+            return (
+              <div
+                onMouseDown={(e) => e.stopPropagation()}
+                style={{
+                  left: Math.max(8, Math.min(layerContextMenu.x, window.innerWidth - 172)),
+                  top: Math.max(8, Math.min(layerContextMenu.y, window.innerHeight - 230)),
+                }}
+                className="fixed z-[160] w-40 rounded-xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1 shadow-xl ring-1 ring-slate-900/5 text-[11.5px] font-medium text-slate-700"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingLayerId(targetShape.id);
+                    setEditingLayerName(targetShape.name || (targetShape.text ? `"${targetShape.text.slice(0, 14)}..."` : targetShape.type));
+                    setLayerContextMenu(null);
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-100 text-left cursor-pointer"
+                >
+                  <Edit3 className="h-3.5 w-3.5 text-slate-500" /> Rename
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const dup: Shape = {
+                      ...targetShape,
+                      id: `shape_dup_${Date.now()}`,
+                      name: targetShape.name ? `${targetShape.name} Copy` : undefined,
+                      points: targetShape.points.map((p) => ({ x: p.x + 20, y: p.y + 20 })),
+                    };
+                    setShapes((prev) => [...prev, dup]);
+                    setSelectedShapeIds([dup.id]);
+                    setLayerContextMenu(null);
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-100 text-left cursor-pointer"
+                >
+                  <Copy className="h-3.5 w-3.5 text-slate-500" /> Duplicate
+                </button>
+                <button
+                  type="button"
+                  disabled={targetIdx >= shapes.length - 1}
+                  onClick={() => { moveLayerUp(targetIdx); setLayerContextMenu(null); }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-100 text-left disabled:opacity-35 cursor-pointer"
+                >
+                  <ArrowUp className="h-3.5 w-3.5 text-slate-500" /> Bring Forward
+                </button>
+                <button
+                  type="button"
+                  disabled={targetIdx <= 0}
+                  onClick={() => { moveLayerDown(targetIdx); setLayerContextMenu(null); }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-100 text-left disabled:opacity-35 cursor-pointer"
+                >
+                  <ArrowDown className="h-3.5 w-3.5 text-slate-500" /> Send Backward
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { toggleHideShape(targetShape.id); setLayerContextMenu(null); }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-100 text-left cursor-pointer"
+                >
+                  {targetShape.isHidden ? <Eye className="h-3.5 w-3.5 text-slate-500" /> : <EyeOff className="h-3.5 w-3.5 text-slate-500" />}
+                  {targetShape.isHidden ? "Show" : "Hide"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { toggleLockShape(targetShape.id); setLayerContextMenu(null); }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-slate-100 text-left cursor-pointer"
+                >
+                  {targetShape.isLocked ? <Unlock className="h-3.5 w-3.5 text-slate-500" /> : <Lock className="h-3.5 w-3.5 text-slate-500" />}
+                  {targetShape.isLocked ? "Unlock" : "Lock"}
+                </button>
+                <div className="my-1 border-t border-slate-200/70" />
+                <button
+                  type="button"
+                  onClick={() => { deleteSelectedObject(targetShape.id); setLayerContextMenu(null); }}
+                  className="w-full px-2.5 py-1.5 rounded-lg flex items-center gap-2 hover:bg-rose-50 text-rose-600 text-left cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
               </div>
             );
           })()}
