@@ -5426,13 +5426,13 @@ export default function WhiteboardPage() {
     const remaining = tabs.filter((t) => t.id !== tabIdToClose);
 
     if (remaining.length === 0) {
-      // Closing the single/last tab sends user directly back to Whiteboard Hub
-      setTabs(INITIAL_TABS);
-      setActiveTabId("canvas_1");
+      // Closing the single/last tab sends user directly back to Whiteboard Hub with no open tabs
+      setTabs([]);
+      setActiveTabId("");
       setShapes([]);
       setViewMode("hub");
       setHubTab("drafts");
-      showToast(`Closed "${tabToRemove?.name || "canvas"}" and returned to Whiteboard Hub`);
+      showToast(`Closed "${tabToRemove?.name || "canvas"}"`);
       return;
     }
 
@@ -5545,10 +5545,9 @@ export default function WhiteboardPage() {
           if (typeof nextTab.snapToGrid === "boolean") setSnapToGrid(nextTab.snapToGrid);
         }
       } else {
-        // If it was the only open tab, reset to a fresh default Canvas 1 with empty shapes
-        const defaultTabId = `tab_${Date.now()}`;
-        setTabs([{ id: defaultTabId, name: "Canvas 1" }]);
-        setActiveTabId(defaultTabId);
+        // Last open tab deleted — leave tabs empty in Hub
+        setTabs([]);
+        setActiveTabId("");
         setShapes([]);
       }
     }
