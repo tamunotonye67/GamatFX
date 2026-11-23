@@ -264,7 +264,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 /* ------------------------------ Registration ------------------------------ */
 
 function RegistrationForm({ preset }: { preset: string }) {
-  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, confirmEventSeat, myRegistrations, admin, user, isAuthed } = useStore();
+  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, confirmEventSeat, checkInWithCode, myRegistrations, admin, user, isAuthed } = useStore();
   const [eventId, setEventId] = useState(preset || events[0]?.id || "");
   const [name, setName] = useState(user ? formatAccountName(user) : "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -275,6 +275,8 @@ function RegistrationForm({ preset }: { preset: string }) {
   const [copied, setCopied] = useState(false);
   const [emailState, setEmailState] = useState<"idle" | "sending" | "sent" | "skipped" | "error">("idle");
   const [qrFallback, setQrFallback] = useState(false);
+  const [ticketCheckInCode, setTicketCheckInCode] = useState("");
+  const [ticketCheckInErr, setTicketCheckInErr] = useState("");
 
   // Optional pre-event survey state
   const [experience, setExperience] = useState("Beginner (0–1 yr)");
@@ -487,6 +489,47 @@ function RegistrationForm({ preset }: { preset: string }) {
             <Download className="h-3.5 w-3.5 text-brand-light" /> Download .ICS
           </button>
         </div>
+
+        {/* Live Event Check-In */}
+        {ticketEvent?.checkInCode && (
+          <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 text-left">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-light">Live Event Check-In</p>
+            {ticket.checkedIn ? (
+              <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300">
+                <CheckCircle2 className="h-4 w-4" /> Attended ✓ — You are checked in for this event!
+              </p>
+            ) : (
+              <form
+                onSubmit={(evForm) => {
+                  evForm.preventDefault();
+                  setTicketCheckInErr("");
+                  const res = checkInWithCode(ticket.eventId, ticket.ticket, ticketCheckInCode);
+                  if (res.ok) {
+                    setTicket({ ...ticket, checkedIn: true, checkedInAt: Date.now(), checkInMethod: "code", seatConfirmed: true });
+                  } else {
+                    setTicketCheckInErr(res.error || "Invalid check-in code.");
+                  }
+                }}
+                className="mt-2 flex flex-wrap items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={ticketCheckInCode}
+                  onChange={(evIn) => setTicketCheckInCode(evIn.target.value.toUpperCase())}
+                  placeholder="Enter live check-in code"
+                  className="flex-1 min-w-[160px] rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-mono text-white placeholder:text-white/40 outline-none focus:border-brand"
+                />
+                <button
+                  type="submit"
+                  className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
+                >
+                  Check In
+                </button>
+                {ticketCheckInErr && <p className="w-full text-[11px] font-semibold text-rose-400">{ticketCheckInErr}</p>}
+              </form>
+            )}
+          </div>
+        )}
 
         {/* Optional Pre-Event Survey */}
         <div className="mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5 text-left">
