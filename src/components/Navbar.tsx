@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import NotificationBell from "./NotificationBell";
+import { signInWithGoogleSupabase } from "../lib/supabaseAuth";
 import {
   Menu,
   X,
@@ -542,11 +543,19 @@ export default function Navbar() {
               <div className={`absolute right-0 top-full mt-3 w-64 origin-top-right overflow-hidden rounded-2xl border border-line bg-white shadow-[0_30px_70px_-25px_rgba(22,24,28,0.45)] transition-all duration-200 ${
                 userOpen ? "visible scale-100 opacity-100 pointer-events-auto" : "hidden opacity-0 pointer-events-none"
               }`}>
-                <div className="border-b border-line bg-cream px-5 py-4">
-                  <p className="font-display text-sm font-bold text-ink">{formatAccountName(user)}</p>
+                <button
+                  type="button"
+                  onClick={() => { setUserOpen(false); setAddAccOpen(false); setSwitchErr(""); setSwitcherOpen(true); }}
+                  className="w-full text-left border-b border-line bg-cream px-5 py-4 hover:bg-brand-light/20 transition cursor-pointer group"
+                  title="Click to switch account"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-display text-sm font-bold text-ink truncate">{formatAccountName(user)}</p>
+                    <ArrowLeftRight className="h-3.5 w-3.5 text-brand shrink-0 opacity-70 group-hover:opacity-100" />
+                  </div>
                   <p className="mt-0.5 truncate text-xs text-muted">{user.email}</p>
                   <p className="mt-2 text-xs font-semibold text-brand">{stats.enrolled} course{stats.enrolled === 1 ? "" : "s"} enrolled</p>
-                </div>
+                </button>
                 <div className="p-2">
                   {isAdmin && (
                     <button type="button" onClick={() => { setUserOpen(false); go("/admin"); }}
@@ -699,6 +708,8 @@ export default function Navbar() {
               { label: "Fun Zone", to: "/fun" as Route, icon: Gamepad2 },
               { label: "Student Forum", to: "/forum" as Route, icon: MessagesSquare },
               { label: "Student of the Week", to: "/fun/student-of-the-week" as Route, icon: Award },
+              { label: "Histofact Cards", to: "/fun/histofact" as Route, icon: History },
+              { label: "Club Builder", to: "/fun/clubs" as Route, icon: Shield },
               { label: "Community", to: "/community" as Route, icon: Users },
               { label: "Reviews", to: "/reviews" as Route, icon: Star },
               { label: "FAQ", to: "/faq" as Route, icon: HelpCircle },
@@ -768,7 +779,17 @@ export default function Navbar() {
       <div className="shrink-0 border-t border-line bg-cream/70 p-4 space-y-3">
         {isAuthed && user ? (
           <>
-            <div className="flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setAddAccOpen(false);
+                setSwitchErr("");
+                setSwitcherOpen(true);
+              }}
+              className="w-full flex items-center gap-3 rounded-xl border border-line bg-white p-2.5 shadow-2xs hover:border-brand/40 hover:bg-brand-light/10 transition text-left cursor-pointer group"
+              title="Tap to switch account"
+            >
               {user.avatar ? (
                 <img
                   src={user.avatar}
@@ -786,7 +807,11 @@ export default function Navbar() {
                 </p>
                 <p className="truncate text-[10px] text-muted">{user.email}</p>
               </div>
-            </div>
+              <span className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-slate-100 group-hover:bg-brand/10 px-2 py-1 text-[10px] font-bold text-slate-600 group-hover:text-brand transition">
+                <ArrowLeftRight className="h-3 w-3" />
+                Switch
+              </span>
+            </button>
 
             {isAdmin && (
               <button
@@ -934,15 +959,34 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="border-t border-line bg-cream/60 p-3">
+          <div className="border-t border-line bg-cream/60 p-3 space-y-2">
             {!addAccOpen ? (
-              <button
-                type="button"
-                onClick={() => { setSwitchEmail(""); setSwitchPass(""); setSwitchErr(""); setAddAccOpen(true); }}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-line bg-white py-2 text-xs font-semibold text-ink hover:bg-slate-50 transition cursor-pointer"
-              >
-                <Plus className="h-3.5 w-3.5 text-brand" /> Add another account
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setSwitchErr("");
+                    const res = await signInWithGoogleSupabase();
+                    if (!res.ok) setSwitchErr(res.error || "Google sign-in failed.");
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-white py-2 text-xs font-semibold text-ink hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                  Switch / Add Google Account
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSwitchEmail(""); setSwitchPass(""); setSwitchErr(""); setAddAccOpen(true); }}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-line bg-white py-2 text-xs font-semibold text-ink hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5 text-brand" /> Add email & password account
+                </button>
+              </>
             ) : (
               <form
                 onSubmit={async (e) => {
