@@ -47,6 +47,7 @@ import {
   Grid,
   Magnet,
   X,
+  Menu,
   Plus,
   Settings,
   Keyboard,
