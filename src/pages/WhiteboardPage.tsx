@@ -1717,6 +1717,7 @@ export default function WhiteboardPage() {
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [insertMenuOpen, setInsertMenuOpen] = useState(false);
   const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false);
+  const [mobileMenuTab, setMobileMenuTab] = useState<"file" | "edit" | "view" | "insert">("file");
   const [mobileToolsDrawerOpen, setMobileToolsDrawerOpen] = useState(false);
   const [mobilePanelsDrawerOpen, setMobilePanelsDrawerOpen] = useState(false);
   const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
@@ -4088,8 +4089,7 @@ export default function WhiteboardPage() {
     }
 
     if (pendingShapeAdjustIds.length > 0) {
-      showToast("Confirm (✓) or Cancel (✕) adjustment first");
-      return;
+      commitShapeAdjustment();
     }
     // Deselect active shapes when clicking empty canvas to draw
     setSelectedShapeIds([]);
@@ -11561,69 +11561,215 @@ export default function WhiteboardPage() {
               {mobileHeaderMenuOpen && (
                 <div
                   onMouseDown={(e) => e.stopPropagation()}
-                  className="fixed left-2.5 right-2.5 top-14 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl z-[110] animate-in fade-in text-slate-800 space-y-1 max-h-[75dvh] overflow-y-auto"
+                  className="fixed left-2.5 right-2.5 top-14 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2.5 shadow-2xl z-[110] animate-in fade-in text-slate-800 space-y-2.5 max-h-[75dvh] overflow-y-auto"
                 >
-                  <p className="px-2.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">File</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); handleAddNewTab(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Plus className="h-3.5 w-3.5 text-slate-600" /> New Canvas
-                    </button>
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); handleSaveCurrentDraft(false); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Save className="h-3.5 w-3.5 text-slate-600" /> Save Draft
-                    </button>
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setExportOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Download className="h-3.5 w-3.5 text-slate-600" /> Export
-                    </button>
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setViewMode("hub"); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Home className="h-3.5 w-3.5 text-slate-600" /> All Canvases
-                    </button>
+                  {/* 4-Tab Bar: File | Edit | View | Insert */}
+                  <div className="grid grid-cols-4 gap-1 rounded-xl bg-slate-100/90 p-1 border border-slate-200/60">
+                    {(
+                      [
+                        { id: "file", label: "File" },
+                        { id: "edit", label: "Edit" },
+                        { id: "view", label: "View" },
+                        { id: "insert", label: "Insert" },
+                      ] as const
+                    ).map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setMobileMenuTab(t.id)}
+                        className={`py-1.5 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                          mobileMenuTab === t.id
+                            ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
                   </div>
 
-                  <p className="px-2.5 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">View & Panels</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("grid_guides"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Grid className="h-3.5 w-3.5 text-slate-600" /> Grid & Snap
-                    </button>
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("layers"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Layers className="h-3.5 w-3.5 text-slate-600" /> Layers ({shapes.length})
-                    </button>
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setZoom(1); setPan({ x: 0, y: 0 }); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <Maximize2 className="h-3.5 w-3.5 text-slate-600" /> Reset View
-                    </button>
-                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("samples"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
-                      <LayoutTemplate className="h-3.5 w-3.5 text-slate-600" /> Templates
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !showTransformControls;
-                        setShowTransformControls(next);
-                        showToast(next ? "Transform handles shown" : "Transform handles hidden");
-                      }}
-                      className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showTransformControls ? "bg-slate-50 hover:bg-slate-100" : "bg-slate-800 text-white"}`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        {showTransformControls ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                        Handles
-                      </span>
-                      <span className="text-[10px] font-bold">{showTransformControls ? "ON" : "OFF"}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !showPathNodes;
-                        setShowPathNodes(next);
-                        showToast(next ? "Path circle nodes shown" : "Path circle nodes hidden");
-                      }}
-                      className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showPathNodes ? "bg-slate-50 hover:bg-slate-100" : "bg-slate-800 text-white"}`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Circle className="h-3.5 w-3.5" />
-                        Nodes
-                      </span>
-                      <span className="text-[10px] font-bold">{showPathNodes ? "ON" : "OFF"}</span>
-                    </button>
-                  </div>
+                  {mobileMenuTab === "file" && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); handleAddNewTab(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Plus className="h-3.5 w-3.5 text-slate-600" /> New Canvas
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); handleSaveCurrentDraft(false); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Save className="h-3.5 w-3.5 text-slate-600" /> Save Draft
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setExportOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Download className="h-3.5 w-3.5 text-slate-600" /> Export
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setViewMode("hub"); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Home className="h-3.5 w-3.5 text-slate-600" /> All Canvases
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("drafts"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <FolderOpen className="h-3.5 w-3.5 text-slate-600" /> Drafts
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("samples"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <LayoutTemplate className="h-3.5 w-3.5 text-slate-600" /> Templates
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("trash"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer col-span-2">
+                        <Trash2 className="h-3.5 w-3.5 text-slate-600" /> Trash ({trashedTabs.length})
+                      </button>
+                    </div>
+                  )}
+
+                  {mobileMenuTab === "edit" && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button type="button" disabled={undoStack.length === 0} onClick={() => { setMobileHeaderMenuOpen(false); handleUndo(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer disabled:opacity-40">
+                        <RotateCcw className="h-3.5 w-3.5 text-slate-600" /> Undo
+                      </button>
+                      <button type="button" disabled={redoStack.length === 0} onClick={() => { setMobileHeaderMenuOpen(false); handleRedo(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer disabled:opacity-40">
+                        <RotateCw className="h-3.5 w-3.5 text-slate-600" /> Redo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileHeaderMenuOpen(false);
+                          setSelectedShapeIds(shapes.filter((s) => !s.isHidden).map((s) => s.id));
+                          selectTool("select");
+                        }}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer"
+                      >
+                        <BoxSelect className="h-3.5 w-3.5 text-slate-600" /> Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileHeaderMenuOpen(false);
+                          setSelectedShapeIds([]);
+                        }}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer"
+                      >
+                        <X className="h-3.5 w-3.5 text-slate-600" /> Deselect
+                      </button>
+                      {selectedShapeIds.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileHeaderMenuOpen(false);
+                            setShapes((prev) => prev.filter((s) => !selectedShapeIds.includes(s.id)));
+                            setSelectedShapeIds([]);
+                          }}
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-rose-50 text-rose-600 hover:bg-rose-100 text-left cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileHeaderMenuOpen(false);
+                          handleClear();
+                        }}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-rose-50 text-rose-600 hover:bg-rose-100 text-left cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Clear Canvas
+                      </button>
+                    </div>
+                  )}
+
+                  {mobileMenuTab === "view" && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("grid_guides"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Grid className="h-3.5 w-3.5 text-slate-600" /> Grid & Snap
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("layers"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Layers className="h-3.5 w-3.5 text-slate-600" /> Layers ({shapes.length})
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setZoom(1); setPan({ x: 0, y: 0 }); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Maximize2 className="h-3.5 w-3.5 text-slate-600" /> Reset View
+                      </button>
+                      <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setShortcutsOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                        <Keyboard className="h-3.5 w-3.5 text-slate-600" /> Shortcuts
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !snapToGrid;
+                          setSnapToGrid(next);
+                          showToast(next ? `Snap: On (${gridSnapSize}px)` : "Snap: Off");
+                        }}
+                        className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${snapToGrid ? "bg-brand/10 text-brand" : "bg-slate-50 hover:bg-slate-100"}`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Magnet className="h-3.5 w-3.5" /> Snap
+                        </span>
+                        <span className="text-[10px] font-bold">{snapToGrid ? "ON" : "OFF"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !showTransformControls;
+                          setShowTransformControls(next);
+                          showToast(next ? "Transform handles shown" : "Transform handles hidden");
+                        }}
+                        className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showTransformControls ? "bg-slate-50 hover:bg-slate-100" : "bg-slate-800 text-white"}`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {showTransformControls ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                          Handles
+                        </span>
+                        <span className="text-[10px] font-bold">{showTransformControls ? "ON" : "OFF"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !showPathNodes;
+                          setShowPathNodes(next);
+                          showToast(next ? "Path circle nodes shown" : "Path circle nodes hidden");
+                        }}
+                        className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showPathNodes ? "bg-slate-50 hover:bg-slate-100" : "bg-slate-800 text-white"}`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Circle className="h-3.5 w-3.5" /> Nodes
+                        </span>
+                        <span className="text-[10px] font-bold">{showPathNodes ? "ON" : "OFF"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowCursorCoords(!showCursorCoords)}
+                        className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showCursorCoords ? "bg-brand/10 text-brand" : "bg-slate-50 hover:bg-slate-100"}`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Crosshair className="h-3.5 w-3.5" /> Coords
+                        </span>
+                        <span className="text-[10px] font-bold">{showCursorCoords ? "ON" : "OFF"}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {mobileMenuTab === "insert" && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(
+                        [
+                          { id: "long", label: "Long R:R", Icon: TrendingUp },
+                          { id: "short", label: "Short R:R", Icon: TrendingDown },
+                          { id: "fibo", label: "Fibonacci", Icon: Percent },
+                          { id: "orderblock", label: "Order Block", Icon: BoxSelect },
+                          { id: "rectangle", label: "Rectangle", Icon: Square },
+                          { id: "circle", label: "Circle", Icon: Circle },
+                          { id: "line", label: "Line", Icon: Minus },
+                          { id: "arrow", label: "Arrow", Icon: ArrowUpRight },
+                          { id: "text", label: "Text", Icon: Type },
+                          { id: "sticky", label: "Sticky Note", Icon: StickyNote },
+                          { id: "image", label: "Image", Icon: ImageIcon },
+                        ] as const
+                      ).map(({ id, label, Icon }) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => {
+                            selectTool(id);
+                            setMobileHeaderMenuOpen(false);
+                          }}
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer"
+                        >
+                          <Icon className="h-3.5 w-3.5 text-slate-600" /> {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
