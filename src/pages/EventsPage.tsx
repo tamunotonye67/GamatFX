@@ -222,13 +222,27 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
                 </div>
               </div>
 
-              {!mine.checkedIn && e.checkInCode && (
+              {mine.attendedSessions && mine.attendedSessions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {mine.attendedSessions.map((a) => (
+                    <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                      <CheckCircle2 className="h-3 w-3" /> {a.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {((e.sessions && e.sessions.length > 0 && (mine.attendedSessions?.length || 0) < e.sessions.length) || (!e.sessions?.length && !mine.checkedIn && e.checkInCode)) && (
                 <form
                   onSubmit={(evForm) => {
                     evForm.preventDefault();
                     setCodeErr("");
                     const res = checkInWithCode(e.id, mine.ticket, codeInput);
-                    if (!res.ok) setCodeErr(res.error || "Invalid code");
+                    if (res.ok) {
+                      setCodeInput("");
+                    } else {
+                      setCodeErr(res.error || "Invalid code");
+                    }
                   }}
                   className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand/15"
                 >
@@ -236,7 +250,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
                     type="text"
                     value={codeInput}
                     onChange={(evIn) => setCodeInput(evIn.target.value.toUpperCase())}
-                    placeholder="Enter live check-in code"
+                    placeholder={e.sessions?.length ? "Enter class session code" : "Enter live check-in code"}
                     className="flex-1 min-w-[150px] rounded-lg border border-brand/25 bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
                   />
                   <button
@@ -264,7 +278,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 /* ------------------------------ Registration ------------------------------ */
 
 function RegistrationForm({ preset }: { preset: string }) {
-  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, confirmEventSeat, checkInWithCode, myRegistrations, admin, user, isAuthed } = useStore();
+  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, confirmEventSeat, checkInWithCode, findRegistration, myRegistrations, admin, user, isAuthed } = useStore();
   const [eventId, setEventId] = useState(preset || events[0]?.id || "");
   const [name, setName] = useState(user ? formatAccountName(user) : "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -491,12 +505,21 @@ function RegistrationForm({ preset }: { preset: string }) {
         </div>
 
         {/* Live Event Check-In */}
-        {ticketEvent?.checkInCode && (
-          <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 text-left">
+        {(ticketEvent?.checkInCode || (ticketEvent?.sessions && ticketEvent.sessions.length > 0)) && (
+          <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 text-left space-y-2">
             <p className="text-[11px] font-bold uppercase tracking-wider text-brand-light">Live Event Check-In</p>
-            {ticket.checkedIn ? (
-              <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                <CheckCircle2 className="h-4 w-4" /> Attended ✓ — You are checked in for this event!
+            {ticket.attendedSessions && ticket.attendedSessions.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {ticket.attendedSessions.map((a) => (
+                  <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                    <CheckCircle2 className="h-3 w-3" /> {a.label}
+                  </span>
+                ))}
+              </div>
+            )}
+            {ticket.checkedIn && (!ticketEvent?.sessions?.length || (ticket.attendedSessions?.length || 0) >= ticketEvent.sessions.length) ? (
+              <p className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300">
+                <CheckCircle2 className="h-4 w-4" /> Attended ✓ — You are checked in!
               </p>
             ) : (
               <form
@@ -505,18 +528,20 @@ function RegistrationForm({ preset }: { preset: string }) {
                   setTicketCheckInErr("");
                   const res = checkInWithCode(ticket.eventId, ticket.ticket, ticketCheckInCode);
                   if (res.ok) {
-                    setTicket({ ...ticket, checkedIn: true, checkedInAt: Date.now(), checkInMethod: "code", seatConfirmed: true });
+                    const updated = findRegistration(ticket.ticket);
+                    setTicket(updated || { ...ticket, checkedIn: true, checkedInAt: Date.now(), checkInMethod: "code", seatConfirmed: true });
+                    setTicketCheckInCode("");
                   } else {
                     setTicketCheckInErr(res.error || "Invalid check-in code.");
                   }
                 }}
-                className="mt-2 flex flex-wrap items-center gap-2"
+                className="flex flex-wrap items-center gap-2"
               >
                 <input
                   type="text"
                   value={ticketCheckInCode}
                   onChange={(evIn) => setTicketCheckInCode(evIn.target.value.toUpperCase())}
-                  placeholder="Enter live check-in code"
+                  placeholder={ticketEvent?.sessions?.length ? "Enter class session code" : "Enter live check-in code"}
                   className="flex-1 min-w-[160px] rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-mono text-white placeholder:text-white/40 outline-none focus:border-brand"
                 />
                 <button

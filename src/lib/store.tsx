@@ -805,6 +805,7 @@ export type EventItem = {
   status: "published" | "draft";
   featured?: boolean;
   checkInCode?: string;
+  sessions?: { id: string; label: string; code: string }[];
 };
 
 export type Registration = {
@@ -826,6 +827,7 @@ export type Registration = {
   checkedIn?: boolean;
   checkedInAt?: number;
   checkInMethod?: "admin" | "code";
+  attendedSessions?: { sessionId: string; label: string; checkedInAt: number; method: "admin" | "code" }[];
   survey?: {
     experience?: string;
     goal?: string;
@@ -1347,7 +1349,7 @@ type Ctx = {
     { ok: boolean; error?: string; registration?: Registration };
   saveRegistrationSurvey: (id: string, survey: NonNullable<Registration["survey"]>) => void;
   confirmEventSeat: (regId: string) => void;
-  checkInWithCode: (eventId: string, ticketOrEmail: string, code: string) => { ok: boolean; error?: string };
+  checkInWithCode: (eventId: string, ticketOrEmail: string, code: string) => { ok: boolean; error?: string; sessionLabel?: string };
   findRegistration: (query: string) => Registration | undefined;
   myRegistrations: Registration[];
   cancelRegistration: (id: string) => void;
@@ -1518,7 +1520,7 @@ type Ctx = {
     saveEvent: (e: EventItem) => void;
     deleteEvent: (id: string) => void;
     setRegistrationStatus: (id: string, status: Registration["status"]) => void;
-    toggleRegistrationCheckIn: (id: string) => void;
+    toggleRegistrationCheckIn: (id: string, sessionId?: string) => void;
     deleteRegistration: (id: string) => void;
     setCourseSetting: (courseId: string, patch: CourseSetting) => void;
     issueCertificate: (userId: string, courseId: string) => void;
@@ -3250,11 +3252,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     (eventId, ticketOrEmail, code) => {
       const ev = events.find((e) => e.id === eventId);
       if (!ev) return { ok: false, error: "Event not found." };
-      const expected = (ev.checkInCode || "").trim().toUpperCase();
-      if (!expected) return { ok: false, error: "Live check-in code is not enabled for this event yet." };
-      if (code.trim().toUpperCase() !== expected) {
-        return { ok: false, error: "Invalid check-in code. Please check the code shared at the event." };
+      const cleanCode = code.trim().toUpperCase();
+      if (!cleanCode) return { ok: false, error: "Please enter a check-in code." };
+
+      const sessions = ev.sessions || [];
+      const matchedSession = sessions.find((s) => s.code.trim().toUpperCase() === cleanCode);
+      const expectedSingle = (ev.checkInCode || "").trim().toUpperCase();
+
+      if (!matchedSession && (!expectedSingle || cleanCode !== expectedSingle)) {
+        if (sessions.length === 0 && !expectedSingle) {
+          return { ok: false, error: "Live check-in code is not enabled for this event yet." };
+        }
+        return { ok: false, error: "Invalid check-in code. Please check the code shared at the class." };
       }
+
       const query = ticketOrEmail.trim().toLowerCase();
       const target = registrations.find(
         (r) =>
@@ -3265,9 +3276,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (!target) {
         return { ok: false, error: "No confirmed registration found for that ticket or email." };
       }
+
+      if (matchedSession && (target.attendedSessions || []).some((a) => a.sessionId === matchedSession.id)) {
+        return { ok: false, error: `Already checked in for ${matchedSession.label}.` };
+      }
+
       setRegistrations((p) =>
         p.map((r) => {
           if (r.id === target.id) {
+            const nextAttended = matchedSession
+              ? [
+                  ...(r.attendedSessions || []),
+                  {
+                    sessionId: matchedSession.id,
+                    label: matchedSession.label,
+                    checkedInAt: Date.now(),
+                    method: "code" as const,
+                  },
+                ]
+              : r.attendedSessions;
             const updated: Registration = {
               ...r,
               checkedIn: true,
@@ -3275,6 +3302,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               checkInMethod: "code",
               seatConfirmed: true,
               seatConfirmedAt: r.seatConfirmedAt || Date.now(),
+              ...(nextAttended ? { attendedSessions: nextAttended } : {}),
             };
             saveSupabaseRegistration(updated);
             return updated;
@@ -3282,7 +3310,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           return r;
         })
       );
-      return { ok: true };
+      return { ok: true, sessionLabel: matchedSession?.label };
     },
     [events, registrations]
   );
@@ -4872,10 +4900,38 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteSupabaseEvent(id);
     },
     setRegistrationStatus: (id, status) => setRegistrations((p) => p.map((r) => (r.id === id ? { ...r, status } : r))),
-    toggleRegistrationCheckIn: (id) => {
+    toggleRegistrationCheckIn: (id, sessionId) => {
       setRegistrations((p) =>
         p.map((r) => {
           if (r.id === id) {
+            if (sessionId) {
+              const evObj = events.find((e) => e.id === r.eventId);
+              const ses = evObj?.sessions?.find((s) => s.id === sessionId);
+              const prevList = r.attendedSessions || [];
+              const exists = prevList.some((a) => a.sessionId === sessionId);
+              const nextList = exists
+                ? prevList.filter((a) => a.sessionId !== sessionId)
+                : [
+                    ...prevList,
+                    {
+                      sessionId,
+                      label: ses?.label || "Session",
+                      checkedInAt: Date.now(),
+                      method: "admin" as const,
+                    },
+                  ];
+              const updated: Registration = {
+                ...r,
+                attendedSessions: nextList,
+                checkedIn: nextList.length > 0,
+                checkedInAt: nextList.length > 0 ? Date.now() : undefined,
+                checkInMethod: nextList.length > 0 ? "admin" : undefined,
+                seatConfirmed: nextList.length > 0 ? true : r.seatConfirmed,
+                seatConfirmedAt: nextList.length > 0 ? (r.seatConfirmedAt || Date.now()) : r.seatConfirmedAt,
+              };
+              saveSupabaseRegistration(updated);
+              return updated;
+            }
             const nextCheckedIn = !r.checkedIn;
             const updated: Registration = {
               ...r,

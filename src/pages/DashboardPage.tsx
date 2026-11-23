@@ -1051,13 +1051,27 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {r.status === "confirmed" && !r.checkedIn && evObj?.checkInCode && (
+              {r.status === "confirmed" && r.attendedSessions && r.attendedSessions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 px-5 pb-3 sm:px-6">
+                  {r.attendedSessions.map((a) => (
+                    <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                      {a.label} ✓
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {r.status === "confirmed" &&
+                ((evObj?.sessions && evObj.sessions.length > 0 && (r.attendedSessions?.length || 0) < evObj.sessions.length) ||
+                  (!evObj?.sessions?.length && !r.checkedIn && evObj?.checkInCode)) && (
                 <form
                   onSubmit={(evForm) => {
                     evForm.preventDefault();
                     setDashErrByReg((p) => ({ ...p, [r.id]: "" }));
                     const res = store.checkInWithCode(r.eventId, r.ticket, dashCodeByReg[r.id] || "");
-                    if (!res.ok) {
+                    if (res.ok) {
+                      setDashCodeByReg((p) => ({ ...p, [r.id]: "" }));
+                    } else {
                       setDashErrByReg((p) => ({ ...p, [r.id]: res.error || "Invalid code" }));
                     }
                   }}
@@ -1068,7 +1082,7 @@ export default function DashboardPage() {
                     type="text"
                     value={dashCodeByReg[r.id] || ""}
                     onChange={(e) => setDashCodeByReg((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
-                    placeholder="Enter event code"
+                    placeholder={evObj?.sessions?.length ? "Enter class session code" : "Enter event code"}
                     className="flex-1 min-w-[140px] max-w-[220px] rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
                   />
                   <button

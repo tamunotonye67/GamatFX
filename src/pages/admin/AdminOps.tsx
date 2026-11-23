@@ -243,11 +243,15 @@ export function AdminEvents() {
                       <Badge tone={e.type === "Online" ? "ink" : e.type === "Hybrid" ? "amber" : "red"}>{e.type}</Badge>
                       <Badge tone={e.status === "published" ? "green" : "gray"}>{e.status}</Badge>
                       {e.featured && <Badge tone="red">featured</Badge>}
-                      {e.checkInCode && (
+                      {e.sessions && e.sessions.length > 0 ? (
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-700 border border-slate-200">
+                          {e.sessions.length} session code{e.sessions.length === 1 ? "" : "s"}
+                        </span>
+                      ) : e.checkInCode ? (
                         <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-700 border border-slate-200">
                           Code: {e.checkInCode}
                         </span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="hidden sm:block">
                       <h3 className="mt-2 font-display text-base font-bold leading-snug text-ink">{e.title}</h3>
@@ -256,6 +260,15 @@ export function AdminEvents() {
                         {e.time}{e.endTime ? ` – ${e.endTime}` : ""} · {e.price ? naira(e.price) : "Free"}
                         {(e.endMonth || e.endDay || e.endYear) ? ` · Ends ${e.endMonth || e.month} ${e.endDay || e.day}, ${e.endYear || e.year}` : ""}
                       </p>
+                      {e.sessions && e.sessions.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {e.sessions.map((s) => (
+                            <span key={s.id} className="rounded bg-slate-50 border border-slate-200 px-2 py-0.5 text-[10px] font-mono text-slate-700">
+                              {s.label}: <strong>{s.code}</strong>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -301,6 +314,15 @@ function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventI
   const [f, setF] = useState<EventItem>(ev);
   const set = <K extends keyof EventItem>(k: K, v: EventItem[K]) => setF({ ...f, [k]: v });
 
+  const addSession = () => {
+    const existing = f.sessions || [];
+    const nextCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+    set("sessions", [
+      ...existing,
+      { id: `ses_${Date.now()}_${existing.length + 1}`, label: `Day ${existing.length + 1}`, code: nextCode },
+    ]);
+  };
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="space-y-4">
       <Field label="Event title" value={f.title} onChange={(v) => set("title", v)} ph="Forex Mentorship Class…" />
@@ -331,8 +353,64 @@ function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventI
         <Field label="Price (₦, 0 = free)" type="number" value={f.price} onChange={(v) => set("price", Number(v))} />
         <Select label="Status" value={f.status} onChange={(v) => set("status", v as EventItem["status"])}
           options={[{ v: "published", l: "Published" }, { v: "draft", l: "Draft" }]} />
-        <Field label="Check-In Code" value={f.checkInCode || ""} onChange={(v) => set("checkInCode", v.toUpperCase())} ph="Auto" />
+        <Field label="Default Check-In Code" value={f.checkInCode || ""} onChange={(v) => set("checkInCode", v.toUpperCase())} ph="Auto" />
       </div>
+
+      {/* Multi-Day / Per-Class Session Codes */}
+      <div className="rounded-xl border border-line bg-cream/50 p-3.5 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-ink">Class Sessions &amp; Unique Check-In Codes</p>
+            <p className="text-[11px] text-muted">Optional — add a unique code for each day or class session.</p>
+          </div>
+          <button
+            type="button"
+            onClick={addSession}
+            className="rounded-lg bg-brand px-2.5 py-1.5 text-[11px] font-bold text-white hover:bg-brand-dark transition cursor-pointer"
+          >
+            + Add Session
+          </button>
+        </div>
+        {(f.sessions || []).length > 0 && (
+          <div className="space-y-2">
+            {(f.sessions || []).map((ses, idx) => (
+              <div key={ses.id} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                <input
+                  type="text"
+                  value={ses.label}
+                  onChange={(e) => {
+                    const next = [...(f.sessions || [])];
+                    next[idx] = { ...ses, label: e.target.value };
+                    set("sessions", next);
+                  }}
+                  placeholder="Session name (e.g. Day 1)"
+                  className="rounded-lg border border-line bg-white px-3 py-1.5 text-xs text-ink outline-none focus:border-brand"
+                />
+                <input
+                  type="text"
+                  value={ses.code}
+                  onChange={(e) => {
+                    const next = [...(f.sessions || [])];
+                    next[idx] = { ...ses, code: e.target.value.toUpperCase() };
+                    set("sessions", next);
+                  }}
+                  placeholder="CODE"
+                  className="rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-mono font-bold text-ink outline-none focus:border-brand"
+                />
+                <button
+                  type="button"
+                  onClick={() => set("sessions", (f.sessions || []).filter((s) => s.id !== ses.id))}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                  title="Remove session"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <label className="flex items-center gap-2.5 rounded-xl border border-line bg-cream/60 px-4 py-2.5 text-sm font-semibold text-ink cursor-pointer">
         <input
           type="checkbox"
@@ -408,7 +486,11 @@ export function AdminRegistrations() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {rows.map((r) => (
+                {rows.map((r) => {
+                  const evObj = allEvents.find((ev) => ev.id === r.eventId);
+                  const evSessions = evObj?.sessions || [];
+                  const attendedList = r.attendedSessions || [];
+                  return (
                   <tr key={r.id} className="transition hover:bg-cream/60">
                     <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{r.ticket}</code></Td>
                     <Td className="min-w-[200px]">
@@ -419,7 +501,35 @@ export function AdminRegistrations() {
                     <Td className="min-w-[200px]"><span className="text-ink/80 font-medium">{r.eventTitle}</span></Td>
                     <Td className="whitespace-nowrap"><span className="text-muted">{r.eventDate}</span></Td>
                     <Td className="whitespace-nowrap">
-                      {r.checkedIn ? (
+                      {evSessions.length > 0 ? (
+                        <div className="space-y-1">
+                          <Badge tone={attendedList.length > 0 ? "green" : r.seatConfirmed ? "amber" : "gray"}>
+                            {attendedList.length} / {evSessions.length} sessions
+                          </Badge>
+                          {r.status === "confirmed" && (
+                            <div className="flex flex-wrap gap-1">
+                              {evSessions.map((ses) => {
+                                const done = attendedList.some((a) => a.sessionId === ses.id);
+                                return (
+                                  <button
+                                    key={ses.id}
+                                    type="button"
+                                    onClick={() => admin.toggleRegistrationCheckIn(r.id, ses.id)}
+                                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold border transition cursor-pointer ${
+                                      done
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                    title={done ? `Undo ${ses.label}` : `Check in for ${ses.label}`}
+                                  >
+                                    {ses.label}{done ? " ✓" : ""}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ) : r.checkedIn ? (
                         <Badge tone="green">Attended ✓</Badge>
                       ) : r.seatConfirmed ? (
                         <Badge tone="amber">Seat Confirmed</Badge>
@@ -430,7 +540,7 @@ export function AdminRegistrations() {
                     <Td className="whitespace-nowrap"><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
                     <Td right className="whitespace-nowrap w-[150px] min-w-[150px]">
                       <div className="flex justify-end items-center gap-1">
-                        {r.status === "confirmed" && (
+                        {r.status === "confirmed" && evSessions.length === 0 && (
                           <button
                             type="button"
                             onClick={() => admin.toggleRegistrationCheckIn(r.id)}
@@ -455,7 +565,8 @@ export function AdminRegistrations() {
                       </div>
                     </Td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
