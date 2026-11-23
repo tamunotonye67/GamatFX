@@ -13327,7 +13327,7 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(0.2, z - 0.15))}
-              className="p-1 text-slate-700 hover:bg-slate-100 hover:text-ink rounded-lg transition cursor-pointer"
+              className="hidden sm:inline-flex p-1 text-slate-700 hover:bg-slate-100 hover:text-ink rounded-lg transition cursor-pointer"
               title="Zoom Out (Ctrl + - or scroll wheel)"
             >
               <ZoomOut className="h-3.5 w-3.5" />
@@ -13446,7 +13446,7 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => setZoom((z) => Math.min(4.0, z + 0.15))}
-              className="p-1 text-slate-700 hover:bg-slate-100 hover:text-ink rounded-lg transition cursor-pointer"
+              className="hidden sm:inline-flex p-1 text-slate-700 hover:bg-slate-100 hover:text-ink rounded-lg transition cursor-pointer"
               title="Zoom In (Ctrl + + or scroll wheel)"
             >
               <ZoomIn className="h-3.5 w-3.5" />
@@ -16615,7 +16615,7 @@ export default function WhiteboardPage() {
               <button
                 type="button"
                 onClick={() => detachIndividualPanel(rightPanelTab)}
-                className="px-2 py-1 rounded-lg text-slate-500 hover:text-brand hover:bg-brand-light transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-semibold"
+                className="hidden sm:flex px-2 py-1 rounded-lg text-slate-500 hover:text-brand hover:bg-brand-light transition-colors cursor-pointer items-center gap-1 text-[10px] font-semibold"
                 title={`Detach "${rightPanelTab}" to float anywhere`}
               >
                 <ExternalLink className="h-3 w-3" /> Detach
