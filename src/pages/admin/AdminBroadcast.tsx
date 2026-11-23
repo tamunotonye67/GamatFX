@@ -17,7 +17,7 @@ const LOG_KEY = "gamat.broadcast_logs.v1";
 
 export function AdminBroadcast() {
   const { admin, events = [], managedCourses = [] } = useStore();
-  const [audience, setAudience] = useState<"all_students" | "enrolled" | "events" | "custom">("all_students");
+  const [audience, setAudience] = useState<"all_students" | "enrolled" | "events" | "unconfirmed_seats" | "custom">("all_students");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
   const [selectedEventId, setSelectedEventId] = useState<string>("all");
   const [customEmails, setCustomEmails] = useState("");
@@ -72,13 +72,14 @@ export function AdminBroadcast() {
         )
       );
     }
-    if (audience === "events") {
+    if (audience === "events" || audience === "unconfirmed_seats") {
       return Array.from(
         new Set(
           admin.registrations
             .filter(
               (r) =>
                 r.status === "confirmed" &&
+                (audience === "events" || !r.seatConfirmed) &&
                 r.email &&
                 (selectedEventId === "all" || r.eventId === selectedEventId)
             )
@@ -173,6 +174,7 @@ export function AdminBroadcast() {
                 { v: "all_students", l: "All Active Accounts" },
                 { v: "enrolled", l: "Enrolled Course Students" },
                 { v: "events", l: "Confirmed Event Registrants" },
+                { v: "unconfirmed_seats", l: "Event Registrants — Seat Not Confirmed" },
                 { v: "custom", l: "Custom Email List" },
               ]}
             />
@@ -202,7 +204,7 @@ export function AdminBroadcast() {
               />
             )}
 
-            {audience === "events" && (
+            {(audience === "events" || audience === "unconfirmed_seats") && (
               <Select
                 label="Select Event"
                 value={selectedEventId}

@@ -1339,6 +1339,7 @@ type Ctx = {
 
   /* events */
   events: EventItem[];
+  pastEvents: EventItem[];
   allEvents: EventItem[];
   seatsLeft: (eventId: string) => number;
   canRegisterForEvent: (d: { eventId: string; email: string }) => { ok: boolean; error?: string };
@@ -1347,6 +1348,7 @@ type Ctx = {
   saveRegistrationSurvey: (id: string, survey: NonNullable<Registration["survey"]>) => void;
   confirmEventSeat: (regId: string) => void;
   checkInWithCode: (eventId: string, ticketOrEmail: string, code: string) => { ok: boolean; error?: string };
+  findRegistration: (query: string) => Registration | undefined;
   myRegistrations: Registration[];
   cancelRegistration: (id: string) => void;
 
@@ -3151,7 +3153,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   /* ------------------------------ Events ------------------------------ */
 
-  const publicEvents = useMemo(() => events.filter((e) => e.status === "published"), [events]);
+  const isEventEnded = (e: EventItem) => {
+    const mStr = (e.endMonth || e.month || "").trim();
+    const dNum = parseInt((e.endDay || e.day || "").trim(), 10);
+    const yNum = parseInt((e.endYear || e.year || "").trim(), 10);
+    if (!mStr || isNaN(dNum) || isNaN(yNum)) return false;
+    const parsed = new Date(`${mStr} ${dNum}, ${yNum} 23:59:59`);
+    if (isNaN(parsed.getTime())) return false;
+    return Date.now() > parsed.getTime();
+  };
+
+  const publicEvents = useMemo(
+    () => events.filter((e) => e.status === "published" && !isEventEnded(e)),
+    [events]
+  );
+
+  const pastEvents = useMemo(
+    () => events.filter((e) => e.status === "published" && isEventEnded(e)),
+    [events]
+  );
 
   const seatsLeft: Ctx["seatsLeft"] = useCallback((eventId) => {
     const ev = events.find((e) => e.id === eventId);
@@ -3265,6 +3285,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ok: true };
     },
     [events, registrations]
+  );
+
+  const findRegistration: Ctx["findRegistration"] = useCallback(
+    (query) => {
+      const q = query.trim().toLowerCase();
+      if (!q) return undefined;
+      return registrations.find(
+        (r) => r.status === "confirmed" && (r.ticket.toLowerCase() === q || r.email.toLowerCase() === q)
+      );
+    },
+    [registrations]
   );
 
   const myRegistrations = useMemo(
@@ -5308,8 +5339,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     toggleLesson, setLastLesson, progressOf, stats,
     priceOf, courseSettings,
     recordPayment, myPayments,
-    events: publicEvents, allEvents: events, seatsLeft, canRegisterForEvent, registerForEvent,
-    saveRegistrationSurvey, confirmEventSeat, checkInWithCode, myRegistrations, cancelRegistration,
+    events: publicEvents, pastEvents, allEvents: events, seatsLeft, canRegisterForEvent, registerForEvent,
+    saveRegistrationSurvey, confirmEventSeat, checkInWithCode, findRegistration, myRegistrations, cancelRegistration,
     isStaff: user?.role === "staff",
     can, permissions,
     attempts: myAttempts, submitAttempt, bestAttempt, hasPassedQuiz,

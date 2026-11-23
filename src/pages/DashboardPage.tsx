@@ -993,39 +993,96 @@ export default function DashboardPage() {
   }
 
   function MyEvents() {
+    const [dashCodeByReg, setDashCodeByReg] = useState<Record<string, string>>({});
+    const [dashErrByReg, setDashErrByReg] = useState<Record<string, string>>({});
+
     if (!myRegistrations.length) {
       return <EmptyState title="No event registrations" body="Register for a mentorship intake or webinar to see it here." cta="View Events" to="/events" />;
     }
     return (
       <div className="space-y-4">
-        {myRegistrations.map((r) => (
-          <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
-              <div className="min-w-0">
-                <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
-                  {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
-                </span>
-                <h3 className="mt-2 font-display text-base font-bold text-ink">{r.eventTitle}</h3>
-                <p className="mt-1 text-xs text-muted">
-                  {r.eventDate} · registered {new Date(r.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl border border-dashed border-brand/40 bg-brand-light px-4 py-2 text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-muted">Ticket</p>
-                  <p className="font-display text-sm font-extrabold text-brand">{r.ticket}</p>
+        {myRegistrations.map((r) => {
+          const evObj = store.allEvents.find((e) => e.id === r.eventId);
+          return (
+            <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white">
+              <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
+                      {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
+                    </span>
+                    {r.status === "confirmed" && r.checkedIn && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
+                        Attended ✓
+                      </span>
+                    )}
+                    {r.status === "confirmed" && !r.checkedIn && r.seatConfirmed && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                        Seat Confirmed
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="mt-2 font-display text-base font-bold text-ink">{r.eventTitle}</h3>
+                  <p className="mt-1 text-xs text-muted">
+                    {r.eventDate} · registered {new Date(r.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                {r.status === "confirmed" && (
-                  <button
-                    onClick={() => { if (confirm("Cancel this registration? Your seat will be released.")) store.cancelRegistration(r.id); }}
-                    className="btn-outline-dark !py-2.5">
-                    Cancel
-                  </button>
-                )}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="rounded-xl border border-dashed border-brand/40 bg-brand-light px-4 py-2 text-center">
+                    <p className="text-[10px] uppercase tracking-wide text-muted">Ticket</p>
+                    <p className="font-display text-sm font-extrabold text-brand">{r.ticket}</p>
+                  </div>
+                  {r.status === "confirmed" && !r.seatConfirmed && !r.checkedIn && (
+                    <button
+                      type="button"
+                      onClick={() => store.confirmEventSeat(r.id)}
+                      className="btn-primary !py-2.5 text-xs"
+                    >
+                      Confirm Seat
+                    </button>
+                  )}
+                  {r.status === "confirmed" && (
+                    <button
+                      onClick={() => { if (confirm("Cancel this registration? Your seat will be released.")) store.cancelRegistration(r.id); }}
+                      className="btn-outline-dark !py-2.5">
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {r.status === "confirmed" && !r.checkedIn && evObj?.checkInCode && (
+                <form
+                  onSubmit={(evForm) => {
+                    evForm.preventDefault();
+                    setDashErrByReg((p) => ({ ...p, [r.id]: "" }));
+                    const res = store.checkInWithCode(r.eventId, r.ticket, dashCodeByReg[r.id] || "");
+                    if (!res.ok) {
+                      setDashErrByReg((p) => ({ ...p, [r.id]: res.error || "Invalid code" }));
+                    }
+                  }}
+                  className="flex flex-wrap items-center gap-2 border-t border-line bg-cream/50 px-5 py-3 sm:px-6"
+                >
+                  <span className="text-xs font-semibold text-ink">Live Check-In:</span>
+                  <input
+                    type="text"
+                    value={dashCodeByReg[r.id] || ""}
+                    onChange={(e) => setDashCodeByReg((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
+                    placeholder="Enter event code"
+                    className="flex-1 min-w-[140px] max-w-[220px] rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
+                  >
+                    Check In
+                  </button>
+                  {dashErrByReg[r.id] && <p className="w-full text-[11px] font-semibold text-rose-600">{dashErrByReg[r.id]}</p>}
+                </form>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }

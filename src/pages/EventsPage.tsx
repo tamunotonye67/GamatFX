@@ -687,9 +687,14 @@ function Input({ label, value, onChange, ph, type = "text" }: {
 /* --------------------------------- Page --------------------------------- */
 
 export default function EventsPage() {
-  const { events, allEvents, admin } = useStore();
+  const { events, pastEvents, allEvents, admin, findRegistration, confirmEventSeat, checkInWithCode } = useStore();
   const { ref, visible } = useReveal<HTMLDivElement>();
   const [preset, setPreset] = useState("");
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [lookupResult, setLookupResult] = useState<Registration | null>(null);
+  const [lookupNotFound, setLookupNotFound] = useState(false);
+  const [lookupCode, setLookupCode] = useState("");
+  const [lookupCodeErr, setLookupCodeErr] = useState("");
 
   const scrollToForm = (id: string) => {
     setPreset(id);
@@ -731,7 +736,112 @@ export default function EventsPage() {
             <h2 className="section-title mt-4">Upcoming events</h2>
             <p className="mt-4 text-muted">Mentorship intakes, free webinars and live market workshops.</p>
           </div>
-          <div className="mx-auto mt-12 max-w-4xl space-y-6">
+
+          {/* Ticket Lookup & Guest Check-In Bar */}
+          <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-line bg-white p-4 sm:p-5 shadow-xs">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setLookupNotFound(false);
+                setLookupCodeErr("");
+                const found = findRegistration(lookupQuery);
+                if (found) {
+                  setLookupResult(found);
+                } else {
+                  setLookupResult(null);
+                  setLookupNotFound(true);
+                }
+              }}
+              className="flex flex-wrap items-center gap-2.5"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold text-ink shrink-0">
+                <Ticket className="h-4 w-4 text-brand" />
+                <span>Already registered?</span>
+              </div>
+              <input
+                type="text"
+                value={lookupQuery}
+                onChange={(e) => setLookupQuery(e.target.value)}
+                placeholder="Enter your email or ticket (e.g. GAMAT-1234)"
+                className="flex-1 min-w-[200px] rounded-xl border border-line bg-cream/60 px-3.5 py-2 text-xs text-ink outline-none focus:border-brand focus:bg-white"
+              />
+              <button type="submit" className="btn-primary !py-2 !px-4 text-xs">
+                Find Ticket
+              </button>
+            </form>
+
+            {lookupNotFound && (
+              <p className="mt-2.5 text-xs font-medium text-rose-600">
+                No confirmed registration found for "{lookupQuery}".
+              </p>
+            )}
+
+            {lookupResult && (() => {
+              const evObj = allEvents.find((ev) => ev.id === lookupResult.eventId);
+              return (
+                <div className="mt-4 rounded-xl border border-brand/25 bg-brand-light/40 p-4 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-bold text-ink">{lookupResult.name} · <code className="text-brand">{lookupResult.ticket}</code></p>
+                      <p className="text-xs text-muted">{lookupResult.eventTitle} ({lookupResult.eventDate})</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {lookupResult.checkedIn ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white">
+                          <CheckCircle2 className="h-3 w-3" /> Attended ✓
+                        </span>
+                      ) : lookupResult.seatConfirmed ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-[11px] font-bold text-amber-800">
+                          <CheckCircle2 className="h-3 w-3" /> Seat Confirmed
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            confirmEventSeat(lookupResult.id);
+                            setLookupResult({ ...lookupResult, seatConfirmed: true, seatConfirmedAt: Date.now() });
+                          }}
+                          className="rounded-full bg-ink px-3 py-1 text-[11px] font-bold text-white hover:bg-ink/90 transition cursor-pointer"
+                        >
+                          Confirm My Seat
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {!lookupResult.checkedIn && evObj?.checkInCode && (
+                    <form
+                      onSubmit={(evForm) => {
+                        evForm.preventDefault();
+                        setLookupCodeErr("");
+                        const res = checkInWithCode(lookupResult.eventId, lookupResult.ticket, lookupCode);
+                        if (res.ok) {
+                          setLookupResult({ ...lookupResult, checkedIn: true, checkedInAt: Date.now(), seatConfirmed: true });
+                        } else {
+                          setLookupCodeErr(res.error || "Invalid check-in code.");
+                        }
+                      }}
+                      className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand/15"
+                    >
+                      <input
+                        type="text"
+                        value={lookupCode}
+                        onChange={(e) => setLookupCode(e.target.value.toUpperCase())}
+                        placeholder="Enter live check-in code"
+                        className="flex-1 min-w-[150px] rounded-lg border border-brand/25 bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
+                      />
+                      <button type="submit" className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer">
+                        Check In
+                      </button>
+                      {lookupCodeErr && <p className="w-full text-[11px] font-semibold text-rose-600">{lookupCodeErr}</p>}
+                    </form>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+
+          <div className="mx-auto mt-10 max-w-4xl space-y-6">
             {events.length ? events.map((e, i) => (
               <div key={e.id} className={`reveal ${visible ? "is-visible" : ""}`} style={{ transitionDelay: `${i * 100}ms` }}>
                 <EventCard e={e} onRegister={scrollToForm} />
@@ -776,6 +886,19 @@ export default function EventsPage() {
             <h2 className="section-title mt-4">Past events</h2>
           </div>
           <div className="mx-auto mt-12 max-w-4xl space-y-4">
+            {pastEvents.map((e) => (
+              <div key={e.id} className="flex flex-wrap items-center gap-5 rounded-2xl border border-line bg-white p-5 opacity-80">
+                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-line/60">
+                  <span className="text-[10px] font-bold uppercase text-muted">{e.month.slice(0, 3)}</span>
+                  <span className="font-display text-lg font-extrabold text-ink">{e.day}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-display text-base font-bold text-ink">{e.title}</h3>
+                  <p className="text-sm text-muted">{e.description}</p>
+                </div>
+                <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">Completed</span>
+              </div>
+            ))}
             {past.map((e) => (
               <div key={e.title} className="flex flex-wrap items-center gap-5 rounded-2xl border border-line bg-white p-5 opacity-80">
                 <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-line/60">
