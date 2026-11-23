@@ -12555,7 +12555,7 @@ export default function WhiteboardPage() {
           {/* Canvas & Left Toolbar Area */}
           <div className="flex-1 flex overflow-hidden relative">
             {/* Left Toolbar Dock */}
-            <aside ref={leftDockRef} className="left-dock-container w-11 sm:w-12 border-r border-slate-200/80 bg-white/95 backdrop-blur-md py-2 px-1.5 flex flex-col items-center justify-between shrink-0 z-20 shadow-[2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-visible">
+            <aside ref={leftDockRef} className="left-dock-container hidden sm:flex w-11 sm:w-12 border-r border-slate-200/80 bg-white/95 backdrop-blur-md py-2 px-1.5 flex-col items-center justify-between shrink-0 z-20 shadow-[2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-visible">
           <div className="w-full flex flex-col items-center gap-1">
             {/* 0. SELECTION & NODE TOOLS GROUP (NESTED GROUP) */}
             <div className="relative w-full">
@@ -13175,7 +13175,7 @@ export default function WhiteboardPage() {
         <main className="flex-1 relative overflow-hidden">
           {/* Vertical Floating Tool Options Strip (Size & Color) at far bottom-left next to tools */}
           {["eraser", "pencil", "highlighter", "line", "arrow", "bezier", "rectangle", "circle", "diamond", "text", "sticky", "annotation"].includes(activeTool) && (
-            <div className="absolute bottom-3 left-2.5 sm:bottom-4 sm:left-3.5 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none animate-in fade-in duration-150">
+            <div className="absolute bottom-16 left-2.5 sm:bottom-4 sm:left-3.5 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none animate-in fade-in duration-150">
               {activeTool === "eraser" ? (
                 <>
                   {[
@@ -13322,7 +13322,7 @@ export default function WhiteboardPage() {
           )}
 
           {/* Bottom Zoom & Navigation Bar (Figma-standard bottom-right) */}
-          <div className="absolute bottom-3 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-slate-200/90 bg-white/95 p-1 sm:p-1.5 backdrop-blur-md shadow-lg ring-1 ring-slate-900/5 text-xs font-bold select-none">
+          <div className="absolute bottom-16 right-2.5 sm:bottom-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 rounded-xl border border-slate-200/90 bg-white/95 p-1 sm:p-1.5 backdrop-blur-md shadow-lg ring-1 ring-slate-900/5 text-xs font-bold select-none">
             {/* Zoom Out Button */}
             <button
               type="button"
@@ -13462,6 +13462,94 @@ export default function WhiteboardPage() {
                 </span>
               </>
             )}
+          </div>
+
+          {/* Mobile Bottom Horizontal Thumb-Zone Tool Dock (< sm only) */}
+          <div className="flex sm:hidden absolute bottom-2.5 inset-x-2.5 z-30 items-center gap-1 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none">
+            <div className="flex-1 flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              {(
+                [
+                  { id: "select", label: "Select", Icon: MousePointer },
+                  { id: "hand", label: "Pan", Icon: Hand },
+                  { id: "pencil", label: "Pen", Icon: Pencil },
+                  { id: "highlighter", label: "Highlighter", Icon: Highlighter },
+                  { id: "rectangle", label: "Rectangle", Icon: Square },
+                  { id: "circle", label: "Circle", Icon: Circle },
+                  { id: "line", label: "Line", Icon: Minus },
+                  { id: "arrow", label: "Arrow", Icon: ArrowUpRight },
+                  { id: "text", label: "Text", Icon: Type },
+                  { id: "sticky", label: "Sticky Note", Icon: StickyNote },
+                  { id: "eraser", label: "Eraser", Icon: Eraser },
+                ] as const
+              ).map(({ id, label, Icon }) => {
+                const isActive = activeTool === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => selectTool(id)}
+                    title={label}
+                    aria-label={label}
+                    className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+                      isActive
+                        ? "bg-brand text-white shadow-sm"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                );
+              })}
+            </div>
+
+            <span className="h-5 w-px bg-slate-200 shrink-0 mx-0.5" />
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isInspectorOpen && rightPanelTab === "layers") {
+                  setIsInspectorOpen(false);
+                } else {
+                  setIsInspectorOpen(true);
+                  setRightPanelTab("layers");
+                }
+              }}
+              title="Layers"
+              aria-label="Layers"
+              className={`relative h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+                isInspectorOpen && rightPanelTab === "layers"
+                  ? "bg-brand-light text-brand border border-brand/25"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              <Layers className="h-4 w-4" />
+              {shapes.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-0.5 rounded-full bg-brand text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                  {shapes.length > 99 ? "99+" : shapes.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isInspectorOpen && rightPanelTab === "inspector") {
+                  setIsInspectorOpen(false);
+                } else {
+                  setIsInspectorOpen(true);
+                  setRightPanelTab("inspector");
+                }
+              }}
+              title="Design Inspector"
+              aria-label="Design Inspector"
+              className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+                isInspectorOpen && rightPanelTab === "inspector"
+                  ? "bg-brand-light text-brand border border-brand/25"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              }`}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
           </div>
 
           {/* Canvas with Dynamic Tool Cursor, Mouse Wheel Zoom & Contextual Right-Click */}
@@ -16795,7 +16883,7 @@ export default function WhiteboardPage() {
           )}
 
           {/* Right Vertical Tool Bar Dock holding Inspector, Layers, Character, Management, and Setup Panels */}
-          <aside className="w-11 sm:w-12 border-l border-slate-200/80 bg-white/95 backdrop-blur-md flex flex-col items-center justify-between py-2 shrink-0 z-30 shadow-[-2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-hidden">
+          <aside className="hidden sm:flex w-11 sm:w-12 border-l border-slate-200/80 bg-white/95 backdrop-blur-md flex-col items-center justify-between py-2 shrink-0 z-30 shadow-[-2px_0_16px_rgba(15,23,42,0.04)] select-none overflow-hidden">
             {/* Top Tool Icons Container: Contains ALL 4 Groups Compactly */}
             <div className="flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center w-full px-1.5 py-0.5 gap-1.5">
               {/* === GROUP 1: WORKSPACE & CANVAS TOOLS === */}
