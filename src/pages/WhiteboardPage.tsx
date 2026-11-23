@@ -1714,6 +1714,7 @@ export default function WhiteboardPage() {
   const [editMenuOpen, setEditMenuOpen] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [insertMenuOpen, setInsertMenuOpen] = useState(false);
+  const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false);
   const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
 
   const [activeTool, setActiveTool] = useState<Tool>("select");
@@ -11360,10 +11361,107 @@ export default function WhiteboardPage() {
           </span>
         </div>
 
-        {/* Right Section: Modern Pill Menu Bar + Export + User Avatar */}
+        {/* Right Section: Mobile Quick Actions + Hamburger OR Desktop Pill Menu Bar */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 h-full min-w-0 shrink">
-          {/* Modern Pill Menu Bar */}
-          <div ref={topMenubarRef} className="ash-menubar-container flex items-center h-8 sm:h-9 min-w-0 text-[11px] sm:text-xs font-medium text-slate-700 bg-slate-100/90 rounded-xl border border-slate-200/90 p-0.5 shadow-2xs gap-0.5">
+          {/* Mobile Quick Bar (< sm): Undo, Redo, Snap, Hamburger */}
+          <div className="flex sm:hidden items-center gap-1">
+            <button
+              type="button"
+              onClick={handleUndo}
+              disabled={shapes.length === 0}
+              className="h-8 w-8 rounded-lg border border-slate-200/80 bg-slate-100/80 flex items-center justify-center text-slate-700 disabled:opacity-35 cursor-pointer"
+              title="Undo"
+              aria-label="Undo"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleRedo}
+              disabled={redoStack.length === 0}
+              className="h-8 w-8 rounded-lg border border-slate-200/80 bg-slate-100/80 flex items-center justify-center text-slate-700 disabled:opacity-35 cursor-pointer"
+              title="Redo"
+              aria-label="Redo"
+            >
+              <RotateCw className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSnapToGrid(!snapToGrid);
+                showToast(snapToGrid ? "Snap: Off" : `Snap: On (${gridSnapSize}px)`);
+              }}
+              className={`h-8 px-2 rounded-lg border flex items-center justify-center gap-1 text-[11px] font-semibold transition cursor-pointer ${
+                snapToGrid
+                  ? "bg-brand border-brand text-white shadow-2xs"
+                  : "bg-slate-100/80 border-slate-200/80 text-slate-700"
+              }`}
+              title="Toggle Snap"
+              aria-label="Toggle Snap"
+            >
+              <Magnet className="h-3.5 w-3.5" />
+            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileHeaderMenuOpen(!mobileHeaderMenuOpen);
+                  setUserMenuOpen(false);
+                }}
+                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition cursor-pointer ${
+                  mobileHeaderMenuOpen
+                    ? "bg-slate-900 border-slate-900 text-white"
+                    : "bg-slate-100/80 border-slate-200/80 text-slate-700"
+                }`}
+                title="Menu"
+                aria-label="Whiteboard menu"
+              >
+                {mobileHeaderMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </button>
+
+              {mobileHeaderMenuOpen && (
+                <div
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="fixed left-2.5 right-2.5 top-14 rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-md p-2 shadow-2xl z-[110] animate-in fade-in text-slate-800 space-y-1 max-h-[75dvh] overflow-y-auto"
+                >
+                  <p className="px-2.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">File</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); handleAddNewTab(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Plus className="h-3.5 w-3.5 text-slate-600" /> New Canvas
+                    </button>
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); handleSaveCurrentDraft(false); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Save className="h-3.5 w-3.5 text-slate-600" /> Save Draft
+                    </button>
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setExportOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Download className="h-3.5 w-3.5 text-slate-600" /> Export
+                    </button>
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setViewMode("hub"); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Home className="h-3.5 w-3.5 text-slate-600" /> All Canvases
+                    </button>
+                  </div>
+
+                  <p className="px-2.5 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">View & Panels</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("grid_guides"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Grid className="h-3.5 w-3.5 text-slate-600" /> Grid & Snap
+                    </button>
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("layers"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Layers className="h-3.5 w-3.5 text-slate-600" /> Layers ({shapes.length})
+                    </button>
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setZoom(1); setPan({ x: 0, y: 0 }); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <Maximize2 className="h-3.5 w-3.5 text-slate-600" /> Reset View
+                    </button>
+                    <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("samples"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
+                      <LayoutTemplate className="h-3.5 w-3.5 text-slate-600" /> Templates
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Pill Menu Bar */}
+          <div ref={topMenubarRef} className="ash-menubar-container hidden sm:flex items-center h-8 sm:h-9 min-w-0 text-[11px] sm:text-xs font-medium text-slate-700 bg-slate-100/90 rounded-xl border border-slate-200/90 p-0.5 shadow-2xs gap-0.5">
             {/* 1. FILE MENU */}
             <div className="relative h-full flex items-center">
               <button
@@ -16474,7 +16572,7 @@ export default function WhiteboardPage() {
 
     {/* Docked Sidebar Panel */}
     {isInspectorOpen && (
-      <aside className="absolute right-9 sm:right-10 top-10 sm:top-0 bottom-0 w-[calc(100vw-4.5rem)] sm:w-80 max-w-[calc(100vw-4.5rem)] sm:max-w-[calc(100vw-2.5rem)] border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-200 z-30 select-text">
+      <aside className="max-sm:fixed max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:h-[60dvh] max-sm:w-full max-sm:max-w-none max-sm:rounded-t-2xl max-sm:border-t max-sm:z-[70] sm:absolute sm:right-10 sm:top-0 sm:bottom-0 sm:w-80 sm:max-w-[calc(100vw-2.5rem)] sm:border-l border-line bg-white/98 backdrop-blur-md flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:slide-in-from-right duration-200 sm:z-30 select-text">
         {/* Panel Header */}
         <div className="border-b border-line p-2 px-2.5 bg-white shrink-0 z-10">
           {/* Top Titlebar Controls */}
