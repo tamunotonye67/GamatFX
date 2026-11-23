@@ -135,11 +135,14 @@ const typeStyles: Record<string, string> = {
 /* ------------------------------ Event card ------------------------------ */
 
 function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) => void }) {
-  const { seatsLeft, myRegistrations } = useStore();
+  const { seatsLeft, myRegistrations, confirmEventSeat, checkInWithCode } = useStore();
   const left = seatsLeft(e.id);
   const soldOut = left === 0;
   const mine = myRegistrations.find((r) => r.eventId === e.id && r.status === "confirmed");
   const pct = e.capacity ? Math.round(((e.capacity - left) / e.capacity) * 100) : 0;
+  const hasEndDate = !!(e.endMonth || e.endDay || e.endYear);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeErr, setCodeErr] = useState("");
 
   return (
     <div className={`overflow-hidden rounded-3xl border bg-white shadow-[0_18px_50px_-32px_rgba(22,24,28,0.35)] transition-all duration-300 hover:-translate-y-1.5 ${soldOut ? "border-line opacity-90" : "border-line"}`}>
@@ -149,7 +152,9 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
             <span className="text-xs font-semibold uppercase tracking-widest text-brand-light">{e.month}</span>
             <span className="font-display text-3xl sm:text-5xl font-extrabold leading-none">{e.day}</span>
           </div>
-          <span className="text-xs sm:text-sm text-white/60">{e.year}</span>
+          <span className="text-xs sm:text-sm text-white/60">
+            {hasEndDate ? `to ${e.endMonth || e.month} ${e.endDay || e.day}, ${e.endYear || e.year}` : e.year}
+          </span>
         </div>
 
         <div className="p-5 sm:p-7">
@@ -169,7 +174,9 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted">
             <span className="inline-flex items-start gap-1.5"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> <span>{e.location}</span></span>
-            <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 shrink-0 text-brand" /> {e.time}</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 shrink-0 text-brand" /> {e.time}{e.endTime ? ` – ${e.endTime}` : ""}
+            </span>
           </div>
 
           {/* Seats */}
@@ -184,15 +191,63 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
           </div>
 
           {mine ? (
-            <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-brand/25 bg-brand-light p-4">
-              <Ticket className="h-5 w-5 text-brand" />
-              <div>
-                <p className="text-xs text-muted">Your ticket</p>
-                <p className="font-display text-sm font-extrabold text-brand">{mine.ticket}</p>
+            <div className="mt-5 space-y-3 rounded-xl border border-brand/25 bg-brand-light p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <Ticket className="h-5 w-5 text-brand" />
+                <div>
+                  <p className="text-xs text-muted">Your ticket</p>
+                  <p className="font-display text-sm font-extrabold text-brand">{mine.ticket}</p>
+                </div>
+                <div className="ml-auto flex flex-wrap items-center gap-2">
+                  {mine.checkedIn ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white">
+                      <CheckCircle2 className="h-3 w-3" /> Attended
+                    </span>
+                  ) : mine.seatConfirmed ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-[11px] font-bold text-amber-800">
+                      <CheckCircle2 className="h-3 w-3" /> Seat Confirmed
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => confirmEventSeat(mine.id)}
+                      className="rounded-full bg-ink px-3 py-1 text-[11px] font-bold text-white hover:bg-ink/90 transition cursor-pointer"
+                    >
+                      Confirm My Seat
+                    </button>
+                  )}
+                  <button onClick={() => navigate("/dashboard")} className="text-xs font-bold text-brand hover:underline cursor-pointer">
+                    Dashboard
+                  </button>
+                </div>
               </div>
-              <button onClick={() => navigate("/dashboard")} className="ml-auto text-xs font-bold text-brand hover:underline">
-                View in dashboard
-              </button>
+
+              {!mine.checkedIn && e.checkInCode && (
+                <form
+                  onSubmit={(evForm) => {
+                    evForm.preventDefault();
+                    setCodeErr("");
+                    const res = checkInWithCode(e.id, mine.ticket, codeInput);
+                    if (!res.ok) setCodeErr(res.error || "Invalid code");
+                  }}
+                  className="flex flex-wrap items-center gap-2 pt-2 border-t border-brand/15"
+                >
+                  <input
+                    type="text"
+                    value={codeInput}
+                    onChange={(evIn) => setCodeInput(evIn.target.value.toUpperCase())}
+                    placeholder="Enter live check-in code"
+                    className="flex-1 min-w-[150px] rounded-lg border border-brand/25 bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
+                  >
+                    Check In
+                  </button>
+                  {codeErr && <p className="w-full text-[11px] font-semibold text-rose-600">{codeErr}</p>}
+                </form>
+              )}
             </div>
           ) : (
             <button onClick={() => onRegister(e.id)} disabled={soldOut}
@@ -209,7 +264,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 /* ------------------------------ Registration ------------------------------ */
 
 function RegistrationForm({ preset }: { preset: string }) {
-  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, myRegistrations, admin, user, isAuthed } = useStore();
+  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, confirmEventSeat, myRegistrations, admin, user, isAuthed } = useStore();
   const [eventId, setEventId] = useState(preset || events[0]?.id || "");
   const [name, setName] = useState(user ? formatAccountName(user) : "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -408,6 +463,22 @@ function RegistrationForm({ preset }: { preset: string }) {
           >
             <CalendarPlus className="h-3.5 w-3.5 text-brand-light" /> Add to Google Calendar
           </a>
+          {ticket.seatConfirmed ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-4 py-2 text-xs font-semibold text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Seat Confirmed
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                confirmEventSeat(ticket.id);
+                setTicket({ ...ticket, seatConfirmed: true, seatConfirmedAt: Date.now() });
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-white transition hover:bg-brand-dark cursor-pointer"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" /> Confirm My Seat
+            </button>
+          )}
           <button
             type="button"
             onClick={() => downloadIcsFile(ticketEvent, ticket)}

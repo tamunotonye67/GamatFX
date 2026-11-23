@@ -795,11 +795,16 @@ export type EventItem = {
   day: string;
   year: string;
   time: string;
+  endMonth?: string;
+  endDay?: string;
+  endYear?: string;
+  endTime?: string;
   location: string;
   capacity: number;
   price: number;
   status: "published" | "draft";
   featured?: boolean;
+  checkInCode?: string;
 };
 
 export type Registration = {
@@ -816,6 +821,11 @@ export type Registration = {
   createdAt: string;
   paymentRef?: string;
   amountPaid?: number;
+  seatConfirmed?: boolean;
+  seatConfirmedAt?: number;
+  checkedIn?: boolean;
+  checkedInAt?: number;
+  checkInMethod?: "admin" | "code";
   survey?: {
     experience?: string;
     goal?: string;
@@ -1335,6 +1345,8 @@ type Ctx = {
   registerForEvent: (d: { eventId: string; name: string; email: string; phone: string; paymentRef?: string; amountPaid?: number }) =>
     { ok: boolean; error?: string; registration?: Registration };
   saveRegistrationSurvey: (id: string, survey: NonNullable<Registration["survey"]>) => void;
+  confirmEventSeat: (regId: string) => void;
+  checkInWithCode: (eventId: string, ticketOrEmail: string, code: string) => { ok: boolean; error?: string };
   myRegistrations: Registration[];
   cancelRegistration: (id: string) => void;
 
@@ -1504,6 +1516,7 @@ type Ctx = {
     saveEvent: (e: EventItem) => void;
     deleteEvent: (id: string) => void;
     setRegistrationStatus: (id: string, status: Registration["status"]) => void;
+    toggleRegistrationCheckIn: (id: string) => void;
     deleteRegistration: (id: string) => void;
     setCourseSetting: (courseId: string, patch: CourseSetting) => void;
     issueCertificate: (userId: string, courseId: string) => void;
@@ -3200,6 +3213,60 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const confirmEventSeat: Ctx["confirmEventSeat"] = useCallback((regId) => {
+    setRegistrations((p) =>
+      p.map((r) => {
+        if (r.id === regId) {
+          const updated: Registration = { ...r, seatConfirmed: true, seatConfirmedAt: Date.now() };
+          saveSupabaseRegistration(updated);
+          return updated;
+        }
+        return r;
+      })
+    );
+  }, []);
+
+  const checkInWithCode: Ctx["checkInWithCode"] = useCallback(
+    (eventId, ticketOrEmail, code) => {
+      const ev = events.find((e) => e.id === eventId);
+      if (!ev) return { ok: false, error: "Event not found." };
+      const expected = (ev.checkInCode || "").trim().toUpperCase();
+      if (!expected) return { ok: false, error: "Live check-in code is not enabled for this event yet." };
+      if (code.trim().toUpperCase() !== expected) {
+        return { ok: false, error: "Invalid check-in code. Please check the code shared at the event." };
+      }
+      const query = ticketOrEmail.trim().toLowerCase();
+      const target = registrations.find(
+        (r) =>
+          r.eventId === eventId &&
+          r.status === "confirmed" &&
+          (r.ticket.toLowerCase() === query || r.email.toLowerCase() === query)
+      );
+      if (!target) {
+        return { ok: false, error: "No confirmed registration found for that ticket or email." };
+      }
+      setRegistrations((p) =>
+        p.map((r) => {
+          if (r.id === target.id) {
+            const updated: Registration = {
+              ...r,
+              checkedIn: true,
+              checkedInAt: Date.now(),
+              checkInMethod: "code",
+              seatConfirmed: true,
+              seatConfirmedAt: r.seatConfirmedAt || Date.now(),
+            };
+            saveSupabaseRegistration(updated);
+            return updated;
+          }
+          return r;
+        })
+      );
+      return { ok: true };
+    },
+    [events, registrations]
+  );
+
   const myRegistrations = useMemo(
     () => registrations.filter((r) => (sessionId && r.userId === sessionId) || (user && r.email === user.email)),
     [registrations, sessionId, user]
@@ -4759,8 +4826,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     },
     saveEvent: (e) => {
-      setEvents((p) => (p.some((x) => x.id === e.id) ? p.map((x) => (x.id === e.id ? e : x)) : [e, ...p]));
-      saveSupabaseEvent(e);
+      const nextEvent: EventItem = {
+        ...e,
+        checkInCode: e.checkInCode?.trim()
+          ? e.checkInCode.trim().toUpperCase()
+          : Math.random().toString(36).slice(2, 8).toUpperCase(),
+      };
+      setEvents((p) => (p.some((x) => x.id === nextEvent.id) ? p.map((x) => (x.id === nextEvent.id ? nextEvent : x)) : [nextEvent, ...p]));
+      saveSupabaseEvent(nextEvent);
     },
     deleteEvent: (id) => {
       setEvents((p) => p.filter((e) => e.id !== id));
@@ -4768,6 +4841,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       deleteSupabaseEvent(id);
     },
     setRegistrationStatus: (id, status) => setRegistrations((p) => p.map((r) => (r.id === id ? { ...r, status } : r))),
+    toggleRegistrationCheckIn: (id) => {
+      setRegistrations((p) =>
+        p.map((r) => {
+          if (r.id === id) {
+            const nextCheckedIn = !r.checkedIn;
+            const updated: Registration = {
+              ...r,
+              checkedIn: nextCheckedIn,
+              checkedInAt: nextCheckedIn ? Date.now() : undefined,
+              checkInMethod: nextCheckedIn ? "admin" : undefined,
+              seatConfirmed: nextCheckedIn ? true : r.seatConfirmed,
+              seatConfirmedAt: nextCheckedIn ? (r.seatConfirmedAt || Date.now()) : r.seatConfirmedAt,
+            };
+            saveSupabaseRegistration(updated);
+            return updated;
+          }
+          return r;
+        })
+      );
+    },
     setCourseSetting: (courseId, patch) => {
       setCourseSettings((p) => ({ ...p, [courseId]: { ...p[courseId], ...patch } }));
       if (typeof patch.price === "number") {
@@ -5216,7 +5309,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     priceOf, courseSettings,
     recordPayment, myPayments,
     events: publicEvents, allEvents: events, seatsLeft, canRegisterForEvent, registerForEvent,
-    saveRegistrationSurvey, myRegistrations, cancelRegistration,
+    saveRegistrationSurvey, confirmEventSeat, checkInWithCode, myRegistrations, cancelRegistration,
     isStaff: user?.role === "staff",
     can, permissions,
     attempts: myAttempts, submitAttempt, bestAttempt, hasPassedQuiz,

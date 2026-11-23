@@ -242,11 +242,20 @@ export function AdminEvents() {
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <Badge tone={e.type === "Online" ? "ink" : e.type === "Hybrid" ? "amber" : "red"}>{e.type}</Badge>
                       <Badge tone={e.status === "published" ? "green" : "gray"}>{e.status}</Badge>
+                      {e.featured && <Badge tone="red">featured</Badge>}
+                      {e.checkInCode && (
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-700 border border-slate-200">
+                          Code: {e.checkInCode}
+                        </span>
+                      )}
                     </div>
                     <div className="hidden sm:block">
                       <h3 className="mt-2 font-display text-base font-bold leading-snug text-ink">{e.title}</h3>
                       <p className="mt-1 text-xs text-muted">{e.location}</p>
-                      <p className="mt-0.5 text-xs text-muted">{e.time} · {e.price ? naira(e.price) : "Free"}</p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {e.time}{e.endTime ? ` – ${e.endTime}` : ""} · {e.price ? naira(e.price) : "Free"}
+                        {(e.endMonth || e.endDay || e.endYear) ? ` · Ends ${e.endMonth || e.month} ${e.endDay || e.day}, ${e.endYear || e.year}` : ""}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -262,7 +271,7 @@ export function AdminEvents() {
                 <h3 className="font-display text-base font-bold leading-snug text-ink">{e.title}</h3>
                 <p className="mt-1 text-xs text-muted">{e.location}</p>
                 <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className="text-muted">{e.time}</span>
+                  <span className="text-muted">{e.time}{e.endTime ? ` – ${e.endTime}` : ""}</span>
                   <span className="font-bold text-ink">{e.price ? naira(e.price) : "Free"}</span>
                 </div>
               </div>
@@ -301,22 +310,38 @@ function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventI
           className="w-full resize-none rounded-xl border border-line bg-cream px-4 py-2.5 text-sm text-ink outline-none focus:border-brand focus:bg-white" />
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Select label="Month" value={f.month} onChange={(v) => set("month", v)} options={MONTHS.map(m => ({ v: m, l: m }))} />
-        <Field label="Day" value={f.day} onChange={(v) => set("day", v)} ph="10" />
-        <Field label="Year" value={f.year} onChange={(v) => set("year", v)} ph="2026" />
+        <Select label="Start Month" value={f.month} onChange={(v) => set("month", v)} options={MONTHS.map(m => ({ v: m, l: m }))} />
+        <Field label="Start Day" value={f.day} onChange={(v) => set("day", v)} ph="10" />
+        <Field label="Start Year" value={f.year} onChange={(v) => set("year", v)} ph="2026" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Time" value={f.time} onChange={(v) => set("time", v)} />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Select label="End Month (optional)" value={f.endMonth || ""} onChange={(v) => set("endMonth", v || undefined)} options={[{ v: "", l: "Same / None" }, ...MONTHS.map(m => ({ v: m, l: m }))]} />
+        <Field label="End Day (optional)" value={f.endDay || ""} onChange={(v) => set("endDay", v || undefined)} ph="14" />
+        <Field label="End Year (optional)" value={f.endYear || ""} onChange={(v) => set("endYear", v || undefined)} ph="2026" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Start Time" value={f.time} onChange={(v) => set("time", v)} />
+        <Field label="End Time (optional)" value={f.endTime || ""} onChange={(v) => set("endTime", v || undefined)} ph="4:00 PM" />
         <Select label="Type" value={f.type} onChange={(v) => set("type", v as EventItem["type"])}
           options={[{ v: "Physical", l: "Physical" }, { v: "Online", l: "Online" }, { v: "Hybrid", l: "Hybrid" }]} />
       </div>
       <Field label="Location" value={f.location} onChange={(v) => set("location", v)} ph="Port Harcourt, Nigeria / Zoom" />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <Field label="Capacity" type="number" value={f.capacity} onChange={(v) => set("capacity", Number(v))} />
         <Field label="Price (₦, 0 = free)" type="number" value={f.price} onChange={(v) => set("price", Number(v))} />
         <Select label="Status" value={f.status} onChange={(v) => set("status", v as EventItem["status"])}
           options={[{ v: "published", l: "Published" }, { v: "draft", l: "Draft" }]} />
+        <Field label="Check-In Code" value={f.checkInCode || ""} onChange={(v) => set("checkInCode", v.toUpperCase())} ph="Auto" />
       </div>
+      <label className="flex items-center gap-2.5 rounded-xl border border-line bg-cream/60 px-4 py-2.5 text-sm font-semibold text-ink cursor-pointer">
+        <input
+          type="checkbox"
+          checked={!!f.featured}
+          onChange={(e) => set("featured", e.target.checked)}
+          className="h-4 w-4 accent-brand rounded"
+        />
+        <span>Featured on Homepage (only featured events appear on the Home page)</span>
+      </label>
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel} className="btn-outline-dark !py-2.5">Cancel</button>
         <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save event</button>
@@ -343,6 +368,8 @@ export function AdminRegistrations() {
         <button onClick={() => exportCsv("registrations.csv", rows.map(r => ({
           Ticket: r.ticket, Name: r.name, Email: r.email, Phone: r.phone,
           Event: r.eventTitle, EventDate: r.eventDate, Status: r.status,
+          SeatConfirmed: r.seatConfirmed ? "Yes" : "No",
+          Attended: r.checkedIn ? "Yes" : "No",
           Account: r.userId ? "Registered user" : "Guest", Registered: fmtDate(r.createdAt),
         })))} className="btn-outline-dark !py-2.5">
           <Download className="h-4 w-4" /> Export CSV
@@ -351,8 +378,8 @@ export function AdminRegistrations() {
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Ticket} label="Total registrations" value={admin.registrations.length} />
         <StatCard icon={CheckCircle2} label="Confirmed" value={admin.registrations.filter(r => r.status === "confirmed").length} />
-        <StatCard icon={XCircle} label="Cancelled" value={admin.registrations.filter(r => r.status === "cancelled").length} />
-        <StatCard icon={Users} label="Guest sign-ups" value={admin.registrations.filter(r => !r.userId).length} />
+        <StatCard icon={Users} label="Seat confirmed" value={admin.registrations.filter(r => r.seatConfirmed).length} />
+        <StatCard icon={CheckCircle2} label="Attended" value={admin.registrations.filter(r => r.checkedIn).length} />
       </div>
 
       <Card className="mt-6 overflow-hidden">
@@ -368,33 +395,55 @@ export function AdminRegistrations() {
 
         {rows.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[960px] text-sm">
               <thead className="bg-cream text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
                   <Th className="whitespace-nowrap">Ticket</Th>
-                  <Th className="w-[30%] min-w-[220px]">Attendee</Th>
-                  <Th className="w-[35%] min-w-[220px]">Event</Th>
+                  <Th className="w-[26%] min-w-[200px]">Attendee</Th>
+                  <Th className="w-[30%] min-w-[200px]">Event</Th>
                   <Th className="whitespace-nowrap">Date</Th>
-                  <Th className="whitespace-nowrap">Type</Th>
+                  <Th className="whitespace-nowrap">Attendance</Th>
                   <Th className="whitespace-nowrap">Status</Th>
-                  <Th right className="whitespace-nowrap w-[120px] min-w-[120px]">Actions</Th>
+                  <Th right className="whitespace-nowrap w-[150px] min-w-[150px]">Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {rows.map((r) => (
                   <tr key={r.id} className="transition hover:bg-cream/60">
                     <Td className="whitespace-nowrap"><code className="rounded bg-cream px-2 py-1 text-xs font-bold text-brand">{r.ticket}</code></Td>
-                    <Td className="min-w-[220px]">
+                    <Td className="min-w-[200px]">
                       <p className="font-semibold text-ink">{r.name}</p>
                       <p className="text-xs text-muted truncate">{r.email}</p>
                       {r.phone && <p className="text-xs text-muted">{r.phone}</p>}
                     </Td>
-                    <Td className="min-w-[220px]"><span className="text-ink/80 font-medium">{r.eventTitle}</span></Td>
+                    <Td className="min-w-[200px]"><span className="text-ink/80 font-medium">{r.eventTitle}</span></Td>
                     <Td className="whitespace-nowrap"><span className="text-muted">{r.eventDate}</span></Td>
-                    <Td className="whitespace-nowrap"><Badge tone={r.userId ? "green" : "gray"}>{r.userId ? "member" : "guest"}</Badge></Td>
+                    <Td className="whitespace-nowrap">
+                      {r.checkedIn ? (
+                        <Badge tone="green">Attended ✓</Badge>
+                      ) : r.seatConfirmed ? (
+                        <Badge tone="amber">Seat Confirmed</Badge>
+                      ) : (
+                        <Badge tone="gray">Registered</Badge>
+                      )}
+                    </Td>
                     <Td className="whitespace-nowrap"><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
-                    <Td right className="whitespace-nowrap w-[120px] min-w-[120px]">
-                      <div className="flex justify-end gap-1">
+                    <Td right className="whitespace-nowrap w-[150px] min-w-[150px]">
+                      <div className="flex justify-end items-center gap-1">
+                        {r.status === "confirmed" && (
+                          <button
+                            type="button"
+                            onClick={() => admin.toggleRegistrationCheckIn(r.id)}
+                            className={`rounded-lg px-2 py-1 text-[11px] font-bold border transition cursor-pointer ${
+                              r.checkedIn
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            }`}
+                            title={r.checkedIn ? "Undo Check-In" : "Mark Attended / Check In"}
+                          >
+                            {r.checkedIn ? "Checked In" : "Check In"}
+                          </button>
+                        )}
                         {r.status === "confirmed" ? (
                           <IconBtn title="Cancel" onClick={() => admin.setRegistrationStatus(r.id, "cancelled")}><XCircle className="h-4 w-4" /></IconBtn>
                         ) : (

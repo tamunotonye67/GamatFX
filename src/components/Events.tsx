@@ -6,22 +6,24 @@ import { useStore } from "../lib/store";
 export default function Events() {
   const { ref, visible } = useReveal<HTMLDivElement>();
   const { events, seatsLeft } = useStore();
+  const featuredEvents = events.filter((e) => e.featured);
 
   return (
     <section id="events" className="section bg-cream overflow-hidden">
       <div ref={ref} className="container-x">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow justify-center">Don't miss out</span>
-          <h2 className="section-title mt-4">Events</h2>
-          <p className="mt-4 text-muted">Ongoing and upcoming events from GAMAT Academy.</p>
+          <h2 className="section-title mt-4">Featured Events</h2>
+          <p className="mt-4 text-muted">Highlighted sessions and workshops from GAMAT Academy.</p>
         </div>
 
         <div
           className={`mx-auto mt-12 max-w-3xl space-y-6 reveal ${visible ? "is-visible" : ""}`}
         >
-          {events.length > 0 ? (
-            events.map((ev) => {
+          {featuredEvents.length > 0 ? (
+            featuredEvents.map((ev) => {
               const left = seatsLeft(ev.id);
+              const hasEndDate = !!(ev.endMonth || ev.endDay || ev.endYear);
               return (
                 <div
                   key={ev.id}
@@ -37,7 +39,11 @@ export default function Events() {
                           {ev.day}
                         </span>
                       </div>
-                      <span className="text-xs sm:text-sm text-white/60">{ev.year}</span>
+                      <span className="text-xs sm:text-sm text-white/60">
+                        {hasEndDate
+                          ? `to ${ev.endMonth || ev.month} ${ev.endDay || ev.day}, ${ev.endYear || ev.year}`
+                          : ev.year}
+                      </span>
                     </div>
 
                     <div className="p-5 sm:p-7">
@@ -61,9 +67,11 @@ export default function Events() {
                         <span className="inline-flex items-start gap-1.5">
                           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> <span>{ev.location}</span>
                         </span>
-                        {ev.time && (
+                        {(ev.time || ev.endTime) && (
                           <span className="inline-flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5 shrink-0 text-brand" /> {ev.time}
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-brand" />{" "}
+                            {ev.time}
+                            {ev.endTime ? ` – ${ev.endTime}` : ""}
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1.5">
@@ -85,13 +93,13 @@ export default function Events() {
             })
           ) : (
             <div className="rounded-3xl border border-line bg-white p-8 text-center shadow-sm">
-              <p className="text-sm text-muted">No upcoming events scheduled right now — check back soon.</p>
+              <p className="text-sm text-muted">Explore all upcoming academy sessions and workshops on our Events page.</p>
               <button
                 type="button"
                 onClick={() => navigate("/events")}
                 className="btn-primary mt-4"
               >
-                View Past Events <ArrowUpRight className="h-4 w-4" />
+                Browse All Events <ArrowUpRight className="h-4 w-4" />
               </button>
             </div>
           )}
