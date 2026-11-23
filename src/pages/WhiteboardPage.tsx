@@ -494,6 +494,7 @@ type Shape = {
   stickyColor?: StickyColor;
   isLocked?: boolean;
   isHidden?: boolean;
+  rotation?: number; // rotation angle in degrees
   // Character & Typography Properties
   fontFamily?: string;
   fontSize?: number;
@@ -542,7 +543,7 @@ type SavedDraft = {
   savedAt: number;
 };
 
-type ResizeHandle = "tl" | "tr" | "bl" | "br" | "tm" | "bm" | "ml" | "mr";
+type ResizeHandle = "tl" | "tr" | "bl" | "br" | "tm" | "bm" | "ml" | "mr" | "rotate" | "center";
 
 const STICKY_COLORS: { color: StickyColor; name: string }[] = [
   { color: "#fef08a", name: "Yellow" },
@@ -2196,6 +2197,9 @@ export default function WhiteboardPage() {
   const [activeResizeHandle, setActiveResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
   const [hoveredResizeHandle, setHoveredResizeHandle] = useState<{ shapeId: string; handle: ResizeHandle } | null>(null);
   const [isAspectLocked, setIsAspectLocked] = useState(false);
+  const [showTransformControls, setShowTransformControls] = useState(true);
+  const [showPathNodes, setShowPathNodes] = useState(true);
+  const [activeTransformShapeId, setActiveTransformShapeId] = useState<string | null>(null);
 
   // Layer panel right-click flyout menu
   const [layerContextMenu, setLayerContextMenu] = useState<{ shapeId: string; x: number; y: number } | null>(null);
@@ -3210,13 +3214,13 @@ export default function WhiteboardPage() {
     shapes.forEach((s) => {
       if (!s.isHidden && s.id !== editingTextShapeId) {
         const isSel = selectedShapeIds.includes(s.id);
-        renderWhiteboardShape(ctx, s, isSel, defaultRiskReward, activeTool);
+        renderWhiteboardShape(ctx, s, isSel, defaultRiskReward, activeTool, showTransformControls, showPathNodes, activeTransformShapeId === s.id);
       }
     });
 
     // Render Currently Active In-Progress Shape
     if (currentShape) {
-      renderWhiteboardShape(ctx, currentShape, false, defaultRiskReward, activeTool);
+      renderWhiteboardShape(ctx, currentShape, false, defaultRiskReward, activeTool, showTransformControls, showPathNodes, false);
     }
 
     // Render Multi-Select or Marquee Zoom Drag Box
@@ -3324,7 +3328,7 @@ export default function WhiteboardPage() {
     });
 
     ctx.restore();
-  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio, viewportTick, editingTextShapeId]);
+  }, [shapes, currentShape, bgGrid, zoom, pan, selectedShapeIds, marqueeBox, defaultRiskReward, activeTool, cursorCoords, eraserSize, guidelines, showGuidelines, canvasAspectRatio, viewportTick, editingTextShapeId, showTransformControls, showPathNodes, activeTransformShapeId]);
 
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
@@ -3997,10 +4001,16 @@ export default function WhiteboardPage() {
     }
 
     // --- STANDARD OBJECT SELECTION TOOL ---
-    if (activeTool === "select" && selectedShapeIds.length === 1) {
+    if (activeTool === "select" && showTransformControls && selectedShapeIds.length === 1) {
       const selShape = shapes.find((s) => s.id === selectedShapeIds[0]);
       if (selShape && !selShape.isLocked && !selShape.isHidden) {
-        const handleHit = getResizeHandleHit(pt, selShape);
+        const handleHit = getResizeHandleHit(pt, selShape, activeTransformShapeId === selShape.id);
+        if (handleHit === "center") {
+          const nextId = activeTransformShapeId === selShape.id ? null : selShape.id;
+          setActiveTransformShapeId(nextId);
+          showToast(nextId ? "Transform & Rotate active — drag top knob to rotate" : "Transform & Rotate mode off");
+          return;
+        }
         if (handleHit) {
           if (!pendingShapeAdjustRef.current[selShape.id]) {
             pendingShapeAdjustRef.current[selShape.id] = { ...selShape, points: selShape.points.map((p) => ({ ...p })) };
@@ -4237,11 +4247,11 @@ export default function WhiteboardPage() {
     // 0. Update hovered resize handle for dynamic expandable cursor at node edges
     if (!isDrawing.current && !isDraggingShape.current && !isPanning.current) {
       let foundHandle: { shapeId: string; handle: ResizeHandle } | null = null;
-      if (selectedShapeIds.length > 0) {
+      if (showTransformControls && selectedShapeIds.length > 0) {
         for (const id of selectedShapeIds) {
           const shape = shapes.find((s) => s.id === id);
           if (shape && !shape.isLocked && !shape.isHidden) {
-            const h = getResizeHandleHit(pt, shape);
+            const h = getResizeHandleHit(pt, shape, activeTransformShapeId === shape.id);
             if (h) {
               foundHandle = { shapeId: shape.id, handle: h };
               break;
@@ -4365,15 +4375,42 @@ export default function WhiteboardPage() {
       return;
     }
 
-    // 2. Interactive Resize Handle Drag (Supports Shift-key proportional constraint)
+    // 2. Interactive Resize / Rotate Handle Drag (Supports Shift-key proportional / 15° snap constraint)
     if (activeResizeHandle) {
       const targetShape = shapes.find((s) => s.id === activeResizeHandle.shapeId);
       if (targetShape && !targetShape.isLocked) {
         didAdjustShapeRef.current = true;
-        const resizedShape = resizeShapePoints(targetShape, activeResizeHandle.handle, pt, e.shiftKey || isAspectLocked);
-        setShapes((prev) =>
-          prev.map((s) => (s.id === targetShape.id ? resizedShape : s))
-        );
+        if (activeResizeHandle.handle === "rotate") {
+          const b = getShapeBounds(targetShape);
+          const cx = (b.minX + b.maxX) / 2;
+          const cy = (b.minY + b.maxY) / 2;
+          let deg = (Math.atan2(pt.y - cy, pt.x - cx) * 180) / Math.PI + 90;
+          if (e.shiftKey) {
+            deg = Math.round(deg / 15) * 15;
+          }
+          const normalizedDeg = ((Math.round(deg) % 360) + 360) % 360;
+          setShapes((prev) =>
+            prev.map((s) => (s.id === targetShape.id ? { ...s, rotation: normalizedDeg } : s))
+          );
+        } else if (activeResizeHandle.handle !== "center") {
+          let localPt = pt;
+          if (targetShape.rotation) {
+            const b = getShapeBounds(targetShape);
+            const cx = (b.minX + b.maxX) / 2;
+            const cy = (b.minY + b.maxY) / 2;
+            const rad = -(targetShape.rotation * Math.PI) / 180;
+            const dx = pt.x - cx;
+            const dy = pt.y - cy;
+            localPt = {
+              x: cx + dx * Math.cos(rad) - dy * Math.sin(rad),
+              y: cy + dx * Math.sin(rad) + dy * Math.cos(rad),
+            };
+          }
+          const resizedShape = resizeShapePoints(targetShape, activeResizeHandle.handle, localPt, e.shiftKey || isAspectLocked);
+          setShapes((prev) =>
+            prev.map((s) => (s.id === targetShape.id ? resizedShape : s))
+          );
+        }
       }
       return;
     }
@@ -8107,17 +8144,116 @@ export default function WhiteboardPage() {
               {/* 2. Transform: Position & Dimensions in px */}
               {selectedShape && pts.length > 0 && (
                 <div className="p-2.5 rounded-xl border border-slate-200/80 bg-white space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <div className="flex items-center justify-between gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     <span>Transform</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !showTransformControls;
+                          setShowTransformControls(next);
+                          showToast(next ? "Transform handles shown" : "Transform handles hidden");
+                        }}
+                        className={'flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold transition cursor-pointer ' + (!showTransformControls ? "bg-slate-800 text-white border-slate-800" : "bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900 hover:bg-white")}
+                        title="Show or hide selection handles & transform controls"
+                      >
+                        {showTransformControls ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
+                        <span>{showTransformControls ? "Handles" : "Hidden"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!showTransformControls) setShowTransformControls(true);
+                          const nextId = activeTransformShapeId === selectedShape.id ? null : selectedShape.id;
+                          setActiveTransformShapeId(nextId);
+                        }}
+                        className={'flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold transition cursor-pointer ' + (activeTransformShapeId === selectedShape.id ? "bg-brand text-white border-brand shadow-2xs" : "bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900 hover:bg-white")}
+                        title="Activate Transform & Rotate handles"
+                      >
+                        <RefreshCw className="h-2.5 w-2.5" />
+                        <span>Rotate</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsAspectLocked(!isAspectLocked)}
+                        className={'flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold transition cursor-pointer ' + (isAspectLocked ? "bg-brand text-white border-brand shadow-2xs" : "bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900 hover:bg-white")}
+                        title={isAspectLocked ? "Aspect Ratio Locked" : "Aspect Ratio Unlocked"}
+                      >
+                        <Link2 className="h-2.5 w-2.5" />
+                        <span>{isAspectLocked ? "Constrained" : "Free"}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rotation Angle Control */}
+                  <div className="flex items-center gap-1.5 font-mono text-xs">
+                    <div className="flex-1 flex items-center rounded-lg border border-slate-200 bg-slate-50/60 px-2 py-1 focus-within:border-brand focus-within:bg-white transition">
+                      <span className="text-[10px] font-bold text-slate-400 select-none mr-1">ROT</span>
+                      <input
+                        type="number"
+                        value={Math.round(selectedShape.rotation || 0)}
+                        disabled={selectedShape.isLocked}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (isNaN(val)) return;
+                          const norm = ((val % 360) + 360) % 360;
+                          setShapes((prev) =>
+                            prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, rotation: norm } : s))
+                          );
+                        }}
+                        className="w-full bg-transparent font-bold text-xs text-slate-900 outline-none text-right pr-0.5 disabled:opacity-50"
+                      />
+                      <span className="text-[10px] text-slate-400 font-bold">°</span>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setIsAspectLocked(!isAspectLocked)}
-                      className={'flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold transition cursor-pointer ' + (isAspectLocked ? "bg-brand text-white border-brand shadow-2xs" : "bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-900 hover:bg-white")}
-                      title={isAspectLocked ? "Aspect Ratio Locked" : "Aspect Ratio Unlocked"}
+                      disabled={selectedShape.isLocked}
+                      onClick={() =>
+                        setShapes((prev) =>
+                          prev.map((s) =>
+                            s.id === selectedShape.id && !s.isLocked
+                              ? { ...s, rotation: (((s.rotation || 0) - 90) % 360 + 360) % 360 }
+                              : s
+                          )
+                        )
+                      }
+                      className="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-50"
+                      title="Rotate -90°"
                     >
-                      <Link2 className="h-2.5 w-2.5" />
-                      <span>{isAspectLocked ? "Constrained" : "Free"}</span>
+                      -90°
                     </button>
+                    <button
+                      type="button"
+                      disabled={selectedShape.isLocked}
+                      onClick={() =>
+                        setShapes((prev) =>
+                          prev.map((s) =>
+                            s.id === selectedShape.id && !s.isLocked
+                              ? { ...s, rotation: ((s.rotation || 0) + 90) % 360 }
+                              : s
+                          )
+                        )
+                      }
+                      className="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white text-[10px] font-bold text-slate-600 hover:text-slate-900 cursor-pointer disabled:opacity-50"
+                      title="Rotate +90°"
+                    >
+                      +90°
+                    </button>
+                    {(selectedShape.rotation || 0) !== 0 && (
+                      <button
+                        type="button"
+                        disabled={selectedShape.isLocked}
+                        onClick={() =>
+                          setShapes((prev) =>
+                            prev.map((s) => (s.id === selectedShape.id && !s.isLocked ? { ...s, rotation: 0 } : s))
+                          )
+                        }
+                        className="px-1.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white text-[10px] font-bold text-rose-500 cursor-pointer disabled:opacity-50"
+                        title="Reset rotation to 0°"
+                      >
+                        0°
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-1.5 font-mono text-xs">
@@ -11457,6 +11593,36 @@ export default function WhiteboardPage() {
                     <button type="button" onClick={() => { setMobileHeaderMenuOpen(false); setRightPanelTab("samples"); setIsInspectorOpen(true); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer">
                       <LayoutTemplate className="h-3.5 w-3.5 text-slate-600" /> Templates
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !showTransformControls;
+                        setShowTransformControls(next);
+                        showToast(next ? "Transform handles shown" : "Transform handles hidden");
+                      }}
+                      className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showTransformControls ? "bg-slate-50 hover:bg-slate-100" : "bg-slate-800 text-white"}`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        {showTransformControls ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                        Handles
+                      </span>
+                      <span className="text-[10px] font-bold">{showTransformControls ? "ON" : "OFF"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !showPathNodes;
+                        setShowPathNodes(next);
+                        showToast(next ? "Path circle nodes shown" : "Path circle nodes hidden");
+                      }}
+                      className={`flex items-center justify-between gap-1 rounded-xl px-3 py-2 text-xs font-medium text-left cursor-pointer ${showPathNodes ? "bg-slate-50 hover:bg-slate-100" : "bg-slate-800 text-white"}`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Circle className="h-3.5 w-3.5" />
+                        Nodes
+                      </span>
+                      <span className="text-[10px] font-bold">{showPathNodes ? "ON" : "OFF"}</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -11894,6 +12060,41 @@ export default function WhiteboardPage() {
                     </span>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showCursorCoords ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
                       {showCursorCoords ? "ON" : "OFF"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !showTransformControls;
+                      setShowTransformControls(next);
+                      showToast(next ? "Transform handles shown" : "Transform handles hidden");
+                    }}
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      {showTransformControls ? <Eye className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> : <EyeOff className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" />}
+                      Transform Handles
+                    </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showTransformControls ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                      {showTransformControls ? "ON" : "OFF"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !showPathNodes;
+                      setShowPathNodes(next);
+                      showToast(next ? "Path circle nodes shown" : "Path circle nodes hidden");
+                    }}
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Circle className="h-3.5 w-3.5 text-slate-600 stroke-[1.5]" /> Path Circle Nodes
+                    </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showPathNodes ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                      {showPathNodes ? "ON" : "OFF"}
                     </span>
                   </button>
 
@@ -13285,6 +13486,26 @@ export default function WhiteboardPage() {
                       </div>
                     )}
                   </div>
+                  {activeTool === "bezier" && (
+                    <>
+                      <div className="w-4 h-px bg-slate-200 my-0.5" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = !showPathNodes;
+                          setShowPathNodes(next);
+                          showToast(next ? "Path circle nodes: ON" : "Path circle nodes: OFF");
+                        }}
+                        className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                          showPathNodes ? "bg-brand/15 text-brand ring-1 ring-brand/30" : "text-slate-400 hover:bg-slate-100"
+                        }`}
+                        title={showPathNodes ? "Path Circle Nodes: ON (Click to hide)" : "Path Circle Nodes: OFF (Click to show)"}
+                        aria-label="Toggle Path Circle Nodes"
+                      >
+                        <Circle className="h-3.5 w-3.5" />
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -18624,14 +18845,27 @@ function isPointInShape(pt: { x: number; y: number }, shape: Shape): boolean {
   const pts = shape.points;
   if (!pts.length) return false;
 
-  if (shape.type === "circle" && pts.length >= 2) {
-    const r = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-    return Math.hypot(pt.x - pts[0].x, pt.y - pts[0].y) <= r + 10;
+  const b = getShapeBounds(shape);
+  let testPt = pt;
+  if (shape.rotation) {
+    const cx = (b.minX + b.maxX) / 2;
+    const cy = (b.minY + b.maxY) / 2;
+    const rad = -(shape.rotation * Math.PI) / 180;
+    const dx = pt.x - cx;
+    const dy = pt.y - cy;
+    testPt = {
+      x: cx + dx * Math.cos(rad) - dy * Math.sin(rad),
+      y: cy + dx * Math.sin(rad) + dy * Math.cos(rad),
+    };
   }
 
-  const b = getShapeBounds(shape);
+  if (shape.type === "circle" && pts.length >= 2) {
+    const r = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    return Math.hypot(testPt.x - pts[0].x, testPt.y - pts[0].y) <= r + 10;
+  }
+
   const pad = 10;
-  return pt.x >= b.minX - pad && pt.x <= b.maxX + pad && pt.y >= b.minY - pad && pt.y <= b.maxY + pad;
+  return testPt.x >= b.minX - pad && testPt.x <= b.maxX + pad && testPt.y >= b.minY - pad && testPt.y <= b.maxY + pad;
 }
 
 let _textMeasureCtx: CanvasRenderingContext2D | null = null;
@@ -18910,8 +19144,8 @@ function getSelectionPad(shape: Shape): number {
   return 2;
 }
 
-/** Check hit test on 8 resize handle nodes (4 corners + 4 center edges) */
-function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeHandle | null {
+/** Check hit test on 8 resize handle nodes, center transform pivot, and rotation knob */
+function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape, isTransformMode: boolean = false): ResizeHandle | null {
   const pts = shape.points;
   if (!pts.length) return null;
 
@@ -18925,11 +19159,32 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
   const midY = (minY + maxY) / 2;
   const pad = getSelectionPad(shape);
 
+  let testPt = pt;
+  if (shape.rotation) {
+    const rad = -(shape.rotation * Math.PI) / 180;
+    const dx = pt.x - midX;
+    const dy = pt.y - midY;
+    testPt = {
+      x: midX + dx * Math.cos(rad) - dy * Math.sin(rad),
+      y: midY + dx * Math.sin(rad) + dy * Math.cos(rad),
+    };
+  }
+
+  // Rotation knob above Top-Center when Transform & Rotate mode is active
+  if (isTransformMode && Math.hypot(testPt.x - midX, testPt.y - (minY - pad - 22)) <= 11) {
+    return "rotate";
+  }
+
+  // Center pivot handle to activate/deactivate Transform & Rotate mode
+  if (Math.hypot(testPt.x - midX, testPt.y - midY) <= 9) {
+    return "center";
+  }
+
   // High-priority edge grab for Long and Short positions (top edge for TP/SL, bottom edge for SL/TP)
   if ((shape.type === "long" || shape.type === "short") && pts.length >= 2) {
-    if (pt.x >= minX - 10 && pt.x <= maxX + 10) {
-      if (Math.abs(pt.y - minY) <= 12) return "tm";
-      if (Math.abs(pt.y - maxY) <= 12) return "bm";
+    if (testPt.x >= minX - 10 && testPt.x <= maxX + 10) {
+      if (Math.abs(testPt.y - minY) <= 12) return "tm";
+      if (Math.abs(testPt.y - maxY) <= 12) return "bm";
     }
   }
 
@@ -18944,7 +19199,7 @@ function getResizeHandleHit(pt: { x: number; y: number }, shape: Shape): ResizeH
     { handle: "ml", x: minX - pad, y: midY },
   ];
 
-  const hit = handles.find((c) => Math.hypot(pt.x - c.x, pt.y - c.y) <= 10);
+  const hit = handles.find((c) => Math.hypot(testPt.x - c.x, testPt.y - c.y) <= 10);
   return hit ? hit.handle : null;
 }
 
@@ -19275,10 +19530,23 @@ function renderWhiteboardShape(
   shape: Shape,
   isSelected: boolean = false,
   defaultRiskReward: number = 3,
-  activeToolMode: Tool = "select"
+  activeToolMode: Tool = "select",
+  showTransformControls: boolean = true,
+  showPathNodes: boolean = true,
+  isTransformMode: boolean = false
 ) {
   const pts = shape.points;
   if (pts.length === 0) return;
+
+  ctx.save();
+  if (shape.rotation) {
+    const bRot = getShapeBounds(shape);
+    const rcx = (bRot.minX + bRot.maxX) / 2;
+    const rcy = (bRot.minY + bRot.maxY) / 2;
+    ctx.translate(rcx, rcy);
+    ctx.rotate((shape.rotation * Math.PI) / 180);
+    ctx.translate(-rcx, -rcy);
+  }
 
   ctx.strokeStyle = shape.color;
   ctx.fillStyle = shape.color;
@@ -20073,15 +20341,17 @@ function renderWhiteboardShape(
     pts.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
     ctx.stroke();
 
-    pts.forEach((p) => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-      ctx.strokeStyle = shape.color;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    });
+    if (showPathNodes) {
+      pts.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.strokeStyle = shape.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
   } else if (shape.type === "rectangle" && pts.length >= 2) {
     const rx = Math.min(pts[0].x, pts[1].x);
     const ry = Math.min(pts[0].y, pts[1].y);
@@ -20379,9 +20649,9 @@ function renderWhiteboardShape(
     });
   }
 
-  // Render Sleek, Minimalist Selection Box & Subtle Handles
-  // Locked shapes: skip canvas outline/handles entirely (less distraction)
-  if (isSelected && !shape.isLocked) {
+  // Render Sleek, Minimalist Selection Box, Center Transform Pivot & Rotation Handle
+  // Locked shapes or hidden transform controls: skip canvas outline/handles entirely
+  if (isSelected && !shape.isLocked && showTransformControls) {
     const b = getShapeBounds(shape);
     let minX = b.minX;
     let maxX = b.maxX;
@@ -20389,35 +20659,84 @@ function renderWhiteboardShape(
     let maxY = b.maxY;
 
     const pad = getSelectionPad(shape);
-    ctx.strokeStyle = "rgba(59, 130, 246, 0.65)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = isTransformMode ? "rgba(79, 70, 229, 0.85)" : "rgba(59, 130, 246, 0.65)";
+    ctx.lineWidth = isTransformMode ? 1.25 : 1;
     ctx.setLineDash([4, 3]);
     ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
     ctx.setLineDash([]);
 
-    // Subtle, small resize handle nodes (size 5.5px, thin 1px border)
-    {
-      const midX = (minX + maxX) / 2;
-      const midY = (minY + maxY) / 2;
-      const handles = [
-        { x: minX - pad, y: minY - pad }, // Top-Left
-        { x: midX, y: minY - pad },        // Top-Center
-        { x: maxX + pad, y: minY - pad }, // Top-Right
-        { x: maxX + pad, y: midY },        // Right-Center
-        { x: maxX + pad, y: maxY + pad }, // Bottom-Right
-        { x: midX, y: maxY + pad },        // Bottom-Center
-        { x: minX - pad, y: maxY + pad }, // Bottom-Left
-        { x: minX - pad, y: midY },        // Left-Center
-      ];
-      handles.forEach((c) => {
+    const midX = (minX + maxX) / 2;
+    const midY = (minY + maxY) / 2;
+
+    // 8 Resize Handle Nodes
+    const handles = [
+      { x: minX - pad, y: minY - pad }, // Top-Left
+      { x: midX, y: minY - pad },        // Top-Center
+      { x: maxX + pad, y: minY - pad }, // Top-Right
+      { x: maxX + pad, y: midY },        // Right-Center
+      { x: maxX + pad, y: maxY + pad }, // Bottom-Right
+      { x: midX, y: maxY + pad },        // Bottom-Center
+      { x: minX - pad, y: maxY + pad }, // Bottom-Left
+      { x: minX - pad, y: midY },        // Left-Center
+    ];
+    handles.forEach((c) => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(c.x - 3, c.y - 3, 6, 6);
+      ctx.strokeStyle = isTransformMode ? "rgba(79, 70, 229, 0.95)" : "rgba(59, 130, 246, 0.85)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(c.x - 3, c.y - 3, 6, 6);
+    });
+
+    // Center Pivot Handle (Click to activate/deactivate Transform & Rotate mode)
+    ctx.beginPath();
+    ctx.arc(midX, midY, isTransformMode ? 5 : 4, 0, Math.PI * 2);
+    ctx.fillStyle = isTransformMode ? "#4f46e5" : "#ffffff";
+    ctx.fill();
+    ctx.strokeStyle = isTransformMode ? "#ffffff" : "rgba(59, 130, 246, 0.9)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Crosshair inside center pivot
+    ctx.beginPath();
+    ctx.moveTo(midX - 2.5, midY);
+    ctx.lineTo(midX + 2.5, midY);
+    ctx.moveTo(midX, midY - 2.5);
+    ctx.lineTo(midX, midY + 2.5);
+    ctx.strokeStyle = isTransformMode ? "#ffffff" : "rgba(59, 130, 246, 0.9)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Rotation Stem & Knob (shown when Transform & Rotate mode is active)
+    if (isTransformMode) {
+      const rotY = minY - pad - 22;
+      ctx.beginPath();
+      ctx.moveTo(midX, minY - pad);
+      ctx.lineTo(midX, rotY);
+      ctx.strokeStyle = "rgba(79, 70, 229, 0.85)";
+      ctx.lineWidth = 1.25;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(midX, rotY, 5.5, 0, Math.PI * 2);
+      ctx.fillStyle = "#4f46e5";
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      if (shape.rotation) {
+        const degText = `${Math.round(shape.rotation)}°`;
+        ctx.font = "bold 10px sans-serif";
+        const tw = ctx.measureText(degText).width;
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.fillRect(midX + 10, rotY - 8, tw + 8, 16);
         ctx.fillStyle = "#ffffff";
-        ctx.fillRect(c.x - 3, c.y - 3, 6, 6);
-        ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(c.x - 3, c.y - 3, 6, 6);
-      });
+        ctx.fillText(degText, midX + 14, rotY + 3.5);
+      }
     }
   }
+
+  ctx.restore();
 }
 
 function makeSvgCursor(svg: string, x: number, y: number, fallback: string = "crosshair"): string {
@@ -20427,6 +20746,12 @@ function makeSvgCursor(svg: string, x: number, y: number, fallback: string = "cr
 /** Generates dynamic contextual realistic minimalist Black & White mouse cursors for active whiteboard tools */
 function getToolCursorStyle(tool: Tool, hoveredHandle?: ResizeHandle | null, isAltHeld?: boolean): React.CSSProperties {
   if (hoveredHandle) {
+    if (hoveredHandle === "rotate") {
+      return { cursor: "grab" };
+    }
+    if (hoveredHandle === "center") {
+      return { cursor: "pointer" };
+    }
     if (hoveredHandle === "tl" || hoveredHandle === "br") {
       return { cursor: "nwse-resize" };
     }
