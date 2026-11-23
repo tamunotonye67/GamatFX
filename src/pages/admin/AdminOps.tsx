@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
-import { useStore, type EventItem, type Payment } from "../../lib/store";
+import { useStore, type EventItem, type Payment, type Registration } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
+import { sendBroadcastEmail } from "../../lib/email";
 import { BillingDocument } from "./AdminInvoicesAndAssets";
 import {
   Wallet, CreditCard, RotateCcw, Trash2, Download, Plus, Pencil, Ticket,
@@ -206,6 +207,7 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 export function AdminEvents() {
   const { admin, allEvents, seatsLeft } = useStore();
   const [editing, setEditing] = useState<EventItem | null>(null);
+  const [notifyBanner, setNotifyBanner] = useState<string | null>(null);
 
   return (
     <AdminShell title="Events" subtitle="Create and manage live classes, webinars and workshops."
@@ -218,6 +220,12 @@ export function AdminEvents() {
           <button onClick={() => setEditing(blankEvent())} className="btn-primary !py-2.5"><Plus className="h-4 w-4" /> New Event</button>
         </div>
       }>
+      {notifyBanner && (
+        <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800 flex items-center justify-between">
+          <span>{notifyBanner}</span>
+          <button type="button" onClick={() => setNotifyBanner(null)} className="text-emerald-700 hover:underline cursor-pointer">Dismiss</button>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={CalendarDays} label="Total events" value={allEvents.length} />
         <StatCard icon={CheckCircle2} label="Published" value={allEvents.filter(e => e.status === "published").length} />
@@ -304,15 +312,69 @@ export function AdminEvents() {
       </div>
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.title ? "Edit event" : "Create event"} wide>
-        {editing && <EventForm ev={editing} onSave={(e) => { admin.saveEvent(e); setEditing(null); }} onCancel={() => setEditing(null)} />}
+        {editing && (
+          <EventForm
+            ev={editing}
+            registrantEmails={Array.from(
+              new Set(
+                admin.registrations
+                  .filter((r) => r.eventId === editing.id && r.status === "confirmed" && r.email)
+                  .map((r) => r.email.trim().toLowerCase())
+              )
+            )}
+            onSave={async (e, shouldNotify, emails) => {
+              admin.saveEvent(e);
+              setEditing(null);
+              if (shouldNotify && emails.length > 0) {
+                const dateLine = `${e.month} ${e.day}, ${e.year}${e.endMonth || e.endDay || e.endYear ? ` – ${e.endMonth || e.month} ${e.endDay || e.day}, ${e.endYear || e.year}` : ""}`;
+                const timeLine = `${e.time}${e.endTime ? ` – ${e.endTime}` : ""}`;
+                const res = await sendBroadcastEmail({
+                  recipients: emails,
+                  subject: `Event Update: ${e.title}`,
+                  message: `Hello,\n\nPlease note that "${e.title}" has an updated schedule or location:\n\nDate: ${dateLine}\nTime: ${timeLine}\nLocation: ${e.location}\n\nYour existing ticket remains valid. See you there!`,
+                  ctaLabel: "View Event Details",
+                  ctaUrl: "https://gamatfxacademy.com/#/events",
+                });
+                if (res.ok) {
+                  setNotifyBanner(`Update notification sent to ${res.sent ?? emails.length} confirmed registrant(s).`);
+                } else {
+                  setNotifyBanner(`Event saved, but notification email failed: ${res.error || "Unknown error"}`);
+                }
+              }
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        )}
       </Modal>
     </AdminShell>
   );
 }
 
-function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventItem) => void; onCancel: () => void }) {
+function EventForm({
+  ev,
+  registrantEmails,
+  onSave,
+  onCancel,
+}: {
+  ev: EventItem;
+  registrantEmails: string[];
+  onSave: (e: EventItem, shouldNotify: boolean, emails: string[]) => void;
+  onCancel: () => void;
+}) {
   const [f, setF] = useState<EventItem>(ev);
+  const [notifyRegistrants, setNotifyRegistrants] = useState(false);
   const set = <K extends keyof EventItem>(k: K, v: EventItem[K]) => setF({ ...f, [k]: v });
+
+  const scheduleOrLocationChanged =
+    f.month !== ev.month ||
+    f.day !== ev.day ||
+    f.year !== ev.year ||
+    f.time !== ev.time ||
+    (f.endMonth || "") !== (ev.endMonth || "") ||
+    (f.endDay || "") !== (ev.endDay || "") ||
+    (f.endYear || "") !== (ev.endYear || "") ||
+    (f.endTime || "") !== (ev.endTime || "") ||
+    f.location !== ev.location;
 
   const addSession = () => {
     const existing = f.sessions || [];
@@ -324,7 +386,7 @@ function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventI
   };
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSave(f); }} className="space-y-4">
+    <form onSubmit={(e) => { e.preventDefault(); onSave(f, scheduleOrLocationChanged && notifyRegistrants, registrantEmails); }} className="space-y-4">
       <Field label="Event title" value={f.title} onChange={(v) => set("title", v)} ph="Forex Mentorship Class…" />
       <div>
         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted">Description</label>
@@ -420,6 +482,17 @@ function EventForm({ ev, onSave, onCancel }: { ev: EventItem; onSave: (e: EventI
         />
         <span>Featured on Homepage (only featured events appear on the Home page)</span>
       </label>
+      {scheduleOrLocationChanged && registrantEmails.length > 0 && (
+        <label className="flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={notifyRegistrants}
+            onChange={(e) => setNotifyRegistrants(e.target.checked)}
+            className="h-4 w-4 accent-brand rounded"
+          />
+          <span>Notify {registrantEmails.length} confirmed registrant(s) of schedule/location update via email</span>
+        </label>
+      )}
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel} className="btn-outline-dark !py-2.5">Cancel</button>
         <button type="submit" className="btn-primary !py-2.5"><Save className="h-4 w-4" /> Save event</button>
