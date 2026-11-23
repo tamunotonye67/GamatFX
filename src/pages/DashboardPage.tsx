@@ -1004,10 +1004,10 @@ export default function DashboardPage() {
         {myRegistrations.map((r) => {
           const evObj = store.allEvents.find((e) => e.id === r.eventId);
           return (
-            <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white">
-              <div className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
+            <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
                       {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
                     </span>
@@ -1021,45 +1021,44 @@ export default function DashboardPage() {
                         Seat Confirmed
                       </span>
                     )}
+                    {r.status === "confirmed" && r.attendedSessions && r.attendedSessions.map((a) => (
+                      <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
+                        {a.label} ✓
+                      </span>
+                    ))}
                   </div>
-                  <h3 className="mt-2 font-display text-base font-bold text-ink">{r.eventTitle}</h3>
-                  <p className="mt-1 text-xs text-muted">
-                    {r.eventDate} · registered {new Date(r.createdAt).toLocaleDateString()}
-                  </p>
+                  <div>
+                    <h3 className="font-display text-base font-bold text-ink leading-snug">{r.eventTitle}</h3>
+                    <p className="mt-1 text-xs text-muted">
+                      {r.eventDate} · registered {new Date(r.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <div className="rounded-xl border border-dashed border-brand/40 bg-brand-light px-4 py-2 text-center">
-                    <p className="text-[10px] uppercase tracking-wide text-muted">Ticket</p>
-                    <p className="font-display text-sm font-extrabold text-brand">{r.ticket}</p>
+                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line/60">
+                  <div className="rounded-xl border border-dashed border-brand/40 bg-brand-light px-3.5 py-1.5 text-center">
+                    <p className="text-[9px] uppercase tracking-wide text-muted font-semibold">Ticket</p>
+                    <p className="font-display text-xs sm:text-sm font-extrabold text-brand">{r.ticket}</p>
                   </div>
-                  {r.status === "confirmed" && !r.seatConfirmed && !r.checkedIn && (
-                    <button
-                      type="button"
-                      onClick={() => store.confirmEventSeat(r.id)}
-                      className="btn-primary !py-2.5 text-xs"
-                    >
-                      Confirm Seat
-                    </button>
-                  )}
-                  {r.status === "confirmed" && (
-                    <button
-                      onClick={() => { if (confirm("Cancel this registration? Your seat will be released.")) store.cancelRegistration(r.id); }}
-                      className="btn-outline-dark !py-2.5">
-                      Cancel
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {r.status === "confirmed" && !r.seatConfirmed && !r.checkedIn && (
+                      <button
+                        type="button"
+                        onClick={() => store.confirmEventSeat(r.id)}
+                        className="btn-primary !py-2 !px-3.5 text-xs"
+                      >
+                        Confirm Seat
+                      </button>
+                    )}
+                    {r.status === "confirmed" && (
+                      <button
+                        onClick={() => { if (confirm("Cancel this registration? Your seat will be released.")) store.cancelRegistration(r.id); }}
+                        className="btn-outline-dark !py-2 !px-3.5 text-xs">
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              {r.status === "confirmed" && r.attendedSessions && r.attendedSessions.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 px-5 pb-3 sm:px-6">
-                  {r.attendedSessions.map((a) => (
-                    <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                      {a.label} ✓
-                    </span>
-                  ))}
-                </div>
-              )}
 
               {r.status === "confirmed" &&
                 ((evObj?.sessions && evObj.sessions.length > 0 && (r.attendedSessions?.length || 0) < evObj.sessions.length) ||
@@ -1075,23 +1074,25 @@ export default function DashboardPage() {
                       setDashErrByReg((p) => ({ ...p, [r.id]: res.error || "Invalid code" }));
                     }
                   }}
-                  className="flex flex-wrap items-center gap-2 border-t border-line bg-cream/50 px-5 py-3 sm:px-6"
+                  className="flex flex-col sm:flex-row sm:items-center gap-2 border-t border-line bg-cream/50 px-4 py-3 sm:px-6"
                 >
-                  <span className="text-xs font-semibold text-ink">Live Check-In:</span>
-                  <input
-                    type="text"
-                    value={dashCodeByReg[r.id] || ""}
-                    onChange={(e) => setDashCodeByReg((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
-                    placeholder={evObj?.sessions?.length ? "Enter class session code" : "Enter event code"}
-                    className="flex-1 min-w-[140px] max-w-[220px] rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
-                  >
-                    Check In
-                  </button>
-                  {dashErrByReg[r.id] && <p className="w-full text-[11px] font-semibold text-rose-600">{dashErrByReg[r.id]}</p>}
+                  <span className="text-xs font-semibold text-ink shrink-0">Live Check-In:</span>
+                  <div className="flex flex-1 items-center gap-2 w-full sm:max-w-xs">
+                    <input
+                      type="text"
+                      value={dashCodeByReg[r.id] || ""}
+                      onChange={(e) => setDashCodeByReg((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
+                      placeholder={evObj?.sessions?.length ? "Enter class session code" : "Enter event code"}
+                      className="flex-1 min-w-0 rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
+                    />
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-brand px-3.5 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer shrink-0"
+                    >
+                      Check In
+                    </button>
+                  </div>
+                  {dashErrByReg[r.id] && <p className="text-[11px] font-semibold text-rose-600">{dashErrByReg[r.id]}</p>}
                 </form>
               )}
             </div>
@@ -2883,23 +2884,23 @@ function BirthdayOnboardingBanner({ userId, onGoToProfile }: { userId: string; o
   };
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white px-5 py-4 shadow-xs">
-      <div className="flex items-start sm:items-center gap-3.5">
+    <div className="relative mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5 rounded-2xl border border-rose-200 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white p-4 sm:px-5 sm:py-4 shadow-xs">
+      <div className="flex items-start sm:items-center gap-3 pr-8 sm:pr-0 min-w-0 flex-1">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-xs">
           <Cake className="h-5 w-5" />
         </span>
-        <div>
-          <p className="font-display text-sm font-extrabold text-ink">Add your birthday to celebrate with the community!</p>
-          <p className="mt-0.5 text-xs text-muted">
+        <div className="min-w-0">
+          <p className="font-display text-sm font-extrabold text-ink leading-snug">Add your birthday to celebrate with the community!</p>
+          <p className="mt-1 text-xs text-muted leading-relaxed">
             Save your date of birth in your Profile tab to receive birthday wishes from the academy and a celebratory email on your special day.
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           type="button"
           onClick={onGoToProfile}
-          className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-brand-dark transition cursor-pointer"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-brand-dark transition cursor-pointer whitespace-nowrap"
         >
           <Cake className="h-3.5 w-3.5" /> Add Birthday
         </button>
@@ -2907,7 +2908,7 @@ function BirthdayOnboardingBanner({ userId, onGoToProfile }: { userId: string; o
           type="button"
           onClick={dismiss}
           aria-label="Dismiss birthday reminder"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-muted hover:text-ink transition cursor-pointer"
+          className="max-sm:absolute max-sm:top-3 max-sm:right-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-white text-muted hover:text-ink transition cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
