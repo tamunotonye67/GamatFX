@@ -11314,7 +11314,7 @@ export default function WhiteboardPage() {
           ref={favBarRef}
           onMouseDown={handleFavDragStart}
           onTouchStart={handleFavDragStart}
-          className="fixed z-[150] flex flex-col sm:flex-row items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none max-h-[calc(100dvh-6rem)] sm:max-h-none sm:max-w-[calc(100vw-2rem)]"
+          className="fixed z-[150] hidden sm:flex sm:flex-row items-center gap-1 rounded-2xl border border-line bg-white/95 backdrop-blur-md p-1 sm:p-1.5 shadow-2xl animate-in fade-in cursor-move touch-none select-none sm:max-w-[calc(100vw-2rem)]"
           style={{
             left: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.x, window.innerWidth - 44)) : favPos.x,
             top: typeof window !== "undefined" ? Math.max(4, Math.min(favPos.y, window.innerHeight - 44)) : favPos.y,
