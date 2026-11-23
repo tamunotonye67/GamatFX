@@ -434,6 +434,7 @@ export function AdminRegistrations() {
   const { admin, allEvents } = useStore();
   const [q, setQ] = useAdminSearchTarget();
   const [evFilter, setEvFilter] = useState("all");
+  const [viewingReg, setViewingReg] = useState<Registration | null>(null);
 
   const rows = useMemo(() => admin.registrations.filter((r) => {
     const mq = `${r.name} ${r.email} ${r.ticket} ${r.eventTitle}`.toLowerCase().includes(q.toLowerCase());
@@ -448,6 +449,14 @@ export function AdminRegistrations() {
           Event: r.eventTitle, EventDate: r.eventDate, Status: r.status,
           SeatConfirmed: r.seatConfirmed ? "Yes" : "No",
           Attended: r.checkedIn ? "Yes" : "No",
+          Sessions: (r.attendedSessions || []).map((s) => s.label).join(", "),
+          Experience: r.survey?.experience || "",
+          Struggle: r.survey?.struggle || "",
+          Pair: r.survey?.pair || "",
+          Question: r.survey?.question || "",
+          Rating: r.feedback?.rating ?? "",
+          Takeaway: r.feedback?.takeaway || "",
+          NextTopic: r.feedback?.nextTopic || "",
           Account: r.userId ? "Registered user" : "Guest", Registered: fmtDate(r.createdAt),
         })))} className="btn-outline-dark !py-2.5">
           <Download className="h-4 w-4" /> Export CSV
@@ -536,6 +545,15 @@ export function AdminRegistrations() {
                       ) : (
                         <Badge tone="gray">Registered</Badge>
                       )}
+                      {(r.survey || r.feedback) && (
+                        <button
+                          type="button"
+                          onClick={() => setViewingReg(r)}
+                          className="mt-1 inline-flex items-center gap-1 rounded-md bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand hover:bg-brand hover:text-white transition cursor-pointer"
+                        >
+                          {r.feedback?.rating ? `${r.feedback.rating}★ Feedback` : "View Survey"}
+                        </button>
+                      )}
                     </Td>
                     <Td className="whitespace-nowrap"><Badge tone={r.status === "confirmed" ? "green" : "gray"}>{r.status}</Badge></Td>
                     <Td right className="whitespace-nowrap w-[150px] min-w-[150px]">
@@ -572,6 +590,31 @@ export function AdminRegistrations() {
           </div>
         ) : <Empty icon={Ticket} title="No registrations yet" body="Attendees who register for your events will show up here." />}
       </Card>
+
+      <Modal open={!!viewingReg} onClose={() => setViewingReg(null)} title={viewingReg ? `${viewingReg.name} — Responses` : "Responses"}>
+        {viewingReg && (
+          <div className="space-y-4 text-sm">
+            {viewingReg.survey && (
+              <div className="rounded-xl border border-line bg-cream/60 p-4 space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-brand">Pre-Event Survey</p>
+                {viewingReg.survey.experience && <p><strong className="text-ink">Experience:</strong> <span className="text-muted">{viewingReg.survey.experience}</span></p>}
+                {viewingReg.survey.struggle && <p><strong className="text-ink">Biggest Struggle:</strong> <span className="text-muted">{viewingReg.survey.struggle}</span></p>}
+                {viewingReg.survey.pair && <p><strong className="text-ink">Favorite Market:</strong> <span className="text-muted">{viewingReg.survey.pair}</span></p>}
+                {viewingReg.survey.goal && <p><strong className="text-ink">Goal:</strong> <span className="text-muted">{viewingReg.survey.goal}</span></p>}
+                {viewingReg.survey.question && <p><strong className="text-ink">Question:</strong> <span className="text-muted">{viewingReg.survey.question}</span></p>}
+              </div>
+            )}
+            {viewingReg.feedback && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Post-Event Feedback</p>
+                {viewingReg.feedback.rating && <p><strong className="text-ink">Rating:</strong> <span className="text-amber-600 font-bold">{viewingReg.feedback.rating} / 5 ★</span></p>}
+                {viewingReg.feedback.takeaway && <p><strong className="text-ink">Biggest Takeaway:</strong> <span className="text-muted">{viewingReg.feedback.takeaway}</span></p>}
+                {viewingReg.feedback.nextTopic && <p><strong className="text-ink">Next Topic:</strong> <span className="text-muted">{viewingReg.feedback.nextTopic}</span></p>}
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </AdminShell>
   );
 }

@@ -141,11 +141,17 @@ export async function fetchSupabaseEvents(): Promise<EventItem[]> {
       day: r.day || "10",
       year: r.year || "2026",
       time: r.time || "",
+      endMonth: r.end_month || undefined,
+      endDay: r.end_day || undefined,
+      endYear: r.end_year || undefined,
+      endTime: r.end_time || undefined,
       location: r.location || "",
       capacity: Number(r.capacity || 100),
       price: Number(r.price || 0),
       status: r.status || "published",
       featured: !!r.featured,
+      checkInCode: r.check_in_code || undefined,
+      sessions: Array.isArray(r.sessions) ? r.sessions : undefined,
     }));
   } catch {
     return [];
@@ -154,7 +160,7 @@ export async function fetchSupabaseEvents(): Promise<EventItem[]> {
 
 export async function saveSupabaseEvent(e: EventItem): Promise<void> {
   try {
-    await supabase.from("events").upsert({
+    const basePayload = {
       id: e.id,
       title: e.title,
       description: e.description,
@@ -168,7 +174,19 @@ export async function saveSupabaseEvent(e: EventItem): Promise<void> {
       price: e.price,
       status: e.status,
       featured: !!e.featured,
+    };
+    const { error } = await supabase.from("events").upsert({
+      ...basePayload,
+      end_month: e.endMonth ?? null,
+      end_day: e.endDay ?? null,
+      end_year: e.endYear ?? null,
+      end_time: e.endTime ?? null,
+      check_in_code: e.checkInCode ?? null,
+      sessions: e.sessions ?? null,
     }, { onConflict: "id" });
+    if (error) {
+      await supabase.from("events").upsert(basePayload, { onConflict: "id" });
+    }
   } catch (err) {
     console.warn("Supabase event save notice:", err);
   }
@@ -198,6 +216,14 @@ export async function fetchSupabaseRegistrations(): Promise<Registration[]> {
       ticket: r.ticket || "General",
       status: r.status || "confirmed",
       createdAt: r.created_at || new Date().toISOString(),
+      seatConfirmed: typeof r.seat_confirmed === "boolean" ? r.seat_confirmed : undefined,
+      seatConfirmedAt: typeof r.seat_confirmed_at === "number" ? r.seat_confirmed_at : undefined,
+      checkedIn: typeof r.checked_in === "boolean" ? r.checked_in : undefined,
+      checkedInAt: typeof r.checked_in_at === "number" ? r.checked_in_at : undefined,
+      checkInMethod: r.check_in_method || undefined,
+      attendedSessions: Array.isArray(r.attended_sessions) ? r.attended_sessions : undefined,
+      survey: r.survey || undefined,
+      feedback: r.feedback || undefined,
     }));
   } catch {
     return [];
@@ -206,7 +232,7 @@ export async function fetchSupabaseRegistrations(): Promise<Registration[]> {
 
 export async function saveSupabaseRegistration(reg: Registration): Promise<void> {
   try {
-    await supabase.from("registrations").upsert({
+    const basePayload = {
       id: reg.id,
       event_id: reg.eventId,
       event_title: reg.eventTitle,
@@ -218,7 +244,21 @@ export async function saveSupabaseRegistration(reg: Registration): Promise<void>
       ticket: reg.ticket,
       status: reg.status,
       created_at: reg.createdAt,
+    };
+    const { error } = await supabase.from("registrations").upsert({
+      ...basePayload,
+      seat_confirmed: !!reg.seatConfirmed,
+      seat_confirmed_at: reg.seatConfirmedAt ?? null,
+      checked_in: !!reg.checkedIn,
+      checked_in_at: reg.checkedInAt ?? null,
+      check_in_method: reg.checkInMethod ?? null,
+      attended_sessions: reg.attendedSessions ?? null,
+      survey: reg.survey ?? null,
+      feedback: reg.feedback ?? null,
     }, { onConflict: "id" });
+    if (error) {
+      await supabase.from("registrations").upsert(basePayload, { onConflict: "id" });
+    }
   } catch (err) {
     console.warn("Supabase registration save notice:", err);
   }
