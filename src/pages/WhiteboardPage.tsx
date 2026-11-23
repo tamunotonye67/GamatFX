@@ -11616,7 +11616,7 @@ export default function WhiteboardPage() {
 
                   {mobileMenuTab === "edit" && (
                     <div className="grid grid-cols-2 gap-1.5">
-                      <button type="button" disabled={undoStack.length === 0} onClick={() => { setMobileHeaderMenuOpen(false); handleUndo(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer disabled:opacity-40">
+                      <button type="button" disabled={shapes.length === 0} onClick={() => { setMobileHeaderMenuOpen(false); handleUndo(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer disabled:opacity-40">
                         <RotateCcw className="h-3.5 w-3.5 text-slate-600" /> Undo
                       </button>
                       <button type="button" disabled={redoStack.length === 0} onClick={() => { setMobileHeaderMenuOpen(false); handleRedo(); }} className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium bg-slate-50 hover:bg-slate-100 text-left cursor-pointer disabled:opacity-40">
