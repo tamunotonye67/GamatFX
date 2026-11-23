@@ -2129,7 +2129,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* Load all entities from Supabase database, auto-seed if empty & subscribe to Realtime events */
   useEffect(() => {
     let lastFullSyncAt = 0;
-    const FULL_SYNC_COOLDOWN_MS = 180_000; // 3 minutes
+    const FULL_SYNC_COOLDOWN_MS = 30 * 60_000; // 30 minutes (Realtime handles live changes)
+    const lastTableSyncAt: Record<string, number> = {};
+    const tableTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+    const REALTIME_TABLE_COOLDOWN_MS = 15_000;
 
     const refreshTable = (table: string) => {
       switch (table) {
@@ -2232,6 +2235,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
+    const scheduleRealtimeTableRefresh = (table: string) => {
+      const privateTables = new Set([
+        "accounts",
+        "enrollments",
+        "payments",
+        "registrations",
+        "service_enquiries",
+        "discovery_survey_responses",
+      ]);
+      const isSignedIn = Boolean(read<string | null>(K.session, null));
+      if (privateTables.has(table) && !isSignedIn) return;
+
+      if (tableTimers[table]) clearTimeout(tableTimers[table]);
+      const elapsed = Date.now() - (lastTableSyncAt[table] || 0);
+      const delay = Math.max(1500, REALTIME_TABLE_COOLDOWN_MS - elapsed);
+      tableTimers[table] = setTimeout(() => {
+        delete tableTimers[table];
+        lastTableSyncAt[table] = Date.now();
+        refreshTable(table);
+      }, delay);
+    };
+
     const refreshAllFromSupabase = (force = false) => {
       const now = Date.now();
       if (!force && now - lastFullSyncAt < FULL_SYNC_COOLDOWN_MS) return;
@@ -2239,7 +2264,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       const isSignedIn = Boolean(read<string | null>(K.session, null));
       [
-        "accounts",
         "events",
         "forum_threads",
         "forum_replies",
@@ -2254,26 +2278,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         "affiliate_settings",
         "store_products",
         ...(isSignedIn
-          ? ["enrollments", "payments", "registrations", "service_enquiries", "discovery_survey_responses"]
+          ? ["accounts", "enrollments", "payments", "registrations", "service_enquiries", "discovery_survey_responses"]
           : []),
-      ].forEach(refreshTable);
+      ].forEach((t) => {
+        lastTableSyncAt[t] = now;
+        refreshTable(t);
+      });
     };
 
     // 1. Fetch initial records
     refreshAllFromSupabase(true);
 
-    // 2. Auto-seed Supabase database if tables are empty
-    seedSupabaseDatabaseIfEmpty({
-      courses: managedCourses,
-      accounts,
-      news,
-      events,
-      reviews,
-      sotw: studentOfTheWeek,
-      giveaways,
-    });
+    // 2. Auto-seed Supabase database once per browser if not already verified
+    try {
+      if (!localStorage.getItem("gamat.supa_seeded.v1")) {
+        seedSupabaseDatabaseIfEmpty({
+          courses: managedCourses,
+          accounts,
+          news,
+          events,
+          reviews,
+          sotw: studentOfTheWeek,
+          giveaways,
+        }).then(() => {
+          try { localStorage.setItem("gamat.supa_seeded.v1", "1"); } catch {}
+        });
+      }
+    } catch {}
 
-    // 3. Subscribe to live Realtime database updates (only refresh the specific changed table)
+    // 3. Subscribe to live Realtime database updates (debounced & throttled per table)
     const unsubscribe = subscribeToSupabaseRealtime((table, eventType, payload) => {
       if (table === "accounts" && eventType === "DELETE" && payload?.old?.id) {
         const deletedId = payload.old.id;
@@ -2288,29 +2321,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           setAllEnrollments((prev) => prev.filter((e) => e.userId !== deletedId));
         }
       }
-      refreshTable(table);
+      scheduleRealtimeTableRefresh(table);
     });
 
-    // 4. Refresh when tab regains focus/visibility (throttled to once every 3 minutes)
-    const onFocus = () => {
-      if (document.visibilityState === "hidden") return;
-      refreshAllFromSupabase(false);
-    };
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onFocus);
-
-    // 5. Gentle 5-minute fallback sync only while tab is visible (Realtime handles live updates)
-    const interval = setInterval(() => {
+    // 4. Refresh only when tab becomes visible after >= 30 minutes away
+    const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         refreshAllFromSupabase(false);
       }
-    }, 300_000);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       unsubscribe();
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onFocus);
-      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      Object.values(tableTimers).forEach((t) => clearTimeout(t));
     };
   }, [reconcileAccountsWithSupabase]);
 
