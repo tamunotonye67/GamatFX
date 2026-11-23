@@ -5,8 +5,8 @@ import { useStore } from "../lib/store";
 
 export default function Events() {
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { events, seatsLeft } = useStore();
-  const featuredEvents = events.filter((e) => e.featured);
+  const { allEvents, seatsLeft } = useStore();
+  const featuredEvents = allEvents.filter((e) => e.status === "published" && e.featured);
 
   if (featuredEvents.length === 0) return null;
 

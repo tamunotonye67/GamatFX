@@ -830,8 +830,16 @@ export type Registration = {
   attendedSessions?: { sessionId: string; label: string; checkedInAt: number; method: "admin" | "code" }[];
   survey?: {
     experience?: string;
+    struggle?: string;
+    pair?: string;
     goal?: string;
     question?: string;
+    submittedAt?: string;
+  };
+  feedback?: {
+    rating?: number;
+    takeaway?: string;
+    nextTopic?: string;
     submittedAt?: string;
   };
 };
@@ -1348,6 +1356,7 @@ type Ctx = {
   registerForEvent: (d: { eventId: string; name: string; email: string; phone: string; paymentRef?: string; amountPaid?: number }) =>
     { ok: boolean; error?: string; registration?: Registration };
   saveRegistrationSurvey: (id: string, survey: NonNullable<Registration["survey"]>) => void;
+  saveRegistrationFeedback: (id: string, feedback: NonNullable<Registration["feedback"]>) => void;
   confirmEventSeat: (regId: string) => void;
   checkInWithCode: (eventId: string, ticketOrEmail: string, code: string) => { ok: boolean; error?: string; sessionLabel?: string };
   findRegistration: (query: string) => Registration | undefined;
@@ -2176,7 +2185,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           });
           break;
         case "events":
-          fetchSupabaseEvents().then((r) => r.length && setEvents(r));
+          fetchSupabaseEvents().then((r) => {
+            if (!r.length) return;
+            setEvents((prev) =>
+              r.map((ev) => {
+                const existing = prev.find((p) => p.id === ev.id);
+                if (!existing) return ev;
+                return {
+                  ...existing,
+                  ...ev,
+                  featured: ev.featured || existing.featured,
+                  endMonth: ev.endMonth ?? existing.endMonth,
+                  endDay: ev.endDay ?? existing.endDay,
+                  endYear: ev.endYear ?? existing.endYear,
+                  endTime: ev.endTime ?? existing.endTime,
+                  checkInCode: ev.checkInCode ?? existing.checkInCode,
+                  sessions: ev.sessions && ev.sessions.length > 0 ? ev.sessions : existing.sessions,
+                };
+              })
+            );
+          });
           break;
         case "registrations":
           fetchSupabaseRegistrations().then((r) => r.length && setRegistrations(r));
@@ -3227,6 +3255,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       p.map((r) => {
         if (r.id === id) {
           const updated: Registration = { ...r, survey: payload };
+          saveSupabaseRegistration(updated);
+          return updated;
+        }
+        return r;
+      })
+    );
+  }, []);
+
+  const saveRegistrationFeedback: Ctx["saveRegistrationFeedback"] = useCallback((id, feedback) => {
+    const payload = { ...feedback, submittedAt: feedback.submittedAt || new Date().toISOString() };
+    setRegistrations((p) =>
+      p.map((r) => {
+        if (r.id === id) {
+          const updated: Registration = { ...r, feedback: payload };
           saveSupabaseRegistration(updated);
           return updated;
         }
@@ -5396,7 +5438,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     priceOf, courseSettings,
     recordPayment, myPayments,
     events: publicEvents, pastEvents, allEvents: events, seatsLeft, canRegisterForEvent, registerForEvent,
-    saveRegistrationSurvey, confirmEventSeat, checkInWithCode, findRegistration, myRegistrations, cancelRegistration,
+    saveRegistrationSurvey, saveRegistrationFeedback, confirmEventSeat, checkInWithCode, findRegistration, myRegistrations, cancelRegistration,
     isStaff: user?.role === "staff",
     can, permissions,
     attempts: myAttempts, submitAttempt, bestAttempt, hasPassedQuiz,

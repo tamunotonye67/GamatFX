@@ -278,7 +278,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
 /* ------------------------------ Registration ------------------------------ */
 
 function RegistrationForm({ preset }: { preset: string }) {
-  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, confirmEventSeat, checkInWithCode, findRegistration, myRegistrations, admin, user, isAuthed } = useStore();
+  const { events, seatsLeft, canRegisterForEvent, registerForEvent, saveRegistrationSurvey, saveRegistrationFeedback, confirmEventSeat, checkInWithCode, findRegistration, myRegistrations, admin, user, isAuthed } = useStore();
   const [eventId, setEventId] = useState(preset || events[0]?.id || "");
   const [name, setName] = useState(user ? formatAccountName(user) : "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -294,9 +294,16 @@ function RegistrationForm({ preset }: { preset: string }) {
 
   // Optional pre-event survey state
   const [experience, setExperience] = useState("Beginner (0–1 yr)");
-  const [goal, setGoal] = useState("Learn Order Flow & Liquidity");
+  const [struggle, setStruggle] = useState("Risk Management");
+  const [pair, setPair] = useState("Gold (XAUUSD)");
   const [question, setQuestion] = useState("");
   const [surveySaved, setSurveySaved] = useState(false);
+
+  // Optional post-event feedback state
+  const [fbRating, setFbRating] = useState(5);
+  const [fbTakeaway, setFbTakeaway] = useState("");
+  const [fbNextTopic, setFbNextTopic] = useState("");
+  const [fbSaved, setFbSaved] = useState(false);
 
   // If user opens /events?ticket=... from their confirmation email, display their ticket
   useEffect(() => {
@@ -402,7 +409,8 @@ function RegistrationForm({ preset }: { preset: string }) {
       evForm.preventDefault();
       saveRegistrationSurvey(ticket.id, {
         experience,
-        goal,
+        struggle,
+        pair,
         question: question.trim() || undefined,
       });
       setSurveySaved(true);
@@ -560,20 +568,20 @@ function RegistrationForm({ preset }: { preset: string }) {
         <div className="mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5 text-left">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-light">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Quick Pre-Event Prep (Optional)</span>
+            <span>Quick Pre-Event Survey (Optional)</span>
           </div>
-          {surveySaved ? (
+          {surveySaved || ticket.survey ? (
             <p className="mt-2 text-xs sm:text-sm text-emerald-300 font-medium">
-              Thanks! Your prep notes are saved for the desk team.
+              Thanks! Your survey responses are saved for the desk team.
             </p>
           ) : (
             <form onSubmit={handleSurveySubmit} className="mt-3 space-y-3">
               <p className="text-xs text-white/60">
                 Help Chief Mentor Tonye &amp; the desk tailor this session to you.
               </p>
-              <div className="grid sm:grid-cols-2 gap-2.5">
+              <div className="grid sm:grid-cols-3 gap-2.5">
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Experience level</label>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Trading experience</label>
                   <select
                     value={experience}
                     onChange={(e) => setExperience(e.target.value)}
@@ -585,21 +593,34 @@ function RegistrationForm({ preset }: { preset: string }) {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Main goal</label>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Biggest struggle</label>
                   <select
-                    value={goal}
-                    onChange={(e) => setGoal(e.target.value)}
+                    value={struggle}
+                    onChange={(e) => setStruggle(e.target.value)}
                     className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-brand"
                   >
-                    <option value="Learn Order Flow & Liquidity" className="bg-ink">Learn Order Flow &amp; Liquidity</option>
-                    <option value="Funded Account Prep" className="bg-ink">Funded Account Prep</option>
-                    <option value="Risk & Psychology" className="bg-ink">Risk &amp; Psychology</option>
-                    <option value="Live Q&A & Networking" className="bg-ink">Live Q&amp;A &amp; Networking</option>
+                    <option value="Risk Management" className="bg-ink">Risk Management</option>
+                    <option value="Entries & Timing" className="bg-ink">Entries &amp; Timing</option>
+                    <option value="Market Structure & Liquidity" className="bg-ink">Market Structure &amp; Liquidity</option>
+                    <option value="Trading Psychology" className="bg-ink">Trading Psychology</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/60">Favorite market / pair</label>
+                  <select
+                    value={pair}
+                    onChange={(e) => setPair(e.target.value)}
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-brand"
+                  >
+                    <option value="Gold (XAUUSD)" className="bg-ink">Gold (XAUUSD)</option>
+                    <option value="Major FX (EURUSD, GBPUSD)" className="bg-ink">Major FX (EURUSD, GBPUSD)</option>
+                    <option value="Indices (NAS100, US30)" className="bg-ink">Indices (NAS100, US30)</option>
+                    <option value="Crypto" className="bg-ink">Crypto</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-white/60">Any question for the mentor?</label>
+                <label className="mb-1 block text-[11px] font-semibold text-white/60">One question you want answered live?</label>
                 <input
                   type="text"
                   value={question}
@@ -609,11 +630,82 @@ function RegistrationForm({ preset }: { preset: string }) {
                 />
               </div>
               <button type="submit" className="btn-primary !py-2 !px-4 text-xs">
-                Save Prep Notes
+                Submit Survey
               </button>
             </form>
           )}
         </div>
+
+        {/* Post-Event Feedback (shown after Check-In) */}
+        {ticket.checkedIn && (
+          <div className="mt-4 rounded-2xl border border-emerald-400/25 bg-emerald-950/30 p-4 sm:p-5 text-left">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Post-Event Feedback</span>
+            </div>
+            {fbSaved || ticket.feedback ? (
+              <p className="mt-2 text-xs sm:text-sm text-emerald-300 font-medium">
+                Thank you for rating this session! Your feedback helps us improve.
+              </p>
+            ) : (
+              <form
+                onSubmit={(evForm) => {
+                  evForm.preventDefault();
+                  saveRegistrationFeedback(ticket.id, {
+                    rating: fbRating,
+                    takeaway: fbTakeaway.trim() || undefined,
+                    nextTopic: fbNextTopic.trim() || undefined,
+                  });
+                  setFbSaved(true);
+                }}
+                className="mt-3 space-y-3"
+              >
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-white/70">Rate today&apos;s session (1–5)</label>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setFbRating(n)}
+                        className={`h-8 w-8 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                          fbRating >= n
+                            ? "bg-amber-400 text-ink border-amber-300"
+                            : "bg-white/5 text-white/60 border-white/15"
+                        }`}
+                      >
+                        {n}★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/70">Biggest takeaway today?</label>
+                  <input
+                    type="text"
+                    value={fbTakeaway}
+                    onChange={(e) => setFbTakeaway(e.target.value)}
+                    placeholder="e.g. Waiting for liquidity sweep before entry"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/35 outline-none focus:border-brand"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-white/70">What topic should we cover next?</label>
+                  <input
+                    type="text"
+                    value={fbNextTopic}
+                    onChange={(e) => setFbNextTopic(e.target.value)}
+                    placeholder="Optional — e.g. Gold NY session scalping"
+                    className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/35 outline-none focus:border-brand"
+                  />
+                </div>
+                <button type="submit" className="btn-primary !py-2 !px-4 text-xs">
+                  Send Feedback
+                </button>
+              </form>
+            )}
+          </div>
+        )}
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           {isAuthed ? (
