@@ -1063,7 +1063,7 @@ export default function DashboardPage() {
 
               {r.status === "confirmed" &&
                 ((evObj?.sessions && evObj.sessions.length > 0 && (r.attendedSessions?.length || 0) < evObj.sessions.length) ||
-                  (!evObj?.sessions?.length && !r.checkedIn && evObj?.checkInCode)) && (
+                  (!evObj?.sessions?.length && !r.checkedIn)) && (
                 <form
                   onSubmit={(evForm) => {
                     evForm.preventDefault();

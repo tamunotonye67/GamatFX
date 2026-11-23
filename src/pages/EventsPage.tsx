@@ -232,7 +232,7 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
                 </div>
               )}
 
-              {((e.sessions && e.sessions.length > 0 && (mine.attendedSessions?.length || 0) < e.sessions.length) || (!e.sessions?.length && !mine.checkedIn && e.checkInCode)) && (
+              {((e.sessions && e.sessions.length > 0 && (mine.attendedSessions?.length || 0) < e.sessions.length) || (!e.sessions?.length && !mine.checkedIn)) && (
                 <form
                   onSubmit={(evForm) => {
                     evForm.preventDefault();
@@ -513,56 +513,54 @@ function RegistrationForm({ preset }: { preset: string }) {
         </div>
 
         {/* Live Event Check-In */}
-        {(ticketEvent?.checkInCode || (ticketEvent?.sessions && ticketEvent.sessions.length > 0)) && (
-          <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 text-left space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-brand-light">Live Event Check-In</p>
-            {ticket.attendedSessions && ticket.attendedSessions.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {ticket.attendedSessions.map((a) => (
-                  <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
-                    <CheckCircle2 className="h-3 w-3" /> {a.label}
-                  </span>
-                ))}
-              </div>
-            )}
-            {ticket.checkedIn && (!ticketEvent?.sessions?.length || (ticket.attendedSessions?.length || 0) >= ticketEvent.sessions.length) ? (
-              <p className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                <CheckCircle2 className="h-4 w-4" /> Attended ✓ — You are checked in!
-              </p>
-            ) : (
-              <form
-                onSubmit={(evForm) => {
-                  evForm.preventDefault();
-                  setTicketCheckInErr("");
-                  const res = checkInWithCode(ticket.eventId, ticket.ticket, ticketCheckInCode);
-                  if (res.ok) {
-                    const updated = findRegistration(ticket.ticket);
-                    setTicket(updated || { ...ticket, checkedIn: true, checkedInAt: Date.now(), checkInMethod: "code", seatConfirmed: true });
-                    setTicketCheckInCode("");
-                  } else {
-                    setTicketCheckInErr(res.error || "Invalid check-in code.");
-                  }
-                }}
-                className="flex flex-wrap items-center gap-2"
+        <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 text-left space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-brand-light">Live Event Check-In</p>
+          {ticket.attendedSessions && ticket.attendedSessions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {ticket.attendedSessions.map((a) => (
+                <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                  <CheckCircle2 className="h-3 w-3" /> {a.label}
+                </span>
+              ))}
+            </div>
+          )}
+          {ticket.checkedIn && (!ticketEvent?.sessions?.length || (ticket.attendedSessions?.length || 0) >= ticketEvent.sessions.length) ? (
+            <p className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300">
+              <CheckCircle2 className="h-4 w-4" /> Attended ✓ — You are checked in!
+            </p>
+          ) : (
+            <form
+              onSubmit={(evForm) => {
+                evForm.preventDefault();
+                setTicketCheckInErr("");
+                const res = checkInWithCode(ticket.eventId, ticket.ticket, ticketCheckInCode);
+                if (res.ok) {
+                  const updated = findRegistration(ticket.ticket);
+                  setTicket(updated || { ...ticket, checkedIn: true, checkedInAt: Date.now(), checkInMethod: "code", seatConfirmed: true });
+                  setTicketCheckInCode("");
+                } else {
+                  setTicketCheckInErr(res.error || "Invalid check-in code.");
+                }
+              }}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <input
+                type="text"
+                value={ticketCheckInCode}
+                onChange={(evIn) => setTicketCheckInCode(evIn.target.value.toUpperCase())}
+                placeholder={ticketEvent?.sessions?.length ? "Enter class session code" : "Enter live check-in code"}
+                className="flex-1 min-w-[160px] rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-mono text-white placeholder:text-white/40 outline-none focus:border-brand"
+              />
+              <button
+                type="submit"
+                className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
               >
-                <input
-                  type="text"
-                  value={ticketCheckInCode}
-                  onChange={(evIn) => setTicketCheckInCode(evIn.target.value.toUpperCase())}
-                  placeholder={ticketEvent?.sessions?.length ? "Enter class session code" : "Enter live check-in code"}
-                  className="flex-1 min-w-[160px] rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-mono text-white placeholder:text-white/40 outline-none focus:border-brand"
-                />
-                <button
-                  type="submit"
-                  className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
-                >
-                  Check In
-                </button>
-                {ticketCheckInErr && <p className="w-full text-[11px] font-semibold text-rose-400">{ticketCheckInErr}</p>}
-              </form>
-            )}
-          </div>
-        )}
+                Check In
+              </button>
+              {ticketCheckInErr && <p className="w-full text-[11px] font-semibold text-rose-400">{ticketCheckInErr}</p>}
+            </form>
+          )}
+        </div>
 
         {/* Optional Pre-Event Survey */}
         <div className="mt-6 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5 text-left">
@@ -934,14 +932,26 @@ export default function EventsPage() {
                     </div>
                   </div>
 
-                  {!lookupResult.checkedIn && evObj?.checkInCode && (
+                  {lookupResult.attendedSessions && lookupResult.attendedSessions.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {lookupResult.attendedSessions.map((a) => (
+                        <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                          <CheckCircle2 className="h-3 w-3" /> {a.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {((evObj?.sessions && evObj.sessions.length > 0 && (lookupResult.attendedSessions?.length || 0) < evObj.sessions.length) || (!evObj?.sessions?.length && !lookupResult.checkedIn)) && (
                     <form
                       onSubmit={(evForm) => {
                         evForm.preventDefault();
                         setLookupCodeErr("");
                         const res = checkInWithCode(lookupResult.eventId, lookupResult.ticket, lookupCode);
                         if (res.ok) {
-                          setLookupResult({ ...lookupResult, checkedIn: true, checkedInAt: Date.now(), seatConfirmed: true });
+                          const refreshed = findRegistration(lookupResult.ticket);
+                          setLookupResult(refreshed || { ...lookupResult, checkedIn: true, checkedInAt: Date.now(), seatConfirmed: true });
+                          setLookupCode("");
                         } else {
                           setLookupCodeErr(res.error || "Invalid check-in code.");
                         }
@@ -952,7 +962,7 @@ export default function EventsPage() {
                         type="text"
                         value={lookupCode}
                         onChange={(e) => setLookupCode(e.target.value.toUpperCase())}
-                        placeholder="Enter live check-in code"
+                        placeholder={evObj?.sessions?.length ? "Enter class session code" : "Enter live check-in code"}
                         className="flex-1 min-w-[150px] rounded-lg border border-brand/25 bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
                       />
                       <button type="submit" className="rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer">
