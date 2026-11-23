@@ -3334,9 +3334,6 @@ export default function WhiteboardPage() {
   /* ------------------------- Tool Selection & Synced Categories ------------- */
 
   const selectTool = (tool: Tool) => {
-    if (pendingShapeAdjustIds.length > 0) {
-      commitShapeAdjustment();
-    }
     setActiveTool(tool);
     setFlyoutGroup(null);
     if (tool === "select" || tool === "node") {
@@ -3965,7 +3962,8 @@ export default function WhiteboardPage() {
       const hitShape = [...shapes].reverse().find((s) => !s.isHidden && isPointInShape(pt, s));
       if (hitShape) {
         if (pendingShapeAdjustIds.length > 0 && !pendingShapeAdjustIds.includes(hitShape.id)) {
-          commitShapeAdjustment();
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
         }
         if (!selectedShapeIds.includes(hitShape.id)) {
           setSelectedShapeIds([hitShape.id]);
@@ -3991,7 +3989,8 @@ export default function WhiteboardPage() {
         return;
       } else {
         if (pendingShapeAdjustIds.length > 0) {
-          commitShapeAdjustment();
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
         }
         setSelectedShapeIds([]);
         setActiveNodeIndex(null);
@@ -4030,7 +4029,8 @@ export default function WhiteboardPage() {
 
       if (hitShape) {
         if (pendingShapeAdjustIds.length > 0 && !pendingShapeAdjustIds.includes(hitShape.id)) {
-          commitShapeAdjustment();
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
         }
         if (hitShape.type === "fibo" && hitShape.fiboLevels && hitShape.fiboLevels.length > 0) {
           setActiveFiboLevels(hitShape.fiboLevels);
@@ -4075,7 +4075,8 @@ export default function WhiteboardPage() {
         }
       } else {
         if (pendingShapeAdjustIds.length > 0) {
-          commitShapeAdjustment();
+          showToast("Confirm (✓) or Cancel (✕) adjustment first");
+          return;
         }
         if (!e.shiftKey) {
           setSelectedShapeIds([]);
