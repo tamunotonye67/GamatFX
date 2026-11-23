@@ -1304,6 +1304,9 @@ type Ctx = {
   signup: (d: { firstName: string; lastName: string; email: string; password: string; phone?: string; country?: string; avatar?: string }) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean; email?: string }> | { ok: boolean; error?: string; needsVerification?: boolean; email?: string };
   markEmailVerified: (email: string) => void;
   logout: () => void;
+  savedAccounts: { id: string; email: string; name: string; avatar?: string; role: string; lastUsedAt: number }[];
+  switchAccount: (accountId: string) => Promise<{ ok: boolean; error?: string }>;
+  removeSavedAccount: (accountId: string) => void;
   updateProfile: (patch: Partial<User>) => void;
 
   /* learning (current user) */
@@ -2755,6 +2758,111 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setSessionId(null);
     signOutSupabaseUser();
   }, []);
+
+  const SAVED_ACCOUNTS_KEY = "gamat.saved_accounts.v1";
+  const LAST_ACTIVITY_KEY = "gamat.last_activity.v1";
+  const INACTIVITY_TIMEOUT_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+
+  const [savedAccounts, setSavedAccounts] = useState<
+    { id: string; email: string; name: string; avatar?: string; role: string; lastUsedAt: number }[]
+  >(() => read(SAVED_ACCOUNTS_KEY, []));
+
+  useEffect(() => {
+    if (!account) return;
+    const summary = {
+      id: account.id,
+      email: account.email,
+      name: formatAccountName(account),
+      avatar: account.avatar,
+      role: account.role,
+      lastUsedAt: Date.now(),
+    };
+    setSavedAccounts((prev) => {
+      const filtered = prev.filter(
+        (item) => item.id !== account.id && item.email.toLowerCase() !== account.email.toLowerCase()
+      );
+      const next = [summary, ...filtered].slice(0, 6);
+      write(SAVED_ACCOUNTS_KEY, next);
+      return next;
+    });
+  }, [account?.id, account?.email, account?.firstName, account?.lastName, account?.nickname, account?.avatar, account?.role]);
+
+  const switchAccount: Ctx["switchAccount"] = useCallback(
+    async (accountId) => {
+      const localAccs = read<Account[]>(K.accounts, []);
+      const target =
+        accounts.find((a) => a.id === accountId) ||
+        localAccs.find((a) => a.id === accountId);
+      if (!target) {
+        return { ok: false, error: "Session expired for this account. Please sign in with your password." };
+      }
+      if (target.status === "suspended") {
+        return { ok: false, error: "This account has been suspended." };
+      }
+      setSessionId(target.id);
+      write(K.session, target.id);
+      try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch {}
+      const savedPass = getStoredCredential(target.email) || target.password;
+      if (savedPass) {
+        signInSupabaseUser(target.email, savedPass).catch(() => {});
+      }
+      return { ok: true };
+    },
+    [accounts]
+  );
+
+  const removeSavedAccount: Ctx["removeSavedAccount"] = useCallback((accountId) => {
+    setSavedAccounts((prev) => {
+      const next = prev.filter((a) => a.id !== accountId);
+      write(SAVED_ACCOUNTS_KEY, next);
+      return next;
+    });
+  }, []);
+
+  // 5-day inactivity auto-logout
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const checkInactivity = () => {
+      try {
+        const raw = localStorage.getItem(LAST_ACTIVITY_KEY);
+        const last = raw ? parseInt(raw, 10) : 0;
+        if (last && Date.now() - last > INACTIVITY_TIMEOUT_MS) {
+          logout();
+          return true;
+        }
+        if (!last) {
+          localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
+        }
+      } catch {}
+      return false;
+    };
+
+    if (checkInactivity()) return;
+
+    let lastWrite = Date.now();
+    const recordActivity = () => {
+      const now = Date.now();
+      if (now - lastWrite >= 60_000) {
+        lastWrite = now;
+        try { localStorage.setItem(LAST_ACTIVITY_KEY, String(now)); } catch {}
+      }
+    };
+
+    const events: (keyof WindowEventMap)[] = ["pointerdown", "keydown", "scroll", "touchstart"];
+    events.forEach((ev) => window.addEventListener(ev, recordActivity, { passive: true }));
+    const onVis = () => {
+      if (document.visibilityState === "visible") checkInactivity();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    const interval = setInterval(checkInactivity, 300_000);
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, recordActivity));
+      document.removeEventListener("visibilitychange", onVis);
+      clearInterval(interval);
+    };
+  }, [sessionId, logout]);
 
   const updateProfile: Ctx["updateProfile"] = useCallback((patch) => {
     if (!sessionId) return;
@@ -5102,7 +5210,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value: Ctx = {
     user, isAuthed: !!user, isAdmin: user?.role === "admin", authLoading, authError,
-    login, signup, markEmailVerified, logout, updateProfile,
+    login, signup, markEmailVerified, logout, savedAccounts, switchAccount, removeSavedAccount, updateProfile,
     enrollments: myEnrollments, isEnrolled, getEnrollment, enroll,
     toggleLesson, setLastLesson, progressOf, stats,
     priceOf, courseSettings,

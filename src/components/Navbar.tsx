@@ -38,6 +38,9 @@ import {
   Calendar,
   Phone,
   Send,
+  ArrowLeftRight,
+  Plus,
+  Check,
 } from "lucide-react";
 import Logo from "./Logo";
 import TopCouponBar from "./TopCouponBar";
@@ -125,7 +128,13 @@ export default function Navbar() {
   const moreRef = useRef<HTMLLIElement | null>(null);
   const userRef = useRef<HTMLDivElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
-  const { user, isAuthed, isAdmin, logout, stats } = useStore();
+  const { user, isAuthed, isAdmin, logout, stats, savedAccounts, switchAccount, removeSavedAccount, login } = useStore();
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [addAccOpen, setAddAccOpen] = useState(false);
+  const [switchEmail, setSwitchEmail] = useState("");
+  const [switchPass, setSwitchPass] = useState("");
+  const [switchErr, setSwitchErr] = useState("");
+  const [switchLoading, setSwitchLoading] = useState(false);
   const requestedSolid = useNavbarForcedSolid();
 
   useEffect(() => {
@@ -553,6 +562,13 @@ export default function Navbar() {
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink/80 transition hover:bg-cream hover:text-brand">
                     <BookOpen className="h-4 w-4 text-brand" /> My Courses
                   </button>
+                  <button type="button" onClick={() => { setUserOpen(false); setAddAccOpen(false); setSwitchErr(""); setSwitcherOpen(true); }}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-ink/80 transition hover:bg-cream hover:text-brand cursor-pointer">
+                    <span className="flex items-center gap-3"><ArrowLeftRight className="h-4 w-4 text-brand" /> Switch Account</span>
+                    {savedAccounts.length > 1 && (
+                      <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">{savedAccounts.length}</span>
+                    )}
+                  </button>
                   <button type="button" onClick={() => { setUserOpen(false); logout(); navigate("/"); }}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted transition hover:bg-cream hover:text-brand">
                     <LogOut className="h-4 w-4" /> Log out
@@ -834,6 +850,157 @@ export default function Navbar() {
         )}
       </div>
     </aside>
+
+    {/* Switch Account Modal */}
+    {switcherOpen && user && (
+      <div
+        className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+        onMouseDown={() => setSwitcherOpen(false)}
+      >
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          className="w-full max-w-sm rounded-2xl border border-line bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="flex items-center justify-between border-b border-line bg-cream px-5 py-3.5">
+            <div className="flex items-center gap-2">
+              <ArrowLeftRight className="h-4 w-4 text-brand" />
+              <h3 className="font-display text-sm font-bold text-ink">Switch Account</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSwitcherOpen(false)}
+              className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-ink transition cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="p-3 space-y-2 max-h-72 overflow-y-auto">
+            {savedAccounts.map((acc) => {
+              const isCurrent = acc.id === user.id;
+              return (
+                <div
+                  key={acc.id}
+                  onClick={async () => {
+                    if (isCurrent) { setSwitcherOpen(false); return; }
+                    setSwitchErr("");
+                    const res = await switchAccount(acc.id);
+                    if (res.ok) {
+                      setSwitcherOpen(false);
+                    } else {
+                      setSwitchEmail(acc.email);
+                      setSwitchPass("");
+                      setSwitchErr(res.error || "Sign in to switch to this account.");
+                      setAddAccOpen(true);
+                    }
+                  }}
+                  className={`group flex items-center justify-between gap-2.5 rounded-xl p-2.5 transition cursor-pointer border ${
+                    isCurrent
+                      ? "border-brand/30 bg-brand-light/25"
+                      : "border-transparent hover:border-line hover:bg-cream"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {acc.avatar ? (
+                      <img src={acc.avatar} alt={acc.name} className="h-9 w-9 rounded-full object-cover border border-line shrink-0" />
+                    ) : (
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-xs font-bold text-white shrink-0">
+                        {acc.name.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-ink truncate">{acc.name}</p>
+                      <p className="text-[11px] text-muted truncate">{acc.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {isCurrent ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                        <Check className="h-3 w-3" /> Active
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => removeSavedAccount(acc.id)}
+                        className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                        title="Remove from list"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-line bg-cream/60 p-3">
+            {!addAccOpen ? (
+              <button
+                type="button"
+                onClick={() => { setSwitchEmail(""); setSwitchPass(""); setSwitchErr(""); setAddAccOpen(true); }}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-line bg-white py-2 text-xs font-semibold text-ink hover:bg-slate-50 transition cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5 text-brand" /> Add another account
+              </button>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setSwitchErr("");
+                  setSwitchLoading(true);
+                  const res = await login(switchEmail, switchPass);
+                  setSwitchLoading(false);
+                  if (res.ok) {
+                    setSwitcherOpen(false);
+                    setAddAccOpen(false);
+                    setSwitchEmail("");
+                    setSwitchPass("");
+                  } else {
+                    setSwitchErr(res.error || "Invalid credentials.");
+                  }
+                }}
+                className="space-y-2"
+              >
+                {switchErr && <p className="text-[11px] font-medium text-rose-600">{switchErr}</p>}
+                <input
+                  type="email"
+                  required
+                  value={switchEmail}
+                  onChange={(e) => setSwitchEmail(e.target.value)}
+                  placeholder="Email address"
+                  className="w-full rounded-xl border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand"
+                />
+                <input
+                  type="password"
+                  required
+                  value={switchPass}
+                  onChange={(e) => setSwitchPass(e.target.value)}
+                  placeholder="Password"
+                  className="w-full rounded-xl border border-line bg-white px-3 py-2 text-xs text-ink outline-none focus:border-brand"
+                />
+                <div className="flex items-center gap-2 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setAddAccOpen(false)}
+                    className="flex-1 rounded-xl border border-line bg-white py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={switchLoading}
+                    className="flex-1 rounded-xl bg-brand py-2 text-xs font-semibold text-white hover:bg-brand-dark transition disabled:opacity-60 cursor-pointer"
+                  >
+                    {switchLoading ? "Signing in…" : "Sign in & Switch"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
   </>
   );
 }
