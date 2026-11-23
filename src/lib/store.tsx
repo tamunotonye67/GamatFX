@@ -3184,9 +3184,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* ------------------------------ Events ------------------------------ */
 
   const isEventEnded = (e: EventItem) => {
-    const mStr = (e.endMonth || e.month || "").trim();
-    const dNum = parseInt((e.endDay || e.day || "").trim(), 10);
-    const yNum = parseInt((e.endYear || e.year || "").trim(), 10);
+    if (e.featured) return false;
+    if (!e.endMonth || !e.endDay || !e.endYear) return false;
+    const mStr = e.endMonth.trim();
+    const dNum = parseInt(e.endDay.trim(), 10);
+    const yNum = parseInt(e.endYear.trim(), 10);
     if (!mStr || isNaN(dNum) || isNaN(yNum)) return false;
     const parsed = new Date(`${mStr} ${dNum}, ${yNum} 23:59:59`);
     if (isNaN(parsed.getTime())) return false;

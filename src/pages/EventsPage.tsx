@@ -602,7 +602,11 @@ function RegistrationForm({ preset }: { preset: string }) {
                     <option value="Risk Management" className="bg-ink">Risk Management</option>
                     <option value="Entries & Timing" className="bg-ink">Entries &amp; Timing</option>
                     <option value="Market Structure & Liquidity" className="bg-ink">Market Structure &amp; Liquidity</option>
-                    <option value="Trading Psychology" className="bg-ink">Trading Psychology</option>
+                    <option value="Trading Psychology & Discipline" className="bg-ink">Trading Psychology &amp; Discipline</option>
+                    <option value="Overtrading / Revenge Trading" className="bg-ink">Overtrading / Revenge Trading</option>
+                    <option value="Passing Prop Firm Challenges" className="bg-ink">Passing Prop Firm Challenges</option>
+                    <option value="Exit Strategy & Take Profit" className="bg-ink">Exit Strategy &amp; Take Profit</option>
+                    <option value="Consistency & Trade Plan" className="bg-ink">Consistency &amp; Trade Plan</option>
                   </select>
                 </div>
                 <div>
@@ -613,9 +617,13 @@ function RegistrationForm({ preset }: { preset: string }) {
                     className="w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-brand"
                   >
                     <option value="Gold (XAUUSD)" className="bg-ink">Gold (XAUUSD)</option>
-                    <option value="Major FX (EURUSD, GBPUSD)" className="bg-ink">Major FX (EURUSD, GBPUSD)</option>
-                    <option value="Indices (NAS100, US30)" className="bg-ink">Indices (NAS100, US30)</option>
-                    <option value="Crypto" className="bg-ink">Crypto</option>
+                    <option value="EURUSD" className="bg-ink">EURUSD</option>
+                    <option value="GBPUSD" className="bg-ink">GBPUSD</option>
+                    <option value="USDJPY" className="bg-ink">USDJPY</option>
+                    <option value="GBPJPY" className="bg-ink">GBPJPY</option>
+                    <option value="NAS100 / US30 (Indices)" className="bg-ink">NAS100 / US30 (Indices)</option>
+                    <option value="Synthetic Indices (V75, Boom/Crash)" className="bg-ink">Synthetic Indices (V75, Boom/Crash)</option>
+                    <option value="Crypto (BTC, ETH)" className="bg-ink">Crypto (BTC, ETH)</option>
                   </select>
                 </div>
               </div>
