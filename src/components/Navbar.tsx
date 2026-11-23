@@ -807,10 +807,7 @@ export default function Navbar() {
                 </p>
                 <p className="truncate text-[10px] text-muted">{user.email}</p>
               </div>
-              <span className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-slate-100 group-hover:bg-brand/10 px-2 py-1 text-[10px] font-bold text-slate-600 group-hover:text-brand transition">
-                <ArrowLeftRight className="h-3 w-3" />
-                Switch
-              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted group-hover:text-ink transition" />
             </button>
 
             {isAdmin && (
