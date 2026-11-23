@@ -507,33 +507,54 @@ export function AdminRegistrations() {
   const { admin, allEvents } = useStore();
   const [q, setQ] = useAdminSearchTarget();
   const [evFilter, setEvFilter] = useState("all");
+  const [responseFilter, setResponseFilter] = useState<"all" | "survey" | "feedback">("all");
   const [viewingReg, setViewingReg] = useState<Registration | null>(null);
+  const [showAllResponses, setShowAllResponses] = useState(false);
 
   const rows = useMemo(() => admin.registrations.filter((r) => {
     const mq = `${r.name} ${r.email} ${r.ticket} ${r.eventTitle}`.toLowerCase().includes(q.toLowerCase());
-    return mq && (evFilter === "all" || r.eventId === evFilter);
-  }), [admin.registrations, q, evFilter]);
+    const matchEv = evFilter === "all" || r.eventId === evFilter;
+    const matchResp =
+      responseFilter === "all" ||
+      (responseFilter === "survey" && !!r.survey) ||
+      (responseFilter === "feedback" && !!r.feedback);
+    return mq && matchEv && matchResp;
+  }), [admin.registrations, q, evFilter, responseFilter]);
+
+  const responseCount = useMemo(
+    () => admin.registrations.filter((r) => r.survey || r.feedback).length,
+    [admin.registrations]
+  );
 
   return (
     <AdminShell title="Registrations" subtitle="Every attendee signed up for your live events."
       action={
-        <button onClick={() => exportCsv("registrations.csv", rows.map(r => ({
-          Ticket: r.ticket, Name: r.name, Email: r.email, Phone: r.phone,
-          Event: r.eventTitle, EventDate: r.eventDate, Status: r.status,
-          SeatConfirmed: r.seatConfirmed ? "Yes" : "No",
-          Attended: r.checkedIn ? "Yes" : "No",
-          Sessions: (r.attendedSessions || []).map((s) => s.label).join(", "),
-          Experience: r.survey?.experience || "",
-          Struggle: r.survey?.struggle || "",
-          Pair: r.survey?.pair || "",
-          Question: r.survey?.question || "",
-          Rating: r.feedback?.rating ?? "",
-          Takeaway: r.feedback?.takeaway || "",
-          NextTopic: r.feedback?.nextTopic || "",
-          Account: r.userId ? "Registered user" : "Guest", Registered: fmtDate(r.createdAt),
-        })))} className="btn-outline-dark !py-2.5">
-          <Download className="h-4 w-4" /> Export CSV
-        </button>
+        <div className="flex flex-wrap gap-2.5">
+          <button
+            type="button"
+            onClick={() => setShowAllResponses(true)}
+            className="btn-primary !py-2.5"
+          >
+            <Eye className="h-4 w-4" /> Surveys &amp; Feedback ({responseCount})
+          </button>
+          <button onClick={() => exportCsv("registrations.csv", rows.map(r => ({
+            Ticket: r.ticket, Name: r.name, Email: r.email, Phone: r.phone,
+            Event: r.eventTitle, EventDate: r.eventDate, Status: r.status,
+            SeatConfirmed: r.seatConfirmed ? "Yes" : "No",
+            Attended: r.checkedIn ? "Yes" : "No",
+            Sessions: (r.attendedSessions || []).map((s) => s.label).join(", "),
+            Experience: r.survey?.experience || "",
+            Struggle: r.survey?.struggle || "",
+            Pair: r.survey?.pair || "",
+            Question: r.survey?.question || "",
+            Rating: r.feedback?.rating ?? "",
+            Takeaway: r.feedback?.takeaway || "",
+            NextTopic: r.feedback?.nextTopic || "",
+            Account: r.userId ? "Registered user" : "Guest", Registered: fmtDate(r.createdAt),
+          })))} className="btn-outline-dark !py-2.5">
+            <Download className="h-4 w-4" /> Export CSV
+          </button>
+        </div>
       }>
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Ticket} label="Total registrations" value={admin.registrations.length} />
@@ -549,6 +570,12 @@ export function AdminRegistrations() {
             className="rounded-xl border border-line bg-white px-4 py-2.5 text-sm outline-none focus:border-brand">
             <option value="all">All events</option>
             {allEvents.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
+          </select>
+          <select value={responseFilter} onChange={(e) => setResponseFilter(e.target.value as any)}
+            className="rounded-xl border border-line bg-white px-4 py-2.5 text-sm outline-none focus:border-brand">
+            <option value="all">All responses</option>
+            <option value="survey">Has Pre-Event Survey</option>
+            <option value="feedback">Has Post-Event Feedback</option>
           </select>
           <span className="ml-auto text-sm text-muted">{rows.length} attendee(s)</span>
         </div>
@@ -687,6 +714,47 @@ export function AdminRegistrations() {
             )}
           </div>
         )}
+      </Modal>
+
+      <Modal open={showAllResponses} onClose={() => setShowAllResponses(false)} title={`All Event Surveys & Feedback (${responseCount})`} wide>
+        <div className="space-y-3 max-h-[65dvh] overflow-y-auto pr-1">
+          {rows.filter((r) => r.survey || r.feedback).length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted">No survey or feedback responses submitted yet for this filter.</p>
+          ) : (
+            rows
+              .filter((r) => r.survey || r.feedback)
+              .map((r) => (
+                <div key={r.id} className="rounded-xl border border-line bg-white p-4 space-y-2 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line/60 pb-2">
+                    <div>
+                      <p className="font-bold text-ink">{r.name} <span className="font-normal text-muted">({r.email})</span></p>
+                      <p className="text-[11px] text-muted">{r.eventTitle} · {r.ticket}</p>
+                    </div>
+                    {r.feedback?.rating && (
+                      <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 font-bold text-amber-700">
+                        {r.feedback.rating} / 5 ★
+                      </span>
+                    )}
+                  </div>
+                  {r.survey && (
+                    <div className="grid sm:grid-cols-2 gap-1.5 text-muted">
+                      {r.survey.experience && <p><strong className="text-ink">Level:</strong> {r.survey.experience}</p>}
+                      {r.survey.struggle && <p><strong className="text-ink">Struggle:</strong> {r.survey.struggle}</p>}
+                      {r.survey.pair && <p><strong className="text-ink">Pair:</strong> {r.survey.pair}</p>}
+                      {r.survey.goal && <p><strong className="text-ink">Goal:</strong> {r.survey.goal}</p>}
+                      {r.survey.question && <p className="sm:col-span-2"><strong className="text-ink">Question:</strong> {r.survey.question}</p>}
+                    </div>
+                  )}
+                  {r.feedback && (
+                    <div className="rounded-lg bg-emerald-50/60 border border-emerald-200/70 p-2.5 space-y-1 text-muted">
+                      {r.feedback.takeaway && <p><strong className="text-ink">Takeaway:</strong> {r.feedback.takeaway}</p>}
+                      {r.feedback.nextTopic && <p><strong className="text-ink">Next Topic:</strong> {r.feedback.nextTopic}</p>}
+                    </div>
+                  )}
+                </div>
+              ))
+          )}
+        </div>
       </Modal>
     </AdminShell>
   );
