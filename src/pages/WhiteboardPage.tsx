@@ -1716,6 +1716,7 @@ export default function WhiteboardPage() {
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [insertMenuOpen, setInsertMenuOpen] = useState(false);
   const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false);
+  const [mobileToolsDrawerOpen, setMobileToolsDrawerOpen] = useState(false);
   const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
 
   const [activeTool, setActiveTool] = useState<Tool>("select");
@@ -13464,8 +13465,161 @@ export default function WhiteboardPage() {
             )}
           </div>
 
+          {/* Mobile All Tools Popover (< sm only) */}
+          {mobileToolsDrawerOpen && (
+            <div className="sm:hidden absolute bottom-16 inset-x-2.5 z-40 max-h-[62dvh] overflow-y-auto rounded-2xl border border-slate-200/90 bg-white/98 backdrop-blur-xl p-3 shadow-2xl ring-1 ring-slate-900/5 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-150 select-none">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-xs font-bold text-slate-900">All Whiteboard Tools</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileToolsDrawerOpen(false)}
+                  className="h-6 w-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                  aria-label="Close tools drawer"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {(
+                [
+                  {
+                    group: "Select & View",
+                    items: [
+                      { id: "select", label: "Select", Icon: MousePointer },
+                      { id: "node", label: "Node Edit", Icon: Waypoints },
+                      { id: "hand", label: "Pan", Icon: Hand },
+                      { id: "zoom", label: "Zoom", Icon: ZoomIn },
+                    ],
+                  },
+                  {
+                    group: "Trading & SMC",
+                    items: [
+                      { id: "fibo", label: "Fibo", Icon: Percent },
+                      { id: "long", label: "Long R:R", Icon: TrendingUp },
+                      { id: "short", label: "Short R:R", Icon: TrendingDown },
+                      { id: "orderblock", label: "Order Block", Icon: BoxSelect },
+                      { id: "fvg", label: "FVG", Icon: FvgToolIcon },
+                      { id: "bos", label: "BOS", Icon: BosToolIcon },
+                      { id: "liquidity", label: "Liquidity", Icon: CircleDollarSign },
+                      { id: "candle", label: "Candle", Icon: CandleToolIcon },
+                    ],
+                  },
+                  {
+                    group: "Draw & Shapes",
+                    items: [
+                      { id: "pencil", label: "Pen", Icon: Pencil },
+                      { id: "highlighter", label: "Highlight", Icon: Highlighter },
+                      { id: "rectangle", label: "Rectangle", Icon: Square },
+                      { id: "circle", label: "Circle", Icon: Circle },
+                      { id: "diamond", label: "Diamond", Icon: Diamond },
+                      { id: "image", label: "Image", Icon: ImageIcon },
+                    ],
+                  },
+                  {
+                    group: "Lines & Notes",
+                    items: [
+                      { id: "line", label: "Line", Icon: Minus },
+                      { id: "arrow", label: "Arrow", Icon: ArrowUpRight },
+                      { id: "bezier", label: "Path", Icon: Activity },
+                      { id: "text", label: "Text", Icon: Type },
+                      { id: "annotation", label: "Callout", Icon: AnnotationIcon },
+                      { id: "sticky", label: "Sticky", Icon: StickyNote },
+                    ],
+                  },
+                  {
+                    group: "Color & Erase",
+                    items: [
+                      { id: "eraser", label: "Eraser", Icon: Eraser },
+                      { id: "eyedropper", label: "Picker", Icon: Pipette },
+                      { id: "paintbucket", label: "Paint", Icon: Droplet },
+                    ],
+                  },
+                ] as const
+              ).map((section) => (
+                <div key={section.group} className="space-y-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-0.5">
+                    {section.group}
+                  </p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {section.items.map(({ id, label, Icon }) => {
+                      const isActive = activeTool === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => {
+                            if (id === "eyedropper") {
+                              setActiveColorTool("eyedropper");
+                              activateEyedropper();
+                            } else if (id === "paintbucket") {
+                              setActiveColorTool("paintbucket");
+                              selectTool("paintbucket");
+                            } else {
+                              selectTool(id);
+                            }
+                            setMobileToolsDrawerOpen(false);
+                          }}
+                          className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl border text-[10px] font-semibold transition-all cursor-pointer active:scale-95 ${
+                            isActive
+                              ? "bg-brand text-white border-brand shadow-sm"
+                              : "bg-slate-50/80 text-slate-700 border-slate-200/70 hover:bg-slate-100"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="truncate max-w-full leading-tight">{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Quick Stroke & Fill Color Swatches */}
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => strokeColorInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 px-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] font-semibold text-slate-700 cursor-pointer"
+                >
+                  <span
+                    className="h-4 w-4 rounded-full border border-slate-300 shrink-0"
+                    style={{ backgroundColor: strokeColor }}
+                  />
+                  <span>Stroke</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillColorInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 py-2 px-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] font-semibold text-slate-700 cursor-pointer"
+                >
+                  <span
+                    className="h-4 w-4 rounded-full border border-slate-300 shrink-0"
+                    style={{ backgroundColor: fillColor === "transparent" ? "#ffffff" : fillColor }}
+                  />
+                  <span>Fill</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Mobile Bottom Horizontal Thumb-Zone Tool Dock (< sm only) */}
           <div className="flex sm:hidden absolute bottom-2.5 inset-x-2.5 z-30 items-center gap-1 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-1.5 shadow-xl ring-1 ring-slate-900/5 select-none">
+            <button
+              type="button"
+              onClick={() => setMobileToolsDrawerOpen((v) => !v)}
+              title="All Tools"
+              aria-label="All Tools"
+              className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+                mobileToolsDrawerOpen
+                  ? "bg-brand text-white shadow-sm"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              <Plus className={`h-4 w-4 transition-transform ${mobileToolsDrawerOpen ? "rotate-45" : ""}`} />
+            </button>
+
+            <span className="h-5 w-px bg-slate-200 shrink-0 mx-0.5" />
+
             <div className="flex-1 flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {(
                 [
@@ -13487,7 +13641,10 @@ export default function WhiteboardPage() {
                   <button
                     key={id}
                     type="button"
-                    onClick={() => selectTool(id)}
+                    onClick={() => {
+                      selectTool(id);
+                      setMobileToolsDrawerOpen(false);
+                    }}
                     title={label}
                     aria-label={label}
                     className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
@@ -13507,6 +13664,7 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => {
+                setMobileToolsDrawerOpen(false);
                 if (isInspectorOpen && rightPanelTab === "layers") {
                   setIsInspectorOpen(false);
                 } else {
@@ -13533,17 +13691,18 @@ export default function WhiteboardPage() {
             <button
               type="button"
               onClick={() => {
-                if (isInspectorOpen && rightPanelTab === "inspector") {
+                setMobileToolsDrawerOpen(false);
+                if (isInspectorOpen && rightPanelTab !== "layers") {
                   setIsInspectorOpen(false);
                 } else {
                   setIsInspectorOpen(true);
-                  setRightPanelTab("inspector");
+                  if (rightPanelTab === "layers") setRightPanelTab("inspector");
                 }
               }}
-              title="Design Inspector"
-              aria-label="Design Inspector"
+              title="All Panels"
+              aria-label="All Panels"
               className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
-                isInspectorOpen && rightPanelTab === "inspector"
+                isInspectorOpen && rightPanelTab !== "layers"
                   ? "bg-brand-light text-brand border border-brand/25"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               }`}
@@ -16719,8 +16878,41 @@ export default function WhiteboardPage() {
             </div>
           </div>
 
-          {/* Nested Tab Switcher - 4 Functional Groups with 3 tabs each */}
-          <div className="flex items-center gap-1 rounded-xl bg-slate-100/90 p-1 border border-slate-200/60 w-full justify-between">
+          {/* Mobile All-Panels Horizontal Strip (< sm only) */}
+          <div className="flex sm:hidden items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden rounded-xl bg-slate-100/90 p-1 border border-slate-200/60 w-full">
+            {(
+              [
+                { id: "inspector", label: "Design" },
+                { id: "layers", label: `Layers (${shapes.length})` },
+                { id: "character", label: "Text" },
+                { id: "drafts", label: "Drafts" },
+                { id: "samples", label: "Presets" },
+                { id: "trash", label: "Trash" },
+                { id: "grid_guides", label: "Grid" },
+                { id: "geometry", label: "Ratio" },
+                { id: "patterns", label: "Stroke" },
+                { id: "sessions", label: "Sessions" },
+                { id: "risk_calc", label: "Risk" },
+                { id: "economic_calendar", label: "News" },
+              ] as const
+            ).map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setRightPanelTab(id)}
+                className={`shrink-0 py-1.5 px-2.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  rightPanelTab === id
+                    ? "bg-white text-brand shadow-xs ring-1 ring-slate-900/5"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Nested Tab Switcher - 4 Functional Groups with 3 tabs each (Desktop sm+) */}
+          <div className="hidden sm:flex items-center gap-1 rounded-xl bg-slate-100/90 p-1 border border-slate-200/60 w-full justify-between">
             {["inspector", "layers", "character"].includes(rightPanelTab) ? (
               /* Group 1: Workspace Tools (Design, Layers, Text) */
               <>
