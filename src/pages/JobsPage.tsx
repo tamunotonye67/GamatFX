@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowRight,
-  ArrowUpRight,
   Briefcase,
   CheckCircle2,
   Clock,
+  ExternalLink,
   MapPin,
-  Search,
   Send,
   Sparkles,
   Users,
   X,
 } from "lucide-react";
+import PageHero from "../components/PageHero";
 import {
   fetchSupabaseJobRoles,
   loadJobApplications,
@@ -22,7 +21,6 @@ import {
   type JobDepartment,
   type JobRole,
 } from "../lib/jobs";
-import { navigate } from "../lib/router";
 
 const DEPARTMENTS: Array<"All" | JobDepartment> = [
   "All",
@@ -35,7 +33,6 @@ const DEPARTMENTS: Array<"All" | JobDepartment> = [
 export default function JobsPage() {
   const [roles, setRoles] = useState<JobRole[]>(() => loadJobRoles());
   const [dept, setDept] = useState<"All" | JobDepartment>("All");
-  const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
 
   // Application form state
@@ -55,21 +52,13 @@ export default function JobsPage() {
     });
   }, []);
 
-  const allOpenRoles = useMemo(() => roles.filter((r) => r.open), [roles]);
-
-  const openRoles = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return allOpenRoles.filter((r) => {
-      const matchDept = dept === "All" || r.department === dept;
-      const matchQuery =
-        !q ||
-        r.title.toLowerCase().includes(q) ||
-        r.department.toLowerCase().includes(q) ||
-        r.location.toLowerCase().includes(q) ||
-        r.summary.toLowerCase().includes(q);
-      return matchDept && matchQuery;
-    });
-  }, [allOpenRoles, dept, query]);
+  const openRoles = useMemo(
+    () =>
+      roles.filter(
+        (r) => r.open && (dept === "All" || r.department === dept)
+      ),
+    [roles, dept]
+  );
 
   const openModal = (role: JobRole) => {
     setSelectedRole(role);
@@ -117,123 +106,25 @@ export default function JobsPage() {
     setCoverNote("");
   };
 
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
-    <div className="min-h-screen bg-cream text-ink-soft">
-      {/* Cloudflare-inspired dark header + framed brand-red rounded hero */}
-      <div className="bg-ink pb-3 sm:pb-4">
-        <header className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="flex items-center gap-2.5 cursor-pointer"
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand font-display text-sm font-black text-white shadow-sm">
-              G
-            </span>
-            <span className="font-display text-sm sm:text-base font-extrabold tracking-wide text-white uppercase">
-              GAMAT <span className="text-brand">Fx</span>{" "}
-              <span className="font-semibold text-white/60">Careers</span>
-            </span>
-          </button>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => scrollTo("roles")}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white transition cursor-pointer"
-            >
-              Open Roles ({allOpenRoles.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollTo("culture")}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white transition cursor-pointer"
-            >
-              Why GAMAT Fx
-            </button>
-            <a
-              href="https://gamatfxacademy.com"
-              onClick={(e) => {
-                if (
-                  window.location.hostname === "localhost" ||
-                  window.location.hostname === "127.0.0.1"
-                ) {
-                  e.preventDefault();
-                  navigate("/");
-                }
-              }}
-              className="inline-flex items-center gap-1 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-white/10"
-            >
-              Main Site <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
-            <button
-              type="button"
-              onClick={() => scrollTo("roles")}
-              className="inline-flex items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 cursor-pointer"
-            >
-              View Jobs
-            </button>
-          </div>
-        </header>
-
-        {/* Framed Rounded Brand-Red Hero Card */}
-        <div className="mx-auto max-w-[1440px] px-2 sm:px-4">
-          <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
-            {/* Subtle dot-matrix texture + warm bottom glow matching reference */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-20"
-              style={{
-                backgroundImage:
-                  "radial-gradient(rgba(255,255,255,0.45) 1px, transparent 1px)",
-                backgroundSize: "10px 10px",
-              }}
-            />
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/35 blur-[90px]"
-            />
-
-            <div className="relative mx-auto max-w-3xl">
-              <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.12]">
-                Build the future of disciplined trading—with GAMAT Fx
-              </h1>
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">
-                Join our remote-first team of market analysts, educators,
-                creators, and engineers powering trading education for 1,000+
-                students worldwide.
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => scrollTo("roles")}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-bold text-ink shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
-                >
-                  Explore {allOpenRoles.length} Open Roles{" "}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollTo("culture")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer"
-                >
-                  Life at GAMAT Fx
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+    <>
+      <PageHero
+        crumb="Careers & Hiring"
+        eyebrow="jobs.gamatfxacademy.com"
+        image="/images/about-hero.jpg"
+        title={
+          <>
+            Build the future of{" "}
+            <span className="text-brand">institutional trading education</span>
+          </>
+        }
+        subtitle="We’re assembling sharp market analysts, educators, creators, and engineers who care deeply about real trader accountability."
+      />
 
       {/* Culture highlights */}
-      <section id="culture" className="section bg-cream">
+      <section className="section bg-cream">
         <div className="container-x">
-          <div className="grid gap-4 sm:grid-cols-3 mb-12">
+          <div className="grid gap-4 sm:grid-cols-3 mb-10">
             {[
               {
                 icon: Users,
@@ -253,7 +144,7 @@ export default function JobsPage() {
             ].map((perk) => (
               <div
                 key={perk.title}
-                className="rounded-2xl border border-line bg-white p-6 shadow-2xs"
+                className="rounded-2xl border border-line bg-white p-5 shadow-2xs"
               >
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
                   <perk.icon className="h-5 w-5" />
@@ -268,49 +159,32 @@ export default function JobsPage() {
             ))}
           </div>
 
-          {/* Open Positions Header & Search */}
-          <div
-            id="roles"
-            className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6 scroll-mt-20"
-          >
+          {/* Department filter */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-ink">
+              <h2 className="font-display text-2xl font-bold text-ink">
                 Open Positions ({openRoles.length})
               </h2>
-              <p className="text-sm text-muted mt-1">
-                Select a role below to review requirements and submit your
-                application.
+              <p className="text-sm text-muted mt-0.5">
+                Select a role below to review requirements and submit your application.
               </p>
             </div>
-
-            <div className="relative w-full lg:w-72">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search roles..."
-                className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-sm text-ink outline-none focus:border-brand"
-              />
+            <div className="flex flex-wrap gap-1.5">
+              {DEPARTMENTS.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDept(d)}
+                  className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
+                    dept === d
+                      ? "bg-brand text-white shadow-xs"
+                      : "border border-line bg-white text-ink/75 hover:border-brand/40 hover:text-brand"
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
             </div>
-          </div>
-
-          {/* Department filter */}
-          <div className="flex flex-wrap gap-1.5 mb-6">
-            {DEPARTMENTS.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setDept(d)}
-                className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
-                  dept === d
-                    ? "bg-brand text-white shadow-xs"
-                    : "border border-line bg-white text-ink/75 hover:border-brand/40 hover:text-brand"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
           </div>
 
           {/* Role list */}
@@ -368,27 +242,15 @@ export default function JobsPage() {
             <div className="rounded-2xl border border-line bg-white p-10 text-center">
               <Briefcase className="mx-auto h-8 w-8 text-muted" />
               <p className="mt-3 font-display text-base font-bold text-ink">
-                No matching open roles right now
+                No open roles in this department right now
               </p>
               <p className="mt-1 text-sm text-muted">
-                Try another department or clear your search filter.
+                Switch departments above or check back soon as we expand the team.
               </p>
             </div>
           )}
         </div>
       </section>
-
-      {/* Clean Careers Footer */}
-      <footer className="border-t border-line bg-ink py-8 text-white/60">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs sm:flex-row sm:px-6">
-          <div className="font-semibold text-white/80">
-            GAMAT <span className="text-brand">Fx</span> Careers · jobs.gamatfxacademy.com
-          </div>
-          <div>
-            © {new Date().getFullYear()} GAMAT Fx Academy. All rights reserved.
-          </div>
-        </div>
-      </footer>
 
       {/* Application Modal */}
       {selectedRole && (
@@ -539,6 +401,6 @@ export default function JobsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
