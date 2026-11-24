@@ -77,7 +77,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
 
           <svg
             viewBox="0 0 160 120"
-            preserveAspectRatio="none"
+            preserveAspectRatio="xMidYMid slice"
             className="absolute inset-0 h-full w-full pointer-events-none"
             aria-hidden="true"
           >
@@ -102,30 +102,30 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
             {/* Scrolling grid */}
             <rect width="160" height="120" fill="url(#gamat-chart-grid)" />
 
-            {/* Subtle animated candlesticks */}
-            <g opacity="0.45" stroke="rgba(255,255,255,0.85)" strokeWidth="1.2">
-              <line x1="22" y1="74" x2="22" y2="96" />
-              <rect x="19" y="79" width="6" height="12" rx="1.2" fill="rgba(255,255,255,0.75)" />
+            {/* Subtle animated candlesticks (centered in safe band y: 32..88) */}
+            <g opacity="0.48" stroke="rgba(255,255,255,0.85)" strokeWidth="1.2">
+              <line x1="22" y1="68" x2="22" y2="88" />
+              <rect x="19" y="73" width="6" height="10" rx="1.2" fill="rgba(255,255,255,0.75)" />
 
-              <line x1="44" y1="62" x2="44" y2="88" />
-              <rect x="41" y="67" width="6" height="14" rx="1.2" fill="rgba(255,255,255,0.35)" />
+              <line x1="44" y1="58" x2="44" y2="82" />
+              <rect x="41" y="63" width="6" height="12" rx="1.2" fill="rgba(255,255,255,0.35)" />
 
-              <line x1="66" y1="54" x2="66" y2="82" />
-              <rect x="63" y="59" width="6" height="15" rx="1.2" fill="rgba(255,255,255,0.85)" />
+              <line x1="66" y1="54" x2="66" y2="78" />
+              <rect x="63" y="59" width="6" height="12" rx="1.2" fill="rgba(255,255,255,0.85)" />
 
-              <line x1="88" y1="42" x2="88" y2="70" />
-              <rect x="85" y="48" width="6" height="13" rx="1.2" fill="rgba(255,255,255,0.85)" />
+              <line x1="88" y1="45" x2="88" y2="69" />
+              <rect x="85" y="50" width="6" height="11" rx="1.2" fill="rgba(255,255,255,0.85)" />
 
-              <line x1="110" y1="36" x2="110" y2="62" />
-              <rect x="107" y="40" width="6" height="14" rx="1.2" fill="rgba(255,255,255,0.4)" />
+              <line x1="110" y1="40" x2="110" y2="62" />
+              <rect x="107" y="44" width="6" height="11" rx="1.2" fill="rgba(255,255,255,0.4)" />
 
-              <line x1="132" y1="22" x2="132" y2="50" />
-              <rect x="129" y="27" width="6" height="15" rx="1.2" fill="rgba(255,255,255,0.9)" />
+              <line x1="132" y1="30" x2="132" y2="54" />
+              <rect x="129" y="34" width="6" height="12" rx="1.2" fill="rgba(255,255,255,0.9)" />
 
               <animateTransform
                 attributeName="transform"
                 type="translate"
-                values="0,2; 0,-3; 0,2"
+                values="0,2; 0,-2; 0,2"
                 dur="3.6s"
                 repeatCount="indefinite"
               />
@@ -133,17 +133,17 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
 
             {/* Area fill under chartline */}
             <path
-              d="M -10,94 L 18,84 L 42,74 L 64,78 L 88,54 L 112,48 L 136,28 L 170,20 L 170,125 L -10,125 Z"
+              d="M -10,86 L 18,78 L 42,70 L 64,73 L 88,54 L 112,49 L 136,36 L 170,30 L 170,125 L -10,125 Z"
               fill="url(#gamat-area)"
             />
 
             {/* Primary glowing animated vector chartline */}
             <path
               id="gamat-wave-path"
-              d="M -10,94 L 18,84 L 42,74 L 64,78 L 88,54 L 112,48 L 136,28 L 170,20"
+              d="M -10,86 L 18,78 L 42,70 L 64,73 L 88,54 L 112,49 L 136,36 L 170,30"
               fill="none"
               stroke="#ffffff"
-              strokeWidth="2.5"
+              strokeWidth="2.4"
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeDasharray="240"
@@ -160,7 +160,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
 
             {/* Secondary dashed projection line */}
             <path
-              d="M -10,104 Q 40,88 80,68 T 170,34"
+              d="M -10,94 Q 40,80 80,64 T 170,40"
               fill="none"
               stroke="rgba(255,255,255,0.45)"
               strokeWidth="1.25"
@@ -176,20 +176,20 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
             </path>
 
             {/* Moving price pulse dot along the chartline */}
-            <circle r="4" fill="#ffffff" opacity="0.95">
+            <circle r="3.5" fill="#ffffff" opacity="0.95">
               <animateMotion
                 dur="3.2s"
                 repeatCount="indefinite"
-                path="M -10,94 L 18,84 L 42,74 L 64,78 L 88,54 L 112,48 L 136,28 L 170,20"
+                path="M -10,86 L 18,78 L 42,70 L 64,73 L 88,54 L 112,49 L 136,36 L 170,30"
               />
             </circle>
-            <circle r="8" fill="rgba(255,255,255,0.3)">
+            <circle r="7" fill="rgba(255,255,255,0.3)">
               <animateMotion
                 dur="3.2s"
                 repeatCount="indefinite"
-                path="M -10,94 L 18,84 L 42,74 L 64,78 L 88,54 L 112,48 L 136,28 L 170,20"
+                path="M -10,86 L 18,78 L 42,70 L 64,73 L 88,54 L 112,49 L 136,36 L 170,30"
               />
-              <animate attributeName="r" values="5;10;5" dur="1.4s" repeatCount="indefinite" />
+              <animate attributeName="r" values="4.5;8.5;4.5" dur="1.4s" repeatCount="indefinite" />
             </circle>
           </svg>
           <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-white/10" />
