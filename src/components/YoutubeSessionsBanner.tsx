@@ -196,14 +196,14 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
         </div>
 
         {/* Middle Title + Stacked Avatars + Description */}
-        <div className="min-w-0 flex-1 px-4 md:px-1.5 py-1 md:py-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-display text-sm sm:text-[15px] font-extrabold text-ink tracking-tight">
+        <div className="min-w-0 flex-1 px-4 pt-1 pb-0 md:px-1.5 md:py-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+            <h3 className="font-display text-[15px] font-extrabold text-ink tracking-tight leading-snug">
               Watch replays from GamatFX Live Sessions
             </h3>
 
             {/* Stacked Avatar Group + Arrow Pill */}
-            <div className="inline-flex items-center">
+            <div className="inline-flex items-center self-start sm:self-auto">
               <div className="flex -space-x-2">
                 {displayAvatars.slice(0, 4).map((a, idx) => (
                   <img
@@ -249,16 +249,19 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
                   <ArrowUpRight className="h-3 w-3" />
                 </a>
               </div>
+              <span className="ml-2 text-[11px] font-semibold text-muted md:hidden">
+                {speakerCountLabel}
+              </span>
             </div>
           </div>
 
-          <p className="mt-1 max-w-xl md:pr-8 text-xs text-muted leading-relaxed">
+          <p className="mt-2 md:mt-1 max-w-xl md:pr-8 text-xs text-muted leading-relaxed">
             Missed our Port Harcourt workshops or weekly live market breakdowns? Watch full session replays, trade setups, and mentor Q&amp;As on YouTube.
           </p>
         </div>
 
         {/* Right CTA Button + Desktop Hover Dismiss X */}
-        <div className="px-4 pb-4 md:pb-0 md:pr-5 md:pl-2 shrink-0 flex items-center gap-2.5">
+        <div className="px-4 pt-1 pb-4 md:py-0 md:pr-5 md:pl-2 shrink-0 flex items-center gap-2.5">
           <div className="hidden md:block relative group/dismiss opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
             <div className="pointer-events-none absolute bottom-full right-0 mb-2.5 z-30 opacity-0 translate-y-1 group-hover/dismiss:opacity-100 group-hover/dismiss:translate-y-0 transition-all duration-150 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-medium text-ink shadow-lg whitespace-nowrap">
               Dismiss GamatFX Live Sessions announcement
@@ -282,7 +285,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
             href={CONTACT.youtube}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 md:flex-none md:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#ef3b47] to-brand-dark hover:from-brand hover:to-[#9b1c26] px-4 py-2 text-xs font-bold text-white shadow-md shadow-brand/25 transition active:scale-95 whitespace-nowrap"
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl md:rounded-lg bg-gradient-to-b from-[#ef3b47] to-brand-dark hover:from-brand hover:to-[#9b1c26] px-4 py-2.5 md:py-2 text-xs font-bold text-white shadow-md shadow-brand/25 transition active:scale-95 whitespace-nowrap"
           >
             Watch now
           </a>
