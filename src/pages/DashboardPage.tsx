@@ -499,25 +499,25 @@ export default function DashboardPage() {
       {/* Tabs + content */}
       <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr]">
         <aside className="relative min-w-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:gap-0 lg:p-2.5 shadow-xs lg:sticky lg:top-24 z-20 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:gap-0 lg:p-2 shadow-xs lg:sticky lg:top-24 z-20 no-scrollbar">
             <div className="flex items-center gap-1.5 lg:flex-col lg:items-stretch lg:gap-1">
               {tabs.map((t) => (
                 <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex shrink-0 items-center gap-2 lg:gap-2.5 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-3 lg:py-2 text-left text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer ${tab === t.id ? "bg-brand text-white shadow-xs" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
-                  <t.icon className="h-4 w-4 shrink-0" /> {t.label}
+                  className={`flex shrink-0 items-center gap-2 lg:gap-2 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold whitespace-nowrap transition cursor-pointer ${tab === t.id ? "bg-brand text-white shadow-xs" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
+                  <t.icon className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0" /> {t.label}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 lg:flex-col lg:items-stretch lg:gap-1.5 lg:border-t lg:border-line lg:pt-2.5 lg:mt-2.5">
+            <div className="flex items-center gap-1.5 shrink-0 lg:flex-col lg:items-stretch lg:gap-1 lg:border-t lg:border-line lg:pt-2 lg:mt-2">
               {(isAdmin || isStaff) && (
                 <button onClick={() => navigate("/admin")}
-                  className="flex shrink-0 items-center gap-2 lg:gap-2.5 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-3 lg:py-2 text-left text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition hover:bg-ink/90 cursor-pointer">
-                  <ShieldCheck className="h-4 w-4 shrink-0 text-brand-light" /> Admin Panel
+                  className="flex shrink-0 items-center gap-2 lg:gap-2 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-white whitespace-nowrap transition hover:bg-ink/90 cursor-pointer">
+                  <ShieldCheck className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0 text-brand-light" /> Admin Panel
                 </button>
               )}
               <button onClick={() => { logout(); navigate("/"); }}
-                className="flex shrink-0 items-center gap-2 lg:gap-2.5 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-3 lg:py-2 text-left text-xs sm:text-sm font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand cursor-pointer">
-                <LogOut className="h-4 w-4 shrink-0" /> Log out
+                className="flex shrink-0 items-center gap-2 lg:gap-2 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand cursor-pointer">
+                <LogOut className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0" /> Log out
               </button>
             </div>
           </div>
