@@ -1,14 +1,15 @@
 import { useRef, useState } from "react";
+import { Player, type PlayerRef } from "@remotion/player";
 import PageHero from "../components/PageHero";
 import PageCta from "../components/PageCta";
 import { useReveal } from "../lib/useReveal";
 import { navigate } from "../lib/router";
+import HowGamatWorksVideo, {
+  HOW_IT_WORKS_DURATION_IN_FRAMES,
+  HOW_IT_WORKS_FPS,
+} from "../components/remotion/HowGamatWorksVideo";
 import {
   Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize2,
   BookOpenCheck,
   LineChart,
   BrainCircuit,
@@ -16,12 +17,16 @@ import {
   Clock,
   Users,
   Award,
+  Sparkles,
 } from "lucide-react";
 
-const MAIN_VIDEO =
-  "https://videos.pexels.com/video-files/38484636/16343740_3840_2160_50fps.mp4";
-const MAIN_POSTER =
-  "https://images.pexels.com/videos/38484636/bitcoin-crypto-forex-hacker-38484636.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=1080&w=1920";
+const CHAPTERS = [
+  { label: "Intro", frame: 0 },
+  { label: "01 · Enroll", frame: 120 },
+  { label: "02 · Trade Live", frame: 240 },
+  { label: "03 · Journal", frame: 360 },
+  { label: "04 · Scale", frame: 480 },
+];
 
 const clips = [
   {
@@ -57,95 +62,62 @@ const steps = [
   { icon: ShieldCheck, step: "04", title: "Scale with accountability", body: "Graduate to live capital or a funded challenge with a rules-based plan and ongoing mentor support." },
 ];
 
-/* ------------------------- Custom video player ------------------------- */
+/* ---------------------- Remotion "How It Works" Player ---------------------- */
 
 function VideoPlayer() {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [progress, setProgress] = useState(0);
+  const playerRef = useRef<PlayerRef | null>(null);
+  const [activeChapter, setActiveChapter] = useState(0);
 
-  const toggle = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      void v.play();
-      setPlaying(true);
-    } else {
-      v.pause();
-      setPlaying(false);
-    }
-  };
-
-  const toggleMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
-  };
-
-  const goFullscreen = () => {
-    void videoRef.current?.requestFullscreen?.();
+  const jumpToChapter = (idx: number, frame: number) => {
+    setActiveChapter(idx);
+    const p = playerRef.current;
+    if (!p) return;
+    p.seekTo(frame);
+    p.play();
   };
 
   return (
-    <div className="group relative aspect-video w-full overflow-hidden rounded-3xl bg-ink shadow-2xl ring-1 ring-white/10">
-      <video
-        ref={videoRef}
-        poster={MAIN_POSTER}
-        muted={muted}
-        loop
-        playsInline
-        preload="metadata"
-        disablePictureInPicture
-        disableRemotePlayback
-        controlsList="nodownload noplaybackrate noremoteplayback"
-        onContextMenu={(e) => e.preventDefault()}
-        onDragStart={(e) => e.preventDefault()}
-        onClick={toggle}
-        onTimeUpdate={(e) => {
-          const v = e.currentTarget;
-          setProgress(v.duration ? (v.currentTime / v.duration) * 100 : 0);
-        }}
-        className="block h-full w-full cursor-pointer object-cover transform-gpu"
-      >
-        <source src={MAIN_VIDEO} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+    <div className="space-y-4">
+      <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-ink shadow-2xl ring-1 ring-white/10">
+        <Player
+          ref={playerRef}
+          component={HowGamatWorksVideo}
+          durationInFrames={HOW_IT_WORKS_DURATION_IN_FRAMES}
+          compositionWidth={1280}
+          compositionHeight={720}
+          fps={HOW_IT_WORKS_FPS}
+          controls
+          loop
+          autoPlay
+          acknowledgeRemotionLicense
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+        />
+      </div>
 
-      {/* Big centre play button */}
-      {!playing && (
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label="Play video"
-          className="absolute inset-0 flex items-center justify-center bg-ink/45 transition hover:bg-ink/30"
-        >
-          <span className="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-brand text-white shadow-2xl transition hover:scale-105">
-            <span className="absolute inset-0 animate-ping rounded-full bg-brand/40" />
-            <Play className="relative ml-1 h-8 w-8 sm:h-10 sm:w-10 fill-white" />
-          </span>
-        </button>
-      )}
-
-      {/* Control bar */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink to-transparent p-4 sm:p-5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-white/20">
-          <div className="h-full rounded-full bg-brand" style={{ width: `${progress}%` }} />
+      {/* Interactive scene chapter bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-2.5 sm:px-4 shadow-2xs">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-ink px-1">
+          <Sparkles className="h-3.5 w-3.5 text-brand" />
+          <span>How GAMAT Fx Works</span>
         </div>
-        <div className="mt-3 flex items-center gap-4 text-white">
-          <button type="button" onClick={toggle} aria-label={playing ? "Pause" : "Play"} className="transition hover:text-brand">
-            {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-          </button>
-          <button type="button" onClick={toggleMute} aria-label={muted ? "Unmute" : "Mute"} className="transition hover:text-brand">
-            {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-          </button>
-          <span className="truncate text-xs font-medium text-white/70">
-            GAMAT Fx Academy — How It Works
-          </span>
-          <button type="button" onClick={goFullscreen} aria-label="Fullscreen" className="ml-auto shrink-0 transition hover:text-brand">
-            <Maximize2 className="h-5 w-5" />
-          </button>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {CHAPTERS.map((ch, idx) => (
+            <button
+              key={ch.label}
+              type="button"
+              onClick={() => jumpToChapter(idx, ch.frame)}
+              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                activeChapter === idx
+                  ? "bg-brand text-white shadow-2xs"
+                  : "bg-cream text-ink/75 hover:bg-brand-light hover:text-brand"
+              }`}
+            >
+              {ch.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>
