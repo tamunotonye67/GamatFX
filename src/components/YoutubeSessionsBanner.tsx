@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { CONTACT } from "../lib/contact";
 import { useStore } from "../lib/store";
@@ -6,10 +7,11 @@ import { PRESET_AVATARS } from "../lib/avatars";
 
 export default function YoutubeSessionsBanner({ className = "" }: { className?: string }) {
   const { teamMembers } = useStore();
+  const [arrowHovered, setArrowHovered] = useState(false);
+  const [cycleIdx, setCycleIdx] = useState(0);
 
   const publishedAvatars = (teamMembers || [])
     .filter((m) => m.status === "published" && m.image)
-    .slice(0, 4)
     .map((m, idx) => ({
       name: m.name,
       src: normalizeImageUrl(m.image, PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar),
@@ -27,11 +29,28 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
     );
   });
 
+  const allCycleAvatars =
+    publishedAvatars.length >= 2
+      ? publishedAvatars
+      : PRESET_AVATARS.map((p) => ({ name: p.label, src: p.url, fallback: p.url }));
+
+  useEffect(() => {
+    if (!arrowHovered || allCycleAvatars.length <= 1) return;
+    const id = window.setInterval(() => {
+      setCycleIdx((prev) => (prev + 1) % allCycleAvatars.length);
+    }, 220);
+    return () => window.clearInterval(id);
+  }, [arrowHovered, allCycleAvatars.length]);
+
+  const activeCycleAvatar = allCycleAvatars[cycleIdx % allCycleAvatars.length] ?? displayAvatars[0];
+  const speakerCountLabel =
+    publishedAvatars.length > 0 ? `${publishedAvatars.length}+ mentors & speakers` : "10+ mentors & speakers";
+
   return (
     <div className={`rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-line bg-white overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-line bg-white">
         {/* Left Red Animated Chartlines Visual Block */}
-        <div className="relative h-20 md:h-28 w-full md:w-36 shrink-0 overflow-hidden bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
+        <div className="relative h-20 md:h-28 w-full md:w-36 shrink-0 overflow-hidden rounded-t-xl md:rounded-t-none md:rounded-l-xl bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
           <svg
             viewBox="0 0 160 120"
             className="absolute inset-0 h-full w-full pointer-events-none"
@@ -173,15 +192,38 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
                   />
                 ))}
               </div>
-              <a
-                href={CONTACT.youtube}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open GamatFX YouTube Channel"
-                className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-cream border border-line text-ink/70 hover:text-brand hover:border-brand transition shadow-2xs"
+              <div
+                className="relative -ml-1.5 inline-flex items-center"
+                onMouseEnter={() => setArrowHovered(true)}
+                onMouseLeave={() => setArrowHovered(false)}
               >
-                <ArrowUpRight className="h-3 w-3" />
-              </a>
+                {arrowHovered && (
+                  <div className="pointer-events-none absolute bottom-full right-0 mb-2.5 z-30 flex items-center justify-between gap-4 rounded-2xl border border-line bg-white px-4 py-2.5 shadow-xl whitespace-nowrap">
+                    <div className="text-left">
+                      <p className="font-display text-sm font-bold text-ink leading-tight">Browse all</p>
+                      <p className="text-xs font-medium text-muted mt-0.5">{speakerCountLabel}</p>
+                    </div>
+                    <img
+                      src={activeCycleAvatar.src}
+                      alt={activeCycleAvatar.name}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = activeCycleAvatar.fallback;
+                      }}
+                      className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-line bg-cream"
+                    />
+                  </div>
+                )}
+
+                <a
+                  href={CONTACT.youtube}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open GamatFX YouTube Channel"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-cream border border-line text-ink/70 hover:text-brand hover:border-brand transition shadow-2xs"
+                >
+                  <ArrowUpRight className="h-3 w-3" />
+                </a>
+              </div>
             </div>
           </div>
 
