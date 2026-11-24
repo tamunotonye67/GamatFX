@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Player, type PlayerRef } from "@remotion/player";
+import { Player } from "@remotion/player";
 import PageHero from "../components/PageHero";
 import PageCta from "../components/PageCta";
 import { useReveal } from "../lib/useReveal";
@@ -17,16 +17,7 @@ import {
   Clock,
   Users,
   Award,
-  Sparkles,
 } from "lucide-react";
-
-const CHAPTERS = [
-  { label: "Intro", frame: 0 },
-  { label: "01 · Enroll", frame: 120 },
-  { label: "02 · Trade Live", frame: 240 },
-  { label: "03 · Journal", frame: 360 },
-  { label: "04 · Scale", frame: 480 },
-];
 
 const clips = [
   {
@@ -65,61 +56,23 @@ const steps = [
 /* ---------------------- Remotion "How It Works" Player ---------------------- */
 
 function VideoPlayer() {
-  const playerRef = useRef<PlayerRef | null>(null);
-  const [activeChapter, setActiveChapter] = useState(0);
-
-  const jumpToChapter = (idx: number, frame: number) => {
-    setActiveChapter(idx);
-    const p = playerRef.current;
-    if (!p) return;
-    p.seekTo(frame);
-    p.play();
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-ink shadow-2xl ring-1 ring-white/10">
-        <Player
-          ref={playerRef}
-          component={HowGamatWorksVideo}
-          durationInFrames={HOW_IT_WORKS_DURATION_IN_FRAMES}
-          compositionWidth={1280}
-          compositionHeight={720}
-          fps={HOW_IT_WORKS_FPS}
-          controls
-          loop
-          autoPlay
-          acknowledgeRemotionLicense
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      </div>
-
-      {/* Interactive scene chapter bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white p-2.5 sm:px-4 shadow-2xs">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-ink px-1">
-          <Sparkles className="h-3.5 w-3.5 text-brand" />
-          <span>How GAMAT Fx Works</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {CHAPTERS.map((ch, idx) => (
-            <button
-              key={ch.label}
-              type="button"
-              onClick={() => jumpToChapter(idx, ch.frame)}
-              className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                activeChapter === idx
-                  ? "bg-brand text-white shadow-2xs"
-                  : "bg-cream text-ink/75 hover:bg-brand-light hover:text-brand"
-              }`}
-            >
-              {ch.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="relative aspect-video w-full overflow-hidden rounded-3xl bg-ink shadow-2xl ring-1 ring-white/10">
+      <Player
+        component={HowGamatWorksVideo}
+        durationInFrames={HOW_IT_WORKS_DURATION_IN_FRAMES}
+        compositionWidth={1280}
+        compositionHeight={720}
+        fps={HOW_IT_WORKS_FPS}
+        controls
+        loop
+        autoPlay
+        acknowledgeRemotionLicense
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+      />
     </div>
   );
 }
