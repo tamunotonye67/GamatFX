@@ -483,20 +483,51 @@ export default function Navbar() {
               </div>
 
               <div className="grid grid-cols-3 gap-2 border-t border-line bg-cream px-4 py-4">
-                <button
-                  type="button"
-                  onClick={() => go("/login")}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-white px-3 py-2.5 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand"
-                >
-                  <LogIn className="h-4 w-4" /> Login
-                </button>
-                <button
-                  type="button"
-                  onClick={() => go("/signup")}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
-                >
-                  <UserPlus className="h-4 w-4" /> Sign Up
-                </button>
+                {isAuthed && user ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => go("/dashboard")}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-white px-3 py-2.5 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand"
+                    >
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </button>
+                    {isAdmin || isStaff ? (
+                      <button
+                        type="button"
+                        onClick={() => go("/admin")}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
+                      >
+                        <ShieldCheck className="h-4 w-4" /> Admin Panel
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => go("/courses")}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
+                      >
+                        <BookOpen className="h-4 w-4" /> My Courses
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => go("/login")}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-white px-3 py-2.5 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand"
+                    >
+                      <LogIn className="h-4 w-4" /> Login
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => go("/signup")}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark"
+                    >
+                      <UserPlus className="h-4 w-4" /> Sign Up
+                    </button>
+                  </>
+                )}
                 <a
                   href={CONTACT.whatsappAiHref}
                   target="_blank"
