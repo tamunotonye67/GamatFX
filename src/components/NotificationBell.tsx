@@ -24,7 +24,7 @@ import {
   Search,
 } from "lucide-react";
 import { useStore } from "../lib/store";
-import { getCourse } from "../lib/courses";
+import { getCourse, totalLessons } from "../lib/courses";
 import { formatAccountName } from "../lib/formatName";
 import { getSecurityActivities } from "../lib/securityNotifs";
 import { sendBirthdayEmail } from "../lib/email";
@@ -496,7 +496,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     publishedOutlooks.slice(0, 2).forEach((o) => {
       list.push({
         id: `outlook_${o.id}`,
-        title: `New Market Outlook: ${o.pair}`,
+        title: `New Market Outlook: ${o.pairs}`,
         body: `${o.bias} · ${o.title}`,
         to: `/outlook/${o.id}`,
         kind: "news",
@@ -559,8 +559,8 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         list.push({
           id: `aff_${c.id}`,
           title: `Affiliate Commission Earned (+₦${c.commissionAmount.toLocaleString()})`,
-          body: `${c.referredUserName} enrolled via your referral link`,
-          to: "/dashboard?tab=affiliate",
+          body: `${(c as any).referredUserName || (c as any).buyerName || "A student"} enrolled via your referral link`,
+          to: "/dashboard?tab=wallet",
           kind: "affiliate",
           time: c.createdAt,
         });
@@ -579,9 +579,9 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
               ? "Payout Request Declined"
               : `Payout Requested (₦${p.amount.toLocaleString()})`,
           body: `Status: ${p.status.toUpperCase()}`,
-          to: "/dashboard?tab=affiliate",
+          to: "/dashboard?tab=wallet",
           kind: "affiliate",
-          time: p.resolvedAt || p.createdAt,
+          time: (p as any).paidAt || p.requestedAt,
         });
       });
 
@@ -606,7 +606,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           list.push({
             id: `ev_${r.id}`,
             title: `Ticket Confirmed: ${ev.title}`,
-            body: `${ev.date} · Ticket ${r.ticketCode}`,
+            body: `${ev.month} ${ev.day}, ${ev.year} · Ticket ${r.ticket}`,
             to: "/dashboard?tab=events",
             kind: "event",
             time: r.createdAt,
@@ -624,7 +624,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           body: `Score ${a.score}% — Check your Certificates tab`,
           to: "/dashboard?tab=certificates",
           kind: "cert",
-          time: a.submittedAt,
+          time: a.createdAt,
         });
       });
 
@@ -661,7 +661,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           body:
             b.status === "approved"
               ? "Your mentor/staff profile is now live on the Team page."
-              : b.adminNote || "Please review admin feedback and resubmit your Team Bio.",
+              : (b as any).adminNote || "Please review admin feedback and resubmit your Team Bio.",
           to: "/dashboard?tab=team-bio",
           kind: "account",
           time: b.reviewedAt || b.createdAt,
@@ -671,9 +671,10 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     // 18. 100% Lessons Completed (Exam Ready) & Quiz Retake Nudge
     enrollments.forEach((enr) => {
       const course = getCourse(enr.courseId);
-      if (!course || !course.lessons?.length) return;
+      const lessonCount = course ? totalLessons(course) : 0;
+      if (!course || !lessonCount) return;
       const passed = hasPassedQuiz ? hasPassedQuiz(course.id) : false;
-      if (!passed && enr.completedLessons.length >= course.lessons.length) {
+      if (!passed && enr.completedLessons.length >= lessonCount) {
         list.push({
           id: `exam_ready_${course.id}`,
           title: `Exam Ready: ${course.title}`,
@@ -689,7 +690,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     attempts.forEach((a) => {
       if (!a.passed && !(hasPassedQuiz && hasPassedQuiz(a.courseId))) {
         const prev = latestFailedByCourse.get(a.courseId);
-        if (!prev || +new Date(a.submittedAt) > +new Date(prev.submittedAt)) {
+        if (!prev || +new Date(a.createdAt) > +new Date(prev.createdAt)) {
           latestFailedByCourse.set(a.courseId, a);
         }
       }
@@ -702,7 +703,7 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
         body: `Review ${course?.title || a.courseId} and try again to unlock your certificate.`,
         to: `/quiz/${a.courseId}`,
         kind: "course",
-        time: a.submittedAt,
+        time: a.createdAt,
       });
     });
 
@@ -713,12 +714,13 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       .forEach((r) => {
         const ev = events.find((e) => e.id === r.eventId);
         if (!ev) return;
-        const evMs = +new Date(ev.date);
+        const evDateStr = `${ev.month} ${ev.day}, ${ev.year}`;
+        const evMs = +new Date(evDateStr);
         if (!Number.isNaN(evMs) && evMs > nowMs && evMs - nowMs <= 48 * 3600 * 1000) {
           list.push({
             id: `ev_soon_${r.id}`,
             title: `Starts Soon: ${ev.title}`,
-            body: `Happening ${ev.date} · Keep your ticket (${r.ticketCode}) ready!`,
+            body: `Happening ${evDateStr} · Keep your ticket (${r.ticket}) ready!`,
             to: "/dashboard?tab=events",
             kind: "event",
             time: r.createdAt,
@@ -727,10 +729,11 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
       });
 
     // 20. Wallet Balance Activity
-    if ((user.walletBalance ?? 0) > 0) {
+    const walletBalance = (user as any).walletBalance ?? 0;
+    if (walletBalance > 0) {
       list.push({
-        id: `wallet_${user.id}_${user.walletBalance}`,
-        title: `Wallet Balance: ₦${(user.walletBalance ?? 0).toLocaleString()}`,
+        id: `wallet_${user.id}_${walletBalance}`,
+        title: `Wallet Balance: ₦${walletBalance.toLocaleString()}`,
         body: "Use your wallet balance toward courses, store gear, or payouts.",
         to: "/dashboard?tab=wallet",
         kind: "affiliate",
@@ -769,12 +772,13 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
     } catch {}
 
     // 22. New Referral Sign-Ups (even before purchase)
+    const userAffiliateCode = (user as any).affiliateCode as string | undefined;
     accounts
       .filter(
         (a) =>
           a.id !== user.id &&
           a.referredBy &&
-          (a.referredBy === user.id || (user.affiliateCode && a.referredBy === user.affiliateCode))
+          (a.referredBy === user.id || (userAffiliateCode && a.referredBy === userAffiliateCode))
       )
       .slice(0, 4)
       .forEach((refAcc) => {
@@ -783,9 +787,9 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
           id: `ref_signup_${refAcc.id}`,
           title: `New Referral Sign-Up: ${refName}`,
           body: `${refName} joined GAMAT Fx Academy using your referral link!`,
-          to: "/dashboard?tab=affiliate",
+          to: "/dashboard?tab=wallet",
           kind: "affiliate",
-          time: refAcc.createdAt,
+          time: refAcc.joined,
           actorName: refName,
           actorAvatar: refAcc.avatar,
         });
@@ -793,14 +797,14 @@ export default function NotificationBell({ scrolled }: { scrolled: boolean }) {
 
     // 23. Staff Post Updates
     myPosts
-      .filter((p) => p.status === "published" || p.status === "rejected")
+      .filter((p) => (p.status as string) === "published" || (p.status as string) === "rejected")
       .slice(0, 3)
       .forEach((p) => {
         list.push({
           id: `post_${p.id}_${p.status}`,
-          title: p.status === "published" ? `Post Published: ${p.title}` : `Post Needs Edits: ${p.title}`,
+          title: (p.status as string) === "published" ? `Post Published: ${p.title}` : `Post Needs Edits: ${p.title}`,
           body:
-            p.status === "published"
+            (p.status as string) === "published"
               ? "Your article is now live on GAMAT Fx Academy."
               : "Check your Posts tab for status updates.",
           to: "/dashboard?tab=posts",

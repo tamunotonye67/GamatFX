@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useStore } from "../lib/store";
 import { downloadCertificate, certificatePreview, type CertData } from "../lib/certificate";
 import { COURSES, getCourse, totalLessons, naira, compactNaira, asCourse, COURSE_ALIASES, type Course } from "../lib/courses";
@@ -16,7 +16,6 @@ import { CONTACT } from "../lib/contact";
 import { rankForXp, progressToNext, nextRank } from "../lib/combat";
 import { uploadAvatar } from "../lib/supabaseStorage";
 import AffiliateCard from "../components/AffiliateCard";
-import { getSignupReferralUrl } from "../lib/affiliate";
 import ImageCropModal from "../components/ImageCropModal";
 import AvatarPicker from "../components/AvatarPicker";
 import { formatAccountName, formatStudentName, capitalizeWord } from "../lib/formatName";
@@ -133,13 +132,13 @@ export default function DashboardPage() {
   const [showAffiliateAd, setShowAffiliateAd] = useState(false);
 
   useEffect(() => {
-    if (!isAuthed || !user || tab === "affiliate") {
+    if (!isAuthed || !user || tab === "wallet") {
       setShowAffiliateAd(false);
       return;
     }
 
     const checkAndShow = () => {
-      if (tab === "affiliate") return;
+      if ((tab as string) === "wallet") return;
       try {
         const last = sessionStorage.getItem("gamat_affiliate_ad_dismissed");
         const lastTime = last ? Number(last) : 0;
@@ -1868,7 +1867,7 @@ function AffiliateSection({
 
 function WalletSection({
   user,
-  enrollments,
+  enrollments: _enrollments,
   setTab,
 }: {
   user: NonNullable<ReturnType<typeof useStore>["user"]>;

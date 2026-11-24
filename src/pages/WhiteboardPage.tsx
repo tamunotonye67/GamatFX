@@ -9,7 +9,7 @@ const RulerIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   </svg>
 );
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
 import { formatAccountName } from "../lib/formatName";
@@ -74,9 +74,6 @@ import {
   Percent,
   Minus,
   Link2,
-  Monitor,
-  Smartphone,
-  Laptop,
   Scan,
   BoxSelect,
   Bold,
@@ -86,7 +83,6 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  AlignJustify,
   CaseUpper,
   CaseLower,
   Pin,
@@ -111,36 +107,22 @@ import {
   LogOut,
   LayoutGrid,
   List,
-  ArrowLeft,
   FolderOpen,
-  FilePlus2,
-  HelpCircle,
-  Zap,
-  Target,
   GraduationCap,
   PlayCircle,
-  Lightbulb,
   CircleDollarSign,
-  BarChart2,
   Spline,
   Undo,
   Redo,
   Clipboard,
   CheckSquare,
   Globe,
-  Sun,
-  Moon,
   Calendar,
-  Flame,
-  ShieldAlert,
-  Ratio,
   FolderMinus,
   Folder,
   Image as ImageIcon,
   Pipette,
   Droplet,
-  SwatchBook,
-  RefreshCcw,
   BookmarkPlus
 } from "lucide-react";
 import {
@@ -2157,7 +2139,7 @@ export default function WhiteboardPage() {
   const [newTabModalOpen, setNewTabModalOpen] = useState(false);
   const [newTabInputName, setNewTabInputName] = useState("");
 
-  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "notes" | "single" | null>(null);
+  const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "notes" | "single" | "selection" | "colortools" | null>(null);
 
   // Context Menu State (Canvas or Object Context)
   const [contextMenu, setContextMenu] = useState<{
@@ -3421,7 +3403,7 @@ export default function WhiteboardPage() {
         }
 
         // 1. Freehand strokes: carve points inside eraser circle/segment
-        if (s.type === "pencil" || s.type === "pen" || s.type === "highlighter" || s.type === "bezier") {
+        if (s.type === "pencil" || (s.type as string) === "pen" || s.type === "highlighter" || (s.type as string) === "bezier") {
           const subPaths: { x: number; y: number }[][] = [];
           let currentSub: { x: number; y: number }[] = [];
 
@@ -3444,7 +3426,7 @@ export default function WhiteboardPage() {
           }
 
           subPaths.forEach((pts, idx) => {
-            if (pts.length > (s.type === "pencil" || s.type === "pen" || s.type === "highlighter" ? 1 : 0)) {
+            if (pts.length > (s.type === "pencil" || (s.type as string) === "pen" || s.type === "highlighter" ? 1 : 0)) {
               result.push({
                 ...s,
                 id: subPaths.length === 1 && idx === 0 ? s.id : `${s.id}_part_${idx}_${Date.now()}`,
@@ -4218,7 +4200,7 @@ export default function WhiteboardPage() {
       arrowStart: activeTool === "line" ? activeArrowStart : undefined,
       arrowEnd: activeTool === "line" ? activeArrowEnd : undefined,
       isRay: (activeTool === "line" || activeTool === "arrow") ? activeIsRay : undefined,
-      isGlowing: (activeTool === "line" || activeTool === "arrow" || activeTool === "bezier") ? activeLineGlow : undefined,
+      isGlowing: (activeTool === "line" || activeTool === "arrow" || (activeTool as string) === "bezier") ? activeLineGlow : undefined,
       isLocked: autoLockObjects,
       points: [pt],
       stickyColor: (activeTool as string) === "sticky" ? stickyColor : undefined,
@@ -4439,7 +4421,7 @@ export default function WhiteboardPage() {
     // 5. Draw / Expand active shape
     if (
       currentShape.type === "pencil" ||
-      currentShape.type === "pen" ||
+      (currentShape.type as string) === "pen" ||
       currentShape.type === "highlighter"
     ) {
       setCurrentShape({
@@ -4586,6 +4568,7 @@ export default function WhiteboardPage() {
           type: "text",
           name: isParagraph ? "Paragraph Text" : "Point Text",
           color: strokeColor || "#0f172a",
+          strokeWidth: 2,
           fontSize: 16,
           fontFamily: "Inter, sans-serif",
           fontWeight: "normal",
@@ -5891,6 +5874,46 @@ export default function WhiteboardPage() {
     setShapes((prev) => [...prev, last]);
   };
 
+  const [copiedShapesClipboard, setCopiedShapesClipboard] = useState<Shape[]>([]);
+
+  const copySelectedShapes = () => {
+    const sel = shapes.filter((s) => selectedShapeIds.includes(s.id));
+    if (sel.length === 0) return;
+    setCopiedShapesClipboard(sel.map((s) => ({ ...s, points: s.points.map((p) => ({ ...p })) })));
+    showToast(`Copied ${sel.length} item${sel.length > 1 ? "s" : ""}`);
+  };
+
+  const pasteShapes = () => {
+    if (copiedShapesClipboard.length === 0) return;
+    const pasted = copiedShapesClipboard.map((s, idx) => ({
+      ...s,
+      id: `shape_paste_${Date.now()}_${idx}`,
+      points: s.points.map((p) => ({ x: p.x + 24, y: p.y + 24 })),
+    }));
+    setShapes((prev) => [...prev, ...pasted]);
+    setSelectedShapeIds(pasted.map((s) => s.id));
+    showToast(`Pasted ${pasted.length} item${pasted.length > 1 ? "s" : ""}`);
+  };
+
+  const duplicateSelectedShapes = () => {
+    const sel = shapes.filter((s) => selectedShapeIds.includes(s.id));
+    if (sel.length === 0) return;
+    const duped = sel.map((s, idx) => ({
+      ...s,
+      id: `shape_dup_${Date.now()}_${idx}`,
+      points: s.points.map((p) => ({ x: p.x + 24, y: p.y + 24 })),
+    }));
+    setShapes((prev) => [...prev, ...duped]);
+    setSelectedShapeIds(duped.map((s) => s.id));
+  };
+
+  const deleteSelectedShapes = () => {
+    if (selectedShapeIds.length === 0) return;
+    const selSet = new Set(selectedShapeIds);
+    setShapes((prev) => prev.filter((s) => !selSet.has(s.id) || s.isLocked));
+    setSelectedShapeIds([]);
+  };
+
   const handleClear = () => {
     setShapes([]);
     setRedoStack([]);
@@ -7133,7 +7156,7 @@ export default function WhiteboardPage() {
                       >
                         {/* Interactive Diagram Preview Banner */}
                         <div className="h-40 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
-                          <HubDiagramThumbnail shapes={sample.shapes} />
+                          <HubDiagramThumbnail shapes={sample.shapes as unknown as Shape[]} />
                           <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
                             <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-black uppercase tracking-wider">
                               {sample.tag}
@@ -7187,7 +7210,7 @@ export default function WhiteboardPage() {
                       >
                         <div className="flex items-center gap-4 min-w-0">
                           <div className="h-14 w-24 rounded-xl border border-line bg-slate-100 overflow-hidden shrink-0">
-                            <HubDiagramThumbnail shapes={sample.shapes} />
+                            <HubDiagramThumbnail shapes={sample.shapes as unknown as Shape[]} />
                           </div>
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
@@ -8067,7 +8090,7 @@ export default function WhiteboardPage() {
     showToast(`Inserted "${patternTitle}" onto canvas!`);
   };
 
-  const renderTabBody = (tabKey: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns") => {
+  const renderTabBody = (tabKey: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns" | "geometry" | "sessions" | "risk_calc" | "economic_calendar") => {
     return (
       <div className="space-y-3">
         {/* TAB 1: CONTEXTUAL INSPECTOR TAB */}
@@ -9992,7 +10015,7 @@ export default function WhiteboardPage() {
                                 <span className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-slate-900" : "bg-slate-300"}`} />
                                 <div className="truncate flex-1">
                                   <p className={`text-[11.5px] truncate ${isActive ? "font-semibold text-slate-900" : "font-medium text-slate-700"}`}>{tab.name}</p>
-                                  <p className="text-[10px] text-slate-400">{tab.shapes.length} object{tab.shapes.length !== 1 ? "s" : ""}</p>
+                                  <p className="text-[10px] text-slate-400">{(tab.shapes || []).length} object{(tab.shapes || []).length !== 1 ? "s" : ""}</p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
@@ -10130,9 +10153,10 @@ export default function WhiteboardPage() {
                                 return;
                               }
                               const tabKey = `tab_${sample.id}_${Date.now()}`;
-                              setTabs((prev) => [...prev, { id: tabKey, name: sample.title, shapes: sample.shapes, theme: "dots", snapToGrid: true }]);
+                              const loadedShapes = sample.shapes as unknown as Shape[];
+                              setTabs((prev) => [...prev, { id: tabKey, name: sample.title, shapes: loadedShapes, theme: "dots", snapToGrid: true }]);
                               setActiveTabId(tabKey);
-                              setShapes(sample.shapes);
+                              setShapes(loadedShapes);
                               showToast(`Loaded "${sample.title}"`);
                             }}
                             className="h-7 px-2.5 rounded-md bg-white border border-slate-200/80 text-slate-700 text-[10.5px] font-medium hover:bg-slate-900 hover:text-white hover:border-slate-900 transition shrink-0 cursor-pointer"
@@ -11946,7 +11970,7 @@ export default function WhiteboardPage() {
                     type="button"
                     onClick={() => {
                       setEditMenuOpen(false);
-                      undo();
+                      handleUndo();
                     }}
                     className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
@@ -11960,7 +11984,7 @@ export default function WhiteboardPage() {
                     type="button"
                     onClick={() => {
                       setEditMenuOpen(false);
-                      redo();
+                      handleRedo();
                     }}
                     className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
                   >
@@ -18451,7 +18475,7 @@ function WhiteboardToolBtn({
   onFlyoutToggle?: (e: React.MouseEvent) => void;
   title: string;
   toolKey: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ElementType;
   hasFlyout?: boolean;
   isFlyoutOpen?: boolean;
   showTooltips: boolean;
@@ -19924,7 +19948,7 @@ function renderWhiteboardShape(
     // Render Text cleanly inside note boundaries
     if (wrappedLines.length > 0) {
       ctx.save();
-      const isDarkBg = bgColor === "#1e293b" || bgColor === "#0f172a";
+      const isDarkBg = (bgColor as string) === "#1e293b" || (bgColor as string) === "#0f172a";
       ctx.fillStyle = shape.textColor || (isDarkBg ? "#f8fafc" : "#1e293b");
       ctx.font = `${shape.fontWeight === "bold" ? "bold " : ""}${fSize}px Inter, -apple-system, sans-serif`;
       ctx.textAlign = (shape.textAlign as CanvasTextAlign) || "left";

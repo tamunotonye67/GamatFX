@@ -30,7 +30,7 @@ import {
 } from "./supabaseServices";
 import { seedSupabaseDatabaseIfEmpty, subscribeToSupabaseRealtime } from "./supabaseSync";
 import {
-  getQuiz, getCustomQuizzes, saveCustomQuiz, deleteCustomQuiz,
+  getQuiz, saveCustomQuiz, deleteCustomQuiz,
   type Quiz, type Question,
 } from "./quizzes";
 import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
@@ -139,6 +139,7 @@ export type Account = {
   jobTitle?: string;
   status: "active" | "pending_verification" | "suspended";
   joined: string;
+  referredBy?: string;
 };
 
 /* --------------------------- Quiz attempts --------------------------- */
@@ -2545,7 +2546,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (referrer?.email) {
             void sendAffiliateEmail({
               to: referrer.email,
-              affiliateName: referrer.firstName || referrer.name,
+              affiliateName: referrer.firstName || referrer.lastName || referrer.email,
               eventKind: "signup",
               referralCode: matchedProfile.referralCode,
               referredName: `${acc.firstName} ${acc.lastName}`.trim(),
@@ -3190,7 +3191,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             if (referrer?.email) {
               void sendAffiliateEmail({
                 to: referrer.email,
-                affiliateName: referrer.firstName || referrer.name,
+                affiliateName: referrer.firstName || referrer.lastName || referrer.email,
                 eventKind: "commission",
                 referralCode: affiliate.referralCode,
                 referredName: p.userName,
@@ -3836,15 +3837,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           updatedAt: now,
         }
       : {
-          tag: builtIn?.tag ?? "Fundamental",
-          level: builtIn?.level ?? "All levels",
-          duration: builtIn?.duration ?? "Self-paced",
-          poster: builtIn?.poster ?? "/images/about-hero.jpg",
-          video: builtIn?.video ?? "",
-          outcomes: builtIn?.outcomes ?? [],
-          requirements: builtIn?.requirements ?? [],
-          modules: builtIn?.modules ?? [],
           ...c,
+          tag: c.tag || builtIn?.tag || "Fundamental",
+          level: c.level || builtIn?.level || "All levels",
+          duration: c.duration || builtIn?.duration || "Self-paced",
+          poster: c.poster || builtIn?.poster || "/images/about-hero.jpg",
+          video: c.video ?? builtIn?.video ?? "",
+          outcomes: c.outcomes?.length ? c.outcomes : (builtIn?.outcomes ?? []),
+          requirements: c.requirements?.length ? c.requirements : (builtIn?.requirements ?? []),
+          modules: (c.modules?.length ? c.modules : (builtIn?.modules ?? [])).map((m: any, idx: number) => ({ ...m, id: m.id || `m_${idx}` })),
           id: c.id || uid("mc"),
           title: c.title.trim(),
           short: c.short.trim(),
@@ -5069,7 +5070,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 video: builtIn.video,
                 outcomes: builtIn.outcomes,
                 requirements: builtIn.requirements,
-                modules: builtIn.modules,
+                modules: builtIn.modules.map((m, idx) => ({ ...m, id: `m_${idx}` })),
                 published: patch.published !== undefined ? patch.published : true,
                 createdAt: now,
                 updatedAt: now,

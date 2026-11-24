@@ -37,8 +37,6 @@ import {
   GraduationCap,
   Briefcase,
   Calendar,
-  Phone,
-  Send,
   ArrowLeftRight,
   Plus,
   Check,
@@ -125,7 +123,7 @@ export default function Navbar() {
   const [scrolledRaw, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+  const [, setMobileMoreOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const route = useRoute();
   const moreRef = useRef<HTMLLIElement | null>(null);

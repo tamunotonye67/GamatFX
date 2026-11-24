@@ -48,7 +48,7 @@ export function rowToStoreProduct(row: any): StoreProduct {
     id: row.id,
     title: row.title || "Untitled Product",
     tagline: row.short || "",
-    category: (meta.category || row.level || "bot") as StoreProductCategory,
+    category: (meta.category || row.level || "bot") as Exclude<StoreProductCategory, "all">,
     price: Number(row.price) || 0,
     originalPrice: row.old_price ? Number(row.old_price) : undefined,
     isFree: meta.isFree !== undefined ? Boolean(meta.isFree) : row.price === 0,

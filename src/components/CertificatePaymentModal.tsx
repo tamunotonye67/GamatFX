@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, CheckCircle2, Lock, ShieldCheck, Loader2, Check, X } from "lucide-react";
+import { CheckCircle2, Lock, ShieldCheck, Loader2, Check, X } from "lucide-react";
 import { useStore } from "../lib/store";
 import { getCourse, naira, asCourse } from "../lib/courses";
 import { payWithBachs, generateTxRef } from "../lib/bachs";

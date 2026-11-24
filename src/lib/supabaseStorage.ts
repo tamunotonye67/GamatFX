@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-const CF_MEDIA_BASE = (import.meta.env.VITE_CLOUDFLARE_MEDIA_URL || "").trim().replace(/\/+$/, "");
+const CF_MEDIA_BASE = (((import.meta as any).env?.VITE_CLOUDFLARE_MEDIA_URL) || "").trim().replace(/\/+$/, "");
 
 /**
  * Rewrites public Supabase Storage URLs to go through your Cloudflare Worker cache

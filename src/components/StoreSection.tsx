@@ -7,8 +7,6 @@ import {
   Download,
   X,
   Star,
-  Layers,
-  ExternalLink,
 } from "lucide-react";
 
 const PLAYBOOK_HIGHLIGHTS = [

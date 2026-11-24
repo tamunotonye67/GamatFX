@@ -1,23 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { printElement } from "../lib/print";
 import {
   Download,
   Copy,
   Check,
   Share2,
-  ExternalLink,
   MessageCircle,
-  Send,
   Loader2,
-  CheckCircle2,
   BookOpen,
   SlidersHorizontal,
   ShieldCheck,
   User,
   RotateCcw,
   Edit3,
-  Palette,
-  CheckCircle,
   ChevronDown,
   Printer,
 } from "lucide-react";
@@ -132,7 +127,6 @@ export default function AffiliateCard({
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=8&data=${encodeURIComponent(referralUrl)}`;
 
   const rawDisplayName = cardDisplayName.trim() || profile.userName || "Student Trader";
-  const activeDisplayName = formatStudentName(rawDisplayName);
   const cardNameUpper = formatAffiliateCardName(rawDisplayName);
   const initials = cardNameUpper
     .split(" ")

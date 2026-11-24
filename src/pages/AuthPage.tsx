@@ -381,9 +381,8 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
-  const [resending, setResending] = useState(false);
-  const [resendMsg, setResendMsg] = useState<string | null>(null);
+  const [, setUnverifiedEmail] = useState<string | null>(null);
+  const [, setResendMsg] = useState<string | null>(null);
 
   if (isAuthed) {
     return (

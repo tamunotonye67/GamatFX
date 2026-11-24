@@ -1391,7 +1391,7 @@ function makeRng(seed: number): () => number {
   };
 }
 
-export function generateProceduralBatch(courseId: string, count: number, startSeed: number): Question[] {
+export function generateProceduralBatch(_courseId: string, count: number, startSeed: number): Question[] {
   const list: Question[] = [];
   const pairs = ["EUR/USD", "GBP/USD", "AUD/USD", "NZD/USD", "EUR/GBP", "USD/CAD", "USD/JPY"];
   const balances = [5000, 10000, 25000, 50000, 100000, 200000];

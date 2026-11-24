@@ -7,7 +7,6 @@ import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "..
 import { navigate } from "../lib/router";
 import PageHero from "../components/PageHero";
 import {
-  ShoppingBag,
   Bot,
   LineChart,
   BookOpen,
@@ -17,29 +16,19 @@ import {
   Star,
   ShieldCheck,
   Search,
-  Filter,
   FileText,
-  ExternalLink,
   Zap,
-  HelpCircle,
   Package,
   Lock,
   X,
-  Tag,
   ArrowUpDown,
   LayoutGrid,
   List,
   Check,
   AlertCircle,
   Clock,
-  Share2,
-  ThumbsUp,
-  CreditCard,
-  Building2,
-  Coins,
   Loader2,
   Compass,
-  CheckCheck,
   Layers,
   Award,
   Calculator,
@@ -409,7 +398,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
           preferred_channel: paymentMethod,
         },
         onSuccess: (session) => {
-          onFinishPayment(session.reference || txRef, paymentMethod);
+          onFinishPayment(session.reference || txRef, paymentMethod === "crypto" ? "transfer" : paymentMethod);
         },
         onClose: () => setIsProcessing(false),
         onError: (err) => {
@@ -421,7 +410,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
     }
 
     setTimeout(() => {
-      onFinishPayment(txRef, paymentMethod);
+      onFinishPayment(txRef, paymentMethod === "crypto" ? "transfer" : paymentMethod);
     }, 600);
   };
 

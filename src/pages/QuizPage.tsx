@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import Logo from "../components/Logo";
-import { getQuiz, generateAssessmentQuestions, DEFAULT_EXAM_QUESTION_COUNT, createFallbackQuiz, type Question, type Quiz } from "../lib/quizzes";
+import { getQuiz, generateAssessmentQuestions, DEFAULT_EXAM_QUESTION_COUNT, type Question, type Quiz } from "../lib/quizzes";
 import { getCourse, asCourse, type Course } from "../lib/courses";
 import { useStore, type QuizAttempt } from "../lib/store";
 import { navigate } from "../lib/router";
 import {
   Clock, CheckCircle2, XCircle, Award,
   Lock, AlertCircle, RotateCcw, Flag, Trophy, ListChecks, Bookmark,
-  HelpCircle, Filter, Check, ShieldCheck,
+  Check, ShieldCheck,
 } from "lucide-react";
 import CertificatePaymentModal from "../components/CertificatePaymentModal";
 import { sendQuizPassedEmail } from "../lib/email";
@@ -41,7 +41,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   const course: Course = existingCourse ?? {
     id: rawId,
     title: fallbackTitle || "Trading Examination",
-    tag: "Assessment",
+    tag: "Fundamental",
     level: "All Levels",
     short: "Official GAMAT Academy comprehensive trading assessment.",
     desc: "Official GAMAT Academy comprehensive trading assessment.",
@@ -51,6 +51,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
     price: 0,
     featured: false,
     poster: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80",
+    video: "",
     outcomes: ["Test your core market knowledge", "Validate your risk discipline"],
     requirements: ["Basic forex concepts"],
     modules: [{ title: "Assessment", lessons: [{ id: `${rawId}-exam`, title: "Final Assessment", duration: "60:00" }] }],
@@ -62,7 +63,6 @@ export default function QuizPage({ courseId }: { courseId: string }) {
   const progress = progressOf(rawId) || (existingCourse ? progressOf(existingCourse.id) : 0);
 
   const activeQuestions = sessionQuestions.length ? sessionQuestions : (quiz?.questions ?? []);
-  const totalCount = activeQuestions.length || DEFAULT_EXAM_QUESTION_COUNT;
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
   const flaggedCount = useMemo(() => Object.values(flagged).filter(Boolean).length, [flagged]);
 

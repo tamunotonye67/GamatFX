@@ -135,7 +135,7 @@ export function AdminGallery() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Total Photos" value={items.length} icon={Camera} />
         <StatCard label="Featured on About Us" value={featuredCount} icon={Star} tone="brand" />
-        <StatCard label="Categories" value={GALLERY_CATEGORIES.length} icon={Camera} tone="success" />
+        <StatCard label="Categories" value={GALLERY_CATEGORIES.length} icon={Camera} tone="ink" />
       </div>
 
       <Card className="mt-6 p-5">

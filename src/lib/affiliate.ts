@@ -769,7 +769,7 @@ export async function exportAffiliateCardAsPng(
 /**
  * Draws the official GAMAT Candlestick Logo Mark and Wordmark lockup on Canvas
  */
-function drawGamatLogo(
+export function drawGamatLogo(
   ctx: CanvasRenderingContext2D,
   centerX: number,
   y: number,
@@ -911,7 +911,7 @@ function roundRect(
   ctx.closePath();
 }
 
-function wrapText(
+export function wrapText(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,

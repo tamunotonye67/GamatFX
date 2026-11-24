@@ -35,7 +35,7 @@ export default function VerifyCertificatePage() {
             studentName: formatAccountName(acc),
             courseTitle: course?.title || att.courseId,
             score: att.score,
-            issuedAt: att.submittedAt,
+            issuedAt: att.createdAt,
           };
         }
       }

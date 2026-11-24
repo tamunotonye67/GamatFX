@@ -49,6 +49,7 @@ export interface HubResourceCard {
   desc: string;
   points: string[];
   actionLabel: string;
+  readTime?: string;
 }
 
 export interface HubLessonItem {

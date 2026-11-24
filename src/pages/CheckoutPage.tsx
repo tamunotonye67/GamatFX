@@ -4,7 +4,7 @@ import { useStore } from "../lib/store";
 import { navigate } from "../lib/router";
 import Logo from "../components/Logo";
 import {
-  Lock, CreditCard, Building2, Coins, CheckCircle2,
+  Lock, CheckCircle2,
   ShieldCheck, ArrowUpRight, Loader2, Tag, Video, MessagesSquare, Send, MessageSquare, Check,
 } from "lucide-react";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
@@ -21,8 +21,7 @@ export default function CheckoutPage({ id }: { id: string }) {
   const managed = managedCourses.find((c) => (c.id === targetId || c.id === id) && c.published);
   const builtIn = getCourse(targetId);
   const course = (managed ? asCourse(managed) : undefined) ?? builtIn;
-  const isMentorship = course?.tag === "Mentorship" || course?.id.startsWith("mentorship-");
-  const [selectedMethod, setSelectedMethod] = useState<Method>("card");
+  const [selectedMethod] = useState<Method>("card");
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
   const [coupon, setCoupon] = useState("");
