@@ -14,6 +14,23 @@ type TradeEntry = {
   createdAt: string;
 };
 
+function parseRrValue(raw: string | number): number {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : 0;
+  const cleaned = raw.trim();
+  if (!cleaned) return 0;
+  if (cleaned.includes(":")) {
+    const [riskStr, rewardStr] = cleaned.split(":");
+    const risk = parseFloat(riskStr);
+    const reward = parseFloat(rewardStr);
+    if (Number.isFinite(risk) && risk > 0 && Number.isFinite(reward)) {
+      return Number((reward / risk).toFixed(2));
+    }
+    if (Number.isFinite(reward)) return reward;
+  }
+  const num = parseFloat(cleaned);
+  return Number.isFinite(num) ? num : 0;
+}
+
 export default function TradeJournalTab({ userId }: { userId: string }) {
   const storageKey = `gamat.trade_journal.${userId}`;
   const [trades, setTrades] = useState<TradeEntry[]>(() => {
@@ -29,7 +46,7 @@ export default function TradeJournalTab({ userId }: { userId: string }) {
   const [direction, setDirection] = useState<"Buy" | "Sell">("Buy");
   const [entry, setEntry] = useState("");
   const [exit, setExit] = useState("");
-  const [rr, setRr] = useState("2");
+  const [rr, setRr] = useState("1:2");
   const [pnl, setPnl] = useState("");
   const [outcome, setOutcome] = useState<"Win" | "Loss" | "Breakeven">("Win");
   const [notes, setNotes] = useState("");
@@ -45,7 +62,10 @@ export default function TradeJournalTab({ userId }: { userId: string }) {
     const total = trades.length;
     const wins = trades.filter((t) => t.outcome === "Win").length;
     const winRate = total ? Math.round((wins / total) * 100) : 0;
-    const netR = trades.reduce((acc, t) => acc + (t.outcome === "Loss" ? -Math.abs(t.rr) : t.outcome === "Win" ? Math.abs(t.rr) : 0), 0);
+    const netR = trades.reduce((acc, t) => {
+      const rVal = parseRrValue(t.rr);
+      return acc + (t.outcome === "Loss" ? -1 : t.outcome === "Win" ? Math.abs(rVal) : 0);
+    }, 0);
     const netPnl = trades.reduce((acc, t) => acc + (Number(t.pnl) || 0), 0);
     return { total, winRate, netR: Number(netR.toFixed(2)), netPnl: Number(netPnl.toFixed(2)) };
   }, [trades]);
@@ -53,13 +73,14 @@ export default function TradeJournalTab({ userId }: { userId: string }) {
   const addTrade = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pair.trim()) return;
+    const parsedRr = parseRrValue(rr);
     const item: TradeEntry = {
       id: `tr_${Date.now()}`,
       pair: pair.trim().toUpperCase(),
       direction,
       entry: entry.trim() || "—",
       exit: exit.trim() || "—",
-      rr: Number(rr) || 0,
+      rr: parsedRr,
       pnl: Number(pnl) || 0,
       outcome,
       notes: notes.trim(),
@@ -132,13 +153,12 @@ export default function TradeJournalTab({ userId }: { userId: string }) {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted">Risk : Reward (R)</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">Risk : Reward Ratio</label>
             <input
-              type="number"
-              step="0.1"
+              type="text"
               value={rr}
               onChange={(e) => setRr(e.target.value)}
-              placeholder="2.0"
+              placeholder="1:2 or 1:3.5"
               className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand"
             />
           </div>
@@ -236,7 +256,7 @@ export default function TradeJournalTab({ userId }: { userId: string }) {
                             : "text-muted"
                         }`}
                       >
-                        {t.outcome} ({t.rr}R)
+                        {t.outcome} (1:{parseRrValue(t.rr)})
                       </p>
                       <p className="text-xs font-medium text-muted whitespace-nowrap">
                         {Number(t.pnl) < 0 ? `-$${Math.abs(Number(t.pnl))}` : `$${t.pnl}`}
