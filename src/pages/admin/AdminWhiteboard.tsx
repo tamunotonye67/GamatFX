@@ -933,7 +933,7 @@ export function AdminWhiteboard() {
           subtitle="Configure template meta information and pre-drawn candlestick/zone shapes."
           onClose={() => setSampleModalOpen(false)}
         >
-          <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+          <div className="space-y-4">
             <FormItem label="Template Name" hint="Display title shown in the Whiteboard Hub template card">
               <input
                 type="text"
@@ -1078,7 +1078,7 @@ export function AdminWhiteboard() {
           subtitle="Publish step-by-step institutional playbooks and technical guides for students."
           onClose={() => setResourceModalOpen(false)}
         >
-          <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+          <div className="space-y-4">
             <FormItem label="Resource Title" hint="Display title on the Whiteboard resources card">
               <input
                 type="text"
@@ -1170,7 +1170,7 @@ export function AdminWhiteboard() {
           subtitle="Add step-by-step hotkeys and feature walkthrough tips."
           onClose={() => setLessonModalOpen(false)}
         >
-          <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+          <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <FormItem label="Lesson Number" hint="e.g. 01, 02">
                 <input

@@ -5614,6 +5614,47 @@ export default function WhiteboardPage() {
     showToast("Permanently deleted tab from Trash.");
   };
 
+  const fitShapesToCanvas = (targetShapes: Shape[]) => {
+    const applyFit = () => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      const vw = rect && rect.width > 100 ? rect.width : Math.max(360, window.innerWidth - 100);
+      const vh = rect && rect.height > 100 ? rect.height : Math.max(420, window.innerHeight - 140);
+      if (!targetShapes || targetShapes.length === 0) {
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        return;
+      }
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const s of targetShapes) {
+        for (const p of s.points || []) {
+          minX = Math.min(minX, p.x);
+          minY = Math.min(minY, p.y);
+          const padW = s.type === "sticky" ? 240 : s.type === "text" ? 180 : 40;
+          const padH = s.type === "sticky" ? 190 : s.type === "text" ? 40 : 40;
+          maxX = Math.max(maxX, p.x + padW);
+          maxY = Math.max(maxY, p.y + padH);
+        }
+      }
+      if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+        setZoom(1);
+        setPan({ x: 0, y: 0 });
+        return;
+      }
+      const contentW = Math.max(240, maxX - minX);
+      const contentH = Math.max(200, maxY - minY);
+      const fitZoom = Math.min(1.0, Math.max(0.55, Math.min((vw - 100) / contentW, (vh - 100) / contentH)));
+      const newPanX = (vw - contentW * fitZoom) / 2 - minX * fitZoom;
+      const newPanY = (vh - contentH * fitZoom) / 2 - minY * fitZoom;
+      setZoom(fitZoom);
+      setPan({ x: newPanX, y: newPanY });
+    };
+    applyFit();
+    setTimeout(applyFit, 60);
+  };
+
   const loadSampleClassChart = (sampleType: string) => {
     let targetShapes: Shape[] = [];
     let tabName = "Class Diagram";
@@ -5662,6 +5703,7 @@ export default function WhiteboardPage() {
     setShapes(targetShapes);
     setBgGrid("dots");
     setSnapToGrid(true);
+    fitShapesToCanvas(targetShapes);
     showToast(`Loaded "${tabName}" Template!`);
     setInsertMenuOpen(false);
   };
@@ -5785,16 +5827,52 @@ export default function WhiteboardPage() {
         },
       ];
     } else {
+      const palette = ["#bae6fd", "#bbf7d0", "#e9d5ff", "#fed7aa"];
+      const headerX = 360;
+      const headerY = 60;
+      const pointCards: Shape[] = resource.points.slice(0, 6).flatMap((pt, idx) => {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const cardX = col === 0 ? 180 : 540;
+        const cardY = 270 + row * 210;
+        const arrowStartX = col === 0 ? headerX + 40 : headerX + 180;
+        const arrowStartY = headerY + 150;
+        const arrowEndX = cardX + 110;
+        const arrowEndY = cardY - 10;
+        return [
+          {
+            id: `guide_arrow_${idx}`,
+            type: "arrow",
+            color: idx % 2 === 0 ? "#3b82f6" : "#8b5cf6",
+            strokeWidth: 2,
+            points: [
+              { x: arrowStartX, y: arrowStartY },
+              { x: arrowEndX, y: arrowEndY },
+            ],
+          },
+          {
+            id: `guide_pt_${idx}`,
+            type: "sticky",
+            color: "#0f172a",
+            strokeWidth: 2,
+            points: [{ x: cardX, y: cardY }],
+            text: `0${idx + 1} · KEY RULE\n\n${pt}`,
+            stickyColor: palette[idx % palette.length],
+          },
+        ];
+      });
+
       guideShapes = [
         {
-          id: "guide_default",
+          id: "guide_header",
           type: "sticky",
-          color: "#16181c",
+          color: "#0f172a",
           strokeWidth: 2,
-          points: [{ x: 150, y: 140 }],
-          text: `📘 ${resource.title.toUpperCase()}\n\n${resource.desc}\n\nKey Rules:\n${resource.points.map((p) => `• ${p}`).join("\n")}`,
-          stickyColor: "#bae6fd",
+          points: [{ x: headerX, y: headerY }],
+          text: `📘 ${resource.title.toUpperCase()}\n\n${resource.category} • ${resource.badge}\n\n${resource.desc}`,
+          stickyColor: "#fef08a",
         },
+        ...pointCards,
       ];
     }
 
@@ -5822,6 +5900,7 @@ export default function WhiteboardPage() {
     setBgGrid("dots");
     setSnapToGrid(true);
     setViewMode("canvas");
+    fitShapesToCanvas(guideShapes);
     showToast(`Loaded "${resource.title}" guide setup into whiteboard!`);
   };
 
