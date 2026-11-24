@@ -61,9 +61,9 @@ export function AdminGallery() {
   const handleUpload = async (file: File) => {
     setUploading(true);
     try {
-      const url = await uploadStoreAsset(file);
-      if (url && editing) {
-        setEditing({ ...editing, image: url });
+      const res = await uploadStoreAsset(editing?.id || "campus", file, "gallery");
+      if (res.ok && res.url && editing) {
+        setEditing({ ...editing, image: res.url });
       }
     } finally {
       setUploading(false);
