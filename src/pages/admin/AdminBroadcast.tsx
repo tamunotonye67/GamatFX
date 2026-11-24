@@ -164,10 +164,21 @@ export function AdminBroadcast() {
       title="Email Broadcast"
       subtitle="Send announcements, market updates, and event promos to your students via Resend."
     >
-      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={Users} label="Active students" value={admin.accounts.filter((a) => a.status === "active").length} />
         <StatCard icon={BookOpen} label="Course enrollees" value={new Set(admin.enrollments.map((e) => e.userId)).size} />
         <StatCard icon={CalendarDays} label="Event attendees" value={new Set(admin.registrations.filter((r) => r.status === "confirmed").map((r) => r.email.toLowerCase())).size} />
+        <StatCard
+          icon={Send}
+          label="Total unique reach"
+          value={
+            new Set([
+              ...admin.accounts.filter((a) => a.status === "active").map((a) => a.email.toLowerCase()),
+              ...admin.registrations.filter((r) => r.status === "confirmed").map((r) => r.email.toLowerCase()),
+            ]).size
+          }
+          tone="ink"
+        />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
