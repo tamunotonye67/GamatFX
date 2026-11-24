@@ -124,7 +124,7 @@ export default function JobsPage() {
   return (
     <div className="min-h-screen bg-cream text-ink-soft">
       {/* Cloudflare-inspired dark header + framed brand-red rounded hero */}
-      <div className="bg-[#0d0e11] pb-3 sm:pb-4">
+      <div className="bg-[#0d0e11]">
         <header className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-8">
             <button
@@ -225,9 +225,9 @@ export default function JobsPage() {
           </div>
         </header>
 
-        {/* Framed Rounded Brand-Red Hero Card */}
+        {/* Framed Top-Rounded Brand-Red Hero Card */}
         <div className="w-full px-2 sm:px-3">
-          <section className="relative overflow-hidden rounded-[28px] sm:rounded-[38px] bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
+          <section className="relative overflow-hidden rounded-t-[48px] sm:rounded-t-[64px] rounded-b-none bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
             {/* Subtle dot-matrix texture + warm bottom glow matching reference */}
             <div
               aria-hidden="true"
