@@ -258,7 +258,7 @@ export function AdminShell({ title, subtitle, action, children }: {
           onScroll={(e) => {
             savedAdminSidebarScroll = e.currentTarget.scrollTop;
           }}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain admin-dark-scroll"
         >
           <p className="px-5 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Management</p>
           <nav className="mt-3 space-y-1 px-3">
