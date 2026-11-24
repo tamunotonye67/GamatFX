@@ -17,7 +17,7 @@ import { LoginPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage, VerifyEma
 import ServiceDetailPage from "./pages/ServiceDetailPage";
 import { captureReferralFromUrl } from "./lib/affiliate";
 import { useStore } from "./lib/store";
-import { useRoute, segments } from "./lib/router";
+import { useRoute, segments, isJobsSubdomain } from "./lib/router";
 import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
 
 function lazyWithRetry<T extends React.ComponentType<any>>(
@@ -108,7 +108,9 @@ const AdminWhiteboard = lazyWithRetry(() => import("./pages/admin/AdminWhiteboar
 const AdminStore = lazyWithRetry(() => import("./pages/admin/AdminStore").then((m) => ({ default: m.AdminStore })));
 const AdminAffiliates = lazyWithRetry(() => import("./pages/admin/AdminAffiliates").then((m) => ({ default: m.AdminAffiliates })));
 const AdminGallery = lazyWithRetry(() => import("./pages/admin/AdminGallery").then((m) => ({ default: m.AdminGallery })));
+const AdminJobs = lazyWithRetry(() => import("./pages/admin/AdminJobs").then((m) => ({ default: m.AdminJobs })));
 const GalleryPage = lazyWithRetry(() => import("./pages/GalleryPage"));
+const JobsPage = lazyWithRetry(() => import("./pages/JobsPage"));
 
 function PageLoader() {
   return (
@@ -235,8 +237,10 @@ const staticPages: Record<string, React.ComponentType> = {
   "/giveaways": GiveawaysPage,
   "/team": TeamPage,
   "/gallery": GalleryPage,
+  "/jobs": JobsPage,
   "/admin/team": AdminTeam,
   "/admin/gallery": AdminGallery,
+  "/admin/jobs": AdminJobs,
   "/admin/news": AdminNews,
   "/admin/outlooks": AdminOutlooks,
   "/admin/giveaways": AdminGiveaways,
@@ -295,6 +299,8 @@ export default function App() {
     content = <LearnPage id={second} />;
   } else if (first === "store") {
     content = <StorePage categoryParam={second} />;
+  } else if (route === "/" && isJobsSubdomain()) {
+    content = <JobsPage />;
   } else {
     const Page = staticPages[route] ?? Home;
     content = <Page />;

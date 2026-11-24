@@ -23,7 +23,14 @@ export const STATIC_ROUTES = [
   "/mentorship-survey",
   "/whiteboard",
   "/store",
+  "/jobs",
 ] as const;
+
+export function isJobsSubdomain(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname.toLowerCase();
+  return host === "jobs" || host.startsWith("jobs.");
+}
 
 const ROUTE_SESSION_KEY = "gamat_fx_active_route";
 const ROUTE_LOCAL_KEY = "gamat_fx_last_route";
