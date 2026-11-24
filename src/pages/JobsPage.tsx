@@ -37,6 +37,7 @@ export default function JobsPage() {
   const [dept, setDept] = useState<"All" | JobDepartment>("All");
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
 
   // Application form state
   const [name, setName] = useState("");
@@ -53,6 +54,15 @@ export default function JobsPage() {
     void fetchSupabaseJobRoles().then((remote) => {
       if (remote.length > 0) setRoles(remote);
     });
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolledPastHero(window.scrollY > Math.max(420, window.innerHeight * 0.72));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const allOpenRoles = useMemo(() => roles.filter((r) => r.open), [roles]);
@@ -123,6 +133,32 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-[#111215] text-white selection:bg-brand selection:text-white">
+      {/* Minimal Sticky Bar shown only after scrolling past the hero */}
+      <div
+        className={`fixed top-0 inset-x-0 z-40 border-b border-white/10 bg-[#111215]/90 backdrop-blur-md transition-all duration-300 ${
+          scrolledPastHero
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="cursor-pointer"
+          >
+            <Logo variant="light" size="sm" asDiv />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollTo("roles")}
+            className="rounded-full bg-brand px-5 py-2 text-xs font-bold text-white shadow-md shadow-brand/25 transition hover:bg-brand-dark cursor-pointer"
+          >
+            Explore roles
+          </button>
+        </div>
+      </div>
+
       {/* Dark top header + framed brand-red hero */}
       <div className="bg-[#111215]">
         <header className="mx-auto flex min-h-[84px] w-full max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
