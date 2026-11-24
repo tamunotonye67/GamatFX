@@ -404,12 +404,33 @@ export const SEED_COUPONS: Coupon[] = [
   },
 ];
 
+const DELETED_COUPONS_KEY = "gamat.deleted_coupons.v1";
+
+function getDeletedCouponIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_COUPONS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function addDeletedCouponId(id: string) {
+  try {
+    const set = getDeletedCouponIds();
+    set.add(String(id));
+    localStorage.setItem(DELETED_COUPONS_KEY, JSON.stringify(Array.from(set)));
+  } catch {}
+}
+
 function normalizeCoupons(existing: Coupon[], incoming: Coupon[] = []): Coupon[] {
+  const deletedIds = getDeletedCouponIds();
   const byCode = new Map<string, Coupon>();
-  SEED_COUPONS.forEach((sc) => byCode.set(sc.code.trim().toUpperCase(), { ...sc }));
 
   const applyItem = (item: Coupon) => {
     if (!item || !item.code) return;
+    if (deletedIds.has(String(item.id)) || (item.status as string) === "deleted") return;
     const cleanCode = item.code.trim().toUpperCase();
     const seedMatch = SEED_COUPONS.find((s) => s.id === item.id || s.code === cleanCode);
     let expiryDate = item.expiryDate;
@@ -2239,8 +2260,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           break;
         case "coupons":
           fetchSupabaseCoupons().then((r) => {
-            if (r.length) {
-              setCoupons((prev) => normalizeCoupons(prev, r));
+            if (r !== null) {
+              setCoupons(normalizeCoupons(r));
             }
           });
           break;
@@ -5358,6 +5379,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteCoupon: Ctx["deleteCoupon"] = useCallback((id) => {
+    addDeletedCouponId(id);
     setCoupons((prev) => {
       const nextList = prev.filter((c) => c.id !== id);
       write(K.coupons, nextList);

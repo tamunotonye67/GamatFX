@@ -629,12 +629,12 @@ export async function saveSupabaseEnquiry(seq: ServiceEnquiry): Promise<void> {
   }
 }
 
-export async function fetchSupabaseCoupons(): Promise<Coupon[]> {
+export async function fetchSupabaseCoupons(): Promise<Coupon[] | null> {
   try {
     const { data, error } = await supabase.from("coupons").select("*");
-    if (error || !data) return [];
+    if (error || !Array.isArray(data)) return null;
     return data
-      .filter((r: any) => r.id !== "sys_affiliate_settings" && r.code !== "SYS_AFFILIATE_SETTINGS")
+      .filter((r: any) => r.id !== "sys_affiliate_settings" && r.code !== "SYS_AFFILIATE_SETTINGS" && r.status !== "deleted")
       .map((r: any) => ({
         id: r.id,
         code: r.code,
@@ -649,7 +649,7 @@ export async function fetchSupabaseCoupons(): Promise<Coupon[]> {
         createdAt: r.created_at,
       }));
   } catch {
-    return [];
+    return null;
   }
 }
 
@@ -683,7 +683,10 @@ export async function saveSupabaseCoupon(c: Coupon): Promise<void> {
 
 export async function deleteSupabaseCoupon(id: string): Promise<void> {
   try {
-    await supabase.from("coupons").delete().eq("id", id);
+    const { error } = await supabase.from("coupons").delete().eq("id", id);
+    if (error) {
+      await supabase.from("coupons").update({ status: "deleted" }).eq("id", id);
+    }
   } catch (err) {
     console.warn("Supabase coupon delete notice:", err);
   }
