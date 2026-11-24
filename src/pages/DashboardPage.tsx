@@ -1024,44 +1024,49 @@ export default function DashboardPage() {
       <div className="space-y-4">
         {myRegistrations.map((r) => {
           const evObj = store.allEvents.find((e) => e.id === r.eventId);
+          const sortedSessions = [...(r.attendedSessions || [])].sort((a, b) =>
+            (a.label || "").localeCompare(b.label || "", undefined, { numeric: true, sensitivity: "base" })
+          );
+          const totalSessionsCount = evObj?.sessions?.length || 0;
           return (
             <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white shadow-2xs">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
-                <div className="min-w-0 flex-1 space-y-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
-                      {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
+              {/* Top Row: Status & Ticket */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line/60 bg-cream/30 px-4 py-3 sm:px-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
+                    {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
+                  </span>
+                  {r.status === "confirmed" && r.checkedIn && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
+                      Attended ✓
                     </span>
-                    {r.status === "confirmed" && r.checkedIn && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
-                        Attended ✓
-                      </span>
-                    )}
-                    {r.status === "confirmed" && !r.checkedIn && r.seatConfirmed && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
-                        Seat Confirmed
-                      </span>
-                    )}
-                    {r.status === "confirmed" && r.attendedSessions && r.attendedSessions.map((a) => (
-                      <span key={a.sessionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">
-                        {a.label} ✓
-                      </span>
-                    ))}
-                  </div>
-                  <div>
-                    <h3 className="font-display text-base font-bold text-ink leading-snug">{r.eventTitle}</h3>
-                    <p className="mt-1 text-xs text-muted">
-                      {r.eventDate} · registered {new Date(r.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
+                  )}
+                  {r.status === "confirmed" && !r.checkedIn && r.seatConfirmed && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                      Seat Confirmed
+                    </span>
+                  )}
                 </div>
-                <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-line/60">
-                  <div className="rounded-xl border border-dashed border-brand/40 bg-brand-light px-3.5 py-1.5 text-center">
-                    <p className="text-[9px] uppercase tracking-wide text-muted font-semibold">Ticket</p>
-                    <p className="font-display text-xs sm:text-sm font-extrabold text-brand">{r.ticket}</p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {r.status === "confirmed" && r.checkedIn && (
+                <div className="inline-flex items-center gap-2 rounded-lg border border-dashed border-brand/40 bg-brand-light px-2.5 py-1">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted">Ticket</span>
+                  <span className="font-display text-xs font-extrabold text-brand">{r.ticket}</span>
+                </div>
+              </div>
+
+              {/* Main Body: Event Info + Actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-display text-base sm:text-lg font-bold text-ink leading-snug">
+                    {r.eventTitle}
+                  </h3>
+                  <p className="mt-1 text-xs text-muted">
+                    {r.eventDate} · registered {new Date(r.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {r.status === "confirmed" && (
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {r.checkedIn && (
                       <button
                         type="button"
                         onClick={() =>
@@ -1075,12 +1080,12 @@ export default function DashboardPage() {
                             store.publishedTeam
                           )
                         }
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
                       >
                         <Award className="h-3.5 w-3.5" /> Attendance Certificate
                       </button>
                     )}
-                    {r.status === "confirmed" && !r.seatConfirmed && !r.checkedIn && (
+                    {!r.seatConfirmed && !r.checkedIn && (
                       <button
                         type="button"
                         onClick={() => store.confirmEventSeat(r.id)}
@@ -1089,17 +1094,46 @@ export default function DashboardPage() {
                         Confirm Seat
                       </button>
                     )}
-                    {r.status === "confirmed" && (
-                      <button
-                        onClick={() => { if (confirm("Cancel this registration? Your seat will be released.")) store.cancelRegistration(r.id); }}
-                        className="btn-outline-dark !py-2 !px-3.5 text-xs">
-                        Cancel
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        if (confirm("Cancel this registration? Your seat will be released.")) {
+                          store.cancelRegistration(r.id);
+                        }
+                      }}
+                      className="btn-outline-dark !py-2 !px-3.5 text-xs"
+                    >
+                      Cancel
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
 
+              {/* Session Attendance Track (when multi-day sessions attended) */}
+              {r.status === "confirmed" && sortedSessions.length > 0 && (
+                <div className="border-t border-line/60 bg-emerald-50/30 px-4 py-3 sm:px-6">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800/80">
+                      Session Attendance
+                    </span>
+                    <span className="text-[11px] font-semibold text-emerald-700">
+                      {sortedSessions.length}
+                      {totalSessionsCount > 0 ? ` / ${totalSessionsCount}` : ""} session{sortedSessions.length === 1 ? "" : "s"} completed
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {sortedSessions.map((a) => (
+                      <span
+                        key={a.sessionId}
+                        className="inline-flex items-center gap-1 rounded-lg bg-white border border-emerald-200/90 px-2.5 py-1 text-[11px] font-bold text-emerald-700 shadow-2xs"
+                      >
+                        {a.label} <span className="text-emerald-500">✓</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Footer: Live Check-In */}
               {r.status === "confirmed" && (
                 <form
                   onSubmit={(evForm) => {
