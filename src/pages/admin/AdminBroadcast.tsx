@@ -177,7 +177,6 @@ export function AdminBroadcast() {
               ...admin.registrations.filter((r) => r.status === "confirmed").map((r) => r.email.toLowerCase()),
             ]).size
           }
-          tone="ink"
         />
       </div>
 

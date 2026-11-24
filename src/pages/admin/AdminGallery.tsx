@@ -136,7 +136,7 @@ export function AdminGallery() {
         <StatCard label="Total Photos" value={items.length} icon={Camera} />
         <StatCard label="Featured on About Us" value={featuredCount} icon={Star} tone="brand" />
         <StatCard label="Gallery Only" value={Math.max(0, items.length - featuredCount)} icon={ImageIcon} />
-        <StatCard label="Categories" value={GALLERY_CATEGORIES.length} icon={LayoutGrid} tone="ink" />
+        <StatCard label="Categories" value={GALLERY_CATEGORIES.length} icon={LayoutGrid} />
       </div>
 
       <Card className="mt-6 p-5">
