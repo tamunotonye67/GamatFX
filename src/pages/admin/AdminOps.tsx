@@ -861,7 +861,7 @@ export function AdminSettings() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="font-display text-lg font-bold text-ink flex items-center gap-2">
-              <Video className="h-5 w-5 text-brand" /> Platform Walkthrough Videos
+              <Video className="h-5 w-5 shrink-0 text-brand" /> Platform Walkthrough Videos
             </h3>
             <p className="mt-1 text-sm text-muted">
               Add YouTube, Vimeo, Cloudflare Stream, or MP4 video links for Student &amp; Staff Quick Guides.

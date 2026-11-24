@@ -617,7 +617,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
             <div className="pt-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-ink tracking-tight flex items-center gap-2.5">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
                     <CurrentIcon className="h-4 w-4" />
                   </span>
                   <span>

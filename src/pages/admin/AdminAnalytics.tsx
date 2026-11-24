@@ -246,8 +246,8 @@ export function AdminAnalytics() {
         <Card className="p-5 sm:p-6">
           <div className="flex flex-col items-start gap-2.5 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h2 className="font-display text-lg font-bold text-ink flex items-start gap-2">
-                <BarChart3 className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+              <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 shrink-0 text-brand" />
                 <span>Revenue by Payment Method</span>
               </h2>
               <p className="mt-1 text-xs text-muted">Distribution of sales across Card, Bank Transfer, and Crypto.</p>
@@ -294,8 +294,8 @@ export function AdminAnalytics() {
         <Card className="p-5 sm:p-6">
           <div className="flex flex-col items-start gap-2.5 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h2 className="font-display text-lg font-bold text-ink flex items-start gap-2">
-                <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+              <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
+                <BookOpen className="h-5 w-5 shrink-0 text-brand" />
                 <span>Course Enrollment Leaderboard</span>
               </h2>
               <p className="mt-1 text-xs text-muted">Most popular courses and student completion rates.</p>
@@ -334,7 +334,7 @@ export function AdminAnalytics() {
         <Card className="p-6">
           <div className="flex items-center justify-between border-b border-line pb-4">
             <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-500" /> Quiz & Assessment Metrics
+              <Zap className="h-5 w-5 shrink-0 text-amber-500" /> <span>Quiz &amp; Assessment Metrics</span>
             </h3>
           </div>
 
@@ -371,7 +371,7 @@ export function AdminAnalytics() {
         <Card className="p-6">
           <div className="flex items-center justify-between border-b border-line pb-4">
             <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-brand" /> Live Event Occupancy
+              <Calendar className="h-5 w-5 shrink-0 text-brand" /> <span>Live Event Occupancy</span>
             </h3>
           </div>
 
@@ -408,7 +408,7 @@ export function AdminAnalytics() {
         <Card className="p-6">
           <div className="flex items-center justify-between border-b border-line pb-4">
             <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-purple-600" /> Community Velocity
+              <MessageSquare className="h-5 w-5 shrink-0 text-purple-600" /> <span>Community Velocity</span>
             </h3>
           </div>
 
