@@ -221,8 +221,8 @@ export default function JobsPage() {
         </header>
 
         {/* Framed Top-Rounded Brand-Red Hero Card */}
-        <div className="w-full px-2 sm:px-3">
-          <section className="relative overflow-hidden rounded-t-[48px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
+        <div className="w-full px-2 sm:px-3 pb-3">
+          <section className="relative flex min-h-[calc(100vh-96px)] flex-col items-center justify-center overflow-hidden rounded-t-[48px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-24 sm:py-32 text-center text-white shadow-2xl">
             {/* Subtle dot-matrix texture + warm bottom glow */}
             <div
               aria-hidden="true"
