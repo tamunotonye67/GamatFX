@@ -7674,10 +7674,10 @@ export default function WhiteboardPage() {
                         <button
                           type="button"
                           onClick={() => handleCreateNewCanvasFromHub(`Lesson ${lesson.num}: ${lesson.title}`)}
-                          className="w-full flex items-center justify-between rounded-xl bg-cream hover:bg-brand text-ink hover:text-white border border-line hover:border-brand px-4 py-2.5 text-xs font-extrabold transition-colors cursor-pointer"
+                          className="w-full flex items-center justify-between rounded-xl bg-brand hover:bg-brand-dark text-white px-4 py-2.5 text-xs font-extrabold transition-colors cursor-pointer shadow-xs"
                         >
                           <span className="inline-flex items-center gap-2">
-                            <PlayCircle className="h-4 w-4 text-brand group-hover:text-current" />
+                            <PlayCircle className="h-4 w-4 text-white" />
                             Practice this Setup on Canvas
                           </span>
                           <span>→</span>
