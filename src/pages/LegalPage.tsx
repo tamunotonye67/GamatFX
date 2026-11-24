@@ -93,10 +93,12 @@ function Legal({
 
   return (
     <>
-      <PageHero crumb={crumb} eyebrow={eyebrow} image="/images/hero.jpg" title={title} subtitle={subtitle} />
+      <div className="print:hidden">
+        <PageHero crumb={crumb} eyebrow={eyebrow} image="/images/hero.jpg" title={title} subtitle={subtitle} />
+      </div>
 
-      <section className="section bg-cream">
-        <div className="container-x grid gap-10 lg:grid-cols-[260px_1fr]">
+      <section className="section bg-cream print:p-0 print:bg-white">
+        <div className="container-x grid gap-10 lg:grid-cols-[260px_1fr] print:block print:max-w-none print:px-0">
           {/* Sticky index */}
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
@@ -241,13 +243,15 @@ function Legal({
         </button>
       )}
 
-      <PageCta
-        tone="light"
-        title="Questions about this policy?"
-        body="Our team is happy to clarify anything you're unsure about."
-        primaryLabel="Contact Us"
-        primaryTo="/contact"
-      />
+      <div className="print:hidden">
+        <PageCta
+          tone="light"
+          title="Questions about this policy?"
+          body="Our team is happy to clarify anything you're unsure about."
+          primaryLabel="Contact Us"
+          primaryTo="/contact"
+        />
+      </div>
     </>
   );
 }
