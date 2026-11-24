@@ -1027,31 +1027,35 @@ export default function EventsPage() {
             <span className="eyebrow justify-center">Archive</span>
             <h2 className="section-title mt-4">Past events</h2>
           </div>
-          <div className="mx-auto mt-12 max-w-4xl space-y-4">
+          <div className="mx-auto mt-8 sm:mt-12 max-w-4xl space-y-3 sm:space-y-4">
             {pastEvents.map((e) => (
-              <div key={e.id} className="flex flex-wrap items-center gap-5 rounded-2xl border border-line bg-white p-5 opacity-80">
-                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-line/60">
-                  <span className="text-[10px] font-bold uppercase text-muted">{e.month.slice(0, 3)}</span>
-                  <span className="font-display text-lg font-extrabold text-ink">{e.day}</span>
+              <div key={e.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 rounded-2xl border border-line bg-white p-4 sm:p-5 opacity-85">
+                <div className="flex items-center justify-between gap-3 sm:contents">
+                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-line/60">
+                    <span className="text-[10px] font-bold uppercase text-muted">{e.month.slice(0, 3)}</span>
+                    <span className="font-display text-base sm:text-lg font-extrabold text-ink">{e.day}</span>
+                  </div>
+                  <span className="sm:order-3 shrink-0 rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">Completed</span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-display text-base font-bold text-ink">{e.title}</h3>
-                  <p className="text-sm text-muted">{e.description}</p>
+                <div className="min-w-0 flex-1 sm:order-2">
+                  <h3 className="font-display text-base font-bold text-ink leading-snug">{e.title}</h3>
+                  <p className="mt-1 sm:mt-0.5 text-sm text-muted leading-relaxed">{e.description}</p>
                 </div>
-                <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">Completed</span>
               </div>
             ))}
             {past.map((e) => (
-              <div key={e.title} className="flex flex-wrap items-center gap-5 rounded-2xl border border-line bg-white p-5 opacity-80">
-                <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-line/60">
-                  <span className="text-[10px] font-bold uppercase text-muted">{e.month.slice(0, 3)}</span>
-                  <span className="font-display text-lg font-extrabold text-ink">{e.day}</span>
+              <div key={e.title} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 rounded-2xl border border-line bg-white p-4 sm:p-5 opacity-85">
+                <div className="flex items-center justify-between gap-3 sm:contents">
+                  <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-line/60">
+                    <span className="text-[10px] font-bold uppercase text-muted">{e.month.slice(0, 3)}</span>
+                    <span className="font-display text-base sm:text-lg font-extrabold text-ink">{e.day}</span>
+                  </div>
+                  <span className="sm:order-3 shrink-0 rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">Completed</span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-display text-base font-bold text-ink">{e.title}</h3>
-                  <p className="text-sm text-muted">{e.body}</p>
+                <div className="min-w-0 flex-1 sm:order-2">
+                  <h3 className="font-display text-base font-bold text-ink leading-snug">{e.title}</h3>
+                  <p className="mt-1 sm:mt-0.5 text-sm text-muted leading-relaxed">{e.body}</p>
                 </div>
-                <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">Completed</span>
               </div>
             ))}
           </div>
