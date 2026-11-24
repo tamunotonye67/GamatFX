@@ -2,14 +2,22 @@ import { useState, useEffect } from "react";
 import { Tag, X, Check, Gift } from "lucide-react";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
+import { fetchBannerCouponId, loadBannerCouponId } from "../lib/supabaseServices";
 
 export default function TopCouponBar() {
   const { coupons } = useStore();
   const [dismissed, setDismissed] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [bannerCouponId, setBannerCouponId] = useState<string>(() => loadBannerCouponId());
 
-  // Active, non-expired coupon code to display
-  const activeCoupon = (coupons || []).find((c) => {
+  useEffect(() => {
+    fetchBannerCouponId().then((id) => setBannerCouponId(id));
+    const onUpdate = () => setBannerCouponId(loadBannerCouponId());
+    window.addEventListener("gamat:banner-coupon-updated", onUpdate);
+    return () => window.removeEventListener("gamat:banner-coupon-updated", onUpdate);
+  }, []);
+
+  const isCouponValid = (c: (typeof coupons)[number]) => {
     if (c.status !== "active") return false;
     if ((c.usedCount || 0) >= (c.maxUses || 1)) return false;
     if (c.expiryDate) {
@@ -19,7 +27,15 @@ export default function TopCouponBar() {
       if (!Number.isNaN(expiryEnd) && expiryEnd < Date.now()) return false;
     }
     return true;
-  }) || {
+  };
+
+  // Active, non-expired coupon code to display (prefer admin-pinned banner coupon)
+  const pinnedCoupon =
+    bannerCouponId && bannerCouponId !== "__none__"
+      ? (coupons || []).find((c) => c.id === bannerCouponId && isCouponValid(c))
+      : undefined;
+
+  const activeCoupon = pinnedCoupon || (coupons || []).find(isCouponValid) || {
     code: "WELCOME10",
     discountPercent: 10,
   };
@@ -54,7 +70,7 @@ export default function TopCouponBar() {
     navigate("/courses");
   };
 
-  if (dismissed) return null;
+  if (dismissed || bannerCouponId === "__none__") return null;
 
   return (
     <div className="relative z-50 overflow-hidden bg-gradient-to-r from-[#4d0711] via-[#851828] to-[#3b040c] text-white shadow-xl border-b border-amber-500/30 transition-all duration-300 before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent">

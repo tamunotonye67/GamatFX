@@ -634,7 +634,14 @@ export async function fetchSupabaseCoupons(): Promise<Coupon[] | null> {
     const { data, error } = await supabase.from("coupons").select("*");
     if (error || !Array.isArray(data)) return null;
     return data
-      .filter((r: any) => r.id !== "sys_affiliate_settings" && r.code !== "SYS_AFFILIATE_SETTINGS" && r.status !== "deleted")
+      .filter(
+        (r: any) =>
+          r.id !== "sys_affiliate_settings" &&
+          r.code !== "SYS_AFFILIATE_SETTINGS" &&
+          r.id !== "sys_banner_coupon" &&
+          r.code !== "SYS_BANNER_COUPON" &&
+          r.status !== "deleted"
+      )
       .map((r: any) => ({
         id: r.id,
         code: r.code,
@@ -689,6 +696,65 @@ export async function deleteSupabaseCoupon(id: string): Promise<void> {
     }
   } catch (err) {
     console.warn("Supabase coupon delete notice:", err);
+  }
+}
+
+const BANNER_COUPON_KEY = "gamat.banner_coupon_id.v1";
+
+export function loadBannerCouponId(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(BANNER_COUPON_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export async function fetchBannerCouponId(): Promise<string> {
+  const local = loadBannerCouponId();
+  try {
+    const { data, error } = await supabase
+      .from("coupons")
+      .select("applicable_to")
+      .eq("id", "sys_banner_coupon")
+      .maybeSingle();
+    if (error || !data) return local;
+    const val = String(data.applicable_to || "");
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(BANNER_COUPON_KEY, val);
+        window.dispatchEvent(new CustomEvent("gamat:banner-coupon-updated"));
+      } catch {}
+    }
+    return val;
+  } catch {
+    return local;
+  }
+}
+
+export async function saveBannerCouponId(couponId: string): Promise<void> {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(BANNER_COUPON_KEY, couponId);
+      window.dispatchEvent(new CustomEvent("gamat:banner-coupon-updated"));
+    } catch {}
+  }
+  try {
+    await supabase.from("coupons").upsert(
+      {
+        id: "sys_banner_coupon",
+        code: "SYS_BANNER_COUPON",
+        discount_percent: 0,
+        max_uses: 1,
+        used_count: 0,
+        applicable_to: couponId,
+        status: "active",
+        created_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+  } catch (err) {
+    console.warn("Supabase banner coupon save notice:", err);
   }
 }
 

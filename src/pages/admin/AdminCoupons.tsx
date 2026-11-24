@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type Coupon } from "../../lib/store";
 import { COURSES, naira } from "../../lib/courses";
 import { SEED_STORE_PRODUCTS } from "../../lib/storeProducts";
+import { fetchBannerCouponId, loadBannerCouponId, saveBannerCouponId } from "../../lib/supabaseServices";
 import {
-  Tag, Plus, Pencil, Trash2, Download, CheckCircle2, Percent, Copy, Check, Calendar, Ticket,
+  Tag, Plus, Pencil, Trash2, Download, CheckCircle2, Percent, Copy, Check, Calendar, Ticket, Megaphone,
 } from "lucide-react";
 
 type Draft = Partial<Coupon>;
@@ -25,6 +26,16 @@ export function AdminCoupons() {
   const [edit, setEdit] = useState<Draft | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [bannerCouponId, setBannerCouponId] = useState<string>(() => loadBannerCouponId());
+
+  useEffect(() => {
+    fetchBannerCouponId().then((id) => setBannerCouponId(id));
+  }, []);
+
+  const handleSelectBannerCoupon = (id: string) => {
+    setBannerCouponId(id);
+    saveBannerCouponId(id);
+  };
 
   // Available store products & courses for single-product coupon targeting
   const allStoreProducts = useMemo(() => {
@@ -145,7 +156,39 @@ export function AdminCoupons() {
         />
       </div>
 
-      <Card className="mt-6 overflow-hidden">
+      <Card className="mt-6 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-light text-brand">
+              <Megaphone className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-display text-sm font-bold text-ink">Homepage Top Banner Coupon</h3>
+              <p className="text-xs text-muted mt-0.5">
+                Choose which active coupon appears in the announcement bar above the navigation menu across all devices.
+              </p>
+            </div>
+          </div>
+          <select
+            value={bannerCouponId}
+            onChange={(e) => handleSelectBannerCoupon(e.target.value)}
+            aria-label="Select top banner coupon"
+            className="w-full sm:w-72 rounded-xl border border-line bg-cream/50 px-3.5 py-2 text-xs font-semibold text-ink outline-none focus:border-brand cursor-pointer"
+          >
+            <option value="">Auto (First Active Coupon)</option>
+            <option value="__none__">Hide Top Banner</option>
+            {coupons
+              .filter((c) => c.status === "active")
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.code} — {c.discountPercent}% OFF
+                </option>
+              ))}
+          </select>
+        </div>
+      </Card>
+
+      <Card className="mt-4 overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 border-b border-line p-4">
           <SearchBar value={q} onChange={setQ} placeholder="Search coupon code or target…" />
           <span className="ml-auto text-sm text-muted">{rows.length} coupon(s)</span>
