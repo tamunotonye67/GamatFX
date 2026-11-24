@@ -25,6 +25,7 @@ import { useSolidNavbar } from "../lib/chrome";
 import TradeJournalTab from "../components/TradeJournalTab";
 import MentorshipBookingTab from "../components/MentorshipBookingTab";
 import { getNotifPrefs, setNotifPrefs, hydrateNotifPrefsFromSupabase, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
+import GuideVideoGrid from "../components/GuideVideoGrid";
 
 type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile" | "guide";
 
@@ -3262,6 +3263,32 @@ function PlatformGuideTab({ isTeamMember, onSwitchTab }: { isTeamMember: boolean
             </button>
           )}
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-display text-lg font-bold text-ink">Video Walkthroughs</h3>
+            <p className="text-xs text-muted">Short screen-recorded clips showing key features step by step.</p>
+          </div>
+          {isTeamMember && (
+            <button
+              type="button"
+              onClick={() => navigate("/admin/settings")}
+              className="text-xs font-bold text-brand hover:underline cursor-pointer"
+            >
+              Manage videos in Settings →
+            </button>
+          )}
+        </div>
+        <GuideVideoGrid
+          audience="student"
+          emptyHint={
+            isTeamMember
+              ? "Add a YouTube, Vimeo, or MP4 video URL in Admin → Settings."
+              : "Video tutorial will appear here once uploaded by an admin."
+          }
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

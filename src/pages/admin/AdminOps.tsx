@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty, exportCsv, fmtDate, useAdminSearchTarget } from "./AdminShell";
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore, type EventItem, type Payment, type Registration } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
 import { sendBroadcastEmail } from "../../lib/email";
 import { BillingDocument } from "./AdminInvoicesAndAssets";
+import { fetchGuideVideos, getGuideVideosLocal, saveGuideVideo, deleteGuideVideo, type GuideAudience, type GuideVideo } from "../../lib/guideVideos";
+import { uploadCourseVideo } from "../../lib/supabaseStorage";
 import {
   Wallet, CreditCard, RotateCcw, Trash2, Download, Plus, Pencil, Ticket,
-  CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Eye,
+  CalendarDays, Users, CheckCircle2, XCircle, Save, AlertTriangle, Eye, Video, Upload,
 } from "lucide-react";
 
 /* =============================== Payments =============================== */
@@ -767,8 +769,52 @@ export function AdminSettings() {
   const [f, setF] = useState({ firstName: user?.firstName ?? "", lastName: user?.lastName ?? "", phone: user?.phone ?? "" });
   const [saved, setSaved] = useState(false);
 
+  const [guideVideos, setGuideVideos] = useState<GuideVideo[]>(() => getGuideVideosLocal());
+  const [editingVideo, setEditingVideo] = useState<GuideVideo | null>(null);
+  const [savingVideo, setSavingVideo] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoNotice, setVideoNotice] = useState("");
+
+  useEffect(() => {
+    fetchGuideVideos().then(setGuideVideos);
+  }, []);
+
+  const handleSaveVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVideo || !editingVideo.title.trim()) return;
+    setSavingVideo(true);
+    setVideoNotice("");
+    const res = await saveGuideVideo({
+      ...editingVideo,
+      title: editingVideo.title.trim(),
+      description: editingVideo.description.trim(),
+      duration: editingVideo.duration?.trim() || "",
+      videoUrl: editingVideo.videoUrl.trim(),
+    });
+    const refreshed = await fetchGuideVideos();
+    setGuideVideos(refreshed);
+    setSavingVideo(false);
+    setEditingVideo(null);
+    setVideoNotice(res.ok ? "Walkthrough video saved and synced." : `Saved locally (${res.error ?? "sync warning"}).`);
+    setTimeout(() => setVideoNotice(""), 3500);
+  };
+
+  const handleUploadVideoFile = async (file: File) => {
+    if (!editingVideo) return;
+    setUploadingVideo(true);
+    setVideoNotice("");
+    const res = await uploadCourseVideo("platform-guides", file);
+    setUploadingVideo(false);
+    if (res.ok && res.url) {
+      setEditingVideo({ ...editingVideo, videoUrl: res.url });
+      setVideoNotice("Video uploaded! Click Save Video to publish it.");
+    } else {
+      setVideoNotice(res.error || "Video upload failed. You can also paste a YouTube/Vimeo/MP4 URL.");
+    }
+  };
+
   return (
-    <AdminShell title="Settings" subtitle="Manage your admin profile and platform data.">
+    <AdminShell title="Settings" subtitle="Manage your admin profile, walkthrough videos, and platform data.">
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-7">
           <h3 className="font-display text-lg font-bold text-ink">Admin profile</h3>
@@ -809,6 +855,162 @@ export function AdminSettings() {
           </Card>
         </div>
       </div>
+
+      {/* Walkthrough Videos (Student & Staff Guides) */}
+      <Card className="mt-6 p-7">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display text-lg font-bold text-ink flex items-center gap-2">
+              <Video className="h-5 w-5 text-brand" /> Platform Walkthrough Videos
+            </h3>
+            <p className="mt-1 text-sm text-muted">
+              Add YouTube, Vimeo, Cloudflare Stream, or MP4 video links for Student &amp; Staff Quick Guides.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              setEditingVideo({
+                id: `gv-${Date.now()}`,
+                audience: "student",
+                title: "",
+                description: "",
+                duration: "2 min",
+                videoUrl: "",
+                updatedAt: new Date().toISOString(),
+              })
+            }
+            className="btn-primary !py-2.5"
+          >
+            <Plus className="h-4 w-4" /> Add Video
+          </button>
+        </div>
+
+        {videoNotice && (
+          <p className="mt-3 rounded-xl bg-cream px-4 py-2 text-xs font-semibold text-brand">{videoNotice}</p>
+        )}
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {guideVideos.map((v) => (
+            <div key={v.id} className="flex flex-col justify-between rounded-2xl border border-line bg-cream/40 p-4">
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <Badge tone={v.audience === "staff" ? "amber" : "red"}>
+                    {v.audience === "staff" ? "Staff Guide" : "Student Guide"}
+                  </Badge>
+                  <span className="text-xs font-semibold text-muted">
+                    {v.videoUrl ? "Video linked" : "No video yet"}
+                  </span>
+                </div>
+                <p className="mt-2 font-display text-sm font-bold text-ink">{v.title}</p>
+                {v.description && <p className="mt-1 text-xs text-muted">{v.description}</p>}
+                {v.videoUrl && (
+                  <p className="mt-2 truncate text-[11px] font-mono text-ink/70">{v.videoUrl}</p>
+                )}
+              </div>
+              <div className="mt-4 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingVideo({ ...v })}
+                  className="btn-outline-dark !px-3 !py-1.5 !text-xs"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit / Add Link
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await deleteGuideVideo(v.id);
+                    setGuideVideos((prev) => prev.filter((item) => item.id !== v.id));
+                  }}
+                  className="rounded-xl border border-line px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5 inline mr-1" /> Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {editingVideo && (
+        <Modal
+          open={true}
+          onClose={() => setEditingVideo(null)}
+          title={editingVideo.title ? `Edit: ${editingVideo.title}` : "Add Walkthrough Video"}
+        >
+          <form onSubmit={handleSaveVideo} className="space-y-4">
+            <Select
+              label="Target Audience"
+              value={editingVideo.audience}
+              onChange={(val) => setEditingVideo({ ...editingVideo, audience: val as GuideAudience })}
+              options={[
+                { value: "student", label: "Student Dashboard (Help & Guide)" },
+                { value: "staff", label: "Staff / Admin Dashboard (Quick Guide)" },
+              ]}
+            />
+            <Field
+              label="Video Title"
+              value={editingVideo.title}
+              onChange={(val) => setEditingVideo({ ...editingVideo, title: val })}
+              placeholder="e.g. How to Check In with Live Class Codes"
+              required
+            />
+            <Field
+              label="Short Description"
+              value={editingVideo.description}
+              onChange={(val) => setEditingVideo({ ...editingVideo, description: val })}
+              placeholder="Briefly explain what this video covers"
+            />
+            <Field
+              label="Duration (optional)"
+              value={editingVideo.duration ?? ""}
+              onChange={(val) => setEditingVideo({ ...editingVideo, duration: val })}
+              placeholder="e.g. 2 min"
+            />
+            <Field
+              label="Video URL (YouTube, Vimeo, Cloudflare Stream, or MP4)"
+              value={editingVideo.videoUrl}
+              onChange={(val) => setEditingVideo({ ...editingVideo, videoUrl: val })}
+              placeholder="https://www.youtube.com/watch?v=... or https://..."
+            />
+
+            <div className="rounded-xl border border-dashed border-line bg-cream/50 p-3">
+              <label className="flex items-center justify-between gap-3 cursor-pointer text-xs font-semibold text-ink">
+                <span className="inline-flex items-center gap-2">
+                  <Upload className="h-4 w-4 text-brand" />
+                  {uploadingVideo ? "Uploading video..." : "Or upload an MP4/WebM video file directly"}
+                </span>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  className="hidden"
+                  disabled={uploadingVideo}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleUploadVideoFile(file);
+                  }}
+                />
+                <span className="rounded-lg bg-white px-2.5 py-1 text-[11px] font-bold text-brand border border-line">
+                  Choose File
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingVideo(null)}
+                className="btn-outline-dark !py-2.5"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={savingVideo || uploadingVideo} className="btn-primary !py-2.5">
+                <Save className="h-4 w-4" /> {savingVideo ? "Saving..." : "Save Video"}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </AdminShell>
   );
 }

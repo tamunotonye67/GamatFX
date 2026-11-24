@@ -6,6 +6,7 @@ import { downloadCertificate, type CertData } from "../../lib/certificate";
 import { formatAccountName, formatStudentName, capitalizeWord } from "../../lib/formatName";
 import { sendBirthdayEmail } from "../../lib/email";
 import { navigate } from "../../lib/router";
+import GuideVideoGrid from "../../components/GuideVideoGrid";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
   Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Cake,
@@ -221,6 +222,32 @@ export function AdminDashboard() {
                   </button>
                 </div>
               )}
+            </div>
+
+            <div className="mt-5 border-t border-line pt-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h4 className="font-display text-sm font-bold text-ink">Staff Walkthrough Videos</h4>
+                  <p className="text-xs text-muted">Short clips for Authors, Editors, and Managers.</p>
+                </div>
+                {(isAdmin || can("settings:manage")) && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/settings")}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    Add / Edit Videos <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <GuideVideoGrid
+                audience="staff"
+                emptyHint={
+                  isAdmin || can("settings:manage")
+                    ? "Paste a YouTube/Vimeo/MP4 link or upload a video in Admin → Settings."
+                    : "Staff walkthrough videos will appear here once uploaded by an admin."
+                }
+              />
             </div>
           </div>
         )}
