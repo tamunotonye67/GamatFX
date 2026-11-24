@@ -7231,40 +7231,46 @@ export default function WhiteboardPage() {
                         key={sample.id}
                         onClick={() => handleOpenSampleFromHub(sample.id)}
                         title={`Click to open "${sample.name}" template in Whiteboard`}
-                        className="group cursor-pointer rounded-3xl border border-line/80 hover:border-brand/60 bg-white overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand/10 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
+                        className="group cursor-pointer rounded-2xl border border-line hover:border-brand/60 bg-white overflow-hidden shadow-xs hover:shadow-2xl hover:shadow-brand/10 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
                       >
-                        {/* Interactive Diagram Preview Banner */}
-                        <div className="h-44 w-full border-b border-slate-800/80 bg-gradient-to-br from-slate-950 via-slate-900 to-[#14151a] relative overflow-hidden flex items-center justify-center">
-                          <div
-                            className="pointer-events-none absolute inset-0 opacity-20"
-                            style={{
-                              backgroundImage:
-                                "linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)",
-                              backgroundSize: "22px 22px",
-                            }}
-                          />
-                          <div className="relative z-[1] h-full w-full p-2 transition-transform duration-300 group-hover:scale-[1.03]">
-                            <HubDiagramThumbnail shapes={sample.shapes as unknown as Shape[]} />
-                          </div>
-                          <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
-                            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider">
+                        {/* Dark Trading-Terminal Preview Window */}
+                        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-[#14151a] border-b border-slate-800">
+                          {/* Window Header Bar */}
+                          <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 border-b border-white/10 bg-slate-950/70">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-white/85 truncate">
+                              <span className="h-2 w-2 rounded-full bg-brand shrink-0" />
                               {sample.tag}
                             </span>
-                            <span className={`px-2.5 py-1 rounded-full backdrop-blur-md border text-[10px] font-black uppercase tracking-wider ${
+                            <span className={`shrink-0 px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider ${
                               sample.difficulty === "Beginner"
-                                ? "bg-emerald-500/20 border-emerald-400/30 text-emerald-200"
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
                                 : sample.difficulty === "Intermediate"
-                                ? "bg-amber-500/20 border-amber-400/30 text-amber-200"
-                                : "bg-rose-500/20 border-rose-400/30 text-rose-200"
+                                ? "bg-amber-500/20 text-amber-300 border border-amber-400/30"
+                                : "bg-rose-500/20 text-rose-300 border border-rose-400/30"
                             }`}>
                               {sample.difficulty}
                             </span>
                           </div>
-                          {/* Sleek Tooltip indicator on hover */}
-                          <div className="absolute bottom-3 right-3 z-10 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none">
-                            <span className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-[11px] shadow-lg shadow-brand/30">
-                              Open in Canvas →
-                            </span>
+
+                          {/* Diagram Canvas */}
+                          <div className="h-40 w-full relative overflow-hidden flex items-center justify-center">
+                            <div
+                              className="pointer-events-none absolute inset-0 opacity-20"
+                              style={{
+                                backgroundImage:
+                                  "linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                                backgroundSize: "20px 20px",
+                              }}
+                            />
+                            <div className="relative z-[1] h-full w-full p-2 transition-transform duration-300 group-hover:scale-[1.03]">
+                              <HubDiagramThumbnail shapes={sample.shapes as unknown as Shape[]} />
+                            </div>
+                            {/* Hover CTA pill */}
+                            <div className="absolute bottom-2.5 right-2.5 z-10 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none">
+                              <span className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-[11px] shadow-lg shadow-brand/30">
+                                Open in Canvas →
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -18229,11 +18235,13 @@ function HubDiagramThumbnail({
     let maxY = -Infinity;
 
     shapes.forEach((s) => {
+      const padW = s.type === "sticky" ? 220 : s.type === "text" ? 140 : 0;
+      const padH = s.type === "sticky" ? 160 : s.type === "text" ? 24 : 0;
       s.points.forEach((p) => {
         if (p.x < minX) minX = p.x;
         if (p.y < minY) minY = p.y;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y > maxY) maxY = p.y;
+        if (p.x + padW > maxX) maxX = p.x + padW;
+        if (p.y + padH > maxY) maxY = p.y + padH;
       });
     });
 
@@ -18243,7 +18251,7 @@ function HubDiagramThumbnail({
 
     const contentW = Math.max(60, maxX - minX);
     const contentH = Math.max(40, maxY - minY);
-    const padding = 14;
+    const padding = 10;
     const viewW = 200;
     const viewH = 120;
     const availW = viewW - padding * 2;
@@ -18258,23 +18266,23 @@ function HubDiagramThumbnail({
 
     return (
       <svg className="w-full h-full" viewBox="0 0 200 120">
-        <rect width="200" height="120" fill="#f8fafc" />
-        {/* Subtle grid background */}
-        <circle cx="20" cy="20" r="0.75" fill="#cbd5e1" />
-        <circle cx="60" cy="20" r="0.75" fill="#cbd5e1" />
-        <circle cx="100" cy="20" r="0.75" fill="#cbd5e1" />
-        <circle cx="140" cy="20" r="0.75" fill="#cbd5e1" />
-        <circle cx="180" cy="20" r="0.75" fill="#cbd5e1" />
-        <circle cx="20" cy="60" r="0.75" fill="#cbd5e1" />
-        <circle cx="60" cy="60" r="0.75" fill="#cbd5e1" />
-        <circle cx="100" cy="60" r="0.75" fill="#cbd5e1" />
-        <circle cx="140" cy="60" r="0.75" fill="#cbd5e1" />
-        <circle cx="180" cy="60" r="0.75" fill="#cbd5e1" />
-        <circle cx="20" cy="100" r="0.75" fill="#cbd5e1" />
-        <circle cx="60" cy="100" r="0.75" fill="#cbd5e1" />
-        <circle cx="100" cy="100" r="0.75" fill="#cbd5e1" />
-        <circle cx="140" cy="100" r="0.75" fill="#cbd5e1" />
-        <circle cx="180" cy="100" r="0.75" fill="#cbd5e1" />
+        <rect width="200" height="120" fill="transparent" />
+        {/* Subtle grid dots */}
+        <circle cx="20" cy="20" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="60" cy="20" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="100" cy="20" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="140" cy="20" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="180" cy="20" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="20" cy="60" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="60" cy="60" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="100" cy="60" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="140" cy="60" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="180" cy="60" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="20" cy="100" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="60" cy="100" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="100" cy="100" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="140" cy="100" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
+        <circle cx="180" cy="100" r="0.75" fill="rgba(148, 163, 184, 0.25)" />
 
         {shapes.map((s, idx) => {
           const color = s.color || "#3b82f6";
