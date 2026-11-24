@@ -7377,63 +7377,69 @@ export default function WhiteboardPage() {
                     </div>
                   </div>
                 ) : hubLayout === "grid" ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     {filteredResources.map((res) => (
                       <div
                         key={res.id}
-                        className="group relative overflow-hidden rounded-3xl border border-line/80 bg-white p-6 shadow-sm hover:border-brand/50 hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between space-y-5"
+                        className="group rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-xs hover:border-brand/50 hover:shadow-xl hover:shadow-brand/5 transition-all duration-200 flex flex-col justify-between gap-5"
                       >
-                        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand via-amber-400 to-brand opacity-75 group-hover:opacity-100 transition-opacity" />
-
                         <div className="space-y-4">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand/10 text-brand border border-brand/15">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand/10 text-brand border border-brand/15">
                               {res.category}
                             </span>
-                            <span className="text-xs text-muted font-bold flex items-center gap-1.5 bg-cream px-2.5 py-1 rounded-full">
-                              <Clock className="h-3.5 w-3.5 text-brand" /> {res.readTime}
-                            </span>
+                            {res.readTime ? (
+                              <span className="text-[11px] text-muted font-bold flex items-center gap-1.5 bg-cream px-2.5 py-1 rounded-full border border-line">
+                                <Clock className="h-3 w-3 text-brand" /> {res.readTime}
+                              </span>
+                            ) : res.badge ? (
+                              <span className="text-[10px] text-ink/75 font-bold uppercase tracking-wider bg-cream px-2.5 py-1 rounded-full border border-line">
+                                {res.badge}
+                              </span>
+                            ) : null}
                           </div>
 
                           <div>
-                            <h3 className="font-display font-extrabold text-lg text-ink group-hover:text-brand transition-colors leading-snug">
+                            <h3 className="font-display font-extrabold text-base sm:text-lg text-ink group-hover:text-brand transition-colors leading-snug">
                               {res.title}
                             </h3>
                             <p className="text-xs text-muted mt-1.5 leading-relaxed font-medium">{res.desc}</p>
                           </div>
 
                           {/* Key Takeaways */}
-                          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-cream/60 border border-line/80 space-y-2.5">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-brand">
-                              Core Principles
-                            </p>
-                            <ul className="space-y-2 text-xs text-slate-700">
+                          <div className="rounded-xl border border-line bg-slate-50/80 overflow-hidden">
+                            <div className="px-3.5 py-2 border-b border-line bg-cream/60">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-brand">
+                                Core Principles
+                              </p>
+                            </div>
+                            <ul className="divide-y divide-line text-xs text-slate-700">
                               {res.points.map((pt, idx) => (
-                                <li key={idx} className="flex items-start gap-2.5">
+                                <li key={idx} className="px-3.5 py-2.5 flex items-center gap-2.5">
                                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white border border-line text-[10px] font-black text-brand shadow-2xs">
                                     {idx + 1}
                                   </span>
-                                  <span className="leading-relaxed font-medium pt-0.5">{pt}</span>
+                                  <span className="leading-snug font-medium">{pt}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-line flex flex-wrap items-center justify-between gap-2">
+                        <div className="pt-3 border-t border-line flex items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => handleCreateCanvasFromResource(res)}
-                            className="btn-primary !py-2.5 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand hover:bg-brand-dark text-white px-4 py-2.5 text-xs font-extrabold transition cursor-pointer shadow-xs"
                           >
                             <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedResource(res)}
-                            className="px-3 py-2 rounded-xl text-xs font-bold text-ink/75 hover:text-brand hover:bg-cream transition cursor-pointer"
+                            className="shrink-0 rounded-xl border border-line bg-cream hover:bg-white hover:border-brand/40 px-3.5 py-2.5 text-xs font-bold text-ink hover:text-brand transition cursor-pointer"
                           >
-                            View Full Details →
+                            Full Details →
                           </button>
                         </div>
                       </div>
