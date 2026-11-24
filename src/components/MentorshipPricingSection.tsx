@@ -204,11 +204,11 @@ export default function MentorshipPricingSection() {
 
         {/* Support Guarantee */}
         <div className="mt-12 rounded-2xl border border-line bg-white p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
             <ShieldCheck className="h-8 w-8 text-emerald-600 shrink-0" />
             <div>
               <p className="font-bold text-ink text-sm">Need help choosing the right mentorship plan?</p>
-              <p className="text-xs text-muted">Book a 1-on-1 consultation call with our team for personalized advice.</p>
+              <p className="text-xs text-muted mt-0.5 sm:mt-0">Book a 1-on-1 consultation call with our team for personalized advice.</p>
             </div>
           </div>
           <button
