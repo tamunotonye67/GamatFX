@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, X } from "lucide-react";
 import { CONTACT } from "../lib/contact";
 import { useStore } from "../lib/store";
 import { normalizeImageUrl, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
@@ -9,6 +9,13 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
   const { teamMembers } = useStore();
   const [arrowHovered, setArrowHovered] = useState(false);
   const [cycleIdx, setCycleIdx] = useState(0);
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem("gamat.yt_banner_dismissed.v1") === "true";
+    } catch {
+      return false;
+    }
+  });
 
   const publishedAvatars = (teamMembers || [])
     .filter((m) => m.status === "published" && m.image)
@@ -46,8 +53,10 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
   const speakerCountLabel =
     publishedAvatars.length > 0 ? `${publishedAvatars.length}+ mentors & speakers` : "10+ mentors & speakers";
 
+  if (dismissed) return null;
+
   return (
-    <div className={`rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
+    <div className={`group rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-line bg-white">
         {/* Left Red Animated Chartlines Visual Block */}
         <div className="relative h-20 md:h-28 w-full md:w-36 shrink-0 overflow-hidden rounded-t-xl md:rounded-t-none md:rounded-l-xl bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
@@ -232,13 +241,32 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
           </p>
         </div>
 
-        {/* Right CTA Button */}
-        <div className="px-4 pb-4 md:pb-0 md:pr-5 md:pl-2 shrink-0 flex items-center">
+        {/* Right CTA Button + Hover Dismiss X */}
+        <div className="px-4 pb-4 md:pb-0 md:pr-5 md:pl-2 shrink-0 flex items-center gap-2.5">
+          <div className="relative group/dismiss opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+            <div className="pointer-events-none absolute bottom-full right-0 mb-2.5 z-30 opacity-0 translate-y-1 group-hover/dismiss:opacity-100 group-hover/dismiss:translate-y-0 transition-all duration-150 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-medium text-ink shadow-lg whitespace-nowrap">
+              Dismiss GamatFX Live Sessions announcement
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDismissed(true);
+                try {
+                  sessionStorage.setItem("gamat.yt_banner_dismissed.v1", "true");
+                } catch {}
+              }}
+              aria-label="Dismiss GamatFX Live Sessions announcement"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-ink/70 hover:text-ink hover:border-ink/30 shadow-2xs transition cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
           <a
             href={CONTACT.youtube}
             target="_blank"
             rel="noreferrer"
-            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#ef3b47] to-brand-dark hover:from-brand hover:to-[#9b1c26] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand/25 transition active:scale-95 whitespace-nowrap"
+            className="flex-1 md:flex-none md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#ef3b47] to-brand-dark hover:from-brand hover:to-[#9b1c26] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand/25 transition active:scale-95 whitespace-nowrap"
           >
             Watch now
           </a>
