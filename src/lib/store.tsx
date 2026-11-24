@@ -2155,6 +2155,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const refreshOnLoginRef = useRef<(() => void) | null>(null);
+
   /* Load all entities from Supabase database, auto-seed if empty & subscribe to Realtime events */
   useEffect(() => {
     let lastFullSyncAt = 0;
@@ -2334,6 +2336,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
     };
 
+    refreshOnLoginRef.current = () => refreshAllFromSupabase(true);
+
     // 1. Fetch initial records
     refreshAllFromSupabase(true);
 
@@ -2386,6 +2390,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       Object.values(tableTimers).forEach((t) => clearTimeout(t));
     };
   }, [reconcileAccountsWithSupabase]);
+
+  useEffect(() => {
+    if (sessionId) {
+      refreshOnLoginRef.current?.();
+    }
+  }, [sessionId]);
 
   const account = useMemo(() => accounts.find((a) => a.id === sessionId) ?? null, [accounts, sessionId]);
   const user: User | null = useMemo(() => {

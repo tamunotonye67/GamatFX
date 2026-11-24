@@ -183,7 +183,7 @@ function saveCompletedRecord(rec: CompletedRecord) {
 }
 
 /** Inserts (or updates when linking a user) a discovery response in Supabase so it reflects across all devices and admin sessions. */
-export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isUpdate = false): Promise<void> {
+export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isUpdate = false): Promise<boolean> {
   const payload = {
     id: resp.id,
     ref: resp.sourceId,
@@ -201,18 +201,19 @@ export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isU
     created_at: resp.createdAt,
   };
   try {
-    const { error } = isUpdate
-      ? await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" })
-      : await supabase.from("service_enquiries").insert(payload);
+    const { error } = await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" });
     if (error && error.code !== "23505") {
       console.error("Supabase discovery response save error:", error);
+      return false;
     }
+    return true;
   } catch (err) {
     console.warn("Supabase discovery response save notice:", err);
+    return false;
   }
 }
 
-/** Fetches all discovery survey responses from Supabase and merges them with local responses. */
+/** Fetches all discovery survey responses from Supabase and syncs local storage to the canonical list. */
 export async function fetchSupabaseDiscoveryResponses(): Promise<DiscoveryResponse[]> {
   const local = loadDiscoveryResponses();
   try {
@@ -222,7 +223,7 @@ export async function fetchSupabaseDiscoveryResponses(): Promise<DiscoveryRespon
       .eq("service_slug", SUPABASE_DISCOVERY_SLUG)
       .order("created_at", { ascending: false });
 
-    if (error || !data) {
+    if (error || !Array.isArray(data)) {
       return local;
     }
 
@@ -249,15 +250,20 @@ export async function fetchSupabaseDiscoveryResponses(): Promise<DiscoveryRespon
     });
 
     // Push any local responses that haven't been synced to Supabase yet
-    for (const loc of local) {
-      if (!remoteIds.has(loc.id)) {
-        saveSupabaseDiscoveryResponse(loc);
+    const unsynced = local.filter((loc) => !remoteIds.has(loc.id));
+    const pushedItems: DiscoveryResponse[] = [];
+    if (unsynced.length > 0) {
+      const results = await Promise.all(
+        unsynced.map(async (loc) => ((await saveSupabaseDiscoveryResponse(loc)) ? loc : null))
+      );
+      for (const item of results) {
+        if (item) pushedItems.push(item);
       }
     }
 
     const map = new Map<string, DiscoveryResponse>();
     remoteItems.forEach((item) => map.set(item.id, item));
-    local.forEach((item) => {
+    pushedItems.forEach((item) => {
       if (!map.has(item.id)) {
         map.set(item.id, item);
       }
