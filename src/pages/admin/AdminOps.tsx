@@ -948,9 +948,9 @@ export function AdminSettings() {
               value={editingVideo.audience}
               onChange={(val) => setEditingVideo({ ...editingVideo, audience: val as GuideAudience })}
               options={[
-                { value: "student", label: "Student Dashboard (Help & Guide)" },
-                { value: "staff", label: "Staff / Admin Dashboard (Quick Guide)" },
-                { value: "whiteboard", label: "Whiteboard Hub (Learn Workspace)" },
+                { v: "student", l: "Student Dashboard (Help & Guide)" },
+                { v: "staff", l: "Staff / Admin Dashboard (Quick Guide)" },
+                { v: "whiteboard", l: "Whiteboard Hub (Learn Workspace)" },
               ]}
             />
             <Field
