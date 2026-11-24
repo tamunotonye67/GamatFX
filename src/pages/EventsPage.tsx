@@ -852,7 +852,7 @@ export default function EventsPage() {
         </div>
       </section>
 
-      <section className="bg-cream pt-10 -mb-6">
+      <section className="bg-cream pt-10 pb-2">
         <div className="container-x">
           <YoutubeSessionsBanner />
         </div>

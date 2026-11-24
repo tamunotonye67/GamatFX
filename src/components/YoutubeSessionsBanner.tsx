@@ -57,9 +57,9 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
 
   return (
     <div className={`group mx-auto max-w-4xl rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-line bg-white">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-xl border border-line bg-white">
         {/* Left Red Animated Chartlines Visual Block */}
-        <div className="relative h-20 md:h-28 w-full md:w-36 shrink-0 overflow-hidden rounded-t-xl md:rounded-t-none md:rounded-l-xl bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
+        <div className="relative h-20 md:h-[88px] w-full md:w-32 shrink-0 overflow-hidden rounded-t-[11px] md:rounded-t-none md:rounded-l-[11px] bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
           <svg
             viewBox="0 0 160 120"
             className="absolute inset-0 h-full w-full pointer-events-none"
@@ -180,9 +180,9 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
         </div>
 
         {/* Middle Title + Stacked Avatars + Description */}
-        <div className="min-w-0 flex-1 px-4 md:px-2 py-1 md:py-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="font-display text-base sm:text-lg font-extrabold text-ink tracking-tight">
+        <div className="min-w-0 flex-1 px-4 md:px-1.5 py-1 md:py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-display text-sm sm:text-[15px] font-extrabold text-ink tracking-tight">
               Watch replays from GamatFX Live Sessions
             </h3>
 
@@ -256,7 +256,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
                 } catch {}
               }}
               aria-label="Dismiss GamatFX Live Sessions announcement"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white text-ink/70 hover:text-ink hover:border-ink/30 shadow-2xs transition cursor-pointer"
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-line bg-white text-ink/70 hover:text-ink hover:border-ink/30 shadow-2xs transition cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -266,7 +266,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
             href={CONTACT.youtube}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 md:flex-none md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#ef3b47] to-brand-dark hover:from-brand hover:to-[#9b1c26] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand/25 transition active:scale-95 whitespace-nowrap"
+            className="flex-1 md:flex-none md:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#ef3b47] to-brand-dark hover:from-brand hover:to-[#9b1c26] px-4 py-2 text-xs font-bold text-white shadow-md shadow-brand/25 transition active:scale-95 whitespace-nowrap"
           >
             Watch now
           </a>
