@@ -5,13 +5,11 @@ import { formatStudentName, formatAffiliateCardName } from "../../lib/formatName
 import {
   type AffiliateProfile,
   type PayoutRequest,
-  type AffiliateCommission,
   type AffiliateSettings,
   getSignupReferralUrl,
 } from "../../lib/affiliate";
 import {
   Users,
-  DollarSign,
   TrendingUp,
   CreditCard,
   Search,
@@ -19,12 +17,7 @@ import {
   XCircle,
   Clock,
   Download,
-  Sliders,
-  ExternalLink,
-  Tag,
-  ShieldCheck,
   Check,
-  AlertCircle,
   Eye,
   Copy,
 } from "lucide-react";
@@ -59,7 +52,6 @@ export function AdminAffiliates() {
 
   // Stats calculations
   const totalAffiliateRevenue = affiliateCommissions.reduce((sum, c) => sum + (c.orderAmount || 0), 0);
-  const totalCommissionsEarned = affiliateCommissions.reduce((sum, c) => sum + (c.commissionAmount || 0), 0);
   const totalPaidOut = payoutRequests
     .filter((p) => p.status === "paid")
     .reduce((sum, p) => sum + (p.amount || 0), 0);

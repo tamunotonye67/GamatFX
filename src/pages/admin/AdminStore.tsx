@@ -3,13 +3,13 @@ import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Empty, exportCsv, 
 import { Th, Td, IconBtn } from "./AdminMain";
 import { useStore } from "../../lib/store";
 import { naira, compactNaira } from "../../lib/courses";
-import { type StoreProduct, type StoreProductCategory } from "../../lib/storeProducts";
+import { type StoreProduct } from "../../lib/storeProducts";
 import { uploadStoreFile, uploadStoreAsset } from "../../lib/supabaseStorage";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
   ShoppingBag, Plus, Pencil, Trash2, Eye, EyeOff, Bot, LineChart,
   BookOpen, Target, Package, LayoutGrid, Download, CheckCircle2, DollarSign,
-  Clock, Gift, Upload, Image as ImageIcon, X, FileText, Loader2, Link2, ExternalLink, ArrowLeftRight
+  Clock, Gift, Upload, Image as ImageIcon, X, FileText, Loader2, Link2, ArrowLeftRight
 } from "lucide-react";
 
 export function AdminStore() {
@@ -21,7 +21,6 @@ export function AdminStore() {
   // Modals
   const [editing, setEditing] = useState<StoreProduct | null>(null);
   const [creating, setCreating] = useState(false);
-  const [viewing, setViewing] = useState<StoreProduct | null>(null);
 
   const products = admin.storeProducts || [];
 

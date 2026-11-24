@@ -448,13 +448,41 @@ export function AdminAnalytics() {
 
       {/* Discovery Survey Attribution ("How did you hear about us?") */}
       {(() => {
+        const accountById = new Map<string, typeof accounts[number]>();
+        const accountByEmail = new Map<string, typeof accounts[number]>();
+        accounts.forEach((a) => {
+          accountById.set(a.id, a);
+          if (a.email) accountByEmail.set(a.email.trim().toLowerCase(), a);
+        });
+        const paidUserIds = new Set<string>();
+        payments.forEach((p) => {
+          if (p.status === "paid" && p.userId) paidUserIds.add(p.userId);
+        });
+
         const totalResp = discoveryList.length;
         const counts = DISCOVERY_OPTIONS.map((opt) => {
-          const count = discoveryList.filter(
+          const matched = discoveryList.filter(
             (r) => normalizeDiscoverySourceId(r.sourceId, r.sourceLabel) === opt.id
-          ).length;
+          );
+          const count = matched.length;
           const pct = totalResp ? Math.round((count / totalResp) * 100) : 0;
-          return { ...opt, count, pct };
+
+          let registeredCount = 0;
+          let paidCount = 0;
+          matched.forEach((r) => {
+            const cleanEmail = r.userEmail?.trim().toLowerCase();
+            const acc =
+              (r.userId ? accountById.get(r.userId) : undefined) ||
+              (cleanEmail ? accountByEmail.get(cleanEmail) : undefined);
+            if (acc || r.visitorType === "new_student") {
+              registeredCount += 1;
+            }
+            if (acc && paidUserIds.has(acc.id)) {
+              paidCount += 1;
+            }
+          });
+          const conversionPct = count ? Math.round((paidCount / count) * 100) : 0;
+          return { ...opt, count, pct, registeredCount, paidCount, conversionPct };
         }).sort((a, b) => b.count - a.count);
 
         return (
@@ -464,10 +492,10 @@ export function AdminAnalytics() {
                 <div className="min-w-0">
                   <h3 className="font-display text-base font-bold text-ink flex items-center gap-2">
                     <Compass className="h-5 w-5 shrink-0 text-brand" />
-                    <span>Acquisition Channels</span>
+                    <span>Acquisition Channels &amp; Conversion</span>
                   </h3>
                   <p className="text-xs text-muted mt-1">
-                    Responses collected from the newcomer &amp; visitor discovery popup across the platform.
+                    Responses collected from the newcomer &amp; visitor discovery popup, matched against signups and paid enrollments.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -493,6 +521,14 @@ export function AdminAnalytics() {
                       <span className="text-brand">{c.pct}%</span>
                     </div>
                     <div className="mt-1 text-[11px] text-muted">{c.count} {c.count === 1 ? "person" : "people"}</div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-medium">
+                      <span className="rounded-md border border-line/80 bg-white px-1.5 py-0.5 text-ink/80">
+                        {c.registeredCount} signed up
+                      </span>
+                      <span className="rounded-md border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-emerald-700">
+                        {c.paidCount} paid ({c.conversionPct}%)
+                      </span>
+                    </div>
                     <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-line">
                       <div
                         className="h-full rounded-full bg-brand transition-all duration-500"

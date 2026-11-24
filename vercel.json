@@ -15,7 +15,7 @@
       ],
       "destination": "/api/preview?path=/$1"
     },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|images/|favicon\\.svg).*)", "destination": "/index.html" }
   ],
   "crons": [
     { "path": "/api/event-reminders", "schedule": "0 8 * * *" }

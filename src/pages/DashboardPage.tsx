@@ -1039,7 +1039,26 @@ export default function DashboardPage() {
                     <p className="text-[9px] uppercase tracking-wide text-muted font-semibold">Ticket</p>
                     <p className="font-display text-xs sm:text-sm font-extrabold text-brand">{r.ticket}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {r.status === "confirmed" && r.checkedIn && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          downloadCertificate(
+                            {
+                              name: (user ? `${user.firstName} ${user.lastName}`.trim() : "") || r.name,
+                              course: `${r.eventTitle} — Attendance`,
+                              date: r.eventDate,
+                              serial: `EVT-${r.ticket}`,
+                            },
+                            store.publishedTeam
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
+                      >
+                        <Award className="h-3.5 w-3.5" /> Attendance Certificate
+                      </button>
+                    )}
                     {r.status === "confirmed" && !r.seatConfirmed && !r.checkedIn && (
                       <button
                         type="button"

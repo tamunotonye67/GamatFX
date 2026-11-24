@@ -12,7 +12,7 @@ import { type Quiz, type Question } from "../../lib/quizzes";
 import { uploadCourseAsset, uploadCourseVideo } from "../../lib/supabaseStorage";
 import { normalizeImageUrl, handleImageError, DEFAULT_FALLBACK_IMAGES } from "../../lib/imageUrl";
 import {
-  BookOpen, Plus, Pencil, Trash2, Save, Download, CheckCircle2, EyeOff,
+  BookOpen, Plus, Pencil, Trash2, Save, Download, CheckCircle2,
   GraduationCap, LineChart, Brain, Target, Shield, Award, Rocket,
   TrendingUp, BarChart3, Layers, Upload, Link2, Video, ChevronDown, ChevronUp,
   FileQuestion, AlertCircle,
@@ -86,7 +86,7 @@ function isValidVideoFile(file: File): boolean {
 export function AdminCourseManager() {
   const {
     managedCourses, saveManagedCourse, deleteManagedCourse,
-    getCourseQuiz, saveCourseQuiz, deleteCourseQuiz, customQuizzes,
+    getCourseQuiz, saveCourseQuiz,
   } = useStore();
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<Draft | null>(null);

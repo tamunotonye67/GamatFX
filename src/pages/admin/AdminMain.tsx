@@ -8,7 +8,7 @@ import { sendBirthdayEmail } from "../../lib/email";
 import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
-  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Trophy, Cake,
+  Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Cake,
 } from "lucide-react";
 
 /* ============================= Dashboard ============================= */

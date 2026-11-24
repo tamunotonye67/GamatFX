@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import Logo from "../../components/Logo";
 import { navigate, useRoute } from "../../lib/router";
 import { useStore, type ActivityNotification } from "../../lib/store";

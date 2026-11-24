@@ -1,4 +1,4 @@
-import React, { useEffect, Component, type ErrorInfo, type ReactNode } from "react";
+import React, { useEffect, Suspense, lazy, Component, type ErrorInfo, type ReactNode } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -6,9 +6,6 @@ import AboutUs from "./pages/AboutUs";
 import CommunityPage from "./pages/CommunityPage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import LearnPage from "./pages/LearnPage";
-import DashboardPage from "./pages/DashboardPage";
 import ServicesPage from "./pages/ServicesPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import EventsPage from "./pages/EventsPage";
@@ -17,46 +14,80 @@ import FaqPage from "./pages/FaqPage";
 import ContactPage from "./pages/ContactPage";
 import { TermsPage, PrivacyPage } from "./pages/LegalPage";
 import { LoginPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/AuthPage";
-import { AdminDashboard, AdminStudents, AdminCourses } from "./pages/admin/AdminMain";
-import { AdminPayments, AdminEvents, AdminRegistrations, AdminSettings } from "./pages/admin/AdminOps";
-import { AdminEnquiries } from "./pages/admin/AdminEnquiries";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
-import { BlogPage, BlogPostPage } from "./pages/BlogPage";
-import { ForumPage, ForumChannelPage, ForumThreadPage } from "./pages/ForumPage";
-import { AdminStaff, AdminPosts } from "./pages/admin/AdminStaff";
-import { AdminBroadcast } from "./pages/admin/AdminBroadcast";
-import VerifyCertificatePage from "./pages/VerifyCertificatePage";
-import QuizPage from "./pages/QuizPage";
-import FunZonePage from "./pages/fun/FunZonePage";
-import QuizArcadePage from "./pages/fun/QuizArcadePage";
-import MillionairePage from "./pages/fun/MillionairePage";
-import LiveChartPage from "./pages/fun/LiveChartPage";
-import MarketCombatPage from "./pages/fun/MarketCombatPage";
-import HistofactPage from "./pages/fun/HistofactPage";
-import ClubBuilderPage from "./pages/fun/ClubBuilderPage";
-import { NewsPage, NewsDetailPage } from "./pages/NewsPage";
-import { OutlookPage, OutlookDetailPage } from "./pages/OutlookPage";
-import { AdminNews, AdminOutlooks, AdminCourseManager } from "./pages/admin/AdminUpdates";
-import MentorPage from "./pages/MentorPage";
-import MentorshipSurveyPage from "./pages/MentorshipSurveyPage";
-import { GiveawaysPage, GiveawayDetailPage } from "./pages/GiveawaysPage";
-import { AdminGiveaways } from "./pages/admin/AdminGiveaways";
-import { TeamPage, TeamMemberPage } from "./pages/TeamPages";
-import { AdminTeam } from "./pages/admin/AdminTeam";
-import { StudentOfTheWeekPage } from "./pages/fun/StudentOfTheWeekPage";
-import { AdminStudentOfTheWeek } from "./pages/admin/AdminStudentOfTheWeek";
-import { AdminCoupons } from "./pages/admin/AdminCoupons";
-import { AdminAnalytics } from "./pages/admin/AdminAnalytics";
-import { AdminInvoices, AdminCompanyAssets } from "./pages/admin/AdminInvoicesAndAssets";
-import { AdminWhiteboard } from "./pages/admin/AdminWhiteboard";
-import WhiteboardPage from "./pages/WhiteboardPage";
-import StorePage from "./pages/StorePage";
-import { AdminStore } from "./pages/admin/AdminStore";
-import { AdminAffiliates } from "./pages/admin/AdminAffiliates";
 import { captureReferralFromUrl } from "./lib/affiliate";
 import { useStore } from "./lib/store";
 import { useRoute, segments } from "./lib/router";
 import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
+
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const LearnPage = lazy(() => import("./pages/LearnPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const QuizPage = lazy(() => import("./pages/QuizPage"));
+const VerifyCertificatePage = lazy(() => import("./pages/VerifyCertificatePage"));
+const WhiteboardPage = lazy(() => import("./pages/WhiteboardPage"));
+const StorePage = lazy(() => import("./pages/StorePage"));
+const MentorPage = lazy(() => import("./pages/MentorPage"));
+const MentorshipSurveyPage = lazy(() => import("./pages/MentorshipSurveyPage"));
+
+const BlogPage = lazy(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPage })));
+const BlogPostPage = lazy(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPostPage })));
+const ForumPage = lazy(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumPage })));
+const ForumChannelPage = lazy(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumChannelPage })));
+const ForumThreadPage = lazy(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumThreadPage })));
+const NewsPage = lazy(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsPage })));
+const NewsDetailPage = lazy(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsDetailPage })));
+const OutlookPage = lazy(() => import("./pages/OutlookPage").then((m) => ({ default: m.OutlookPage })));
+const OutlookDetailPage = lazy(() => import("./pages/OutlookPage").then((m) => ({ default: m.OutlookDetailPage })));
+const GiveawaysPage = lazy(() => import("./pages/GiveawaysPage").then((m) => ({ default: m.GiveawaysPage })));
+const GiveawayDetailPage = lazy(() => import("./pages/GiveawaysPage").then((m) => ({ default: m.GiveawayDetailPage })));
+const TeamPage = lazy(() => import("./pages/TeamPages").then((m) => ({ default: m.TeamPage })));
+const TeamMemberPage = lazy(() => import("./pages/TeamPages").then((m) => ({ default: m.TeamMemberPage })));
+
+const FunZonePage = lazy(() => import("./pages/fun/FunZonePage"));
+const QuizArcadePage = lazy(() => import("./pages/fun/QuizArcadePage"));
+const MillionairePage = lazy(() => import("./pages/fun/MillionairePage"));
+const LiveChartPage = lazy(() => import("./pages/fun/LiveChartPage"));
+const MarketCombatPage = lazy(() => import("./pages/fun/MarketCombatPage"));
+const HistofactPage = lazy(() => import("./pages/fun/HistofactPage"));
+const ClubBuilderPage = lazy(() => import("./pages/fun/ClubBuilderPage"));
+const StudentOfTheWeekPage = lazy(() => import("./pages/fun/StudentOfTheWeekPage").then((m) => ({ default: m.StudentOfTheWeekPage })));
+
+const AdminDashboard = lazy(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminDashboard })));
+const AdminStudents = lazy(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminStudents })));
+const AdminCourses = lazy(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminCourses })));
+const AdminPayments = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminPayments })));
+const AdminEvents = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminEvents })));
+const AdminRegistrations = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminRegistrations })));
+const AdminSettings = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminSettings })));
+const AdminEnquiries = lazy(() => import("./pages/admin/AdminEnquiries").then((m) => ({ default: m.AdminEnquiries })));
+const AdminStaff = lazy(() => import("./pages/admin/AdminStaff").then((m) => ({ default: m.AdminStaff })));
+const AdminPosts = lazy(() => import("./pages/admin/AdminStaff").then((m) => ({ default: m.AdminPosts })));
+const AdminBroadcast = lazy(() => import("./pages/admin/AdminBroadcast").then((m) => ({ default: m.AdminBroadcast })));
+const AdminNews = lazy(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminNews })));
+const AdminOutlooks = lazy(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminOutlooks })));
+const AdminCourseManager = lazy(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminCourseManager })));
+const AdminGiveaways = lazy(() => import("./pages/admin/AdminGiveaways").then((m) => ({ default: m.AdminGiveaways })));
+const AdminTeam = lazy(() => import("./pages/admin/AdminTeam").then((m) => ({ default: m.AdminTeam })));
+const AdminStudentOfTheWeek = lazy(() => import("./pages/admin/AdminStudentOfTheWeek").then((m) => ({ default: m.AdminStudentOfTheWeek })));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons").then((m) => ({ default: m.AdminCoupons })));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
+const AdminInvoices = lazy(() => import("./pages/admin/AdminInvoicesAndAssets").then((m) => ({ default: m.AdminInvoices })));
+const AdminCompanyAssets = lazy(() => import("./pages/admin/AdminInvoicesAndAssets").then((m) => ({ default: m.AdminCompanyAssets })));
+const AdminWhiteboard = lazy(() => import("./pages/admin/AdminWhiteboard").then((m) => ({ default: m.AdminWhiteboard })));
+const AdminStore = lazy(() => import("./pages/admin/AdminStore").then((m) => ({ default: m.AdminStore })));
+const AdminAffiliates = lazy(() => import("./pages/admin/AdminAffiliates").then((m) => ({ default: m.AdminAffiliates })));
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center p-8">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+        <span className="text-xs font-medium text-muted">Loading...</span>
+      </div>
+    </div>
+  );
+}
 
 export class ErrorBoundary extends Component<{ children?: ReactNode }, { hasError: boolean; error: Error | null }> {
   public state = {
@@ -235,10 +266,12 @@ export default function App() {
     content = <Page />;
   }
 
+  const suspendedContent = <Suspense fallback={<PageLoader />}>{content}</Suspense>;
+
   if (route === "/whiteboard") {
     return (
       <ErrorBoundary>
-        <div className="min-h-screen bg-slate-900">{content}</div>
+        <div className="min-h-screen bg-slate-900">{suspendedContent}</div>
       </ErrorBoundary>
     );
   }
@@ -252,7 +285,7 @@ export default function App() {
     if (isAdminRoute || isAuthRoute) {
       return (
         <ErrorBoundary>
-          <div className="min-h-screen bg-cream">{content}</div>
+          <div className="min-h-screen bg-cream">{suspendedContent}</div>
         </ErrorBoundary>
       );
     }
@@ -260,7 +293,7 @@ export default function App() {
     if (route.startsWith("/learn")) {
       return (
         <ErrorBoundary>
-          <div className="h-dvh w-full overflow-hidden bg-ink">{content}</div>
+          <div className="h-dvh w-full overflow-hidden bg-ink">{suspendedContent}</div>
         </ErrorBoundary>
       );
     }
@@ -268,7 +301,7 @@ export default function App() {
     return (
       <ErrorBoundary>
         <div className="flex min-h-screen flex-col bg-cream overflow-x-clip w-full max-w-full">
-          <div className="flex-1 w-full max-w-full overflow-x-clip">{content}</div>
+          <div className="flex-1 w-full max-w-full overflow-x-clip">{suspendedContent}</div>
           <div className="border-t border-line bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50">
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
@@ -283,7 +316,7 @@ export default function App() {
       <div className="flex min-h-screen flex-col bg-cream overflow-x-clip w-full max-w-full">
         <Navbar />
         <main key={route} className="flex-1 w-full max-w-full overflow-x-clip animate-[fadeIn_.35s_ease]">
-          {content}
+          {suspendedContent}
         </main>
         {route === "/verify-email" ? null : slimFooter ? (
           <footer className="border-t border-white/10 bg-ink px-4 sm:px-6 py-4 text-center text-[11px] sm:text-xs text-white/50">

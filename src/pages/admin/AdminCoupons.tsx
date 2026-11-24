@@ -6,7 +6,6 @@ import { COURSES, naira } from "../../lib/courses";
 import { SEED_STORE_PRODUCTS } from "../../lib/storeProducts";
 import {
   Tag, Plus, Pencil, Trash2, Download, CheckCircle2, Percent, Copy, Check, Calendar, Ticket,
-  Box, BookOpen,
 } from "lucide-react";
 
 type Draft = Partial<Coupon>;

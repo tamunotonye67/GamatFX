@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { AdminShell, Card, StatCard, Badge, SearchBar, Modal, Field, Select, Empty } from "./AdminShell";
+import { AdminShell, Card, StatCard, SearchBar, Modal, Empty } from "./AdminShell";
 import {
   getStoredSamples, saveStoredSamples, resetSamplesToDefault,
   getStoredResources, saveStoredResources, resetResourcesToDefault,
@@ -9,8 +9,7 @@ import {
 import { navigate } from "../../lib/router";
 import {
   Presentation, LayoutTemplate, BookOpen, Library, Plus, Pencil, Trash2,
-  RotateCcw, ExternalLink, Check, Copy, AlertTriangle, Layers,
-  FileSpreadsheet, ShieldAlert, SlidersHorizontal
+  RotateCcw, ExternalLink, Check, Layers
 } from "lucide-react";
 
 function FormItem({
@@ -717,7 +716,7 @@ export function AdminWhiteboard() {
             <Empty
               icon={LayoutTemplate}
               title="No templates found"
-              subtitle="No sample templates matched your search criteria. Click 'Add New Template' to create one."
+              body="No sample templates matched your search criteria. Click 'Add New Template' to create one."
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -792,7 +791,7 @@ export function AdminWhiteboard() {
             <Empty
               icon={BookOpen}
               title="No resources found"
-              subtitle="No resource guides matched your search criteria. Click 'Add New Resource' to publish one."
+              body="No resource guides matched your search criteria. Click 'Add New Resource' to publish one."
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -864,7 +863,7 @@ export function AdminWhiteboard() {
             <Empty
               icon={Library}
               title="No playbook guides found"
-              subtitle="No playbook lessons matched your search query. Click 'Add Playbook Lesson' to add one."
+              body="No playbook lessons matched your search query. Click 'Add Playbook Lesson' to add one."
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
