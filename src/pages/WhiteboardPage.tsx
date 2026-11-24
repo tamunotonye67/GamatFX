@@ -5828,7 +5828,7 @@ export default function WhiteboardPage() {
         },
       ];
     } else {
-      const palette = ["#bae6fd", "#bbf7d0", "#e9d5ff", "#fed7aa"];
+      const palette: StickyColor[] = ["#bae6fd", "#bbf7d0", "#ddd6fe", "#fef08a"];
       const headerX = 360;
       const headerY = 60;
       const pointCards: Shape[] = resource.points.slice(0, 6).flatMap((pt, idx) => {

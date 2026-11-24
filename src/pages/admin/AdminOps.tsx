@@ -957,26 +957,25 @@ export function AdminSettings() {
               label="Video Title"
               value={editingVideo.title}
               onChange={(val) => setEditingVideo({ ...editingVideo, title: val })}
-              placeholder="e.g. How to Check In with Live Class Codes"
-              required
+              ph="e.g. How to Check In with Live Class Codes"
             />
             <Field
               label="Short Description"
               value={editingVideo.description}
               onChange={(val) => setEditingVideo({ ...editingVideo, description: val })}
-              placeholder="Briefly explain what this video covers"
+              ph="Briefly explain what this video covers"
             />
             <Field
               label="Duration (optional)"
               value={editingVideo.duration ?? ""}
               onChange={(val) => setEditingVideo({ ...editingVideo, duration: val })}
-              placeholder="e.g. 2 min"
+              ph="e.g. 2 min"
             />
             <Field
               label="Video URL (YouTube, Vimeo, Cloudflare Stream, or MP4)"
               value={editingVideo.videoUrl}
               onChange={(val) => setEditingVideo({ ...editingVideo, videoUrl: val })}
-              placeholder="https://www.youtube.com/watch?v=... or https://..."
+              ph="https://www.youtube.com/watch?v=... or https://..."
             />
 
             <div className="rounded-xl border border-dashed border-line bg-cream/50 p-3">

@@ -6,7 +6,7 @@ import { normalizeImageUrl, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
 import { PRESET_AVATARS } from "../lib/avatars";
 
 export default function YoutubeSessionsBanner({ className = "" }: { className?: string }) {
-  const { teamMembers } = useStore();
+  const { publishedTeam } = useStore();
   const [arrowHovered, setArrowHovered] = useState(false);
   const [cycleIdx, setCycleIdx] = useState(0);
   const [dismissed, setDismissed] = useState<boolean>(() => {
@@ -17,11 +17,11 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
     }
   });
 
-  const publishedAvatars = (teamMembers || [])
-    .filter((m) => m.status === "published" && m.image)
+  const publishedAvatars = (publishedTeam || [])
+    .filter((m) => m.avatar)
     .map((m, idx) => ({
       name: m.name,
-      src: normalizeImageUrl(m.image, PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar),
+      src: normalizeImageUrl(m.avatar, PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar),
       fallback: PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar,
     }));
 
