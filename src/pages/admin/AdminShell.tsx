@@ -239,7 +239,7 @@ export function AdminShell({ title, subtitle, action, children }: {
   });
 
   return (
-    <div className="min-h-screen w-full overflow-x-clip overscroll-y-none touch-pan-y bg-cream">
+    <div className="min-h-screen w-full overflow-x-clip bg-cream">
       {/* Sidebar - Fixed to viewport with preserved scroll position */}
       <aside
         ref={asideRef}
@@ -337,7 +337,7 @@ export function AdminShell({ title, subtitle, action, children }: {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-clip overscroll-y-none touch-pan-y pt-[72px] lg:pl-64">
+      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-clip pt-[72px] lg:pl-64">
         <div className="min-w-0 w-full flex-1">
           <main className="min-w-0 w-full p-4 sm:p-5 lg:p-8">
             {notifOpen ? (
