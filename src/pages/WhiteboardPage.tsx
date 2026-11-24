@@ -7152,46 +7152,61 @@ export default function WhiteboardPage() {
                         key={sample.id}
                         onClick={() => handleOpenSampleFromHub(sample.id)}
                         title={`Click to open "${sample.name}" template in Whiteboard`}
-                        className="group cursor-pointer rounded-2xl border border-line hover:border-brand/60 bg-white overflow-hidden shadow-xs hover:shadow-xl transition-all hover:-translate-y-1 flex flex-col justify-between"
+                        className="group cursor-pointer rounded-3xl border border-line/80 hover:border-brand/60 bg-white overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand/10 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between"
                       >
                         {/* Interactive Diagram Preview Banner */}
-                        <div className="h-40 w-full border-b border-line bg-slate-50 relative overflow-hidden flex items-center justify-center">
-                          <HubDiagramThumbnail shapes={sample.shapes as unknown as Shape[]} />
-                          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-black uppercase tracking-wider">
+                        <div className="h-44 w-full border-b border-slate-800/80 bg-gradient-to-br from-slate-950 via-slate-900 to-[#14151a] relative overflow-hidden flex items-center justify-center">
+                          <div
+                            className="pointer-events-none absolute inset-0 opacity-20"
+                            style={{
+                              backgroundImage:
+                                "linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                              backgroundSize: "22px 22px",
+                            }}
+                          />
+                          <div className="relative z-[1] h-full w-full p-2 transition-transform duration-300 group-hover:scale-[1.03]">
+                            <HubDiagramThumbnail shapes={sample.shapes as unknown as Shape[]} />
+                          </div>
+                          <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider">
                               {sample.tag}
                             </span>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                              sample.difficulty === "Beginner" ? "bg-emerald-100 text-emerald-800" :
-                              sample.difficulty === "Intermediate" ? "bg-amber-100 text-amber-800" :
-                              "bg-purple-100 text-purple-800"
+                            <span className={`px-2.5 py-1 rounded-full backdrop-blur-md border text-[10px] font-black uppercase tracking-wider ${
+                              sample.difficulty === "Beginner"
+                                ? "bg-emerald-500/20 border-emerald-400/30 text-emerald-200"
+                                : sample.difficulty === "Intermediate"
+                                ? "bg-amber-500/20 border-amber-400/30 text-amber-200"
+                                : "bg-rose-500/20 border-rose-400/30 text-rose-200"
                             }`}>
                               {sample.difficulty}
                             </span>
                           </div>
                           {/* Sleek Tooltip indicator on hover */}
-                          <div className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                            <span className="px-2.5 py-1 rounded-lg bg-slate-900/90 text-white font-bold text-[10px] shadow-md backdrop-blur-xs">
-                              Use Template →
+                          <div className="absolute bottom-3 right-3 z-10 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none">
+                            <span className="px-3 py-1.5 rounded-xl bg-brand text-white font-bold text-[11px] shadow-lg shadow-brand/30">
+                              Open in Canvas →
                             </span>
                           </div>
                         </div>
 
                         {/* Card Meta & Description */}
-                        <div className="p-5 space-y-2.5 flex-1 flex flex-col justify-between">
+                        <div className="p-5 space-y-3 flex-1 flex flex-col justify-between bg-white">
                           <div>
-                            <p className="text-[10px] font-black uppercase text-muted tracking-wider">{sample.category}</p>
-                            <h3 className="font-extrabold text-base text-ink group-hover:text-brand transition-colors mt-0.5">
+                            <p className="text-[10px] font-black uppercase text-brand tracking-widest">{sample.category}</p>
+                            <h3 className="font-display font-extrabold text-base text-ink group-hover:text-brand transition-colors mt-1 leading-snug">
                               {sample.name}
                             </h3>
-                            <p className="text-xs text-muted leading-relaxed mt-1 font-medium line-clamp-2">
+                            <p className="text-xs text-muted leading-relaxed mt-1.5 font-medium line-clamp-2">
                               {sample.desc}
                             </p>
                           </div>
                           <div className="pt-3 border-t border-line flex items-center justify-between text-xs">
-                            <span className="text-muted font-bold">{sample.shapesCount} pre-configured layers</span>
+                            <span className="inline-flex items-center gap-1.5 text-muted font-bold">
+                              <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+                              {sample.shapesCount} diagram layers
+                            </span>
                             <span className="font-extrabold text-brand flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                              Use Template
+                              Use Template →
                             </span>
                           </div>
                         </div>
@@ -7287,49 +7302,57 @@ export default function WhiteboardPage() {
                     {filteredResources.map((res) => (
                       <div
                         key={res.id}
-                        className="rounded-3xl border border-line bg-white p-6 shadow-xs hover:shadow-xl transition flex flex-col justify-between space-y-4"
+                        className="group relative overflow-hidden rounded-3xl border border-line/80 bg-white p-6 shadow-sm hover:border-brand/50 hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between space-y-5"
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand via-amber-400 to-brand opacity-75 group-hover:opacity-100 transition-opacity" />
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand/10 text-brand border border-brand/15">
                               {res.category}
                             </span>
-                            <span className="text-xs text-muted font-bold flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" /> {res.readTime}
+                            <span className="text-xs text-muted font-bold flex items-center gap-1.5 bg-cream px-2.5 py-1 rounded-full">
+                              <Clock className="h-3.5 w-3.5 text-brand" /> {res.readTime}
                             </span>
                           </div>
 
                           <div>
-                            <h3 className="font-extrabold text-base text-ink">{res.title}</h3>
-                            <p className="text-xs text-muted mt-1 leading-relaxed">{res.desc}</p>
+                            <h3 className="font-display font-extrabold text-lg text-ink group-hover:text-brand transition-colors leading-snug">
+                              {res.title}
+                            </h3>
+                            <p className="text-xs text-muted mt-1.5 leading-relaxed font-medium">{res.desc}</p>
                           </div>
 
                           {/* Key Takeaways */}
-                          <div className="p-3.5 rounded-2xl bg-slate-50 border border-line space-y-2">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-muted">Core Principles</p>
-                            <ul className="space-y-1.5 text-xs text-slate-700">
+                          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-cream/60 border border-line/80 space-y-2.5">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-brand">
+                              Core Principles
+                            </p>
+                            <ul className="space-y-2 text-xs text-slate-700">
                               {res.points.map((pt, idx) => (
-                                <li key={idx} className="flex items-start gap-2">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-brand shrink-0 mt-1.5" />
-                                  <span className="leading-snug">{pt}</span>
+                                <li key={idx} className="flex items-start gap-2.5">
+                                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-white border border-line text-[10px] font-black text-brand shadow-2xs">
+                                    {idx + 1}
+                                  </span>
+                                  <span className="leading-relaxed font-medium pt-0.5">{pt}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-line flex items-center justify-between">
+                        <div className="pt-3 border-t border-line flex flex-wrap items-center justify-between gap-2">
                           <button
                             type="button"
                             onClick={() => handleCreateCanvasFromResource(res)}
-                            className="btn-primary !py-2 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
+                            className="btn-primary !py-2.5 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow-md"
                           >
                             <Plus className="h-3.5 w-3.5" /> Create Canvas with Guide
                           </button>
                           <button
                             type="button"
                             onClick={() => setSelectedResource(res)}
-                            className="text-xs font-bold text-slate-600 hover:text-brand transition cursor-pointer"
+                            className="px-3 py-2 rounded-xl text-xs font-bold text-ink/75 hover:text-brand hover:bg-cream transition cursor-pointer"
                           >
                             View Full Details →
                           </button>
@@ -7522,16 +7545,21 @@ export default function WhiteboardPage() {
                     {filteredLessons.map((lesson) => (
                       <div
                         key={lesson.id}
-                        className="rounded-3xl border border-line bg-white p-6 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition"
+                        className="group relative overflow-hidden rounded-3xl border border-line/80 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between hover:border-brand/50 hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-0.5 transition-all duration-300"
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`h-10 w-10 rounded-2xl ${lesson.colorClass} flex items-center justify-center font-black text-sm shrink-0`}>
+                        <div className="space-y-3.5">
+                          <div className="flex items-start gap-3.5">
+                            <div className={`h-11 w-11 rounded-2xl ${lesson.colorClass} flex items-center justify-center font-display font-black text-sm shrink-0 shadow-xs ring-1 ring-black/5`}>
                               {lesson.num}
                             </div>
-                            <div>
-                              <h4 className="font-extrabold text-sm text-ink">{lesson.title}</h4>
-                              <p className="text-xs text-muted font-medium">{lesson.subtitle}</p>
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-brand">
+                                Playbook {lesson.num}
+                              </span>
+                              <h4 className="font-display font-extrabold text-base text-ink group-hover:text-brand transition-colors leading-snug">
+                                {lesson.title}
+                              </h4>
+                              <p className="text-xs text-muted font-medium mt-0.5">{lesson.subtitle}</p>
                             </div>
                           </div>
                           <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -7541,10 +7569,13 @@ export default function WhiteboardPage() {
                             {lesson.items.map((item, idx) => (
                               <div
                                 key={idx}
-                                className={`p-2.5 rounded-xl ${lesson.badgeBg} border flex items-center justify-between ${lesson.badgeText}`}
+                                className="p-3 rounded-2xl bg-slate-50/90 border border-line/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3"
                               >
-                                <span className="font-bold">{item.label}</span>
-                                <span className={item.isMono ? "font-mono text-[10px] font-bold" : "font-medium text-[11px]"}>
+                                <span className="inline-flex items-center gap-2 font-bold text-ink">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-brand shrink-0" />
+                                  {item.label}
+                                </span>
+                                <span className={item.isMono ? "font-mono text-[10.5px] font-bold bg-white px-2 py-0.5 rounded-lg border border-line text-slate-700 self-start sm:self-auto" : "font-semibold text-[11px] text-muted"}>
                                   {item.value}
                                 </span>
                               </div>
@@ -7552,13 +7583,13 @@ export default function WhiteboardPage() {
                           </div>
                         </div>
 
-                        <div className="pt-2 border-t border-line flex items-center justify-between">
+                        <div className="pt-3 border-t border-line flex items-center justify-between">
                           <button
                             type="button"
                             onClick={() => handleCreateNewCanvasFromHub(`Lesson ${lesson.num}: ${lesson.title}`)}
-                            className="flex items-center gap-1.5 text-xs font-extrabold text-brand hover:text-brand-dark transition cursor-pointer"
+                            className="inline-flex items-center gap-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white px-4 py-2 text-xs font-extrabold transition-colors cursor-pointer"
                           >
-                            <PlayCircle className="h-3.5 w-3.5" /> Practice this Setup →
+                            <PlayCircle className="h-3.5 w-3.5" /> Launch Practice Canvas →
                           </button>
                         </div>
                       </div>
