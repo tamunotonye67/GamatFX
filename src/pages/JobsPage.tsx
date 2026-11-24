@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  ArrowUpRight,
   Briefcase,
   CheckCircle2,
   Clock,
@@ -123,9 +122,9 @@ export default function JobsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-cream text-ink-soft">
-      {/* Cloudflare-inspired dark header + framed brand-red rounded hero */}
-      <div className="bg-[#0d0e11]">
+    <div className="min-h-screen bg-[#111215] text-white selection:bg-brand selection:text-white">
+      {/* Dark top header + framed brand-red hero */}
+      <div className="bg-[#111215]">
         <header className="mx-auto flex min-h-[84px] w-full max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center gap-8">
             <button
@@ -223,8 +222,8 @@ export default function JobsPage() {
 
         {/* Framed Top-Rounded Brand-Red Hero Card */}
         <div className="w-full px-2 sm:px-3">
-          <section className="relative overflow-hidden rounded-t-[48px] sm:rounded-t-[64px] rounded-b-none bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
-            {/* Subtle dot-matrix texture + warm bottom glow matching reference */}
+          <section className="relative overflow-hidden rounded-t-[48px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
+            {/* Subtle dot-matrix texture + warm bottom glow */}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 opacity-20"
@@ -236,7 +235,7 @@ export default function JobsPage() {
             />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/35 blur-[90px]"
+              className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/45 blur-[90px]"
             />
 
             <div className="relative mx-auto max-w-4xl">
@@ -272,160 +271,246 @@ export default function JobsPage() {
         </div>
       </div>
 
-      {/* Culture highlights */}
-      <section id="culture" className="section bg-cream">
-        <div className="container-x">
-          <div className="grid gap-4 sm:grid-cols-3 mb-12">
-            {[
-              {
-                icon: Users,
-                title: "Remote-First Team",
-                body: "Work asynchronously with a tight-knit team across Lagos, London, and global trading sessions.",
-              },
-              {
-                icon: Sparkles,
-                title: "High Ownership",
-                body: "Direct impact on thousands of students, live market broadcasts, and trading tools.",
-              },
-              {
-                icon: Briefcase,
-                title: "Performance Culture",
-                body: "Competitive base pay, performance bonuses, and full access to GAMAT Fx resources.",
-              },
-            ].map((perk) => (
-              <div
-                key={perk.title}
-                className="rounded-2xl border border-line bg-white p-6 shadow-2xs"
-              >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
-                  <perk.icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-3 font-display text-base font-bold text-ink">
-                  {perk.title}
-                </h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                  {perk.body}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Open Positions Header & Search */}
-          <div
-            id="roles"
-            className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6 scroll-mt-20"
-          >
-            <div>
-              <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-ink">
-                Open Positions ({openRoles.length})
+      {/* Architectural Dark Continuation Section (matches Region: Earth section) */}
+      <div className="mx-auto max-w-[1440px] px-2 sm:px-3">
+        <div className="border-x border-t border-dashed border-white/10">
+          {/* Network / Global Team Visual Section */}
+          <section className="relative overflow-hidden border-b border-dashed border-white/10 px-6 pt-20 pb-0 text-center">
+            <div className="mx-auto max-w-2xl">
+              <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-4xl">
+                Region: Global Desk
               </h2>
-              <p className="text-sm text-muted mt-1">
-                Select a role below to review requirements and submit your
-                application.
+              <p className="mt-3 text-sm text-white/60 sm:text-base">
+                One connected team for live market breakdowns, education, and
+                trader tools — built remotely across major sessions.
               </p>
             </div>
 
-            <div className="relative w-full lg:w-72">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <input
-                type="text"
-                data-job-search="true"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search roles..."
-                className="w-full rounded-xl border border-line bg-white py-2.5 pl-10 pr-4 text-sm text-ink outline-none focus:border-brand"
-              />
-            </div>
-          </div>
-
-          {/* Department filter */}
-          <div className="flex flex-wrap gap-1.5 mb-6">
-            {DEPARTMENTS.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setDept(d)}
-                className={`rounded-xl px-3.5 py-2 text-xs font-semibold transition cursor-pointer ${
-                  dept === d
-                    ? "bg-brand text-white shadow-xs"
-                    : "border border-line bg-white text-ink/75 hover:border-brand/40 hover:text-brand"
-                }`}
+            {/* Minimal Dotted Globe & Connected Node Pins */}
+            <div className="relative mx-auto mt-10 max-w-3xl h-[230px] sm:h-[280px] overflow-hidden">
+              <svg
+                viewBox="0 0 800 320"
+                className="mx-auto h-full w-full"
+                fill="none"
+                aria-hidden="true"
               >
-                {d}
-              </button>
-            ))}
-          </div>
+                <defs>
+                  <radialGradient id="globeGlow" cx="50%" cy="85%" r="60%">
+                    <stop offset="0%" stopColor="#dc3545" stopOpacity="0.28" />
+                    <stop offset="100%" stopColor="#111215" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+                <circle cx="400" cy="295" r="245" fill="url(#globeGlow)" />
+                {/* Latitude / Longitude arcs */}
+                <circle cx="400" cy="295" r="240" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+                <ellipse cx="400" cy="295" rx="165" ry="240" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+                <ellipse cx="400" cy="295" rx="85" ry="240" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+                <ellipse cx="400" cy="215" rx="224" ry="48" stroke="rgba(220,53,69,0.22)" strokeDasharray="3 5" strokeWidth="1" />
+                <ellipse cx="400" cy="145" rx="185" ry="38" stroke="rgba(220,53,69,0.25)" strokeDasharray="3 5" strokeWidth="1" />
 
-          {/* Role list */}
-          {openRoles.length > 0 ? (
-            <div className="space-y-4">
-              {openRoles.map((role) => (
+                {/* Connection Arcs */}
+                <path
+                  d="M 285 170 Q 400 70 505 155"
+                  stroke="#dc3545"
+                  strokeWidth="1.5"
+                  strokeOpacity="0.8"
+                />
+                <path
+                  d="M 380 112 Q 465 105 555 198"
+                  stroke="#dc3545"
+                  strokeWidth="1.2"
+                  strokeOpacity="0.65"
+                />
+
+                {/* Node 1 */}
+                <circle cx="380" cy="112" r="16" fill="#111215" stroke="#dc3545" strokeWidth="1.5" />
+                <circle cx="380" cy="112" r="4" fill="#dc3545" />
+
+                {/* Node 2 */}
+                <circle cx="505" cy="155" r="14" fill="#111215" stroke="#dc3545" strokeWidth="1.5" />
+                <circle cx="505" cy="155" r="3.5" fill="#dc3545" />
+
+                {/* Node 3 */}
+                <circle cx="285" cy="170" r="14" fill="#111215" stroke="#dc3545" strokeWidth="1.5" />
+                <circle cx="285" cy="170" r="3.5" fill="#dc3545" />
+              </svg>
+
+              {/* Corner-bracket callout box matching reference */}
+              <div className="hidden sm:block absolute right-6 bottom-6 max-w-[235px] border border-dashed border-brand/50 bg-[#14161b]/95 p-3.5 text-left">
+                <span className="absolute -top-0.5 -left-0.5 h-2 w-2 border-t-2 border-l-2 border-brand" />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 border-t-2 border-r-2 border-brand" />
+                <span className="absolute -bottom-0.5 -left-0.5 h-2 w-2 border-b-2 border-l-2 border-brand" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 border-b-2 border-r-2 border-brand" />
+                <p className="text-[11px] leading-relaxed text-rose-300/95 font-medium">
+                  1,000+ traders trained globally across London, New York, and
+                  Lagos sessions.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Culture Highlights */}
+          <section
+            id="culture"
+            className="border-b border-dashed border-white/10 px-4 py-14 sm:px-10"
+          >
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                {
+                  icon: Users,
+                  title: "Remote-First Team",
+                  body: "Work asynchronously with a tight-knit team across Lagos, London, and global trading sessions.",
+                },
+                {
+                  icon: Sparkles,
+                  title: "High Ownership",
+                  body: "Direct impact on thousands of students, live market broadcasts, and trading tools.",
+                },
+                {
+                  icon: Briefcase,
+                  title: "Performance Culture",
+                  body: "Competitive base pay, performance bonuses, and full access to GAMAT Fx resources.",
+                },
+              ].map((perk) => (
                 <div
-                  key={role.id}
-                  className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs transition hover:border-brand/35 hover:shadow-md"
+                  key={perk.title}
+                  className="rounded-2xl border border-white/10 bg-[#16181d] p-6"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="chip">{role.department}</span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-cream border border-line px-2.5 py-0.5 text-[11px] font-semibold text-ink/80">
-                          <MapPin className="h-3 w-3 text-brand" /> {role.location}
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-cream border border-line px-2.5 py-0.5 text-[11px] font-semibold text-ink/80">
-                          <Clock className="h-3 w-3 text-brand" /> {role.type}
-                        </span>
-                        {role.compensation && (
-                          <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
-                            {role.compensation}
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="font-display text-lg sm:text-xl font-bold text-ink">
-                        {role.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-ink/80">
-                        {role.summary}
-                      </p>
-                      {role.requirements && (
-                        <p className="mt-2 text-xs leading-relaxed text-muted">
-                          <strong className="text-ink">Requirements:</strong>{" "}
-                          {role.requirements}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => openModal(role)}
-                        className="btn-primary w-full sm:w-auto"
-                      >
-                        Apply Now
-                      </button>
-                    </div>
-                  </div>
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand/15 text-brand">
+                    <perk.icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 font-display text-base font-bold text-white">
+                    {perk.title}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-white/60">
+                    {perk.body}
+                  </p>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="rounded-2xl border border-line bg-white p-10 text-center">
-              <Briefcase className="mx-auto h-8 w-8 text-muted" />
-              <p className="mt-3 font-display text-base font-bold text-ink">
-                No matching open roles right now
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                Try another department or clear your search filter.
-              </p>
+          </section>
+
+          {/* Open Positions */}
+          <section id="roles" className="px-4 py-16 sm:px-10 scroll-mt-20">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+              <div>
+                <h2 className="font-sans text-2xl sm:text-3xl font-medium tracking-tight text-white">
+                  Open Positions ({openRoles.length})
+                </h2>
+                <p className="text-sm text-white/55 mt-1">
+                  Select a role below to review requirements and submit your
+                  application.
+                </p>
+              </div>
+
+              <div className="relative w-full lg:w-72">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                <input
+                  type="text"
+                  data-job-search="true"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search roles..."
+                  className="w-full rounded-xl border border-white/15 bg-[#16181d] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-brand"
+                />
+              </div>
             </div>
-          )}
+
+            {/* Department filter */}
+            <div className="flex flex-wrap gap-1.5 mb-8">
+              {DEPARTMENTS.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setDept(d)}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition cursor-pointer ${
+                    dept === d
+                      ? "bg-brand text-white"
+                      : "border border-white/15 bg-[#16181d] text-white/70 hover:border-white/30 hover:text-white"
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+
+            {/* Role list */}
+            {openRoles.length > 0 ? (
+              <div className="space-y-3.5">
+                {openRoles.map((role) => (
+                  <div
+                    key={role.id}
+                    className="rounded-2xl border border-white/10 bg-[#16181d] p-5 sm:p-6 transition hover:border-brand/50"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                          <span className="rounded-md bg-brand/15 px-2.5 py-0.5 text-[11px] font-bold text-rose-300">
+                            {role.department}
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-0.5 text-[11px] font-medium text-white/70">
+                            <MapPin className="h-3 w-3 text-brand" />{" "}
+                            {role.location}
+                          </span>
+                          <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-0.5 text-[11px] font-medium text-white/70">
+                            <Clock className="h-3 w-3 text-brand" /> {role.type}
+                          </span>
+                          {role.compensation && (
+                            <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300">
+                              {role.compensation}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-display text-lg sm:text-xl font-bold text-white">
+                          {role.title}
+                        </h3>
+                        <p className="mt-2 text-sm leading-relaxed text-white/65">
+                          {role.summary}
+                        </p>
+                        {role.requirements && (
+                          <p className="mt-2 text-xs leading-relaxed text-white/50">
+                            <strong className="text-white/80">
+                              Requirements:
+                            </strong>{" "}
+                            {role.requirements}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => openModal(role)}
+                          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-white px-6 py-2.5 text-xs font-bold text-ink transition hover:bg-cream cursor-pointer"
+                        >
+                          Apply Now <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-[#16181d] p-10 text-center">
+                <Briefcase className="mx-auto h-8 w-8 text-white/30" />
+                <p className="mt-3 font-display text-base font-bold text-white">
+                  No matching open roles right now
+                </p>
+                <p className="mt-1 text-sm text-white/55">
+                  Try another department or clear your search filter.
+                </p>
+              </div>
+            )}
+          </section>
         </div>
-      </section>
+      </div>
 
       {/* Clean Careers Footer */}
-      <footer className="border-t border-line bg-ink py-8 text-white/60">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 text-xs sm:flex-row sm:px-6">
+      <footer className="border-t border-white/10 bg-[#0b0c0e] py-8 text-white/55">
+        <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-4 text-xs sm:flex-row sm:px-6">
           <div className="font-semibold text-white/80">
-            GAMAT <span className="text-brand">Fx</span> Careers · jobs.gamatfxacademy.com
+            GAMAT <span className="text-brand">Fx</span> Careers ·
+            jobs.gamatfxacademy.com
           </div>
           <div>
             © {new Date().getFullYear()} GAMAT Fx Academy. All rights reserved.
@@ -435,33 +520,34 @@ export default function JobsPage() {
 
       {/* Application Modal */}
       {selectedRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-xs">
-          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-line bg-white p-6 sm:p-8 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
+          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 bg-[#16181d] p-6 sm:p-8 text-white shadow-2xl">
             <button
               type="button"
               onClick={() => setSelectedRole(null)}
               aria-label="Close modal"
-              className="absolute right-5 top-5 rounded-full p-2 text-muted hover:bg-cream hover:text-ink cursor-pointer"
+              className="absolute right-5 top-5 rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
 
             {submittedRef ? (
               <div className="py-6 text-center">
-                <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
-                <h3 className="mt-4 font-display text-xl font-bold text-ink">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-400" />
+                <h3 className="mt-4 font-display text-xl font-bold text-white">
                   Application Received!
                 </h3>
-                <p className="mt-2 text-sm text-muted leading-relaxed">
+                <p className="mt-2 text-sm text-white/65 leading-relaxed">
                   Thank you for applying for{" "}
-                  <strong className="text-ink">{selectedRole.title}</strong>. Our
-                  hiring team will review your profile and reach out via email.
+                  <strong className="text-white">{selectedRole.title}</strong>.
+                  Our hiring team will review your profile and reach out via
+                  email.
                 </p>
-                <div className="mt-4 inline-block rounded-xl border border-dashed border-brand/40 bg-brand-light px-4 py-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted block">
+                <div className="mt-4 inline-block rounded-xl border border-dashed border-brand/50 bg-brand/10 px-4 py-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/55 block">
                     Reference ID
                   </span>
-                  <span className="font-display text-sm font-extrabold text-brand">
+                  <span className="font-display text-sm font-extrabold text-rose-300">
                     {submittedRef}
                   </span>
                 </div>
@@ -469,7 +555,7 @@ export default function JobsPage() {
                   <button
                     type="button"
                     onClick={() => setSelectedRole(null)}
-                    className="btn-primary w-full"
+                    className="w-full rounded-full bg-white py-3 text-sm font-bold text-ink hover:bg-cream cursor-pointer"
                   >
                     Done
                   </button>
@@ -477,17 +563,19 @@ export default function JobsPage() {
               </div>
             ) : (
               <>
-                <span className="chip">{selectedRole.department}</span>
-                <h3 className="mt-2 font-display text-xl font-bold text-ink pr-8">
+                <span className="inline-block rounded-md bg-brand/15 px-2.5 py-1 text-[11px] font-bold text-rose-300">
+                  {selectedRole.department}
+                </span>
+                <h3 className="mt-2 font-display text-xl font-bold text-white pr-8">
                   Apply for {selectedRole.title}
                 </h3>
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 text-xs text-white/55">
                   {selectedRole.location} · {selectedRole.type}
                 </p>
 
                 <form onSubmit={handleApply} className="mt-5 space-y-4">
                   <div>
-                    <label className="mb-1 block text-xs font-semibold text-muted">
+                    <label className="mb-1 block text-xs font-semibold text-white/70">
                       Full Name *
                     </label>
                     <input
@@ -495,12 +583,12 @@ export default function JobsPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Your full name"
-                      className="w-full rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand"
+                      className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-brand"
                     />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-muted">
+                      <label className="mb-1 block text-xs font-semibold text-white/70">
                         Email Address *
                       </label>
                       <input
@@ -509,11 +597,11 @@ export default function JobsPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand"
+                        className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-brand"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-muted">
+                      <label className="mb-1 block text-xs font-semibold text-white/70">
                         Phone / WhatsApp *
                       </label>
                       <input
@@ -521,36 +609,36 @@ export default function JobsPage() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+234 800 000 0000"
-                        className="w-full rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand"
+                        className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-brand"
                       />
                     </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-muted">
+                      <label className="mb-1 block text-xs font-semibold text-white/70">
                         CV / Portfolio / LinkedIn URL
                       </label>
                       <input
                         value={portfolioUrl}
                         onChange={(e) => setPortfolioUrl(e.target.value)}
                         placeholder="https://..."
-                        className="w-full rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand"
+                        className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-brand"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-semibold text-muted">
+                      <label className="mb-1 block text-xs font-semibold text-white/70">
                         Years of Experience
                       </label>
                       <input
                         value={experience}
                         onChange={(e) => setExperience(e.target.value)}
                         placeholder="e.g. 3 years"
-                        className="w-full rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand"
+                        className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-brand"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-semibold text-muted">
+                    <label className="mb-1 block text-xs font-semibold text-white/70">
                       Why GAMAT Fx &amp; Relevant Experience
                     </label>
                     <textarea
@@ -558,12 +646,12 @@ export default function JobsPage() {
                       value={coverNote}
                       onChange={(e) => setCoverNote(e.target.value)}
                       placeholder="Tell us about your background, track record, or links to work you're proud of..."
-                      className="w-full rounded-xl border border-line bg-cream/40 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand"
+                      className="w-full rounded-xl border border-white/15 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-brand"
                     />
                   </div>
 
                   {errorMsg && (
-                    <p className="text-xs font-semibold text-rose-600">
+                    <p className="text-xs font-semibold text-rose-400">
                       {errorMsg}
                     </p>
                   )}
@@ -571,7 +659,7 @@ export default function JobsPage() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="btn-primary w-full justify-center"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3 text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-dark cursor-pointer"
                   >
                     <Send className="h-4 w-4" />
                     {submitting ? "Submitting..." : "Submit Application"}
