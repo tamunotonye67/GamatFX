@@ -485,8 +485,8 @@ function ProductFormModal({ product, onClose }: { product?: StoreProduct; onClos
       description: f.description.trim(),
       features,
       published: f.published,
-      rating: product?.rating ?? 5.0,
-      reviewCount: product?.reviewCount ?? 1,
+      rating: product?.rating ?? 0,
+      reviewCount: product?.reviewCount ?? 0,
     });
 
     if (res.ok) {
