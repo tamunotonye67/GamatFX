@@ -66,7 +66,7 @@ function VideoPlayer() {
         fps={HOW_IT_WORKS_FPS}
         controls
         loop
-        autoPlay
+        clickToPlay
         acknowledgeRemotionLicense
         style={{
           width: "100%",
@@ -159,7 +159,7 @@ export default function HowItWorksPage() {
 
             <div className="mt-8 grid gap-6 sm:grid-cols-3">
               {[
-                { icon: Clock, v: "6 min", l: "Watch time" },
+                { icon: Clock, v: "2:40 min", l: "Watch time" },
                 { icon: Users, v: "1,000+", l: "Traders trained this way" },
                 { icon: Award, v: "4.9/5", l: "Student rating" },
               ].map((s) => (
