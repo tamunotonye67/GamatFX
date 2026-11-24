@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import PageHero from "../components/PageHero";
 import PageCta from "../components/PageCta";
+import YoutubeSessionsBanner from "../components/YoutubeSessionsBanner";
 import { useReveal } from "../lib/useReveal";
 import { useStore, type EventItem, type Registration } from "../lib/store";
 import { navigate } from "../lib/router";
@@ -848,6 +849,12 @@ export default function EventsPage() {
               <p className="mt-1 text-sm text-muted">{s.l}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="bg-cream pt-10 -mb-6">
+        <div className="container-x">
+          <YoutubeSessionsBanner />
         </div>
       </section>
 

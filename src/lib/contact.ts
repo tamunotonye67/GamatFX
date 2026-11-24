@@ -10,6 +10,7 @@ export const CONTACT = {
     encodeURIComponent("Hi GAMAT AI Agent — I'd like help with forex education / my account."),
   email: "hello@gamatfxacademy.com",
   telegram: "https://t.me/gamatfxacademy",
+  youtube: "https://www.youtube.com/@gamatfxacademy",
   city: "Port Harcourt, Nigeria",
   addressShort: "Car Wash Junction, Choba-Ozouba Road, Port Harcourt",
   address:
