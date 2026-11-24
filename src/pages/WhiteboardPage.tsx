@@ -7568,9 +7568,9 @@ export default function WhiteboardPage() {
 
             {/* ===================== TAB 5: LEARN WORKSPACE ===================== */}
             {hubTab === "guide" && (
-              <div className="space-y-6 max-w-5xl">
+              <div className="space-y-6">
                 {/* Hero Guide Banner */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-brand-dark p-8 text-white shadow-xl">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-brand-dark p-7 sm:p-8 text-white shadow-xl">
                   {/* Subtle Graduation Cap Watermark */}
                   <GraduationCap className="absolute -right-8 -bottom-10 h-64 w-64 text-white/5 pointer-events-none rotate-12" />
 
@@ -7620,41 +7620,44 @@ export default function WhiteboardPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     {filteredLessons.map((lesson) => (
                       <div
                         key={lesson.id}
-                        className="group relative overflow-hidden rounded-3xl border border-line/80 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between hover:border-brand/50 hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-0.5 transition-all duration-300"
+                        className="group rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4 hover:border-brand/50 hover:shadow-xl hover:shadow-brand/5 transition-all duration-200"
                       >
-                        <div className="space-y-3.5">
-                          <div className="flex items-start gap-3.5">
-                            <div className={`h-11 w-11 rounded-2xl ${lesson.colorClass} flex items-center justify-center font-display font-black text-sm shrink-0 shadow-xs ring-1 ring-black/5`}>
-                              {lesson.num}
+                        <div className="space-y-4">
+                          {/* Aligned Card Header */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`h-10 w-10 rounded-xl ${lesson.colorClass} flex items-center justify-center font-display font-black text-sm shrink-0 ring-1 ring-black/5`}>
+                                {lesson.num}
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="font-display font-extrabold text-base text-ink group-hover:text-brand transition-colors truncate">
+                                  {lesson.title}
+                                </h4>
+                                <p className="text-xs text-muted font-medium truncate">{lesson.subtitle}</p>
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-brand">
-                                Playbook {lesson.num}
-                              </span>
-                              <h4 className="font-display font-extrabold text-base text-ink group-hover:text-brand transition-colors leading-snug">
-                                {lesson.title}
-                              </h4>
-                              <p className="text-xs text-muted font-medium mt-0.5">{lesson.subtitle}</p>
-                            </div>
+                            <span className="shrink-0 rounded-full bg-cream px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-brand border border-line">
+                              Step {lesson.num}
+                            </span>
                           </div>
+
                           <p className="text-xs text-slate-600 leading-relaxed font-medium">
                             {lesson.desc}
                           </p>
-                          <div className="space-y-2 pt-1 text-xs">
+
+                          {/* Grouped Reference Table */}
+                          <div className="rounded-xl border border-line bg-slate-50/80 divide-y divide-line overflow-hidden text-xs">
                             {lesson.items.map((item, idx) => (
                               <div
                                 key={idx}
-                                className="p-3 rounded-2xl bg-slate-50/90 border border-line/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3"
+                                className="px-3.5 py-2.5 flex items-center justify-between gap-3"
                               >
-                                <span className="inline-flex items-center gap-2 font-bold text-ink">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-brand shrink-0" />
-                                  {item.label}
-                                </span>
-                                <span className={item.isMono ? "font-mono text-[10.5px] font-bold bg-white px-2 py-0.5 rounded-lg border border-line text-slate-700 self-start sm:self-auto" : "font-semibold text-[11px] text-muted"}>
+                                <span className="font-bold text-ink truncate">{item.label}</span>
+                                <span className={item.isMono ? "shrink-0 font-mono text-[10.5px] font-bold bg-white px-2 py-0.5 rounded-md border border-line text-slate-700 shadow-2xs" : "shrink-0 font-semibold text-[11px] text-muted text-right"}>
                                   {item.value}
                                 </span>
                               </div>
@@ -7662,15 +7665,17 @@ export default function WhiteboardPage() {
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-line flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => handleCreateNewCanvasFromHub(`Lesson ${lesson.num}: ${lesson.title}`)}
-                            className="inline-flex items-center gap-2 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-white px-4 py-2 text-xs font-extrabold transition-colors cursor-pointer"
-                          >
-                            <PlayCircle className="h-3.5 w-3.5" /> Launch Practice Canvas →
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCreateNewCanvasFromHub(`Lesson ${lesson.num}: ${lesson.title}`)}
+                          className="w-full flex items-center justify-between rounded-xl bg-cream hover:bg-brand text-ink hover:text-white border border-line hover:border-brand px-4 py-2.5 text-xs font-extrabold transition-colors cursor-pointer"
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <PlayCircle className="h-4 w-4 text-brand group-hover:text-current" />
+                            Practice this Setup on Canvas
+                          </span>
+                          <span>→</span>
+                        </button>
                       </div>
                     ))}
                   </div>
