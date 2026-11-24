@@ -425,9 +425,13 @@ const CinematicBackdrop: React.FC<{
   return (
     <AbsoluteFill style={{ overflow: "hidden", backgroundColor: "#0e1014" }}>
       {videoSrc ? (
-        <Video
+        <video
           src={videoSrc}
           muted
+          autoPlay
+          loop
+          playsInline
+          preload="auto"
           style={{
             width: "100%",
             height: "100%",
@@ -2179,8 +2183,12 @@ export const HowGamatWorksVideo: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#0e1014" }}>
-      {/* Synced Voiceover Audio */}
-      <Audio src="/audio/how-gamatfx-works.wav" />
+      {/* Synced Voiceover Audio (48kHz 192kbps stereo MP3, non-interrupting playback) */}
+      <Audio
+        src="/audio/how-gamatfx-works.mp3"
+        acceptableTimeShiftInSeconds={2.5}
+        pauseWhenBuffering={false}
+      />
 
       {/* Top Brand Header + Live Progress */}
       <TopBrandChrome chapterTag={chapterTag} progressPct={progressPct} />
