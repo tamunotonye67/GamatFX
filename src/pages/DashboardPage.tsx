@@ -1434,28 +1434,38 @@ export default function DashboardPage() {
             {msg && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{msg}</p>}
 
             {/* Photo upload */}
-            <div className="rounded-2xl border border-line bg-cream p-5">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted">Profile photo</p>
-              <div className="mt-4 flex flex-wrap items-center gap-5">
-                {photo ? (
-                  <img src={photo} alt="Team photo" className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand/20" />
-                ) : (
-                  <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-extrabold text-white">
-                    {((u?.firstName?.[0] ?? "") + (u?.lastName?.[0] ?? "")).toUpperCase()}
-                  </span>
-                )}
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
-                    <button type="button" onClick={() => fileRef.current?.click()} className="btn-outline-dark !py-2">
+            <div className="rounded-2xl border border-line bg-cream p-4 sm:p-5">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted text-center sm:text-left">Profile photo</p>
+              <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+                <div className="relative shrink-0">
+                  {photo ? (
+                    <img src={photo} alt="Team photo" className="h-24 w-24 rounded-2xl object-cover ring-4 ring-brand/20" />
+                  ) : (
+                    <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-dark font-display text-2xl font-extrabold text-white">
+                      {((u?.firstName?.[0] ?? "") + (u?.lastName?.[0] ?? "")).toUpperCase()}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white shadow-lg transition hover:bg-brand cursor-pointer"
+                    aria-label="Upload picture"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex w-full flex-col items-center gap-2.5 sm:w-auto sm:items-start">
+                  <div className="flex flex-wrap justify-center gap-2.5 sm:justify-start sm:gap-3">
+                    <button type="button" onClick={() => fileRef.current?.click()} className="btn-outline-dark !py-2.5 !px-4 text-xs sm:text-sm">
                       <Camera className="h-4 w-4" /> {photo ? "Change photo" : "Upload photo"}
                     </button>
                     {photo && (
-                      <button type="button" onClick={() => { setPhoto(""); updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2">
+                      <button type="button" onClick={() => { setPhoto(""); updateProfile({ avatar: undefined }); }} className="btn-outline-dark !py-2.5 !px-4 text-xs sm:text-sm">
                         <Trash2 className="h-4 w-4" /> Remove
                       </button>
                     )}
                   </div>
-                  <p className="text-xs text-muted">JPG or PNG, square works best. Max 3MB. Shows on your team page, forum and dashboard.</p>
+                  <p className="text-xs text-muted text-center sm:text-left">JPG or PNG, square works best. Max 3MB. Shows on your team page, forum and dashboard.</p>
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ""; }} />
               </div>
