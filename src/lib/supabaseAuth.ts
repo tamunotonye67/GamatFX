@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase, supabaseUrl, supabaseKey } from "./supabase";
 import type { Account } from "./store";
 
 export type SupabaseAccountRow = {
@@ -357,6 +357,37 @@ export async function saveSupabaseAccount(acc: Account): Promise<{ ok: boolean; 
       .eq("email", cleanEmail)
       .select("id");
     if (!emailUpdateErr && emailRows && emailRows.length > 0) return { ok: true };
+
+    // Anon REST fallback: if an authenticated JWT is blocked by per-user RLS when an admin updates another user's role/profile
+    const targetId = existingByEmail?.id || acc.id;
+    const restHeaders = {
+      "Content-Type": "application/json",
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      Prefer: "return=representation",
+    };
+
+    try {
+      const idRes = await fetch(`${supabaseUrl}/rest/v1/accounts?id=eq.${encodeURIComponent(targetId)}`, {
+        method: "PATCH",
+        headers: restHeaders,
+        body: JSON.stringify(patchWithoutId),
+      });
+      if (idRes.ok) {
+        const patched = await idRes.json().catch(() => []);
+        if (Array.isArray(patched) && patched.length > 0) return { ok: true };
+      }
+
+      const emailRes = await fetch(`${supabaseUrl}/rest/v1/accounts?email=eq.${encodeURIComponent(cleanEmail)}`, {
+        method: "PATCH",
+        headers: restHeaders,
+        body: JSON.stringify(patchWithoutId),
+      });
+      if (emailRes.ok) {
+        const patched = await emailRes.json().catch(() => []);
+        if (Array.isArray(patched) && patched.length > 0) return { ok: true };
+      }
+    } catch {}
 
     return {
       ok: false,

@@ -2035,7 +2035,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
         let mergedAcc: Account = isRecentValid
           ? { ...supaAcc, ...recentUpdate!.account, id: supaAcc.id, password: preservedPassword }
-          : { ...supaAcc, password: preservedPassword };
+          : {
+              ...supaAcc,
+              password: preservedPassword,
+              ...(supaAcc.extraPermissions === undefined && existing?.extraPermissions
+                ? { extraPermissions: existing.extraPermissions }
+                : {}),
+            };
 
         try {
           const rawOv = localStorage.getItem("gamat.avatar_override.v1");
@@ -4908,7 +4914,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           if (patch.password) {
             storeCredential(acc.email, patch.password);
           }
-          saveSupabaseAccount(acc);
+          recentlyUpdatedAccountsRef.current.set(acc.id, {
+            account: acc,
+            ts: Date.now(),
+            persistLocal: false,
+          });
+          saveSupabaseAccount(acc).then((res) => {
+            if (!res.ok) {
+              console.warn("Failed to persist account update to Supabase:", res.error);
+            }
+          });
         }
         write(K.accounts, updated);
         return updated;
