@@ -497,95 +497,31 @@ export default function DashboardPage() {
       </div>
 
       {/* Tabs + content */}
-      <section className="container-x py-6 sm:py-10">
-        {(() => {
-          const tabMap = new Map(tabs.map((t) => [t.id, t]));
-          const groups: { id: string; label: string; icon: React.ElementType; tabIds: Tab[] }[] = [
-            { id: "overview", label: "Overview", icon: LayoutDashboard, tabIds: ["overview"] },
-            { id: "learning", label: "Learning & Trading", icon: BookOpen, tabIds: ["courses", "journal", "booking", "certificates", "events"] },
-            { id: "finance", label: "Finance & Rewards", icon: Wallet, tabIds: ["wallet", "billing", "affiliate"] },
-            { id: "account", label: "Account", icon: UserIcon, tabIds: ["posts", "team-bio", "profile", "guide"] },
-          ];
-          const activeGroup = groups.find((g) => g.tabIds.includes(tab)) ?? groups[0];
-          const subTabs = activeGroup.tabIds
-            .map((id) => tabMap.get(id))
-            .filter((t): t is { id: Tab; label: string; icon: React.ElementType } => Boolean(t));
-
-          return (
-            <div className="mb-6 sm:mb-8 rounded-2xl border border-line bg-white p-2 sm:p-2.5 shadow-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar min-w-0 flex-1">
-                  {groups.map((g) => {
-                    const groupTabs = g.tabIds.filter((id) => tabMap.has(id));
-                    if (!groupTabs.length) return null;
-                    const isActive = activeGroup.id === g.id;
-                    return (
-                      <button
-                        key={g.id}
-                        type="button"
-                        onClick={() => {
-                          if (!isActive) setTab(groupTabs[0]);
-                        }}
-                        className={`flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer ${
-                          isActive
-                            ? "bg-brand text-white shadow-xs"
-                            : "text-ink/75 hover:bg-cream hover:text-brand"
-                        }`}
-                      >
-                        <g.icon className="h-4 w-4 shrink-0" />
-                        <span>{g.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {(isAdmin || isStaff) && (
-                    <button
-                      type="button"
-                      onClick={() => navigate("/admin")}
-                      className="flex items-center gap-1.5 rounded-xl bg-ink px-3.5 py-2 text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition hover:bg-ink/90 cursor-pointer"
-                    >
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-brand-light" />
-                      <span>Admin Panel</span>
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => { logout(); navigate("/"); }}
-                    className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4 shrink-0" />
-                    <span className="hidden sm:inline">Log out</span>
-                  </button>
-                </div>
-              </div>
-
-              {subTabs.length > 1 && (
-                <div className="mt-2 flex items-center gap-1.5 overflow-x-auto border-t border-line/70 pt-2 no-scrollbar">
-                  {subTabs.map((t) => {
-                    const isSubActive = tab === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setTab(t.id)}
-                        className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
-                          isSubActive
-                            ? "bg-brand-light text-brand ring-1 ring-brand/25"
-                            : "text-ink/70 hover:bg-cream hover:text-ink"
-                        }`}
-                      >
-                        <t.icon className="h-3.5 w-3.5 shrink-0" />
-                        <span>{t.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+      <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr]">
+        <aside className="relative min-w-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:gap-0 lg:p-2 shadow-xs lg:sticky lg:top-24 z-20 no-scrollbar">
+            <div className="flex items-center gap-1.5 lg:flex-col lg:items-stretch lg:gap-1">
+              {tabs.map((t) => (
+                <button key={t.id} onClick={() => setTab(t.id)}
+                  className={`flex shrink-0 items-center gap-2 lg:gap-2 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold whitespace-nowrap transition cursor-pointer ${tab === t.id ? "bg-brand text-white shadow-xs" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
+                  <t.icon className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0" /> {t.label}
+                </button>
+              ))}
             </div>
-          );
-        })()}
+            <div className="flex items-center gap-1.5 shrink-0 lg:flex-col lg:items-stretch lg:gap-1 lg:border-t lg:border-line lg:pt-2 lg:mt-2">
+              {(isAdmin || isStaff) && (
+                <button onClick={() => navigate("/admin")}
+                  className="flex shrink-0 items-center gap-2 lg:gap-2 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-white whitespace-nowrap transition hover:bg-ink/90 cursor-pointer">
+                  <ShieldCheck className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0 text-brand-light" /> Admin Panel
+                </button>
+              )}
+              <button onClick={() => { logout(); navigate("/"); }}
+                className="flex shrink-0 items-center gap-2 lg:gap-2 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-muted whitespace-nowrap transition hover:bg-cream hover:text-brand cursor-pointer">
+                <LogOut className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0" /> Log out
+              </button>
+            </div>
+          </div>
+        </aside>
 
         <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
           {!user.birthday && tab !== "profile" && (
