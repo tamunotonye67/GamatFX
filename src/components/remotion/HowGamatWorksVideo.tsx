@@ -2,10 +2,9 @@ import React from "react";
 import {
   AbsoluteFill,
   Audio,
+  Easing,
   Img,
-  OffthreadVideo,
   Sequence,
-  Video,
   interpolate,
   spring,
   useCurrentFrame,
@@ -15,19 +14,12 @@ import {
   Award,
   BookOpenCheck,
   BrainCircuit,
+  CalendarCheck,
   CheckCircle2,
-  Compass,
-  FileCheck2,
-  Globe,
-  Layers,
+  LayoutDashboard,
   LineChart,
-  MonitorPlay,
   ShieldCheck,
-  Smartphone,
-  Sparkles,
   TrendingUp,
-  Users,
-  XCircle,
 } from "lucide-react";
 
 export const HOW_IT_WORKS_FPS = 30;
@@ -46,7 +38,6 @@ const CLIPS = {
 };
 
 const PHOTOS = {
-  hero: "/images/hero.jpg",
   aboutHero: "/images/about-hero.jpg",
   community: "/images/community.jpg",
   campusLab: "/images/gallery/campus-lab.jpg",
@@ -57,427 +48,229 @@ const PHOTOS = {
   tradingFloor: "/images/gallery/trading-floor.jpg",
 };
 
-/* -------------------------- Subtitles Synced to VO -------------------------- */
+/* ----------------------- Continuous Camera Motion Layer ----------------------- */
 
-type CaptionSegment = {
-  fromSec: number;
-  toSec: number;
-  text: string;
-  highlight?: string;
-};
-
-const CAPTIONS: CaptionSegment[] = [
-  {
-    fromSec: 0.2,
-    toSec: 11.2,
-    text: "Most aspiring traders don’t fail because they lack information—they fail trying to piece together random YouTube videos without structure, real-time application, or accountability.",
-    highlight: "without structure, real-time application, or accountability",
-  },
-  {
-    fromSec: 11.7,
-    toSec: 22.1,
-    text: "At GamatFX, we replaced guesswork with one complete, accountable trading system that takes you from foundational theory to disciplined execution in real markets.",
-    highlight: "one complete, accountable trading system",
-  },
-  {
-    fromSec: 22.4,
-    toSec: 24.8,
-    text: "Here’s how it actually works from day one.",
-    highlight: "from day one",
-  },
-  {
-    fromSec: 25.2,
-    toSec: 28.1,
-    text: "Step One: Enroll and get instant access.",
-    highlight: "Step One",
-  },
-  {
-    fromSec: 28.4,
-    toSec: 34.0,
-    text: "The moment you pick a program and complete enrollment, your entire learning environment unlocks immediately.",
-    highlight: "unlocks immediately",
-  },
-  {
-    fromSec: 34.1,
-    toSec: 43.4,
-    text: "You get full access to structured video modules, downloadable workbooks, trading checklists, and our private trader community—so you’re never left waiting to get started.",
-    highlight: "structured video modules, downloadable workbooks",
-  },
-  {
-    fromSec: 43.9,
-    toSec: 46.9,
-    text: "Step Two: Learn, then apply live.",
-    highlight: "Step Two",
-  },
-  {
-    fromSec: 47.2,
-    toSec: 56.9,
-    text: "Instead of memorizing textbook patterns in isolation, you work through each module at your own pace and then bring those exact concepts into our weekly live market sessions.",
-    highlight: "weekly live market sessions",
-  },
-  {
-    fromSec: 57.2,
-    toSec: 69.0,
-    text: "Together with mentors and fellow students, you watch institutional order flow, liquidity sweeps, and market structure unfold in real time—seeing why a setup qualifies and when to stay out.",
-    highlight: "institutional order flow, liquidity sweeps, and market structure",
-  },
-  {
-    fromSec: 69.5,
-    toSec: 73.1,
-    text: "Step Three: Journal every trade and get reviewed.",
-    highlight: "Step Three",
-  },
-  {
-    fromSec: 73.3,
-    toSec: 75.6,
-    text: "This is where real progress happens.",
-    highlight: "real progress",
-  },
-  {
-    fromSec: 75.9,
-    toSec: 85.6,
-    text: "Every trade you take is logged inside your GamatFX Trade Journal—entry, stop loss, take profit, risk-to-reward, and the reasoning behind your execution.",
-    highlight: "GamatFX Trade Journal",
-  },
-  {
-    fromSec: 85.9,
-    toSec: 93.9,
-    text: "Mentors review your setups and give direct feedback so you catch emotional mistakes early, tighten your rules, and build repeatable habits.",
-    highlight: "direct feedback",
-  },
-  {
-    fromSec: 94.4,
-    toSec: 97.0,
-    text: "Step Four: Scale with accountability.",
-    highlight: "Step Four",
-  },
-  {
-    fromSec: 97.3,
-    toSec: 105.0,
-    text: "As you pass your module quizzes, check in to live workshops, and earn your verified GamatFX certificates, you’re not sent off on your own.",
-    highlight: "verified GamatFX certificates",
-  },
-  {
-    fromSec: 105.2,
-    toSec: 115.9,
-    text: "You graduate to live capital or funded-account challenges with a clear, rules-based trading plan, ongoing mentor support, and a community that holds you to professional risk standards.",
-    highlight: "live capital or funded-account challenges",
-  },
-  {
-    fromSec: 116.4,
-    toSec: 120.3,
-    text: "Inside the academy, everything is built for real-world trading:",
-    highlight: "real-world trading",
-  },
-  {
-    fromSec: 120.6,
-    toSec: 128.0,
-    text: "Inside live market breakdowns, we mark key levels and wait patiently for confirmation before risking a single dollar.",
-    highlight: "live market breakdowns",
-  },
-  {
-    fromSec: 128.3,
-    toSec: 136.3,
-    text: "Reading multi-screen market data, you learn how macro news, higher-timeframe bias, and lower-timeframe execution work together.",
-    highlight: "Reading multi-screen market data",
-  },
-  {
-    fromSec: 136.6,
-    toSec: 144.1,
-    text: "And with analysis on the go, your courses, trade journal, daily outlooks, and community tools stay accessible wherever you are.",
-    highlight: "analysis on the go",
-  },
-  {
-    fromSec: 144.4,
-    toSec: 151.8,
-    text: "Whether you’re starting from scratch or refining an existing strategy, GamatFX gives you the structure, live mentorship, and accountability to trade with confidence.",
-    highlight: "structure, live mentorship, and accountability",
-  },
-  {
-    fromSec: 152.0,
-    toSec: 160.4,
-    text: "Choose your program, step inside the dashboard, and let’s build your edge—the right way.",
-    highlight: "let’s build your edge—the right way",
-  },
-];
-
-/* -------------------------- Shared Top Chrome -------------------------- */
-
-const TopBrandChrome: React.FC<{
-  chapterTag: string;
-  progressPct: number;
-}> = ({ chapterTag, progressPct }) => {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 28,
-        left: 44,
-        right: 44,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        zIndex: 40,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "8px 16px 8px 10px",
-          borderRadius: 16,
-          backgroundColor: "rgba(17, 19, 23, 0.78)",
-          border: "1px solid rgba(255,255,255,0.14)",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <div
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 10,
-            backgroundColor: "#dc3545",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#ffffff",
-            fontWeight: 900,
-            fontSize: 17,
-            fontFamily: '"Sora", system-ui, sans-serif',
-            boxShadow: "0 8px 20px rgba(220,53,69,0.4)",
-          }}
-        >
-          G
-        </div>
-        <div>
-          <div
-            style={{
-              color: "#ffffff",
-              fontWeight: 800,
-              fontSize: 15,
-              letterSpacing: "-0.02em",
-              fontFamily: '"Sora", system-ui, sans-serif',
-            }}
-          >
-            GAMAT <span style={{ color: "#dc3545" }}>Fx</span> Academy
-          </div>
-          <div
-            style={{
-              color: "rgba(255,255,255,0.55)",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-            }}
-          >
-            Official System Walkthrough
-          </div>
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          padding: "9px 18px",
-          borderRadius: 999,
-          backgroundColor: "rgba(17, 19, 23, 0.78)",
-          border: "1px solid rgba(255,255,255,0.14)",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <span
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            backgroundColor: "#dc3545",
-            boxShadow: "0 0 10px #dc3545",
-          }}
-        />
-        <span
-          style={{
-            color: "#ffffff",
-            fontSize: 12,
-            fontWeight: 800,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          {chapterTag}
-        </span>
-        <div
-          style={{
-            width: 72,
-            height: 5,
-            borderRadius: 999,
-            backgroundColor: "rgba(255,255,255,0.15)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              height: "100%",
-              width: `${Math.min(100, Math.max(0, progressPct))}%`,
-              backgroundColor: "#dc3545",
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ------------------------- Synced Caption Bar ------------------------- */
-
-const SubtitleBar: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const currentSec = frame / fps;
-
-  const active = CAPTIONS.find(
-    (c) => currentSec >= c.fromSec && currentSec <= c.toSec
-  );
-  if (!active) return null;
-
-  const fadeIn = interpolate(
-    currentSec,
-    [active.fromSec, active.fromSec + 0.25],
-    [0, 1],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-  const fadeOut = interpolate(
-    currentSec,
-    [active.toSec - 0.25, active.toSec],
-    [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-  const opacity = Math.min(fadeIn, fadeOut);
-
-  const renderText = () => {
-    if (!active.highlight) return active.text;
-    const idx = active.text
-      .toLowerCase()
-      .indexOf(active.highlight.toLowerCase());
-    if (idx === -1) return active.text;
-    const before = active.text.slice(0, idx);
-    const match = active.text.slice(idx, idx + active.highlight.length);
-    const after = active.text.slice(idx + active.highlight.length);
-    return (
-      <>
-        {before}
-        <span style={{ color: "#ff7583", fontWeight: 800 }}>{match}</span>
-        {after}
-      </>
-    );
-  };
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        bottom: 24,
-        left: 64,
-        right: 64,
-        display: "flex",
-        justifyContent: "center",
-        zIndex: 45,
-        opacity,
-        transform: `translateY(${interpolate(opacity, [0, 1], [8, 0])}px)`,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1020,
-          padding: "12px 24px",
-          borderRadius: 16,
-          backgroundColor: "rgba(12, 14, 18, 0.88)",
-          border: "1px solid rgba(255,255,255,0.14)",
-          boxShadow: "0 16px 40px rgba(0,0,0,0.55)",
-          color: "rgba(255,255,255,0.95)",
-          fontSize: 17.5,
-          fontWeight: 600,
-          lineHeight: 1.45,
-          textAlign: "center",
-          fontFamily: '"Inter", system-ui, sans-serif',
-        }}
-      >
-        {renderText()}
-      </div>
-    </div>
-  );
-};
-
-/* --------------------- Background Photo / Video Layer --------------------- */
-
-const CinematicBackdrop: React.FC<{
-  photoSrc?: string;
+const CameraBackdrop: React.FC<{
   videoSrc?: string;
-  dimOpacity?: number;
-}> = ({ photoSrc, videoSrc, dimOpacity = 0.72 }) => {
+  photoSrc?: string;
+  panX?: [number, number];
+  panY?: [number, number];
+  zoom?: [number, number];
+  dim?: number;
+}> = ({
+  videoSrc,
+  photoSrc,
+  panX = [0, -28],
+  panY = [0, -14],
+  zoom = [1.04, 1.14],
+  dim = 0.62,
+}) => {
   const frame = useCurrentFrame();
-  const scale = interpolate(frame, [0, 600], [1.02, 1.11], {
+  const { durationInFrames } = useVideoConfig();
+
+  const progress = interpolate(frame, [0, durationInFrames], [0, 1], {
+    extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
+  const scale = interpolate(progress, [0, 1], zoom);
+  const tx = interpolate(progress, [0, 1], panX);
+  const ty = interpolate(progress, [0, 1], panY);
+
   return (
-    <AbsoluteFill style={{ overflow: "hidden", backgroundColor: "#0e1014" }}>
-      {videoSrc ? (
-        <video
-          src={videoSrc}
-          muted
-          autoPlay
-          loop
-          playsInline
-          preload="auto"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transform: `scale(${scale})`,
-          }}
-        />
-      ) : photoSrc ? (
-        <Img
-          src={photoSrc}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transform: `scale(${scale})`,
-          }}
-        />
-      ) : null}
-
-      {/* Dark cinematic gradient overlay */}
-      <AbsoluteFill
+    <AbsoluteFill style={{ overflow: "hidden", backgroundColor: "#0d0f13" }}>
+      <div
         style={{
-          background: `linear-gradient(115deg, rgba(13,15,19,${Math.min(
-            0.94,
-            dimOpacity + 0.14
-          )}) 0%, rgba(13,15,19,${dimOpacity}) 55%, rgba(13,15,19,${Math.min(
-            0.92,
-            dimOpacity + 0.1
-          )}) 100%)`,
+          width: "100%",
+          height: "100%",
+          transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`,
+          transformOrigin: "center center",
         }}
-      />
+      >
+        {videoSrc ? (
+          <video
+            src={videoSrc}
+            muted
+            autoPlay
+            loop
+            playsInline
+            preload="auto"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : photoSrc ? (
+          <Img
+            src={photoSrc}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        ) : null}
+      </div>
 
-      {/* Subtle grid texture */}
+      {/* Smooth cinematic vignette */}
       <AbsoluteFill
         style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
+          background: `radial-gradient(circle at 50% 45%, rgba(13,15,19,${
+            dim - 0.14
+          }) 0%, rgba(13,15,19,${Math.min(0.94, dim + 0.18)}) 100%)`,
         }}
       />
     </AbsoluteFill>
   );
 };
 
+/* ------------------------- Minimalist Top Watermark ------------------------- */
+
+const MinimalBrandWatermark: React.FC = () => {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 30,
+        left: 44,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        zIndex: 40,
+        opacity: 0.9,
+      }}
+    >
+      <div
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 9,
+          backgroundColor: "#dc3545",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#ffffff",
+          fontWeight: 900,
+          fontSize: 15,
+          fontFamily: '"Sora", system-ui, sans-serif',
+        }}
+      >
+        G
+      </div>
+      <span
+        style={{
+          color: "#ffffff",
+          fontWeight: 800,
+          fontSize: 15,
+          letterSpacing: "-0.02em",
+          fontFamily: '"Sora", system-ui, sans-serif',
+          textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+        }}
+      >
+        GAMAT <span style={{ color: "#dc3545" }}>Fx</span>
+      </span>
+    </div>
+  );
+};
+
+/* ------------------------- Realistic Dashboard Cursor ------------------------- */
+
+type CursorKeyframe = {
+  frame: number;
+  x: number;
+  y: number;
+  click?: boolean;
+};
+
+const AnimatedMouseCursor: React.FC<{
+  keyframes: CursorKeyframe[];
+}> = ({ keyframes }) => {
+  const frame = useCurrentFrame();
+
+  if (keyframes.length === 0) return null;
+
+  let x = keyframes[0].x;
+  let y = keyframes[0].y;
+
+  for (let i = 0; i < keyframes.length - 1; i++) {
+    const a = keyframes[i];
+    const b = keyframes[i + 1];
+    if (frame >= a.frame && frame <= b.frame) {
+      const t = interpolate(frame, [a.frame, b.frame], [0, 1], {
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      });
+      x = a.x + (b.x - a.x) * t;
+      y = a.y + (b.y - a.y) * t;
+      break;
+    } else if (frame > b.frame) {
+      x = b.x;
+      y = b.y;
+    }
+  }
+
+  // Click ripple effect
+  const activeClick = keyframes.find(
+    (k) => k.click && frame >= k.frame && frame <= k.frame + 18
+  );
+  const clickProgress = activeClick
+    ? interpolate(frame, [activeClick.frame, activeClick.frame + 18], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 0;
+  const cursorScale = activeClick
+    ? interpolate(
+        frame,
+        [activeClick.frame, activeClick.frame + 5, activeClick.frame + 12],
+        [1, 0.86, 1],
+        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+      )
+    : 1;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transform: `translate3d(${x}px, ${y}px, 0)`,
+        zIndex: 50,
+        pointerEvents: "none",
+      }}
+    >
+      {activeClick && (
+        <div
+          style={{
+            position: "absolute",
+            left: -14,
+            top: -14,
+            width: 34,
+            height: 34,
+            borderRadius: "50%",
+            border: "2.5px solid #dc3545",
+            transform: `scale(${0.4 + clickProgress * 1.4})`,
+            opacity: 1 - clickProgress,
+          }}
+        />
+      )}
+      <svg
+        width="26"
+        height="26"
+        viewBox="0 0 24 24"
+        style={{
+          transform: `scale(${cursorScale})`,
+          filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.45))",
+        }}
+      >
+        <path
+          d="M4 3L20 11.5L12.5 13.5L9.5 21L4 3Z"
+          fill="#ffffff"
+          stroke="#111317"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+};
+
 /* ==========================================================================
-   SCENE 1 (0s - 11.5s | Frames 0 - 345):
+   SCENE 1 (0.0s - 11.5s | Frames 0 - 345):
    "Most aspiring traders don't fail because they lack information..."
    ========================================================================== */
 
@@ -485,155 +278,80 @@ const Scene1Problem: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const introIn = spring({ frame, fps, config: { damping: 14 } });
-
-  const painPoints = [
-    {
-      title: "Random YouTube Rabbit Holes",
-      sub: "Conflicting indicators & cherry-picked hindsight charts",
-    },
-    {
-      title: "Zero Structure or Roadmap",
-      sub: "Jumping between strategies after every losing trade",
-    },
-    {
-      title: "No Live Application or Accountability",
-      sub: "Trading alone without a mentor to audit your execution",
-    },
-  ];
+  const titleIn = spring({ frame, fps, config: { damping: 16 } });
+  const drift = interpolate(frame, [0, 345], [0, -18]);
+  const fadeOut = interpolate(frame, [320, 345], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop videoSrc={CLIPS.mainDesk} dimOpacity={0.78} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      <CameraBackdrop
+        videoSrc={CLIPS.mainDesk}
+        panX={[15, -25]}
+        panY={[8, -10]}
+        zoom={[1.03, 1.12]}
+        dim={0.66}
+      />
 
       <div
         style={{
           flex: 1,
-          display: "grid",
-          gridTemplateColumns: "1.05fr 0.95fr",
-          alignItems: "center",
-          gap: 48,
-          padding: "92px 64px 96px 64px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "0 96px",
+          maxWidth: 980,
           zIndex: 10,
+          transform: `translateY(${drift}px)`,
         }}
       >
         <div
           style={{
-            opacity: introIn,
-            transform: `translateY(${interpolate(introIn, [0, 1], [30, 0])}px)`,
+            opacity: titleIn,
+            transform: `translateY(${interpolate(titleIn, [0, 1], [28, 0])}px)`,
           }}
         >
-          <div
+          <p
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "8px 16px",
-              borderRadius: 999,
-              backgroundColor: "rgba(220,53,69,0.2)",
-              border: "1px solid rgba(220,53,69,0.45)",
               color: "#ff7583",
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 800,
-              letterSpacing: "0.08em",
+              letterSpacing: "0.14em",
               textTransform: "uppercase",
-              marginBottom: 20,
+              marginBottom: 18,
             }}
           >
-            <XCircle size={16} /> The Retail Trader Trap
-          </div>
-
+            Why Most Traders Struggle
+          </p>
           <h1
             style={{
               color: "#ffffff",
               fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 48,
+              fontSize: 58,
               fontWeight: 800,
-              lineHeight: 1.14,
+              lineHeight: 1.12,
               margin: 0,
-              letterSpacing: "-0.025em",
+              letterSpacing: "-0.03em",
+              textShadow: "0 10px 30px rgba(0,0,0,0.45)",
             }}
           >
-            Traders Don’t Fail From a Lack of Info—They Fail From{" "}
-            <span style={{ color: "#dc3545" }}>Fragmented Guesswork.</span>
+            Information isn’t the problem.{" "}
+            <span style={{ color: "#dc3545" }}>Lack of structure</span> is.
           </h1>
-
           <p
             style={{
-              color: "rgba(255,255,255,0.72)",
-              fontSize: 19,
-              lineHeight: 1.55,
-              marginTop: 18,
+              color: "rgba(255,255,255,0.78)",
+              fontSize: 22,
+              lineHeight: 1.5,
+              marginTop: 22,
+              maxWidth: 720,
             }}
           >
-            Piecing together random videos without structure, real-time market
-            application, or mentor feedback keeps traders stuck in the cycle.
+            Random videos without real-time application or mentor accountability
+            keep aspiring traders stuck in guesswork.
           </p>
-        </div>
-
-        {/* Right: Pain cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {painPoints.map((p, idx) => {
-            const cardIn = spring({
-              frame: frame - 24 - idx * 28,
-              fps,
-              config: { damping: 14 },
-            });
-            return (
-              <div
-                key={p.title}
-                style={{
-                  opacity: cardIn,
-                  transform: `translateX(${interpolate(cardIn, [0, 1], [45, 0])}px)`,
-                  padding: "20px 24px",
-                  borderRadius: 20,
-                  backgroundColor: "rgba(18, 21, 27, 0.86)",
-                  border: "1px solid rgba(220,53,69,0.32)",
-                  boxShadow: "0 20px 45px rgba(0,0,0,0.45)",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 16,
-                }}
-              >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    backgroundColor: "rgba(220,53,69,0.18)",
-                    color: "#ff6b7a",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <XCircle size={22} />
-                </div>
-                <div>
-                  <div
-                    style={{
-                      color: "#ffffff",
-                      fontWeight: 800,
-                      fontSize: 18,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    {p.title}
-                  </div>
-                  <div
-                    style={{
-                      color: "rgba(255,255,255,0.62)",
-                      fontSize: 14,
-                      marginTop: 4,
-                    }}
-                  >
-                    {p.sub}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
     </AbsoluteFill>
@@ -645,145 +363,86 @@ const Scene1Problem: React.FC = () => {
    "At GamatFX, we replaced guesswork with one complete, accountable trading system..."
    ========================================================================== */
 
-const Scene2SolutionOverview: React.FC = () => {
+const Scene2SystemIntro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headIn = spring({ frame, fps, config: { damping: 14 } });
-
-  const pillars = [
-    { num: "01", title: "Structured Curriculum", img: PHOTOS.campusLab },
-    { num: "02", title: "Live Market Sessions", img: PHOTOS.liveWorkshop },
-    { num: "03", title: "Trade Journal & Audits", img: PHOTOS.chartReview },
-    { num: "04", title: "Accountable Scaling", img: PHOTOS.graduation },
-  ];
+  const headIn = spring({ frame, fps, config: { damping: 16 } });
+  const cameraFloat = interpolate(frame, [0, 405], [14, -14]);
+  const fadeOut = interpolate(frame, [380, 405], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop photoSrc={PHOTOS.tradingFloor} dimOpacity={0.76} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      <CameraBackdrop
+        photoSrc={PHOTOS.tradingFloor}
+        panX={[-20, 20]}
+        panY={[10, -12]}
+        zoom={[1.05, 1.16]}
+        dim={0.64}
+      />
 
       <div
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
+          alignItems: "center",
           justifyContent: "center",
-          padding: "90px 64px 96px 64px",
+          textAlign: "center",
+          padding: "0 110px",
           zIndex: 10,
+          transform: `translateY(${cameraFloat}px)`,
         }}
       >
         <div
           style={{
-            textAlign: "center",
-            maxWidth: 920,
-            margin: "0 auto 34px auto",
             opacity: headIn,
-            transform: `translateY(${interpolate(headIn, [0, 1], [28, 0])}px)`,
+            transform: `scale(${interpolate(headIn, [0, 1], [0.95, 1])})`,
           }}
         >
-          <div
+          <p
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "7px 18px",
-              borderRadius: 999,
-              backgroundColor: "rgba(16,185,129,0.18)",
-              border: "1px solid rgba(16,185,129,0.45)",
               color: "#34d399",
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 800,
-              letterSpacing: "0.1em",
+              letterSpacing: "0.14em",
               textTransform: "uppercase",
               marginBottom: 16,
             }}
           >
-            <Sparkles size={15} /> The GAMAT Fx Blueprint
-          </div>
-
+            The GAMAT Fx Method
+          </p>
           <h2
             style={{
               color: "#ffffff",
               fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 46,
+              fontSize: 56,
               fontWeight: 800,
-              lineHeight: 1.15,
+              lineHeight: 1.13,
               margin: 0,
+              letterSpacing: "-0.03em",
+              maxWidth: 960,
             }}
           >
-            One Complete, Accountable System From{" "}
+            One Complete System From{" "}
             <span style={{ color: "#dc3545" }}>Theory to Live Execution</span>
           </h2>
-        </div>
-
-        {/* 4 Photo Pillar Cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 20,
-          }}
-        >
-          {pillars.map((p, i) => {
-            const cardIn = spring({
-              frame: frame - 22 - i * 18,
-              fps,
-              config: { damping: 14 },
-            });
-            return (
-              <div
-                key={p.num}
-                style={{
-                  opacity: cardIn,
-                  transform: `translateY(${interpolate(cardIn, [0, 1], [36, 0])}px)`,
-                  borderRadius: 22,
-                  overflow: "hidden",
-                  backgroundColor: "rgba(17,19,23,0.9)",
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  boxShadow: "0 22px 45px rgba(0,0,0,0.45)",
-                }}
-              >
-                <div style={{ position: "relative", height: 155, overflow: "hidden" }}>
-                  <Img
-                    src={p.img}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 12,
-                      left: 12,
-                      padding: "4px 10px",
-                      borderRadius: 8,
-                      backgroundColor: "#dc3545",
-                      color: "#ffffff",
-                      fontSize: 12,
-                      fontWeight: 800,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    STEP {p.num}
-                  </div>
-                </div>
-                <div style={{ padding: "16px 18px" }}>
-                  <div
-                    style={{
-                      color: "#ffffff",
-                      fontWeight: 800,
-                      fontSize: 17,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    {p.title}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          <p
+            style={{
+              color: "rgba(255,255,255,0.78)",
+              fontSize: 22,
+              lineHeight: 1.5,
+              marginTop: 20,
+              maxWidth: 760,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Here’s how it actually works from day one.
+          </p>
         </div>
       </div>
     </AbsoluteFill>
@@ -792,262 +451,298 @@ const Scene2SolutionOverview: React.FC = () => {
 
 /* ==========================================================================
    SCENE 3 (25.0s - 43.8s | Frames 750 - 1314):
-   "Step one: Enroll and get instant access..."
+   Step 1: Enroll & Get Instant Access + Dashboard Mouse Motion
    ========================================================================== */
 
-const Scene3StepOneEnroll: React.FC = () => {
+const Scene3StepOneDashboard: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const leftIn = spring({ frame, fps, config: { damping: 15 } });
-  const rightIn = spring({ frame: frame - 14, fps, config: { damping: 14 } });
+  const textIn = spring({ frame, fps, config: { damping: 16 } });
+  const uiIn = spring({ frame: frame - 18, fps, config: { damping: 16 } });
+  const fadeOut = interpolate(frame, [535, 564], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
-  const unlockedItems = [
-    {
-      code: "MODULES",
-      title: "Structured Video Curriculum",
-      desc: "Foundational to institutional Smart Money Concepts",
-      pct: 100,
-    },
-    {
-      code: "WORKBOOKS",
-      title: "Downloadable PDF Workbooks & Checklists",
-      desc: "Pre-session Mechanical Execution Checklists",
-      pct: 100,
-    },
-    {
-      code: "COMMUNITY",
-      title: "Private Student Trading Floor",
-      desc: "24/7 peer & mentor chart discussion channels",
-      pct: 100,
-    },
+  // Camera gentle pan across the workspace
+  const uiPanX = interpolate(frame, [0, 564], [12, -10]);
+  const uiScale = interpolate(frame, [0, 564], [0.98, 1.03]);
+
+  // Dashboard interactive state driven by mouse clicks
+  const activeTab = frame >= 150 ? "courses" : "overview";
+  const workbookDownloaded = frame >= 360;
+
+  const cursorKeyframes: CursorKeyframe[] = [
+    { frame: 40, x: 460, y: 260 },
+    { frame: 140, x: 105, y: 158, click: true }, // Click "My Courses"
+    { frame: 250, x: 350, y: 175 }, // Hover Module 1
+    { frame: 350, x: 485, y: 292, click: true }, // Click "Download Workbook"
+    { frame: 470, x: 340, y: 365 }, // Hover Community channel
   ];
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop photoSrc={PHOTOS.campusLab} dimOpacity={0.78} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      <CameraBackdrop
+        photoSrc={PHOTOS.campusLab}
+        panX={[-15, 18]}
+        panY={[6, -10]}
+        zoom={[1.04, 1.13]}
+        dim={0.72}
+      />
 
       <div
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "1fr 1.05fr",
+          gridTemplateColumns: "0.85fr 1.15fr",
           alignItems: "center",
-          gap: 46,
-          padding: "92px 64px 96px 64px",
+          gap: 48,
+          padding: "0 64px",
           zIndex: 10,
         }}
       >
-        {/* Left: Real campus photo + Step 1 copy */}
+        {/* Clean Left Copy */}
         <div
           style={{
-            opacity: leftIn,
-            transform: `translateX(${interpolate(leftIn, [0, 1], [-36, 0])}px)`,
+            opacity: textIn,
+            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <span
-              style={{
-                padding: "6px 14px",
-                borderRadius: 10,
-                backgroundColor: "#dc3545",
-                color: "#ffffff",
-                fontWeight: 800,
-                fontSize: 14,
-                fontFamily: '"Sora", system-ui, sans-serif',
-              }}
-            >
-              STEP 01
-            </span>
-            <span
-              style={{
-                color: "#ff7583",
-                fontWeight: 800,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              Instant Environment Unlock
-            </span>
-          </div>
-
+          <span
+            style={{
+              color: "#dc3545",
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+            }}
+          >
+            Step 01
+          </span>
           <h2
             style={{
               color: "#ffffff",
               fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 44,
+              fontSize: 46,
               fontWeight: 800,
-              lineHeight: 1.15,
-              margin: 0,
+              lineHeight: 1.14,
+              margin: "12px 0 0 0",
             }}
           >
-            Enroll & Get{" "}
-            <span style={{ color: "#dc3545" }}>Instant Access</span>
+            Enroll & Get Instant Access
           </h2>
-
           <p
             style={{
-              color: "rgba(255,255,255,0.74)",
-              fontSize: 18.5,
+              color: "rgba(255,255,255,0.75)",
+              fontSize: 19,
               lineHeight: 1.55,
-              marginTop: 16,
-              marginBottom: 22,
+              marginTop: 18,
             }}
           >
-            Your complete learning environment unlocks the moment you enroll—no
-            waiting, no guesswork.
+            Your full dashboard unlocks immediately—structured modules,
+            workbooks, checklists, and the private community.
           </p>
-
-          {/* Framed Academy Photo inset */}
-          <div
-            style={{
-              position: "relative",
-              height: 190,
-              borderRadius: 20,
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.18)",
-              boxShadow: "0 18px 40px rgba(0,0,0,0.45)",
-            }}
-          >
-            <Img
-              src={PHOTOS.community}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(to top, rgba(12,14,18,0.88) 0%, rgba(12,14,18,0.15) 65%)",
-                display: "flex",
-                alignItems: "flex-end",
-                padding: "14px 18px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Users size={18} color="#34d399" />
-                <span style={{ color: "#ffffff", fontWeight: 700, fontSize: 14 }}>
-                   GAMAT Fx Student Learning Lab & Private Trader Community
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Right: Interactive Dashboard Unlock Illustration */}
+        {/* Right: Clean GamatFX Dashboard Window with Live Mouse Motion */}
         <div
           style={{
-            opacity: rightIn,
-            transform: `translateY(${interpolate(rightIn, [0, 1], [30, 0])}px)`,
-            borderRadius: 26,
-            backgroundColor: "rgba(18, 21, 27, 0.9)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            padding: 28,
-            boxShadow: "0 28px 60px rgba(0,0,0,0.55)",
+            opacity: uiIn,
+            transform: `translateX(${uiPanX}px) scale(${uiScale})`,
+            position: "relative",
+            borderRadius: 22,
+            backgroundColor: "#f8fafc",
+            boxShadow: "0 35px 80px rgba(0,0,0,0.6)",
+            overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.2)",
+            height: 430,
           }}
         >
+          <AnimatedMouseCursor keyframes={cursorKeyframes} />
+
+          {/* Browser / App Top Bar */}
           <div
             style={{
+              height: 40,
+              backgroundColor: "#ffffff",
+              borderBottom: "1px solid #e2e8f0",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: 20,
+              padding: "0 18px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
-                  backgroundColor: "rgba(220,53,69,0.2)",
-                  color: "#ff7583",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <BookOpenCheck size={22} />
-              </div>
-              <div>
-                <div style={{ color: "#ffffff", fontWeight: 800, fontSize: 17 }}>
-                  GamatFX Student Portal
-                </div>
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12.5 }}>
-                  Enrollment Verified · All Resources Active
-                </div>
-              </div>
+            <div style={{ display: "flex", gap: 7 }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#ef4444" }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#f59e0b" }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#10b981" }} />
             </div>
-            <span
-              style={{
-                padding: "6px 12px",
-                borderRadius: 999,
-                backgroundColor: "rgba(16,185,129,0.18)",
-                border: "1px solid rgba(16,185,129,0.45)",
-                color: "#34d399",
-                fontSize: 11.5,
-                fontWeight: 800,
-              }}
-            >
-              ✓ UNLOCKED
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: "#64748b" }}>
+              gamatfx.com/dashboard
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>
+              ● Enrolled
             </span>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {unlockedItems.map((item, idx) => {
-              const itemIn = spring({
-                frame: frame - 35 - idx * 35,
-                fps,
-                config: { damping: 15 },
-              });
-              return (
-                <div
-                  key={item.code}
+          <div style={{ display: "grid", gridTemplateColumns: "185px 1fr", height: 390 }}>
+            {/* Soft Ash Sidebar matching our real app */}
+            <div
+              style={{
+                backgroundColor: "#f1f5f9",
+                borderRight: "1px solid #e2e8f0",
+                padding: 14,
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
+              {[
+                { id: "overview", label: "Overview", icon: LayoutDashboard },
+                { id: "courses", label: "My Courses", icon: BookOpenCheck },
+                { id: "journal", label: "Trade Journal", icon: TrendingUp },
+                { id: "events", label: "My Events", icon: CalendarCheck },
+                { id: "certs", label: "Certificates", icon: Award },
+              ].map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 9,
+                      padding: "9px 11px",
+                      borderRadius: 10,
+                      backgroundColor: isActive ? "#dc3545" : "transparent",
+                      color: isActive ? "#ffffff" : "#334155",
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                    }}
+                  >
+                    <item.icon size={15} />
+                    <span>{item.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Dashboard Main Panel */}
+            <div style={{ padding: 22, backgroundColor: "#ffffff" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#16181c" }}>
+                    {activeTab === "courses" ? "My Courses & Workbooks" : "Student Workspace"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                    Institutional Forex Mentorship · Full Access
+                  </div>
+                </div>
+                <span
                   style={{
-                    opacity: itemIn,
-                    transform: `translateX(${interpolate(itemIn, [0, 1], [28, 0])}px)`,
-                    padding: "16px 18px",
-                    borderRadius: 18,
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.09)",
+                    padding: "5px 10px",
+                    borderRadius: 999,
+                    backgroundColor: "#ecfdf5",
+                    color: "#059669",
+                    fontSize: 11,
+                    fontWeight: 800,
+                  }}
+                >
+                  Unlocked
+                </span>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: 14,
+                    border: "1px solid #e2e8f0",
+                    backgroundColor: "#f8fafc",
                     display: "flex",
-                    alignItems: "center",
                     justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 800,
-                          color: "#ff7583",
-                          backgroundColor: "rgba(220,53,69,0.18)",
-                          padding: "3px 8px",
-                          borderRadius: 6,
-                        }}
-                      >
-                        {item.code}
-                      </span>
-                      <span style={{ color: "#ffffff", fontWeight: 700, fontSize: 15.5 }}>
-                        {item.title}
-                      </span>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c" }}>
+                      Module 01 · Market Structure & Liquidity
                     </div>
-                    <div
-                      style={{
-                        color: "rgba(255,255,255,0.55)",
-                        fontSize: 13,
-                        marginTop: 5,
-                      }}
-                    >
-                      {item.desc}
+                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
+                      12 HD Lessons · Video Stream Ready
                     </div>
                   </div>
-                  <CheckCircle2 size={22} color="#34d399" />
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#dc3545" }}>
+                    Watch →
+                  </span>
                 </div>
-              );
-            })}
+
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: 14,
+                    border: workbookDownloaded ? "1px solid #10b981" : "1px solid #e2e8f0",
+                    backgroundColor: workbookDownloaded ? "#ecfdf5" : "#f8fafc",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c" }}>
+                      PDF Workbooks & Pre-Trade Checklists
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
+                      Institutional Execution Playbook
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: 8,
+                      backgroundColor: workbookDownloaded ? "#10b981" : "#16181c",
+                      color: "#ffffff",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {workbookDownloaded ? "Downloaded ✓" : "Download PDF"}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: 14,
+                    border: "1px solid #e2e8f0",
+                    backgroundColor: "#f8fafc",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c" }}>
+                      Private Trader Community Floor
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
+                      Daily markups & live Q&A channels
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: "#059669" }}>
+                    Active ●
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1057,290 +752,113 @@ const Scene3StepOneEnroll: React.FC = () => {
 
 /* ==========================================================================
    SCENE 4 (43.8s - 69.3s | Frames 1314 - 2079):
-   "Step two: Learn, then apply live..."
+   Step 2: Learn, Then Apply Live (Realistic live market footage + clean callout)
    ========================================================================== */
 
-const Scene4StepTwoApplyLive: React.FC = () => {
+const Scene4StepTwoLive: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const leftIn = spring({ frame, fps, config: { damping: 15 } });
-  const rightIn = spring({ frame: frame - 12, fps, config: { damping: 14 } });
-
-  const candles = [
-    { bull: false, top: 140, height: 48, wickTop: 125, wickBottom: 205 },
-    { bull: false, top: 175, height: 55, wickTop: 160, wickBottom: 250 },
-    { bull: false, top: 205, height: 42, wickTop: 192, wickBottom: 268 }, // Liquidity sweep wick
-    { bull: true, top: 155, height: 75, wickTop: 140, wickBottom: 242 }, // Displacement + BOS
-    { bull: true, top: 115, height: 62, wickTop: 100, wickBottom: 190 },
-    { bull: false, top: 135, height: 36, wickTop: 125, wickBottom: 182 }, // FVG mitigation
-    { bull: true, top: 75, height: 78, wickTop: 60, wickBottom: 162 },
-    { bull: true, top: 38, height: 60, wickTop: 22, wickBottom: 112 },
-  ];
-
-  const sweepBadge = spring({ frame: frame - 90, fps, config: { damping: 14 } });
-  const bosBadge = spring({ frame: frame - 150, fps, config: { damping: 14 } });
+  const copyIn = spring({ frame, fps, config: { damping: 16 } });
+  const workshopIn = spring({ frame: frame - 180, fps, config: { damping: 16 } });
+  const fadeOut = interpolate(frame, [735, 765], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop videoSrc={CLIPS.liveBreakdown} dimOpacity={0.74} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      {/* First half: Realistic live trading footage; Second half: Real academy workshop */}
+      {frame < 380 ? (
+        <CameraBackdrop
+          videoSrc={CLIPS.liveBreakdown}
+          panX={[-20, 22]}
+          panY={[8, -8]}
+          zoom={[1.04, 1.15]}
+          dim={0.58}
+        />
+      ) : (
+        <CameraBackdrop
+          photoSrc={PHOTOS.liveWorkshop}
+          panX={[18, -22]}
+          panY={[-8, 10]}
+          zoom={[1.04, 1.16]}
+          dim={0.6}
+        />
+      )}
 
       <div
         style={{
           flex: 1,
-          display: "grid",
-          gridTemplateColumns: "0.95fr 1.05fr",
-          alignItems: "center",
-          gap: 44,
-          padding: "92px 64px 96px 64px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          padding: "0 72px 76px 72px",
           zIndex: 10,
         }}
       >
         <div
           style={{
-            opacity: leftIn,
-            transform: `translateX(${interpolate(leftIn, [0, 1], [-35, 0])}px)`,
+            maxWidth: 780,
+            opacity: copyIn,
+            transform: `translateY(${interpolate(copyIn, [0, 1], [24, 0])}px)`,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <span
-              style={{
-                padding: "6px 14px",
-                borderRadius: 10,
-                backgroundColor: "#dc3545",
-                color: "#ffffff",
-                fontWeight: 800,
-                fontSize: 14,
-                fontFamily: '"Sora", system-ui, sans-serif',
-              }}
-            >
-              STEP 02
-            </span>
-            <span
-              style={{
-                color: "#ff7583",
-                fontWeight: 800,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              Weekly Live Market Sessions
-            </span>
-          </div>
-
+          <span
+            style={{
+              color: "#dc3545",
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+            }}
+          >
+            Step 02 · Weekly Live Sessions
+          </span>
           <h2
             style={{
               color: "#ffffff",
               fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 44,
+              fontSize: 48,
               fontWeight: 800,
               lineHeight: 1.14,
-              margin: 0,
+              margin: "10px 0 0 0",
+              textShadow: "0 8px 28px rgba(0,0,0,0.6)",
             }}
           >
-            Learn the Concept, Then{" "}
-            <span style={{ color: "#dc3545" }}>Apply It Live</span>
+            Learn, Then Apply Live
           </h2>
-
           <p
             style={{
-              color: "rgba(255,255,255,0.74)",
-              fontSize: 18,
-              lineHeight: 1.55,
-              marginTop: 16,
-              marginBottom: 20,
+              color: "rgba(255,255,255,0.85)",
+              fontSize: 20,
+              lineHeight: 1.5,
+              marginTop: 14,
+              textShadow: "0 4px 16px rgba(0,0,0,0.6)",
             }}
           >
             Watch institutional order flow, liquidity sweeps, and market
-            structure unfold live with mentors—knowing when a setup qualifies
-            and when to stay out.
+            structure unfold in real time—knowing why a setup qualifies and when
+            to stay out.
           </p>
 
-          {/* Real workshop photograph */}
           <div
             style={{
-              position: "relative",
-              height: 185,
-              borderRadius: 20,
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.18)",
-            }}
-          >
-            <Img
-              src={PHOTOS.liveWorkshop}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(to top, rgba(12,14,18,0.88) 0%, rgba(12,14,18,0.1) 65%)",
-                display: "flex",
-                alignItems: "flex-end",
-                padding: "14px 18px",
-              }}
-            >
-              <span style={{ color: "#ffffff", fontWeight: 700, fontSize: 13.5 }}>
-                ● Live Mentor Breakdown · London & New York Sessions
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Animated Order Flow & Liquidity Sweep Chart Illustration */}
-        <div
-          style={{
-            opacity: rightIn,
-            transform: `translateY(${interpolate(rightIn, [0, 1], [30, 0])}px)`,
-            borderRadius: 26,
-            backgroundColor: "rgba(15, 18, 23, 0.92)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            padding: 26,
-            boxShadow: "0 28px 60px rgba(0,0,0,0.6)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
+              marginTop: 20,
+              display: "inline-flex",
               alignItems: "center",
-              marginBottom: 16,
+              gap: 12,
+              padding: "10px 18px",
+              borderRadius: 999,
+              backgroundColor: "rgba(13,15,19,0.78)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              opacity: workshopIn,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <LineChart size={20} color="#34d399" />
-              <span style={{ color: "#ffffff", fontWeight: 800, fontSize: 16 }}>
-                XAUUSD · M15 Institutional Order Flow
-              </span>
-            </div>
-            <span
-              style={{
-                padding: "4px 10px",
-                borderRadius: 999,
-                backgroundColor: "rgba(16,185,129,0.18)",
-                color: "#34d399",
-                fontSize: 11.5,
-                fontWeight: 800,
-              }}
-            >
-              QUALIFIED A+ SETUP
+            <LineChart size={18} color="#34d399" />
+            <span style={{ color: "#ffffff", fontSize: 14, fontWeight: 700 }}>
+              Live Mentor Breakdowns · London & New York Sessions
             </span>
-          </div>
-
-          <div
-            style={{
-              position: "relative",
-              height: 295,
-              borderRadius: 18,
-              backgroundColor: "#0a0c10",
-              border: "1px solid rgba(255,255,255,0.08)",
-              padding: "20px 24px",
-              overflow: "hidden",
-            }}
-          >
-            {/* Liquidity Sweep Zone */}
-            <div
-              style={{
-                position: "absolute",
-                left: 20,
-                right: 20,
-                bottom: 24,
-                height: 48,
-                borderRadius: 10,
-                backgroundColor: "rgba(220,53,69,0.15)",
-                border: "1px dashed rgba(220,53,69,0.55)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 14px",
-                opacity: sweepBadge,
-              }}
-            >
-              <span style={{ color: "#ff7583", fontSize: 12, fontWeight: 800 }}>
-                1. Sell-Side Liquidity Sweep + Demand POI
-              </span>
-              <span style={{ color: "#ffffff", fontSize: 11, fontWeight: 700 }}>
-                2618.50
-              </span>
-            </div>
-
-            {/* Structure BOS + Target Callout */}
-            <div
-              style={{
-                position: "absolute",
-                right: 24,
-                top: 20,
-                padding: "8px 14px",
-                borderRadius: 12,
-                backgroundColor: "rgba(16,185,129,0.2)",
-                border: "1px solid rgba(16,185,129,0.55)",
-                color: "#34d399",
-                fontSize: 12.5,
-                fontWeight: 800,
-                opacity: bosBadge,
-                transform: `scale(${bosBadge})`,
-              }}
-            >
-              2. CHoCH / BOS Confirmed · 1:3.5 Target
-            </div>
-
-            {/* Animated Candles */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-around",
-                height: "100%",
-                position: "relative",
-                zIndex: 2,
-              }}
-            >
-              {candles.map((c, idx) => {
-                const cIn = spring({
-                  frame: frame - 18 - idx * 14,
-                  fps,
-                  config: { damping: 14 },
-                });
-                const color = c.bull ? "#10b981" : "#dc3545";
-                return (
-                  <div
-                    key={idx}
-                    style={{
-                      position: "relative",
-                      width: 26,
-                      height: "100%",
-                      opacity: cIn,
-                      transform: `scaleY(${cIn})`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 12,
-                        top: c.wickTop,
-                        height: c.wickBottom - c.wickTop,
-                        width: 2,
-                        backgroundColor: color,
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 3,
-                        top: c.top,
-                        height: c.height,
-                        width: 20,
-                        borderRadius: 5,
-                        backgroundColor: color,
-                        boxShadow: `0 0 14px ${color}55`,
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       </div>
@@ -1350,253 +868,217 @@ const Scene4StepTwoApplyLive: React.FC = () => {
 
 /* ==========================================================================
    SCENE 5 (69.3s - 94.2s | Frames 2079 - 2826):
-   "Step three: Journal every trade and get reviewed..."
+   Step 3: Journal Every Trade & Get Reviewed (Interactive Journal + Mouse Motion)
    ========================================================================== */
 
 const Scene5StepThreeJournal: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const leftIn = spring({ frame, fps, config: { damping: 15 } });
-  const rightIn = spring({ frame: frame - 14, fps, config: { damping: 14 } });
-  const feedbackIn = spring({ frame: frame - 260, fps, config: { damping: 14 } });
+  const textIn = spring({ frame, fps, config: { damping: 16 } });
+  const uiIn = spring({ frame: frame - 16, fps, config: { damping: 16 } });
+  const fadeOut = interpolate(frame, [718, 747], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const uiPan = interpolate(frame, [0, 747], [-10, 12]);
+  const tradeLogged = frame >= 360;
+  const mentorFeedbackVisible = frame >= 470;
+
+  const cursorKeyframes: CursorKeyframe[] = [
+    { frame: 40, x: 420, y: 120 },
+    { frame: 140, x: 125, y: 165, click: true }, // Select Entry
+    { frame: 230, x: 380, y: 165, click: true }, // Select Risk : Reward 1:3
+    { frame: 350, x: 465, y: 245, click: true }, // Click "Log Trade"
+    { frame: 480, x: 280, y: 345 }, // Hover Mentor Feedback
+  ];
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop photoSrc={PHOTOS.chartReview} dimOpacity={0.78} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      <CameraBackdrop
+        photoSrc={PHOTOS.chartReview}
+        panX={[16, -20]}
+        panY={[-6, 10]}
+        zoom={[1.04, 1.14]}
+        dim={0.74}
+      />
 
       <div
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "0.95fr 1.05fr",
+          gridTemplateColumns: "0.85fr 1.15fr",
           alignItems: "center",
-          gap: 44,
-          padding: "92px 64px 96px 64px",
+          gap: 48,
+          padding: "0 64px",
           zIndex: 10,
         }}
       >
         <div
           style={{
-            opacity: leftIn,
-            transform: `translateX(${interpolate(leftIn, [0, 1], [-35, 0])}px)`,
+            opacity: textIn,
+            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <span
-              style={{
-                padding: "6px 14px",
-                borderRadius: 10,
-                backgroundColor: "#dc3545",
-                color: "#ffffff",
-                fontWeight: 800,
-                fontSize: 14,
-                fontFamily: '"Sora", system-ui, sans-serif',
-              }}
-            >
-              STEP 03
-            </span>
-            <span
-              style={{
-                color: "#ff7583",
-                fontWeight: 800,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              Where Real Progress Happens
-            </span>
-          </div>
-
+          <span
+            style={{
+              color: "#dc3545",
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+            }}
+          >
+            Step 03
+          </span>
           <h2
             style={{
               color: "#ffffff",
               fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 44,
+              fontSize: 46,
               fontWeight: 800,
               lineHeight: 1.14,
-              margin: 0,
+              margin: "12px 0 0 0",
             }}
           >
-            Journal Every Trade &{" "}
-            <span style={{ color: "#dc3545" }}>Get Mentor Reviewed</span>
+            Journal Every Trade & Get Reviewed
           </h2>
-
           <p
             style={{
-              color: "rgba(255,255,255,0.74)",
-              fontSize: 18,
+              color: "rgba(255,255,255,0.75)",
+              fontSize: 19,
               lineHeight: 1.55,
-              marginTop: 16,
-              marginBottom: 20,
+              marginTop: 18,
             }}
           >
-            Log entry, stop loss, take profit, risk-to-reward ratio, and setup
-            notes so mentors can audit your execution and eliminate emotional
-            mistakes early.
+            Log entry, stop loss, take profit, and risk-to-reward inside your
+            Trade Journal so mentors can audit your setups and sharpen your
+            habits.
           </p>
-
-          <div
-            style={{
-              position: "relative",
-              height: 185,
-              borderRadius: 20,
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.18)",
-            }}
-          >
-            <Img
-              src={PHOTOS.mentorshipSession}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(to top, rgba(12,14,18,0.88) 0%, rgba(12,14,18,0.1) 65%)",
-                display: "flex",
-                alignItems: "flex-end",
-                padding: "14px 18px",
-              }}
-            >
-              <span style={{ color: "#ffffff", fontWeight: 700, fontSize: 13.5 }}>
-                1-on-1 Chart Audits & Direct Mentor Feedback
-              </span>
-            </div>
-          </div>
         </div>
 
-        {/* Right: Trade Journal UI Illustration */}
+        {/* Right: Trade Journal Dashboard with Mouse Motion */}
         <div
           style={{
-            opacity: rightIn,
-            transform: `translateY(${interpolate(rightIn, [0, 1], [30, 0])}px)`,
-            borderRadius: 26,
-            backgroundColor: "rgba(18, 21, 27, 0.94)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            padding: 26,
-            boxShadow: "0 28px 60px rgba(0,0,0,0.6)",
+            opacity: uiIn,
+            transform: `translateX(${uiPan}px)`,
+            position: "relative",
+            borderRadius: 22,
+            backgroundColor: "#ffffff",
+            boxShadow: "0 35px 80px rgba(0,0,0,0.6)",
+            overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.2)",
+            padding: 24,
           }}
         >
+          <AnimatedMouseCursor keyframes={cursorKeyframes} />
+
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              paddingBottom: 14,
+              borderBottom: "1px solid #e2e8f0",
               marginBottom: 18,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <BrainCircuit size={22} color="#ff7583" />
-              <span style={{ color: "#ffffff", fontWeight: 800, fontSize: 17 }}>
+              <BrainCircuit size={20} color="#dc3545" />
+              <span style={{ fontSize: 16, fontWeight: 800, color: "#16181c" }}>
                 GamatFX Trade Journal
               </span>
             </div>
-            <span
-              style={{
-                color: "#34d399",
-                fontSize: 13,
-                fontWeight: 800,
-              }}
-            >
-              Win Rate: 72% · Net +14.5R
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#059669" }}>
+              Win Rate: 74% · +14.5R
             </span>
           </div>
 
-          {/* Trade Parameters Grid */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
               gap: 10,
-              marginBottom: 16,
+              marginBottom: 14,
             }}
           >
             {[
-              { label: "Entry Price", val: "1.08450" },
-              { label: "Stop Loss", val: "1.08250" },
-              { label: "Take Profit", val: "1.09050" },
-              { label: "Risk : Reward", val: "1 : 3" },
-            ].map((field, idx) => {
-              const fIn = spring({
-                frame: frame - 35 - idx * 22,
-                fps,
-                config: { damping: 15 },
-              });
-              return (
-                <div
-                  key={field.label}
-                  style={{
-                    opacity: fIn,
-                    transform: `scale(${interpolate(fIn, [0, 1], [0.9, 1])})`,
-                    padding: "12px 12px",
-                    borderRadius: 14,
-                    backgroundColor: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                  }}
-                >
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600 }}>
-                    {field.label}
-                  </div>
-                  <div
-                    style={{
-                      color: field.label === "Risk : Reward" ? "#34d399" : "#ffffff",
-                      fontSize: 16,
-                      fontWeight: 800,
-                      marginTop: 4,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    {field.val}
-                  </div>
+              { label: "Pair", val: "EURUSD · Buy" },
+              { label: "Entry", val: "1.08450" },
+              { label: "Stop / Target", val: "20p / 60p" },
+              { label: "Risk : Reward", val: "1:3" },
+            ].map((f) => (
+              <div
+                key={f.label}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  backgroundColor: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "#64748b" }}>
+                  {f.label}
                 </div>
-              );
-            })}
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c", marginTop: 3 }}>
+                  {f.val}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Execution Reasoning */}
           <div
             style={{
-              padding: "14px 16px",
-              borderRadius: 16,
-              backgroundColor: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 14px",
+              borderRadius: 12,
+              backgroundColor: "#f8fafc",
+              border: "1px solid #e2e8f0",
               marginBottom: 16,
             }}
           >
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11.5, fontWeight: 700 }}>
-              EXECUTION REASONING & SETUP NOTES
-            </div>
-            <div style={{ color: "#ffffff", fontSize: 14, marginTop: 6, lineHeight: 1.45 }}>
-              London session Asian low liquidity sweep into H1 Order Block + M5
-              FVG confirmation entry.
-            </div>
+            <span style={{ fontSize: 12.5, color: "#475569", fontWeight: 600 }}>
+              Setup: London sweep + M5 FVG mitigation
+            </span>
+            <span
+              style={{
+                padding: "7px 14px",
+                borderRadius: 9,
+                backgroundColor: tradeLogged ? "#10b981" : "#dc3545",
+                color: "#ffffff",
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              {tradeLogged ? "Logged ✓" : "+ Log Trade"}
+            </span>
           </div>
 
-          {/* Mentor Review Callout */}
           <div
             style={{
-              opacity: feedbackIn,
-              transform: `translateY(${interpolate(feedbackIn, [0, 1], [18, 0])}px)`,
-              padding: "16px 18px",
-              borderRadius: 18,
-              backgroundColor: "rgba(16,185,129,0.14)",
-              border: "1px solid rgba(16,185,129,0.45)",
+              opacity: mentorFeedbackVisible ? 1 : 0.25,
+              transform: `translateY(${mentorFeedbackVisible ? 0 : 8}px)`,
+              transition: "all 0.3s ease",
+              padding: "14px 16px",
+              borderRadius: 14,
+              backgroundColor: "#ecfdf5",
+              border: "1px solid #a7f3d0",
               display: "flex",
               alignItems: "flex-start",
               gap: 12,
             }}
           >
-            <CheckCircle2 size={22} color="#34d399" style={{ flexShrink: 0, marginTop: 2 }} />
+            <CheckCircle2 size={20} color="#059669" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
-              <div style={{ color: "#34d399", fontWeight: 800, fontSize: 13.5 }}>
-                MENTOR REVIEW · APPROVED EXECUTION
+              <div style={{ fontSize: 12.5, fontWeight: 800, color: "#065f46" }}>
+                Mentor Audit · Approved Execution
               </div>
-              <div style={{ color: "rgba(255,255,255,0.88)", fontSize: 13.5, marginTop: 4 }}>
-                “Patience waiting for the M5 closure kept drawdown under 4 pips.
-                Repeatable institutional execution.”
+              <div style={{ fontSize: 12.5, color: "#047857", marginTop: 3 }}>
+                “Clean confirmation entry. Risk stayed strictly at 1% with zero
+                emotional chasing.”
               </div>
             </div>
           </div>
@@ -1608,244 +1090,211 @@ const Scene5StepThreeJournal: React.FC = () => {
 
 /* ==========================================================================
    SCENE 6 (94.2s - 116.2s | Frames 2826 - 3486):
-   "Step four: Scale with accountability..."
+   Step 4: Scale With Accountability (Certificate & Check-in Dashboard Motion)
    ========================================================================== */
 
 const Scene6StepFourScale: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const leftIn = spring({ frame, fps, config: { damping: 15 } });
-  const certIn = spring({ frame: frame - 30, fps, config: { damping: 14 } });
-  const scaleIn = spring({ frame: frame - 180, fps, config: { damping: 14 } });
+  const textIn = spring({ frame, fps, config: { damping: 16 } });
+  const uiIn = spring({ frame: frame - 16, fps, config: { damping: 16 } });
+  const fadeOut = interpolate(frame, [632, 660], [1, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const certOpened = frame >= 320;
+  const cursorKeyframes: CursorKeyframe[] = [
+    { frame: 50, x: 420, y: 260 },
+    { frame: 180, x: 210, y: 145 }, // Hover workshop check-in
+    { frame: 310, x: 410, y: 215, click: true }, // Click "Attendance Certificate"
+    { frame: 480, x: 290, y: 310 },
+  ];
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop photoSrc={PHOTOS.graduation} dimOpacity={0.76} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      <CameraBackdrop
+        photoSrc={PHOTOS.graduation}
+        panX={[-18, 22]}
+        panY={[8, -10]}
+        zoom={[1.04, 1.15]}
+        dim={0.72}
+      />
 
       <div
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "0.95fr 1.05fr",
+          gridTemplateColumns: "0.85fr 1.15fr",
           alignItems: "center",
-          gap: 44,
-          padding: "92px 64px 96px 64px",
+          gap: 48,
+          padding: "0 64px",
           zIndex: 10,
         }}
       >
         <div
           style={{
-            opacity: leftIn,
-            transform: `translateX(${interpolate(leftIn, [0, 1], [-35, 0])}px)`,
+            opacity: textIn,
+            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <span
-              style={{
-                padding: "6px 14px",
-                borderRadius: 10,
-                backgroundColor: "#dc3545",
-                color: "#ffffff",
-                fontWeight: 800,
-                fontSize: 14,
-                fontFamily: '"Sora", system-ui, sans-serif',
-              }}
-            >
-              STEP 04
-            </span>
-            <span
-              style={{
-                color: "#34d399",
-                fontWeight: 800,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              Verified Graduation & Funding
-            </span>
-          </div>
-
+          <span
+            style={{
+              color: "#34d399",
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+            }}
+          >
+            Step 04
+          </span>
           <h2
             style={{
               color: "#ffffff",
               fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 44,
+              fontSize: 46,
               fontWeight: 800,
               lineHeight: 1.14,
-              margin: 0,
+              margin: "12px 0 0 0",
             }}
           >
-            Scale With{" "}
-            <span style={{ color: "#dc3545" }}>Professional Accountability</span>
+            Scale With Accountability
           </h2>
-
           <p
             style={{
-              color: "rgba(255,255,255,0.74)",
-              fontSize: 18,
+              color: "rgba(255,255,255,0.75)",
+              fontSize: 19,
               lineHeight: 1.55,
-              marginTop: 16,
-              marginBottom: 22,
+              marginTop: 18,
             }}
           >
-            Pass module quizzes, check into live workshops, earn verified
-            GamatFX certificates, and transition to live capital or funded
-            challenges with strict risk rules.
+            Earn verified GamatFX certificates and graduate to live capital or
+            funded-account challenges backed by ongoing mentor support.
           </p>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {["Day 1 ✓", "Day 2 ✓", "Day 3 ✓", "Day 4 ✓", "Quiz Passed ✓"].map(
-              (chip, idx) => {
-                const cIn = spring({
-                  frame: frame - 20 - idx * 14,
-                  fps,
-                  config: { damping: 14 },
-                });
-                return (
-                  <span
-                    key={chip}
-                    style={{
-                      opacity: cIn,
-                      transform: `scale(${cIn})`,
-                      padding: "7px 14px",
-                      borderRadius: 10,
-                      backgroundColor: "rgba(16,185,129,0.18)",
-                      border: "1px solid rgba(16,185,129,0.45)",
-                      color: "#34d399",
-                      fontSize: 13,
-                      fontWeight: 800,
-                    }}
-                  >
-                    {chip}
-                  </span>
-                );
-              }
-            )}
-          </div>
         </div>
 
-        {/* Right: Certificate + Funded Scaling Plan */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {/* Certificate Card */}
-          <div
-            style={{
-              opacity: certIn,
-              transform: `translateY(${interpolate(certIn, [0, 1], [28, 0])}px)`,
-              borderRadius: 24,
-              backgroundColor: "rgba(18, 21, 27, 0.94)",
-              border: "1px solid rgba(255,255,255,0.16)",
-              padding: 24,
-              boxShadow: "0 24px 50px rgba(0,0,0,0.5)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 14,
-                    backgroundColor: "rgba(220,53,69,0.2)",
-                    color: "#ff7583",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Award size={26} />
-                </div>
-                <div>
-                  <div
-                    style={{
-                      color: "#ffffff",
-                      fontWeight: 800,
-                      fontSize: 18,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    Verified GAMAT Fx Academy Certificate
-                  </div>
-                  <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, marginTop: 3 }}>
-                    Quizzes Completed · Live Workshop Check-In Verified
-                  </div>
-                </div>
-              </div>
-              <span
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 8,
-                  backgroundColor: "rgba(16,185,129,0.18)",
-                  color: "#34d399",
-                  fontSize: 11.5,
-                  fontWeight: 800,
-                }}
-              >
-                CERTIFIED
-              </span>
-            </div>
-          </div>
+        {/* Right: Clean Certification & Scaling Card with Mouse Motion */}
+        <div
+          style={{
+            opacity: uiIn,
+            transform: `translateX(${interpolate(frame, [0, 660], [10, -10])}px)`,
+            position: "relative",
+            borderRadius: 22,
+            backgroundColor: "#ffffff",
+            boxShadow: "0 35px 80px rgba(0,0,0,0.6)",
+            padding: 26,
+          }}
+        >
+          <AnimatedMouseCursor keyframes={cursorKeyframes} />
 
-          {/* Live / Prop Capital Risk Plan */}
           <div
             style={{
-              opacity: scaleIn,
-              transform: `translateY(${interpolate(scaleIn, [0, 1], [28, 0])}px)`,
-              borderRadius: 24,
-              backgroundColor: "rgba(18, 21, 27, 0.94)",
-              border: "1px solid rgba(16,185,129,0.4)",
-              padding: 24,
-              boxShadow: "0 24px 50px rgba(0,0,0,0.5)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
             }}
           >
-            <div
+            <span style={{ fontSize: 15, fontWeight: 800, color: "#16181c" }}>
+              Workshop Check-In & Certification
+            </span>
+            <span
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                color: "#34d399",
+                padding: "4px 10px",
+                borderRadius: 999,
+                backgroundColor: "#ecfdf5",
+                color: "#059669",
+                fontSize: 11,
                 fontWeight: 800,
-                fontSize: 14,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                marginBottom: 14,
               }}
             >
-              <ShieldCheck size={18} /> Rules-Based Capital Scaling Plan
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-              {[
-                { label: "Max Risk / Trade", val: "0.5% – 1.0%" },
-                { label: "Daily Drawdown Cap", val: "2.0% Strict" },
-                { label: "Target Account", val: "Live & Funded" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
+              Attended ✓
+            </span>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+            {["Day 1 ✓", "Day 2 ✓", "Day 3 ✓", "Day 4 ✓", "Quiz Passed ✓"].map(
+              (d) => (
+                <span
+                  key={d}
                   style={{
-                    padding: "14px",
-                    borderRadius: 14,
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    padding: "5px 10px",
+                    borderRadius: 8,
+                    backgroundColor: "#f0fdf4",
+                    border: "1px solid #bbf7d0",
+                    color: "#15803d",
+                    fontSize: 11.5,
+                    fontWeight: 700,
                   }}
                 >
-                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11.5 }}>
-                    {stat.label}
-                  </div>
-                  <div
-                    style={{
-                      color: "#ffffff",
-                      fontWeight: 800,
-                      fontSize: 16,
-                      marginTop: 4,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    {stat.val}
-                  </div>
+                  {d}
+                </span>
+              )
+            )}
+          </div>
+
+          <div
+            style={{
+              padding: "16px 18px",
+              borderRadius: 16,
+              backgroundColor: certOpened ? "#ecfdf5" : "#f8fafc",
+              border: certOpened ? "1px solid #10b981" : "1px solid #e2e8f0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Award size={26} color="#dc3545" />
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#16181c" }}>
+                  Verified GAMAT Fx Certificate
                 </div>
-              ))}
+                <div style={{ fontSize: 11.5, color: "#64748b" }}>
+                  Serial: EVT-GX-SSTR-EIQJ
+                </div>
+              </div>
             </div>
+            <span
+              style={{
+                padding: "7px 12px",
+                borderRadius: 9,
+                backgroundColor: certOpened ? "#059669" : "#16181c",
+                color: "#ffffff",
+                fontSize: 11.5,
+                fontWeight: 700,
+              }}
+            >
+              {certOpened ? "Certificate Ready ✓" : "View Certificate"}
+            </span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            {[
+              { label: "Max Risk / Trade", val: "1.0%" },
+              { label: "Drawdown Cap", val: "2.0% Daily" },
+              { label: "Capital Track", val: "Live & Funded" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  padding: "12px",
+                  borderRadius: 12,
+                  backgroundColor: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div style={{ fontSize: 10.5, color: "#64748b", fontWeight: 600 }}>
+                  {item.label}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#16181c", marginTop: 3 }}>
+                  {item.val}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1855,28 +1304,36 @@ const Scene6StepFourScale: React.FC = () => {
 
 /* ==========================================================================
    SCENE 7 (116.2s - 144.3s | Frames 3486 - 4329):
-   "Inside the academy, everything is built for real-world trading:
-    - Inside live market breakdowns (116.2s - 128.2s)
-    - Reading multi-screen market data (128.2s - 136.5s)
-    - Analysis on the go (136.5s - 144.3s)"
+   Inside the Academy — 3 Pure Cinematic Real-World Footage Clips with Camera Motion
    ========================================================================== */
 
-const RealWorldFootageShowcase: React.FC<{
+const CinematicFootageClip: React.FC<{
   videoSrc: string;
-  badge: string;
+  eyebrow: string;
   title: string;
-  accent: string;
   subtitle: string;
-  hudItems: { label: string; value: string }[];
-}> = ({ videoSrc, badge, title, accent, subtitle, hudItems }) => {
+  panX: [number, number];
+}> = ({ videoSrc, eyebrow, title, subtitle, panX }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
-  const cardIn = spring({ frame, fps, config: { damping: 14 } });
+  const textIn = spring({ frame, fps, config: { damping: 16 } });
+  const fadeOut = interpolate(
+    frame,
+    [durationInFrames - 22, durationInFrames],
+    [1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
 
   return (
-    <AbsoluteFill>
-      <CinematicBackdrop videoSrc={videoSrc} dimOpacity={0.48} />
+    <AbsoluteFill style={{ opacity: fadeOut }}>
+      <CameraBackdrop
+        videoSrc={videoSrc}
+        panX={panX}
+        panY={[6, -8]}
+        zoom={[1.05, 1.15]}
+        dim={0.44}
+      />
 
       <div
         style={{
@@ -1884,120 +1341,53 @@ const RealWorldFootageShowcase: React.FC<{
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          padding: "90px 64px 104px 64px",
+          padding: "0 72px 72px 72px",
           zIndex: 10,
         }}
       >
         <div
           style={{
-            opacity: cardIn,
-            transform: `translateY(${interpolate(cardIn, [0, 1], [30, 0])}px)`,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: 32,
+            maxWidth: 740,
+            opacity: textIn,
+            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
           }}
         >
-          <div
+          <span
             style={{
-              maxWidth: 720,
-              padding: "26px 30px",
-              borderRadius: 24,
-              backgroundColor: "rgba(12, 14, 18, 0.85)",
-              border: "1px solid rgba(255,255,255,0.16)",
-              backdropFilter: "blur(14px)",
-              boxShadow: "0 24px 55px rgba(0,0,0,0.55)",
+              color: "#ff7583",
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              textShadow: "0 2px 10px rgba(0,0,0,0.65)",
             }}
           >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "5px 12px",
-                borderRadius: 999,
-                backgroundColor: "rgba(220,53,69,0.22)",
-                color: "#ff7583",
-                fontSize: 12,
-                fontWeight: 800,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                marginBottom: 12,
-              }}
-            >
-              ● {badge}
-            </div>
-            <h3
-              style={{
-                color: "#ffffff",
-                fontFamily: '"Sora", system-ui, sans-serif',
-                fontSize: 36,
-                fontWeight: 800,
-                lineHeight: 1.15,
-                margin: 0,
-              }}
-            >
-              {title} <span style={{ color: "#dc3545" }}>{accent}</span>
-            </h3>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.76)",
-                fontSize: 16.5,
-                lineHeight: 1.5,
-                marginTop: 10,
-                marginBottom: 0,
-              }}
-            >
-              {subtitle}
-            </p>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {hudItems.map((h, i) => {
-              const hIn = spring({
-                frame: frame - 14 - i * 12,
-                fps,
-                config: { damping: 14 },
-              });
-              return (
-                <div
-                  key={h.label}
-                  style={{
-                    opacity: hIn,
-                    transform: `translateX(${interpolate(hIn, [0, 1], [30, 0])}px)`,
-                    padding: "14px 20px",
-                    borderRadius: 18,
-                    backgroundColor: "rgba(12, 14, 18, 0.88)",
-                    border: "1px solid rgba(255,255,255,0.16)",
-                    minWidth: 260,
-                  }}
-                >
-                  <div
-                    style={{
-                      color: "rgba(255,255,255,0.5)",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    {h.label}
-                  </div>
-                  <div
-                    style={{
-                      color: "#34d399",
-                      fontWeight: 800,
-                      fontSize: 16,
-                      marginTop: 3,
-                      fontFamily: '"Sora", system-ui, sans-serif',
-                    }}
-                  >
-                    {h.value}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            {eyebrow}
+          </span>
+          <h3
+            style={{
+              color: "#ffffff",
+              fontFamily: '"Sora", system-ui, sans-serif',
+              fontSize: 44,
+              fontWeight: 800,
+              lineHeight: 1.14,
+              margin: "10px 0 0 0",
+              textShadow: "0 8px 26px rgba(0,0,0,0.65)",
+            }}
+          >
+            {title}
+          </h3>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.88)",
+              fontSize: 19,
+              lineHeight: 1.5,
+              marginTop: 12,
+              textShadow: "0 4px 16px rgba(0,0,0,0.65)",
+            }}
+          >
+            {subtitle}
+          </p>
         </div>
       </div>
     </AbsoluteFill>
@@ -2006,20 +1396,26 @@ const RealWorldFootageShowcase: React.FC<{
 
 /* ==========================================================================
    SCENE 8 (144.3s - 160.6s | Frames 4329 - 4818):
-   "Whether you're starting from scratch or refining an existing strategy..."
+   Clean Closing CTA with Smooth Camera Zoom
    ========================================================================== */
 
-const Scene8OutroCta: React.FC = () => {
+const Scene8Outro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const cardIn = spring({ frame, fps, config: { damping: 14 } });
-  const stepsIn = spring({ frame: frame - 22, fps, config: { damping: 14 } });
-  const ctaIn = spring({ frame: frame - 55, fps, config: { damping: 14 } });
+  const titleIn = spring({ frame, fps, config: { damping: 16 } });
+  const ctaIn = spring({ frame: frame - 35, fps, config: { damping: 16 } });
+  const drift = interpolate(frame, [0, 489], [10, -10]);
 
   return (
     <AbsoluteFill>
-      <CinematicBackdrop photoSrc={PHOTOS.aboutHero} dimOpacity={0.78} />
+      <CameraBackdrop
+        photoSrc={PHOTOS.aboutHero}
+        panX={[-18, 18]}
+        panY={[10, -10]}
+        zoom={[1.04, 1.15]}
+        dim={0.7}
+      />
 
       <div
         style={{
@@ -2028,138 +1424,69 @@ const Scene8OutroCta: React.FC = () => {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "84px 72px 96px 72px",
           textAlign: "center",
+          padding: "0 96px",
           zIndex: 10,
+          transform: `translateY(${drift}px)`,
         }}
       >
-        <div
-          style={{
-            opacity: cardIn,
-            transform: `scale(${interpolate(cardIn, [0, 1], [0.92, 1])})`,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "9px 20px",
-            borderRadius: 999,
-            backgroundColor: "rgba(220,53,69,0.2)",
-            border: "1px solid rgba(220,53,69,0.5)",
-            color: "#ff7583",
-            fontWeight: 800,
-            fontSize: 13.5,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            marginBottom: 18,
-          }}
-        >
-          <TrendingUp size={17} /> Build Your Edge — The Right Way
-        </div>
-
-        <h2
-          style={{
-            opacity: cardIn,
-            color: "#ffffff",
-            fontFamily: '"Sora", system-ui, sans-serif',
-            fontSize: 50,
-            fontWeight: 800,
-            lineHeight: 1.14,
-            margin: 0,
-            maxWidth: 960,
-          }}
-        >
-          Structure, Live Mentorship & Accountability to{" "}
-          <span style={{ color: "#dc3545" }}>Trade With Confidence</span>
-        </h2>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 16,
-            width: "100%",
-            marginTop: 32,
-            opacity: stepsIn,
-            transform: `translateY(${interpolate(stepsIn, [0, 1], [24, 0])}px)`,
-          }}
-        >
-          {[
-            { icon: BookOpenCheck, step: "01", title: "Enroll & Unlock", sub: "Instant full workspace" },
-            { icon: LineChart, step: "02", title: "Apply Live", sub: "Weekly mentor sessions" },
-            { icon: BrainCircuit, step: "03", title: "Journal & Audit", sub: "Direct setup feedback" },
-            { icon: ShieldCheck, step: "04", title: "Scale Capital", sub: "Live & funded challenges" },
-          ].map((s) => (
-            <div
-              key={s.step}
-              style={{
-                padding: "18px",
-                borderRadius: 20,
-                backgroundColor: "rgba(17, 19, 23, 0.88)",
-                border: "1px solid rgba(255,255,255,0.14)",
-                textAlign: "left",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(220,53,69,0.2)",
-                    color: "#ff7583",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <s.icon size={20} />
-                </div>
-                <span
-                  style={{
-                    color: "rgba(255,255,255,0.25)",
-                    fontFamily: '"Sora", system-ui, sans-serif',
-                    fontWeight: 800,
-                    fontSize: 20,
-                  }}
-                >
-                  {s.step}
-                </span>
-              </div>
-              <div
-                style={{
-                  color: "#ffffff",
-                  fontWeight: 800,
-                  fontSize: 17,
-                  marginTop: 12,
-                  fontFamily: '"Sora", system-ui, sans-serif',
-                }}
-              >
-                {s.title}
-              </div>
-              <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 4 }}>
-                {s.sub}
-              </div>
-            </div>
-          ))}
+        <div style={{ opacity: titleIn }}>
+          <p
+            style={{
+              color: "#ff7583",
+              fontSize: 14,
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              marginBottom: 16,
+            }}
+          >
+            GamatFX Academy
+          </p>
+          <h2
+            style={{
+              color: "#ffffff",
+              fontFamily: '"Sora", system-ui, sans-serif',
+              fontSize: 54,
+              fontWeight: 800,
+              lineHeight: 1.13,
+              margin: 0,
+              maxWidth: 920,
+            }}
+          >
+            Build Your Edge—<span style={{ color: "#dc3545" }}>The Right Way.</span>
+          </h2>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.78)",
+              fontSize: 21,
+              lineHeight: 1.5,
+              marginTop: 18,
+              maxWidth: 720,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Structure, live mentorship, and accountability to trade with
+            confidence.
+          </p>
         </div>
 
         <div
           style={{
-            marginTop: 30,
+            marginTop: 34,
             opacity: ctaIn,
-            transform: `scale(${interpolate(ctaIn, [0, 1], [0.92, 1])})`,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 12,
-            padding: "14px 32px",
+            transform: `scale(${interpolate(ctaIn, [0, 1], [0.94, 1])})`,
+            padding: "15px 36px",
             borderRadius: 999,
             backgroundColor: "#dc3545",
             color: "#ffffff",
             fontWeight: 800,
-            fontSize: 17,
-            boxShadow: "0 16px 36px rgba(220,53,69,0.45)",
+            fontSize: 18,
+            boxShadow: "0 18px 40px rgba(220,53,69,0.45)",
           }}
         >
-          Choose Your Program & Step Inside the Dashboard · gamatfx.com
+          Choose Your Program · gamatfx.com
         </div>
       </div>
     </AbsoluteFill>
@@ -2169,112 +1496,83 @@ const Scene8OutroCta: React.FC = () => {
 /* --------------------------- Main Composition --------------------------- */
 
 export const HowGamatWorksVideo: React.FC = () => {
-  const frame = useCurrentFrame();
-  const progressPct = (frame / HOW_IT_WORKS_DURATION_IN_FRAMES) * 100;
-
-  let chapterTag = "Why Traders Fail";
-  if (frame >= 4329) chapterTag = "Build Your Edge";
-  else if (frame >= 3486) chapterTag = "Inside The Academy";
-  else if (frame >= 2826) chapterTag = "Step 04 · Scale With Accountability";
-  else if (frame >= 2079) chapterTag = "Step 03 · Trade Journal & Review";
-  else if (frame >= 1314) chapterTag = "Step 02 · Learn & Apply Live";
-  else if (frame >= 750) chapterTag = "Step 01 · Enroll & Instant Access";
-  else if (frame >= 345) chapterTag = "The GAMAT Fx System";
-
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0e1014" }}>
-      {/* Synced Voiceover Audio (48kHz 192kbps stereo MP3, non-interrupting playback) */}
+    <AbsoluteFill style={{ backgroundColor: "#0d0f13" }}>
       <Audio
         src="/audio/how-gamatfx-works.mp3"
         acceptableTimeShiftInSeconds={2.5}
         pauseWhenBuffering={false}
       />
 
-      {/* Top Brand Header + Live Progress */}
-      <TopBrandChrome chapterTag={chapterTag} progressPct={progressPct} />
+      <MinimalBrandWatermark />
 
-      {/* 0.0s - 11.5s: The Retail Trader Problem */}
+      {/* 0.0s - 11.5s */}
       <Sequence from={0} durationInFrames={345}>
         <Scene1Problem />
       </Sequence>
 
-      {/* 11.5s - 25.0s: The GAMAT Fx System Overview */}
+      {/* 11.5s - 25.0s */}
       <Sequence from={345} durationInFrames={405}>
-        <Scene2SolutionOverview />
+        <Scene2SystemIntro />
       </Sequence>
 
-      {/* 25.0s - 43.8s: Step 1 - Enroll & Instant Access */}
+      {/* 25.0s - 43.8s: Dashboard + Mouse Motion */}
       <Sequence from={750} durationInFrames={564}>
-        <Scene3StepOneEnroll />
+        <Scene3StepOneDashboard />
       </Sequence>
 
-      {/* 43.8s - 69.3s: Step 2 - Learn, Then Apply Live */}
+      {/* 43.8s - 69.3s: Realistic Live Market & Workshop Footage */}
       <Sequence from={1314} durationInFrames={765}>
-        <Scene4StepTwoApplyLive />
+        <Scene4StepTwoLive />
       </Sequence>
 
-      {/* 69.3s - 94.2s: Step 3 - Journal Every Trade & Get Reviewed */}
+      {/* 69.3s - 94.2s: Trade Journal + Mouse Motion */}
       <Sequence from={2079} durationInFrames={747}>
         <Scene5StepThreeJournal />
       </Sequence>
 
-      {/* 94.2s - 116.2s: Step 4 - Scale With Accountability */}
+      {/* 94.2s - 116.2s: Check-In & Certificate + Mouse Motion */}
       <Sequence from={2826} durationInFrames={660}>
         <Scene6StepFourScale />
       </Sequence>
 
-      {/* 116.2s - 128.2s: Real-World Footage 1 - Live Market Breakdowns */}
+      {/* 116.2s - 128.2s */}
       <Sequence from={3486} durationInFrames={360}>
-        <RealWorldFootageShowcase
+        <CinematicFootageClip
           videoSrc={CLIPS.liveBreakdown}
-          badge="Inside The Academy · Live Execution"
-          title="Inside Live Market"
-          accent="Breakdowns"
-          subtitle="We mark key institutional levels and wait patiently for confirmation before risking a single dollar."
-          hudItems={[
-            { label: "Execution Rule", value: "Wait For HTF POI + LTF Trigger" },
-            { label: "Capital Protection", value: "Zero Impulse Entries" },
-          ]}
+          eyebrow="Inside The Academy"
+          title="Live Market Breakdowns"
+          subtitle="We mark key levels and wait patiently for confirmation before risking a single dollar."
+          panX={[-15, 22]}
         />
       </Sequence>
 
-      {/* 128.2s - 136.5s: Real-World Footage 2 - Multi-Screen Market Data */}
+      {/* 128.2s - 136.5s */}
       <Sequence from={3846} durationInFrames={249}>
-        <RealWorldFootageShowcase
+        <CinematicFootageClip
           videoSrc={CLIPS.multiScreen}
-          badge="Inside The Academy · Multi-Asset Workflow"
-          title="Reading Multi-Screen"
-          accent="Market Data"
-          subtitle="Learn how macro news, higher-timeframe bias, and lower-timeframe execution align into one workflow."
-          hudItems={[
-            { label: "Top-Down Alignment", value: "Macro News + HTF Order Flow" },
-            { label: "Correlated Assets", value: "DXY · EURUSD · XAUUSD · US100" },
-          ]}
+          eyebrow="Inside The Academy"
+          title="Reading Multi-Screen Market Data"
+          subtitle="Macro news, higher-timeframe bias, and lower-timeframe execution working together."
+          panX={[18, -18]}
         />
       </Sequence>
 
-      {/* 136.5s - 144.3s: Real-World Footage 3 - Analysis On The Go */}
+      {/* 136.5s - 144.3s */}
       <Sequence from={4095} durationInFrames={234}>
-        <RealWorldFootageShowcase
+        <CinematicFootageClip
           videoSrc={CLIPS.onTheGo}
-          badge="Inside The Academy · Anywhere Access"
-          title="Analysis & Tools"
-          accent="On The Go"
-          subtitle="Your courses, trade journal, daily market outlooks, and community tools stay accessible wherever you are."
-          hudItems={[
-            { label: "Cloud Synced", value: "Courses · Journal · Daily Outlooks" },
-            { label: "Device Ready", value: "Desktop · Tablet · Mobile" },
-          ]}
+          eyebrow="Inside The Academy"
+          title="Analysis On The Go"
+          subtitle="Courses, trade journal, daily outlooks, and community tools accessible wherever you are."
+          panX={[-18, 16]}
         />
       </Sequence>
 
-      {/* 144.3s - 160.6s: Outro & Call To Action */}
+      {/* 144.3s - 160.6s */}
       <Sequence from={4329} durationInFrames={489}>
-        <Scene8OutroCta />
+        <Scene8Outro />
       </Sequence>
-
-      {/* Synced Voiceover Subtitles */}
-      <SubtitleBar />
     </AbsoluteFill>
   );
 };
