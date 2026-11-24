@@ -994,6 +994,7 @@ export default function DashboardPage() {
   function MyEvents() {
     const [dashCodeByReg, setDashCodeByReg] = useState<Record<string, string>>({});
     const [dashErrByReg, setDashErrByReg] = useState<Record<string, string>>({});
+    const [dashOkByReg, setDashOkByReg] = useState<Record<string, string>>({});
 
     if (!myRegistrations.length) {
       return <EmptyState title="No event registrations" body="Register for a mentorship intake or webinar to see it here." cta="View Events" to="/events" />;
@@ -1078,16 +1079,16 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {r.status === "confirmed" &&
-                ((evObj?.sessions && evObj.sessions.length > 0 && (r.attendedSessions?.length || 0) < evObj.sessions.length) ||
-                  (!evObj?.sessions?.length && !r.checkedIn)) && (
+              {r.status === "confirmed" && (
                 <form
                   onSubmit={(evForm) => {
                     evForm.preventDefault();
                     setDashErrByReg((p) => ({ ...p, [r.id]: "" }));
+                    setDashOkByReg((p) => ({ ...p, [r.id]: "" }));
                     const res = store.checkInWithCode(r.eventId, r.ticket, dashCodeByReg[r.id] || "");
                     if (res.ok) {
                       setDashCodeByReg((p) => ({ ...p, [r.id]: "" }));
+                      setDashOkByReg((p) => ({ ...p, [r.id]: "Attendance checked in!" }));
                     } else {
                       setDashErrByReg((p) => ({ ...p, [r.id]: res.error || "Invalid code" }));
                     }
@@ -1100,7 +1101,7 @@ export default function DashboardPage() {
                       type="text"
                       value={dashCodeByReg[r.id] || ""}
                       onChange={(e) => setDashCodeByReg((p) => ({ ...p, [r.id]: e.target.value.toUpperCase() }))}
-                      placeholder={evObj?.sessions?.length ? "Enter class session code" : "Enter event code"}
+                      placeholder={evObj?.sessions?.length ? "Enter class session code" : "Enter event / class code"}
                       className="flex-1 min-w-0 rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-mono text-ink outline-none focus:border-brand"
                     />
                     <button
@@ -1110,6 +1111,7 @@ export default function DashboardPage() {
                       Check In
                     </button>
                   </div>
+                  {dashOkByReg[r.id] && <p className="text-[11px] font-semibold text-emerald-700">{dashOkByReg[r.id]}</p>}
                   {dashErrByReg[r.id] && <p className="text-[11px] font-semibold text-rose-600">{dashErrByReg[r.id]}</p>}
                 </form>
               )}
