@@ -21,7 +21,7 @@ export default function PageCta({
   const red = tone === "red";
 
   return (
-    <section className={`pb-16 sm:pb-24 ${red ? "bg-white" : "bg-cream"}`}>
+    <section className={`pt-12 pb-16 sm:pt-16 sm:pb-24 ${red ? "bg-white" : "bg-cream"}`}>
       <div className="container-x">
         <div
           className={`relative overflow-hidden rounded-2xl sm:rounded-3xl px-5 py-10 sm:px-8 sm:py-14 text-center shadow-[0_22px_60px_-32px_rgba(22,24,28,0.4)] ${

@@ -143,7 +143,11 @@ function Legal({
           </aside>
 
           {/* Body */}
-          <div className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)] md:p-12">
+          <div id="printable-legal" className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)] md:p-12">
+            <div className="hidden print:block mb-6 border-b border-line pb-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-brand">GAMAT Fx Academy · {eyebrow}</p>
+              <h1 className="mt-1 font-display text-2xl font-extrabold text-ink">{title}</h1>
+            </div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-5">
               <p className="text-sm text-muted">Last updated: <strong className="text-ink">{updated}</strong></p>
               <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">
@@ -164,7 +168,7 @@ function Legal({
             )}
 
             {/* Mobile index */}
-            <details className="mt-6 rounded-2xl border border-line bg-cream p-5 lg:hidden">
+            <details className="mt-6 rounded-2xl border border-line bg-cream p-5 lg:hidden print:hidden">
               <summary className="cursor-pointer text-sm font-bold text-ink">Jump to a section</summary>
               <ul className="mt-3 space-y-1">
                 {sections.map((s, i) => (
@@ -190,7 +194,7 @@ function Legal({
             </div>
 
             {/* Footer actions */}
-            <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-line pt-7">
+            <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-line pt-7 print:hidden">
               <button onClick={() => navigate("/contact")} className="btn-primary">Ask a question</button>
               <button onClick={() => navigate(other.to)} className="btn-outline-dark">
                 <other.icon className="h-4 w-4" /> {other.label}
