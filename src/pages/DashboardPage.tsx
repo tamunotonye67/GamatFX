@@ -8,7 +8,7 @@ import {
   PlayCircle, ArrowUpRight, Clock, CheckCircle2, Lock, LogOut, Save, Download,
   Receipt, ShieldCheck, Loader2, Eye, Camera, Trash2, Cake, EyeOff, AlertCircle,
   ListChecks, PenSquare, Plus, Send, FileText, Users, Share2, Wallet, MousePointerClick,
-  TrendingUp, History, Copy, Building2, CreditCard, Check, X, Video, Bell, Volume2,
+  TrendingUp, History, Copy, Building2, CreditCard, Check, X, Video, Bell, Volume2, HelpCircle,
 } from "lucide-react";
 import { getQuiz } from "../lib/quizzes";
 import RichTextEditor from "../components/RichTextEditor";
@@ -26,7 +26,7 @@ import TradeJournalTab from "../components/TradeJournalTab";
 import MentorshipBookingTab from "../components/MentorshipBookingTab";
 import { getNotifPrefs, setNotifPrefs, hydrateNotifPrefsFromSupabase, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 
-type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile";
+type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile" | "guide";
 
 const baseTabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -39,6 +39,7 @@ const baseTabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "events", label: "My Events", icon: CalendarDays },
   { id: "profile", label: "Profile", icon: UserIcon },
+  { id: "guide", label: "Help & Guide", icon: HelpCircle },
 ];
 
 const NIGERIAN_BANKS = [
@@ -536,6 +537,7 @@ export default function DashboardPage() {
           {tab === "posts" && <MyArticles />}
           {tab === "team-bio" && <TeamBioForm />}
           {tab === "profile" && <ProfileTab user={user} store={store} openCropModal={openCropModal} />}
+          {tab === "guide" && <PlatformGuideTab isTeamMember={isTeamMember} onSwitchTab={setTab} />}
         </div>
       </section>
 
@@ -3186,6 +3188,101 @@ function CertificateCard({ data }: { data: CertData }) {
             <Download className="h-4 w-4" /> Download PNG
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PlatformGuideTab({ isTeamMember, onSwitchTab }: { isTeamMember: boolean; onSwitchTab: (tab: Tab) => void }) {
+  const items: { title: string; badge: string; body: string; actionLabel: string; onClick: () => void }[] = [
+    {
+      title: "1. Courses & Quizzes",
+      badge: "Learning",
+      body: "Open My Courses to resume any enrolled program, mark lessons complete, and take the final course quiz.",
+      actionLabel: "Go to My Courses",
+      onClick: () => onSwitchTab("courses"),
+    },
+    {
+      title: "2. Live Class Attendance (My Events)",
+      badge: "Events",
+      body: "During a live class or workshop, open My Events → Live Event Check-In, enter the 6-character code shared by your instructor, and confirm your attendance.",
+      actionLabel: "Open My Events",
+      onClick: () => onSwitchTab("events"),
+    },
+    {
+      title: "3. Certificates & Verification",
+      badge: "Credentials",
+      body: "Completed courses and checked-in events unlock downloadable certificates under Certificates, each with a public verification link.",
+      actionLabel: "View Certificates",
+      onClick: () => onSwitchTab("certificates"),
+    },
+    {
+      title: "4. Trade Journal & 1-on-1 Booking",
+      badge: "Mentorship",
+      body: "Log your setups in Trade Journal or schedule a mentorship session under 1-on-1 Booking.",
+      actionLabel: "Open Trade Journal",
+      onClick: () => onSwitchTab("journal"),
+    },
+    {
+      title: "5. Store, Forum & Whiteboard",
+      badge: "Community",
+      body: "Browse trading books and tools in the Store, join discussions in the Forum, or review interactive lessons in the Whiteboard Hub.",
+      actionLabel: "Visit Store",
+      onClick: () => navigate("/store"),
+    },
+    {
+      title: "6. Need Support?",
+      badge: "Help",
+      body: "Have an issue with a payment, enrollment, or account? Reach our support team directly from the Contact page.",
+      actionLabel: "Contact Support",
+      onClick: () => navigate("/contact"),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-3xl border border-line bg-white p-6 sm:p-8 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-xs font-bold text-brand">
+              <HelpCircle className="h-3.5 w-3.5" /> Quick Start Guide
+            </span>
+            <h2 className="mt-3 font-display text-2xl font-extrabold text-ink">How to use GamatFX</h2>
+            <p className="mt-1 text-sm text-muted">
+              Everything you need in one place — no separate training course required.
+            </p>
+          </div>
+          {isTeamMember && (
+            <button
+              type="button"
+              onClick={() => navigate("/admin")}
+              className="btn-primary !py-2.5 !text-xs"
+            >
+              <ShieldCheck className="h-4 w-4" /> Open Admin Panel
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {items.map((item) => (
+          <div key={item.title} className="flex flex-col justify-between rounded-2xl border border-line bg-white p-5 shadow-xs">
+            <div>
+              <span className="inline-block rounded-full bg-cream px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-brand">
+                {item.badge}
+              </span>
+              <h3 className="mt-2.5 font-display text-base font-bold text-ink">{item.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.body}</p>
+            </div>
+            <button
+              type="button"
+              onClick={item.onClick}
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline cursor-pointer self-start"
+            >
+              {item.actionLabel} <ArrowUpRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -9,14 +9,29 @@ import { navigate } from "../../lib/router";
 import {
   Users, Wallet, BookOpen, Ticket, TrendingUp, Download, Plus, Pencil, Trash2,
   Eye, UserCheck, UserX, ShieldCheck, GraduationCap, CreditCard, ArrowUpRight, Save, Award, RefreshCw, Cake,
+  HelpCircle, ChevronDown,
 } from "lucide-react";
 
 /* ============================= Dashboard ============================= */
 
 export function AdminDashboard() {
-  const { admin, saveCoupon } = useStore();
+  const { admin, saveCoupon, user, isAdmin, can } = useStore();
   const { kpis, revenueByMonth, payments, accounts, registrations } = admin;
   const max = Math.max(...revenueByMonth.map((r) => r.value), 1);
+  const [guideOpen, setGuideOpen] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("gamat.admin_guide_open.v1");
+      if (saved !== null) return saved === "true";
+    } catch {}
+    return user?.role === "staff";
+  });
+  const toggleGuide = () => {
+    setGuideOpen((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("gamat.admin_guide_open.v1", String(next)); } catch {}
+      return next;
+    });
+  };
 
   const mentorshipPayments = useMemo(() => {
     return payments.filter(
@@ -111,6 +126,105 @@ export function AdminDashboard() {
           sub={`${kpis.events} events live`}
         />
       </div>
+
+      {/* Collapsible Admin & Staff Quick Guide */}
+      <Card className="mt-6 overflow-hidden border-brand/20 bg-white">
+        <button
+          type="button"
+          onClick={toggleGuide}
+          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-cream/60 cursor-pointer"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <HelpCircle className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-display text-sm sm:text-base font-bold text-ink">
+                  Platform Quick Guide
+                </h3>
+                <Badge tone={isAdmin ? "red" : "amber"}>
+                  {isAdmin ? "Administrator" : `Staff · ${capitalizeWord(user?.staffLevel ?? "author")}`}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted truncate">
+                Quick cheat sheet for your role — no training course needed.
+              </p>
+            </div>
+          </div>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-muted transition-transform ${guideOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {guideOpen && (
+          <div className="border-t border-line bg-cream/40 p-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {(isAdmin || can("posts:write") || can("posts:publish") || can("posts:manage")) && (
+                <div className="rounded-xl border border-line bg-white p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Content & Media</p>
+                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                    Create drafts or publish <strong>Blog Articles</strong>, <strong>News Events</strong>, <strong>Daily Outlook</strong>, and <strong>Gallery</strong> photos.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/posts")}
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    Open Blog Articles <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {(isAdmin || can("events:manage") || can("registrations:manage")) && (
+                <div className="rounded-xl border border-line bg-white p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Events & Attendance</p>
+                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                    Create events and share the <strong>Live Check-In Code</strong>. Students enter it under <strong>Dashboard → My Events</strong>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/events")}
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    Manage Events <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {(isAdmin || can("enquiries:manage")) && (
+                <div className="rounded-xl border border-line bg-white p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Enquiries & Broadcast</p>
+                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                    Respond to student messages in <strong>Enquiries</strong> or send announcements via <strong>Email Broadcast</strong>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/enquiries")}
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    Open Enquiries <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {(isAdmin || can("students:manage") || can("courses:manage") || can("payments:manage") || can("settings:manage")) && (
+                <div className="rounded-xl border border-line bg-white p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Academy Operations</p>
+                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                    Manage <strong>Students</strong>, <strong>Courses</strong>, <strong>Store & Coupons</strong>, and promote team members under <strong>Staff & Roles</strong>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate(isAdmin || can("settings:manage") ? "/admin/staff" : "/admin/students")}
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    {isAdmin || can("settings:manage") ? "Staff & Roles" : "View Students"} <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </Card>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         {/* Revenue chart */}
