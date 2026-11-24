@@ -2,29 +2,30 @@ import { ArrowUpRight } from "lucide-react";
 import { CONTACT } from "../lib/contact";
 import { useStore } from "../lib/store";
 import { normalizeImageUrl, DEFAULT_FALLBACK_IMAGES } from "../lib/imageUrl";
-
-const FALLBACK_AVATARS = [
-  "/images/team/founder.jpg",
-  "/images/team/mentor-1.jpg",
-  "/images/team/mentor-2.jpg",
-  "/images/team/mentor-3.jpg",
-];
+import { PRESET_AVATARS } from "../lib/avatars";
 
 export default function YoutubeSessionsBanner({ className = "" }: { className?: string }) {
   const { teamMembers } = useStore();
 
-  const avatars = (teamMembers || [])
+  const publishedAvatars = (teamMembers || [])
     .filter((m) => m.status === "published" && m.image)
-    .slice(0, 5)
-    .map((m) => ({
+    .slice(0, 4)
+    .map((m, idx) => ({
       name: m.name,
-      src: normalizeImageUrl(m.image, DEFAULT_FALLBACK_IMAGES.avatar),
+      src: normalizeImageUrl(m.image, PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar),
+      fallback: PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar,
     }));
 
-  const displayAvatars =
-    avatars.length > 0
-      ? avatars
-      : FALLBACK_AVATARS.map((src, i) => ({ name: `Mentor ${i + 1}`, src }));
+  const displayAvatars = [0, 1, 2, 3].map((idx) => {
+    const preset = PRESET_AVATARS[idx % PRESET_AVATARS.length]?.url || DEFAULT_FALLBACK_IMAGES.avatar;
+    return (
+      publishedAvatars[idx] ?? {
+        name: `Mentor ${idx + 1}`,
+        src: preset,
+        fallback: preset,
+      }
+    );
+  });
 
   return (
     <div className={`rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
@@ -166,7 +167,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
                     src={a.src}
                     alt={a.name}
                     onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = DEFAULT_FALLBACK_IMAGES.avatar;
+                      (e.currentTarget as HTMLImageElement).src = a.fallback;
                     }}
                     className="h-6 w-6 rounded-full object-cover ring-2 ring-white bg-cream"
                   />

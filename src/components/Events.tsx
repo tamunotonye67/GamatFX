@@ -15,7 +15,7 @@ export default function Events() {
       <div ref={ref} className="container-x">
         <div className="mx-auto max-w-2xl text-center">
           <span className="eyebrow justify-center">Don't miss out</span>
-          <h2 className="section-title mt-4">Events</h2>
+          <h2 className="section-title mt-4">Featured Events</h2>
           <p className="mt-4 text-muted">Ongoing events for this month.</p>
         </div>
 
