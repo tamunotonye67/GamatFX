@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase, supabaseUrl, supabaseKey } from "./supabase";
 
 export type DiscoverySourceId =
   | "instagram"
@@ -201,12 +201,28 @@ export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isU
     created_at: resp.createdAt,
   };
   try {
-    const { error } = await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" });
-    if (error && error.code !== "23505") {
-      console.error("Supabase discovery response save error:", error);
-      return false;
+    const { error } = isUpdate
+      ? await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" })
+      : await supabase.from("service_enquiries").insert(payload);
+    if (!error || error.code === "23505") {
+      return true;
     }
-    return true;
+    // Fallback to anon REST insert if an expired/restricted auth session blocked the request
+    const res = await fetch(`${supabaseUrl}/rest/v1/service_enquiries`, {
+      method: "POST",
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=ignore-duplicates,return=minimal",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok || res.status === 409) {
+      return true;
+    }
+    console.error("Supabase discovery response save error:", error);
+    return false;
   } catch (err) {
     console.warn("Supabase discovery response save notice:", err);
     return false;
@@ -217,18 +233,38 @@ export async function saveSupabaseDiscoveryResponse(resp: DiscoveryResponse, isU
 export async function fetchSupabaseDiscoveryResponses(): Promise<DiscoveryResponse[]> {
   const local = loadDiscoveryResponses();
   try {
+    let rows: any[] | null = null;
     const { data, error } = await supabase
       .from("service_enquiries")
       .select("*")
       .eq("service_slug", SUPABASE_DISCOVERY_SLUG)
       .order("created_at", { ascending: false });
 
-    if (error || !Array.isArray(data)) {
+    if (!error && Array.isArray(data)) {
+      rows = data;
+    } else {
+      // Fallback to anon REST fetch in case an expired/invalid auth session caused 401
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/service_enquiries?service_slug=eq.${SUPABASE_DISCOVERY_SLUG}&order=created_at.desc&select=*`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+          },
+        }
+      );
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json)) rows = json;
+      }
+    }
+
+    if (!rows) {
       return local;
     }
 
     const remoteIds = new Set<string>();
-    const remoteItems: DiscoveryResponse[] = data.map((r: any) => {
+    const remoteItems: DiscoveryResponse[] = rows.map((r: any) => {
       remoteIds.add(String(r.id));
       const sourceId = normalizeDiscoverySourceId(r.ref, r.service_title);
       const opt = DISCOVERY_OPTIONS.find((o) => o.id === sourceId) || DISCOVERY_OPTIONS[0];
