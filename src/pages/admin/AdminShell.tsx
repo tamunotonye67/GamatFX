@@ -246,7 +246,7 @@ export function AdminShell({ title, subtitle, action, children }: {
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 px-5 bg-ink">
+        <div className="flex h-[72px] shrink-0 box-border items-center justify-between border-b border-white/10 px-5 bg-ink">
           <Logo variant="light" />
           <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 text-white/80 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Close menu">
             <X className="h-5 w-5" />
@@ -258,7 +258,7 @@ export function AdminShell({ title, subtitle, action, children }: {
           onScroll={(e) => {
             savedAdminSidebarScroll = e.currentTarget.scrollTop;
           }}
-          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar"
         >
           <p className="px-5 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Management</p>
           <nav className="mt-3 space-y-1 px-3">
