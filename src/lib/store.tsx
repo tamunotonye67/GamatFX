@@ -27,6 +27,7 @@ import {
   fetchSupabaseGiveaways,
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
+  fetchSupabaseTeamProfiles, saveSupabaseTeamProfile, deleteSupabaseTeamProfile,
 } from "./supabaseServices";
 import { seedSupabaseDatabaseIfEmpty, subscribeToSupabaseRealtime } from "./supabaseSync";
 import {
@@ -1605,7 +1606,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [managedCourses, setManagedCourses] = useState<ManagedCourse[]>(() => read<ManagedCourse[]>(K.managedCourses, []));
   const [combatByUser, setCombatByUser] = useState<Record<string, CombatStats>>(() => read(K.combat, {}));
   const [giveaways, setGiveaways] = useState<Giveaway[]>(() => read(K.giveaways, SEED_GIVEAWAYS));
-  const [teamProfiles, setTeamProfiles] = useState<TeamProfile[]>(() => read<TeamProfile[]>(K.teamProfiles, SEED_TEAM));
+  const [teamProfiles, setTeamProfiles] = useState<TeamProfile[]>(() => {
+    const initial = read<TeamProfile[]>(K.teamProfiles, SEED_TEAM);
+    try {
+      const rawDel = localStorage.getItem("gamat.deleted_team_profiles.v1");
+      const delSet = new Set(rawDel ? JSON.parse(rawDel) : []);
+      return initial.filter((t) => !delSet.has(t.id));
+    } catch {
+      return initial;
+    }
+  });
   const [teamBios, setTeamBios] = useState<TeamBioSubmission[]>(() => read<TeamBioSubmission[]>(K.teamBios, []));
   const [clubs, setClubs] = useState<TradingClub[]>(() => read<TradingClub[]>(K.clubs, SEED_CLUBS));
   const [clubMessages, setClubMessages] = useState<ClubMessage[]>(() =>
@@ -2284,6 +2294,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         case "reviews":
           fetchSupabaseReviews().then((r) => r.length && setReviews(r));
           break;
+        case "team_profiles":
+          fetchSupabaseTeamProfiles().then((res) => {
+            if (!res) return;
+            try {
+              const rawDel = localStorage.getItem("gamat.deleted_team_profiles.v1");
+              const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
+              res.deletedIds.forEach((id) => delSet.add(id));
+              localStorage.setItem("gamat.deleted_team_profiles.v1", JSON.stringify(Array.from(delSet)));
+              setTeamProfiles((prev) => {
+                const map = new Map<string, TeamProfile>();
+                prev.forEach((p) => {
+                  if (!delSet.has(p.id)) map.set(p.id, p);
+                });
+                res.items.forEach((item: TeamProfile) => {
+                  if (!delSet.has(item.id)) map.set(item.id, item);
+                });
+                return Array.from(map.values()).sort((a, b) => a.order - b.order);
+              });
+            } catch {}
+          });
+          break;
         case "affiliate_settings":
           fetchSupabaseAffiliateSettings().then((s) => {
             if (s) setAffiliateSettings(s);
@@ -2347,6 +2378,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         "giveaways",
         "student_of_the_week",
         "reviews",
+        "team_profiles",
         "affiliate_settings",
         "store_products",
         ...(isSignedIn
@@ -4178,7 +4210,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (t.id && sanitizedPrev.some((x) => x.id === t.id)) {
-        return sanitizedPrev.map((x) =>
+        const nextList = sanitizedPrev.map((x) =>
           x.id === t.id
             ? {
                 ...x,
@@ -4195,6 +4227,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               }
             : x
         );
+        const updatedItem = nextList.find((x) => x.id === t.id);
+        if (updatedItem) saveSupabaseTeamProfile(updatedItem);
+        return nextList;
       }
       const created: TeamProfile = {
         ...t,
@@ -4212,13 +4247,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         createdAt: now,
         updatedAt: now,
       };
+      saveSupabaseTeamProfile(created);
       return [...prev, created].sort((a, b) => a.order - b.order);
     });
     return { ok: true };
   }, []);
 
   const deleteTeamProfile: Ctx["deleteTeamProfile"] = useCallback((id) => {
-    setTeamProfiles((p) => p.filter((x) => x.id !== id));
+    try {
+      const rawDel = localStorage.getItem("gamat.deleted_team_profiles.v1");
+      const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
+      delSet.add(id);
+      localStorage.setItem("gamat.deleted_team_profiles.v1", JSON.stringify(Array.from(delSet)));
+    } catch {}
+    setTeamProfiles((p) => {
+      const next = p.filter((x) => x.id !== id);
+      write(K.teamProfiles, next);
+      return next;
+    });
+    deleteSupabaseTeamProfile(id);
   }, []);
 
   const publishedTeam = useMemo(

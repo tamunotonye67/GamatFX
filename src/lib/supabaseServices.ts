@@ -994,3 +994,88 @@ export async function saveSupabaseBroadcastLog(log: SupabaseBroadcastLog): Promi
     console.warn("Supabase broadcast log save notice:", err);
   }
 }
+
+const SUPABASE_TEAM_PROFILE_SLUG = "sys_team_profile";
+
+export async function fetchSupabaseTeamProfiles(): Promise<{ items: any[]; deletedIds: string[] } | null> {
+  try {
+    const { data, error } = await supabase
+      .from("service_enquiries")
+      .select("*")
+      .eq("service_slug", SUPABASE_TEAM_PROFILE_SLUG)
+      .order("created_at", { ascending: true });
+    if (error || !Array.isArray(data)) return null;
+    const deletedIds: string[] = [];
+    const items: any[] = [];
+    for (const r of data) {
+      if (r.status === "deleted") {
+        deletedIds.push(String(r.id));
+        continue;
+      }
+      try {
+        const parsed = r.message ? JSON.parse(r.message) : null;
+        if (parsed && parsed.id) items.push(parsed);
+      } catch {}
+    }
+    return { items, deletedIds };
+  } catch {
+    return null;
+  }
+}
+
+export async function saveSupabaseTeamProfile(profile: any): Promise<void> {
+  try {
+    const payload = {
+      id: profile.id,
+      ref: profile.slug || profile.id,
+      service_slug: SUPABASE_TEAM_PROFILE_SLUG,
+      service_title: profile.name || "Team Member",
+      package_name: profile.role || "Mentor",
+      name: profile.name || "Team Member",
+      email: "team@gamatfxacademy.com",
+      phone: "/team",
+      company: profile.userId ?? null,
+      budget: String(profile.order ?? 1),
+      message: JSON.stringify(profile),
+      user_id: null,
+      status: "published",
+      created_at: profile.createdAt || new Date().toISOString(),
+    };
+    const { error } = await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" });
+    if (error && error.code !== "23505") {
+      await supabase.from("service_enquiries").insert(payload);
+    }
+  } catch (err) {
+    console.warn("Supabase team profile save notice:", err);
+  }
+}
+
+export async function deleteSupabaseTeamProfile(id: string): Promise<void> {
+  try {
+    const { error } = await supabase.from("service_enquiries").delete().eq("id", id);
+    if (error) {
+      await supabase.from("service_enquiries").update({ status: "deleted" }).eq("id", id);
+    } else {
+      // Also record a tombstone if it was a seed item that didn't exist in DB yet
+      await supabase.from("service_enquiries").upsert(
+        {
+          id,
+          ref: id,
+          service_slug: SUPABASE_TEAM_PROFILE_SLUG,
+          service_title: "Deleted Team Member",
+          package_name: "deleted",
+          name: "Deleted",
+          email: "team@gamatfxacademy.com",
+          phone: "/team",
+          message: "deleted",
+          status: "deleted",
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+    }
+  } catch (err) {
+    console.warn("Supabase team profile delete notice:", err);
+  }
+}
+
