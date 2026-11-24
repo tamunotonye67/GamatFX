@@ -239,14 +239,14 @@ export function AdminShell({ title, subtitle, action, children }: {
   });
 
   return (
-    <div className="min-h-screen w-full overflow-x-clip bg-cream">
+    <div className="min-h-screen w-full overflow-x-clip overscroll-y-none touch-pan-y bg-cream">
       {/* Sidebar - Fixed to viewport with preserved scroll position */}
       <aside
         ref={asideRef}
         onScroll={(e) => {
           savedAdminSidebarScroll = e.currentTarget.scrollTop;
         }}
-        className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] overflow-y-auto bg-ink text-white transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] overflow-y-auto overscroll-contain bg-ink text-white transition-transform duration-300 transform-gpu lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -297,7 +297,7 @@ export function AdminShell({ title, subtitle, action, children }: {
       {open && <div onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-ink/50 backdrop-blur-xs lg:hidden" />}
 
       {/* Fixed Top Navigation Bar */}
-      <header className="fixed top-0 right-0 left-0 lg:left-64 z-30 flex h-[72px] items-center justify-between gap-3 border-b border-line bg-white/95 px-4 sm:px-5 backdrop-blur-md shadow-[0_4px_20px_-12px_rgba(22,24,28,0.2)] lg:px-8">
+      <header className="fixed top-0 right-0 left-0 lg:left-64 z-30 flex h-[72px] items-center justify-between gap-3 border-b border-line bg-white px-4 sm:px-5 transform-gpu shadow-[0_4px_20px_-12px_rgba(22,24,28,0.2)] lg:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <button onClick={() => setOpen(true)} className="shrink-0 rounded-lg p-2 text-ink hover:bg-cream lg:hidden" aria-label="Open menu">
             <Menu className="h-5 w-5" />
@@ -328,7 +328,7 @@ export function AdminShell({ title, subtitle, action, children }: {
           </button>
 
           <span className="hidden rounded-full bg-brand-light px-3 py-1.5 text-xs font-bold text-brand sm:inline">
-            Admin
+            {isAdmin ? "Admin" : "Staff"}
           </span>
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-dark text-xs font-bold text-white">
             {initials}
@@ -337,7 +337,7 @@ export function AdminShell({ title, subtitle, action, children }: {
       </header>
 
       {/* Main Content Area */}
-      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-clip pt-[72px] lg:pl-64">
+      <div className="flex min-h-screen w-full min-w-0 flex-col justify-between overflow-x-clip overscroll-y-none touch-pan-y pt-[72px] lg:pl-64">
         <div className="min-w-0 w-full flex-1">
           <main className="min-w-0 w-full p-4 sm:p-5 lg:p-8">
             {notifOpen ? (

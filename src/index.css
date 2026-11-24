@@ -16,7 +16,7 @@
 
 html {
   overflow-x: clip;
-  overscroll-behavior-x: none;
+  overscroll-behavior: none;
   touch-action: pan-y pinch-zoom;
   max-width: 100%;
   width: 100%;
@@ -28,7 +28,7 @@ body {
   @apply bg-cream text-ink-soft antialiased;
   font-family: var(--font-sans);
   overflow-x: clip;
-  overscroll-behavior-x: none;
+  overscroll-behavior: none;
   touch-action: pan-y pinch-zoom;
   max-width: 100%;
   width: 100%;
