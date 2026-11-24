@@ -130,22 +130,23 @@ export default function DashboardPage() {
     return () => window.removeEventListener("hashchange", syncTabFromUrl);
   }, []);
 
-  /* Affiliate Ad Popup State & Periodic Reminder */
+  /* Affiliate Ad Popup State & 72-hour Cooldown */
   const [showAffiliateAd, setShowAffiliateAd] = useState(false);
+  const affiliateCooldownMs = 72 * 60 * 60 * 1000; // 72 hours
+  const affiliateStorageKey = user ? `gamat_affiliate_ad_interacted_${user.id}` : "gamat_affiliate_ad_interacted";
 
   useEffect(() => {
-    if (!isAuthed || !user || tab === "wallet") {
+    if (!isAuthed || !user || tab === "wallet" || tab === "affiliate") {
       setShowAffiliateAd(false);
       return;
     }
 
     const checkAndShow = () => {
-      if ((tab as string) === "wallet") return;
+      if ((tab as string) === "wallet" || (tab as string) === "affiliate") return;
       try {
-        const last = sessionStorage.getItem("gamat_affiliate_ad_dismissed");
+        const last = localStorage.getItem(affiliateStorageKey);
         const lastTime = last ? Number(last) : 0;
-        const cooldown = 3 * 60 * 1000; // 3 minutes cooldown between reminder popups
-        if (!lastTime || Date.now() - lastTime > cooldown) {
+        if (!lastTime || Date.now() - lastTime >= affiliateCooldownMs) {
           setShowAffiliateAd(true);
         }
       } catch {
@@ -156,14 +157,10 @@ export default function DashboardPage() {
     // Polite initial appearance after 4 seconds
     const initialTimer = setTimeout(checkAndShow, 4000);
 
-    // Periodic check every 60 seconds to pop up once in a while if cooldown elapsed
-    const interval = setInterval(checkAndShow, 60000);
-
     return () => {
       clearTimeout(initialTimer);
-      clearInterval(interval);
     };
-  }, [isAuthed, user, tab]);
+  }, [isAuthed, user, tab, affiliateStorageKey, affiliateCooldownMs]);
 
   useEffect(() => {
     if (!showAffiliateAd || tab === "affiliate") return;
@@ -180,19 +177,19 @@ export default function DashboardPage() {
     };
   }, [showAffiliateAd, tab]);
 
-  const handleDismissAffiliateAd = () => {
+  const recordAffiliateAdInteraction = () => {
     setShowAffiliateAd(false);
     try {
-      sessionStorage.setItem("gamat_affiliate_ad_dismissed", Date.now().toString());
+      localStorage.setItem(affiliateStorageKey, Date.now().toString());
     } catch {}
   };
 
+  const handleDismissAffiliateAd = () => {
+    recordAffiliateAdInteraction();
+  };
+
   const handleJoinAffiliateFromAd = () => {
-    setShowAffiliateAd(false);
-    try {
-      // 15-minute cooldown when student actively engages with CTA
-      sessionStorage.setItem("gamat_affiliate_ad_dismissed", (Date.now() + 15 * 60 * 1000).toString());
-    } catch {}
+    recordAffiliateAdInteraction();
     setTab("affiliate");
     window.scrollTo({ top: 380, behavior: "smooth" });
   };
