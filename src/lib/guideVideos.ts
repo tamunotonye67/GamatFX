@@ -71,6 +71,24 @@ export const SEED_GUIDE_VIDEOS: GuideVideo[] = [
     videoUrl: "",
     updatedAt: "2026-11-24T00:00:00.000Z",
   },
+  {
+    id: "gv-student-journal-mentorship",
+    audience: "student",
+    title: "Trade Journal, 1-on-1 Booking & Whiteboard Hub",
+    description: "How to log trades in your journal, schedule 1-on-1 mentorship calls, and study interactive charts in the Whiteboard Hub.",
+    duration: "2 min",
+    videoUrl: "",
+    updatedAt: "2026-11-24T00:00:00.000Z",
+  },
+  {
+    id: "gv-staff-students-roles",
+    audience: "staff",
+    title: "Staff Guide: Students, Enrollments & Team Roles",
+    description: "How to manage student accounts, verify enrollments and certificates, and assign Manager, Editor, or Author roles.",
+    duration: "3 min",
+    videoUrl: "",
+    updatedAt: "2026-11-24T00:00:00.000Z",
+  },
 ];
 
 function getDeletedIds(): Set<string> {
