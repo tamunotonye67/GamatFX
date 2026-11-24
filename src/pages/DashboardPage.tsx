@@ -2885,8 +2885,8 @@ function BirthdayOnboardingBanner({ userId, onGoToProfile }: { userId: string; o
 
   return (
     <div className="relative mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5 rounded-2xl border border-rose-200 bg-gradient-to-r from-rose-50 via-amber-50/70 to-white p-4 sm:px-5 sm:py-4 shadow-xs">
-      <div className="flex items-start sm:items-center gap-3 pr-8 sm:pr-0 min-w-0 flex-1">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-xs">
+      <div className="flex items-start gap-3 pr-8 sm:pr-0 min-w-0 flex-1">
+        <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500 text-white shadow-xs">
           <Cake className="h-5 w-5" />
         </span>
         <div className="min-w-0">
