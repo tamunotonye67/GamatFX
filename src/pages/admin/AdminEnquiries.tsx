@@ -78,28 +78,28 @@ export function AdminEnquiries() {
           <Download className="h-4 w-4" /> Export CSV
         </button>
       }>
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="mb-5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
         <button
           type="button"
           onClick={() => setTab("enquiries")}
-          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition cursor-pointer ${
+          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-bold transition cursor-pointer ${
             tab === "enquiries" ? "bg-ink text-white" : "border border-line bg-white text-ink hover:bg-cream"
           }`}
         >
-          <Inbox className="h-4 w-4" />
-          Service Enquiries ({serviceEnquiries.length})
+          <Inbox className="h-4 w-4 shrink-0" />
+          <span>Service Enquiries ({serviceEnquiries.length})</span>
         </button>
         <button
           type="button"
           onClick={() => setTab("mentorship")}
-          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition cursor-pointer ${
+          className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-bold transition cursor-pointer ${
             tab === "mentorship" ? "bg-ink text-white" : "border border-line bg-white text-ink hover:bg-cream"
           }`}
         >
-          <Video className="h-4 w-4" />
-          1-on-1 Mentorship ({mentorshipBookings.length})
+          <Video className="h-4 w-4 shrink-0" />
+          <span>1-on-1 Mentorship ({mentorshipBookings.length})</span>
           {pendingMentorships > 0 && (
-            <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-white">
+            <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-white shrink-0">
               {pendingMentorships} pending
             </span>
           )}
