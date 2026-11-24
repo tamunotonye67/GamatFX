@@ -23,6 +23,7 @@ import {
   type JobRole,
 } from "../lib/jobs";
 import { navigate } from "../lib/router";
+import Logo from "../components/Logo";
 
 const DEPARTMENTS: Array<"All" | JobDepartment> = [
   "All",
@@ -125,19 +126,14 @@ export default function JobsPage() {
     <div className="min-h-screen bg-cream text-ink-soft">
       {/* Cloudflare-inspired dark header + framed brand-red rounded hero */}
       <div className="bg-[#0d0e11]">
-        <header className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6">
+        <header className="mx-auto flex min-h-[84px] w-full max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center gap-8">
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="flex items-center gap-2.5 cursor-pointer"
+              className="cursor-pointer"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand font-display text-sm font-black text-white shadow-sm">
-                G
-              </span>
-              <span className="font-display text-sm sm:text-[15px] font-extrabold tracking-wide text-white uppercase">
-                GAMAT <span className="text-brand">Fx</span>
-              </span>
+              <Logo variant="light" size="md" asDiv />
             </button>
 
             <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-white/85">
