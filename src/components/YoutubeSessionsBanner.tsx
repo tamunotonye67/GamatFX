@@ -227,7 +227,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
             </div>
           </div>
 
-          <p className="mt-1 text-xs sm:text-sm text-muted leading-relaxed">
+          <p className="mt-1 max-w-xl md:pr-8 text-xs text-muted leading-relaxed">
             Missed our Port Harcourt workshops or weekly live market breakdowns? Watch full session replays, trade setups, and mentor Q&amp;As on YouTube.
           </p>
         </div>
