@@ -239,9 +239,10 @@ export default function JobsPage() {
               className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/35 blur-[90px]"
             />
 
-            <div className="relative mx-auto max-w-3xl">
-              <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.12]">
-                Build the future of disciplined trading—with GAMAT Fx
+            <div className="relative mx-auto max-w-4xl">
+              <h1 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.15]">
+                Build the future of
+                <br className="hidden sm:inline" /> disciplined trading—with GAMAT Fx
               </h1>
               <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">
                 Join our remote-first team of market analysts, educators,
