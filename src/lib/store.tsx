@@ -24,7 +24,7 @@ import {
   fetchSupabaseEnquiries, saveSupabaseEnquiry,
   fetchSupabaseCoupons, saveSupabaseCoupon, deleteSupabaseCoupon,
   fetchSupabaseAffiliateSettings, saveSupabaseAffiliateSettings,
-  fetchSupabaseGiveaways,
+  fetchSupabaseGiveaways, deleteSupabaseGiveaway,
   fetchSupabaseSOTW, saveSupabaseSOTW,
   fetchSupabaseReviews, saveSupabaseReview,
   fetchSupabaseTeamProfiles, saveSupabaseTeamProfile, deleteSupabaseTeamProfile,
@@ -2277,7 +2277,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           });
           break;
         case "giveaways":
-          fetchSupabaseGiveaways().then((r) => r.length && setGiveaways(r));
+          fetchSupabaseGiveaways().then((r) => {
+            if (!r.length) return;
+            try {
+              const rawDel = localStorage.getItem("gamat.deleted_giveaways.v1");
+              const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
+              setGiveaways(r.filter((g) => !delSet.has(g.id)));
+            } catch {
+              setGiveaways(r);
+            }
+          });
           break;
         case "student_of_the_week":
           fetchSupabaseSOTW().then((res) => {
@@ -2323,15 +2332,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         case "store_products":
           fetchSupabaseStoreProducts().then((supaProds) => {
             if (supaProds && supaProds.length > 0) {
-              setStoreProducts((prev) => {
-                const map = new Map<string, StoreProduct>();
-                SEED_STORE_PRODUCTS.forEach((p) => map.set(p.id, p));
-                prev.forEach((p) => map.set(p.id, p));
-                supaProds.forEach((p) => map.set(p.id, p));
-                const merged = Array.from(map.values());
-                saveStoredProducts(merged);
-                return merged;
-              });
+              try {
+                const rawDel = localStorage.getItem("gamat.deleted_store_products.v1");
+                const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
+                const filtered = supaProds.filter((p) => !delSet.has(p.id));
+                setStoreProducts(filtered);
+                saveStoredProducts(filtered);
+              } catch {
+                setStoreProducts(supaProds);
+                saveStoredProducts(supaProds);
+              }
             }
           });
           break;
@@ -4065,7 +4075,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [sessionId, user]);
 
   const deleteGiveaway: Ctx["deleteGiveaway"] = useCallback((id) => {
+    try {
+      const rawDel = localStorage.getItem("gamat.deleted_giveaways.v1");
+      const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
+      delSet.add(id);
+      localStorage.setItem("gamat.deleted_giveaways.v1", JSON.stringify(Array.from(delSet)));
+    } catch {}
     setGiveaways((p) => p.filter((x) => x.id !== id));
+    deleteSupabaseGiveaway(id);
   }, []);
 
   const publishedGiveaways = useMemo(
@@ -4621,6 +4638,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [storeProducts]);
 
   const deleteStoreProduct: Ctx["deleteStoreProduct"] = useCallback((id: string) => {
+    try {
+      const rawDel = localStorage.getItem("gamat.deleted_store_products.v1");
+      const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
+      delSet.add(id);
+      localStorage.setItem("gamat.deleted_store_products.v1", JSON.stringify(Array.from(delSet)));
+    } catch {}
     const nextList = storeProducts.filter((item) => item.id !== id);
     setStoreProducts(nextList);
     saveStoredProducts(nextList);

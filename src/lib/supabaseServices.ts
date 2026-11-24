@@ -846,6 +846,14 @@ export async function saveSupabaseGiveaway(g: Giveaway): Promise<void> {
   }
 }
 
+export async function deleteSupabaseGiveaway(id: string): Promise<void> {
+  try {
+    await supabase.from("giveaways").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase giveaway delete notice:", err);
+  }
+}
+
 export async function fetchSupabaseSOTW(): Promise<{ active: StudentOfTheWeek | null; all: StudentOfTheWeek[] }> {
   try {
     const { data, error } = await supabase.from("student_of_the_week").select("*").order("created_at", { ascending: false });
