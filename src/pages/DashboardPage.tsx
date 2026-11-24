@@ -499,9 +499,9 @@ export default function DashboardPage() {
       {/* Tabs + content */}
       <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr]">
         <aside className="relative min-w-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-ink p-2 text-white shadow-xl lg:flex-col lg:items-stretch lg:gap-0 lg:p-2.5 lg:sticky lg:top-24 z-20 no-scrollbar">
-            <div className="hidden lg:flex items-center justify-between px-2.5 pb-2 mb-2 border-b border-white/10">
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-slate-100/80 p-2 text-ink shadow-xs lg:flex-col lg:items-stretch lg:gap-0 lg:p-2.5 lg:sticky lg:top-24 z-20 no-scrollbar">
+            <div className="hidden lg:flex items-center justify-between px-2.5 pb-2 mb-2 border-b border-line/80">
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
                 Workspace
               </span>
               <span className="h-1.5 w-1.5 rounded-full bg-brand" />
@@ -513,26 +513,26 @@ export default function DashboardPage() {
                   onClick={() => setTab(t.id)}
                   className={`flex shrink-0 items-center gap-2 lg:w-full rounded-xl px-3.5 py-2 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold whitespace-nowrap transition cursor-pointer ${
                     tab === t.id
-                      ? "bg-brand text-white shadow-sm shadow-brand/30"
-                      : "text-white/70 hover:bg-white/10 hover:text-white"
+                      ? "bg-brand text-white shadow-xs"
+                      : "text-ink/75 hover:bg-white hover:text-brand hover:shadow-2xs"
                   }`}
                 >
                   <t.icon className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0" /> {t.label}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 shrink-0 lg:flex-col lg:items-stretch lg:gap-1 lg:border-t lg:border-white/10 lg:pt-2.5 lg:mt-2.5">
+            <div className="flex items-center gap-1.5 shrink-0 lg:flex-col lg:items-stretch lg:gap-1 lg:border-t lg:border-line/80 lg:pt-2.5 lg:mt-2.5">
               {(isAdmin || isStaff) && (
                 <button
                   onClick={() => navigate("/admin")}
-                  className="flex shrink-0 items-center gap-2 lg:w-full rounded-xl border border-white/10 bg-white/10 px-3.5 py-2 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-white whitespace-nowrap transition hover:bg-white/15 cursor-pointer"
+                  className="flex shrink-0 items-center gap-2 lg:w-full rounded-xl border border-line bg-white px-3.5 py-2 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-ink shadow-2xs whitespace-nowrap transition hover:border-brand/30 hover:text-brand cursor-pointer"
                 >
-                  <ShieldCheck className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0 text-brand-light" /> Admin Panel
+                  <ShieldCheck className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0 text-brand" /> Admin Panel
                 </button>
               )}
               <button
                 onClick={() => { logout(); navigate("/"); }}
-                className="flex shrink-0 items-center gap-2 lg:w-full rounded-xl px-3.5 py-2 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-white/55 whitespace-nowrap transition hover:bg-red-500/15 hover:text-red-300 cursor-pointer"
+                className="flex shrink-0 items-center gap-2 lg:w-full rounded-xl px-3.5 py-2 lg:px-2.5 lg:py-1.5 text-left text-xs sm:text-sm lg:text-[12.5px] font-semibold text-muted whitespace-nowrap transition hover:bg-red-50 hover:text-brand cursor-pointer"
               >
                 <LogOut className="h-4 w-4 lg:h-3.5 lg:w-3.5 shrink-0" /> Log out
               </button>
