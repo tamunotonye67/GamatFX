@@ -10,7 +10,6 @@ import Services from "../components/Services";
 import StoreSection from "../components/StoreSection";
 import Testimonials from "../components/Testimonials";
 import Events from "../components/Events";
-import YoutubeSessionsBanner from "../components/YoutubeSessionsBanner";
 
 export default function Home() {
   return (
@@ -26,11 +25,6 @@ export default function Home() {
       <Services />
       <StoreSection />
       <Testimonials />
-      <section className="bg-cream pt-10">
-        <div className="container-x">
-          <YoutubeSessionsBanner />
-        </div>
-      </section>
       <Events />
     </>
   );
