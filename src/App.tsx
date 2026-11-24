@@ -20,63 +20,93 @@ import { useStore } from "./lib/store";
 import { useRoute, segments } from "./lib/router";
 import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
 
-const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
-const LearnPage = lazy(() => import("./pages/LearnPage"));
-const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-const QuizPage = lazy(() => import("./pages/QuizPage"));
-const VerifyCertificatePage = lazy(() => import("./pages/VerifyCertificatePage"));
-const WhiteboardPage = lazy(() => import("./pages/WhiteboardPage"));
-const StorePage = lazy(() => import("./pages/StorePage"));
-const MentorPage = lazy(() => import("./pages/MentorPage"));
-const MentorshipSurveyPage = lazy(() => import("./pages/MentorshipSurveyPage"));
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  importer: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> {
+  return lazy(async () => {
+    const key = "gamat:chunk_reload";
+    try {
+      const mod = await importer();
+      try { sessionStorage.removeItem(key); } catch {}
+      return mod;
+    } catch (err: any) {
+      const msg = String(err?.message || err || "");
+      const isChunkError =
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Importing a module script failed") ||
+        msg.includes("Loading chunk") ||
+        msg.includes("Loading CSS chunk");
+      if (isChunkError && typeof window !== "undefined") {
+        let alreadyReloaded = false;
+        try { alreadyReloaded = sessionStorage.getItem(key) === "1"; } catch {}
+        if (!alreadyReloaded) {
+          try { sessionStorage.setItem(key, "1"); } catch {}
+          window.location.reload();
+          return new Promise<never>(() => {});
+        }
+      }
+      throw err;
+    }
+  });
+}
 
-const BlogPage = lazy(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPage })));
-const BlogPostPage = lazy(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPostPage })));
-const ForumPage = lazy(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumPage })));
-const ForumChannelPage = lazy(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumChannelPage })));
-const ForumThreadPage = lazy(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumThreadPage })));
-const NewsPage = lazy(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsPage })));
-const NewsDetailPage = lazy(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsDetailPage })));
-const OutlookPage = lazy(() => import("./pages/OutlookPage").then((m) => ({ default: m.OutlookPage })));
-const OutlookDetailPage = lazy(() => import("./pages/OutlookPage").then((m) => ({ default: m.OutlookDetailPage })));
-const GiveawaysPage = lazy(() => import("./pages/GiveawaysPage").then((m) => ({ default: m.GiveawaysPage })));
-const GiveawayDetailPage = lazy(() => import("./pages/GiveawaysPage").then((m) => ({ default: m.GiveawayDetailPage })));
-const TeamPage = lazy(() => import("./pages/TeamPages").then((m) => ({ default: m.TeamPage })));
-const TeamMemberPage = lazy(() => import("./pages/TeamPages").then((m) => ({ default: m.TeamMemberPage })));
+const CheckoutPage = lazyWithRetry(() => import("./pages/CheckoutPage"));
+const LearnPage = lazyWithRetry(() => import("./pages/LearnPage"));
+const DashboardPage = lazyWithRetry(() => import("./pages/DashboardPage"));
+const QuizPage = lazyWithRetry(() => import("./pages/QuizPage"));
+const VerifyCertificatePage = lazyWithRetry(() => import("./pages/VerifyCertificatePage"));
+const WhiteboardPage = lazyWithRetry(() => import("./pages/WhiteboardPage"));
+const StorePage = lazyWithRetry(() => import("./pages/StorePage"));
+const MentorPage = lazyWithRetry(() => import("./pages/MentorPage"));
+const MentorshipSurveyPage = lazyWithRetry(() => import("./pages/MentorshipSurveyPage"));
 
-const FunZonePage = lazy(() => import("./pages/fun/FunZonePage"));
-const QuizArcadePage = lazy(() => import("./pages/fun/QuizArcadePage"));
-const MillionairePage = lazy(() => import("./pages/fun/MillionairePage"));
-const LiveChartPage = lazy(() => import("./pages/fun/LiveChartPage"));
-const MarketCombatPage = lazy(() => import("./pages/fun/MarketCombatPage"));
-const HistofactPage = lazy(() => import("./pages/fun/HistofactPage"));
-const ClubBuilderPage = lazy(() => import("./pages/fun/ClubBuilderPage"));
-const StudentOfTheWeekPage = lazy(() => import("./pages/fun/StudentOfTheWeekPage").then((m) => ({ default: m.StudentOfTheWeekPage })));
+const BlogPage = lazyWithRetry(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPage })));
+const BlogPostPage = lazyWithRetry(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPostPage })));
+const ForumPage = lazyWithRetry(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumPage })));
+const ForumChannelPage = lazyWithRetry(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumChannelPage })));
+const ForumThreadPage = lazyWithRetry(() => import("./pages/ForumPage").then((m) => ({ default: m.ForumThreadPage })));
+const NewsPage = lazyWithRetry(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsPage })));
+const NewsDetailPage = lazyWithRetry(() => import("./pages/NewsPage").then((m) => ({ default: m.NewsDetailPage })));
+const OutlookPage = lazyWithRetry(() => import("./pages/OutlookPage").then((m) => ({ default: m.OutlookPage })));
+const OutlookDetailPage = lazyWithRetry(() => import("./pages/OutlookPage").then((m) => ({ default: m.OutlookDetailPage })));
+const GiveawaysPage = lazyWithRetry(() => import("./pages/GiveawaysPage").then((m) => ({ default: m.GiveawaysPage })));
+const GiveawayDetailPage = lazyWithRetry(() => import("./pages/GiveawaysPage").then((m) => ({ default: m.GiveawayDetailPage })));
+const TeamPage = lazyWithRetry(() => import("./pages/TeamPages").then((m) => ({ default: m.TeamPage })));
+const TeamMemberPage = lazyWithRetry(() => import("./pages/TeamPages").then((m) => ({ default: m.TeamMemberPage })));
 
-const AdminDashboard = lazy(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminDashboard })));
-const AdminStudents = lazy(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminStudents })));
-const AdminCourses = lazy(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminCourses })));
-const AdminPayments = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminPayments })));
-const AdminEvents = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminEvents })));
-const AdminRegistrations = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminRegistrations })));
-const AdminSettings = lazy(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminSettings })));
-const AdminEnquiries = lazy(() => import("./pages/admin/AdminEnquiries").then((m) => ({ default: m.AdminEnquiries })));
-const AdminStaff = lazy(() => import("./pages/admin/AdminStaff").then((m) => ({ default: m.AdminStaff })));
-const AdminPosts = lazy(() => import("./pages/admin/AdminStaff").then((m) => ({ default: m.AdminPosts })));
-const AdminBroadcast = lazy(() => import("./pages/admin/AdminBroadcast").then((m) => ({ default: m.AdminBroadcast })));
-const AdminNews = lazy(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminNews })));
-const AdminOutlooks = lazy(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminOutlooks })));
-const AdminCourseManager = lazy(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminCourseManager })));
-const AdminGiveaways = lazy(() => import("./pages/admin/AdminGiveaways").then((m) => ({ default: m.AdminGiveaways })));
-const AdminTeam = lazy(() => import("./pages/admin/AdminTeam").then((m) => ({ default: m.AdminTeam })));
-const AdminStudentOfTheWeek = lazy(() => import("./pages/admin/AdminStudentOfTheWeek").then((m) => ({ default: m.AdminStudentOfTheWeek })));
-const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons").then((m) => ({ default: m.AdminCoupons })));
-const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
-const AdminInvoices = lazy(() => import("./pages/admin/AdminInvoicesAndAssets").then((m) => ({ default: m.AdminInvoices })));
-const AdminCompanyAssets = lazy(() => import("./pages/admin/AdminInvoicesAndAssets").then((m) => ({ default: m.AdminCompanyAssets })));
-const AdminWhiteboard = lazy(() => import("./pages/admin/AdminWhiteboard").then((m) => ({ default: m.AdminWhiteboard })));
-const AdminStore = lazy(() => import("./pages/admin/AdminStore").then((m) => ({ default: m.AdminStore })));
-const AdminAffiliates = lazy(() => import("./pages/admin/AdminAffiliates").then((m) => ({ default: m.AdminAffiliates })));
+const FunZonePage = lazyWithRetry(() => import("./pages/fun/FunZonePage"));
+const QuizArcadePage = lazyWithRetry(() => import("./pages/fun/QuizArcadePage"));
+const MillionairePage = lazyWithRetry(() => import("./pages/fun/MillionairePage"));
+const LiveChartPage = lazyWithRetry(() => import("./pages/fun/LiveChartPage"));
+const MarketCombatPage = lazyWithRetry(() => import("./pages/fun/MarketCombatPage"));
+const HistofactPage = lazyWithRetry(() => import("./pages/fun/HistofactPage"));
+const ClubBuilderPage = lazyWithRetry(() => import("./pages/fun/ClubBuilderPage"));
+const StudentOfTheWeekPage = lazyWithRetry(() => import("./pages/fun/StudentOfTheWeekPage").then((m) => ({ default: m.StudentOfTheWeekPage })));
+
+const AdminDashboard = lazyWithRetry(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminDashboard })));
+const AdminStudents = lazyWithRetry(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminStudents })));
+const AdminCourses = lazyWithRetry(() => import("./pages/admin/AdminMain").then((m) => ({ default: m.AdminCourses })));
+const AdminPayments = lazyWithRetry(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminPayments })));
+const AdminEvents = lazyWithRetry(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminEvents })));
+const AdminRegistrations = lazyWithRetry(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminRegistrations })));
+const AdminSettings = lazyWithRetry(() => import("./pages/admin/AdminOps").then((m) => ({ default: m.AdminSettings })));
+const AdminEnquiries = lazyWithRetry(() => import("./pages/admin/AdminEnquiries").then((m) => ({ default: m.AdminEnquiries })));
+const AdminStaff = lazyWithRetry(() => import("./pages/admin/AdminStaff").then((m) => ({ default: m.AdminStaff })));
+const AdminPosts = lazyWithRetry(() => import("./pages/admin/AdminStaff").then((m) => ({ default: m.AdminPosts })));
+const AdminBroadcast = lazyWithRetry(() => import("./pages/admin/AdminBroadcast").then((m) => ({ default: m.AdminBroadcast })));
+const AdminNews = lazyWithRetry(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminNews })));
+const AdminOutlooks = lazyWithRetry(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminOutlooks })));
+const AdminCourseManager = lazyWithRetry(() => import("./pages/admin/AdminUpdates").then((m) => ({ default: m.AdminCourseManager })));
+const AdminGiveaways = lazyWithRetry(() => import("./pages/admin/AdminGiveaways").then((m) => ({ default: m.AdminGiveaways })));
+const AdminTeam = lazyWithRetry(() => import("./pages/admin/AdminTeam").then((m) => ({ default: m.AdminTeam })));
+const AdminStudentOfTheWeek = lazyWithRetry(() => import("./pages/admin/AdminStudentOfTheWeek").then((m) => ({ default: m.AdminStudentOfTheWeek })));
+const AdminCoupons = lazyWithRetry(() => import("./pages/admin/AdminCoupons").then((m) => ({ default: m.AdminCoupons })));
+const AdminAnalytics = lazyWithRetry(() => import("./pages/admin/AdminAnalytics").then((m) => ({ default: m.AdminAnalytics })));
+const AdminInvoices = lazyWithRetry(() => import("./pages/admin/AdminInvoicesAndAssets").then((m) => ({ default: m.AdminInvoices })));
+const AdminCompanyAssets = lazyWithRetry(() => import("./pages/admin/AdminInvoicesAndAssets").then((m) => ({ default: m.AdminCompanyAssets })));
+const AdminWhiteboard = lazyWithRetry(() => import("./pages/admin/AdminWhiteboard").then((m) => ({ default: m.AdminWhiteboard })));
+const AdminStore = lazyWithRetry(() => import("./pages/admin/AdminStore").then((m) => ({ default: m.AdminStore })));
+const AdminAffiliates = lazyWithRetry(() => import("./pages/admin/AdminAffiliates").then((m) => ({ default: m.AdminAffiliates })));
 
 function PageLoader() {
   return (
