@@ -1,6 +1,6 @@
 import { supabase, supabaseUrl, supabaseKey } from "./supabase";
 
-export type GuideAudience = "student" | "staff";
+export type GuideAudience = "student" | "staff" | "whiteboard";
 
 export type GuideVideo = {
   id: string;
@@ -89,6 +89,24 @@ export const SEED_GUIDE_VIDEOS: GuideVideo[] = [
     videoUrl: "",
     updatedAt: "2026-11-24T00:00:00.000Z",
   },
+  {
+    id: "gv-whiteboard-basics",
+    audience: "whiteboard",
+    title: "Whiteboard Basics: Canvas Navigation, Shapes & Sticky Notes",
+    description: "How to pan, zoom, draw trendlines, add sticky notes, and organize multi-tab technical diagrams.",
+    duration: "2 min",
+    videoUrl: "",
+    updatedAt: "2026-11-24T00:00:00.000Z",
+  },
+  {
+    id: "gv-whiteboard-smc",
+    audience: "whiteboard",
+    title: "Whiteboard Pro: Chart Markup, SMC Zones & Templates",
+    description: "How to mark Order Blocks, FVGs, Break of Structure, and load pre-built chart templates onto the canvas.",
+    duration: "3 min",
+    videoUrl: "",
+    updatedAt: "2026-11-24T00:00:00.000Z",
+  },
 ];
 
 function getDeletedIds(): Set<string> {
@@ -159,7 +177,12 @@ export async function fetchGuideVideos(): Promise<GuideVideo[]> {
         if (parsed.title) {
           map.set(parsed.id, {
             id: parsed.id,
-            audience: parsed.audience === "staff" ? "staff" : "student",
+            audience:
+              parsed.audience === "staff"
+                ? "staff"
+                : parsed.audience === "whiteboard"
+                ? "whiteboard"
+                : "student",
             title: parsed.title,
             description: parsed.description ?? "",
             duration: parsed.duration ?? "",

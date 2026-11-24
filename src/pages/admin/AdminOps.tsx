@@ -895,8 +895,12 @@ export function AdminSettings() {
             <div key={v.id} className="flex flex-col justify-between rounded-2xl border border-line bg-cream/40 p-4">
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <Badge tone={v.audience === "staff" ? "amber" : "red"}>
-                    {v.audience === "staff" ? "Staff Guide" : "Student Guide"}
+                  <Badge tone={v.audience === "staff" ? "amber" : v.audience === "whiteboard" ? "green" : "red"}>
+                    {v.audience === "staff"
+                      ? "Staff Guide"
+                      : v.audience === "whiteboard"
+                      ? "Whiteboard Guide"
+                      : "Student Guide"}
                   </Badge>
                   <span className="text-xs font-semibold text-muted">
                     {v.videoUrl ? "Video linked" : "No video yet"}
@@ -946,6 +950,7 @@ export function AdminSettings() {
               options={[
                 { value: "student", label: "Student Dashboard (Help & Guide)" },
                 { value: "staff", label: "Staff / Admin Dashboard (Quick Guide)" },
+                { value: "whiteboard", label: "Whiteboard Hub (Learn Workspace)" },
               ]}
             />
             <Field

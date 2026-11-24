@@ -140,6 +140,7 @@ import {
 } from "../lib/whiteboardHubData";
 import { useStore } from "../lib/store";
 import { loadWhiteboardFromCloud, saveWhiteboardToCloud } from "../lib/whiteboardSync";
+import GuideVideoGrid from "../components/GuideVideoGrid";
 
 /* Custom Forex SVG Icons (Ultra-Minimalist Lucide-Style Line Art) */
 const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
@@ -7613,6 +7614,37 @@ export default function WhiteboardPage() {
                       </button>
                     </div>
                   </div>
+                </div>
+
+                {/* Whiteboard Video Walkthroughs */}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h4 className="font-display text-base sm:text-lg font-extrabold text-ink">
+                        Whiteboard Video Walkthroughs
+                      </h4>
+                      <p className="text-xs text-muted font-medium">
+                        Step-by-step screen recordings showing how to use the canvas, SMC tools, and chart templates.
+                      </p>
+                    </div>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => navigate("/admin/settings")}
+                        className="text-xs font-bold text-brand hover:underline cursor-pointer"
+                      >
+                        Manage videos in Settings →
+                      </button>
+                    )}
+                  </div>
+                  <GuideVideoGrid
+                    audience="whiteboard"
+                    emptyHint={
+                      isAdmin
+                        ? "Add a YouTube, Vimeo, or MP4 link in Admin → Settings → Platform Walkthrough Videos."
+                        : "Whiteboard walkthrough videos will appear here once uploaded by an admin."
+                    }
+                  />
                 </div>
 
                 {/* 10 Interactive Comprehensive Lessons (Filterable) */}
