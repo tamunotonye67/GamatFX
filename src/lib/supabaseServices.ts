@@ -584,7 +584,7 @@ export async function fetchSupabaseEnquiries(): Promise<ServiceEnquiry[] | null>
     const { data, error } = await supabase.from("service_enquiries").select("*").order("created_at", { ascending: false });
     if (error || !data) return null;
     return data
-      .filter((r: any) => r.service_slug !== "sys_discovery_survey")
+      .filter((r: any) => r.service_slug !== "sys_discovery_survey" && r.service_slug !== "sys_broadcast_log" && r.service_slug !== "sys_team_profile")
       .map((r: any) => ({
         id: r.id,
         ref: r.ref,
@@ -969,24 +969,64 @@ export type SupabaseBroadcastLog = {
   sentAt: string;
 };
 
+const SUPABASE_BROADCAST_LOG_SLUG = "sys_broadcast_log";
+
 export async function fetchSupabaseBroadcastLogs(): Promise<SupabaseBroadcastLog[]> {
-  try {
-    const { data, error } = await supabase
-      .from("broadcast_logs")
-      .select("*")
-      .order("sent_at", { ascending: false })
-      .limit(20);
-    if (error || !data) return [];
-    return data.map((r: any) => ({
-      id: r.id,
-      subject: r.subject || "",
-      audience: r.audience || "",
-      count: Number(r.count || 0),
-      sentAt: r.sent_at || new Date().toISOString(),
-    }));
-  } catch {
-    return [];
-  }
+  const merged = new Map<string, SupabaseBroadcastLog>();
+
+  await Promise.all([
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("broadcast_logs")
+          .select("*")
+          .order("sent_at", { ascending: false })
+          .limit(20);
+        if (!error && Array.isArray(data)) {
+          for (const r of data) {
+            if (!r?.id) continue;
+            merged.set(String(r.id), {
+              id: String(r.id),
+              subject: r.subject || "",
+              audience: r.audience || "",
+              count: Number(r.count || 0),
+              sentAt: r.sent_at || new Date().toISOString(),
+            });
+          }
+        }
+      } catch {}
+    })(),
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("service_enquiries")
+          .select("*")
+          .eq("service_slug", SUPABASE_BROADCAST_LOG_SLUG)
+          .order("created_at", { ascending: false })
+          .limit(20);
+        if (!error && Array.isArray(data)) {
+          for (const r of data) {
+            try {
+              const parsed = r.message ? JSON.parse(r.message) : null;
+              if (parsed?.id) {
+                merged.set(String(parsed.id), {
+                  id: String(parsed.id),
+                  subject: parsed.subject || r.service_title || "",
+                  audience: parsed.audience || r.package_name || "",
+                  count: Number(parsed.count || 0),
+                  sentAt: parsed.sentAt || r.created_at || new Date().toISOString(),
+                });
+              }
+            } catch {}
+          }
+        }
+      } catch {}
+    })(),
+  ]);
+
+  return Array.from(merged.values())
+    .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+    .slice(0, 20);
 }
 
 export async function saveSupabaseBroadcastLog(log: SupabaseBroadcastLog): Promise<void> {
@@ -999,7 +1039,32 @@ export async function saveSupabaseBroadcastLog(log: SupabaseBroadcastLog): Promi
       sent_at: log.sentAt,
     }, { onConflict: "id" });
   } catch (err) {
-    console.warn("Supabase broadcast log save notice:", err);
+    console.warn("Supabase broadcast_logs save notice:", err);
+  }
+
+  try {
+    const payload = {
+      id: log.id,
+      ref: log.id,
+      service_slug: SUPABASE_BROADCAST_LOG_SLUG,
+      service_title: log.subject || "Email Broadcast",
+      package_name: log.audience || "all_students",
+      name: "Admin Broadcast",
+      email: "broadcast@gamatfxacademy.com",
+      phone: "/admin/broadcast",
+      company: null,
+      budget: String(log.count ?? 0),
+      message: JSON.stringify(log),
+      user_id: null,
+      status: "sent",
+      created_at: log.sentAt || new Date().toISOString(),
+    };
+    const { error } = await supabase.from("service_enquiries").upsert(payload, { onConflict: "id" });
+    if (error && error.code !== "23505") {
+      await supabase.from("service_enquiries").insert(payload);
+    }
+  } catch (err) {
+    console.warn("Supabase broadcast enquiry fallback save notice:", err);
   }
 }
 

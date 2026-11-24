@@ -39,8 +39,14 @@ export function AdminBroadcast() {
 
   useEffect(() => {
     fetchSupabaseBroadcastLogs().then((remote) => {
-      if (!remote.length) return;
+      const remoteIds = new Set(remote.map((r) => r.id));
       setLogs((prev) => {
+        prev.forEach((item) => {
+          if (item?.id && !remoteIds.has(item.id)) {
+            saveSupabaseBroadcastLog(item);
+          }
+        });
+        if (!remote.length) return prev;
         const merged = new Map<string, BroadcastLog>();
         [...remote, ...prev].forEach((item) => {
           if (item?.id) merged.set(item.id, item);
