@@ -59,9 +59,25 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
     <div className={`group mx-auto max-w-4xl rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 rounded-xl border border-line bg-white">
         {/* Left Red Animated Chartlines Visual Block */}
-        <div className="relative h-20 md:h-[88px] w-full md:w-32 shrink-0 overflow-hidden rounded-t-[11px] md:rounded-t-none md:rounded-l-[11px] bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
+        <div className="relative h-24 md:h-[88px] w-full md:w-32 shrink-0 overflow-hidden rounded-t-[11px] md:rounded-t-none md:rounded-l-[11px] bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
+          {/* Mobile-only top-right X dismiss button (away from Watch now) */}
+          <button
+            type="button"
+            onClick={() => {
+              setDismissed(true);
+              try {
+                sessionStorage.setItem("gamat.yt_banner_dismissed.v1", "true");
+              } catch {}
+            }}
+            aria-label="Dismiss GamatFX Live Sessions announcement"
+            className="md:hidden absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-xs border border-white/20 transition hover:bg-black/50 cursor-pointer"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+
           <svg
             viewBox="0 0 160 120"
+            preserveAspectRatio="none"
             className="absolute inset-0 h-full w-full pointer-events-none"
             aria-hidden="true"
           >
@@ -207,7 +223,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
                 onMouseLeave={() => setArrowHovered(false)}
               >
                 {arrowHovered && (
-                  <div className="pointer-events-none absolute bottom-full right-0 mb-2.5 z-30 flex items-center justify-between gap-4 rounded-2xl border border-line bg-white px-4 py-2.5 shadow-xl whitespace-nowrap">
+                  <div className="pointer-events-none hidden md:flex absolute bottom-full right-0 mb-2.5 z-30 items-center justify-between gap-4 rounded-2xl border border-line bg-white px-4 py-2.5 shadow-xl whitespace-nowrap">
                     <div className="text-left">
                       <p className="font-display text-sm font-bold text-ink leading-tight">Browse all</p>
                       <p className="text-xs font-medium text-muted mt-0.5">{speakerCountLabel}</p>
@@ -241,9 +257,9 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
           </p>
         </div>
 
-        {/* Right CTA Button + Hover Dismiss X */}
+        {/* Right CTA Button + Desktop Hover Dismiss X */}
         <div className="px-4 pb-4 md:pb-0 md:pr-5 md:pl-2 shrink-0 flex items-center gap-2.5">
-          <div className="relative group/dismiss opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+          <div className="hidden md:block relative group/dismiss opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
             <div className="pointer-events-none absolute bottom-full right-0 mb-2.5 z-30 opacity-0 translate-y-1 group-hover/dismiss:opacity-100 group-hover/dismiss:translate-y-0 transition-all duration-150 rounded-xl border border-line bg-white px-3.5 py-2 text-xs font-medium text-ink shadow-lg whitespace-nowrap">
               Dismiss GamatFX Live Sessions announcement
             </div>
