@@ -121,35 +121,22 @@ export default function JobsPage() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const searchInputRef = (el: HTMLInputElement | null) => {
-    if (el) {
-      el.dataset.jobSearch = "true";
-    }
-  };
-
-  const focusSearch = () => {
-    scrollTo("roles");
-    setTimeout(() => {
-      const el = document.querySelector<HTMLInputElement>('input[data-job-search="true"]');
-      el?.focus();
-    }, 350);
-  };
-
   return (
     <div className="min-h-screen bg-cream text-ink-soft">
-      {/* Top dark frame + rounded brand-red hero matching reference */}
-      <div className="bg-[#0d0e11] pb-3 sm:pb-4">
-        <header className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-8">
+      {/* Cloudflare-inspired dark header + framed brand-red rounded hero */}
+      <div className="bg-ink pb-3 sm:pb-4">
+        <header className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             className="flex items-center gap-2.5 cursor-pointer"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-brand font-display text-sm font-black text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand font-display text-sm font-black text-white shadow-sm">
               G
             </span>
-            <span className="font-display text-sm sm:text-[15px] font-extrabold tracking-[0.14em] text-white uppercase">
-              GAMAT FX
+            <span className="font-display text-sm sm:text-base font-extrabold tracking-wide text-white uppercase">
+              GAMAT <span className="text-brand">Fx</span>{" "}
+              <span className="font-semibold text-white/60">Careers</span>
             </span>
           </button>
 
@@ -157,10 +144,16 @@ export default function JobsPage() {
             <button
               type="button"
               onClick={() => scrollTo("roles")}
-              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-rose-300/90 hover:text-rose-200 transition cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white transition cursor-pointer"
             >
-              <Briefcase className="h-3.5 w-3.5" />
-              Open roles ({allOpenRoles.length})
+              Open Roles ({allOpenRoles.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollTo("culture")}
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white transition cursor-pointer"
+            >
+              Why GAMAT Fx
             </button>
             <a
               href="https://gamatfxacademy.com"
@@ -173,66 +166,63 @@ export default function JobsPage() {
                   navigate("/");
                 }
               }}
-              className="rounded-lg border border-white/15 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-white/90 transition hover:bg-white/10"
+              className="inline-flex items-center gap-1 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-white/10"
             >
-              Main Site
+              Main Site <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
             <button
               type="button"
               onClick={() => scrollTo("roles")}
-              className="rounded-lg border border-white/15 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-white/90 transition hover:bg-white/10 cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 cursor-pointer"
             >
               View Jobs
-            </button>
-            <button
-              type="button"
-              onClick={focusSearch}
-              aria-label="Search roles"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-white/[0.04] text-white/80 transition hover:bg-white/10 hover:text-white cursor-pointer"
-            >
-              <Search className="h-3.5 w-3.5" />
             </button>
           </div>
         </header>
 
         {/* Framed Rounded Brand-Red Hero Card */}
-        <div className="mx-auto max-w-[1440px] px-2.5 sm:px-4">
-          <section className="relative flex min-h-[76vh] flex-col items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-[#e02438] via-[#d62839] to-[#b81d2c] px-6 py-24 text-center text-white shadow-2xl">
-            {/* Fine dot-matrix texture */}
+        <div className="mx-auto max-w-[1440px] px-2 sm:px-4">
+          <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-20 sm:py-28 lg:py-36 text-center text-white shadow-2xl">
+            {/* Subtle dot-matrix texture + warm bottom glow matching reference */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-25"
+              className="pointer-events-none absolute inset-0 opacity-20"
               style={{
                 backgroundImage:
-                  "radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px)",
-                backgroundSize: "8px 8px",
+                  "radial-gradient(rgba(255,255,255,0.45) 1px, transparent 1px)",
+                backgroundSize: "10px 10px",
               }}
             />
-            {/* Warm bottom-center radial glow matching reference */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -bottom-28 left-1/2 h-80 w-[620px] -translate-x-1/2 rounded-full bg-rose-200/45 blur-[95px]"
+              className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/35 blur-[90px]"
             />
 
             <div className="relative mx-auto max-w-3xl">
-              <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-5xl lg:text-[3.4rem] lg:leading-[1.15]">
-                Everything we learned from training
-                <br className="hidden sm:inline" /> 1,000+ traders—build it with us
+              <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.12]">
+                Build the future of disciplined trading—with GAMAT Fx
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/90 sm:text-[15px]">
-                One remote-first team for market education, live trading desks,
-                and trader tools.
-                <br className="hidden sm:inline" /> Join us to help traders
-                execute with structure and discipline.
+              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">
+                Join our remote-first team of market analysts, educators,
+                creators, and engineers powering trading education for 1,000+
+                students worldwide.
               </p>
 
-              <div className="mt-9 flex justify-center">
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={() => scrollTo("roles")}
-                  className="rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-[#16181c] shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-bold text-ink shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
                 >
-                  Explore open roles
+                  Explore {allOpenRoles.length} Open Roles{" "}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollTo("culture")}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer"
+                >
+                  Life at GAMAT Fx
                 </button>
               </div>
             </div>
@@ -296,7 +286,6 @@ export default function JobsPage() {
             <div className="relative w-full lg:w-72">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
-                ref={searchInputRef}
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
