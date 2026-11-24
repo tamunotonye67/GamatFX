@@ -56,7 +56,7 @@ export default function YoutubeSessionsBanner({ className = "" }: { className?: 
   if (dismissed) return null;
 
   return (
-    <div className={`group rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
+    <div className={`group mx-auto max-w-4xl rounded-2xl border border-line/80 bg-white/70 p-1.5 shadow-xs ${className}`}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-xl border border-line bg-white">
         {/* Left Red Animated Chartlines Visual Block */}
         <div className="relative h-20 md:h-28 w-full md:w-36 shrink-0 overflow-hidden rounded-t-xl md:rounded-t-none md:rounded-l-xl bg-gradient-to-br from-[#ef3b47] via-brand to-brand-dark">
