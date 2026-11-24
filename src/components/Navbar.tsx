@@ -42,6 +42,7 @@ import {
   ArrowLeftRight,
   Plus,
   Check,
+  Camera,
 } from "lucide-react";
 import Logo from "./Logo";
 import TopCouponBar from "./TopCouponBar";
@@ -77,6 +78,7 @@ const moreGroups: { title: string; items: (NavLink & { icon: React.ElementType; 
     items: [
       { label: "Trading Whiteboard", to: "/whiteboard", icon: Pencil, desc: "Interactive technical analysis & teaching canvas" },
       { label: "Store & Trading Tools", to: "/store", icon: ShoppingBag, desc: "Books, AI bots, indicators & strategies" },
+      { label: "Campus Gallery", to: "/gallery", icon: Camera, desc: "Photos from our classes, trading floor & events" },
       { label: "Community", to: "/community", icon: Users, desc: "Join 2,000+ traders on Telegram" },
       { label: "Reviews", to: "/reviews", icon: Star, desc: "What our students say" },
       { label: "FAQ", to: "/faq", icon: HelpCircle, desc: "Answers to common questions" },

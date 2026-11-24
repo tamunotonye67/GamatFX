@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import PageHero from "../components/PageHero";
 import Pillars from "../components/Pillars";
 import Counter from "../components/Counter";
@@ -7,16 +8,22 @@ import { useReveal } from "../lib/useReveal";
 import { navigate } from "../lib/router";
 import { CONTACT } from "../lib/contact";
 import { useStore } from "../lib/store";
+import { loadGalleryItems, fetchSupabaseGallery, type GalleryItem } from "../lib/gallery";
 import {
   ArrowUpRight,
   BadgeCheck,
   BookOpenCheck,
   BrainCircuit,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
   LineChart,
   Quote,
   ShieldCheck,
   Users,
   Send,
+  X,
+  ZoomIn,
 } from "lucide-react";
 
 /* ---------------------------------- Story --------------------------------- */
@@ -380,6 +387,143 @@ function WhyChoose() {
   );
 }
 
+/* -------------------------------- Gallery --------------------------------- */
+
+function AboutGallery() {
+  const [items, setItems] = useState<GalleryItem[]>(() => loadGalleryItems());
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchSupabaseGallery().then((remote) => {
+      if (mounted) setItems(remote);
+    });
+    const onUpdate = () => {
+      if (mounted) setItems(loadGalleryItems());
+    };
+    window.addEventListener("gamat:gallery-updated", onUpdate);
+    return () => {
+      mounted = false;
+      window.removeEventListener("gamat:gallery-updated", onUpdate);
+    };
+  }, []);
+
+  const featured = items.filter((i) => i.featured !== false).slice(0, 6);
+  const displayList = featured.length > 0 ? featured : items.slice(0, 6);
+  const activeItem = lightboxIdx !== null ? displayList[lightboxIdx] : null;
+
+  return (
+    <section className="section bg-white">
+      <div className="container-x">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <span className="eyebrow">Campus &amp; Community Gallery</span>
+            <h2 className="section-title mt-3">
+              Inside our <span className="text-brand">Port Harcourt</span> trading floor
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm sm:text-base text-muted">
+              Real sessions from our mentorship classes, live market analysis desks, and cohort graduations.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/gallery")}
+            className="btn-outline-dark shrink-0 self-start sm:self-auto"
+          >
+            <Camera className="h-4 w-4" /> View Full Gallery <ArrowUpRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {displayList.map((item, idx) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setLightboxIdx(idx)}
+              className="group relative overflow-hidden rounded-3xl border border-line bg-cream/30 text-left shadow-[0_14px_40px_-24px_rgba(22,24,28,0.3)] transition hover:-translate-y-1 cursor-pointer"
+            >
+              <div className="relative aspect-[16/10] w-full overflow-hidden bg-ink">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
+                  <ZoomIn className="h-4 w-4" />
+                </span>
+                <span className="absolute left-3 bottom-3 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                  {item.category}
+                </span>
+              </div>
+              <div className="p-4">
+                <h3 className="font-display text-sm font-bold text-ink">{item.title}</h3>
+                <p className="mt-1 text-xs text-muted line-clamp-2">{item.caption}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {activeItem && lightboxIdx !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+          onClick={() => setLightboxIdx(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/15 bg-ink text-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setLightboxIdx(null)}
+              aria-label="Close preview"
+              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white hover:bg-brand transition cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="relative bg-black">
+              <img src={activeItem.image} alt={activeItem.title} className="max-h-[70vh] w-full object-contain" />
+              {displayList.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxIdx((lightboxIdx - 1 + displayList.length) % displayList.length)}
+                    aria-label="Previous photo"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-brand transition cursor-pointer"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxIdx((lightboxIdx + 1) % displayList.length)}
+                    aria-label="Next photo"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white hover:bg-brand transition cursor-pointer"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="flex flex-col gap-1 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="rounded-full bg-brand/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
+                  {activeItem.category}
+                </span>
+                <h3 className="mt-1.5 font-display text-lg font-bold text-white">{activeItem.title}</h3>
+                <p className="mt-0.5 text-xs sm:text-sm text-white/75">{activeItem.caption}</p>
+              </div>
+              <span className="text-xs text-white/50 shrink-0">
+                {lightboxIdx + 1} / {displayList.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ---------------------------------- Page ---------------------------------- */
 
 export default function AboutUs() {
@@ -404,6 +548,7 @@ export default function AboutUs() {
       <Approach />
       <Timeline />
       <Team />
+      <AboutGallery />
       <WhyChoose />
       <Faq />
 

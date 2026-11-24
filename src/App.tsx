@@ -107,6 +107,8 @@ const AdminCompanyAssets = lazyWithRetry(() => import("./pages/admin/AdminInvoic
 const AdminWhiteboard = lazyWithRetry(() => import("./pages/admin/AdminWhiteboard").then((m) => ({ default: m.AdminWhiteboard })));
 const AdminStore = lazyWithRetry(() => import("./pages/admin/AdminStore").then((m) => ({ default: m.AdminStore })));
 const AdminAffiliates = lazyWithRetry(() => import("./pages/admin/AdminAffiliates").then((m) => ({ default: m.AdminAffiliates })));
+const AdminGallery = lazyWithRetry(() => import("./pages/admin/AdminGallery").then((m) => ({ default: m.AdminGallery })));
+const GalleryPage = lazyWithRetry(() => import("./pages/GalleryPage"));
 
 function PageLoader() {
   return (
@@ -232,7 +234,9 @@ const staticPages: Record<string, React.ComponentType> = {
   "/mentor": MentorPage,
   "/giveaways": GiveawaysPage,
   "/team": TeamPage,
+  "/gallery": GalleryPage,
   "/admin/team": AdminTeam,
+  "/admin/gallery": AdminGallery,
   "/admin/news": AdminNews,
   "/admin/outlooks": AdminOutlooks,
   "/admin/giveaways": AdminGiveaways,
