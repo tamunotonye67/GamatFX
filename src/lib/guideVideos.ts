@@ -53,6 +53,24 @@ export const SEED_GUIDE_VIDEOS: GuideVideo[] = [
     videoUrl: "",
     updatedAt: "2026-11-24T00:00:00.000Z",
   },
+  {
+    id: "gv-student-store-wallet",
+    audience: "student",
+    title: "Store, Discount Coupons & Invite & Earn",
+    description: "How to purchase books or tools in the Store, apply coupons, and track referral rewards in your Wallet.",
+    duration: "2 min",
+    videoUrl: "",
+    updatedAt: "2026-11-24T00:00:00.000Z",
+  },
+  {
+    id: "gv-staff-store-coupons",
+    audience: "staff",
+    title: "Staff Guide: Store Products, Coupons & Banner Display",
+    description: "How to add Store items, create discount codes, and choose which coupon appears on the homepage top banner.",
+    duration: "3 min",
+    videoUrl: "",
+    updatedAt: "2026-11-24T00:00:00.000Z",
+  },
 ];
 
 function getDeletedIds(): Set<string> {
@@ -79,7 +97,14 @@ export function getGuideVideosLocal(): GuideVideo[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return parsed.filter((v) => v && v.id && !deleted.has(v.id));
+        const list = parsed.filter((v) => v && v.id && !deleted.has(v.id));
+        const existingIds = new Set(list.map((v) => v.id));
+        for (const seed of SEED_GUIDE_VIDEOS) {
+          if (!deleted.has(seed.id) && !existingIds.has(seed.id)) {
+            list.push(seed);
+          }
+        }
+        return list;
       }
     }
   } catch {}
