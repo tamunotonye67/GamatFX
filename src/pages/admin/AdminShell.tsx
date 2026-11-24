@@ -46,12 +46,58 @@ export const nav = [
 export function AdminShell({ title, subtitle, action, children }: {
   title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode;
 }) {
-  const { user, isAdmin, logout, activityNotifications } = useStore();
+  const { user, isAdmin, isStaff, can, logout, activityNotifications } = useStore();
   const route = useRoute();
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifFilter, setNotifFilter] = useState<"all" | "unread" | "registration" | "payment" | "events" | "enquiries" | "content">("all");
   const asideRef = useRef<HTMLElement | null>(null);
+
+  const canAccessRoute = useCallback(
+    (path: string) => {
+      if (isAdmin) return true;
+      if (!isStaff) return false;
+      switch (path) {
+        case "/admin":
+          return true;
+        case "/admin/posts":
+        case "/admin/news":
+        case "/admin/outlooks":
+        case "/admin/gallery":
+        case "/admin/team":
+        case "/admin/student-of-the-week":
+          return can("posts:write") || can("posts:publish") || can("posts:manage");
+        case "/admin/events":
+          return can("events:manage");
+        case "/admin/registrations":
+          return can("registrations:manage");
+        case "/admin/enquiries":
+        case "/admin/broadcast":
+          return can("enquiries:manage");
+        case "/admin/students":
+          return can("students:manage");
+        case "/admin/courses":
+        case "/admin/course-manager":
+        case "/admin/whiteboard":
+          return can("courses:manage");
+        case "/admin/payments":
+        case "/admin/invoices":
+        case "/admin/coupons":
+        case "/admin/store":
+        case "/admin/affiliates":
+        case "/admin/giveaways":
+          return can("payments:manage");
+        case "/admin/analytics":
+        case "/admin/company-assets":
+        case "/admin/staff":
+        case "/admin/settings":
+          return can("settings:manage");
+        default:
+          return true;
+      }
+    },
+    [isAdmin, isStaff, can]
+  );
 
   // Restore left sidebar scroll position synchronously before paint so it never jumps back to top
   useLayoutEffect(() => {
@@ -97,17 +143,33 @@ export function AdminShell({ title, subtitle, action, children }: {
     [readNotifIds, readAllTimestamp]
   );
 
-  if (!isAdmin) {
+  if (!isAdmin && !isStaff) {
     return (
       <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
         <ShieldAlert className="h-16 w-16 text-brand" />
         <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Admin access required</h1>
         <p className="mt-3 max-w-md text-muted">
-          You need an administrator account to view this area.
+          You need an administrator or staff account to view this area.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <button onClick={() => navigate("/login?next=/admin")} className="btn-primary">Log in as admin</button>
           <button onClick={() => navigate("/")} className="btn-outline-dark">Back to site</button>
+        </div>
+      </section>
+    );
+  }
+
+  if (!canAccessRoute(route)) {
+    return (
+      <section className="flex min-h-screen flex-col items-center justify-center bg-cream px-6 text-center">
+        <ShieldAlert className="h-16 w-16 text-brand" />
+        <h1 className="mt-6 font-display text-3xl font-extrabold text-ink">Permission required</h1>
+        <p className="mt-3 max-w-md text-muted">
+          Your current staff role ({user?.staffLevel ?? "staff"}) does not include access to this section.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <button onClick={() => navigate("/admin")} className="btn-primary">Back to Admin Dashboard</button>
+          <button onClick={() => navigate("/dashboard")} className="btn-outline-dark">Student Dashboard</button>
         </div>
       </section>
     );
@@ -197,7 +259,7 @@ export function AdminShell({ title, subtitle, action, children }: {
 
         <p className="px-5 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Management</p>
         <nav className="mt-3 space-y-1 px-3">
-          {nav.map((n) => {
+          {nav.filter((n) => canAccessRoute(n.to)).map((n) => {
             const active = route === n.to && !notifOpen;
             return (
               <button

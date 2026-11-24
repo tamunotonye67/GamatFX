@@ -129,7 +129,7 @@ export default function Navbar() {
   const moreRef = useRef<HTMLLIElement | null>(null);
   const userRef = useRef<HTMLDivElement | null>(null);
   const barRef = useRef<HTMLDivElement | null>(null);
-  const { user, isAuthed, isAdmin, logout, stats, savedAccounts, switchAccount, removeSavedAccount, login } = useStore();
+  const { user, isAuthed, isAdmin, isStaff, logout, stats, savedAccounts, switchAccount, removeSavedAccount, login } = useStore();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [addAccOpen, setAddAccOpen] = useState(false);
   const [switchEmail, setSwitchEmail] = useState("");
@@ -557,7 +557,7 @@ export default function Navbar() {
                   <p className="mt-2 text-xs font-semibold text-brand">{stats.enrolled} course{stats.enrolled === 1 ? "" : "s"} enrolled</p>
                 </button>
                 <div className="p-2">
-                  {isAdmin && (
+                  {(isAdmin || isStaff) && (
                     <button type="button" onClick={() => { setUserOpen(false); go("/admin"); }}
                       className="mb-1 flex w-full items-center gap-3 rounded-xl bg-ink px-3 py-2.5 text-left text-sm font-semibold text-white transition hover:bg-ink/90">
                       <ShieldCheck className="h-4 w-4 text-brand-light" /> Admin Panel
@@ -810,7 +810,7 @@ export default function Navbar() {
               <ChevronDown className="h-4 w-4 shrink-0 text-muted group-hover:text-ink transition" />
             </button>
 
-            {isAdmin && (
+            {(isAdmin || isStaff) && (
               <button
                 type="button"
                 onClick={() => go("/admin")}

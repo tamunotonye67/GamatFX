@@ -88,7 +88,7 @@ function shortCourseLevel(level?: string) {
 
 export default function DashboardPage() {
   const store = useStore();
-  const { user, isAuthed, enrollments, myRegistrations, myPayments, stats, progressOf, logout, isAdmin, combat } = store;
+  const { user, isAuthed, enrollments, myRegistrations, myPayments, stats, progressOf, logout, isAdmin, isStaff, combat } = store;
   useSolidNavbar(!isAuthed || !user);
   const combatRank = rankForXp(combat.xp);
   const combatNext = nextRank(combat.xp);
@@ -507,7 +507,7 @@ export default function DashboardPage() {
                 <t.icon className="h-4 w-4 shrink-0" /> {t.label}
               </button>
             ))}
-            {isAdmin && (
+            {(isAdmin || isStaff) && (
               <button onClick={() => navigate("/admin")}
                 className="flex shrink-0 items-center gap-2 lg:gap-2.5 lg:w-full rounded-xl bg-ink px-3.5 py-2.5 lg:px-3 lg:py-2 text-left text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition hover:bg-ink/90 cursor-pointer">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-brand-light" /> Admin Panel
