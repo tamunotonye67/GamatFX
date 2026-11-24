@@ -194,37 +194,63 @@ export default function TradeJournalTab({ userId }: { userId: string }) {
         {trades.length ? (
           <div className="divide-y divide-line">
             {trades.map((t) => (
-              <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
-                <div className="flex items-center gap-3">
-                  {t.outcome === "Win" ? (
-                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 shrink-0 text-brand" />
-                  )}
-                  <div>
-                    <p className="font-bold text-ink">
-                      {t.pair} · <span className="text-muted font-semibold">{t.direction}</span>
-                    </p>
-                    <p className="text-xs text-muted">
-                      Entry {t.entry} → Exit {t.exit} {t.notes ? `· ${t.notes}` : ""}
-                    </p>
+              <div key={t.id} className="px-4 py-3.5 sm:px-5 text-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:gap-3">
+                    {t.outcome === "Win" ? (
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
+                    ) : (
+                      <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-bold text-ink">{t.pair}</span>
+                        <span
+                          className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-bold ${
+                            t.direction === "Buy"
+                              ? "bg-emerald-500/10 text-emerald-700"
+                              : "bg-brand/10 text-brand"
+                          }`}
+                        >
+                          {t.direction}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-muted break-words">
+                        Entry {t.entry} → Exit {t.exit}
+                      </p>
+                      {t.notes && (
+                        <p className="mt-1 text-xs text-ink/70 break-words">
+                          {t.notes}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className={`font-bold ${t.outcome === "Win" ? "text-emerald-600" : t.outcome === "Loss" ? "text-brand" : "text-muted"}`}>
-                      {t.outcome} ({t.rr}R)
-                    </p>
-                    <p className="text-xs text-muted">${t.pnl}</p>
+                  <div className="flex shrink-0 items-center gap-2.5 sm:gap-4">
+                    <div className="text-right">
+                      <p
+                        className={`text-xs sm:text-sm font-bold whitespace-nowrap ${
+                          t.outcome === "Win"
+                            ? "text-emerald-600"
+                            : t.outcome === "Loss"
+                            ? "text-brand"
+                            : "text-muted"
+                        }`}
+                      >
+                        {t.outcome} ({t.rr}R)
+                      </p>
+                      <p className="text-xs font-medium text-muted whitespace-nowrap">
+                        {Number(t.pnl) < 0 ? `-$${Math.abs(Number(t.pnl))}` : `$${t.pnl}`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeTrade(t.id)}
+                      className="rounded-lg p-1.5 text-muted hover:bg-cream hover:text-brand cursor-pointer"
+                      aria-label="Delete trade"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeTrade(t.id)}
-                    className="rounded-lg p-1.5 text-muted hover:bg-cream hover:text-brand cursor-pointer"
-                    aria-label="Delete trade"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
             ))}
