@@ -1109,7 +1109,7 @@ const DEFAULT_EVENTS: EventItem[] = [
     type: "Physical",
     month: "August", day: "10", year: "2026",
     time: "9:00 AM – 3:00 PM WAT",
-    location: "Skillerville Gleetech, Rumuologu, Choba-Ozouba Road, Port Harcourt",
+    location: "Skillerville, Beside Conoil Filling Station, Car Wash Junction, Choba-Ozouba Road, Port Harcourt",
     capacity: 40, price: 0, status: "published", featured: true,
   },
   {

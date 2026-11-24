@@ -221,14 +221,18 @@ export default function ContactPage() {
       <section className="pb-24">
         <div className="container-x">
           <div className="relative overflow-hidden rounded-3xl border border-line bg-ink">
-            <img src="/images/about-hero.jpg" alt="Academy location" className="h-72 w-full object-cover opacity-40" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
-              <MapPin className="h-10 w-10 text-brand" />
-              <h3 className="mt-4 font-display text-2xl font-bold">Visit our Port Harcourt campus</h3>
-              <p className="mt-2 max-w-lg text-white/70">{CONTACT.address}</p>
-              <p className="mt-1 text-sm text-white/50">Open {CONTACT.hours}</p>
+            <img src="/images/about-hero.jpg" alt="Academy location" className="absolute inset-0 h-full w-full object-cover opacity-35" />
+            <div className="relative z-10 flex flex-col items-center justify-center px-5 py-10 sm:px-8 sm:py-14 text-center text-white">
+              <MapPin className="h-8 w-8 sm:h-10 sm:w-10 text-brand shrink-0" />
+              <h3 className="mt-3 sm:mt-4 font-display text-xl sm:text-2xl font-bold leading-snug">
+                Visit our Port Harcourt campus
+              </h3>
+              <p className="mt-2 max-w-lg text-xs sm:text-sm md:text-base leading-relaxed text-white/80">
+                {CONTACT.address}
+              </p>
+              <p className="mt-1.5 text-xs sm:text-sm text-white/60">Open {CONTACT.hours}</p>
               <a href={CONTACT.whatsappHref} target="_blank" rel="noreferrer"
-                className="btn-primary mt-6">Chat on WhatsApp</a>
+                className="btn-primary mt-5 sm:mt-6">Chat on WhatsApp</a>
             </div>
           </div>
         </div>

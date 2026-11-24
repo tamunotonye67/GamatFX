@@ -11,8 +11,8 @@ export const CONTACT = {
   email: "hello@gamatfxacademy.com",
   telegram: "https://t.me/gamatfxacademy",
   city: "Port Harcourt, Nigeria",
-  addressShort: "Rumuologu, Choba-Ozouba Road, Port Harcourt",
+  addressShort: "Car Wash Junction, Choba-Ozouba Road, Port Harcourt",
   address:
-    "Skillerville Gleetech, Conoil Filling Station, Rumuologu (By Car Wash Junction), Choba-Ozouba Road, Port Harcourt",
+    "Skillerville, Beside Conoil Filling Station, Car Wash Junction, Choba-Ozouba Road, Port Harcourt",
   hours: "Mon – Fri, 9:00 AM – 5:00 PM WAT",
 } as const;
