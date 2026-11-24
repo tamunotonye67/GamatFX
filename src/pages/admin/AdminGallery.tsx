@@ -12,7 +12,7 @@ import {
   type GalleryItem,
 } from "../../lib/gallery";
 import { uploadStoreAsset } from "../../lib/supabaseStorage";
-import { Camera, Plus, Pencil, Trash2, Upload, Loader2, Star, ExternalLink } from "lucide-react";
+import { Camera, Plus, Pencil, Trash2, Upload, Loader2, Star, ExternalLink, LayoutGrid, Image as ImageIcon } from "lucide-react";
 import { navigate } from "../../lib/router";
 
 type Draft = {
@@ -132,10 +132,11 @@ export function AdminGallery() {
         </div>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard label="Total Photos" value={items.length} icon={Camera} />
         <StatCard label="Featured on About Us" value={featuredCount} icon={Star} tone="brand" />
-        <StatCard label="Categories" value={GALLERY_CATEGORIES.length} icon={Camera} tone="ink" />
+        <StatCard label="Gallery Only" value={Math.max(0, items.length - featuredCount)} icon={ImageIcon} />
+        <StatCard label="Categories" value={GALLERY_CATEGORIES.length} icon={LayoutGrid} tone="ink" />
       </div>
 
       <Card className="mt-6 p-5">
