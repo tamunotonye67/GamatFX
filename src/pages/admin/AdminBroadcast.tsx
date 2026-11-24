@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Send, Users, BookOpen, CalendarDays, CheckCircle2, AlertCircle } from "lucide-react";
 import { AdminShell, Card, StatCard, Select, Field } from "./AdminShell";
 import { useStore } from "../../lib/store";
 import { COURSES, COURSE_ALIASES } from "../../lib/courses";
 import { sendBroadcastEmail } from "../../lib/email";
+import { fetchSupabaseBroadcastLogs, saveSupabaseBroadcastLog } from "../../lib/supabaseServices";
 
 type BroadcastLog = {
   id: string;
@@ -35,6 +36,25 @@ export function AdminBroadcast() {
       return [];
     }
   });
+
+  useEffect(() => {
+    fetchSupabaseBroadcastLogs().then((remote) => {
+      if (!remote.length) return;
+      setLogs((prev) => {
+        const merged = new Map<string, BroadcastLog>();
+        [...remote, ...prev].forEach((item) => {
+          if (item?.id) merged.set(item.id, item);
+        });
+        const sorted = Array.from(merged.values())
+          .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+          .slice(0, 20);
+        try {
+          localStorage.setItem(LOG_KEY, JSON.stringify(sorted));
+        } catch {}
+        return sorted;
+      });
+    });
+  }, []);
 
   const allCourses = useMemo(() => {
     const map = new Map<string, { id: string; title: string }>();
@@ -133,6 +153,7 @@ export function AdminBroadcast() {
     try {
       localStorage.setItem(LOG_KEY, JSON.stringify(nextLogs));
     } catch {}
+    saveSupabaseBroadcastLog(entry);
     setStatus({ ok: true, text: `Broadcast sent to ${entry.count} recipient(s).` });
     setSubject("");
     setMessage("");

@@ -875,3 +875,53 @@ export async function saveSupabaseReview(rev: ReviewItem): Promise<void> {
     console.warn("Supabase review save notice:", err);
   }
 }
+
+export async function deleteSupabaseRegistration(id: string): Promise<void> {
+  try {
+    await supabase.from("registrations").delete().eq("id", id);
+  } catch (err) {
+    console.warn("Supabase registration delete notice:", err);
+  }
+}
+
+export type SupabaseBroadcastLog = {
+  id: string;
+  subject: string;
+  audience: string;
+  count: number;
+  sentAt: string;
+};
+
+export async function fetchSupabaseBroadcastLogs(): Promise<SupabaseBroadcastLog[]> {
+  try {
+    const { data, error } = await supabase
+      .from("broadcast_logs")
+      .select("*")
+      .order("sent_at", { ascending: false })
+      .limit(20);
+    if (error || !data) return [];
+    return data.map((r: any) => ({
+      id: r.id,
+      subject: r.subject || "",
+      audience: r.audience || "",
+      count: Number(r.count || 0),
+      sentAt: r.sent_at || new Date().toISOString(),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function saveSupabaseBroadcastLog(log: SupabaseBroadcastLog): Promise<void> {
+  try {
+    await supabase.from("broadcast_logs").upsert({
+      id: log.id,
+      subject: log.subject,
+      audience: log.audience,
+      count: log.count,
+      sent_at: log.sentAt,
+    }, { onConflict: "id" });
+  } catch (err) {
+    console.warn("Supabase broadcast log save notice:", err);
+  }
+}

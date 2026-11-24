@@ -15,7 +15,7 @@ import {
   fetchSupabaseEnrollments, saveSupabaseEnrollment, deleteSupabaseEnrollment,
   fetchSupabasePayments, saveSupabasePayment, deleteSupabasePayment,
   fetchSupabaseEvents, saveSupabaseEvent, deleteSupabaseEvent,
-  fetchSupabaseRegistrations, saveSupabaseRegistration,
+  fetchSupabaseRegistrations, saveSupabaseRegistration, deleteSupabaseRegistration,
   fetchSupabaseThreads, saveSupabaseThread, deleteSupabaseThread,
   fetchSupabaseReplies, saveSupabaseReply, deleteSupabaseReply,
   fetchSupabaseClubs, fetchSupabaseClubMessages,
@@ -4943,7 +4943,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setRegistrations((p) => p.filter((r) => r.eventId !== id));
       deleteSupabaseEvent(id);
     },
-    setRegistrationStatus: (id, status) => setRegistrations((p) => p.map((r) => (r.id === id ? { ...r, status } : r))),
+    setRegistrationStatus: (id, status) =>
+      setRegistrations((p) =>
+        p.map((r) => {
+          if (r.id === id) {
+            const updated: Registration = { ...r, status };
+            saveSupabaseRegistration(updated);
+            return updated;
+          }
+          return r;
+        })
+      ),
+    deleteRegistration: (id) => {
+      setRegistrations((p) => p.filter((r) => r.id !== id));
+      deleteSupabaseRegistration(id);
+    },
     toggleRegistrationCheckIn: (id, sessionId) => {
       setRegistrations((p) =>
         p.map((r) => {
