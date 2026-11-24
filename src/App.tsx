@@ -316,15 +316,6 @@ export default function App() {
     );
   }
 
-  const isJobsView = route === "/jobs" || (route === "/" && isJobsSubdomain());
-  if (isJobsView) {
-    return (
-      <ErrorBoundary>
-        <div className="min-h-screen bg-[#0b0d11]">{suspendedContent}</div>
-      </ErrorBoundary>
-    );
-  }
-
   const isAdminRoute = route === "/admin" || route.startsWith("/admin/");
   const isAuthRoute = route === "/login" || route === "/signup" || route === "/forgot-password" || route === "/reset-password" || route === "/verify-email";
   const bare = BARE.some((b) => route === b || route.startsWith(`${b}/`));
