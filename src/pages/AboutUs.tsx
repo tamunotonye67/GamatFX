@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LineChart,
+  Pause,
+  Play,
   Quote,
   ShieldCheck,
   Users,
@@ -391,6 +393,8 @@ function WhyChoose() {
 
 function AboutGallery() {
   const [items, setItems] = useState<GalleryItem[]>(() => loadGalleryItems());
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
   useEffect(() => {
@@ -410,7 +414,20 @@ function AboutGallery() {
 
   const featured = items.filter((i) => i.featured !== false).slice(0, 6);
   const displayList = featured.length > 0 ? featured : items.slice(0, 6);
+  const safeIdx = displayList.length > 0 ? activeIdx % displayList.length : 0;
+  const currentSlide = displayList[safeIdx];
   const activeItem = lightboxIdx !== null ? displayList[lightboxIdx] : null;
+
+  useEffect(() => {
+    if (paused || lightboxIdx !== null || displayList.length <= 1) return;
+    const timer = window.setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % displayList.length);
+    }, 4500);
+    return () => window.clearInterval(timer);
+  }, [paused, lightboxIdx, displayList.length]);
+
+  const goPrev = () => setActiveIdx((prev) => (prev - 1 + displayList.length) % displayList.length);
+  const goNext = () => setActiveIdx((prev) => (prev + 1) % displayList.length);
 
   return (
     <section className="section bg-white">
@@ -434,35 +451,158 @@ function AboutGallery() {
           </button>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {displayList.map((item, idx) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setLightboxIdx(idx)}
-              className="group relative overflow-hidden rounded-3xl border border-line bg-cream/30 text-left shadow-[0_14px_40px_-24px_rgba(22,24,28,0.3)] transition hover:-translate-y-1 cursor-pointer"
-            >
-              <div className="relative aspect-[16/10] w-full overflow-hidden bg-ink">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                />
-                <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
-                  <ZoomIn className="h-4 w-4" />
-                </span>
-                <span className="absolute left-3 bottom-3 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-                  {item.category}
-                </span>
+        {currentSlide && (
+          <div
+            className="mt-8 space-y-4"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+          >
+            {/* Main Animated Slideshow Stage */}
+            <div className="relative overflow-hidden rounded-3xl border border-line bg-ink shadow-[0_24px_70px_-30px_rgba(22,24,28,0.45)]">
+              <div className="relative aspect-[16/10] sm:aspect-[16/8] w-full overflow-hidden">
+                {displayList.map((slide, idx) => {
+                  const isCurrent = idx === safeIdx;
+                  return (
+                    <div
+                      key={slide.id}
+                      className={`absolute inset-0 transition-all duration-700 ease-out ${
+                        isCurrent ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0 pointer-events-none"
+                      }`}
+                    >
+                      <img
+                        src={slide.image}
+                        alt={slide.title}
+                        className={`h-full w-full object-cover transition-transform duration-[4500ms] ease-linear ${
+                          isCurrent ? "scale-105" : "scale-100"
+                        }`}
+                      />
+                    </div>
+                  );
+                })}
+
+                <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/85 via-black/25 to-black/10 pointer-events-none" />
+
+                {/* Top Controls */}
+                <div className="absolute right-3 top-3 sm:right-5 sm:top-5 z-30 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaused((p) => !p)}
+                    aria-label={paused ? "Play slideshow" : "Pause slideshow"}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-md transition hover:bg-brand cursor-pointer"
+                  >
+                    {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxIdx(safeIdx)}
+                    aria-label="Expand photo"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-md transition hover:bg-brand cursor-pointer"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Prev / Next Arrows */}
+                {displayList.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={goPrev}
+                      aria-label="Previous slide"
+                      className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-brand cursor-pointer"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goNext}
+                      aria-label="Next slide"
+                      className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-brand cursor-pointer"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+
+                {/* Caption Overlay */}
+                <div className="absolute inset-x-0 bottom-0 z-30 p-4 sm:p-7 text-white">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="max-w-2xl">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-brand px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                          {currentSlide.category}
+                        </span>
+                        {currentSlide.date && (
+                          <span className="text-xs font-medium text-white/70">{currentSlide.date}</span>
+                        )}
+                      </div>
+                      <h3 className="mt-2 font-display text-lg sm:text-2xl font-bold leading-tight">
+                        {currentSlide.title}
+                      </h3>
+                      <p className="mt-1 text-xs sm:text-sm text-white/80 line-clamp-2">
+                        {currentSlide.caption}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-white/75 shrink-0">
+                      <span>{safeIdx + 1}</span>
+                      <span>/</span>
+                      <span>{displayList.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Animated Progress Dots */}
+                <div className="absolute inset-x-0 bottom-0 z-30 flex h-1 bg-white/15">
+                  {displayList.map((s, idx) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => setActiveIdx(idx)}
+                      aria-label={`Go to slide ${idx + 1}`}
+                      className={`flex-1 transition-colors duration-300 cursor-pointer ${
+                        idx === safeIdx ? "bg-brand" : "bg-transparent hover:bg-white/30"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="font-display text-sm font-bold text-ink">{item.title}</h3>
-                <p className="mt-1 text-xs text-muted line-clamp-2">{item.caption}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+            </div>
+
+            {/* Interactive Thumbnail Strip */}
+            <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6 sm:gap-3">
+              {displayList.map((item, idx) => {
+                const isSelected = idx === safeIdx;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveIdx(idx)}
+                    onDoubleClick={() => setLightboxIdx(idx)}
+                    className={`group relative overflow-hidden rounded-2xl border-2 text-left transition-all duration-300 cursor-pointer ${
+                      isSelected
+                        ? "border-brand shadow-md -translate-y-0.5"
+                        : "border-line opacity-75 hover:opacity-100 hover:border-brand/50"
+                    }`}
+                  >
+                    <div className="aspect-[16/10] w-full overflow-hidden bg-ink">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="hidden sm:block bg-white px-2.5 py-1.5">
+                      <p className={`truncate text-[11px] font-bold ${isSelected ? "text-brand" : "text-ink"}`}>
+                        {item.title}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {activeItem && lightboxIdx !== null && (
