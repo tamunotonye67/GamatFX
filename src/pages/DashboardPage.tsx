@@ -499,8 +499,8 @@ export default function DashboardPage() {
       {/* Tabs + content */}
       <section className="container-x grid gap-6 sm:gap-8 py-8 sm:py-12 lg:grid-cols-[240px_1fr]">
         <aside className="relative min-w-0">
-          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:gap-0 lg:p-2.5 shadow-xs lg:sticky lg:top-24 z-20 lg:max-h-[calc(100vh-6.5rem)] no-scrollbar">
-            <div className="flex items-center gap-1.5 lg:flex-col lg:items-stretch lg:gap-1 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-white p-2 lg:flex-col lg:items-stretch lg:gap-0 lg:p-2.5 shadow-xs lg:sticky lg:top-24 z-20 no-scrollbar">
+            <div className="flex items-center gap-1.5 lg:flex-col lg:items-stretch lg:gap-1">
               {tabs.map((t) => (
                 <button key={t.id} onClick={() => setTab(t.id)}
                   className={`flex shrink-0 items-center gap-2 lg:gap-2.5 lg:w-full rounded-xl px-3.5 py-2.5 lg:px-3 lg:py-2 text-left text-xs sm:text-sm font-semibold whitespace-nowrap transition cursor-pointer ${tab === t.id ? "bg-brand text-white shadow-xs" : "text-ink/70 hover:bg-cream hover:text-brand"}`}>
