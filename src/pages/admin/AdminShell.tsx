@@ -242,55 +242,59 @@ export function AdminShell({ title, subtitle, action, children }: {
     <div className="min-h-screen w-full overflow-x-clip bg-cream">
       {/* Sidebar - Fixed to viewport with preserved scroll position */}
       <aside
-        ref={asideRef}
-        onScroll={(e) => {
-          savedAdminSidebarScroll = e.currentTarget.scrollTop;
-        }}
-        className={`fixed inset-y-0 left-0 z-50 w-64 max-w-[82vw] overflow-y-auto overscroll-contain bg-ink text-white transition-transform duration-300 transform-gpu lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 max-w-[82vw] bg-ink text-white transition-transform duration-300 transform-gpu lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-[72px] items-center justify-between border-b border-white/10 px-5">
+        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 px-5 bg-ink">
           <Logo variant="light" />
           <button onClick={() => setOpen(false)} className="rounded-lg p-1.5 text-white/80 hover:bg-white/10 hover:text-white lg:hidden" aria-label="Close menu">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <p className="px-5 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Management</p>
-        <nav className="mt-3 space-y-1 px-3">
-          {nav.filter((n) => canAccessRoute(n.to)).map((n) => {
-            const active = route === n.to && !notifOpen;
-            return (
-              <button
-                key={n.to}
-                onClick={() => {
-                  if (asideRef.current) {
-                    savedAdminSidebarScroll = asideRef.current.scrollTop;
-                  }
-                  setNotifOpen(false);
-                  setOpen(false);
-                  navigate(n.to);
-                }}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
-                  active ? "bg-brand text-white shadow-lg shadow-brand/20" : "text-white/65 hover:bg-white/8 hover:text-white"
-                }`}
-              >
-                <n.icon className="h-4 w-4 shrink-0" /> <span className="truncate">{n.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        <div
+          ref={(el) => { asideRef.current = el; }}
+          onScroll={(e) => {
+            savedAdminSidebarScroll = e.currentTarget.scrollTop;
+          }}
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        >
+          <p className="px-5 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Management</p>
+          <nav className="mt-3 space-y-1 px-3">
+            {nav.filter((n) => canAccessRoute(n.to)).map((n) => {
+              const active = route === n.to && !notifOpen;
+              return (
+                <button
+                  key={n.to}
+                  onClick={() => {
+                    if (asideRef.current) {
+                      savedAdminSidebarScroll = asideRef.current.scrollTop;
+                    }
+                    setNotifOpen(false);
+                    setOpen(false);
+                    navigate(n.to);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
+                    active ? "bg-brand text-white shadow-lg shadow-brand/20" : "text-white/65 hover:bg-white/8 hover:text-white"
+                  }`}
+                >
+                  <n.icon className="h-4 w-4 shrink-0" /> <span className="truncate">{n.label}</span>
+                </button>
+              );
+            })}
+          </nav>
 
-        <div className="mt-8 space-y-1 border-t border-white/10 px-3 pt-5 pb-8">
-          <button onClick={() => navigate("/")}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
-            Back to site
-          </button>
-          <button onClick={() => { logout(); navigate("/"); }}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
-            <LogOut className="h-4 w-4 shrink-0" /> Log out
-          </button>
+          <div className="mt-8 space-y-1 border-t border-white/10 px-3 pt-5 pb-8">
+            <button onClick={() => navigate("/")}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
+              Back to site
+            </button>
+            <button onClick={() => { logout(); navigate("/"); }}
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-white/65 transition hover:bg-white/8 hover:text-white">
+              <LogOut className="h-4 w-4 shrink-0" /> Log out
+            </button>
+          </div>
         </div>
       </aside>
 
