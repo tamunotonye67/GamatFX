@@ -33,20 +33,6 @@ function Story() {
             Built by traders, <span className="text-brand">for traders</span>
           </h2>
 
-          {/* Official Parent Organization Callout */}
-          <div className="mt-5 flex items-start gap-3 rounded-2xl border border-brand/25 bg-brand-light/60 p-4">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-            <p className="text-xs sm:text-sm leading-relaxed text-ink/85">
-              <strong className="font-bold text-ink">Official Identity:</strong>{" "}
-              <span className="font-semibold text-brand">GAMAT Fx Academy</span> is the
-              dedicated financial-markets and forex education division of{" "}
-              <strong className="font-bold text-ink">
-                GAMAT (Growth and Mentorship Academy with Taylor)
-              </strong>
-              .
-            </p>
-          </div>
-
           <div className="mt-5 space-y-4 text-muted">
             <p>
               Born out of{" "}
@@ -90,6 +76,20 @@ function Story() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
+          {/* Official Parent Organization Callout */}
+          <div className="col-span-2 flex items-start gap-3 rounded-2xl border border-brand/25 bg-brand-light/60 p-4">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+            <p className="text-xs sm:text-sm leading-relaxed text-ink/85">
+              <strong className="font-bold text-ink">Official Identity:</strong>{" "}
+              <span className="font-semibold text-brand">GAMAT Fx Academy</span> is the
+              dedicated financial-markets and forex education division of{" "}
+              <strong className="font-bold text-ink">
+                GAMAT (Growth and Mentorship Academy with Taylor)
+              </strong>
+              .
+            </p>
+          </div>
+
           <img
             src="/images/about.jpg"
             alt="GAMAT Fx Academy students"
