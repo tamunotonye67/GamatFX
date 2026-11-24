@@ -679,9 +679,11 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     left: 0 !important;
     top: 0 !important;
     width: 100% !important;
+    max-width: none !important;
     border: none !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
-    padding: 0 !important;
+    padding: 14mm 16mm !important;
     margin: 0 !important;
     background: #ffffff !important;
   }

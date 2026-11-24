@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import PageHero from "../components/PageHero";
 import PageCta from "../components/PageCta";
+import Logo from "../components/Logo";
+import { CONTACT } from "../lib/contact";
 import { navigate } from "../lib/router";
 import { AlertTriangle, ChevronRight, Printer, ArrowUp, FileText, ShieldCheck } from "lucide-react";
 
@@ -144,11 +146,23 @@ function Legal({
 
           {/* Body */}
           <div id="printable-legal" className="rounded-3xl border border-line bg-white p-5 sm:p-8 shadow-[0_22px_60px_-35px_rgba(22,24,28,0.35)] md:p-12">
-            <div className="hidden print:block mb-6 border-b border-line pb-4">
-              <p className="text-xs font-bold uppercase tracking-widest text-brand">GAMAT Fx Academy · {eyebrow}</p>
-              <h1 className="mt-1 font-display text-2xl font-extrabold text-ink">{title}</h1>
+            {/* Print-only branded letterhead */}
+            <div className="hidden print:block mb-8">
+              <div className="flex items-start justify-between gap-6 border-b-2 border-[#dc3545] pb-5">
+                <Logo variant="dark" size="md" asDiv />
+                <div className="text-right text-xs text-muted leading-relaxed">
+                  <p className="font-bold uppercase tracking-widest text-[#dc3545] text-[10px]">Official Legal Document</p>
+                  <p className="font-semibold text-ink mt-0.5">{eyebrow}</p>
+                  <p>Effective / Updated: {updated}</p>
+                </div>
+              </div>
+              <div className="mt-6">
+                <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink">{crumb}</h1>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{subtitle}</p>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-5">
+
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-5 print:hidden">
               <p className="text-sm text-muted">Last updated: <strong className="text-ink">{updated}</strong></p>
               <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-muted">
                 {sections.length} sections
@@ -156,7 +170,7 @@ function Legal({
             </div>
 
             {showRisk && (
-              <div className="mt-6 flex gap-3.5 sm:gap-4 rounded-2xl border border-brand/25 bg-brand-light p-4 sm:p-5">
+              <div className="mt-6 flex gap-3.5 sm:gap-4 rounded-2xl border border-brand/25 bg-brand-light p-4 sm:p-5 print:rounded-xl print:mt-4">
                 <AlertTriangle className="h-6 w-6 shrink-0 text-brand" />
                 <p className="text-sm leading-relaxed text-ink/80">
                   <strong className="font-semibold text-ink">Risk warning:</strong> Trading
@@ -182,15 +196,29 @@ function Legal({
               </ul>
             </details>
 
-            <div className="mt-8 space-y-10">
+            <div className="mt-8 space-y-10 print:mt-6 print:space-y-6">
               {sections.map((s, i) => (
-                <div key={ids[i]} id={ids[i]} className="scroll-mt-28">
-                  <h2 className="font-display text-xl font-bold text-ink">{s.heading}</h2>
+                <div key={ids[i]} id={ids[i]} className="scroll-mt-28 print:break-inside-avoid">
+                  <h2 className="font-display text-xl font-bold text-ink print:text-base">{s.heading}</h2>
                   {s.body.map((p, j) => (
-                    <p key={j} className="mt-3 text-[15px] leading-[1.85] text-muted">{p}</p>
+                    <p key={j} className="mt-3 text-[15px] leading-[1.85] text-muted print:mt-1.5 print:text-[10.5pt] print:leading-[1.65] print:text-ink/80">{p}</p>
                   ))}
                 </div>
               ))}
+            </div>
+
+            {/* Print-only document footer */}
+            <div className="hidden print:block mt-10 border-t border-line pt-4 text-[9.5pt] text-muted">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-bold text-ink">GAMAT Fx Academy</p>
+                  <p className="mt-0.5">{CONTACT.address}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p>{CONTACT.email}</p>
+                  <p className="mt-0.5">{CONTACT.phone}</p>
+                </div>
+              </div>
             </div>
 
             {/* Footer actions */}
