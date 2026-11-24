@@ -124,36 +124,68 @@ export default function JobsPage() {
   return (
     <div className="min-h-screen bg-cream text-ink-soft">
       {/* Cloudflare-inspired dark header + framed brand-red rounded hero */}
-      <div className="bg-ink pb-3 sm:pb-4">
-        <header className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="flex items-center gap-2.5 cursor-pointer"
-          >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand font-display text-sm font-black text-white shadow-sm">
-              G
-            </span>
-            <span className="font-display text-sm sm:text-base font-extrabold tracking-wide text-white uppercase">
-              GAMAT <span className="text-brand">Fx</span>{" "}
-              <span className="font-semibold text-white/60">Careers</span>
-            </span>
-          </button>
+      <div className="bg-[#0d0e11] pb-3 sm:pb-4">
+        <header className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-8">
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="flex items-center gap-2.5 cursor-pointer"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand font-display text-sm font-black text-white shadow-sm">
+                G
+              </span>
+              <span className="font-display text-sm sm:text-[15px] font-extrabold tracking-wide text-white uppercase">
+                GAMAT <span className="text-brand">Fx</span>
+              </span>
+            </button>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+            <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-white/85">
+              <button
+                type="button"
+                onClick={() => scrollTo("roles")}
+                className="hover:text-white transition cursor-pointer"
+              >
+                Open Roles
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollTo("culture")}
+                className="hover:text-white transition cursor-pointer"
+              >
+                Why GAMAT Fx
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDept("Trading & Mentorship");
+                  scrollTo("roles");
+                }}
+                className="hover:text-white transition cursor-pointer"
+              >
+                Trading Desk
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDept("Engineering & Product");
+                  scrollTo("roles");
+                }}
+                className="hover:text-white transition cursor-pointer"
+              >
+                Engineering
+              </button>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => scrollTo("roles")}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white transition cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 mr-1 text-[13px] font-medium text-rose-400 hover:text-rose-300 transition cursor-pointer"
             >
-              Open Roles ({allOpenRoles.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollTo("culture")}
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white/80 hover:text-white transition cursor-pointer"
-            >
-              Why GAMAT Fx
+              <Briefcase className="h-3.5 w-3.5" />
+              <span>Hiring ({allOpenRoles.length})</span>
             </button>
             <a
               href="https://gamatfxacademy.com"
@@ -166,16 +198,29 @@ export default function JobsPage() {
                   navigate("/");
                 }
               }}
-              className="inline-flex items-center gap-1 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-white/10"
+              className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-[13px] font-medium text-white/95 transition hover:bg-white/10"
             >
-              Main Site <ArrowUpRight className="h-3.5 w-3.5" />
+              Main Site
             </a>
             <button
               type="button"
               onClick={() => scrollTo("roles")}
-              className="inline-flex items-center gap-1 rounded-lg border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 cursor-pointer"
+              className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-[13px] font-medium text-white/95 transition hover:bg-white/10 cursor-pointer"
             >
               View Jobs
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                scrollTo("roles");
+                setTimeout(() => {
+                  document.querySelector<HTMLInputElement>('input[data-job-search="true"]')?.focus();
+                }, 350);
+              }}
+              aria-label="Search roles"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/[0.04] text-white/85 transition hover:bg-white/10 hover:text-white cursor-pointer"
+            >
+              <Search className="h-3.5 w-3.5" />
             </button>
           </div>
         </header>
@@ -287,6 +332,7 @@ export default function JobsPage() {
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text"
+                data-job-search="true"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search roles..."
