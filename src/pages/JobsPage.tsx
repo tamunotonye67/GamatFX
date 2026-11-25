@@ -203,9 +203,9 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-[#111215] text-white selection:bg-brand selection:text-white">
-      {/* Transparent Minimal Sticky Bar shown only after scrolling past the red hero */}
+      {/* Transparent Minimal Sticky Bar shown only on desktop after scrolling past the red hero */}
       <div
-        className={`fixed top-0 inset-x-0 z-40 bg-transparent transition-all duration-300 ${
+        className={`hidden lg:block fixed top-0 inset-x-0 z-40 bg-transparent transition-all duration-300 ${
           scrolledPastHero
             ? "translate-y-0 opacity-100"
             : "-translate-y-full opacity-0 pointer-events-none"

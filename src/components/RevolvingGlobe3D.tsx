@@ -116,8 +116,60 @@ export default function RevolvingGlobe3D() {
 
     let rafId = 0;
     let rotY = -0.35;
-    const tiltX = 0.28;
+    let tiltX = 0.28;
     const tiltZ = -0.14;
+
+    let isDragging = false;
+    let activePointerId: number | null = null;
+    let lastX = 0;
+    let lastY = 0;
+    let velY = 0.0042;
+    let velX = 0;
+
+    const onPointerDown = (e: PointerEvent) => {
+      isDragging = true;
+      activePointerId = e.pointerId;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      velY = 0;
+      velX = 0;
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {}
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!isDragging || (activePointerId !== null && e.pointerId !== activePointerId)) {
+        return;
+      }
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      const deltaY = dx * 0.0075;
+      const deltaX = dy * 0.0055;
+      rotY += deltaY;
+      tiltX = Math.max(-1.1, Math.min(1.1, tiltX + deltaX));
+      velY = deltaY;
+      velX = deltaX;
+    };
+
+    const endDrag = (e: PointerEvent) => {
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      isDragging = false;
+      activePointerId = null;
+      try {
+        if (canvas.hasPointerCapture(e.pointerId)) {
+          canvas.releasePointerCapture(e.pointerId);
+        }
+      } catch {}
+    };
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerup", endDrag);
+    canvas.addEventListener("pointercancel", endDrag);
 
     const render = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -309,18 +361,30 @@ export default function RevolvingGlobe3D() {
         ctx.restore();
       }
 
-      rotY += 0.0042;
+      if (!isDragging) {
+        rotY += velY;
+        tiltX = Math.max(-1.1, Math.min(1.1, tiltX + velX));
+        // Smoothly damp flick momentum back toward gentle auto-rotation
+        velY = velY * 0.94 + 0.0042 * 0.06;
+        velX *= 0.9;
+      }
       rafId = requestAnimationFrame(render);
     };
 
     rafId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(rafId);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", endDrag);
+      canvas.removeEventListener("pointercancel", endDrag);
+    };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="mx-auto block h-[340px] w-[340px] sm:h-[520px] sm:w-[520px] lg:h-[680px] lg:w-[680px]"
+      className="mx-auto block h-[340px] w-[340px] sm:h-[520px] sm:w-[520px] lg:h-[680px] lg:w-[680px] cursor-grab active:cursor-grabbing touch-none select-none"
     />
   );
 }
