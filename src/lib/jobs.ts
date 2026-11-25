@@ -17,6 +17,7 @@ export type JobRole = {
   compensation: string;
   summary: string;
   requirements: string;
+  image?: string;
   open: boolean;
   createdAt: string;
 };
@@ -50,60 +51,100 @@ const SUPABASE_JOB_APP_SLUG = "__gamat_job_application__";
 
 export const SEED_JOB_ROLES: JobRole[] = [
   {
-    id: "job_senior_analyst",
-    title: "Senior Forex Market Analyst & Live Mentor",
-    department: "Trading & Mentorship",
-    location: "Remote / Hybrid (Lagos)",
-    type: "Full-time",
-    compensation: "Competitive + Performance Bonus",
+    id: "job_react_builder",
+    title: "React & TypeScript Platform Builder",
+    department: "Engineering & Product",
+    location: "Remote · Global",
+    type: "Part-time",
+    compensation: "Volunteer Fellowship · Certificate",
     summary:
-      "Lead weekly London & New York live market breakdowns, audit student trade journals, and host 1-on-1 mentorship reviews.",
+      "Ship interactive trading tools, whiteboard canvases, and student dashboards inside the GAMAT Fx web platform.",
     requirements:
-      "3+ years consistent live/funded trading track record, strong SMC & institutional order-flow mastery, clear live teaching presence.",
+      "Strong React, TypeScript, and Tailwind CSS fundamentals; passion for clean fintech UI and async collaboration.",
+    image:
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80",
     open: true,
-    createdAt: "2026-11-01T10:00:00.000Z",
+    createdAt: "2026-11-12T10:00:00.000Z",
   },
   {
-    id: "job_community_lead",
-    title: "Student Success & Community Operations Lead",
-    department: "Operations & Support",
-    location: "Remote",
-    type: "Full-time",
-    compensation: "$900 – $1,400 / mo",
+    id: "job_senior_analyst",
+    title: "Senior FX Market Analyst & Session Lead",
+    department: "Trading & Mentorship",
+    location: "Remote · London / NY",
+    type: "Part-time",
+    compensation: "Fellowship + Academy Access",
     summary:
-      "Manage student onboarding, coordinate live workshop check-ins, and keep our private trading floor active and supportive.",
+      "Host weekly London & New York market breakdowns, audit student trade journals, and guide 1-on-1 mentorship reviews.",
     requirements:
-      "2+ years in EdTech or trading community management, strong written communication, organized & empathetic.",
+      "Consistent live/funded trading track record, strong SMC & order-flow mastery, and clear live teaching presence.",
+    image:
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=900&q=80",
     open: true,
-    createdAt: "2026-11-05T10:00:00.000Z",
+    createdAt: "2026-11-11T10:00:00.000Z",
   },
   {
     id: "job_video_editor",
-    title: "Short-Form Video Editor & Motion Designer",
+    title: "Short-Form Video & Motion Designer",
     department: "Content & Media",
-    location: "Remote",
-    type: "Contract",
-    compensation: "$700 – $1,200 / mo",
+    location: "Remote · Global",
+    type: "Part-time",
+    compensation: "Fellowship · Portfolio Credit",
     summary:
-      "Turn live trading breakdowns, student wins, and market recaps into crisp Reels, TikToks, and YouTube Shorts.",
+      "Transform live trading breakdowns, student milestones, and market recaps into crisp Reels, TikToks, and YouTube Shorts.",
     requirements:
-      "Proficiency in Premiere Pro / After Effects / DaVinci Resolve, strong pacing & clean typography sensibility.",
+      "Proficiency in Premiere Pro, After Effects, or DaVinci Resolve with strong pacing and clean typography.",
+    image:
+      "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=900&q=80",
     open: true,
     createdAt: "2026-11-10T10:00:00.000Z",
   },
   {
-    id: "job_fullstack_eng",
-    title: "Full-Stack React & TypeScript Engineer",
-    department: "Engineering & Product",
-    location: "Remote",
-    type: "Full-time",
-    compensation: "$1,800 – $3,000 / mo",
+    id: "job_community_lead",
+    title: "Student Success & Community Moderator",
+    department: "Operations & Support",
+    location: "Remote · Global",
+    type: "Part-time",
+    compensation: "Volunteer · Priority Paid Path",
     summary:
-      "Build interactive trading tools, whiteboard features, and student analytics inside the GAMAT Fx web platform.",
+      "Guide new student onboarding, coordinate live session check-ins, and keep our private trading floor active and supportive.",
     requirements:
-      "Strong React, TypeScript, Tailwind CSS, and Supabase/PostgreSQL experience. Bonus for Canvas/WebGL or fintech UI experience.",
+      "Empathetic written communication, organized workflow habits, and familiarity with online learning communities.",
+    image:
+      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80",
     open: true,
-    createdAt: "2026-11-12T10:00:00.000Z",
+    createdAt: "2026-11-08T10:00:00.000Z",
+  },
+  {
+    id: "job_mql5_dev",
+    title: "MQL5 & Trading Tooling Developer",
+    department: "Engineering & Product",
+    location: "Remote · Global",
+    type: "Contract",
+    compensation: "Fellowship + Revenue Share Path",
+    summary:
+      "Build custom MetaTrader 5 indicators, risk calculators, and session utilities used daily by GAMAT Fx students.",
+    requirements:
+      "Hands-on MQL5/MQL4 scripting experience, clean risk-math logic, and attention to execution reliability.",
+    image:
+      "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=900&q=80",
+    open: true,
+    createdAt: "2026-11-06T10:00:00.000Z",
+  },
+  {
+    id: "job_curriculum_writer",
+    title: "Trading Curriculum & Playbook Writer",
+    department: "Content & Media",
+    location: "Remote · Global",
+    type: "Part-time",
+    compensation: "Volunteer Fellowship · Certificate",
+    summary:
+      "Author structured FX workbooks, daily market commentary, and certification quiz banks for academy cohorts.",
+    requirements:
+      "Clear, structured financial writing style and solid grasp of price action, risk management, and trading psychology.",
+    image:
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=80",
+    open: true,
+    createdAt: "2026-11-04T10:00:00.000Z",
   },
 ];
 
