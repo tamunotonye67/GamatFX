@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   Clock,
   MapPin,
+  Menu,
   Search,
   Send,
   Sparkles,
@@ -38,6 +39,7 @@ export default function JobsPage() {
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Application form state
   const [name, setName] = useState("");
@@ -209,11 +211,12 @@ export default function JobsPage() {
             </nav>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Desktop Right Controls */}
+          <div className="hidden lg:flex items-center gap-2">
             <button
               type="button"
               onClick={() => scrollTo("roles")}
-              className="hidden sm:inline-flex items-center gap-1.5 mr-1 text-[13px] font-medium text-rose-400 hover:text-rose-300 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 mr-1 text-[13px] font-medium text-rose-400 hover:text-rose-300 transition cursor-pointer"
             >
               <Briefcase className="h-3.5 w-3.5" />
               <span>Hiring ({allOpenRoles.length})</span>
@@ -254,11 +257,94 @@ export default function JobsPage() {
               <Search className="h-3.5 w-3.5" />
             </button>
           </div>
+
+          {/* Mobile Right Controls (matches reference: 1 pill + Search + Hamburger) */}
+          <div className="flex lg:hidden items-center gap-2">
+            <button
+              type="button"
+              onClick={() => scrollTo("roles")}
+              className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10 cursor-pointer"
+            >
+              View Jobs
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                scrollTo("roles");
+                setTimeout(() => {
+                  document.querySelector<HTMLInputElement>('input[data-job-search="true"]')?.focus();
+                }, 350);
+              }}
+              aria-label="Search roles"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-white/90 hover:bg-white/10 cursor-pointer"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label="Toggle navigation menu"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-white/90 hover:bg-white/10 cursor-pointer"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </header>
+
+        {/* Mobile Dropdown Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-white/10 bg-[#111215] px-4 py-4 space-y-2">
+            {[
+              { label: `Open Roles (${allOpenRoles.length})`, action: () => scrollTo("roles") },
+              { label: "Why GAMAT Fx", action: () => scrollTo("culture") },
+              {
+                label: "Trading Desk",
+                action: () => {
+                  setDept("Trading & Mentorship");
+                  scrollTo("roles");
+                },
+              },
+              {
+                label: "Engineering",
+                action: () => {
+                  setDept("Engineering & Product");
+                  scrollTo("roles");
+                },
+              },
+            ].map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  item.action();
+                }}
+                className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-white/85 hover:bg-white/5 hover:text-white cursor-pointer"
+              >
+                {item.label}
+              </button>
+            ))}
+            <a
+              href="https://gamatfxacademy.com"
+              onClick={(e) => {
+                if (
+                  window.location.hostname === "localhost" ||
+                  window.location.hostname === "127.0.0.1"
+                ) {
+                  e.preventDefault();
+                  navigate("/");
+                }
+              }}
+              className="block w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-center text-sm font-semibold text-white"
+            >
+              Visit Main Academy Site
+            </a>
+          </div>
+        )}
 
         {/* Framed Top-Rounded Brand-Red Hero Card */}
         <div className="w-full px-2 sm:px-3 pb-3">
-          <section className="relative flex min-h-[108vh] flex-col items-center justify-center overflow-hidden rounded-t-[48px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-6 py-28 sm:py-36 text-center text-white shadow-2xl">
+          <section className="relative flex min-h-[108vh] flex-col items-start sm:items-center justify-center overflow-hidden rounded-t-[36px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-5 py-24 sm:px-6 sm:py-36 text-left sm:text-center text-white shadow-2xl">
             {/* Subtle dot-matrix texture + warm bottom glow */}
             <div
               aria-hidden="true"
@@ -274,22 +360,22 @@ export default function JobsPage() {
               className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/45 blur-[90px]"
             />
 
-            <div className="relative mx-auto max-w-4xl">
-              <h1 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.15]">
+            <div className="relative w-full sm:mx-auto max-w-4xl">
+              <h1 className="font-sans text-[2.35rem] leading-[1.08] font-semibold sm:font-medium tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.15]">
                 Build the future of
                 <br className="hidden sm:inline" /> disciplined trading—with GAMAT Fx
               </h1>
-              <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/90 sm:text-base">
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/90 sm:mx-auto sm:text-base">
                 Join our remote-first team of market analysts, educators,
                 creators, and engineers powering trading education for 1,000+
                 students worldwide.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-9 flex w-full flex-col sm:flex-row sm:w-auto sm:items-center sm:justify-center gap-3">
                 <button
                   type="button"
                   onClick={() => scrollTo("roles")}
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-bold text-ink shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl sm:rounded-full bg-white px-7 py-4 sm:py-3 text-sm font-bold text-ink shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
                 >
                   Explore {allOpenRoles.length} Open Roles{" "}
                   <ArrowRight className="h-4 w-4" />
@@ -297,7 +383,7 @@ export default function JobsPage() {
                 <button
                   type="button"
                   onClick={() => scrollTo("culture")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer"
+                  className="hidden sm:inline-flex items-center justify-center gap-2 rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer"
                 >
                   Life at GAMAT Fx
                 </button>
