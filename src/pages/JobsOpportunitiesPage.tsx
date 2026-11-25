@@ -11,13 +11,10 @@ import {
   FileText,
   Lock,
   MapPin,
-  Pause,
-  Play,
   Search,
   Send,
   Share2,
   Upload,
-  Volume2,
   X,
 } from "lucide-react";
 import Logo from "../components/Logo";
@@ -110,16 +107,6 @@ const SKILL_SHOWCASE: Array<{
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
   },
 ];
-const FOUNDER_WELCOME_DURATION = 18;
-const FOUNDER_WELCOME_SCRIPT =
-  "Welcome onboard to GAMAT Fx. Whether you are a trader, engineer, designer, or community builder, we are excited to have you explore our open volunteer and fellowship tracks below.";
-
-function formatAudioTime(sec: number): string {
-  const s = Math.max(0, Math.floor(sec));
-  const mins = Math.floor(s / 60);
-  const rem = s % 60;
-  return `${mins}:${rem.toString().padStart(2, "0")}`;
-}
 
 export default function JobsOpportunitiesPage() {
   const { user } = useStore();
@@ -132,296 +119,6 @@ export default function JobsOpportunitiesPage() {
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const deepLinkHandledRef = useRef(false);
-
-  // Founder welcome audio player state
-  const [isPlayingWelcome, setIsPlayingWelcome] = useState(false);
-  const [welcomeProgress, setWelcomeProgress] = useState(0); // 0..1
-  const [welcomeDuration, setWelcomeDuration] = useState(FOUNDER_WELCOME_DURATION);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const timerRef = useRef<number | null>(null);
-  const usingSpeechRef = useRef(false);
-  const hologramCanvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = hologramCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let rafId = 0;
-    const start = performance.now();
-
-    const particles = Array.from({ length: 28 }, (_, i) => ({
-      angle: (i / 28) * Math.PI * 2,
-      radiusOffset: (i % 5) * 7 - 12,
-      speed: (i % 2 === 0 ? 1 : -1) * (0.25 + (i % 4) * 0.12),
-      size: 1 + (i % 3) * 0.65,
-    }));
-
-    const drawHologram = (now: number) => {
-      const t = (now - start) / 1000;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const rect = canvas.getBoundingClientRect();
-      const width = Math.max(260, rect.width);
-      const height = Math.max(180, rect.height);
-
-      if (
-        canvas.width !== Math.round(width * dpr) ||
-        canvas.height !== Math.round(height * dpr)
-      ) {
-        canvas.width = Math.round(width * dpr);
-        canvas.height = Math.round(height * dpr);
-      }
-
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, width, height);
-
-      const cx = width / 2;
-      const cy = height / 2;
-      const baseR = Math.min(width, height) * 0.29;
-
-      // Speech cadence envelope (calm breathing when idle, dynamic vocal energy when speaking)
-      const speechEnergy = isPlayingWelcome
-        ? 0.55 +
-          0.45 *
-            Math.abs(
-              Math.sin(t * 5.4) * 0.6 +
-                Math.sin(t * 9.1 + 1.2) * 0.4
-            )
-        : 0.12 + 0.06 * Math.sin(t * 1.6);
-
-      // 1. Holographic core ambient aura
-      const aura = ctx.createRadialGradient(
-        cx,
-        cy,
-        baseR * 0.25,
-        cx,
-        cy,
-        baseR * 2.15
-      );
-      aura.addColorStop(
-        0,
-        isPlayingWelcome
-          ? "rgba(220, 53, 69, 0.36)"
-          : "rgba(220, 53, 69, 0.18)"
-      );
-      aura.addColorStop(
-        0.55,
-        isPlayingWelcome
-          ? "rgba(56, 189, 248, 0.10)"
-          : "rgba(56, 189, 248, 0.04)"
-      );
-      aura.addColorStop(1, "rgba(17, 18, 21, 0)");
-      ctx.fillStyle = aura;
-      ctx.beginPath();
-      ctx.arc(cx, cy, baseR * 2.15, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 2. Subtle horizontal hologram scanlines
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.028)";
-      ctx.lineWidth = 1;
-      for (let y = 6; y < height; y += 6) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-      }
-
-      // 3. Outer rotating segmented HUD ring
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(t * (isPlayingWelcome ? 0.45 : 0.15));
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
-      ctx.lineWidth = 1.1;
-      ctx.setLineDash([8, 10]);
-      ctx.beginPath();
-      ctx.arc(0, 0, baseR * 1.48, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.rotate(-t * (isPlayingWelcome ? 0.9 : 0.3));
-      ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([22, 28]);
-      ctx.beginPath();
-      ctx.arc(0, 0, baseR * 1.32, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-
-      // 4. Expanding voice pulse ring when speaking
-      if (isPlayingWelcome) {
-        for (let p = 0; p < 2; p++) {
-          const phase = (t * 0.85 + p * 0.5) % 1;
-          const pulseR = baseR * (1.0 + phase * 0.95);
-          ctx.strokeStyle = `rgba(251, 113, 133, ${(1 - phase) * 0.38})`;
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-      }
-
-      // 5. Three layered organic polar harmonic wave rings (AI Voice Hologram)
-      const layers = [
-        {
-          color: "rgba(125, 211, 252, 0.55)",
-          lineWidth: 1.4,
-          freqA: 5,
-          freqB: 3,
-          speed: 3.2,
-          scale: 0.92,
-          phase: 0.8,
-        },
-        {
-          color: "rgba(251, 113, 133, 0.72)",
-          lineWidth: 2.0,
-          freqA: 4,
-          freqB: 6,
-          speed: -4.1,
-          scale: 1.0,
-          phase: 2.1,
-        },
-        {
-          color: "#dc3545",
-          lineWidth: 2.4,
-          freqA: 3,
-          freqB: 5,
-          speed: 5.0,
-          scale: 1.08,
-          phase: 0,
-        },
-      ];
-
-      const steps = 96;
-      for (const layer of layers) {
-        ctx.beginPath();
-        for (let i = 0; i <= steps; i++) {
-          const theta = (i / steps) * Math.PI * 2;
-          const wave =
-            Math.sin(theta * layer.freqA + t * layer.speed + layer.phase) *
-              0.55 +
-            Math.cos(theta * layer.freqB - t * layer.speed * 0.7) * 0.45;
-          const r =
-            baseR * layer.scale +
-            wave * (isPlayingWelcome ? 15 : 3.5) * speechEnergy;
-          const x = cx + Math.cos(theta) * r;
-          const y = cy + Math.sin(theta) * r;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.strokeStyle = layer.color;
-        ctx.lineWidth = layer.lineWidth;
-        ctx.stroke();
-      }
-
-      // 6. Orbiting holographic micro-particles
-      for (const pt of particles) {
-        const a = pt.angle + t * pt.speed * (isPlayingWelcome ? 2.1 : 1);
-        const r = baseR * 1.24 + pt.radiusOffset + Math.sin(t * 2 + pt.angle) * 3;
-        const px = cx + Math.cos(a) * r;
-        const py = cy + Math.sin(a) * r;
-        ctx.fillStyle = isPlayingWelcome
-          ? "rgba(255, 255, 255, 0.75)"
-          : "rgba(255, 255, 255, 0.32)";
-        ctx.beginPath();
-        ctx.arc(px, py, pt.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      rafId = requestAnimationFrame(drawHologram);
-    };
-
-    rafId = requestAnimationFrame(drawHologram);
-    return () => cancelAnimationFrame(rafId);
-  }, [isPlayingWelcome]);
-
-  const stopTimer = () => {
-    if (timerRef.current !== null) {
-      window.clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      stopTimer();
-      audioRef.current?.pause();
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  const startFallbackPlayback = (fromProgress: number) => {
-    usingSpeechRef.current = true;
-    const startProg = fromProgress >= 0.99 ? 0 : fromProgress;
-    setWelcomeProgress(startProg);
-    setIsPlayingWelcome(true);
-
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(FOUNDER_WELCOME_SCRIPT);
-      utter.rate = 0.98;
-      utter.pitch = 1.0;
-      utter.onend = () => {
-        stopTimer();
-        setIsPlayingWelcome(false);
-        setWelcomeProgress(1);
-      };
-      window.speechSynthesis.speak(utter);
-    }
-
-    stopTimer();
-    const startedAt = Date.now() - startProg * FOUNDER_WELCOME_DURATION * 1000;
-    timerRef.current = window.setInterval(() => {
-      const elapsed = (Date.now() - startedAt) / 1000;
-      const next = Math.min(1, elapsed / FOUNDER_WELCOME_DURATION);
-      setWelcomeProgress(next);
-      if (next >= 1) {
-        stopTimer();
-        setIsPlayingWelcome(false);
-      }
-    }, 80);
-  };
-
-  const toggleWelcomeAudio = async () => {
-    if (isPlayingWelcome) {
-      stopTimer();
-      audioRef.current?.pause();
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
-      setIsPlayingWelcome(false);
-      return;
-    }
-
-    const audio = audioRef.current;
-    if (audio && !usingSpeechRef.current) {
-      try {
-        if (welcomeProgress >= 0.99) {
-          audio.currentTime = 0;
-        }
-        await audio.play();
-        setIsPlayingWelcome(true);
-        return;
-      } catch {
-        // Fallback to Web Speech API / visual waveform playback
-      }
-    }
-
-    startFallbackPlayback(welcomeProgress);
-  };
-
-  const seekWelcomeAudio = (ratio: number) => {
-    const clamped = Math.max(0, Math.min(1, ratio));
-    setWelcomeProgress(clamped);
-    const audio = audioRef.current;
-    if (audio && !usingSpeechRef.current && Number.isFinite(audio.duration) && audio.duration > 0) {
-      audio.currentTime = clamped * audio.duration;
-    } else if (isPlayingWelcome) {
-      startFallbackPlayback(clamped);
-    }
-  };
 
   // Application form state
   const [name, setName] = useState(
@@ -646,125 +343,43 @@ export default function JobsOpportunitiesPage() {
         </main>
       ) : (
         <main className="mx-auto max-w-[1440px] px-4 py-14 sm:px-8">
-          {/* Welcome, onboard! heading above the audio player card */}
+          {/* Welcome, onboard! & 6 portrait cards */}
           <section className="mb-12">
-            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
-                  Welcome, onboard!
-                </h2>
-                <p className="mt-1 text-sm text-white/60">
-                  Listen to a quick welcome note from our founder before exploring
-                  open roles.
-                </p>
-              </div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-white/50">
-                <Volume2 className="h-3.5 w-3.5 text-brand" />
-                <span>Founder Audio Message</span>
-              </div>
-            </div>
-
-            {/* One unified card: Left = Play button on top of live waveform, Right = 6 tall slim portrait skill cards */}
             <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[#16181d] via-[#181b22] to-[#13151a] p-5 sm:p-7 shadow-2xl">
-              <audio
-                ref={audioRef}
-                src="/audio/founder-welcome.mp3"
-                preload="metadata"
-                onLoadedMetadata={(e) => {
-                  const dur = e.currentTarget.duration;
-                  if (Number.isFinite(dur) && dur > 0) setWelcomeDuration(dur);
-                }}
-                onTimeUpdate={(e) => {
-                  const dur = e.currentTarget.duration || welcomeDuration;
-                  if (dur > 0)
-                    setWelcomeProgress(e.currentTarget.currentTime / dur);
-                }}
-                onEnded={() => {
-                  setIsPlayingWelcome(false);
-                  setWelcomeProgress(1);
-                }}
-                onError={() => {
-                  usingSpeechRef.current = true;
-                }}
-              />
-
               <div className="grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
-                {/* Left part: AI Speaking Hologram with Play/Pause orb core */}
-                <div className="flex flex-col justify-center lg:col-span-5">
-                  <div
-                    onClick={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const ratio = (e.clientX - rect.left) / rect.width;
-                      seekWelcomeAudio(ratio);
-                    }}
-                    className="relative flex h-52 sm:h-60 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0d0f14]"
-                    role="slider"
-                    aria-label="Founder AI voice hologram"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(welcomeProgress * 100)}
-                  >
-                    {/* Live AI Speaking Hologram Canvas */}
-                    <canvas
-                      ref={hologramCanvasRef}
-                      aria-hidden="true"
-                      className="h-full w-full block"
-                    />
+                {/* Left part: Welcome, onboard! with writeups */}
+                <div className="flex flex-col justify-center lg:col-span-5 lg:pr-4">
+                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+                    GAMAT Fx Careers &amp; Fellowship
+                  </span>
 
-                    {/* Subtle HUD corner accents */}
-                    <span aria-hidden="true" className="pointer-events-none absolute left-3 top-3 h-3 w-3 border-l-2 border-t-2 border-brand/50 rounded-tl" />
-                    <span aria-hidden="true" className="pointer-events-none absolute right-3 top-3 h-3 w-3 border-r-2 border-t-2 border-brand/50 rounded-tr" />
-                    <span aria-hidden="true" className="pointer-events-none absolute left-3 bottom-3 h-3 w-3 border-l-2 border-b-2 border-brand/50 rounded-bl" />
-                    <span aria-hidden="true" className="pointer-events-none absolute right-3 bottom-3 h-3 w-3 border-r-2 border-b-2 border-brand/50 rounded-br" />
+                  <h2 className="mt-4 font-sans text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+                    Welcome, onboard!
+                  </h2>
 
-                    {/* Top-left Hologram Status */}
-                    <div className="pointer-events-none absolute left-4 top-3.5 flex items-center gap-2">
-                      <span
-                        className={`h-2 w-2 rounded-full ${
-                          isPlayingWelcome
-                            ? "bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.9)]"
-                            : "bg-brand"
-                        }`}
-                      />
-                      <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-white/65">
-                        {isPlayingWelcome ? "Hologram Active · Speaking" : "AI Voice Hologram"}
-                      </span>
-                    </div>
+                  <p className="mt-3 text-sm sm:text-base leading-relaxed text-white/75">
+                    We are building the next generation of disciplined traders,
+                    engineers, designers, and market educators. Whether you are
+                    joining a volunteer fellowship track or a core team role,
+                    your work directly shapes how students learn and grow.
+                  </p>
 
-                    {/* Play/Pause button centered inside the hologram core */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleWelcomeAudio();
-                      }}
-                      aria-label={
-                        isPlayingWelcome
-                          ? "Pause founder welcome message"
-                          : "Play founder welcome message"
-                      }
-                      className="absolute z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/35 bg-brand/85 backdrop-blur-md text-white shadow-[0_0_32px_rgba(220,53,69,0.75)] transition hover:scale-105 hover:bg-brand active:scale-95 cursor-pointer"
-                    >
-                      {isPlayingWelcome ? (
-                        <Pause className="h-6 w-6 fill-current" />
-                      ) : (
-                        <Play className="h-6 w-6 translate-x-[1.5px] fill-current" />
-                      )}
-                    </button>
+                  <p className="mt-3 text-xs sm:text-sm leading-relaxed text-white/55">
+                    Pick a track below, share your work or CV, and build real
+                    products alongside our global team.
+                  </p>
 
-                    {/* Bottom progress bar & timer */}
-                    <div className="pointer-events-none absolute inset-x-4 bottom-3 flex items-center gap-3">
-                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-brand via-rose-400 to-sky-300 transition-[width] duration-150"
-                          style={{ width: `${Math.round(welcomeProgress * 100)}%` }}
-                        />
-                      </div>
-                      <span className="font-mono text-[11px] text-white/60 shrink-0">
-                        {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
-                        {formatAudioTime(welcomeDuration)}
-                      </span>
-                    </div>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
+                      Remote-First
+                    </span>
+                    <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
+                      Verifiable Fellowship Cert
+                    </span>
+                    <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
+                      Real Ownership
+                    </span>
                   </div>
                 </div>
 
