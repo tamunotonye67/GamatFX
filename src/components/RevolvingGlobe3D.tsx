@@ -325,18 +325,63 @@ export default function RevolvingGlobe3D({
         ctx.globalAlpha = fade;
 
         if (node.solid) {
-          // Outer halo
+          const nowSec = performance.now() / 1000;
+          const pulse = 0.5 + 0.5 * Math.sin(nowSec * 4.5);
+          const pingPhase = (nowSec * 0.85) % 1;
+
+          // Soft glowing radial aura
+          const auraR = r * (2.0 + pulse * 0.45);
+          const aura = ctx.createRadialGradient(
+            node.sx,
+            node.sy,
+            r * 0.3,
+            node.sx,
+            node.sy,
+            auraR
+          );
+          aura.addColorStop(0, `rgba(251, 113, 133, ${(0.45 + pulse * 0.25).toFixed(2)})`);
+          aura.addColorStop(0.55, `rgba(220, 53, 69, ${(0.22 + pulse * 0.14).toFixed(2)})`);
+          aura.addColorStop(1, "rgba(220, 53, 69, 0)");
+          ctx.fillStyle = aura;
           ctx.beginPath();
-          ctx.arc(node.sx, node.sy, r + 4, 0, Math.PI * 2);
-          ctx.strokeStyle = "rgba(220, 53, 69, 0.35)";
+          ctx.arc(node.sx, node.sy, auraR, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Expanding beeping radar ring
+          ctx.beginPath();
+          ctx.arc(node.sx, node.sy, r + pingPhase * 18 * node.scale, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(251, 113, 133, ${((1 - pingPhase) * 0.65).toFixed(2)})`;
+          ctx.lineWidth = 1.75;
+          ctx.stroke();
+
+          // Pulsing outer halo
+          ctx.beginPath();
+          ctx.arc(node.sx, node.sy, r + 3.5 + pulse * 2.5, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(220, 53, 69, ${(0.3 + pulse * 0.4).toFixed(2)})`;
           ctx.lineWidth = 2;
           ctx.stroke();
 
-          // Solid brand-red circle
+          // Glowing red gradient circle
+          const nodeGrad = ctx.createRadialGradient(
+            node.sx - r * 0.28,
+            node.sy - r * 0.28,
+            r * 0.1,
+            node.sx,
+            node.sy,
+            r
+          );
+          nodeGrad.addColorStop(0, pulse > 0.5 ? "#ff6b81" : "#fb7185");
+          nodeGrad.addColorStop(0.6, "#dc3545");
+          nodeGrad.addColorStop(1, "#a61b29");
+
+          ctx.save();
+          ctx.shadowColor = "rgba(220, 53, 69, 0.9)";
+          ctx.shadowBlur = 12 + pulse * 10;
           ctx.beginPath();
           ctx.arc(node.sx, node.sy, r, 0, Math.PI * 2);
-          ctx.fillStyle = "#dc3545";
+          ctx.fillStyle = nodeGrad;
           ctx.fill();
+          ctx.restore();
         } else {
           // Dark outlined circle
           ctx.beginPath();
