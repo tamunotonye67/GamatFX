@@ -796,17 +796,17 @@ export default function JobsPage() {
                   .gamat-solo-track-fast {
                     display: flex;
                     width: max-content;
-                    animation: gamatSoloStream 5.2s linear infinite;
+                    animation: gamatSoloStream 16s linear infinite;
                   }
                   .gamat-solo-track-turbo {
                     display: flex;
                     width: max-content;
-                    animation: gamatSoloStream 4.1s linear infinite;
+                    animation: gamatSoloStream 13s linear infinite;
                   }
                   .gamat-solo-track-mid {
                     display: flex;
                     width: max-content;
-                    animation: gamatSoloStream 6.4s linear infinite;
+                    animation: gamatSoloStream 20s linear infinite;
                   }
                 `}</style>
 
@@ -852,36 +852,51 @@ export default function JobsPage() {
                         “solo”
                       </h3>
 
-                      {/* 3 fast left-to-right card streams */}
-                      <div className="relative z-10 mt-6 space-y-3.5 overflow-hidden">
+                      {/* 3 readable left-to-right sharp card streams (mix of stacked cards & message pops) */}
+                      <div className="relative z-10 mt-6 space-y-4 overflow-hidden">
                         {/* Right-edge fade just before vanishing under the red half */}
                         <div
                           aria-hidden="true"
                           className="pointer-events-none absolute inset-y-0 right-0 z-20 w-10 bg-gradient-to-l from-[#111215]/70 to-transparent"
                         />
 
-                        {/* Row 1: Fast */}
-                        <div className="overflow-hidden">
+                        {/* Row 1 */}
+                        <div className="overflow-hidden py-1">
                           <div className="gamat-solo-track-fast">
                             {[0, 1].map((dup) => (
-                              <div key={dup} className="flex shrink-0 items-center gap-3 pr-3">
-                                <div className="rounded-xl border border-amber-400/35 bg-[#181a20]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                              <div key={dup} className="flex shrink-0 items-center gap-4 pr-4">
+                                {/* Message pop */}
+                                <div className="relative border border-amber-400/40 bg-[#181a20]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+                                  <span className="absolute -bottom-1.5 left-3 h-2.5 w-2.5 rotate-45 border-b border-r border-amber-400/40 bg-[#181a20]" />
+                                  <span className="relative text-[10px] font-bold uppercase tracking-wider text-amber-300">
                                     ⚠ STATUS: UNRESOLVED
                                   </span>
                                 </div>
-                                <div className="w-[220px] rounded-xl border border-white/15 bg-[#17191f]/95 px-3.5 py-2.5 shadow-xl">
-                                  <p className="text-[11px] leading-snug text-white/75">
-                                    “Watched 40+ tutorials — zero real-world feedback.”
-                                  </p>
+
+                                {/* Stacked card */}
+                                <div className="relative">
+                                  <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-white/10 bg-[#12141a]"
+                                  />
+                                  <div className="relative w-[225px] border border-white/20 bg-[#17191f] px-3.5 py-2.5 shadow-xl">
+                                    <p className="text-[11px] leading-snug text-white/80">
+                                      “Watched 40+ tutorials — zero real-world feedback.”
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="rounded-xl border border-brand/45 bg-[#1a1518]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+
+                                {/* Sharp alert tag */}
+                                <div className="border border-brand/50 bg-[#1a1518]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
                                   <span className="text-[10px] font-bold text-rose-400">
                                     P0 · NO PRODUCTION PROOF
                                   </span>
                                 </div>
-                                <div className="w-[210px] rounded-xl border border-white/15 bg-[#17191f]/95 px-3.5 py-2.5 shadow-xl">
-                                  <p className="text-[11px] leading-snug text-white/75">
+
+                                {/* Message pop */}
+                                <div className="relative w-[215px] border border-white/20 bg-[#17191f] px-3.5 py-2.5 shadow-xl">
+                                  <span className="absolute -bottom-1.5 left-4 h-2.5 w-2.5 rotate-45 border-b border-r border-white/20 bg-[#17191f]" />
+                                  <p className="relative text-[11px] leading-snug text-white/80">
                                     “No live desk, no mentor audits.”
                                   </p>
                                 </div>
@@ -890,61 +905,102 @@ export default function JobsPage() {
                           </div>
                         </div>
 
-                        {/* Row 2: Turbo */}
-                        <div className="overflow-hidden">
+                        {/* Row 2 */}
+                        <div className="overflow-hidden py-1">
                           <div className="gamat-solo-track-turbo">
                             {[0, 1].map((dup) => (
-                              <div key={dup} className="flex shrink-0 items-center gap-3 pr-3">
-                                <div className="w-[235px] rounded-xl border border-brand/45 bg-[#1a1518]/95 p-3 shadow-2xl">
-                                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-400">
-                                    <span className="rounded bg-brand/25 px-1.5 py-0.5">P0</span>
-                                    <span>PORTFOLIO GAP</span>
+                              <div key={dup} className="flex shrink-0 items-center gap-4 pr-4">
+                                {/* Stacked P0 card */}
+                                <div className="relative">
+                                  <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-brand/30 bg-[#140f12]"
+                                  />
+                                  <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 translate-x-3 translate-y-3 border border-brand/15 bg-[#110c0f]"
+                                  />
+                                  <div className="relative w-[240px] border border-brand/50 bg-[#1a1518] p-3 shadow-2xl">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-400">
+                                      <span className="bg-brand/25 px-1.5 py-0.5">P0</span>
+                                      <span>PORTFOLIO GAP</span>
+                                    </div>
+                                    <p className="mt-1 text-[11px] leading-snug text-white/80">
+                                      Applying everywhere with zero live shipped projects.
+                                    </p>
                                   </div>
-                                  <p className="mt-1 text-[11px] leading-snug text-white/80">
-                                    Applying everywhere with zero live shipped projects.
-                                  </p>
                                 </div>
-                                <div className="w-[210px] rounded-xl border border-white/15 bg-[#17191f]/95 p-3 shadow-xl">
-                                  <p className="text-[11px] leading-snug text-white/75">
+
+                                {/* Message pop */}
+                                <div className="relative w-[215px] border border-white/20 bg-[#17191f] p-3 shadow-xl">
+                                  <span className="absolute -bottom-1.5 right-5 h-2.5 w-2.5 rotate-45 border-b border-r border-white/20 bg-[#17191f]" />
+                                  <div className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">
+                                    DM · UNANSWERED
+                                  </div>
+                                  <p className="relative text-[11px] leading-snug text-white/80">
                                     “Stuck in demo loops without team accountability.”
                                   </p>
                                 </div>
-                                <div className="rounded-xl border border-rose-400/35 bg-[#1c1418]/95 px-3.5 py-2.5 shadow-lg whitespace-nowrap">
+
+                                {/* Sharp badge */}
+                                <div className="border border-rose-400/40 bg-[#1c1418]/95 px-3.5 py-2.5 shadow-lg whitespace-nowrap">
                                   <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300">
                                     ✖ NO VERIFIED CERTIFICATE
                                   </span>
                                 </div>
-                                <div className="w-[220px] rounded-xl border border-white/15 bg-[#17191f]/95 p-3 shadow-xl">
-                                  <p className="text-[11px] leading-snug text-white/75">
-                                    “Building alone with nobody reviewing my trades or PRs.”
-                                  </p>
+
+                                {/* Stacked card */}
+                                <div className="relative">
+                                  <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-white/10 bg-[#12141a]"
+                                  />
+                                  <div className="relative w-[225px] border border-white/20 bg-[#17191f] p-3 shadow-xl">
+                                    <p className="text-[11px] leading-snug text-white/80">
+                                      “Building alone with nobody reviewing my trades or PRs.”
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        {/* Row 3: Mid-Fast */}
-                        <div className="overflow-hidden">
+                        {/* Row 3 */}
+                        <div className="overflow-hidden py-1">
                           <div className="gamat-solo-track-mid">
                             {[0, 1].map((dup) => (
-                              <div key={dup} className="flex shrink-0 items-center gap-3 pr-3">
-                                <div className="w-[225px] rounded-xl border border-white/15 bg-[#17191f]/95 px-3.5 py-2.5 shadow-xl">
-                                  <p className="text-[11px] leading-snug text-white/75">
-                                    “No structured desk, no mentorship, no clear growth path.”
-                                  </p>
+                              <div key={dup} className="flex shrink-0 items-center gap-4 pr-4">
+                                {/* Stacked card */}
+                                <div className="relative">
+                                  <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-white/10 bg-[#12141a]"
+                                  />
+                                  <div className="relative w-[230px] border border-white/20 bg-[#17191f] px-3.5 py-2.5 shadow-xl">
+                                    <p className="text-[11px] leading-snug text-white/80">
+                                      “No structured desk, no mentorship, no clear growth path.”
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="rounded-xl border border-amber-400/35 bg-[#181a20]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+
+                                {/* Sharp alert */}
+                                <div className="border border-amber-400/40 bg-[#181a20]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
                                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
                                     ⏳ WAITING FOR AN OPPORTUNITY
                                   </span>
                                 </div>
-                                <div className="w-[215px] rounded-xl border border-brand/40 bg-[#1a1518]/95 px-3.5 py-2.5 shadow-xl">
-                                  <p className="text-[11px] leading-snug text-white/80">
+
+                                {/* Message pop */}
+                                <div className="relative w-[220px] border border-brand/45 bg-[#1a1518] px-3.5 py-2.5 shadow-xl">
+                                  <span className="absolute -bottom-1.5 left-4 h-2.5 w-2.5 rotate-45 border-b border-r border-brand/45 bg-[#1a1518]" />
+                                  <p className="relative text-[11px] leading-snug text-white/80">
                                     “Missed cohorts because I had no network.”
                                   </p>
                                 </div>
-                                <div className="rounded-xl border border-white/15 bg-[#17191f]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+
+                                {/* Sharp tag */}
+                                <div className="border border-white/20 bg-[#17191f]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
                                   <span className="text-[10px] font-semibold text-white/65">
                                     0 TEAM VELOCITY
                                   </span>
@@ -964,7 +1020,7 @@ export default function JobsPage() {
                         className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dotted border-white/35"
                       />
 
-                      <h3 className="relative z-10 font-sans text-2xl sm:text-3xl font-medium tracking-tight text-white">
+                      <h3 className="relative z-10 font-sans text-4xl sm:text-5xl font-medium leading-[1.08] tracking-tight text-white">
                         Building with
                         <br />
                         GAMAT Fx
