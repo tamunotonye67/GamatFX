@@ -20,6 +20,7 @@ import { useStore } from "./lib/store";
 import { useRoute, segments, isJobsSubdomain } from "./lib/router";
 import { findRoleGuideBySlug, ROLE_GUIDES } from "./lib/jobRoleGuides";
 import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
+import { StreakCelebrationHost } from "./components/StreakBadgeModal";
 
 function lazyWithRetry<T extends React.ComponentType<any>>(
   importer: () => Promise<{ default: T }>
@@ -401,6 +402,7 @@ export default function App() {
           <Footer />
         )}
         <DiscoverySurveyModal />
+        <StreakCelebrationHost />
       </div>
     </ErrorBoundary>
   );

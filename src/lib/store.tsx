@@ -9,6 +9,7 @@ import {
 } from "react";
 import { supabase, hasSharedSignOutFlag, setSharedSignOutFlag } from "./supabase";
 import { isJobsSubdomain } from "./router";
+import { recordStreakActivity } from "./streaks";
 import { COURSES, getCourse, totalLessons, COURSE_ALIASES, asCourse } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
 import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount, rowToAccount, type SupabaseAccountRow } from "./supabaseAuth";
@@ -3114,13 +3115,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const toggleLesson: Ctx["toggleLesson"] = useCallback((courseId, lessonId) => {
+    let completedNow = false;
     setAllEnrollments((p) => p.map((e) => {
       if (e.userId !== sessionId || e.courseId !== courseId) return e;
       const has = e.completedLessons.includes(lessonId);
+      if (!has) completedNow = true;
       const updated: Enrollment = { ...e, completedLessons: has ? e.completedLessons.filter((l) => l !== lessonId) : [...e.completedLessons, lessonId] };
       saveSupabaseEnrollment(updated);
       return updated;
     }));
+    if (completedNow) {
+      recordStreakActivity(sessionId, "learning");
+    }
   }, [sessionId]);
 
   const setLastLesson: Ctx["setLastLesson"] = useCallback((courseId, lessonId) => {
@@ -4032,6 +4038,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         [sessionId]: { xp, wins, losses, streak, bestStreak, predictions },
       };
     });
+    recordStreakActivity(sessionId, "game");
   }, [sessionId]);
 
   const combatLeaderboard = useMemo(() => {

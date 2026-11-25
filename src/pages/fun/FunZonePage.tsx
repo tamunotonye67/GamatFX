@@ -1,6 +1,9 @@
 import PageHero from "../../components/PageHero";
 import PageCta from "../../components/PageCta";
+import { StreakFlamePill } from "../../components/StreakBadgeModal";
 import { navigate } from "../../lib/router";
+import { useStore } from "../../lib/store";
+import { openStreakModal, recordStreakActivity } from "../../lib/streaks";
 import { useReveal } from "../../lib/useReveal";
 import { TRIVIA } from "../../lib/trivia";
 import {
@@ -49,6 +52,8 @@ const GAMES = [
 
 export default function FunZonePage() {
   const { ref, visible } = useReveal<HTMLDivElement>();
+  const { user, sessionId } = useStore();
+  const uid = user?.id || sessionId;
 
   return (
     <>
@@ -84,13 +89,28 @@ export default function FunZonePage() {
           <div className="mx-auto max-w-2xl text-center">
             <span className="eyebrow justify-center">Pick your game</span>
             <h2 className="section-title mt-4">Four ways to sharpen up</h2>
+            {uid && (
+              <div className="mt-5 inline-flex items-center gap-2.5 rounded-full border border-line bg-white px-4 py-2 shadow-2xs">
+                <StreakFlamePill scrolled />
+                <button
+                  type="button"
+                  onClick={openStreakModal}
+                  className="text-xs font-bold text-ink hover:text-brand cursor-pointer"
+                >
+                  Daily Play Streak · View Badge
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="mt-12 grid gap-7 md:grid-cols-2 xl:grid-cols-4">
             {GAMES.map((g, i) => (
               <button
                 key={g.to}
-                onClick={() => navigate(g.to)}
+                onClick={() => {
+                  recordStreakActivity(uid, "game");
+                  navigate(g.to);
+                }}
                 className={`group flex flex-col overflow-hidden rounded-3xl border border-line bg-white text-left shadow-[0_18px_50px_-30px_rgba(22,24,28,0.35)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_32px_65px_-30px_rgba(22,24,28,0.45)] reveal ${visible ? "is-visible" : ""}`}
                 style={{ transitionDelay: `${i * 120}ms` }}
               >

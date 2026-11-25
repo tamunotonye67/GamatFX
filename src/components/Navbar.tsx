@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import NotificationBell from "./NotificationBell";
+import { StreakFlamePill } from "./StreakBadgeModal";
 import { signInWithGoogleSupabase } from "../lib/supabaseAuth";
 import {
   Menu,
@@ -548,6 +549,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {isAuthed && user ? (
             <>
+              <StreakFlamePill scrolled={scrolled} />
               <NotificationBell scrolled={scrolled} />
               <div ref={userRef} className="relative hidden sm:block">
               <button
