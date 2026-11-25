@@ -942,6 +942,10 @@ export default function JobsPage() {
           .gamat-ticker-track:hover {
             animation-play-state: paused;
           }
+          @keyframes gamatTileBob {
+            0%, 100% { translate: 0 0; }
+            50% { translate: 0 -6px; }
+          }
         `}</style>
         <div
           className="relative overflow-hidden rounded-2xl border border-white/15 shadow-2xl sm:rounded-3xl"
@@ -970,18 +974,21 @@ export default function JobsPage() {
           {/* Left floating tilted icon tiles */}
           <div
             aria-hidden="true"
+            style={{ animation: "gamatTileBob 4.2s ease-in-out infinite" }}
             className="pointer-events-none absolute left-6 top-10 hidden h-14 w-14 -rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:left-14"
           >
             <Code2 className="h-6 w-6" />
           </div>
           <div
             aria-hidden="true"
+            style={{ animation: "gamatTileBob 4.8s ease-in-out 0.6s infinite" }}
             className="pointer-events-none absolute left-16 top-1/2 hidden h-12 w-12 -translate-y-1/2 rotate-6 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:left-32"
           >
             <TrendingUp className="h-5 w-5" />
           </div>
           <div
             aria-hidden="true"
+            style={{ animation: "gamatTileBob 4.5s ease-in-out 1.2s infinite" }}
             className="pointer-events-none absolute bottom-20 left-8 hidden h-13 w-13 rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:left-20"
           >
             <BarChart3 className="h-5 w-5" />
@@ -990,18 +997,21 @@ export default function JobsPage() {
           {/* Right floating tilted icon tiles */}
           <div
             aria-hidden="true"
+            style={{ animation: "gamatTileBob 4.6s ease-in-out 0.3s infinite" }}
             className="pointer-events-none absolute right-6 top-10 hidden h-14 w-14 rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:right-14"
           >
             <Briefcase className="h-6 w-6" />
           </div>
           <div
             aria-hidden="true"
+            style={{ animation: "gamatTileBob 5s ease-in-out 0.9s infinite" }}
             className="pointer-events-none absolute right-16 top-1/2 hidden h-12 w-12 -translate-y-1/2 -rotate-6 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:right-32"
           >
             <Users className="h-5 w-5" />
           </div>
           <div
             aria-hidden="true"
+            style={{ animation: "gamatTileBob 4.3s ease-in-out 1.5s infinite" }}
             className="pointer-events-none absolute bottom-20 right-8 hidden h-13 w-13 -rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:right-20"
           >
             <PenTool className="h-5 w-5" />
