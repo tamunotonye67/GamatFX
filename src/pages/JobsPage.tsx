@@ -31,6 +31,7 @@ import {
 import { navigate } from "../lib/router";
 import { slugifyRoleTitle } from "../lib/jobRoleGuides";
 import Logo from "../components/Logo";
+import RevolvingGlobe3D from "../components/RevolvingGlobe3D";
 
 const DEPARTMENTS: Array<"All" | JobDepartment> = [
   "All",
@@ -428,193 +429,26 @@ export default function JobsPage() {
               </p>
             </div>
 
-            {/* Full Revolving Dotted Globe */}
-            <div className="relative mx-auto mt-10 max-w-4xl">
+            {/* True 3D Revolving Globe (X/Y/Z axes) + Front-Overlaid Callout Box */}
+            <div className="relative mx-auto mt-8 max-w-4xl">
               <style>{`
-                @keyframes gamatGlobeSpin {
-                  0% { transform: translateX(0px); }
-                  100% { transform: translateX(-260px); }
-                }
-                @keyframes gamatPulseArc {
-                  0%, 100% { stroke-opacity: 0.45; }
-                  50% { stroke-opacity: 1; }
-                }
                 @keyframes gamatCalloutFloat {
                   0%, 100% { transform: translateY(0px); }
                   50% { transform: translateY(-6px); }
                 }
               `}</style>
-              <svg
-                viewBox="0 0 520 460"
-                className="mx-auto h-auto w-full max-w-[340px] sm:max-w-[540px] lg:max-w-[740px]"
-                fill="none"
-                aria-hidden="true"
-              >
-                <defs>
-                  <radialGradient id="gamatGlobeGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#dc3545" stopOpacity="0.2" />
-                    <stop offset="70%" stopColor="#dc3545" stopOpacity="0.04" />
-                    <stop offset="100%" stopColor="#111215" stopOpacity="0" />
-                  </radialGradient>
-                  <pattern
-                    id="globeDots"
-                    x="0"
-                    y="0"
-                    width="9"
-                    height="9"
-                    patternUnits="userSpaceOnUse"
-                  >
-                    <circle cx="2" cy="2" r="1.25" fill="#dc3545" fillOpacity="0.6" />
-                  </pattern>
-                  <clipPath id="globeClip">
-                    <circle cx="260" cy="240" r="205" />
-                  </clipPath>
-                </defs>
+              <RevolvingGlobe3D />
 
-                {/* Subtle ambient glow */}
-                <circle cx="260" cy="240" r="225" fill="url(#gamatGlobeGlow)" />
-
-                {/* Wireframe sphere */}
-                <circle
-                  cx="260"
-                  cy="240"
-                  r="205"
-                  stroke="rgba(255,255,255,0.12)"
-                  strokeWidth="1"
-                />
-                <ellipse
-                  cx="260"
-                  cy="240"
-                  rx="145"
-                  ry="205"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="1"
-                />
-                <ellipse
-                  cx="260"
-                  cy="240"
-                  rx="75"
-                  ry="205"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="1"
-                />
-                <ellipse
-                  cx="260"
-                  cy="240"
-                  rx="205"
-                  ry="68"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="1"
-                />
-                <ellipse
-                  cx="260"
-                  cy="170"
-                  rx="192"
-                  ry="45"
-                  stroke="rgba(255,255,255,0.06)"
-                  strokeWidth="1"
-                />
-                <ellipse
-                  cx="260"
-                  cy="310"
-                  rx="192"
-                  ry="45"
-                  stroke="rgba(255,255,255,0.06)"
-                  strokeWidth="1"
-                />
-
-                {/* Revolving dotted landmasses + connected people nodes inside sphere */}
-                <g clipPath="url(#globeClip)">
-                  <g style={{ animation: "gamatGlobeSpin 20s linear infinite" }}>
-                    {[0, 260].map((offsetX) => (
-                      <g key={offsetX} transform={`translate(${offsetX}, 0)`}>
-                        <path
-                          d="M110,165 Q145,140 190,155 T230,210 Q210,275 180,315 T135,280 Q105,220 110,165 Z"
-                          fill="url(#globeDots)"
-                        />
-                        <path
-                          d="M250,120 Q310,95 365,130 T410,205 Q375,260 325,245 T270,185 Q245,150 250,120 Z"
-                          fill="url(#globeDots)"
-                        />
-                        <path
-                          d="M275,255 Q335,245 375,295 T335,385 Q285,375 270,320 T275,255 Z"
-                          fill="url(#globeDots)"
-                        />
-
-                        {/* Connection Arcs */}
-                        <path
-                          d="M 145 215 Q 175 140 228 118"
-                          stroke="#dc3545"
-                          strokeWidth="1.75"
-                          style={{ animation: "gamatPulseArc 2.8s ease-in-out infinite" }}
-                        />
-                        <path
-                          d="M 228 118 Q 278 148 310 202"
-                          stroke="#dc3545"
-                          strokeWidth="1.5"
-                          style={{ animation: "gamatPulseArc 2.8s ease-in-out infinite" }}
-                        />
-
-                        {/* Person Node 1 (Outlined) */}
-                        <circle
-                          cx="145"
-                          cy="215"
-                          r="17"
-                          fill="#111215"
-                          stroke="#dc3545"
-                          strokeWidth="1.5"
-                        />
-                        <circle cx="145" cy="210" r="3.5" stroke="#dc3545" strokeWidth="1.4" />
-                        <path
-                          d="M138 222 C138 218.5 152 218.5 152 222"
-                          stroke="#dc3545"
-                          strokeWidth="1.4"
-                          strokeLinecap="round"
-                        />
-
-                        {/* Person Node 2 (Solid Brand-Red) */}
-                        <circle cx="228" cy="118" r="20" fill="#dc3545" />
-                        <circle cx="228" cy="118" r="25" stroke="#dc3545" strokeOpacity="0.3" strokeWidth="2" />
-                        <circle cx="228" cy="112" r="4" stroke="#ffffff" strokeWidth="1.6" />
-                        <path
-                          d="M220 125 C220 120.5 236 120.5 236 125"
-                          stroke="#ffffff"
-                          strokeWidth="1.6"
-                          strokeLinecap="round"
-                        />
-
-                        {/* Person Node 3 (Outlined) */}
-                        <circle
-                          cx="310"
-                          cy="202"
-                          r="16"
-                          fill="#111215"
-                          stroke="#dc3545"
-                          strokeWidth="1.5"
-                        />
-                        <circle cx="310" cy="197" r="3.4" stroke="#dc3545" strokeWidth="1.4" />
-                        <path
-                          d="M303 209 C303 205.5 317 205.5 317 209"
-                          stroke="#dc3545"
-                          strokeWidth="1.4"
-                          strokeLinecap="round"
-                        />
-                      </g>
-                    ))}
-                  </g>
-                </g>
-              </svg>
-
-              {/* Corner-bracketed dashed callout box (matches reference image 2) */}
+              {/* Corner-bracketed dashed callout box floating in front (both mobile & desktop) */}
               <div
                 style={{ animation: "gamatCalloutFloat 4.5s ease-in-out infinite" }}
-                className="relative mx-auto mt-4 max-w-[270px] border border-dashed border-brand/55 bg-[#13151a]/95 p-4 text-left md:absolute md:right-0 md:top-1/2 md:mt-0 md:-translate-y-1/2"
+                className="absolute right-2 bottom-10 z-20 max-w-[195px] border border-dashed border-brand/60 bg-[#13151a]/92 p-3 text-left shadow-xl backdrop-blur-xs sm:right-4 sm:bottom-auto sm:top-1/2 sm:max-w-[265px] sm:p-4 sm:-translate-y-1/2"
               >
                 <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 border-t-2 border-l-2 border-brand" />
                 <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 border-t-2 border-r-2 border-brand" />
                 <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 border-b-2 border-l-2 border-brand" />
                 <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 border-b-2 border-r-2 border-brand" />
-                <p className="text-xs leading-relaxed font-medium text-rose-400">
+                <p className="text-[11px] sm:text-xs leading-relaxed font-medium text-rose-400">
                   Remote-first collaboration connects our mentors, engineers, and
                   creators across every trading session.
                 </p>
