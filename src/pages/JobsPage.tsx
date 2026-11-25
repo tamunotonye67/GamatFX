@@ -1171,7 +1171,7 @@ export default function JobsPage() {
 
                   <div className="grid md:grid-cols-2">
                     {/* Left Half: Fast Left-to-Right Motion Streams disappearing under the Red Right Half */}
-                    <div className="relative min-h-[400px] sm:min-h-[450px] overflow-hidden border-b md:border-b-0 md:border-r border-white/10 bg-[#111215] pt-8 pb-8 sm:pt-10 sm:pb-10 flex flex-col justify-between">
+                    <div className="relative min-h-[300px] md:min-h-[450px] overflow-hidden border-b md:border-b-0 md:border-r border-white/10 bg-[#111215] pt-7 pb-5 md:pt-10 md:pb-10 flex flex-col justify-between">
                       {/* Dotted waveform background */}
                       <div
                         aria-hidden="true"
@@ -1350,7 +1350,7 @@ export default function JobsPage() {
                     </div>
 
                     {/* Right Half: Solid Brand-Red Calm Clarity */}
-                    <div className="relative z-20 min-h-[300px] sm:min-h-[450px] overflow-hidden bg-gradient-to-b from-brand to-[#b81d2c] px-5 py-7 sm:p-10 flex flex-col items-center justify-between text-center">
+                    <div className="relative z-20 min-h-[300px] md:min-h-[450px] overflow-hidden bg-gradient-to-b from-brand to-[#b81d2c] px-5 py-7 md:p-10 flex flex-col items-center justify-between text-center">
                       {/* Dotted center horizon line */}
                       <div
                         aria-hidden="true"
