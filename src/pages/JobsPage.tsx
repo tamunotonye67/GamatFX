@@ -364,8 +364,18 @@ export default function JobsPage() {
               </p>
             </div>
 
-            {/* Full Dotted Globe */}
+            {/* Full Revolving Dotted Globe */}
             <div className="relative mx-auto mt-10 max-w-xl">
+              <style>{`
+                @keyframes gamatGlobeSpin {
+                  0% { transform: translateX(0px); }
+                  100% { transform: translateX(-200px); }
+                }
+                @keyframes gamatPulseArc {
+                  0%, 100% { stroke-opacity: 0.45; }
+                  50% { stroke-opacity: 1; }
+                }
+              `}</style>
               <svg
                 viewBox="0 0 520 460"
                 className="mx-auto h-auto w-full max-w-[480px]"
@@ -374,7 +384,7 @@ export default function JobsPage() {
               >
                 <defs>
                   <radialGradient id="gamatGlobeGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#dc3545" stopOpacity="0.18" />
+                    <stop offset="0%" stopColor="#dc3545" stopOpacity="0.2" />
                     <stop offset="70%" stopColor="#dc3545" stopOpacity="0.04" />
                     <stop offset="100%" stopColor="#111215" stopOpacity="0" />
                   </radialGradient>
@@ -386,7 +396,7 @@ export default function JobsPage() {
                     height="9"
                     patternUnits="userSpaceOnUse"
                   >
-                    <circle cx="2" cy="2" r="1.25" fill="#dc3545" fillOpacity="0.55" />
+                    <circle cx="2" cy="2" r="1.25" fill="#dc3545" fillOpacity="0.6" />
                   </pattern>
                   <clipPath id="globeClip">
                     <circle cx="260" cy="240" r="205" />
@@ -445,20 +455,31 @@ export default function JobsPage() {
                   strokeWidth="1"
                 />
 
-                {/* Dotted landmass silhouettes inside sphere */}
+                {/* Revolving dotted landmass silhouettes inside sphere */}
                 <g clipPath="url(#globeClip)">
-                  <path
-                    d="M110,165 Q145,140 190,155 T230,210 Q210,275 180,315 T135,280 Q105,220 110,165 Z"
-                    fill="url(#globeDots)"
-                  />
-                  <path
-                    d="M250,120 Q310,95 365,130 T410,205 Q375,260 325,245 T270,185 Q245,150 250,120 Z"
-                    fill="url(#globeDots)"
-                  />
-                  <path
-                    d="M275,255 Q335,245 375,295 T335,385 Q285,375 270,320 T275,255 Z"
-                    fill="url(#globeDots)"
-                  />
+                  <g style={{ animation: "gamatGlobeSpin 18s linear infinite" }}>
+                    <path
+                      d="M110,165 Q145,140 190,155 T230,210 Q210,275 180,315 T135,280 Q105,220 110,165 Z"
+                      fill="url(#globeDots)"
+                    />
+                    <path
+                      d="M250,120 Q310,95 365,130 T410,205 Q375,260 325,245 T270,185 Q245,150 250,120 Z"
+                      fill="url(#globeDots)"
+                    />
+                    <path
+                      d="M275,255 Q335,245 375,295 T335,385 Q285,375 270,320 T275,255 Z"
+                      fill="url(#globeDots)"
+                    />
+                    {/* Seamless wrap-around copy (+200px) */}
+                    <path
+                      d="M310,165 Q345,140 390,155 T430,210 Q410,275 380,315 T335,280 Q305,220 310,165 Z"
+                      fill="url(#globeDots)"
+                    />
+                    <path
+                      d="M450,120 Q510,95 565,130 T610,205 Q575,260 525,245 T470,185 Q445,150 450,120 Z"
+                      fill="url(#globeDots)"
+                    />
+                  </g>
                 </g>
 
                 {/* Connection Arc */}
@@ -466,9 +487,10 @@ export default function JobsPage() {
                   d="M 145 215 Q 175 140 228 118"
                   stroke="#dc3545"
                   strokeWidth="1.75"
+                  style={{ animation: "gamatPulseArc 2.8s ease-in-out infinite" }}
                 />
 
-                {/* Remote Person Node */}
+                {/* Person Node 1 (Outlined) */}
                 <circle
                   cx="145"
                   cy="215"
@@ -485,13 +507,14 @@ export default function JobsPage() {
                   strokeLinecap="round"
                 />
 
-                {/* Solid Brand-Red Hub Node */}
+                {/* Person Node 2 (Solid Brand-Red) */}
                 <circle cx="228" cy="118" r="20" fill="#dc3545" />
-                <circle cx="228" cy="118" r="24" stroke="#dc3545" strokeOpacity="0.3" strokeWidth="2" />
+                <circle cx="228" cy="118" r="25" stroke="#dc3545" strokeOpacity="0.3" strokeWidth="2" />
+                <circle cx="228" cy="112" r="4" stroke="#ffffff" strokeWidth="1.6" />
                 <path
-                  d="M222 114 H234 M222 118 H234 M222 122 H234"
+                  d="M220 125 C220 120.5 236 120.5 236 125"
                   stroke="#ffffff"
-                  strokeWidth="1.8"
+                  strokeWidth="1.6"
                   strokeLinecap="round"
                 />
               </svg>
