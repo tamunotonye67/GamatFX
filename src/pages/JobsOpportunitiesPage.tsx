@@ -592,45 +592,49 @@ export default function JobsOpportunitiesPage() {
             </div>
           </section>
 
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
-                Open Positions ({openRoles.length})
-              </h1>
-              <p className="text-sm text-white/55 mt-1">
-                Welcome back, {user.firstName}. Select a role below to submit
-                your application.
-              </p>
-            </div>
-
-            <div className="relative w-full lg:w-72">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search roles..."
-                className="w-full rounded-xl border border-white/15 bg-[#16181d] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-brand"
-              />
-            </div>
+          <div className="mb-5">
+            <h1 className="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
+              Open Positions ({openRoles.length})
+            </h1>
+            <p className="text-sm text-white/55 mt-1">
+              Welcome back, {user.firstName}. Select a role below to submit your
+              application.
+            </p>
           </div>
 
-          {/* Department filter */}
-          <div className="flex flex-wrap gap-1.5 mb-8">
-            {DEPARTMENTS.map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setDept(d)}
-                className={`rounded-full px-4 py-2 text-xs font-semibold transition cursor-pointer ${
-                  dept === d
-                    ? "bg-brand text-white"
-                    : "border border-white/15 bg-[#16181d] text-white/70 hover:border-white/30 hover:text-white"
-                }`}
-              >
-                {d}
-              </button>
-            ))}
+          {/* Sticky Search + Category Filter Bar on mobile */}
+          <div className="sticky top-0 z-30 -mx-4 mb-6 border-b border-white/10 bg-[#111215]/95 px-4 py-3 backdrop-blur-md sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:mb-8 lg:border-none lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+              {/* Department filter pills (single scrollable row on mobile, wrap on desktop) */}
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar lg:flex-wrap lg:overflow-visible">
+                {DEPARTMENTS.map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDept(d)}
+                    className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition cursor-pointer ${
+                      dept === d
+                        ? "bg-brand text-white"
+                        : "border border-white/15 bg-[#16181d] text-white/70 hover:border-white/30 hover:text-white"
+                    }`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search bar */}
+              <div className="relative w-full lg:w-72 shrink-0">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search roles..."
+                  className="w-full rounded-xl border border-white/15 bg-[#16181d] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-brand"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Role rows with left-side picture thumbnails */}
