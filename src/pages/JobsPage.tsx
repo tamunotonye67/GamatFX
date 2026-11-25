@@ -360,10 +360,10 @@ export default function JobsPage() {
               className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/45 blur-[90px]"
             />
 
-            <div className="relative w-full sm:mx-auto max-w-4xl">
-              <h1 className="font-sans text-[2.35rem] leading-[1.08] font-semibold sm:font-medium tracking-tight text-white sm:text-5xl lg:text-[3.35rem] lg:leading-[1.15]">
-                Build the future of
-                <br className="hidden sm:inline" /> disciplined trading—with GAMAT Fx
+            <div className="relative w-full sm:mx-auto max-w-5xl">
+              <h1 className="font-sans text-[2.2rem] leading-[1.1] font-semibold sm:font-medium tracking-tight text-white sm:text-5xl lg:text-[3.2rem] lg:leading-[1.15]">
+                Want to be a part of something more
+                <br className="hidden sm:inline" /> fulfilling than trading? Then, let’s work!
               </h1>
               <p className="mt-5 max-w-xl text-base leading-relaxed text-white/90 sm:mx-auto sm:text-base">
                 Join our remote-first team of market analysts, educators,
