@@ -18,6 +18,7 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import { captureReferralFromUrl } from "./lib/affiliate";
 import { useStore } from "./lib/store";
 import { useRoute, segments, isJobsSubdomain } from "./lib/router";
+import { findRoleGuideBySlug, ROLE_GUIDES } from "./lib/jobRoleGuides";
 import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
 
 function lazyWithRetry<T extends React.ComponentType<any>>(
@@ -111,6 +112,7 @@ const AdminGallery = lazyWithRetry(() => import("./pages/admin/AdminGallery").th
 const AdminJobs = lazyWithRetry(() => import("./pages/admin/AdminJobs").then((m) => ({ default: m.AdminJobs })));
 const GalleryPage = lazyWithRetry(() => import("./pages/GalleryPage"));
 const JobsPage = lazyWithRetry(() => import("./pages/JobsPage"));
+const JobRoleDetailPage = lazyWithRetry(() => import("./pages/JobRoleDetailPage"));
 
 function PageLoader() {
   return (
@@ -299,6 +301,9 @@ export default function App() {
     content = <LearnPage id={second} />;
   } else if (first === "store") {
     content = <StorePage categoryParam={second} />;
+  } else if (first === "jobs" && second) {
+    const guide = findRoleGuideBySlug(second) || ROLE_GUIDES[0];
+    content = <JobRoleDetailPage guide={guide} />;
   } else if (route === "/" && isJobsSubdomain()) {
     content = <JobsPage />;
   } else {
@@ -316,7 +321,10 @@ export default function App() {
     );
   }
 
-  const isJobsView = route === "/jobs" || (route === "/" && isJobsSubdomain());
+  const isJobsView =
+    route === "/jobs" ||
+    route.startsWith("/jobs/") ||
+    (route === "/" && isJobsSubdomain());
   if (isJobsView) {
     return (
       <ErrorBoundary>

@@ -30,6 +30,7 @@ import {
   type JobRole,
 } from "../lib/jobs";
 import { navigate } from "../lib/router";
+import { slugifyRoleTitle } from "../lib/jobRoleGuides";
 import Logo from "../components/Logo";
 
 const DEPARTMENTS: Array<"All" | JobDepartment> = [
@@ -696,12 +697,7 @@ export default function JobsPage() {
                       type="button"
                       onClick={() => {
                         setActiveSubSkill(sub.title);
-                        if (sub.queryKeyword) {
-                          setQuery(sub.queryKeyword);
-                        } else {
-                          setQuery("");
-                        }
-                        scrollTo("roles");
+                        navigate(`/jobs/${slugifyRoleTitle(sub.title)}`);
                       }}
                       className={`rounded-xl border p-4 transition cursor-pointer flex flex-col justify-between min-h-[104px] ${
                         selected
