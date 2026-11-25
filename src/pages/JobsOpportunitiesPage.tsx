@@ -426,35 +426,94 @@ export default function JobsOpportunitiesPage() {
               </div>
             </div>
 
-            {/* 2-part row: Left = Audio Player (Play + Waveform), Right = 6 Vertical Slim Skill Cards */}
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-stretch">
-              {/* Left: Audio player card */}
-              <div className="relative flex items-center overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[#16181d] via-[#181b22] to-[#13151a] p-4 sm:px-6 sm:py-5 shadow-xl lg:col-span-7">
-                <audio
-                  ref={audioRef}
-                  src="/audio/founder-welcome.mp3"
-                  preload="metadata"
-                  onLoadedMetadata={(e) => {
-                    const dur = e.currentTarget.duration;
-                    if (Number.isFinite(dur) && dur > 0) setWelcomeDuration(dur);
-                  }}
-                  onTimeUpdate={(e) => {
-                    const dur = e.currentTarget.duration || welcomeDuration;
-                    if (dur > 0)
-                      setWelcomeProgress(e.currentTarget.currentTime / dur);
-                  }}
-                  onEnded={() => {
-                    setIsPlayingWelcome(false);
-                    setWelcomeProgress(1);
-                  }}
-                  onError={() => {
-                    usingSpeechRef.current = true;
-                  }}
-                />
+            {/* One unified card: Left = Play button on top of live waveform, Right = 6 tall slim portrait skill cards */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[#16181d] via-[#181b22] to-[#13151a] p-5 sm:p-7 shadow-2xl">
+              <audio
+                ref={audioRef}
+                src="/audio/founder-welcome.mp3"
+                preload="metadata"
+                onLoadedMetadata={(e) => {
+                  const dur = e.currentTarget.duration;
+                  if (Number.isFinite(dur) && dur > 0) setWelcomeDuration(dur);
+                }}
+                onTimeUpdate={(e) => {
+                  const dur = e.currentTarget.duration || welcomeDuration;
+                  if (dur > 0)
+                    setWelcomeProgress(e.currentTarget.currentTime / dur);
+                }}
+                onEnded={() => {
+                  setIsPlayingWelcome(false);
+                  setWelcomeProgress(1);
+                }}
+                onError={() => {
+                  usingSpeechRef.current = true;
+                }}
+              />
 
-                <div className="flex w-full flex-col gap-5 sm:flex-row sm:items-center sm:gap-5">
-                  {/* Play/Pause button + Founder meta + Time */}
-                  <div className="flex items-center gap-3.5 shrink-0">
+              <div className="grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
+                {/* Left part: Waveform signature with Play/Pause button on top of it */}
+                <div className="flex flex-col justify-center lg:col-span-5">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-gradient-to-br from-brand to-rose-700 text-xs font-bold text-white shadow-inner">
+                        TT
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white">
+                          Tonye S. Taylor
+                        </div>
+                        <div className="text-[11px] text-white/55">
+                          Founder · Welcome Voice Note
+                        </div>
+                      </div>
+                    </div>
+                    <div className="font-mono text-xs text-white/60">
+                      {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
+                      {formatAudioTime(welcomeDuration)}
+                    </div>
+                  </div>
+
+                  {/* Waveform signature with Play/Pause button overlaid on top */}
+                  <div className="relative flex h-24 items-center justify-center rounded-2xl border border-white/10 bg-[#111215]/90 px-4">
+                    {/* Live animated waveform signature */}
+                    <div
+                      className="flex h-16 w-full items-center justify-between gap-[3px]"
+                      role="slider"
+                      aria-label="Founder welcome message waveform"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(welcomeProgress * 100)}
+                    >
+                      {WAVEFORM_BARS.map((heightPct, idx) => {
+                        const barRatio = (idx + 1) / WAVEFORM_BARS.length;
+                        const isActive = barRatio <= welcomeProgress;
+                        return (
+                          <button
+                            key={idx}
+                            ref={(el) => {
+                              waveBarRefs.current[idx] = el;
+                            }}
+                            type="button"
+                            onClick={() =>
+                              seekWelcomeAudio(idx / WAVEFORM_BARS.length)
+                            }
+                            aria-label={`Seek to ${Math.round(
+                              (idx / WAVEFORM_BARS.length) * 100
+                            )}%`}
+                            style={{
+                              height: `${heightPct}%`,
+                            }}
+                            className={`w-[3px] rounded-full transition-colors duration-150 cursor-pointer ${
+                              isActive
+                                ? "bg-brand"
+                                : "bg-white/25 hover:bg-white/50"
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Play/Pause button centered right on top of the waveform */}
                     <button
                       type="button"
                       onClick={toggleWelcomeAudio}
@@ -463,103 +522,72 @@ export default function JobsOpportunitiesPage() {
                           ? "Pause founder welcome message"
                           : "Play founder welcome message"
                       }
-                      className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 transition hover:bg-brand-dark active:scale-95 cursor-pointer"
+                      className="absolute z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/30 bg-brand text-white shadow-[0_0_28px_rgba(220,53,69,0.65)] transition hover:scale-105 hover:bg-brand-dark active:scale-95 cursor-pointer"
                     >
                       {isPlayingWelcome ? (
-                        <Pause className="h-5 w-5 fill-current" />
+                        <Pause className="h-6 w-6 fill-current" />
                       ) : (
-                        <Play className="h-5 w-5 translate-x-[1px] fill-current" />
+                        <Play className="h-6 w-6 translate-x-[1.5px] fill-current" />
                       )}
                     </button>
-
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-gradient-to-br from-brand to-rose-700 text-xs font-bold text-white shadow-inner">
-                        TT
-                      </div>
-                      <div className="text-left">
-                        <div className="text-xs font-semibold text-white">
-                          Tonye S. Taylor · Founder
-                        </div>
-                        <div className="mt-0.5 font-mono text-[11px] text-white/55">
-                          {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
-                          {formatAudioTime(welcomeDuration)}
-                        </div>
-                      </div>
-                    </div>
                   </div>
+                </div>
 
-                  {/* Crisp thin studio waveform */}
-                  <div
-                    className="flex h-12 flex-1 items-center justify-between gap-[3px]"
-                    role="slider"
-                    aria-label="Founder welcome message waveform"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(welcomeProgress * 100)}
-                  >
-                    {WAVEFORM_BARS.map((heightPct, idx) => {
-                      const barRatio = (idx + 1) / WAVEFORM_BARS.length;
-                      const isActive = barRatio <= welcomeProgress;
+                {/* Right part: 6 tall slim vertical portrait cards with red gradient lines */}
+                <div className="lg:col-span-7">
+                  <div className="flex h-48 sm:h-56 items-stretch gap-1.5 sm:gap-2">
+                    {SKILL_SHOWCASE.map((item, idx) => {
+                      const cardGradients = [
+                        "from-amber-400 via-amber-500 to-amber-700",
+                        "from-purple-700 via-violet-800 to-indigo-950",
+                        "from-rose-500 via-pink-600 to-rose-800",
+                        "from-violet-600 via-purple-800 to-indigo-950",
+                        "from-amber-400 via-amber-500 to-amber-700",
+                        "from-rose-500 via-brand to-rose-900",
+                      ];
+                      const grad = cardGradients[idx % cardGradients.length];
                       return (
-                        <button
-                          key={idx}
-                          ref={(el) => {
-                            waveBarRefs.current[idx] = el;
-                          }}
-                          type="button"
-                          onClick={() =>
-                            seekWelcomeAudio(idx / WAVEFORM_BARS.length)
-                          }
-                          aria-label={`Seek to ${Math.round(
-                            (idx / WAVEFORM_BARS.length) * 100
-                          )}%`}
-                          style={{
-                            height: `${heightPct}%`,
-                          }}
-                          className={`w-[3px] rounded-full transition-colors duration-150 cursor-pointer ${
-                            isActive
-                              ? "bg-brand"
-                              : "bg-white/20 hover:bg-white/45"
-                          }`}
-                        />
+                        <div
+                          key={item.label}
+                          className="flex flex-1 min-w-0 items-stretch gap-1.5 sm:gap-2"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setDept(item.dept)}
+                            title={`Filter ${item.dept} roles`}
+                            className={`group relative flex-1 min-w-0 overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b ${grad} shadow-lg cursor-pointer`}
+                          >
+                            {/* Top skill label */}
+                            <div className="relative z-10 px-1.5 pt-2.5 sm:pt-3 text-left">
+                              <span className="block truncate text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-white drop-shadow">
+                                {item.label}
+                              </span>
+                            </div>
+
+                            {/* Portrait image filling lower portion */}
+                            <img
+                              src={item.image}
+                              alt={item.label}
+                              loading="lazy"
+                              className="absolute inset-x-0 bottom-0 h-[76%] w-full object-cover object-top transition duration-500 group-hover:scale-105"
+                            />
+                            <div
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/45 to-transparent"
+                            />
+                          </button>
+
+                          {idx < SKILL_SHOWCASE.length - 1 && (
+                            <div
+                              aria-hidden="true"
+                              className="w-[2px] shrink-0 self-stretch bg-gradient-to-b from-transparent via-brand to-rose-400/20"
+                            />
+                          )}
+                        </div>
                       );
                     })}
                   </div>
                 </div>
-              </div>
-
-              {/* Right: 6 vertical slim skill cards separated by red gradient lines */}
-              <div className="flex h-36 sm:h-40 lg:h-auto lg:min-h-[120px] items-stretch overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] shadow-xl lg:col-span-5">
-                {SKILL_SHOWCASE.map((item, idx) => (
-                  <div key={item.label} className="flex flex-1 min-w-0 items-stretch">
-                    <button
-                      type="button"
-                      onClick={() => setDept(item.dept)}
-                      title={`Filter ${item.dept} roles`}
-                      className="group relative flex-1 min-w-0 overflow-hidden bg-[#0e1014] cursor-pointer"
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.label}
-                        loading="lazy"
-                        className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-110"
-                      />
-                      <div
-                        aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"
-                      />
-                      <span className="absolute inset-x-1 bottom-2 truncate text-center text-[10px] font-semibold tracking-wide text-white/90 group-hover:text-white">
-                        {item.label}
-                      </span>
-                    </button>
-                    {idx < SKILL_SHOWCASE.length - 1 && (
-                      <div
-                        aria-hidden="true"
-                        className="w-[2px] shrink-0 bg-gradient-to-b from-transparent via-brand to-rose-400/20"
-                      />
-                    )}
-                  </div>
-                ))}
               </div>
             </div>
           </section>
