@@ -40,10 +40,59 @@ const DEPARTMENTS: Array<"All" | JobDepartment> = [
   "Operations & Support",
 ];
 
+const SKILL_SUBCATEGORIES: Record<
+  string,
+  { title: string; subtitle: string; queryKeyword: string }[]
+> = {
+  "Dev & IT": [
+    { title: "React & TypeScript Engineers", subtitle: "Dashboard & Web App", queryKeyword: "React" },
+    { title: "MQL5 & EA Developers", subtitle: "MT5 Bots & Indicators", queryKeyword: "Engineer" },
+    { title: "Supabase & API Engineers", subtitle: "Auth, Sync & Payments", queryKeyword: "Full-Stack" },
+    { title: "Interactive Canvas Engineers", subtitle: "Chart & Whiteboard Tools", queryKeyword: "TypeScript" },
+    { title: "QA & Reliability Engineers", subtitle: "Testing & Performance", queryKeyword: "Engineer" },
+  ],
+  Trading: [
+    { title: "Senior FX Market Analysts", subtitle: "London & NY Sessions", queryKeyword: "Analyst" },
+    { title: "1-on-1 Trading Mentors", subtitle: "Trade Journal Audits", queryKeyword: "Mentor" },
+    { title: "Live Session Hosts", subtitle: "Order Flow & Liquidity", queryKeyword: "Live" },
+    { title: "Prop & Risk Coaches", subtitle: "Drawdown & Scaling", queryKeyword: "Analyst" },
+    { title: "Daily Outlook Strategists", subtitle: "Macro & HTF Bias", queryKeyword: "Forex" },
+  ],
+  Design: [
+    { title: "Short-Form Video Editors", subtitle: "Reels, TikTok & Shorts", queryKeyword: "Video" },
+    { title: "Motion & Remotion Designers", subtitle: "Product Walkthroughs", queryKeyword: "Motion" },
+    { title: "UI / Product Designers", subtitle: "Trading Tools & UX", queryKeyword: "Designer" },
+    { title: "Brand & Social Designers", subtitle: "Thumbnails & Visuals", queryKeyword: "Designer" },
+    { title: "Event & Bootcamp Creatives", subtitle: "Flyers & Certificates", queryKeyword: "Designer" },
+  ],
+  Marketing: [
+    { title: "Paid Ads & Funnel Specialists", subtitle: "Meta & YouTube Ads", queryKeyword: "" },
+    { title: "Affiliate & Partner Managers", subtitle: "Creator & IB Growth", queryKeyword: "" },
+    { title: "Email Broadcast Strategists", subtitle: "Retention & Launches", queryKeyword: "" },
+    { title: "Social Media Managers", subtitle: "IG, X & YouTube", queryKeyword: "" },
+    { title: "SEO & Growth Analysts", subtitle: "Organic Search Traffic", queryKeyword: "" },
+  ],
+  Admin: [
+    { title: "Student Success Leads", subtitle: "Onboarding & Support", queryKeyword: "Student" },
+    { title: "Community Moderators", subtitle: "Forum & Trading Floor", queryKeyword: "Community" },
+    { title: "Event Ops Coordinators", subtitle: "Workshops & Check-Ins", queryKeyword: "Operations" },
+    { title: "Billing & Enrollment Support", subtitle: "Invoices & Access", queryKeyword: "Support" },
+    { title: "Executive Operations", subtitle: "Scheduling & Admin", queryKeyword: "Operations" },
+  ],
+  Writing: [
+    { title: "Trading Curriculum Writers", subtitle: "Workbooks & Playbooks", queryKeyword: "" },
+    { title: "Market News & Blog Editors", subtitle: "Daily FX Commentary", queryKeyword: "" },
+    { title: "YouTube & Course Scriptwriters", subtitle: "Educational Scripts", queryKeyword: "" },
+    { title: "Email & Launch Copywriters", subtitle: "Campaign Messaging", queryKeyword: "" },
+    { title: "Quiz & Assessment Authors", subtitle: "Certification Tests", queryKeyword: "" },
+  ],
+};
+
 export default function JobsPage() {
   const [roles, setRoles] = useState<JobRole[]>(() => loadJobRoles());
   const [dept, setDept] = useState<"All" | JobDepartment>("All");
   const [activeSkill, setActiveSkill] = useState<string>("");
+  const [activeSubSkill, setActiveSubSkill] = useState<string>("");
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -603,9 +652,11 @@ export default function JobsPage() {
                       onClick={() => {
                         if (isActive) {
                           setActiveSkill("");
+                          setActiveSubSkill("");
                           setDept("All");
                         } else {
                           setActiveSkill(tab.id);
+                          setActiveSubSkill(SKILL_SUBCATEGORIES[tab.id]?.[0]?.title || "");
                           setDept(tab.mapDept);
                         }
                       }}
@@ -633,6 +684,42 @@ export default function JobsPage() {
                 })}
               </div>
             </div>
+
+            {/* Subcategories Grid shown when a skill category is selected (matches reference) */}
+            {activeSkill && SKILL_SUBCATEGORIES[activeSkill] && (
+              <div className="mx-auto mt-6 max-w-5xl grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 text-left">
+                {SKILL_SUBCATEGORIES[activeSkill].map((sub) => {
+                  const selected = activeSubSkill === sub.title;
+                  return (
+                    <button
+                      key={sub.title}
+                      type="button"
+                      onClick={() => {
+                        setActiveSubSkill(sub.title);
+                        if (sub.queryKeyword) {
+                          setQuery(sub.queryKeyword);
+                        } else {
+                          setQuery("");
+                        }
+                        scrollTo("roles");
+                      }}
+                      className={`rounded-xl border p-4 transition cursor-pointer flex flex-col justify-between min-h-[104px] ${
+                        selected
+                          ? "border-brand bg-[#181a20] shadow-md shadow-brand/15"
+                          : "border-white/10 bg-[#15171c] hover:border-white/25 hover:bg-[#181a20]"
+                      }`}
+                    >
+                      <span className="font-sans text-[13.5px] font-semibold leading-snug text-white">
+                        {sub.title}
+                      </span>
+                      <span className="mt-3 text-[11.5px] font-medium text-white/50">
+                        {sub.subtitle}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {/* Open Positions */}
