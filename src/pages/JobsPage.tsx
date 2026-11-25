@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -48,6 +48,7 @@ export default function JobsPage() {
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const heroRef = useRef<HTMLDivElement | null>(null);
 
   // Application form state
   const [name, setName] = useState("");
@@ -68,7 +69,13 @@ export default function JobsPage() {
 
   useEffect(() => {
     const onScroll = () => {
-      setScrolledPastHero(window.scrollY > Math.max(420, window.innerHeight * 0.72));
+      const heroEl = heroRef.current;
+      if (heroEl) {
+        const rect = heroEl.getBoundingClientRect();
+        setScrolledPastHero(rect.bottom <= 24);
+      } else {
+        setScrolledPastHero(window.scrollY > window.innerHeight * 1.05);
+      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -143,9 +150,9 @@ export default function JobsPage() {
 
   return (
     <div className="min-h-screen bg-[#111215] text-white selection:bg-brand selection:text-white">
-      {/* Minimal Sticky Bar shown only after scrolling past the hero */}
+      {/* Transparent Minimal Sticky Bar shown only after scrolling past the red hero */}
       <div
-        className={`fixed top-0 inset-x-0 z-40 border-b border-white/10 bg-[#111215]/90 backdrop-blur-md transition-all duration-300 ${
+        className={`fixed top-0 inset-x-0 z-40 bg-transparent transition-all duration-300 ${
           scrolledPastHero
             ? "translate-y-0 opacity-100"
             : "-translate-y-full opacity-0 pointer-events-none"
@@ -162,7 +169,7 @@ export default function JobsPage() {
           <button
             type="button"
             onClick={() => scrollTo("roles")}
-            className="rounded-full bg-brand px-5 py-2 text-xs font-bold text-white shadow-md shadow-brand/25 transition hover:bg-brand-dark cursor-pointer"
+            className="rounded-full bg-brand px-5 py-2 text-xs font-bold text-white shadow-lg shadow-brand/30 transition hover:bg-brand-dark cursor-pointer"
           >
             Explore roles
           </button>
@@ -170,7 +177,7 @@ export default function JobsPage() {
       </div>
 
       {/* Dark top header + framed brand-red hero */}
-      <div className="bg-[#111215]">
+      <div ref={heroRef} className="bg-[#111215]">
         <header className="mx-auto flex min-h-[84px] w-full max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
           <button
             type="button"
