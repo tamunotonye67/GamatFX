@@ -1082,15 +1082,411 @@ export default function JobsPage() {
         </div>
       </section>
 
-      {/* Clean Careers Footer */}
-      <footer className="border-t border-white/10 bg-[#0b0c0e] py-8 text-white/55">
-        <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-4 text-xs sm:flex-row sm:px-6">
-          <div className="font-semibold text-white/80">
-            GAMAT <span className="text-brand">Fx</span> Careers ·
-            jobs.gamatfxacademy.com
+      {/* Structured Dark Careers Footer */}
+      <footer className="bg-[#0b0c0e] text-white/75">
+        <div className="mx-auto max-w-[1440px] border-white/15 md:border-x md:border-dashed">
+          <div className="px-5 py-12 sm:px-8 sm:py-16">
+            {/* Top header row: Brand left + CTA pill right */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-10">
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="inline-flex items-center gap-2 text-left"
+              >
+                <span className="font-display text-xl font-bold tracking-tight text-white">
+                  GAMAT <span className="text-brand">Fx</span>
+                </span>
+                <span className="rounded border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                  Careers
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExploreOpportunities}
+                className="rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c82d3d] active:scale-[0.99]"
+              >
+                Start volunteering
+              </button>
+            </div>
+
+            {/* 4-column link grid (offset on desktop like reference) */}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-2 md:grid-cols-4 lg:pl-48">
+              {/* Row 1 */}
+              <div>
+                <h3 className="text-xs font-medium text-white/45">
+                  Getting started
+                </h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/opportunities")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Explore opportunities
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/signup")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Create GAMAT account
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/login")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Member login
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document
+                          .getElementById("roles-directory")
+                          ?.scrollIntoView({ behavior: "smooth" })
+                      }
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Browse role tracks
+                    </button>
+                  </li>
+                  <li>
+                    <a
+                      href="mailto:founder@gamatfxacademy.com"
+                      className="text-white/85 transition hover:text-white"
+                    >
+                      Contact founder
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-white/45">
+                  Fellowship
+                </h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/team")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Meet the team
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/market-research-analyst")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Remote-first culture
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/opportunities")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Experience certificates
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/learn")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Academy access
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/opportunities")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Path to paid roles
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-white/45">Resources</h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/outlook")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Market outlook
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/learn")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Learning center
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/blog")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Blog &amp; insights
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/forum")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Community forum
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/news")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Market news
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-white/45">
+                  Role tracks
+                </h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/market-research-analyst")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Research &amp; Analysis
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/frontend-web-developer")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Engineering &amp; Web
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/brand-motion-designer")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Design &amp; Media
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/community-growth-lead")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Community &amp; Growth
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/student-support-coordinator")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Operations &amp; Support
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Row 2 */}
+              <div>
+                <h3 className="text-xs font-medium text-white/45">Academy</h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Back to main site
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/mentor")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Mentorship
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/store")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Academy store
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/gallery")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Gallery
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-white/45">
+                  Standards
+                </h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/opportunities")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Volunteer guidelines
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/team")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Code of conduct
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/verify")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Verify certificate
+                    </button>
+                  </li>
+                  <li>
+                    <a
+                      href="mailto:support@gamatfxacademy.com"
+                      className="text-white/85 transition hover:text-white"
+                    >
+                      Report an issue
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-medium text-white/45">Builders</h3>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/frontend-web-developer")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Role guides
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/team")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Team directory
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/live-chart")}
+                      className="text-left text-white/85 transition hover:text-white"
+                    >
+                      Live chart desk
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div>
-            © {new Date().getFullYear()} GAMAT Fx Academy. All rights reserved.
+
+          {/* Dashed horizontal divider + bottom legal bar */}
+          <div className="border-t border-dashed border-white/15 px-5 py-5 sm:px-8">
+            <div className="flex flex-col items-start justify-between gap-3 text-xs text-white/45 sm:flex-row sm:items-center">
+              <div>
+                © {new Date().getFullYear()} GAMAT Fx Academy. All rights
+                reserved.
+              </div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <button
+                  type="button"
+                  onClick={() => goToMainRoute("/")}
+                  className="font-medium text-white/80 transition hover:text-white"
+                >
+                  Privacy policy
+                </button>
+                <span aria-hidden="true" className="text-white/25">
+                  |
+                </span>
+                <a
+                  href="mailto:support@gamatfxacademy.com"
+                  className="transition hover:text-white"
+                >
+                  Report an issue
+                </a>
+                <span aria-hidden="true" className="text-white/25">
+                  |
+                </span>
+                <button
+                  type="button"
+                  onClick={() => goToMainRoute("/")}
+                  className="transition hover:text-white"
+                >
+                  Terms of use
+                </button>
+                <span aria-hidden="true" className="text-white/25">
+                  |
+                </span>
+                <span className="text-white/60">jobs.gamatfxacademy.com</span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
