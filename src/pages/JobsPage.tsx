@@ -625,18 +625,61 @@ export default function JobsPage() {
               </div>
 
               <div className="pt-8 space-y-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setMobileSection(null);
-                    setMobileRoleCat(null);
-                    goToMainRoute(user ? "/dashboard" : "/signup");
-                  }}
-                  className="w-full rounded-full bg-brand py-4 text-sm font-bold text-white shadow-lg shadow-brand/30 cursor-pointer"
-                >
-                  {user ? "Go to Dashboard" : "Login / Create GAMAT Account"}
-                </button>
+                {user ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileSection(null);
+                        setMobileRoleCat(null);
+                        goToMainRoute("/dashboard");
+                      }}
+                      className="w-full rounded-full bg-brand py-4 text-sm font-bold text-white shadow-lg shadow-brand/30 cursor-pointer"
+                    >
+                      Go to Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                        setMobileSection(null);
+                        setMobileRoleCat(null);
+                      }}
+                      className="w-full rounded-full border border-white/20 bg-white/[0.04] py-3.5 text-sm font-semibold text-white/90 hover:bg-white/10 transition cursor-pointer"
+                    >
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileSection(null);
+                        setMobileRoleCat(null);
+                        goToMainRoute("/login");
+                      }}
+                      className="w-full rounded-full bg-brand py-4 text-sm font-bold text-white shadow-lg shadow-brand/30 cursor-pointer"
+                    >
+                      Log in
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileSection(null);
+                        setMobileRoleCat(null);
+                        goToMainRoute("/signup");
+                      }}
+                      className="w-full rounded-full border border-white/20 bg-white/[0.04] py-3.5 text-sm font-semibold text-white/90 hover:bg-white/10 transition cursor-pointer"
+                    >
+                      Create GAMAT Account
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Left Flyout Panel (Roles / Why GAMAT?) */}
