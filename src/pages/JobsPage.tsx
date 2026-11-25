@@ -1386,7 +1386,7 @@ export default function JobsPage() {
             {/* Two evenly spaced horizontal dashed lines joining left & right vertical dashed rails */}
             <div
               aria-hidden="true"
-              className="flex flex-col justify-evenly py-6 sm:py-8 gap-5 sm:gap-7"
+              className="flex flex-col justify-evenly py-10 sm:py-14 gap-16 sm:gap-24"
             >
               <div
                 className="h-[2px] w-full"
