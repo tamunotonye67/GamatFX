@@ -785,6 +785,146 @@ export default function JobsPage() {
                   })}
                 </div>
               )}
+
+              {/* Why should you join us? Split Comparison Section */}
+              <div className="mx-auto mt-24 sm:mt-32 max-w-5xl">
+                <style>{`
+                  @keyframes gamatNoiseFloatA {
+                    0%, 100% { transform: translate3d(0px, 0px, 0); }
+                    50% { transform: translate3d(10px, -12px, 0); }
+                  }
+                  @keyframes gamatNoiseFloatB {
+                    0%, 100% { transform: translate3d(0px, 0px, 0); }
+                    50% { transform: translate3d(-12px, 10px, 0); }
+                  }
+                  @keyframes gamatNoiseScroll {
+                    0% { transform: translateY(0px); }
+                    50% { transform: translateY(-18px); }
+                    100% { transform: translateY(0px); }
+                  }
+                `}</style>
+
+                <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
+                  Why should you join us?
+                </h2>
+                <p className="mt-4 text-sm text-white/65 sm:text-base">
+                  Everything needed to{" "}
+                  <span className="inline-block rounded-md border border-brand/30 bg-brand/15 px-2.5 py-0.5 text-rose-400 font-medium">
+                    build real skills, ship live work, and grow fast
+                  </span>
+                </p>
+
+                {/* 2-Column Architectural Split Box */}
+                <div className="relative mt-10 border border-white/10 bg-[#111215] text-left">
+                  {/* Corner square markers */}
+                  <span className="absolute -top-1 -left-1 z-20 h-2 w-2 border border-white/25 bg-[#111215]" />
+                  <span className="absolute -top-1 -right-1 z-20 h-2 w-2 border border-white/25 bg-[#111215]" />
+                  <span className="absolute -bottom-1 -left-1 z-20 h-2 w-2 border border-white/25 bg-[#111215]" />
+                  <span className="absolute -bottom-1 -right-1 z-20 h-2 w-2 border border-white/25 bg-[#111215]" />
+
+                  <div className="grid md:grid-cols-2">
+                    {/* Left Half: Dynamic Non-Static Chaos / Solo Grind */}
+                    <div className="relative min-h-[380px] sm:min-h-[430px] overflow-hidden border-b md:border-b-0 md:border-r border-white/10 bg-[#111215] p-6 sm:p-10 flex flex-col items-center">
+                      {/* Dotted waveform background */}
+                      <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-x-0 top-1/2 h-40 -translate-y-1/2 opacity-25"
+                        style={{
+                          backgroundImage:
+                            "radial-gradient(#dc3545 1px, transparent 1px)",
+                          backgroundSize: "7px 7px",
+                          maskImage:
+                            "linear-gradient(to bottom, transparent, black 45%, transparent)",
+                          WebkitMaskImage:
+                            "linear-gradient(to bottom, transparent, black 45%, transparent)",
+                        }}
+                      />
+
+                      <h3 className="relative z-10 text-center font-sans text-2xl sm:text-3xl font-medium tracking-tight text-white">
+                        Grinding alone
+                        <br />
+                        “solo”
+                      </h3>
+
+                      {/* Animated drifting status / friction cards */}
+                      <div className="relative mt-6 h-[240px] w-full max-w-[390px]">
+                        {/* Card 1 */}
+                        <div
+                          style={{ animation: "gamatNoiseFloatA 5.5s ease-in-out infinite" }}
+                          className="absolute right-1 top-0 z-10 rounded-xl border border-amber-400/35 bg-[#181a20]/95 px-3.5 py-2 shadow-xl"
+                        >
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                            ⚠ STATUS: UNRESOLVED
+                          </span>
+                        </div>
+
+                        {/* Card 2 */}
+                        <div
+                          style={{ animation: "gamatNoiseFloatB 6.2s ease-in-out infinite" }}
+                          className="absolute left-0 top-10 z-20 max-w-[250px] rounded-xl border border-white/15 bg-[#17191f]/95 p-3 shadow-2xl"
+                        >
+                          <p className="text-[11px] leading-relaxed text-white/75">
+                            “Watched 40+ tutorials this month — still zero
+                            real-world feedback on my work.”
+                          </p>
+                        </div>
+
+                        {/* Card 3 */}
+                        <div
+                          style={{ animation: "gamatNoiseScroll 4.8s ease-in-out infinite" }}
+                          className="absolute right-0 top-24 z-30 max-w-[235px] rounded-xl border border-brand/45 bg-[#1a1518]/95 p-3.5 shadow-2xl"
+                        >
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-400">
+                            <span className="rounded bg-brand/25 px-1.5 py-0.5">P0</span>
+                            <span>NO PRODUCTION PROOF</span>
+                          </div>
+                          <p className="mt-1.5 text-[11px] leading-snug text-white/80">
+                            Applying everywhere without live projects, mentor
+                            audits, or team velocity.
+                          </p>
+                        </div>
+
+                        {/* Card 4 */}
+                        <div
+                          style={{ animation: "gamatNoiseFloatA 6.8s ease-in-out infinite" }}
+                          className="absolute left-2 bottom-2 z-20 max-w-[250px] rounded-xl border border-white/15 bg-[#17191f]/95 p-3 shadow-2xl"
+                        >
+                          <p className="text-[11px] leading-relaxed text-white/70">
+                            “No structured desk, no mentorship, and no clear
+                            growth path.”
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Half: Solid Brand-Red Calm Clarity */}
+                    <div className="relative min-h-[380px] sm:min-h-[430px] overflow-hidden bg-gradient-to-b from-brand to-[#b81d2c] p-6 sm:p-10 flex flex-col items-center justify-between text-center">
+                      {/* Dotted center horizon line */}
+                      <div
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-x-0 top-1/2 border-t border-dotted border-white/35"
+                      />
+
+                      <h3 className="relative z-10 font-sans text-2xl sm:text-3xl font-medium tracking-tight text-white">
+                        Building with
+                        <br />
+                        GAMAT Fx
+                      </h3>
+
+                      <div className="relative z-10 my-auto">
+                        <div className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-5 py-3 text-xs sm:text-sm font-semibold text-white shadow-lg backdrop-blur-xs">
+                          <span>✓</span>
+                          <span>Real projects, live mentorship &amp; growth</span>
+                        </div>
+                      </div>
+
+                      <div className="relative z-10 text-xs font-medium text-white/80">
+                        Verified Fellowship · Direct Team Impact
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
           </div>
         </div>
