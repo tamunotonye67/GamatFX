@@ -247,14 +247,14 @@ export default function JobsInfoPage({
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-14 sm:px-8">
-        {/* Section switcher pills */}
-        <div className="mb-10 flex flex-wrap gap-2">
+        {/* Section switcher pills (horizontally scrollable on mobile) */}
+        <div className="mb-8 sm:mb-10 -mx-4 px-4 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => navigate(tab.route)}
-              className={`rounded-full px-4 py-2 text-xs font-semibold transition cursor-pointer ${
+              className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition cursor-pointer ${
                 section === tab.id
                   ? "bg-brand text-white"
                   : "border border-white/15 bg-[#16181d] text-white/70 hover:border-white/30 hover:text-white"
