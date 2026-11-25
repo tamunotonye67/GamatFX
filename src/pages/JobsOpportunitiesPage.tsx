@@ -260,76 +260,73 @@ export default function JobsOpportunitiesPage() {
             ))}
           </div>
 
-          {/* Role grid with cover thumbnails */}
+          {/* Role rows with left-side picture thumbnails */}
           {openRoles.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="space-y-4">
               {openRoles.map((role) => (
                 <article
                   key={role.id}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] shadow-xl transition hover:border-brand/50"
+                  className="group rounded-2xl border border-white/10 bg-[#16181d] p-4 sm:p-5 transition hover:border-brand/50"
                 >
-                  {/* Thumbnail cover */}
-                  <div className="relative h-48 w-full overflow-hidden bg-[#0e1014]">
-                    <img
-                      src={getRoleThumbnail(role)}
-                      alt={role.title}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-gradient-to-t from-[#16181d] via-[#16181d]/30 to-black/25"
-                    />
-                    <div className="absolute inset-x-4 top-4 flex flex-wrap items-center justify-between gap-2">
-                      <span className="rounded-full border border-white/20 bg-black/55 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-md">
-                        {role.department}
-                      </span>
-                      {role.compensation && (
-                        <span className="rounded-full border border-emerald-400/30 bg-emerald-500/20 px-3 py-1 text-[11px] font-semibold text-emerald-200 backdrop-blur-md">
-                          {role.compensation}
-                        </span>
-                      )}
+                  <div className="flex flex-col md:flex-row md:items-center gap-5">
+                    {/* Left thumbnail picture */}
+                    <div className="relative h-44 w-full shrink-0 overflow-hidden rounded-xl bg-[#0e1014] md:h-36 md:w-52 lg:h-40 lg:w-60">
+                      <img
+                        src={getRoleThumbnail(role)}
+                        alt={role.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent"
+                      />
                     </div>
-                  </div>
 
-                  {/* Card body */}
-                  <div className="flex flex-1 flex-col justify-between p-6">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-brand" />
+                    {/* Center role details */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                        <span className="rounded-md bg-brand/15 px-2.5 py-0.5 text-[11px] font-bold text-rose-300">
+                          {role.department}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-0.5 text-[11px] font-medium text-white/70">
+                          <MapPin className="h-3 w-3 text-brand" />{" "}
                           {role.location}
                         </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5 text-brand" />
-                          {role.type}
+                        <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-0.5 text-[11px] font-medium text-white/70">
+                          <Clock className="h-3 w-3 text-brand" /> {role.type}
                         </span>
+                        {role.compensation && (
+                          <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300">
+                            {role.compensation}
+                          </span>
+                        )}
                       </div>
 
-                      <h3 className="mt-3 font-display text-xl font-bold leading-snug text-white">
+                      <h3 className="font-display text-lg sm:text-xl font-bold text-white">
                         {role.title}
                       </h3>
-                      <p className="mt-2.5 text-sm leading-relaxed text-white/70">
+                      <p className="mt-2 text-sm leading-relaxed text-white/65">
                         {role.summary}
                       </p>
-
                       {role.requirements && (
-                        <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs leading-relaxed text-white/60">
-                          <span className="font-semibold text-white/85">
-                            Requirements:{" "}
-                          </span>
+                        <p className="mt-2 text-xs leading-relaxed text-white/50">
+                          <strong className="text-white/80">
+                            Requirements:
+                          </strong>{" "}
                           {role.requirements}
-                        </div>
+                        </p>
                       )}
                     </div>
 
-                    <div className="mt-6 pt-2">
+                    {/* Right CTA */}
+                    <div className="shrink-0">
                       <button
                         type="button"
                         onClick={() => openModal(role)}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-xs font-bold text-ink transition hover:bg-cream cursor-pointer"
+                        className="inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-full bg-white px-6 py-2.5 text-xs font-bold text-ink transition hover:bg-cream cursor-pointer"
                       >
-                        Apply for this role <ArrowRight className="h-3.5 w-3.5" />
+                        Apply Now <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
