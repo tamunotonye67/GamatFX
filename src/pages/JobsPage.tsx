@@ -81,10 +81,10 @@ const SKILL_SUBCATEGORIES: Record<
   ],
 };
 
-type FlyoutMenu = "roles" | "why" | "connect" | null;
+type FlyoutMenu = "roles" | "why" | null;
 
 export default function JobsPage() {
-  const { user, publishedTeam } = useStore();
+  const { user } = useStore();
   const [activeSkill, setActiveSkill] = useState<string>("");
   const [activeSubSkill, setActiveSubSkill] = useState<string>("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -237,20 +237,16 @@ export default function JobsPage() {
                 <ChevronsUpDown className="h-3.5 w-3.5 text-white/50" />
               </button>
 
-              {/* 4. Connect (with Team Face Profile Cards Flyout) */}
+              {/* 4. Back to Site (no flyout) */}
               <button
                 type="button"
-                onClick={() =>
-                  setOpenFlyout(openFlyout === "connect" ? null : "connect")
-                }
-                className={`inline-flex items-center gap-1.5 transition cursor-pointer ${
-                  openFlyout === "connect"
-                    ? "text-white"
-                    : "text-white/85 hover:text-white"
-                }`}
+                onClick={() => {
+                  setOpenFlyout(null);
+                  goToMainRoute("/");
+                }}
+                className="text-white/85 hover:text-white transition cursor-pointer"
               >
-                <span>Connect</span>
-                <ChevronsUpDown className="h-3.5 w-3.5 text-white/50" />
+                Back to Site
               </button>
             </nav>
 
@@ -447,6 +443,21 @@ export default function JobsPage() {
                       type="button"
                       onClick={() => {
                         setOpenFlyout(null);
+                        navigate("/jobs/team");
+                      }}
+                      className="block w-full text-left group cursor-pointer"
+                    >
+                      <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition">
+                        Meet the Team
+                      </div>
+                      <div className="text-xs text-white/50 mt-0.5">
+                        Explore profiles &amp; portfolios of our mentors and builders
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenFlyout(null);
                         goToMainRoute("/about");
                       }}
                       className="block w-full text-left group cursor-pointer"
@@ -478,74 +489,6 @@ export default function JobsPage() {
               </div>
             </div>
           )}
-
-          {openFlyout === "connect" && (
-            <div className="hidden lg:block absolute left-0 right-0 top-full z-50 px-4">
-              <div className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-white/15 bg-[#121317] shadow-2xl">
-                <div className="flex items-center justify-between border-b border-white/10 px-6 py-3.5">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-white/50">
-                      Meet the GAMAT Fx Team
-                    </p>
-                    <p className="text-xs text-white/70 mt-0.5">
-                      Connect with the mentors, analysts, and builders leading our desk.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenFlyout(null);
-                      goToMainRoute("/team");
-                    }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-rose-400 hover:text-rose-300 cursor-pointer"
-                  >
-                    View all team portfolios <ArrowUpRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 p-6">
-                  {publishedTeam.slice(0, 6).map((member) => (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onClick={() => {
-                        setOpenFlyout(null);
-                        goToMainRoute(`/team/${member.slug}`);
-                      }}
-                      className="group flex items-start gap-3.5 rounded-xl border border-white/10 bg-[#17191f] p-4 text-left transition hover:border-brand/50 hover:bg-[#1b1e26] cursor-pointer"
-                    >
-                      {member.avatar ? (
-                        <img
-                          src={member.avatar}
-                          alt={member.name}
-                          className="h-12 w-12 shrink-0 rounded-full object-cover border border-white/15"
-                        />
-                      ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand/20 font-display text-sm font-bold text-rose-300 border border-brand/30">
-                          {member.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .slice(0, 2)
-                            .join("")}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-bold text-white group-hover:text-brand transition">
-                          {member.name}
-                        </div>
-                        <div className="truncate text-[11.5px] font-semibold text-rose-300/90">
-                          {member.role}
-                        </div>
-                        <p className="mt-1.5 line-clamp-2 text-[11.5px] leading-relaxed text-white/55">
-                          {member.bio || member.focus}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Full-Viewport Mobile Navigation Menu */}
@@ -569,7 +512,8 @@ export default function JobsPage() {
                   { label: "Roles & Volunteer Tracks", action: () => scrollTo("skills") },
                   { label: "Explore Opportunities", action: handleExploreOpportunities },
                   { label: "Why GAMAT?", action: () => scrollTo("culture") },
-                  { label: "Connect With Team", action: () => goToMainRoute("/team") },
+                  { label: "Meet the Team", action: () => navigate("/jobs/team") },
+                  { label: "Back to Site", action: () => goToMainRoute("/") },
                   { label: "FAQ?", action: () => goToMainRoute("/faq") },
                   { label: "Contact Founder", action: () => goToMainRoute("/contact") },
                 ].map((item) => (

@@ -114,6 +114,7 @@ const GalleryPage = lazyWithRetry(() => import("./pages/GalleryPage"));
 const JobsPage = lazyWithRetry(() => import("./pages/JobsPage"));
 const JobRoleDetailPage = lazyWithRetry(() => import("./pages/JobRoleDetailPage"));
 const JobsOpportunitiesPage = lazyWithRetry(() => import("./pages/JobsOpportunitiesPage"));
+const JobsTeamPage = lazyWithRetry(() => import("./pages/JobsTeamPage"));
 
 function PageLoader() {
   return (
@@ -304,6 +305,8 @@ export default function App() {
     content = <StorePage categoryParam={second} />;
   } else if (first === "jobs" && second === "opportunities") {
     content = <JobsOpportunitiesPage />;
+  } else if (first === "jobs" && second === "team") {
+    content = <JobsTeamPage />;
   } else if (first === "jobs" && second) {
     const guide = findRoleGuideBySlug(second) || ROLE_GUIDES[0];
     content = <JobRoleDetailPage guide={guide} />;
