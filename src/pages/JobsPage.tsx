@@ -380,7 +380,7 @@ export default function JobsPage() {
         )}
 
         {/* Framed Top-Rounded Brand-Red Hero Card */}
-        <div className="w-full px-2 sm:px-3 pb-3">
+        <div className="w-full px-2 sm:px-3 pb-0">
           <section className="relative flex min-h-0 sm:min-h-[108vh] flex-col items-start sm:items-center justify-start sm:justify-center overflow-hidden rounded-t-[36px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-5 pt-24 pb-10 sm:px-6 sm:py-36 text-left sm:text-center text-white shadow-2xl">
             {/* Subtle dot-matrix texture + warm bottom glow */}
             <div
@@ -423,7 +423,7 @@ export default function JobsPage() {
       </div>
 
       {/* Architectural Dark Continuation Section */}
-      <div className="mt-4 sm:mt-6 w-full">
+      <div className="mt-7 sm:mt-2 w-full">
         <div
           aria-hidden="true"
           className="h-[2px] w-full"
@@ -433,7 +433,24 @@ export default function JobsPage() {
           }}
         />
         <div className="mx-auto max-w-[1440px] px-2 sm:px-3">
-          <div className="border-x border-dashed border-white/15">
+          <div className="relative">
+            {/* Left & Right matching vertical dashed lines (hidden on mobile) */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none hidden md:block absolute top-0 bottom-0 left-0 w-[2px]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(to bottom, rgba(255,255,255,0.22) 0 14px, transparent 14px 24px)",
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none hidden md:block absolute top-0 bottom-0 right-0 w-[2px]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(to bottom, rgba(255,255,255,0.22) 0 14px, transparent 14px 24px)",
+              }}
+            />
           {/* Location Doesn't Matter + Dotted Globe */}
           <section
             id="culture"
