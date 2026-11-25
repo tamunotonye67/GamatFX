@@ -314,15 +314,15 @@ export default function JobsPage() {
 
           {/* ======================== Desktop Flyout Panels ======================== */}
           {openFlyout === "roles" && (
-            <div className="hidden lg:block absolute left-0 right-0 top-full z-50 px-4">
+            <div className="hidden lg:block absolute left-0 right-0 top-full z-50 mt-2 px-6">
               <div className="mx-auto max-w-[1400px] overflow-hidden rounded-2xl border border-white/15 bg-[#121317] shadow-2xl">
                 <div className="grid grid-cols-6 divide-x divide-white/10">
                   {SKILL_CATEGORIES.map((cat) => (
-                    <div key={cat.id} className="p-5">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45 mb-4">
+                    <div key={cat.id} className="p-6 xl:p-7">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45 mb-5">
                         {cat.label}
                       </p>
-                      <div className="space-y-3.5">
+                      <div className="space-y-5">
                         {(SKILL_SUBCATEGORIES[cat.id] || []).map((sub) => (
                           <button
                             key={sub.title}
@@ -336,7 +336,7 @@ export default function JobsPage() {
                             <div className="text-[13px] font-semibold text-white group-hover:text-brand transition leading-snug">
                               {sub.title}
                             </div>
-                            <div className="text-[11.5px] text-white/50 mt-0.5 leading-snug">
+                            <div className="text-[11.5px] text-white/50 mt-1 leading-snug">
                               {sub.subtitle}
                             </div>
                           </button>
@@ -345,7 +345,7 @@ export default function JobsPage() {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between border-t border-white/10 bg-[#0e0f12] px-6 py-3 text-xs text-white/60">
+                <div className="flex items-center justify-between border-t border-white/10 bg-[#0e0f12] px-7 py-4 text-xs text-white/60">
                   <span>All roles start as flexible remote Volunteer Fellowships</span>
                   <button
                     type="button"
@@ -360,10 +360,10 @@ export default function JobsPage() {
           )}
 
           {openFlyout === "why" && (
-            <div className="hidden lg:block absolute left-0 right-0 top-full z-50 px-4">
+            <div className="hidden lg:block absolute left-0 right-0 top-full z-50 mt-2 px-6">
               <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-white/15 bg-[#121317] shadow-2xl">
                 <div className="grid grid-cols-3 divide-x divide-white/10">
-                  <div className="p-6 space-y-4">
+                  <div className="p-7 space-y-5">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45">
                       Our Culture
                     </p>
@@ -378,7 +378,7 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition">
                         Location Doesn’t Matter
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         Remote-first desk across Lagos, London &amp; NY sessions
                       </div>
                     </button>
@@ -393,13 +393,13 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition">
                         High Ownership &amp; Speed
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         Ship real work without corporate red tape
                       </div>
                     </button>
                   </div>
 
-                  <div className="p-6 space-y-4">
+                  <div className="p-7 space-y-5">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45">
                       Volunteering &amp; Growth
                     </p>
@@ -414,7 +414,7 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition">
                         Academy &amp; Mentorship Perks
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         Complimentary access to courses &amp; live sessions
                       </div>
                     </button>
@@ -429,13 +429,13 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition">
                         Path to Paid Roles
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         Top volunteers get priority when paid seats open
                       </div>
                     </button>
                   </div>
 
-                  <div className="p-6 space-y-4">
+                  <div className="p-7 space-y-5">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45">
                       Learn About GAMAT Fx
                     </p>
@@ -450,7 +450,7 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition">
                         Meet the Team
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         Explore profiles &amp; portfolios of our mentors and builders
                       </div>
                     </button>
@@ -465,7 +465,7 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition inline-flex items-center gap-1">
                         About the Academy <ArrowUpRight className="h-3 w-3" />
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         Our story training 1,000+ disciplined traders
                       </div>
                     </button>
@@ -480,7 +480,7 @@ export default function JobsPage() {
                       <div className="text-[13.5px] font-semibold text-white group-hover:text-brand transition inline-flex items-center gap-1">
                         How GAMAT Fx Works <ArrowUpRight className="h-3 w-3" />
                       </div>
-                      <div className="text-xs text-white/50 mt-0.5">
+                      <div className="text-xs text-white/50 mt-1 leading-relaxed">
                         See the full student &amp; mentor ecosystem
                       </div>
                     </button>
