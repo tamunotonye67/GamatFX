@@ -26,10 +26,9 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
   importer: () => Promise<{ default: T }>
 ): React.LazyExoticComponent<T> {
   return lazy(async () => {
-    const key = "gamat:chunk_reload";
+    const key = "gamat:chunk_reload_at";
     try {
       const mod = await importer();
-      try { sessionStorage.removeItem(key); } catch {}
       return mod;
     } catch (err: any) {
       const msg = String(err?.message || err || "");
@@ -39,10 +38,14 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
         msg.includes("Loading chunk") ||
         msg.includes("Loading CSS chunk");
       if (isChunkError && typeof window !== "undefined") {
-        let alreadyReloaded = false;
-        try { alreadyReloaded = sessionStorage.getItem(key) === "1"; } catch {}
-        if (!alreadyReloaded) {
-          try { sessionStorage.setItem(key, "1"); } catch {}
+        let lastReload = 0;
+        try {
+          lastReload = Number(sessionStorage.getItem(key) || 0);
+        } catch {}
+        if (!Number.isFinite(lastReload) || Date.now() - lastReload > 10_000) {
+          try {
+            sessionStorage.setItem(key, String(Date.now()));
+          } catch {}
           window.location.reload();
           return new Promise<never>(() => {});
         }
