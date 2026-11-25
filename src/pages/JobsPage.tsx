@@ -4,6 +4,8 @@ import {
   ArrowUpRight,
   BarChart3,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   ChevronsUpDown,
   Code2,
   Headphones,
@@ -544,7 +546,11 @@ export default function JobsPage() {
               <Logo variant="light" size="md" asDiv />
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setMobileSection(null);
+                  setMobileRoleCat(null);
+                }}
                 aria-label="Close navigation menu"
                 className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
               >
@@ -552,143 +558,48 @@ export default function JobsPage() {
               </button>
             </div>
 
-            <div className="flex flex-1 flex-col justify-between overflow-y-auto px-5 py-6">
+            <div className="relative flex flex-1 flex-col justify-between overflow-y-auto px-5 py-6">
               <div className="space-y-3">
-                {/* 1. Roles expandable accordion */}
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMobileSection(mobileSection === "roles" ? null : "roles")
-                    }
-                    className="flex w-full items-center justify-between px-5 py-4 text-left text-base font-semibold text-white cursor-pointer"
-                  >
-                    <span>Roles</span>
-                    <ChevronsUpDown className="h-4 w-4 text-white/55" />
-                  </button>
-                  {mobileSection === "roles" && (
-                    <div className="border-t border-white/10 bg-[#0d0e11] px-4 py-3 space-y-2">
-                      {SKILL_CATEGORIES.map((cat) => {
-                        const isCatOpen = mobileRoleCat === cat.id;
-                        return (
-                          <div
-                            key={cat.id}
-                            className="rounded-xl border border-white/10 bg-white/[0.02]"
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setMobileRoleCat(isCatOpen ? null : cat.id)
-                              }
-                              className="flex w-full items-center justify-between px-3.5 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-white/80 cursor-pointer"
-                            >
-                              <span>{cat.label}</span>
-                              <ChevronsUpDown className="h-3.5 w-3.5 text-white/45" />
-                            </button>
-                            {isCatOpen && (
-                              <div className="border-t border-white/10 px-3 py-2 space-y-1.5">
-                                {(SKILL_SUBCATEGORIES[cat.id] || []).map(
-                                  (sub) => (
-                                    <button
-                                      key={sub.title}
-                                      type="button"
-                                      onClick={() => {
-                                        setMobileMenuOpen(false);
-                                        navigate(
-                                          `/jobs/${slugifyRoleTitle(sub.title)}`
-                                        );
-                                      }}
-                                      className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-xs font-medium text-white/85 hover:bg-white/5 hover:text-brand cursor-pointer"
-                                    >
-                                      <span>{sub.title}</span>
-                                      <ArrowRight className="h-3.5 w-3.5 text-white/40" />
-                                    </button>
-                                  )
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          scrollTo("skills");
-                        }}
-                        className="mt-1 flex w-full items-center justify-between rounded-xl bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-rose-400 cursor-pointer"
-                      >
-                        <span>View all skill tracks on page</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* 2. Explore Opportunities */}
+                {/* 1. Roles -> opens left flyout */}
                 <button
                   type="button"
-                  onClick={handleExploreOpportunities}
+                  onClick={() => {
+                    setMobileRoleCat(null);
+                    setMobileSection("roles");
+                  }}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left text-base font-semibold text-white transition hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                >
+                  <span>Roles</span>
+                  <ChevronRight className="h-4 w-4 text-white/60" />
+                </button>
+
+                {/* 2. Explore Opportunities (direct link, no arrow) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileSection(null);
+                    setMobileRoleCat(null);
+                    handleExploreOpportunities();
+                  }}
                   className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left text-base font-semibold text-white transition hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
                 >
                   <span>Explore Opportunities</span>
-                  <ArrowRight className="h-4 w-4 text-white/50" />
                 </button>
 
-                {/* 3. Why GAMAT? expandable accordion */}
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMobileSection(mobileSection === "why" ? null : "why")
-                    }
-                    className="flex w-full items-center justify-between px-5 py-4 text-left text-base font-semibold text-white cursor-pointer"
-                  >
-                    <span>Why GAMAT?</span>
-                    <ChevronsUpDown className="h-4 w-4 text-white/55" />
-                  </button>
-                  {mobileSection === "why" && (
-                    <div className="border-t border-white/10 bg-[#0d0e11] px-4 py-3 space-y-1.5">
-                      {[
-                        {
-                          label: "Remote-First Culture",
-                          action: () => scrollTo("culture"),
-                        },
-                        {
-                          label: "Why Should You Join Us?",
-                          action: () => scrollTo("skills"),
-                        },
-                        {
-                          label: "Meet the Team",
-                          action: () => navigate("/jobs/team"),
-                        },
-                        {
-                          label: "About the Academy",
-                          action: () => goToMainRoute("/about"),
-                        },
-                        {
-                          label: "How GAMAT Fx Works",
-                          action: () => goToMainRoute("/how-it-works"),
-                        },
-                      ].map((sub) => (
-                        <button
-                          key={sub.label}
-                          type="button"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            sub.action();
-                          }}
-                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-medium text-white/85 hover:bg-white/5 hover:text-brand cursor-pointer"
-                        >
-                          <span>{sub.label}</span>
-                          <ArrowRight className="h-3.5 w-3.5 text-white/40" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {/* 3. Why GAMAT? -> opens left flyout */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileRoleCat(null);
+                    setMobileSection("why");
+                  }}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left text-base font-semibold text-white transition hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                >
+                  <span>Why GAMAT?</span>
+                  <ChevronRight className="h-4 w-4 text-white/60" />
+                </button>
 
-                {/* 4. Direct links: Back to Site, FAQ?, Contact Founder */}
+                {/* 4. Direct links: Back to Site, FAQ?, Contact Founder (no arrows) */}
                 {[
                   { label: "Back to Site", action: () => goToMainRoute("/") },
                   { label: "FAQ?", action: () => goToMainRoute("/faq") },
@@ -702,12 +613,13 @@ export default function JobsPage() {
                     type="button"
                     onClick={() => {
                       setMobileMenuOpen(false);
+                      setMobileSection(null);
+                      setMobileRoleCat(null);
                       item.action();
                     }}
                     className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left text-base font-semibold text-white transition hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
                   >
                     <span>{item.label}</span>
-                    <ArrowRight className="h-4 w-4 text-white/50" />
                   </button>
                 ))}
               </div>
@@ -717,6 +629,8 @@ export default function JobsPage() {
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
+                    setMobileSection(null);
+                    setMobileRoleCat(null);
                     goToMainRoute(user ? "/dashboard" : "/signup");
                   }}
                   className="w-full rounded-full bg-brand py-4 text-sm font-bold text-white shadow-lg shadow-brand/30 cursor-pointer"
@@ -724,6 +638,153 @@ export default function JobsPage() {
                   {user ? "Go to Dashboard" : "Login / Create GAMAT Account"}
                 </button>
               </div>
+
+              {/* Left Flyout Panel (Roles / Why GAMAT?) */}
+              {mobileSection && (
+                <div className="fixed inset-0 top-[84px] z-10 flex">
+                  <div className="relative z-10 flex h-full w-[86%] max-w-sm flex-col border-r border-white/15 bg-[#0d0e11] shadow-2xl">
+                    <div className="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileRoleCat(null);
+                          setMobileSection(null);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wider text-white/75 hover:bg-white/10 hover:text-white cursor-pointer"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span>Back</span>
+                      </button>
+                      <span className="text-xs font-bold uppercase tracking-wider text-white/50">
+                        {mobileSection === "roles" ? "Roles" : "Why GAMAT?"}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+                      {mobileSection === "roles" ? (
+                        <>
+                          {SKILL_CATEGORIES.map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setMobileRoleCat(cat.id)}
+                              className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left text-sm font-semibold text-white/90 hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                            >
+                              <span>{cat.label}</span>
+                              <ChevronRight className="h-4 w-4 text-white/55" />
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              setMobileSection(null);
+                              setMobileRoleCat(null);
+                              scrollTo("skills");
+                            }}
+                            className="mt-2 flex w-full items-center rounded-xl bg-white/[0.04] px-4 py-3 text-left text-xs font-semibold text-rose-400 hover:bg-white/[0.08] cursor-pointer"
+                          >
+                            <span>View all skill tracks on page</span>
+                          </button>
+                        </>
+                      ) : (
+                        [
+                          {
+                            label: "Remote-First Culture",
+                            action: () => scrollTo("culture"),
+                          },
+                          {
+                            label: "Why Should You Join Us?",
+                            action: () => scrollTo("skills"),
+                          },
+                          {
+                            label: "Meet the Team",
+                            action: () => navigate("/jobs/team"),
+                          },
+                          {
+                            label: "About the Academy",
+                            action: () => goToMainRoute("/about"),
+                          },
+                          {
+                            label: "How GAMAT Fx Works",
+                            action: () => goToMainRoute("/how-it-works"),
+                          },
+                        ].map((sub) => (
+                          <button
+                            key={sub.label}
+                            type="button"
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              setMobileSection(null);
+                              setMobileRoleCat(null);
+                              sub.action();
+                            }}
+                            className="flex w-full items-center rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left text-sm font-semibold text-white/90 hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                          >
+                            <span>{sub.label}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Close submenu"
+                    onClick={() => {
+                      setMobileRoleCat(null);
+                      setMobileSection(null);
+                    }}
+                    className="flex-1 bg-black/55 backdrop-blur-[1px]"
+                  />
+
+                  {/* Nested Left Flyout for Selected Role Category */}
+                  {mobileSection === "roles" && mobileRoleCat && (
+                    <div className="fixed inset-0 top-[84px] z-20 flex">
+                      <div className="relative z-10 flex h-full w-[80%] max-w-[320px] flex-col border-r border-white/15 bg-[#15171c] shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
+                          <button
+                            type="button"
+                            onClick={() => setMobileRoleCat(null)}
+                            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wider text-white/75 hover:bg-white/10 hover:text-white cursor-pointer"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                            <span>Roles</span>
+                          </button>
+                          <span className="truncate pl-2 text-xs font-bold uppercase tracking-wider text-white/50">
+                            {SKILL_CATEGORIES.find((c) => c.id === mobileRoleCat)?.label ?? mobileRoleCat}
+                          </span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+                          {(SKILL_SUBCATEGORIES[mobileRoleCat] || []).map((sub) => (
+                            <button
+                              key={sub.title}
+                              type="button"
+                              onClick={() => {
+                                setMobileMenuOpen(false);
+                                setMobileSection(null);
+                                setMobileRoleCat(null);
+                                navigate(`/jobs/${slugifyRoleTitle(sub.title)}`);
+                              }}
+                              className="flex w-full items-center rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3.5 text-left text-sm font-medium text-white/90 hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                            >
+                              <span>{sub.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-label="Back to Roles"
+                        onClick={() => setMobileRoleCat(null)}
+                        className="flex-1 bg-black/55 backdrop-blur-[1px]"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
