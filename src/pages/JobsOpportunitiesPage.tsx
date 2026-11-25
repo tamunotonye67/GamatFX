@@ -533,19 +533,55 @@ export default function JobsOpportunitiesPage() {
                   </div>
                 </div>
 
-                {/* Right part: 6 tall slim vertical portrait cards with red gradient lines */}
+                {/* Right part: 6 tall slim vertical portrait cards matching reference height & style */}
                 <div className="lg:col-span-7">
-                  <div className="flex h-48 sm:h-56 items-stretch gap-1.5 sm:gap-2">
+                  <div className="flex h-[320px] sm:h-[380px] lg:h-[400px] items-stretch gap-1.5 sm:gap-2">
                     {SKILL_SHOWCASE.map((item, idx) => {
-                      const cardGradients = [
-                        "from-amber-400 via-amber-500 to-amber-700",
-                        "from-purple-700 via-violet-800 to-indigo-950",
-                        "from-rose-500 via-pink-600 to-rose-800",
-                        "from-violet-600 via-purple-800 to-indigo-950",
-                        "from-amber-400 via-amber-500 to-amber-700",
-                        "from-rose-500 via-brand to-rose-900",
+                      const themes = [
+                        {
+                          bg: "bg-[#e2a72e]",
+                          fade: "from-[#e2a72e] via-[#e2a72e]/40",
+                          text: "text-[#1a1204]",
+                          arrow: "text-[#1a1204]/10",
+                          sub: "TRACK 01",
+                        },
+                        {
+                          bg: "bg-[#5a0b8c]",
+                          fade: "from-[#5a0b8c] via-[#5a0b8c]/40",
+                          text: "text-white",
+                          arrow: "text-black/25",
+                          sub: "TRACK 02",
+                        },
+                        {
+                          bg: "bg-[#e8245e]",
+                          fade: "from-[#e8245e] via-[#e8245e]/40",
+                          text: "text-white",
+                          arrow: "text-black/20",
+                          sub: "TRACK 03",
+                        },
+                        {
+                          bg: "bg-[#5a0b8c]",
+                          fade: "from-[#5a0b8c] via-[#5a0b8c]/40",
+                          text: "text-white",
+                          arrow: "text-black/25",
+                          sub: "TRACK 04",
+                        },
+                        {
+                          bg: "bg-[#e2a72e]",
+                          fade: "from-[#e2a72e] via-[#e2a72e]/40",
+                          text: "text-[#1a1204]",
+                          arrow: "text-[#1a1204]/10",
+                          sub: "TRACK 05",
+                        },
+                        {
+                          bg: "bg-[#e8245e]",
+                          fade: "from-[#e8245e] via-[#e8245e]/40",
+                          text: "text-white",
+                          arrow: "text-black/20",
+                          sub: "TRACK 06",
+                        },
                       ];
-                      const grad = cardGradients[idx % cardGradients.length];
+                      const theme = themes[idx % themes.length];
                       return (
                         <div
                           key={item.label}
@@ -555,25 +591,43 @@ export default function JobsOpportunitiesPage() {
                             type="button"
                             onClick={() => setDept(item.dept)}
                             title={`Filter ${item.dept} roles`}
-                            className={`group relative flex-1 min-w-0 overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-b ${grad} shadow-lg cursor-pointer`}
+                            className={`group relative flex-1 min-w-0 overflow-hidden rounded-xl sm:rounded-2xl ${theme.bg} shadow-xl cursor-pointer`}
                           >
-                            {/* Top skill label */}
-                            <div className="relative z-10 px-1.5 pt-2.5 sm:pt-3 text-left">
-                              <span className="block truncate text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-white drop-shadow">
+                            {/* Large subtle angled arrow watermark */}
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 64 64"
+                              className={`pointer-events-none absolute -right-2 top-3 h-20 w-20 sm:h-24 sm:w-24 ${theme.arrow}`}
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="7"
+                              strokeLinecap="square"
+                            >
+                              <path d="M14 14 L48 48 M48 22 L48 48 L22 48" />
+                            </svg>
+
+                            {/* Stacked uppercase skill label */}
+                            <div
+                              className={`relative z-10 px-2 pt-8 sm:pt-11 text-left ${theme.text}`}
+                            >
+                              <span className="block text-[8px] sm:text-[9px] font-semibold uppercase tracking-widest opacity-80">
+                                {theme.sub}
+                              </span>
+                              <span className="mt-0.5 block truncate text-[10px] sm:text-xs font-black uppercase leading-tight tracking-tight">
                                 {item.label}
                               </span>
                             </div>
 
-                            {/* Portrait image filling lower portion */}
+                            {/* Tall portrait image rising from bottom */}
                             <img
                               src={item.image}
                               alt={item.label}
                               loading="lazy"
-                              className="absolute inset-x-0 bottom-0 h-[76%] w-full object-cover object-top transition duration-500 group-hover:scale-105"
+                              className="absolute inset-x-0 bottom-0 h-[72%] w-full object-cover object-top transition duration-500 group-hover:scale-105"
                             />
                             <div
                               aria-hidden="true"
-                              className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/45 to-transparent"
+                              className={`pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t ${theme.fade} to-transparent`}
                             />
                           </button>
 
