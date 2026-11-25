@@ -58,8 +58,9 @@ function getRoleThumbnail(role: JobRole): string {
 }
 
 const WAVEFORM_BARS = [
-  28, 48, 36, 72, 92, 54, 40, 84, 64, 34, 62, 88, 96, 52, 38, 76, 58, 42, 86,
-  68, 44, 78, 94, 56, 36, 70, 50, 82, 60, 40, 66, 46, 30, 52, 34,
+  22, 38, 28, 56, 74, 42, 30, 68, 88, 52, 34, 62, 78, 46, 26, 58, 84, 64, 38,
+  72, 94, 54, 32, 66, 82, 48, 36, 76, 90, 58, 40, 64, 80, 50, 28, 60, 74, 44,
+  34, 68, 86, 52, 36, 62, 72, 46, 30, 54, 66, 42, 28, 48, 38, 26, 34, 22,
 ];
 const FOUNDER_WELCOME_DURATION = 18;
 const FOUNDER_WELCOME_SCRIPT =
@@ -336,111 +337,124 @@ export default function JobsOpportunitiesPage() {
         </main>
       ) : (
         <main className="mx-auto max-w-[1440px] px-4 py-14 sm:px-8">
-          {/* Welcome onboard + Founder voice note player */}
-          <section className="mb-10 rounded-2xl border border-white/10 bg-[#16181d] p-6 sm:p-8 shadow-xl">
-            <audio
-              ref={audioRef}
-              src="/audio/founder-welcome.mp3"
-              preload="metadata"
-              onLoadedMetadata={(e) => {
-                const dur = e.currentTarget.duration;
-                if (Number.isFinite(dur) && dur > 0) setWelcomeDuration(dur);
-              }}
-              onTimeUpdate={(e) => {
-                const dur = e.currentTarget.duration || welcomeDuration;
-                if (dur > 0) setWelcomeProgress(e.currentTarget.currentTime / dur);
-              }}
-              onEnded={() => {
-                setIsPlayingWelcome(false);
-                setWelcomeProgress(1);
-              }}
-              onError={() => {
-                usingSpeechRef.current = true;
-              }}
-            />
-
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          {/* Welcome, onboard! heading above the audio player card */}
+          <section className="mb-12">
+            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="font-sans text-2xl sm:text-3xl font-medium tracking-tight text-white">
-                  Welcome onboard
+                <h2 className="font-sans text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+                  Welcome, onboard!
                 </h2>
-                <p className="mt-1.5 text-sm text-white/60">
-                  Play a quick welcome message from the GAMAT Fx founder before
-                  exploring open roles.
+                <p className="mt-1 text-sm text-white/60">
+                  Listen to a quick welcome note from our founder before exploring
+                  open roles.
                 </p>
               </div>
-              <div className="inline-flex items-center gap-2 text-xs font-medium text-white/55">
+              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-white/50">
                 <Volume2 className="h-3.5 w-3.5 text-brand" />
-                <span>Founder Voice Note</span>
+                <span>Founder Audio Message</span>
               </div>
             </div>
 
-            {/* Audio player bar: Play/Pause button on the left, Waveform on the right */}
-            <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#111215]/90 p-4 sm:flex-row sm:items-center sm:gap-6 sm:px-6 sm:py-4">
-              {/* Left: Play/Pause button + time */}
-              <div className="flex items-center gap-3.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={toggleWelcomeAudio}
-                  aria-label={
-                    isPlayingWelcome
-                      ? "Pause founder welcome message"
-                      : "Play founder welcome message"
-                  }
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 transition hover:bg-brand-dark active:scale-95 cursor-pointer"
-                >
-                  {isPlayingWelcome ? (
-                    <Pause className="h-5 w-5 fill-current" />
-                  ) : (
-                    <Play className="h-5 w-5 translate-x-[1px] fill-current" />
-                  )}
-                </button>
-                <div className="text-left">
-                  <div className="text-xs font-semibold text-white">
-                    {isPlayingWelcome ? "Playing message..." : "Play welcome"}
-                  </div>
-                  <div className="mt-0.5 font-mono text-[11px] text-white/55">
-                    {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
-                    {formatAudioTime(welcomeDuration)}
+            {/* Single sleek audio player card */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[#16181d] via-[#181b22] to-[#13151a] p-4 sm:px-6 sm:py-5 shadow-xl">
+              <audio
+                ref={audioRef}
+                src="/audio/founder-welcome.mp3"
+                preload="metadata"
+                onLoadedMetadata={(e) => {
+                  const dur = e.currentTarget.duration;
+                  if (Number.isFinite(dur) && dur > 0) setWelcomeDuration(dur);
+                }}
+                onTimeUpdate={(e) => {
+                  const dur = e.currentTarget.duration || welcomeDuration;
+                  if (dur > 0)
+                    setWelcomeProgress(e.currentTarget.currentTime / dur);
+                }}
+                onEnded={() => {
+                  setIsPlayingWelcome(false);
+                  setWelcomeProgress(1);
+                }}
+                onError={() => {
+                  usingSpeechRef.current = true;
+                }}
+              />
+
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
+                {/* Left: Play/Pause button + Founder meta + Time */}
+                <div className="flex items-center gap-3.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={toggleWelcomeAudio}
+                    aria-label={
+                      isPlayingWelcome
+                        ? "Pause founder welcome message"
+                        : "Play founder welcome message"
+                    }
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 transition hover:bg-brand-dark active:scale-95 cursor-pointer"
+                  >
+                    {isPlayingWelcome ? (
+                      <Pause className="h-5 w-5 fill-current" />
+                    ) : (
+                      <Play className="h-5 w-5 translate-x-[1px] fill-current" />
+                    )}
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="/images/team-tonye.jpg"
+                      alt="Tonye S. Taylor"
+                      className="h-10 w-10 rounded-full border border-white/15 object-cover"
+                    />
+                    <div className="text-left">
+                      <div className="text-xs font-semibold text-white">
+                        Tonye S. Taylor · Founder
+                      </div>
+                      <div className="mt-0.5 font-mono text-[11px] text-white/55">
+                        {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
+                        {formatAudioTime(welcomeDuration)}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Right: Interactive Waveform */}
-              <div
-                className="flex h-12 flex-1 items-center gap-[4px] sm:gap-[5px]"
-                role="slider"
-                aria-label="Founder welcome message waveform"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(welcomeProgress * 100)}
-              >
-                {WAVEFORM_BARS.map((heightPct, idx) => {
-                  const barRatio = (idx + 1) / WAVEFORM_BARS.length;
-                  const isActive = barRatio <= welcomeProgress;
-                  const animatedScale = isPlayingWelcome
-                    ? 0.85 + ((idx % 3) * 0.1)
-                    : 1;
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => seekWelcomeAudio(idx / WAVEFORM_BARS.length)}
-                      aria-label={`Seek to ${Math.round(
-                        (idx / WAVEFORM_BARS.length) * 100
-                      )}%`}
-                      style={{
-                        height: `${heightPct}%`,
-                        transform: `scaleY(${animatedScale})`,
-                      }}
-                      className={`flex-1 rounded-full transition-all duration-200 cursor-pointer ${
-                        isActive
-                          ? "bg-brand shadow-[0_0_8px_rgba(220,53,69,0.55)]"
-                          : "bg-white/20 hover:bg-white/40"
-                      } ${isPlayingWelcome && isActive ? "animate-pulse" : ""}`}
-                    />
-                  );
-                })}
+                {/* Right: Crisp thin studio waveform */}
+                <div
+                  className="flex h-12 flex-1 items-center justify-between gap-[3px] sm:gap-[4px]"
+                  role="slider"
+                  aria-label="Founder welcome message waveform"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(welcomeProgress * 100)}
+                >
+                  {WAVEFORM_BARS.map((heightPct, idx) => {
+                    const barRatio = (idx + 1) / WAVEFORM_BARS.length;
+                    const isActive = barRatio <= welcomeProgress;
+                    const animatedScale = isPlayingWelcome
+                      ? 0.8 + ((idx % 4) * 0.12)
+                      : 1;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() =>
+                          seekWelcomeAudio(idx / WAVEFORM_BARS.length)
+                        }
+                        aria-label={`Seek to ${Math.round(
+                          (idx / WAVEFORM_BARS.length) * 100
+                        )}%`}
+                        style={{
+                          height: `${heightPct}%`,
+                          transform: `scaleY(${animatedScale})`,
+                        }}
+                        className={`w-[3px] sm:w-[3.5px] rounded-full transition-all duration-150 cursor-pointer ${
+                          isActive
+                            ? "bg-brand"
+                            : "bg-white/20 hover:bg-white/45"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </section>
