@@ -96,6 +96,8 @@ export default function JobsPage() {
   const [activeSubSkill, setActiveSubSkill] = useState<string>("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSection, setMobileSection] = useState<"roles" | "why" | null>(null);
+  const [mobileRoleCat, setMobileRoleCat] = useState<string | null>("Dev & IT");
   const [openFlyout, setOpenFlyout] = useState<FlyoutMenu>(null);
   const [phraseIdx, setPhraseIdx] = useState(0);
   const [typedCount, setTypedCount] = useState(JOIN_US_PHRASES[0].length);
@@ -192,7 +194,9 @@ export default function JobsPage() {
   }, []);
 
   const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    }, 70);
   };
 
   return (
@@ -548,16 +552,150 @@ export default function JobsPage() {
               </button>
             </div>
 
-            <div className="flex flex-1 flex-col justify-between overflow-y-auto px-6 py-8">
+            <div className="flex flex-1 flex-col justify-between overflow-y-auto px-5 py-6">
               <div className="space-y-3">
+                {/* 1. Roles expandable accordion */}
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMobileSection(mobileSection === "roles" ? null : "roles")
+                    }
+                    className="flex w-full items-center justify-between px-5 py-4 text-left text-base font-semibold text-white cursor-pointer"
+                  >
+                    <span>Roles</span>
+                    <ChevronsUpDown className="h-4 w-4 text-white/55" />
+                  </button>
+                  {mobileSection === "roles" && (
+                    <div className="border-t border-white/10 bg-[#0d0e11] px-4 py-3 space-y-2">
+                      {SKILL_CATEGORIES.map((cat) => {
+                        const isCatOpen = mobileRoleCat === cat.id;
+                        return (
+                          <div
+                            key={cat.id}
+                            className="rounded-xl border border-white/10 bg-white/[0.02]"
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setMobileRoleCat(isCatOpen ? null : cat.id)
+                              }
+                              className="flex w-full items-center justify-between px-3.5 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-white/80 cursor-pointer"
+                            >
+                              <span>{cat.label}</span>
+                              <ChevronsUpDown className="h-3.5 w-3.5 text-white/45" />
+                            </button>
+                            {isCatOpen && (
+                              <div className="border-t border-white/10 px-3 py-2 space-y-1.5">
+                                {(SKILL_SUBCATEGORIES[cat.id] || []).map(
+                                  (sub) => (
+                                    <button
+                                      key={sub.title}
+                                      type="button"
+                                      onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        navigate(
+                                          `/jobs/${slugifyRoleTitle(sub.title)}`
+                                        );
+                                      }}
+                                      className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-xs font-medium text-white/85 hover:bg-white/5 hover:text-brand cursor-pointer"
+                                    >
+                                      <span>{sub.title}</span>
+                                      <ArrowRight className="h-3.5 w-3.5 text-white/40" />
+                                    </button>
+                                  )
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          scrollTo("skills");
+                        }}
+                        className="mt-1 flex w-full items-center justify-between rounded-xl bg-white/[0.04] px-3.5 py-2.5 text-xs font-semibold text-rose-400 cursor-pointer"
+                      >
+                        <span>View all skill tracks on page</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Explore Opportunities */}
+                <button
+                  type="button"
+                  onClick={handleExploreOpportunities}
+                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left text-base font-semibold text-white transition hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                >
+                  <span>Explore Opportunities</span>
+                  <ArrowRight className="h-4 w-4 text-white/50" />
+                </button>
+
+                {/* 3. Why GAMAT? expandable accordion */}
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMobileSection(mobileSection === "why" ? null : "why")
+                    }
+                    className="flex w-full items-center justify-between px-5 py-4 text-left text-base font-semibold text-white cursor-pointer"
+                  >
+                    <span>Why GAMAT?</span>
+                    <ChevronsUpDown className="h-4 w-4 text-white/55" />
+                  </button>
+                  {mobileSection === "why" && (
+                    <div className="border-t border-white/10 bg-[#0d0e11] px-4 py-3 space-y-1.5">
+                      {[
+                        {
+                          label: "Remote-First Culture",
+                          action: () => scrollTo("culture"),
+                        },
+                        {
+                          label: "Why Should You Join Us?",
+                          action: () => scrollTo("skills"),
+                        },
+                        {
+                          label: "Meet the Team",
+                          action: () => navigate("/jobs/team"),
+                        },
+                        {
+                          label: "About the Academy",
+                          action: () => goToMainRoute("/about"),
+                        },
+                        {
+                          label: "How GAMAT Fx Works",
+                          action: () => goToMainRoute("/how-it-works"),
+                        },
+                      ].map((sub) => (
+                        <button
+                          key={sub.label}
+                          type="button"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            sub.action();
+                          }}
+                          className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-medium text-white/85 hover:bg-white/5 hover:text-brand cursor-pointer"
+                        >
+                          <span>{sub.label}</span>
+                          <ArrowRight className="h-3.5 w-3.5 text-white/40" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Direct links: Back to Site, FAQ?, Contact Founder */}
                 {[
-                  { label: "Roles & Volunteer Tracks", action: () => scrollTo("skills") },
-                  { label: "Explore Opportunities", action: handleExploreOpportunities },
-                  { label: "Why GAMAT?", action: () => scrollTo("culture") },
-                  { label: "Meet the Team", action: () => navigate("/jobs/team") },
                   { label: "Back to Site", action: () => goToMainRoute("/") },
                   { label: "FAQ?", action: () => goToMainRoute("/faq") },
-                  { label: "Contact Founder", action: () => goToMainRoute("/contact") },
+                  {
+                    label: "Contact Founder",
+                    action: () => goToMainRoute("/contact"),
+                  },
                 ].map((item) => (
                   <button
                     key={item.label}
