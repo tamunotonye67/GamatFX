@@ -963,7 +963,7 @@ export default function JobsPage() {
 
                 {[
                   "Remote-first collaboration connects our mentors, engineers, and creators across every trading session.",
-                  "Async-first workflows empower global contributors to ship real impact from Lagos, LDN, and NY.",
+                  "Build anywhere. Ship from Lagos, LDN & NY.",
                 ].map((copy, idx) => (
                   <div
                     key={copy}
