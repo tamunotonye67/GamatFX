@@ -186,7 +186,7 @@ export default function JobsPage() {
     ) {
       navigate(clean);
     } else {
-      window.location.href = `https://gamatfxacademy.com/#${clean}`;
+      window.location.href = `https://gamatfxacademy.com${clean}`;
     }
   };
 
@@ -457,7 +457,7 @@ export default function JobsPage() {
                       type="button"
                       onClick={() => {
                         setOpenFlyout(null);
-                        scrollTo("culture");
+                        navigate("/jobs/culture");
                       }}
                       className="block w-full text-left group cursor-pointer"
                     >
@@ -472,7 +472,7 @@ export default function JobsPage() {
                       type="button"
                       onClick={() => {
                         setOpenFlyout(null);
-                        scrollTo("skills");
+                        navigate("/jobs/guidelines");
                       }}
                       className="block w-full text-left group cursor-pointer"
                     >
@@ -493,7 +493,7 @@ export default function JobsPage() {
                       type="button"
                       onClick={() => {
                         setOpenFlyout(null);
-                        navigate("/jobs/react-and-typescript-engineers");
+                        navigate("/jobs/guidelines");
                       }}
                       className="block w-full text-left group cursor-pointer"
                     >
@@ -508,7 +508,7 @@ export default function JobsPage() {
                       type="button"
                       onClick={() => {
                         setOpenFlyout(null);
-                        navigate("/jobs/senior-fx-market-analysts");
+                        navigate("/jobs/certificates");
                       }}
                       className="block w-full text-left group cursor-pointer"
                     >
@@ -772,11 +772,15 @@ export default function JobsPage() {
                         [
                           {
                             label: "Remote-First Culture",
-                            action: () => scrollTo("culture"),
+                            action: () => navigate("/jobs/culture"),
                           },
                           {
-                            label: "Why Should You Join Us?",
-                            action: () => scrollTo("skills"),
+                            label: "Fellowship Guidelines",
+                            action: () => navigate("/jobs/guidelines"),
+                          },
+                          {
+                            label: "Path to Paid Roles",
+                            action: () => navigate("/jobs/certificates"),
                           },
                           {
                             label: "Meet the Team",

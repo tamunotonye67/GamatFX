@@ -486,7 +486,7 @@ export default function JobsOpportunitiesPage() {
   }, [apps, user]);
 
   const copyJobLink = (roleId: string) => {
-    const url = `${window.location.origin}/#/jobs/opportunities?job=${encodeURIComponent(roleId)}`;
+    const url = `${window.location.origin}/jobs/opportunities?job=${encodeURIComponent(roleId)}`;
     void navigator.clipboard?.writeText(url);
     setCopiedJobId(roleId);
     window.setTimeout(() => {
@@ -519,7 +519,7 @@ export default function JobsOpportunitiesPage() {
     ) {
       navigate(clean);
     } else {
-      window.location.href = `https://gamatfxacademy.com/#${clean}`;
+      window.location.href = `https://gamatfxacademy.com${clean}`;
     }
   };
 

@@ -192,7 +192,7 @@ export default function JobsInfoPage({
     ) {
       navigate(clean);
     } else {
-      window.location.href = `https://gamatfxacademy.com/#${clean}`;
+      window.location.href = `https://gamatfxacademy.com${clean}`;
     }
   };
 
