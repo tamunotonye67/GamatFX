@@ -224,10 +224,7 @@ export default function JobsOpportunitiesPage() {
         <main className="mx-auto max-w-[1440px] px-4 py-14 sm:px-8">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
             <div>
-              <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand">
-                Member Opportunities
-              </span>
-              <h1 className="mt-2 font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
+              <h1 className="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
                 Open Positions ({openRoles.length})
               </h1>
               <p className="text-sm text-white/55 mt-1">
