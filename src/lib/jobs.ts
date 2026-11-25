@@ -258,6 +258,7 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
           compensation: String(r.budget || "Competitive"),
           summary: String(parsed.summary || r.message || ""),
           requirements: String(parsed.requirements || ""),
+          ...(parsed.image ? { image: String(parsed.image) } : {}),
           open: r.status !== "closed",
           createdAt: r.created_at || new Date().toISOString(),
         };
@@ -288,6 +289,7 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
     message: JSON.stringify({
       summary: role.summary,
       requirements: role.requirements,
+      ...(role.image ? { image: role.image } : {}),
     }),
     user_id: null,
     status: role.open ? "open" : "closed",

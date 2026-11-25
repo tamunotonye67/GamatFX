@@ -7,7 +7,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { AdminShell } from "./AdminShell";
+import { AdminShell, StatCard } from "./AdminShell";
 import {
   deleteSupabaseJobRole,
   fetchSupabaseJobApplications,
@@ -113,32 +113,15 @@ export function AdminJobs() {
       subtitle="Manage open roles on jobs.gamatfxacademy.com and review candidate applications."
     >
       {/* 2x2 Mobile / 4-col Desktop Stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-6">
-        {[
-          { label: "Open Roles", value: stats.openCount, icon: Briefcase },
-          { label: "Total Applicants", value: stats.totalApps, icon: Users },
-          { label: "New Applications", value: stats.newApps, icon: Plus },
-          { label: "Shortlisted", value: stats.shortlisted, icon: CheckCircle2 },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className="rounded-2xl border border-line bg-white p-4 shadow-2xs"
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted">{s.label}</p>
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-light text-brand">
-                <s.icon className="h-4 w-4" />
-              </span>
-            </div>
-            <p className="mt-2 font-display text-2xl font-extrabold text-ink">
-              {s.value}
-            </p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
+        <StatCard icon={Briefcase} label="Open Roles" value={stats.openCount} />
+        <StatCard icon={Users} label="Total Applicants" value={stats.totalApps} />
+        <StatCard icon={Plus} label="New Applications" value={stats.newApps} />
+        <StatCard icon={CheckCircle2} label="Shortlisted" value={stats.shortlisted} />
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className="mt-6 flex items-center gap-2 mb-6">
         <button
           type="button"
           onClick={() => setTab("roles")}
