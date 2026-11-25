@@ -36,6 +36,7 @@ export function AdminJobs() {
   const [location, setLocation] = useState("Remote");
   const [type, setType] = useState<JobType>("Full-time");
   const [compensation, setCompensation] = useState("");
+  const [image, setImage] = useState("");
   const [summary, setSummary] = useState("");
   const [requirements, setRequirements] = useState("");
 
@@ -65,9 +66,10 @@ export function AdminJobs() {
       department,
       location: location.trim() || "Remote",
       type,
-      compensation: compensation.trim() || "Competitive",
+      compensation: compensation.trim() || "Volunteer Fellowship · Certificate",
       summary: summary.trim(),
       requirements: requirements.trim(),
+      ...(image.trim() ? { image: image.trim() } : {}),
       open: true,
       createdAt: new Date().toISOString(),
     };
@@ -78,6 +80,7 @@ export function AdminJobs() {
 
     setTitle("");
     setCompensation("");
+    setImage("");
     setSummary("");
     setRequirements("");
   };
@@ -232,7 +235,18 @@ export function AdminJobs() {
                 <input
                   value={compensation}
                   onChange={(e) => setCompensation(e.target.value)}
-                  placeholder="e.g. $1,200 – $1,800 / mo"
+                  placeholder="e.g. Volunteer Fellowship · Certificate"
+                  className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-semibold text-muted">
+                  Thumbnail Image URL (optional)
+                </label>
+                <input
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  placeholder="https://... (defaults to department thumbnail)"
                   className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
                 />
               </div>

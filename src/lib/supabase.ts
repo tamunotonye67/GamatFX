@@ -147,6 +147,20 @@ const crossSubdomainAuthStorage = {
   },
 };
 
+export function hasSharedSignOutFlag(): boolean {
+  return readCookie("gamat_sso_logged_out") === "1";
+}
+
+export function setSharedSignOutFlag(signedOut: boolean): void {
+  const domain = getSharedCookieDomain();
+  if (!domain) return;
+  if (signedOut) {
+    writeCookie("gamat_sso_logged_out", "1", domain, COOKIE_MAX_AGE_SECONDS);
+  } else {
+    writeCookie("gamat_sso_logged_out", "", domain, 0);
+  }
+}
+
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     storage: crossSubdomainAuthStorage,

@@ -7,7 +7,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { supabase } from "./supabase";
+import { supabase, hasSharedSignOutFlag, setSharedSignOutFlag } from "./supabase";
+import { isJobsSubdomain } from "./router";
 import { COURSES, getCourse, totalLessons, COURSE_ALIASES, asCourse } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
 import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount, rowToAccount, type SupabaseAccountRow } from "./supabaseAuth";
@@ -1578,6 +1579,10 @@ const StoreContext = createContext<Ctx | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>(() => seedAccounts());
   const [sessionId, setSessionId] = useState<string | null>(() => {
+    if (hasSharedSignOutFlag()) {
+      write(K.session, null);
+      return null;
+    }
     const raw = read<string | null>(K.session, null);
     if (!raw) return null;
     const deleted = getDeletedAccountIds();
@@ -1954,8 +1959,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (session?.user) {
+          setSharedSignOutFlag(false);
           setAuthError(null);
           await syncAuthUser(session.user);
+        } else if (isJobsSubdomain() || hasSharedSignOutFlag()) {
+          setSessionId(null);
+          write(K.session, null);
         }
       } catch (err: any) {
         setAuthError(err?.message || "Authentication failed.");
@@ -1970,12 +1979,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
+        setSharedSignOutFlag(false);
         if (authActionInProgressRef.current) return;
         setAuthError(null);
         await syncAuthUser(session.user);
         setAuthLoading(false);
       } else if (_event === "SIGNED_OUT" && !authActionInProgressRef.current) {
+        setSharedSignOutFlag(true);
         setSessionId(null);
+        write(K.session, null);
         setAuthLoading(false);
       }
     });
@@ -2880,7 +2892,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [accounts]);
 
   const logout = useCallback(() => {
+    setSharedSignOutFlag(true);
     setSessionId(null);
+    write(K.session, null);
     signOutSupabaseUser();
   }, []);
 
