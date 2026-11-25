@@ -793,20 +793,24 @@ export default function JobsPage() {
                     0% { transform: translateX(-50%); }
                     100% { transform: translateX(0%); }
                   }
+                  @keyframes gamatPopStack {
+                    0%, 100% { transform: translateY(0px) scale(1); }
+                    50% { transform: translateY(-7px) scale(1.035); }
+                  }
                   .gamat-solo-track-fast {
                     display: flex;
                     width: max-content;
-                    animation: gamatSoloStream 16s linear infinite;
+                    animation: gamatSoloStream 28s linear infinite;
                   }
                   .gamat-solo-track-turbo {
                     display: flex;
                     width: max-content;
-                    animation: gamatSoloStream 13s linear infinite;
+                    animation: gamatSoloStream 24s linear infinite;
                   }
                   .gamat-solo-track-mid {
                     display: flex;
                     width: max-content;
-                    animation: gamatSoloStream 20s linear infinite;
+                    animation: gamatSoloStream 34s linear infinite;
                   }
                 `}</style>
 
@@ -861,12 +865,15 @@ export default function JobsPage() {
                         />
 
                         {/* Row 1 */}
-                        <div className="overflow-hidden py-1">
+                        <div className="overflow-hidden py-2.5">
                           <div className="gamat-solo-track-fast">
                             {[0, 1].map((dup) => (
-                              <div key={dup} className="flex shrink-0 items-center gap-4 pr-4">
+                              <div key={dup} className="flex shrink-0 items-center -space-x-4 pr-2">
                                 {/* Message pop */}
-                                <div className="relative border border-amber-400/40 bg-[#181a20]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.4s ease-in-out infinite" }}
+                                  className="relative z-10 border border-amber-400/40 bg-[#181a20] px-3.5 py-2 shadow-2xl whitespace-nowrap"
+                                >
                                   <span className="absolute -bottom-1.5 left-3 h-2.5 w-2.5 rotate-45 border-b border-r border-amber-400/40 bg-[#181a20]" />
                                   <span className="relative text-[10px] font-bold uppercase tracking-wider text-amber-300">
                                     ⚠ STATUS: UNRESOLVED
@@ -874,29 +881,38 @@ export default function JobsPage() {
                                 </div>
 
                                 {/* Stacked card */}
-                                <div className="relative">
+                                <div
+                                  style={{ animation: "gamatPopStack 4.0s ease-in-out 0.8s infinite" }}
+                                  className="relative z-30 translate-y-2"
+                                >
                                   <div
                                     aria-hidden="true"
                                     className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-white/10 bg-[#12141a]"
                                   />
-                                  <div className="relative w-[225px] border border-white/20 bg-[#17191f] px-3.5 py-2.5 shadow-xl">
-                                    <p className="text-[11px] leading-snug text-white/80">
+                                  <div className="relative w-[225px] border border-white/25 bg-[#17191f] px-3.5 py-2.5 shadow-2xl">
+                                    <p className="text-[11px] leading-snug text-white/85">
                                       “Watched 40+ tutorials — zero real-world feedback.”
                                     </p>
                                   </div>
                                 </div>
 
                                 {/* Sharp alert tag */}
-                                <div className="border border-brand/50 bg-[#1a1518]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.8s ease-in-out 1.5s infinite" }}
+                                  className="relative z-20 -translate-y-1.5 border border-brand/60 bg-[#1a1518] px-3.5 py-2 shadow-2xl whitespace-nowrap"
+                                >
                                   <span className="text-[10px] font-bold text-rose-400">
                                     P0 · NO PRODUCTION PROOF
                                   </span>
                                 </div>
 
                                 {/* Message pop */}
-                                <div className="relative w-[215px] border border-white/20 bg-[#17191f] px-3.5 py-2.5 shadow-xl">
-                                  <span className="absolute -bottom-1.5 left-4 h-2.5 w-2.5 rotate-45 border-b border-r border-white/20 bg-[#17191f]" />
-                                  <p className="relative text-[11px] leading-snug text-white/80">
+                                <div
+                                  style={{ animation: "gamatPopStack 4.2s ease-in-out 2.1s infinite" }}
+                                  className="relative z-30 translate-y-1.5 w-[215px] border border-white/25 bg-[#17191f] px-3.5 py-2.5 shadow-2xl"
+                                >
+                                  <span className="absolute -bottom-1.5 left-4 h-2.5 w-2.5 rotate-45 border-b border-r border-white/25 bg-[#17191f]" />
+                                  <p className="relative text-[11px] leading-snug text-white/85">
                                     “No live desk, no mentor audits.”
                                   </p>
                                 </div>
@@ -906,12 +922,15 @@ export default function JobsPage() {
                         </div>
 
                         {/* Row 2 */}
-                        <div className="overflow-hidden py-1">
+                        <div className="overflow-hidden py-3">
                           <div className="gamat-solo-track-turbo">
                             {[0, 1].map((dup) => (
-                              <div key={dup} className="flex shrink-0 items-center gap-4 pr-4">
+                              <div key={dup} className="flex shrink-0 items-center -space-x-5 pr-2">
                                 {/* Stacked P0 card */}
-                                <div className="relative">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.6s ease-in-out 0.4s infinite" }}
+                                  className="relative z-30"
+                                >
                                   <div
                                     aria-hidden="true"
                                     className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-brand/30 bg-[#140f12]"
@@ -920,43 +939,52 @@ export default function JobsPage() {
                                     aria-hidden="true"
                                     className="absolute inset-0 translate-x-3 translate-y-3 border border-brand/15 bg-[#110c0f]"
                                   />
-                                  <div className="relative w-[240px] border border-brand/50 bg-[#1a1518] p-3 shadow-2xl">
+                                  <div className="relative w-[240px] border border-brand/55 bg-[#1a1518] p-3 shadow-2xl">
                                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-400">
                                       <span className="bg-brand/25 px-1.5 py-0.5">P0</span>
                                       <span>PORTFOLIO GAP</span>
                                     </div>
-                                    <p className="mt-1 text-[11px] leading-snug text-white/80">
+                                    <p className="mt-1 text-[11px] leading-snug text-white/85">
                                       Applying everywhere with zero live shipped projects.
                                     </p>
                                   </div>
                                 </div>
 
                                 {/* Message pop */}
-                                <div className="relative w-[215px] border border-white/20 bg-[#17191f] p-3 shadow-xl">
-                                  <span className="absolute -bottom-1.5 right-5 h-2.5 w-2.5 rotate-45 border-b border-r border-white/20 bg-[#17191f]" />
+                                <div
+                                  style={{ animation: "gamatPopStack 4.1s ease-in-out 1.2s infinite" }}
+                                  className="relative z-20 -translate-y-2 w-[215px] border border-white/25 bg-[#17191f] p-3 shadow-2xl"
+                                >
+                                  <span className="absolute -bottom-1.5 right-5 h-2.5 w-2.5 rotate-45 border-b border-r border-white/25 bg-[#17191f]" />
                                   <div className="text-[9px] font-bold uppercase tracking-wider text-white/40 mb-1">
                                     DM · UNANSWERED
                                   </div>
-                                  <p className="relative text-[11px] leading-snug text-white/80">
+                                  <p className="relative text-[11px] leading-snug text-white/85">
                                     “Stuck in demo loops without team accountability.”
                                   </p>
                                 </div>
 
                                 {/* Sharp badge */}
-                                <div className="border border-rose-400/40 bg-[#1c1418]/95 px-3.5 py-2.5 shadow-lg whitespace-nowrap">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.5s ease-in-out 1.9s infinite" }}
+                                  className="relative z-30 translate-y-2 border border-rose-400/45 bg-[#1c1418] px-3.5 py-2.5 shadow-2xl whitespace-nowrap"
+                                >
                                   <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300">
                                     ✖ NO VERIFIED CERTIFICATE
                                   </span>
                                 </div>
 
                                 {/* Stacked card */}
-                                <div className="relative">
+                                <div
+                                  style={{ animation: "gamatPopStack 4.3s ease-in-out 0.6s infinite" }}
+                                  className="relative z-10"
+                                >
                                   <div
                                     aria-hidden="true"
                                     className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-white/10 bg-[#12141a]"
                                   />
-                                  <div className="relative w-[225px] border border-white/20 bg-[#17191f] p-3 shadow-xl">
-                                    <p className="text-[11px] leading-snug text-white/80">
+                                  <div className="relative w-[225px] border border-white/25 bg-[#17191f] p-3 shadow-2xl">
+                                    <p className="text-[11px] leading-snug text-white/85">
                                       “Building alone with nobody reviewing my trades or PRs.”
                                     </p>
                                   </div>
@@ -967,41 +995,53 @@ export default function JobsPage() {
                         </div>
 
                         {/* Row 3 */}
-                        <div className="overflow-hidden py-1">
+                        <div className="overflow-hidden py-2.5">
                           <div className="gamat-solo-track-mid">
                             {[0, 1].map((dup) => (
-                              <div key={dup} className="flex shrink-0 items-center gap-4 pr-4">
+                              <div key={dup} className="flex shrink-0 items-center -space-x-4 pr-2">
                                 {/* Stacked card */}
-                                <div className="relative">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.9s ease-in-out 0.2s infinite" }}
+                                  className="relative z-20"
+                                >
                                   <div
                                     aria-hidden="true"
                                     className="absolute inset-0 translate-x-1.5 translate-y-1.5 border border-white/10 bg-[#12141a]"
                                   />
-                                  <div className="relative w-[230px] border border-white/20 bg-[#17191f] px-3.5 py-2.5 shadow-xl">
-                                    <p className="text-[11px] leading-snug text-white/80">
+                                  <div className="relative w-[230px] border border-white/25 bg-[#17191f] px-3.5 py-2.5 shadow-2xl">
+                                    <p className="text-[11px] leading-snug text-white/85">
                                       “No structured desk, no mentorship, no clear growth path.”
                                     </p>
                                   </div>
                                 </div>
 
                                 {/* Sharp alert */}
-                                <div className="border border-amber-400/40 bg-[#181a20]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.5s ease-in-out 1.1s infinite" }}
+                                  className="relative z-30 -translate-y-2 border border-amber-400/45 bg-[#181a20] px-3.5 py-2 shadow-2xl whitespace-nowrap"
+                                >
                                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
                                     ⏳ WAITING FOR AN OPPORTUNITY
                                   </span>
                                 </div>
 
                                 {/* Message pop */}
-                                <div className="relative w-[220px] border border-brand/45 bg-[#1a1518] px-3.5 py-2.5 shadow-xl">
-                                  <span className="absolute -bottom-1.5 left-4 h-2.5 w-2.5 rotate-45 border-b border-r border-brand/45 bg-[#1a1518]" />
-                                  <p className="relative text-[11px] leading-snug text-white/80">
+                                <div
+                                  style={{ animation: "gamatPopStack 4.2s ease-in-out 1.8s infinite" }}
+                                  className="relative z-10 translate-y-1.5 w-[220px] border border-brand/50 bg-[#1a1518] px-3.5 py-2.5 shadow-2xl"
+                                >
+                                  <span className="absolute -bottom-1.5 left-4 h-2.5 w-2.5 rotate-45 border-b border-r border-brand/50 bg-[#1a1518]" />
+                                  <p className="relative text-[11px] leading-snug text-white/85">
                                     “Missed cohorts because I had no network.”
                                   </p>
                                 </div>
 
                                 {/* Sharp tag */}
-                                <div className="border border-white/20 bg-[#17191f]/95 px-3.5 py-2 shadow-lg whitespace-nowrap">
-                                  <span className="text-[10px] font-semibold text-white/65">
+                                <div
+                                  style={{ animation: "gamatPopStack 3.7s ease-in-out 2.4s infinite" }}
+                                  className="relative z-30 -translate-y-1 border border-white/25 bg-[#17191f] px-3.5 py-2 shadow-2xl whitespace-nowrap"
+                                >
+                                  <span className="text-[10px] font-semibold text-white/75">
                                     0 TEAM VELOCITY
                                   </span>
                                 </div>
