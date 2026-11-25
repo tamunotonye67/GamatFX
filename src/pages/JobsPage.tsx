@@ -88,7 +88,7 @@ type FlyoutMenu = "roles" | "why" | null;
 const JOIN_US_PHRASES = [
   "build real skills, ship live work, and grow fast",
   "learn with mentors, earn verified proof, and stand out",
-  "collaborate globally across London and New York desks",
+  "collaborate globally across LDN and NY desks",
   "turn volunteer impact into real career momentum",
 ];
 
