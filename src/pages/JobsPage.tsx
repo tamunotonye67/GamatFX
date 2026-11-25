@@ -387,11 +387,11 @@ export default function JobsPage() {
             />
 
             <div className="relative w-full sm:mx-auto max-w-5xl">
-              <h1 className="font-sans text-[2.2rem] leading-[1.1] font-semibold sm:font-medium tracking-tight text-white sm:text-5xl lg:text-[3.2rem] lg:leading-[1.15]">
+              <h1 className="pr-8 sm:pr-0 font-sans text-[2.2rem] leading-[1.1] font-bold sm:font-medium tracking-tight text-white sm:text-5xl lg:text-[3.2rem] lg:leading-[1.15]">
                 Want to be a part of something more
                 <br className="hidden sm:inline" /> fulfilling than trading? Then, let’s work!
               </h1>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/90 sm:mx-auto sm:text-base">
+              <p className="mt-5 pr-6 sm:pr-0 max-w-xl text-base leading-relaxed text-white/90 sm:mx-auto sm:text-base">
                 Join our remote-first team of market analysts, educators,
                 creators, and engineers powering trading education for 1,000+
                 students worldwide.
