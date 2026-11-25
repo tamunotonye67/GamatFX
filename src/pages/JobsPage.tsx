@@ -332,21 +332,13 @@ export default function JobsPage() {
                 students worldwide.
               </p>
 
-              <div className="mt-9 flex w-full flex-col sm:flex-row sm:w-auto sm:items-center sm:justify-center gap-3">
+              <div className="mt-12 sm:mt-14 flex w-full justify-start sm:justify-center">
                 <button
                   type="button"
                   onClick={() => scrollTo("roles")}
-                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-2xl sm:rounded-full bg-white px-7 py-4 sm:py-3 text-sm font-bold text-ink shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
+                  className="inline-flex w-full sm:w-auto items-center justify-center rounded-2xl sm:rounded-full bg-white px-8 py-4 sm:py-3.5 text-sm font-bold text-ink shadow-lg transition hover:scale-[1.02] hover:bg-cream cursor-pointer"
                 >
-                  Explore {allOpenRoles.length} Open Roles{" "}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollTo("culture")}
-                  className="hidden sm:inline-flex items-center justify-center gap-2 rounded-full border border-white/35 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition hover:bg-white/20 cursor-pointer"
-                >
-                  Life at GAMAT Fx
+                  Start building with us
                 </button>
               </div>
             </div>
