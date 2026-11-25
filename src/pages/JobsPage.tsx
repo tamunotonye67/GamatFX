@@ -429,15 +429,19 @@ export default function JobsPage() {
             </div>
 
             {/* Full Revolving Dotted Globe */}
-            <div className="relative mx-auto mt-10 max-w-3xl">
+            <div className="relative mx-auto mt-10 max-w-4xl">
               <style>{`
                 @keyframes gamatGlobeSpin {
                   0% { transform: translateX(0px); }
-                  100% { transform: translateX(-200px); }
+                  100% { transform: translateX(-260px); }
                 }
                 @keyframes gamatPulseArc {
                   0%, 100% { stroke-opacity: 0.45; }
                   50% { stroke-opacity: 1; }
+                }
+                @keyframes gamatCalloutFloat {
+                  0%, 100% { transform: translateY(0px); }
+                  50% { transform: translateY(-6px); }
                 }
               `}</style>
               <svg
@@ -519,69 +523,102 @@ export default function JobsPage() {
                   strokeWidth="1"
                 />
 
-                {/* Revolving dotted landmass silhouettes inside sphere */}
+                {/* Revolving dotted landmasses + connected people nodes inside sphere */}
                 <g clipPath="url(#globeClip)">
-                  <g style={{ animation: "gamatGlobeSpin 18s linear infinite" }}>
-                    <path
-                      d="M110,165 Q145,140 190,155 T230,210 Q210,275 180,315 T135,280 Q105,220 110,165 Z"
-                      fill="url(#globeDots)"
-                    />
-                    <path
-                      d="M250,120 Q310,95 365,130 T410,205 Q375,260 325,245 T270,185 Q245,150 250,120 Z"
-                      fill="url(#globeDots)"
-                    />
-                    <path
-                      d="M275,255 Q335,245 375,295 T335,385 Q285,375 270,320 T275,255 Z"
-                      fill="url(#globeDots)"
-                    />
-                    {/* Seamless wrap-around copy (+200px) */}
-                    <path
-                      d="M310,165 Q345,140 390,155 T430,210 Q410,275 380,315 T335,280 Q305,220 310,165 Z"
-                      fill="url(#globeDots)"
-                    />
-                    <path
-                      d="M450,120 Q510,95 565,130 T610,205 Q575,260 525,245 T470,185 Q445,150 450,120 Z"
-                      fill="url(#globeDots)"
-                    />
+                  <g style={{ animation: "gamatGlobeSpin 20s linear infinite" }}>
+                    {[0, 260].map((offsetX) => (
+                      <g key={offsetX} transform={`translate(${offsetX}, 0)`}>
+                        <path
+                          d="M110,165 Q145,140 190,155 T230,210 Q210,275 180,315 T135,280 Q105,220 110,165 Z"
+                          fill="url(#globeDots)"
+                        />
+                        <path
+                          d="M250,120 Q310,95 365,130 T410,205 Q375,260 325,245 T270,185 Q245,150 250,120 Z"
+                          fill="url(#globeDots)"
+                        />
+                        <path
+                          d="M275,255 Q335,245 375,295 T335,385 Q285,375 270,320 T275,255 Z"
+                          fill="url(#globeDots)"
+                        />
+
+                        {/* Connection Arcs */}
+                        <path
+                          d="M 145 215 Q 175 140 228 118"
+                          stroke="#dc3545"
+                          strokeWidth="1.75"
+                          style={{ animation: "gamatPulseArc 2.8s ease-in-out infinite" }}
+                        />
+                        <path
+                          d="M 228 118 Q 278 148 310 202"
+                          stroke="#dc3545"
+                          strokeWidth="1.5"
+                          style={{ animation: "gamatPulseArc 2.8s ease-in-out infinite" }}
+                        />
+
+                        {/* Person Node 1 (Outlined) */}
+                        <circle
+                          cx="145"
+                          cy="215"
+                          r="17"
+                          fill="#111215"
+                          stroke="#dc3545"
+                          strokeWidth="1.5"
+                        />
+                        <circle cx="145" cy="210" r="3.5" stroke="#dc3545" strokeWidth="1.4" />
+                        <path
+                          d="M138 222 C138 218.5 152 218.5 152 222"
+                          stroke="#dc3545"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Person Node 2 (Solid Brand-Red) */}
+                        <circle cx="228" cy="118" r="20" fill="#dc3545" />
+                        <circle cx="228" cy="118" r="25" stroke="#dc3545" strokeOpacity="0.3" strokeWidth="2" />
+                        <circle cx="228" cy="112" r="4" stroke="#ffffff" strokeWidth="1.6" />
+                        <path
+                          d="M220 125 C220 120.5 236 120.5 236 125"
+                          stroke="#ffffff"
+                          strokeWidth="1.6"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Person Node 3 (Outlined) */}
+                        <circle
+                          cx="310"
+                          cy="202"
+                          r="16"
+                          fill="#111215"
+                          stroke="#dc3545"
+                          strokeWidth="1.5"
+                        />
+                        <circle cx="310" cy="197" r="3.4" stroke="#dc3545" strokeWidth="1.4" />
+                        <path
+                          d="M303 209 C303 205.5 317 205.5 317 209"
+                          stroke="#dc3545"
+                          strokeWidth="1.4"
+                          strokeLinecap="round"
+                        />
+                      </g>
+                    ))}
                   </g>
                 </g>
-
-                {/* Connection Arc */}
-                <path
-                  d="M 145 215 Q 175 140 228 118"
-                  stroke="#dc3545"
-                  strokeWidth="1.75"
-                  style={{ animation: "gamatPulseArc 2.8s ease-in-out infinite" }}
-                />
-
-                {/* Person Node 1 (Outlined) */}
-                <circle
-                  cx="145"
-                  cy="215"
-                  r="17"
-                  fill="#111215"
-                  stroke="#dc3545"
-                  strokeWidth="1.5"
-                />
-                <circle cx="145" cy="210" r="3.5" stroke="#dc3545" strokeWidth="1.4" />
-                <path
-                  d="M138 222 C138 218.5 152 218.5 152 222"
-                  stroke="#dc3545"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                />
-
-                {/* Person Node 2 (Solid Brand-Red) */}
-                <circle cx="228" cy="118" r="20" fill="#dc3545" />
-                <circle cx="228" cy="118" r="25" stroke="#dc3545" strokeOpacity="0.3" strokeWidth="2" />
-                <circle cx="228" cy="112" r="4" stroke="#ffffff" strokeWidth="1.6" />
-                <path
-                  d="M220 125 C220 120.5 236 120.5 236 125"
-                  stroke="#ffffff"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
               </svg>
+
+              {/* Corner-bracketed dashed callout box (matches reference image 2) */}
+              <div
+                style={{ animation: "gamatCalloutFloat 4.5s ease-in-out infinite" }}
+                className="relative mx-auto mt-4 max-w-[270px] border border-dashed border-brand/55 bg-[#13151a]/95 p-4 text-left md:absolute md:right-0 md:top-1/2 md:mt-0 md:-translate-y-1/2"
+              >
+                <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 border-t-2 border-l-2 border-brand" />
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 border-t-2 border-r-2 border-brand" />
+                <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 border-b-2 border-l-2 border-brand" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 border-b-2 border-r-2 border-brand" />
+                <p className="text-xs leading-relaxed font-medium text-rose-400">
+                  Remote-first collaboration connects our mentors, engineers, and
+                  creators across every trading session.
+                </p>
+              </div>
             </div>
 
             {/* 3-Column Architectural Grid with Corner Square Markers */}
