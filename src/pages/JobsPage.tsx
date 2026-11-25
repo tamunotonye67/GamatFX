@@ -551,6 +551,12 @@ export default function JobsPage() {
         {/* Framed Top-Rounded Brand-Red Hero Card */}
         <div className="w-full px-2 sm:px-3 pb-0">
           <section className="relative flex min-h-0 sm:min-h-[108vh] flex-col items-start sm:items-center justify-start sm:justify-center overflow-hidden rounded-t-[36px] sm:rounded-t-[64px] rounded-b-2xl bg-gradient-to-b from-brand via-[#c82d3d] to-[#a92230] px-5 pt-24 pb-10 sm:px-6 sm:py-36 text-left sm:text-center text-white shadow-2xl">
+            <style>{`
+              @keyframes gamatHeroFloat {
+                0%, 100% { translate: 0 0; }
+                50% { translate: 0 -8px; }
+              }
+            `}</style>
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 opacity-20"
@@ -565,7 +571,67 @@ export default function JobsPage() {
               className="pointer-events-none absolute -bottom-24 left-1/2 h-72 w-[540px] -translate-x-1/2 rounded-full bg-rose-200/45 blur-[90px]"
             />
 
-            <div className="relative w-full sm:mx-auto max-w-5xl">
+            {/* Modern floating role category & subcategory icon tiles (left side) */}
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 4.6s ease-in-out infinite" }}
+              className="pointer-events-none absolute left-8 top-[20%] hidden h-14 w-14 -rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-md md:flex lg:left-16 xl:left-24"
+            >
+              <Code2 className="h-6 w-6" />
+            </div>
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 5.2s ease-in-out 0.7s infinite" }}
+              className="pointer-events-none absolute left-24 top-[42%] hidden h-12 w-12 rotate-6 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-md lg:flex xl:left-36"
+            >
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 4.8s ease-in-out 1.3s infinite" }}
+              className="pointer-events-none absolute left-10 bottom-[26%] hidden h-13 w-13 rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-md md:flex lg:left-20 xl:left-28"
+            >
+              <Palette className="h-5 w-5" />
+            </div>
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 5.4s ease-in-out 0.4s infinite" }}
+              className="pointer-events-none absolute left-[22%] bottom-[13%] hidden h-11 w-11 -rotate-6 items-center justify-center rounded-2xl border border-white/20 bg-white/[0.08] text-white/90 shadow-lg ring-1 ring-inset ring-white/15 backdrop-blur-md xl:flex"
+            >
+              <BarChart3 className="h-4 w-4" />
+            </div>
+
+            {/* Modern floating role category & subcategory icon tiles (right side) */}
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 4.9s ease-in-out 0.3s infinite" }}
+              className="pointer-events-none absolute right-8 top-[20%] hidden h-14 w-14 rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-md md:flex lg:right-16 xl:right-24"
+            >
+              <Megaphone className="h-6 w-6" />
+            </div>
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 5.3s ease-in-out 1.0s infinite" }}
+              className="pointer-events-none absolute right-24 top-[42%] hidden h-12 w-12 -rotate-6 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-md lg:flex xl:right-36"
+            >
+              <Headphones className="h-5 w-5" />
+            </div>
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 4.5s ease-in-out 1.6s infinite" }}
+              className="pointer-events-none absolute right-10 bottom-[26%] hidden h-13 w-13 -rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-xl ring-1 ring-inset ring-white/20 backdrop-blur-md md:flex lg:right-20 xl:right-28"
+            >
+              <PenTool className="h-5 w-5" />
+            </div>
+            <div
+              aria-hidden="true"
+              style={{ animation: "gamatHeroFloat 5.1s ease-in-out 0.8s infinite" }}
+              className="pointer-events-none absolute right-[22%] bottom-[13%] hidden h-11 w-11 rotate-6 items-center justify-center rounded-2xl border border-white/20 bg-white/[0.08] text-white/90 shadow-lg ring-1 ring-inset ring-white/15 backdrop-blur-md xl:flex"
+            >
+              <Briefcase className="h-4 w-4" />
+            </div>
+
+            <div className="relative z-10 w-full sm:mx-auto max-w-5xl">
               <h1 className="pr-16 sm:pr-0 font-sans text-[2.2rem] leading-[1.1] font-bold sm:font-medium tracking-tight text-white sm:text-5xl lg:text-[3.2rem] lg:leading-[1.15]">
                 Want to be a part of something more
                 <br className="hidden sm:inline" /> fulfilling than trading? Then, let’s work!
