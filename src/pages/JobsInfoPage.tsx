@@ -4,8 +4,10 @@ import {
   ArrowRight,
   Award,
   CheckCircle2,
+  ChevronDown,
   FileCheck2,
   Globe2,
+  HelpCircle,
   Send,
   ShieldCheck,
 } from "lucide-react";
@@ -18,10 +20,11 @@ export type JobsInfoSection =
   | "culture"
   | "certificates"
   | "conduct"
-  | "report";
+  | "report"
+  | "faq";
 
 const SECTION_CONTENT: Record<
-  Exclude<JobsInfoSection, "report">,
+  Exclude<JobsInfoSection, "report" | "faq">,
   {
     eyebrow: string;
     title: string;
@@ -132,6 +135,41 @@ const SECTION_CONTENT: Record<
   },
 };
 
+const HIRING_FAQS: Array<{ q: string; a: string }> = [
+  {
+    q: "How does the GAMAT Fx Volunteer Fellowship work?",
+    a: "Our Fellowship is a remote, project-based program where analysts, developers, designers, marketers, and writers collaborate directly with the GAMAT Fx team on live academy initiatives. You build real-world proof of work while receiving mentor feedback.",
+  },
+  {
+    q: "Are these roles paid, or can they lead to paid positions?",
+    a: "Most open tracks start as Volunteer Fellowships (typically 6–12 hours/week) with verified completion certificates and portfolio credits. High-performing fellows who ship consistently are prioritized when paid contract or full-time roles open up.",
+  },
+  {
+    q: "Do I need to be a GAMAT Fx student before applying?",
+    a: "No. While familiarity with forex markets and trading education is a plus—especially for Trading & Analysis roles—we welcome skilled builders, designers, writers, and community operators from outside the academy as well.",
+  },
+  {
+    q: "What is the weekly time commitment and schedule?",
+    a: "Most roles are flexible and asynchronous, requiring 6–12 hours per week. We coordinate across Lagos, London, and New York time zones using async updates and short weekly syncs, so you can contribute alongside school, trading, or a day job.",
+  },
+  {
+    q: "What do I receive after completing a Fellowship term?",
+    a: "Contributors who complete their term receive a verified GAMAT Fx Fellowship Certificate (verifiable on our certificate portal), a written recommendation letter upon request, public portfolio attribution, and priority access to academy resources.",
+  },
+  {
+    q: "How long does the application review take?",
+    a: "Our team reviews applications on a rolling basis. Shortlisted candidates usually hear back by email within 5–7 business days for a brief intro chat or a short practical task relevant to the role.",
+  },
+  {
+    q: "Can I apply for more than one role or department?",
+    a: "Yes—you can browse our six skill tracks on the Careers page and apply to any open role that matches your strengths. We recommend tailoring your portfolio link and cover note to each specific position.",
+  },
+  {
+    q: "Who can I contact if I have questions about my application?",
+    a: "You can reach our team directly at support@gamatfxacademy.com or submit a message via the Report an Issue tab on this page.",
+  },
+];
+
 export default function JobsInfoPage({
   section,
 }: {
@@ -142,6 +180,7 @@ export default function JobsInfoPage({
   const [issueEmail, setIssueEmail] = useState(user?.email || "");
   const [issueDetails, setIssueDetails] = useState("");
   const [reportSent, setReportSent] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const goToMainRoute = (path: string) => {
     const clean = path.startsWith("/") ? path : `/${path}`;
@@ -157,6 +196,7 @@ export default function JobsInfoPage({
   };
 
   const tabs: Array<{ id: JobsInfoSection; label: string; route: string }> = [
+    { id: "faq", label: "Hiring FAQ", route: "/jobs/faq" },
     { id: "guidelines", label: "Guidelines", route: "/jobs/guidelines" },
     { id: "culture", label: "Remote Culture", route: "/jobs/culture" },
     { id: "certificates", label: "Certificates & Paid Path", route: "/jobs/certificates" },
@@ -164,7 +204,8 @@ export default function JobsInfoPage({
     { id: "report", label: "Report an Issue", route: "/jobs/report" },
   ];
 
-  const info = section !== "report" ? SECTION_CONTENT[section] : null;
+  const info =
+    section !== "report" && section !== "faq" ? SECTION_CONTENT[section] : null;
   const Icon = info?.icon || ShieldCheck;
 
   return (
@@ -316,6 +357,84 @@ export default function JobsInfoPage({
                 </button>
               </form>
             )}
+          </div>
+        ) : section === "faq" ? (
+          <div className="space-y-8">
+            <div className="rounded-3xl border border-white/10 bg-[#16181d] p-7 sm:p-10 shadow-2xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-brand/40 bg-brand/15 text-brand">
+                <HelpCircle className="h-5 w-5" />
+              </div>
+              <p className="mt-5 text-xs font-bold uppercase tracking-[0.14em] text-brand">
+                Careers &amp; Fellowship FAQ
+              </p>
+              <h1 className="mt-2 font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
+                Frequently Asked Questions
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-white/65">
+                Everything you need to know about applying, remote collaboration,
+                certificates, and growing with the GAMAT Fx team.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {HIRING_FAQS.map((item, idx) => {
+                const isOpen = openFaq === idx;
+                return (
+                  <div
+                    key={item.q}
+                    className="overflow-hidden rounded-2xl border border-white/10 bg-[#16181d] transition hover:border-white/20"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(isOpen ? null : idx)}
+                      className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left cursor-pointer"
+                    >
+                      <span className="font-sans text-sm sm:text-base font-semibold text-white">
+                        {item.q}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-white/60 transition-transform duration-200 ${
+                          isOpen ? "rotate-180 text-brand" : ""
+                        }`}
+                      />
+                    </button>
+                    {isOpen && (
+                      <div className="border-t border-white/10 px-6 pb-5 pt-4 text-sm leading-relaxed text-white/70">
+                        {item.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5">
+              <div>
+                <p className="font-sans text-sm font-semibold text-white">
+                  Ready to join the team?
+                </p>
+                <p className="text-xs text-white/60">
+                  Browse open positions or reach out to our team if your question
+                  isn&apos;t listed above.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => navigate("/jobs/report")}
+                  className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-white/85 hover:bg-white/10 cursor-pointer"
+                >
+                  Ask a Question
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/jobs/opportunities")}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 text-xs font-bold text-white hover:bg-brand-dark cursor-pointer"
+                >
+                  Browse Open Roles <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           info && (

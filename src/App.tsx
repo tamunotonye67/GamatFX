@@ -314,7 +314,8 @@ export default function App() {
       second === "culture" ||
       second === "certificates" ||
       second === "conduct" ||
-      second === "report")
+      second === "report" ||
+      second === "faq")
   ) {
     content = <JobsInfoPage section={second} />;
   } else if (first === "jobs" && second) {

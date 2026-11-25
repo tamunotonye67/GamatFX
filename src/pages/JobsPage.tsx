@@ -302,7 +302,7 @@ export default function JobsPage() {
             <div className="hidden lg:flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => goToMainRoute("/faq")}
+                onClick={() => navigate("/jobs/faq")}
                 className="inline-flex items-center gap-1.5 mr-1 text-[13px] font-medium text-rose-400 hover:text-rose-300 transition cursor-pointer"
               >
                 <HelpCircle className="h-3.5 w-3.5" />
@@ -602,7 +602,7 @@ export default function JobsPage() {
                 {/* 4. Direct links: Back to Site, FAQ?, Contact Founder (no arrows) */}
                 {[
                   { label: "Back to Site", action: () => goToMainRoute("/") },
-                  { label: "FAQ?", action: () => goToMainRoute("/faq") },
+                  { label: "FAQ?", action: () => navigate("/jobs/faq") },
                   {
                     label: "Contact Founder",
                     action: () => goToMainRoute("/contact"),
