@@ -412,8 +412,9 @@ export default function JobsPage() {
       </div>
 
       {/* Architectural Dark Continuation Section */}
-      <div className="mx-auto max-w-[1440px] px-2 sm:px-3">
-        <div className="border-x border-t border-dashed border-white/10">
+      <div className="mt-4 sm:mt-6 w-full border-t border-dashed border-white/10">
+        <div className="mx-auto max-w-[1440px] px-2 sm:px-3">
+          <div className="border-x border-dashed border-white/10">
           {/* Location Doesn't Matter + Dotted Globe */}
           <section
             id="culture"
@@ -700,6 +701,7 @@ export default function JobsPage() {
               </div>
             )}
           </section>
+        </div>
         </div>
       </div>
 
