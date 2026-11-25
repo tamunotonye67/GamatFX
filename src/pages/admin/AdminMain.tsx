@@ -207,6 +207,22 @@ export function AdminDashboard() {
                 </div>
               )}
 
+              {(isAdmin || can("enquiries:manage")) && (
+                <div className="rounded-xl border border-line bg-white p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Jobs & Hiring</p>
+                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                    Post open roles for <strong>jobs.gamatfxacademy.com</strong>, toggle availability, and review candidate applications.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/jobs")}
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    Manage Jobs & Hiring <ArrowUpRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+
               {(isAdmin || can("students:manage") || can("courses:manage") || can("payments:manage") || can("settings:manage")) && (
                 <div className="rounded-xl border border-line bg-white p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-brand">Academy Operations</p>
