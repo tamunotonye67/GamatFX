@@ -412,7 +412,7 @@ export default function JobsOpportunitiesPage() {
           <section className="mb-12">
             <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="font-sans text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+                <h2 className="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
                   Welcome, onboard!
                 </h2>
                 <p className="mt-1 text-sm text-white/60">
