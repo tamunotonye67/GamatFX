@@ -5342,9 +5342,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
     });
 
-    // 5. Service Enquiries
+    // 5. Service Enquiries & Job Applications
     enquiries.forEach((e) => {
-      if (e.serviceSlug === "sys_discovery_survey") return;
+      if (e.serviceSlug === "sys_discovery_survey" || e.serviceSlug === "__gamat_job_role__") return;
+      if (e.serviceSlug === "__gamat_job_application__") {
+        list.push({
+          id: `notif_jobapp_${e.id}`,
+          type: "enquiry",
+          title: "New Job Application",
+          body: `${e.name} applied for ${e.serviceTitle}.`,
+          timestamp: e.createdAt,
+          link: "/admin/jobs",
+          targetQuery: e.ref || e.name || e.email,
+          read: e.status !== "new",
+        });
+        return;
+      }
       list.push({
         id: `notif_enq_${e.id}`,
         type: "enquiry",

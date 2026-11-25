@@ -3,11 +3,16 @@ import {
   Briefcase,
   CheckCircle2,
   ExternalLink,
+  FileText,
+  Mail,
+  Pencil,
   Plus,
   Trash2,
+  Upload,
   Users,
 } from "lucide-react";
 import { AdminShell, StatCard } from "./AdminShell";
+import { uploadJobFile } from "../../lib/supabaseStorage";
 import {
   deleteSupabaseJobRole,
   fetchSupabaseJobApplications,
@@ -30,13 +35,15 @@ export function AdminJobs() {
   const [roles, setRoles] = useState<JobRole[]>(() => loadJobRoles());
   const [apps, setApps] = useState<JobApplication[]>(() => loadJobApplications());
 
-  // New role form
+  // New / Edit role form
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [department, setDepartment] = useState<JobDepartment>("Trading & Analysis");
   const [location, setLocation] = useState("Remote");
   const [type, setType] = useState<JobType>("Full-time");
   const [compensation, setCompensation] = useState("");
   const [image, setImage] = useState("");
+  const [uploadingThumb, setUploadingThumb] = useState(false);
   const [summary, setSummary] = useState("");
   const [requirements, setRequirements] = useState("");
 
@@ -57,9 +64,70 @@ export function AdminJobs() {
     return { openCount, totalApps, newApps, shortlisted };
   }, [roles, apps]);
 
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle("");
+    setDepartment("Trading & Analysis");
+    setLocation("Remote");
+    setType("Full-time");
+    setCompensation("");
+    setImage("");
+    setSummary("");
+    setRequirements("");
+  };
+
+  const startEdit = (role: JobRole) => {
+    setEditingId(role.id);
+    setTitle(role.title);
+    setDepartment(role.department);
+    setLocation(role.location);
+    setType(role.type);
+    setCompensation(role.compensation);
+    setImage(role.image || "");
+    setSummary(role.summary);
+    setRequirements(role.requirements);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingThumb(true);
+    const res = await uploadJobFile("role-thumb", file);
+    if (res.ok && res.url) {
+      setImage(res.url);
+    }
+    setUploadingThumb(false);
+    e.target.value = "";
+  };
+
   const addRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !summary.trim()) return;
+
+    if (editingId) {
+      const existing = roles.find((r) => r.id === editingId);
+      const updatedRole: JobRole = {
+        id: editingId,
+        title: title.trim(),
+        department,
+        location: location.trim() || "Remote",
+        type,
+        compensation: compensation.trim() || "Volunteer Fellowship · Certificate",
+        summary: summary.trim(),
+        requirements: requirements.trim(),
+        ...(image.trim() ? { image: image.trim() } : {}),
+        open: existing?.open ?? true,
+        createdAt: existing?.createdAt || new Date().toISOString(),
+      };
+      const next = roles.map((r) => (r.id === editingId ? updatedRole : r));
+      setRoles(next);
+      saveJobRoles(next);
+      await upsertSupabaseJobRole(updatedRole);
+      resetForm();
+      return;
+    }
+
     const newRole: JobRole = {
       id: `job_${Date.now()}`,
       title: title.trim(),
@@ -78,11 +146,7 @@ export function AdminJobs() {
     saveJobRoles(next);
     await upsertSupabaseJobRole(newRole);
 
-    setTitle("");
-    setCompensation("");
-    setImage("");
-    setSummary("");
-    setRequirements("");
+    resetForm();
   };
 
   const toggleOpen = async (role: JobRole) => {
@@ -152,9 +216,20 @@ export function AdminJobs() {
             onSubmit={addRole}
             className="rounded-2xl border border-line bg-white p-5 sm:p-6 shadow-2xs space-y-4"
           >
-            <h3 className="font-display text-base font-bold text-ink">
-              Post a New Role
-            </h3>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-display text-base font-bold text-ink">
+                {editingId ? "Edit Open Role" : "Post a New Role"}
+              </h3>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-xs font-semibold text-muted hover:text-brand cursor-pointer"
+                >
+                  Cancel edit
+                </button>
+              )}
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-muted">
@@ -226,12 +301,25 @@ export function AdminJobs() {
                 <label className="mb-1 block text-xs font-semibold text-muted">
                   Thumbnail Image URL (optional)
                 </label>
-                <input
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="https://... (defaults to department thumbnail)"
-                  className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="https://... (defaults to department thumbnail)"
+                    className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+                  />
+                  <label className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-line bg-cream/60 px-3.5 py-2 text-xs font-bold text-ink hover:border-brand hover:text-brand cursor-pointer">
+                    <Upload className="h-3.5 w-3.5" />
+                    <span>{uploadingThumb ? "Uploading..." : "Upload Image"}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleThumbUpload}
+                      disabled={uploadingThumb}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               </div>
             </div>
             <div>
@@ -258,9 +346,28 @@ export function AdminJobs() {
                 className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
               />
             </div>
-            <button type="submit" className="btn-primary">
-              <Plus className="h-4 w-4" /> Publish Role
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="submit" className="btn-primary">
+                {editingId ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" /> Save Changes
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" /> Publish Role
+                  </>
+                )}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="btn-outline-dark !py-2.5 !px-4 text-xs"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
 
           <div className="space-y-3">
@@ -293,6 +400,14 @@ export function AdminJobs() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(r)}
+                    aria-label="Edit role"
+                    className="inline-flex items-center gap-1 rounded-xl border border-line bg-cream/40 px-3 py-2 text-xs font-semibold text-ink hover:border-brand hover:text-brand cursor-pointer"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
                   <button
                     type="button"
                     onClick={() => toggleOpen(r)}
@@ -344,16 +459,30 @@ export function AdminJobs() {
                       {a.email} · {a.phone}
                       {a.experience ? ` · ${a.experience} exp` : ""}
                     </p>
-                    {a.portfolioUrl && (
-                      <a
-                        href={a.portfolioUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
-                      >
-                        Portfolio / CV <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3">
+                      {a.portfolioUrl && (
+                        <a
+                          href={a.portfolioUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+                        >
+                          Portfolio / Link <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                      {a.cvUrl && (
+                        <a
+                          href={a.cvUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          download={a.cvFileName || "CV"}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:underline"
+                        >
+                          <FileText className="h-3 w-3" />{" "}
+                          {a.cvFileName || "Uploaded CV"}
+                        </a>
+                      )}
+                    </div>
                     {a.coverNote && (
                       <p className="mt-2 rounded-xl bg-cream/60 p-3 text-xs leading-relaxed text-ink/85">
                         {a.coverNote}
@@ -361,7 +490,18 @@ export function AdminJobs() {
                     )}
                   </div>
 
-                  <div className="shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={`mailto:${a.email}?subject=${encodeURIComponent(
+                        `GAMAT Fx Application (${a.ref}) — ${a.jobTitle}`
+                      )}&body=${encodeURIComponent(
+                        `Hi ${a.name},\n\nThank you for applying for ${a.jobTitle} (${a.ref}) at GAMAT Fx.\n\nCurrent status: ${a.status.toUpperCase()}\n\nBest regards,\nGAMAT Fx Hiring Team`
+                      )}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-3 py-2 text-xs font-semibold text-ink hover:border-brand hover:text-brand"
+                      title="Email Candidate"
+                    >
+                      <Mail className="h-3.5 w-3.5" /> Email
+                    </a>
                     <select
                       value={a.status}
                       onChange={(e) =>

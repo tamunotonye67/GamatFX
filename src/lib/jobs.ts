@@ -63,6 +63,8 @@ export type JobApplication = {
   email: string;
   phone: string;
   portfolioUrl: string;
+  cvUrl?: string;
+  cvFileName?: string;
   experience: string;
   coverNote: string;
   status: JobApplicationStatus;
@@ -373,6 +375,8 @@ export async function fetchSupabaseJobApplications(): Promise<JobApplication[]> 
           email: String(r.email || ""),
           phone: String(r.phone || ""),
           portfolioUrl: String(r.company || ""),
+          ...(parsed.cvUrl ? { cvUrl: String(parsed.cvUrl) } : {}),
+          ...(parsed.cvFileName ? { cvFileName: String(parsed.cvFileName) } : {}),
           experience: String(r.budget || ""),
           coverNote: String(parsed.coverNote || r.message || ""),
           status: (r.status as JobApplicationStatus) || "new",
@@ -401,7 +405,11 @@ export async function submitSupabaseJobApplication(
     phone: app.phone,
     company: app.portfolioUrl || null,
     budget: app.experience || null,
-    message: JSON.stringify({ coverNote: app.coverNote }),
+    message: JSON.stringify({
+      coverNote: app.coverNote,
+      ...(app.cvUrl ? { cvUrl: app.cvUrl } : {}),
+      ...(app.cvFileName ? { cvFileName: app.cvFileName } : {}),
+    }),
     user_id: null,
     status: app.status,
     created_at: app.createdAt,

@@ -186,6 +186,50 @@ export async function uploadCompanyAsset(assetKey: string, file: File): Promise<
   }
 }
 
+/**
+ * Uploads a hiring role thumbnail or candidate CV/resume (PDF/DOC/image)
+ * to Cloudflare R2 / Supabase Storage with data-URL fallback for files <= 2MB.
+ */
+export async function uploadJobFile(
+  prefix: string,
+  file: File
+): Promise<{ ok: boolean; url?: string; fileName?: string; error?: string }> {
+  const MAX_BYTES = 10 * 1024 * 1024;
+  if (file.size > MAX_BYTES) {
+    return { ok: false, error: "File exceeds 10MB limit. Please upload a smaller file." };
+  }
+  try {
+    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const filePath = `jobs/${prefix}_${Date.now()}_${cleanName}`;
+
+    const r2Url = await tryUploadToR2(`company-assets/${filePath}`, file);
+    if (r2Url) return { ok: true, url: r2Url, fileName: file.name };
+
+    const { error: uploadError } = await supabase.storage
+      .from("company-assets")
+      .upload(filePath, file, { upsert: true });
+
+    if (!uploadError) {
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("company-assets").getPublicUrl(filePath);
+      return { ok: true, url: toEdgeMediaUrl(publicUrl), fileName: file.name };
+    }
+
+    if (file.size <= 2 * 1024 * 1024) {
+      const dataUrl = await fileToDataUrl(file);
+      return { ok: true, url: dataUrl, fileName: file.name };
+    }
+    return { ok: false, error: "Storage upload failed for large file. Please paste a link instead." };
+  } catch {
+    if (file.size <= 2 * 1024 * 1024) {
+      const dataUrl = await fileToDataUrl(file);
+      return { ok: true, url: dataUrl, fileName: file.name };
+    }
+    return { ok: false, error: "Unable to upload file. Please paste a link instead." };
+  }
+}
+
 /** Format bytes into friendly size string like 1.4 MB */
 export function formatBytes(bytes: number, decimals = 1): string {
   if (!bytes || bytes === 0) return "0 B";

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   Award,
   Briefcase,
   CheckCircle2,
@@ -9,6 +10,7 @@ import {
   Clock,
   FileText,
   Home,
+  MapPin,
   MessageSquare,
   Send,
   ShieldCheck,
@@ -21,16 +23,42 @@ import {
   type RoleGuide,
 } from "../lib/jobRoleGuides";
 import {
+  fetchSupabaseJobRoles,
   loadJobApplications,
+  loadJobRoles,
+  normalizeJobDepartment,
   saveJobApplications,
   submitSupabaseJobApplication,
   type JobApplication,
+  type JobRole,
 } from "../lib/jobs";
 import { navigate } from "../lib/router";
 
 export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [applyOpen, setApplyOpen] = useState(false);
+  const [liveRoles, setLiveRoles] = useState<JobRole[]>(() => loadJobRoles());
+
+  useEffect(() => {
+    void fetchSupabaseJobRoles().then((remote) => {
+      if (remote.length > 0) setLiveRoles(remote);
+    });
+  }, []);
+
+  const trackDepartment = normalizeJobDepartment(
+    guide.categoryId === "Trading"
+      ? "Trading & Analysis"
+      : guide.categoryId === "Design"
+      ? "Design & Creative"
+      : guide.categoryId === "Admin"
+      ? "Admin & Support"
+      : guide.categoryId === "Writing"
+      ? "Writing & Content"
+      : guide.categoryId
+  );
+  const matchingLiveRoles = liveRoles.filter(
+    (r) => r.open && r.department === trackDepartment
+  );
 
   // Application form state
   const [name, setName] = useState("");
@@ -358,6 +386,71 @@ export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
             ))}
           </div>
         </section>
+
+        {/* Live Open Positions in This Track */}
+        {matchingLiveRoles.length > 0 && (
+          <section className="border-b border-line py-14">
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-brand">
+                  Live Openings · {trackDepartment}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-bold text-ink sm:text-3xl">
+                  Currently Open Positions in This Track
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/jobs/opportunities")}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline cursor-pointer"
+              >
+                View all openings <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {matchingLiveRoles.map((role) => (
+                <div
+                  key={role.id}
+                  className="flex flex-col justify-between rounded-2xl border border-line bg-cream/40 p-5 transition hover:border-brand/40"
+                >
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-ink/75 border border-line">
+                        <MapPin className="h-3 w-3 text-brand" /> {role.location}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-ink/75 border border-line">
+                        <Clock className="h-3 w-3 text-brand" /> {role.type}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-lg font-bold text-ink">
+                      {role.title}
+                    </h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-ink/75 line-clamp-2">
+                      {role.summary}
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-line flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold text-emerald-700 truncate">
+                      {role.compensation}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/opportunities?job=${encodeURIComponent(role.id)}`
+                        )
+                      }
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-dark cursor-pointer"
+                    >
+                      Apply Now <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Frequently Asked Questions (matches Screenshots 9–10) */}
         <section className="border-b border-line py-14">
