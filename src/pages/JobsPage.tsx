@@ -93,7 +93,7 @@ const JOIN_US_PHRASES = [
 ];
 
 export default function JobsPage() {
-  const { user } = useStore();
+  const { user, logout } = useStore();
   const [activeSkill, setActiveSkill] = useState<string>("");
   const [activeSubSkill, setActiveSubSkill] = useState<string>("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
