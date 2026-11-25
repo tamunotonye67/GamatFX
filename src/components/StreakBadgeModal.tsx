@@ -57,6 +57,27 @@ export function StreakFlamePill({
   );
 }
 
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
 function downloadStreakCardPng({
   handle,
   initials,
@@ -70,25 +91,39 @@ function downloadStreakCardPng({
   tier: StreakTier;
   isUpgrade: boolean;
 }) {
+  // Match Affiliate Card dimensions: 2.76 x 4.75 in @ 600 DPI (2x supersampled 828 x 1425 = 1656 x 2850 px)
+  const SCALE = 2;
+  const width = 828;
+  const height = 1425;
+  const cardRadius = 60;
+
   const canvas = document.createElement("canvas");
-  canvas.width = 900;
-  canvas.height = 1280;
+  canvas.width = width * SCALE;
+  canvas.height = height * SCALE;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
+  ctx.scale(SCALE, SCALE);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
+  // Clip canvas to curved card corners matching Affiliate Card
+  ctx.save();
+  drawRoundedRect(ctx, 0, 0, width, height, cardRadius);
+  ctx.clip();
 
   // Background gradient
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
   grad.addColorStop(0, tier.cardBg);
   grad.addColorStop(1, "#ffffff");
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, width, height);
 
   // Confetti accents
   const confetti = [
-    { x: 95, y: 340, c: "#facc15", w: 22, h: 10, r: -0.3 },
-    { x: 780, y: 310, c: "#ec4899", w: 22, h: 10, r: 0.4 },
-    { x: 115, y: 580, c: "#fb7185", w: 20, h: 10, r: 0.2 },
-    { x: 765, y: 590, c: "#38bdf8", w: 20, h: 10, r: -0.25 },
+    { x: 88, y: 365, c: "#facc15", w: 22, h: 10, r: -0.3 },
+    { x: 726, y: 335, c: "#ec4899", w: 22, h: 10, r: 0.4 },
+    { x: 104, y: 635, c: "#fb7185", w: 20, h: 10, r: 0.2 },
+    { x: 714, y: 645, c: "#38bdf8", w: 20, h: 10, r: -0.25 },
   ];
   for (const cf of confetti) {
     ctx.save();
@@ -101,22 +136,23 @@ function downloadStreakCardPng({
 
   // Title
   ctx.fillStyle = tier.badgeText;
-  ctx.font = "800 44px system-ui, -apple-system, sans-serif";
+  ctx.font = "800 42px system-ui, -apple-system, sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(
     isUpgrade ? "We've upgraded our" : "GAMAT Fx Daily",
-    68,
-    130
+    64,
+    145
   );
-  ctx.fillText(isUpgrade ? "Streak badge" : "Streak badge", 68, 185);
+  ctx.fillText("Streak badge", 64, 198);
 
   ctx.fillStyle = "#111215";
-  ctx.font = "900 54px system-ui, -apple-system, sans-serif";
-  ctx.fillText(`@${handle}`, 68, 255);
+  ctx.font = "900 50px system-ui, -apple-system, sans-serif";
+  ctx.fillText(`@${handle}`, 64, 268);
 
   // Flame mascot body
+  const centerX = width / 2;
   ctx.save();
-  ctx.translate(450, 465);
+  ctx.translate(centerX, 515);
   // Shadow
   ctx.fillStyle = "rgba(17,18,21,0.12)";
   ctx.beginPath();
@@ -129,11 +165,11 @@ function downloadStreakCardPng({
   ctx.lineCap = "round";
   ctx.beginPath();
   ctx.moveTo(-60, 20);
-  ctx.quadraticCurveTo(-140, 25, -195, -55);
+  ctx.quadraticCurveTo(-135, 25, -188, -55);
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(60, 20);
-  ctx.quadraticCurveTo(140, 25, 195, -55);
+  ctx.quadraticCurveTo(135, 25, 188, -55);
   ctx.stroke();
 
   // Legs
@@ -172,63 +208,72 @@ function downloadStreakCardPng({
   // Left held badge (initials)
   ctx.fillStyle = "#111215";
   ctx.beginPath();
-  ctx.arc(-205, -75, 74, 0, Math.PI * 2);
+  ctx.arc(-198, -75, 72, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.arc(-205, -75, 65, 0, Math.PI * 2);
+  ctx.arc(-198, -75, 63, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#111215";
-  ctx.font = "900 40px system-ui, sans-serif";
+  ctx.font = "900 38px system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(initials, -205, -73);
+  ctx.fillText(initials, -198, -73);
 
   // Right held badge (Tier)
   ctx.fillStyle = "#111215";
   ctx.beginPath();
-  ctx.arc(205, -75, 74, 0, Math.PI * 2);
+  ctx.arc(198, -75, 72, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = tier.accent;
   ctx.beginPath();
-  ctx.arc(205, -75, 65, 0, Math.PI * 2);
+  ctx.arc(198, -75, 63, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#ffffff";
-  ctx.font = "900 24px system-ui, sans-serif";
-  ctx.fillText(tier.name.toUpperCase(), 205, -73);
+  ctx.font = "900 23px system-ui, sans-serif";
+  ctx.fillText(tier.name.toUpperCase(), 198, -73);
   ctx.restore();
 
-  // Cloud bubble
+  // Cloud bubble (stroke outer silhouette first, then fill cleanly so inner arcs don't overlap)
   ctx.save();
-  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  const cloudCircles = [
+    { x: centerX - 150, y: 930, r: 118 },
+    { x: centerX, y: 882, r: 148 },
+    { x: centerX + 150, y: 935, r: 118 },
+    { x: centerX, y: 1030, r: 165 },
+  ];
   ctx.strokeStyle = "#111215";
-  ctx.lineWidth = 8;
-  ctx.beginPath();
-  ctx.arc(285, 860, 125, 0, Math.PI * 2);
-  ctx.arc(450, 815, 155, 0, Math.PI * 2);
-  ctx.arc(615, 865, 125, 0, Math.PI * 2);
-  ctx.arc(450, 965, 175, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+  ctx.lineWidth = 14;
+  for (const c of cloudCircles) {
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  for (const c of cloudCircles) {
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // Big streak number
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = "900 185px system-ui, sans-serif";
+  ctx.font = "900 180px system-ui, sans-serif";
   ctx.lineWidth = 16;
   ctx.strokeStyle = "#111215";
-  ctx.strokeText(String(state.currentStreak), 450, 885);
+  ctx.strokeText(String(state.currentStreak), centerX, 955);
   ctx.fillStyle = tier.flameFrom;
-  ctx.fillText(String(state.currentStreak), 450, 885);
+  ctx.fillText(String(state.currentStreak), centerX, 955);
 
   // Top tilted tag
   ctx.save();
-  ctx.translate(250, 725);
+  ctx.translate(centerX - 180, 790);
   ctx.rotate(-0.07);
   ctx.fillStyle = "#111215";
-  ctx.fillRect(-135, -24, 270, 48);
+  ctx.fillRect(-130, -23, 260, 46);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "800 24px system-ui, sans-serif";
+  ctx.font = "800 22px system-ui, sans-serif";
   ctx.fillText("Ongoing streak days", 0, 2);
   ctx.restore();
 
@@ -236,44 +281,52 @@ function downloadStreakCardPng({
   const activityCount =
     state.gamesPlayed + state.lessonsCompleted + state.forumMessages;
   ctx.save();
-  ctx.translate(245, 1055);
+  ctx.translate(centerX - 185, 1145);
   ctx.rotate(-0.05);
   ctx.fillStyle = "#111215";
-  ctx.fillRect(-115, -20, 230, 40);
+  ctx.fillRect(-112, -20, 224, 40);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "800 21px system-ui, sans-serif";
+  ctx.font = "800 20px system-ui, sans-serif";
   ctx.fillText("Games & activity", 0, 1);
   ctx.restore();
-  ctx.font = "900 58px system-ui, sans-serif";
+  ctx.font = "900 56px system-ui, sans-serif";
   ctx.lineWidth = 10;
   ctx.strokeStyle = "#111215";
-  ctx.strokeText(String(activityCount), 245, 1125);
+  ctx.strokeText(String(activityCount), centerX - 185, 1215);
   ctx.fillStyle = tier.flameFrom;
-  ctx.fillText(String(activityCount), 245, 1125);
+  ctx.fillText(String(activityCount), centerX - 185, 1215);
 
   // Bottom right stat
   ctx.save();
-  ctx.translate(650, 1055);
+  ctx.translate(centerX + 185, 1145);
   ctx.rotate(-0.05);
   ctx.fillStyle = "#111215";
-  ctx.fillRect(-100, -20, 200, 40);
+  ctx.fillRect(-98, -20, 196, 40);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "800 21px system-ui, sans-serif";
+  ctx.font = "800 20px system-ui, sans-serif";
   ctx.fillText("Best streak", 0, 1);
   ctx.restore();
-  ctx.font = "900 58px system-ui, sans-serif";
+  ctx.font = "900 56px system-ui, sans-serif";
   ctx.lineWidth = 10;
   ctx.strokeStyle = "#111215";
-  ctx.strokeText(String(state.bestStreak), 650, 1125);
+  ctx.strokeText(String(state.bestStreak), centerX + 185, 1215);
   ctx.fillStyle = tier.flameFrom;
-  ctx.fillText(String(state.bestStreak), 650, 1125);
+  ctx.fillText(String(state.bestStreak), centerX + 185, 1215);
   ctx.restore();
 
   // Footer
   ctx.fillStyle = "rgba(17,18,21,0.55)";
   ctx.font = "700 22px system-ui, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("gamatfxacademy.com", 450, 1235);
+  ctx.fillText("gamatfxacademy.com", centerX, 1345);
+
+  // Subtle curved outer border matching Affiliate Card
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(17, 18, 21, 0.12)";
+  drawRoundedRect(ctx, 1.5, 1.5, width - 3, height - 3, cardRadius);
+  ctx.stroke();
+
+  ctx.restore();
 
   const link = document.createElement("a");
   link.download = `gamatfx-streak-${state.currentStreak}d.png`;
