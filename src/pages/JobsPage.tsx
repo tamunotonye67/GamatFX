@@ -944,7 +944,7 @@ export default function JobsPage() {
             {/* Location Doesn't Matter + True 3D Revolving Globe */}
             <section
               id="culture"
-              className="relative overflow-hidden px-4 pt-20 pb-20 sm:px-10 sm:pt-28 text-center"
+              className="relative overflow-hidden px-4 pt-20 pb-10 sm:px-10 sm:pt-28 sm:pb-12 text-center"
             >
               <div className="mx-auto max-w-2xl">
                 <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
@@ -1386,7 +1386,7 @@ export default function JobsPage() {
             {/* Two evenly spaced horizontal dashed lines joining left & right vertical dashed rails */}
             <div
               aria-hidden="true"
-              className="flex flex-col justify-evenly py-10 sm:py-14 gap-16 sm:gap-24"
+              className="flex flex-col justify-evenly pt-2 pb-8 sm:pt-3 sm:pb-10 gap-16 sm:gap-24"
             >
               <div
                 className="h-[2px] w-full"
