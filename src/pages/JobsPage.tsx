@@ -1471,10 +1471,6 @@ export default function JobsPage() {
                 >
                   Terms of use
                 </button>
-                <span aria-hidden="true" className="text-white/25">
-                  |
-                </span>
-                <span className="text-white/60">jobs.gamatfxacademy.com</span>
               </div>
             </div>
           </div>
