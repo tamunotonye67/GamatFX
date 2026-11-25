@@ -1412,8 +1412,8 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/opportunities")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={handleExploreOpportunities}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Explore opportunities
                     </button>
@@ -1422,7 +1422,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/signup")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Create GAMAT account
                     </button>
@@ -1431,7 +1431,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/login")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Member login
                     </button>
@@ -1439,23 +1439,20 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() =>
-                        document
-                          .getElementById("roles-directory")
-                          ?.scrollIntoView({ behavior: "smooth" })
-                      }
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => scrollTo("skills")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Browse role tracks
                     </button>
                   </li>
                   <li>
-                    <a
-                      href="mailto:founder@gamatfxacademy.com"
-                      className="text-white/85 transition hover:text-white"
+                    <button
+                      type="button"
+                      onClick={() => goToMainRoute("/contact")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Contact founder
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -1469,7 +1466,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => navigate("/jobs/team")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Meet the team
                     </button>
@@ -1477,8 +1474,8 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/market-research-analyst")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => navigate("/jobs/culture")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Remote-first culture
                     </button>
@@ -1486,8 +1483,8 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/opportunities")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => navigate("/jobs/certificates")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Experience certificates
                     </button>
@@ -1496,7 +1493,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/learn")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Academy access
                     </button>
@@ -1504,8 +1501,8 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/opportunities")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => navigate("/jobs/certificates")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Path to paid roles
                     </button>
@@ -1520,7 +1517,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/outlook")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Market outlook
                     </button>
@@ -1529,7 +1526,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/learn")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Learning center
                     </button>
@@ -1538,7 +1535,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/blog")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Blog &amp; insights
                     </button>
@@ -1547,7 +1544,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/forum")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Community forum
                     </button>
@@ -1556,7 +1553,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/news")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Market news
                     </button>
@@ -1572,8 +1569,12 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/market-research-analyst")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/${slugifyRoleTitle("Senior FX Market Analysts")}`
+                        )
+                      }
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Research &amp; Analysis
                     </button>
@@ -1581,8 +1582,12 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/frontend-web-developer")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/${slugifyRoleTitle("React & TypeScript Engineers")}`
+                        )
+                      }
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Engineering &amp; Web
                     </button>
@@ -1590,8 +1595,12 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/brand-motion-designer")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/${slugifyRoleTitle("Short-Form Video Editors")}`
+                        )
+                      }
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Design &amp; Media
                     </button>
@@ -1599,8 +1608,12 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/community-growth-lead")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/${slugifyRoleTitle("Social Media Managers")}`
+                        )
+                      }
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Community &amp; Growth
                     </button>
@@ -1608,8 +1621,12 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/student-support-coordinator")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/${slugifyRoleTitle("Student Success Leads")}`
+                        )
+                      }
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Operations &amp; Support
                     </button>
@@ -1625,7 +1642,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Back to main site
                     </button>
@@ -1634,7 +1651,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/mentor")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Mentorship
                     </button>
@@ -1643,7 +1660,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/store")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Academy store
                     </button>
@@ -1652,7 +1669,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => goToMainRoute("/gallery")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Gallery
                     </button>
@@ -1668,8 +1685,8 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/opportunities")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => navigate("/jobs/guidelines")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Volunteer guidelines
                     </button>
@@ -1677,8 +1694,8 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/team")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => navigate("/jobs/conduct")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Code of conduct
                     </button>
@@ -1686,19 +1703,20 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => goToMainRoute("/verify")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => goToMainRoute("/verify-certificate")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Verify certificate
                     </button>
                   </li>
                   <li>
-                    <a
-                      href="mailto:support@gamatfxacademy.com"
-                      className="text-white/85 transition hover:text-white"
+                    <button
+                      type="button"
+                      onClick={() => navigate("/jobs/report")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Report an issue
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </div>
@@ -1709,8 +1727,12 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => navigate("/jobs/frontend-web-developer")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() =>
+                        navigate(
+                          `/jobs/${slugifyRoleTitle("React & TypeScript Engineers")}`
+                        )
+                      }
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Role guides
                     </button>
@@ -1719,7 +1741,7 @@ export default function JobsPage() {
                     <button
                       type="button"
                       onClick={() => navigate("/jobs/team")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
                       Team directory
                     </button>
@@ -1727,10 +1749,10 @@ export default function JobsPage() {
                   <li>
                     <button
                       type="button"
-                      onClick={() => goToMainRoute("/live-chart")}
-                      className="text-left text-white/85 transition hover:text-white"
+                      onClick={() => goToMainRoute("/whiteboard")}
+                      className="text-left text-white/85 transition hover:text-white cursor-pointer"
                     >
-                      Live chart desk
+                      Whiteboard desk
                     </button>
                   </li>
                 </ul>
@@ -1756,27 +1778,28 @@ export default function JobsPage() {
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <button
                   type="button"
-                  onClick={() => goToMainRoute("/")}
-                  className="font-medium text-white/80 transition hover:text-white"
+                  onClick={() => goToMainRoute("/privacy")}
+                  className="font-medium text-white/80 transition hover:text-white cursor-pointer"
                 >
                   Privacy policy
                 </button>
                 <span aria-hidden="true" className="text-white/25">
                   |
                 </span>
-                <a
-                  href="mailto:support@gamatfxacademy.com"
-                  className="transition hover:text-white"
+                <button
+                  type="button"
+                  onClick={() => navigate("/jobs/report")}
+                  className="transition hover:text-white cursor-pointer"
                 >
                   Report an issue
-                </a>
+                </button>
                 <span aria-hidden="true" className="text-white/25">
                   |
                 </span>
                 <button
                   type="button"
-                  onClick={() => goToMainRoute("/")}
-                  className="transition hover:text-white"
+                  onClick={() => goToMainRoute("/terms")}
+                  className="transition hover:text-white cursor-pointer"
                 >
                   Terms of use
                 </button>

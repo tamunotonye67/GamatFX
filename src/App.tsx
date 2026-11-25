@@ -60,6 +60,7 @@ const WhiteboardPage = lazyWithRetry(() => import("./pages/WhiteboardPage"));
 const StorePage = lazyWithRetry(() => import("./pages/StorePage"));
 const MentorPage = lazyWithRetry(() => import("./pages/MentorPage"));
 const MentorshipSurveyPage = lazyWithRetry(() => import("./pages/MentorshipSurveyPage"));
+const JobsInfoPage = lazyWithRetry(() => import("./pages/JobsInfoPage"));
 
 const BlogPage = lazyWithRetry(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPage })));
 const BlogPostPage = lazyWithRetry(() => import("./pages/BlogPage").then((m) => ({ default: m.BlogPostPage })));
@@ -307,6 +308,15 @@ export default function App() {
     content = <JobsOpportunitiesPage />;
   } else if (first === "jobs" && second === "team") {
     content = <JobsTeamPage />;
+  } else if (
+    first === "jobs" &&
+    (second === "guidelines" ||
+      second === "culture" ||
+      second === "certificates" ||
+      second === "conduct" ||
+      second === "report")
+  ) {
+    content = <JobsInfoPage section={second} />;
   } else if (first === "jobs" && second) {
     const guide = findRoleGuideBySlug(second) || ROLE_GUIDES[0];
     content = <JobRoleDetailPage guide={guide} />;
