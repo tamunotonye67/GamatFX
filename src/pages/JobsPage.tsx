@@ -1348,7 +1348,7 @@ export default function JobsPage() {
                     </div>
 
                     {/* Right Half: Solid Brand-Red Calm Clarity */}
-                    <div className="relative z-20 min-h-[400px] sm:min-h-[450px] overflow-hidden bg-gradient-to-b from-brand to-[#b81d2c] p-6 sm:p-10 flex flex-col items-center justify-between text-center">
+                    <div className="relative z-20 min-h-[300px] sm:min-h-[450px] overflow-hidden bg-gradient-to-b from-brand to-[#b81d2c] px-5 py-7 sm:p-10 flex flex-col items-center justify-between text-center">
                       {/* Dotted center horizon line */}
                       <div
                         aria-hidden="true"
