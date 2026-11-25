@@ -346,122 +346,201 @@ export default function JobsPage() {
         </div>
       </div>
 
-      {/* Architectural Dark Continuation Section (matches Region: Earth section) */}
+      {/* Architectural Dark Continuation Section */}
       <div className="mx-auto max-w-[1440px] px-2 sm:px-3">
         <div className="border-x border-t border-dashed border-white/10">
-          {/* Network / Global Team Visual Section */}
-          <section className="relative overflow-hidden border-b border-dashed border-white/10 px-6 pt-20 pb-0 text-center">
+          {/* Location Doesn't Matter + Dotted Globe */}
+          <section
+            id="culture"
+            className="relative overflow-hidden px-4 pt-20 pb-16 sm:px-10 sm:pt-28 text-center"
+          >
             <div className="mx-auto max-w-2xl">
-              <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-4xl">
-                Region: Global Desk
+              <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
+                Location Doesn’t Matter
               </h2>
-              <p className="mt-3 text-sm text-white/60 sm:text-base">
-                One connected team for live market breakdowns, education, and
-                trader tools — built remotely across major sessions.
+              <p className="mt-4 text-sm text-white/65 sm:text-base">
+                One connected trading &amp; education team — close to the markets,
+                close to our students, anywhere in the world.
               </p>
             </div>
 
-            {/* Minimal Dotted Globe & Connected Node Pins */}
-            <div className="relative mx-auto mt-10 max-w-3xl h-[230px] sm:h-[280px] overflow-hidden">
+            {/* Full Dotted Globe */}
+            <div className="relative mx-auto mt-10 max-w-xl">
               <svg
-                viewBox="0 0 800 320"
-                className="mx-auto h-full w-full"
+                viewBox="0 0 520 460"
+                className="mx-auto h-auto w-full max-w-[480px]"
                 fill="none"
                 aria-hidden="true"
               >
                 <defs>
-                  <radialGradient id="globeGlow" cx="50%" cy="85%" r="60%">
-                    <stop offset="0%" stopColor="#dc3545" stopOpacity="0.28" />
+                  <radialGradient id="gamatGlobeGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#dc3545" stopOpacity="0.18" />
+                    <stop offset="70%" stopColor="#dc3545" stopOpacity="0.04" />
                     <stop offset="100%" stopColor="#111215" stopOpacity="0" />
                   </radialGradient>
+                  <pattern
+                    id="globeDots"
+                    x="0"
+                    y="0"
+                    width="9"
+                    height="9"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <circle cx="2" cy="2" r="1.25" fill="#dc3545" fillOpacity="0.55" />
+                  </pattern>
+                  <clipPath id="globeClip">
+                    <circle cx="260" cy="240" r="205" />
+                  </clipPath>
                 </defs>
-                <circle cx="400" cy="295" r="245" fill="url(#globeGlow)" />
-                {/* Latitude / Longitude arcs */}
-                <circle cx="400" cy="295" r="240" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
-                <ellipse cx="400" cy="295" rx="165" ry="240" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                <ellipse cx="400" cy="295" rx="85" ry="240" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                <ellipse cx="400" cy="215" rx="224" ry="48" stroke="rgba(220,53,69,0.22)" strokeDasharray="3 5" strokeWidth="1" />
-                <ellipse cx="400" cy="145" rx="185" ry="38" stroke="rgba(220,53,69,0.25)" strokeDasharray="3 5" strokeWidth="1" />
 
-                {/* Connection Arcs */}
+                {/* Subtle ambient glow */}
+                <circle cx="260" cy="240" r="225" fill="url(#gamatGlobeGlow)" />
+
+                {/* Wireframe sphere */}
+                <circle
+                  cx="260"
+                  cy="240"
+                  r="205"
+                  stroke="rgba(255,255,255,0.12)"
+                  strokeWidth="1"
+                />
+                <ellipse
+                  cx="260"
+                  cy="240"
+                  rx="145"
+                  ry="205"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth="1"
+                />
+                <ellipse
+                  cx="260"
+                  cy="240"
+                  rx="75"
+                  ry="205"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth="1"
+                />
+                <ellipse
+                  cx="260"
+                  cy="240"
+                  rx="205"
+                  ry="68"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth="1"
+                />
+                <ellipse
+                  cx="260"
+                  cy="170"
+                  rx="192"
+                  ry="45"
+                  stroke="rgba(255,255,255,0.06)"
+                  strokeWidth="1"
+                />
+                <ellipse
+                  cx="260"
+                  cy="310"
+                  rx="192"
+                  ry="45"
+                  stroke="rgba(255,255,255,0.06)"
+                  strokeWidth="1"
+                />
+
+                {/* Dotted landmass silhouettes inside sphere */}
+                <g clipPath="url(#globeClip)">
+                  <path
+                    d="M110,165 Q145,140 190,155 T230,210 Q210,275 180,315 T135,280 Q105,220 110,165 Z"
+                    fill="url(#globeDots)"
+                  />
+                  <path
+                    d="M250,120 Q310,95 365,130 T410,205 Q375,260 325,245 T270,185 Q245,150 250,120 Z"
+                    fill="url(#globeDots)"
+                  />
+                  <path
+                    d="M275,255 Q335,245 375,295 T335,385 Q285,375 270,320 T275,255 Z"
+                    fill="url(#globeDots)"
+                  />
+                </g>
+
+                {/* Connection Arc */}
                 <path
-                  d="M 285 170 Q 400 70 505 155"
+                  d="M 145 215 Q 175 140 228 118"
+                  stroke="#dc3545"
+                  strokeWidth="1.75"
+                />
+
+                {/* Remote Person Node */}
+                <circle
+                  cx="145"
+                  cy="215"
+                  r="17"
+                  fill="#111215"
                   stroke="#dc3545"
                   strokeWidth="1.5"
-                  strokeOpacity="0.8"
                 />
+                <circle cx="145" cy="210" r="3.5" stroke="#dc3545" strokeWidth="1.4" />
                 <path
-                  d="M 380 112 Q 465 105 555 198"
+                  d="M138 222 C138 218.5 152 218.5 152 222"
                   stroke="#dc3545"
-                  strokeWidth="1.2"
-                  strokeOpacity="0.65"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
                 />
 
-                {/* Node 1 */}
-                <circle cx="380" cy="112" r="16" fill="#111215" stroke="#dc3545" strokeWidth="1.5" />
-                <circle cx="380" cy="112" r="4" fill="#dc3545" />
-
-                {/* Node 2 */}
-                <circle cx="505" cy="155" r="14" fill="#111215" stroke="#dc3545" strokeWidth="1.5" />
-                <circle cx="505" cy="155" r="3.5" fill="#dc3545" />
-
-                {/* Node 3 */}
-                <circle cx="285" cy="170" r="14" fill="#111215" stroke="#dc3545" strokeWidth="1.5" />
-                <circle cx="285" cy="170" r="3.5" fill="#dc3545" />
+                {/* Solid Brand-Red Hub Node */}
+                <circle cx="228" cy="118" r="20" fill="#dc3545" />
+                <circle cx="228" cy="118" r="24" stroke="#dc3545" strokeOpacity="0.3" strokeWidth="2" />
+                <path
+                  d="M222 114 H234 M222 118 H234 M222 122 H234"
+                  stroke="#ffffff"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
               </svg>
+            </div>
 
-              {/* Corner-bracket callout box matching reference */}
-              <div className="hidden sm:block absolute right-6 bottom-6 max-w-[235px] border border-dashed border-brand/50 bg-[#14161b]/95 p-3.5 text-left">
-                <span className="absolute -top-0.5 -left-0.5 h-2 w-2 border-t-2 border-l-2 border-brand" />
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 border-t-2 border-r-2 border-brand" />
-                <span className="absolute -bottom-0.5 -left-0.5 h-2 w-2 border-b-2 border-l-2 border-brand" />
-                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 border-b-2 border-r-2 border-brand" />
-                <p className="text-[11px] leading-relaxed text-rose-300/95 font-medium">
-                  1,000+ traders trained globally across London, New York, and
-                  Lagos sessions.
-                </p>
+            {/* 3-Column Architectural Grid with Corner Square Markers */}
+            <div className="relative mx-auto -mt-10 max-w-5xl border border-white/10 bg-[#111215]/95 backdrop-blur-xs text-left">
+              {/* 4 Corner Square Markers */}
+              <span className="absolute -top-1 -left-1 h-2 w-2 border border-white/25 bg-[#111215]" />
+              <span className="absolute -top-1 -right-1 h-2 w-2 border border-white/25 bg-[#111215]" />
+              <span className="absolute -bottom-1 -left-1 h-2 w-2 border border-white/25 bg-[#111215]" />
+              <span className="absolute -bottom-1 -right-1 h-2 w-2 border border-white/25 bg-[#111215]" />
+
+              <div className="grid divide-y divide-white/10 md:grid-cols-3 md:divide-y-0 md:divide-x">
+                {[
+                  {
+                    icon: Users,
+                    title: "Work everywhere",
+                    body: "Our team collaborates seamlessly across Lagos, London, and New York sessions with zero geographic barriers.",
+                  },
+                  {
+                    icon: MapPin,
+                    title: "Work from anywhere",
+                    body: "A remote-first desk built around clear ownership, async workflows, and live market execution.",
+                  },
+                  {
+                    icon: Sparkles,
+                    title: "Grow at massive scale",
+                    body: "Direct impact on thousands of traders, live broadcasts, and institutional tools. No corporate bloat.",
+                  },
+                ].map((item) => (
+                  <div key={item.title} className="p-7 sm:p-8">
+                    <item.icon className="h-5 w-5 text-white/80" />
+                    <h3 className="mt-4 font-sans text-base font-semibold text-white">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-xs sm:text-[13px] leading-relaxed text-white/55">
+                      {item.body}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
-          </section>
 
-          {/* Culture Highlights */}
-          <section
-            id="culture"
-            className="border-b border-dashed border-white/10 px-4 py-14 sm:px-10"
-          >
-            <div className="grid gap-4 sm:grid-cols-3">
-              {[
-                {
-                  icon: Users,
-                  title: "Remote-First Team",
-                  body: "Work asynchronously with a tight-knit team across Lagos, London, and global trading sessions.",
-                },
-                {
-                  icon: Sparkles,
-                  title: "High Ownership",
-                  body: "Direct impact on thousands of students, live market broadcasts, and trading tools.",
-                },
-                {
-                  icon: Briefcase,
-                  title: "Performance Culture",
-                  body: "Competitive base pay, performance bonuses, and full access to GAMAT Fx resources.",
-                },
-              ].map((perk) => (
-                <div
-                  key={perk.title}
-                  className="rounded-2xl border border-white/10 bg-[#16181d] p-6"
-                >
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand/15 text-brand">
-                    <perk.icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="mt-4 font-display text-base font-bold text-white">
-                    {perk.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-white/60">
-                    {perk.body}
-                  </p>
-                </div>
-              ))}
+            {/* Centered Impact Statement below 3-column box */}
+            <div className="mx-auto mt-16 sm:mt-20 max-w-3xl">
+              <p className="font-sans text-2xl font-medium tracking-tight text-white sm:text-4xl">
+                GAMAT Fx trains 1,000+ disciplined traders worldwide
+              </p>
             </div>
           </section>
 
