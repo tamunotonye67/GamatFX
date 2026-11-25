@@ -84,7 +84,7 @@ export default function VerifyCertificatePage() {
   };
 
   return (
-    <div className="bg-cream py-14 sm:py-20">
+    <div className="bg-cream pt-28 pb-16 sm:pt-32 sm:pb-24">
       <div className="container-x max-w-2xl">
         <div className="text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-light px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-brand">

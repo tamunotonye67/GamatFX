@@ -165,7 +165,10 @@ export default function Navbar() {
    * Pages that do NOT open with a full-bleed dark hero need a solid bar
    * immediately, otherwise white nav text sits on a light background.
    */
-  const forceSolid = route.startsWith("/dashboard") || requestedSolid;
+  const forceSolid =
+    route.startsWith("/dashboard") ||
+    route.startsWith("/verify-certificate") ||
+    requestedSolid;
   const scrolled = scrolledRaw || forceSolid;
 
   // Lock html & body scroll smoothly without layout/scrollbar jump or overscroll bounce
