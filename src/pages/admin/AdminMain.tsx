@@ -135,7 +135,7 @@ export function AdminDashboard() {
           onClick={toggleGuide}
           className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-cream/60 cursor-pointer"
         >
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-start sm:items-center gap-3 min-w-0">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
               <HelpCircle className="h-5 w-5" />
             </span>
@@ -148,7 +148,7 @@ export function AdminDashboard() {
                   {isAdmin ? "Administrator" : `Staff · ${capitalizeWord(user?.staffLevel ?? "author")}`}
                 </Badge>
               </div>
-              <p className="text-xs text-muted truncate">
+              <p className="mt-0.5 text-xs text-muted leading-relaxed">
                 Quick cheat sheet for your role — no training course needed.
               </p>
             </div>
@@ -157,18 +157,20 @@ export function AdminDashboard() {
         </button>
 
         {guideOpen && (
-          <div className="border-t border-line bg-cream/40 p-5">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="border-t border-line bg-cream/40 p-4 sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {(isAdmin || can("posts:write") || can("posts:publish") || can("posts:manage")) && (
-                <div className="rounded-xl border border-line bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Content & Media</p>
-                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
-                    Create drafts or publish <strong>Blog Articles</strong>, <strong>News Events</strong>, <strong>Daily Outlook</strong>, and <strong>Gallery</strong> photos.
-                  </p>
+                <div className="flex flex-col justify-between rounded-xl border border-line bg-white p-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-brand">Content & Media</p>
+                    <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                      Create drafts or publish <strong>Blog Articles</strong>, <strong>News Events</strong>, <strong>Daily Outlook</strong>, and <strong>Gallery</strong> photos.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate("/admin/posts")}
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer self-start"
                   >
                     Open Blog Articles <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
@@ -176,15 +178,17 @@ export function AdminDashboard() {
               )}
 
               {(isAdmin || can("events:manage") || can("registrations:manage")) && (
-                <div className="rounded-xl border border-line bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Events & Attendance</p>
-                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
-                    Create events and share the <strong>Live Check-In Code</strong>. Students enter it under <strong>Dashboard → My Events</strong>.
-                  </p>
+                <div className="flex flex-col justify-between rounded-xl border border-line bg-white p-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-brand">Events & Attendance</p>
+                    <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                      Create events and share the <strong>Live Check-In Code</strong>. Students enter it under <strong>Dashboard → My Events</strong>.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate("/admin/events")}
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer self-start"
                   >
                     Manage Events <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
@@ -192,15 +196,17 @@ export function AdminDashboard() {
               )}
 
               {(isAdmin || can("enquiries:manage")) && (
-                <div className="rounded-xl border border-line bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Enquiries & Broadcast</p>
-                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
-                    Respond to student messages in <strong>Enquiries</strong> or send announcements via <strong>Email Broadcast</strong>.
-                  </p>
+                <div className="flex flex-col justify-between rounded-xl border border-line bg-white p-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-brand">Enquiries & Broadcast</p>
+                    <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                      Respond to student messages in <strong>Enquiries</strong> or send announcements via <strong>Email Broadcast</strong>.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate("/admin/enquiries")}
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer self-start"
                   >
                     Open Enquiries <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
@@ -208,15 +214,17 @@ export function AdminDashboard() {
               )}
 
               {(isAdmin || can("enquiries:manage")) && (
-                <div className="rounded-xl border border-line bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Jobs & Hiring</p>
-                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
-                    Post open roles for <strong>jobs.gamatfxacademy.com</strong>, toggle availability, and review candidate applications.
-                  </p>
+                <div className="flex flex-col justify-between rounded-xl border border-line bg-white p-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-brand">Jobs & Hiring</p>
+                    <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                      Post open roles for <strong>jobs.gamatfxacademy.com</strong>, toggle availability, and review candidate applications.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate("/admin/jobs")}
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer self-start"
                   >
                     Manage Jobs & Hiring <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>
@@ -224,15 +232,17 @@ export function AdminDashboard() {
               )}
 
               {(isAdmin || can("students:manage") || can("courses:manage") || can("payments:manage") || can("settings:manage")) && (
-                <div className="rounded-xl border border-line bg-white p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-brand">Academy Operations</p>
-                  <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
-                    Manage <strong>Students</strong>, <strong>Courses</strong>, <strong>Store & Coupons</strong>, and promote team members under <strong>Staff & Roles</strong>.
-                  </p>
+                <div className="flex flex-col justify-between rounded-xl border border-line bg-white p-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-brand">Academy Operations</p>
+                    <p className="mt-1.5 text-xs text-ink/80 leading-relaxed">
+                      Manage <strong>Students</strong>, <strong>Courses</strong>, <strong>Store & Coupons</strong>, and promote team members under <strong>Staff & Roles</strong>.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate(isAdmin || can("settings:manage") ? "/admin/staff" : "/admin/students")}
-                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer"
+                    className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline cursor-pointer self-start"
                   >
                     {isAdmin || can("settings:manage") ? "Staff & Roles" : "View Students"} <ArrowUpRight className="h-3.5 w-3.5" />
                   </button>

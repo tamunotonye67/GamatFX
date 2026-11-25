@@ -81,7 +81,7 @@ export default function GuideVideoGrid({
             <div className="p-4 flex-1 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-cream px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-brand">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/15 bg-brand/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
                     <Video className="h-3 w-3" />{" "}
                     {audience === "staff"
                       ? "Staff Video"
