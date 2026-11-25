@@ -7,6 +7,7 @@ import {
   Clock,
   Code2,
   Headphones,
+  HelpCircle,
   MapPin,
   Megaphone,
   Menu,
@@ -30,6 +31,7 @@ import {
 } from "../lib/jobs";
 import { navigate } from "../lib/router";
 import { slugifyRoleTitle } from "../lib/jobRoleGuides";
+import { useStore } from "../lib/store";
 import Logo from "../components/Logo";
 import RevolvingGlobe3D from "../components/RevolvingGlobe3D";
 
@@ -90,7 +92,20 @@ const SKILL_SUBCATEGORIES: Record<
 };
 
 export default function JobsPage() {
+  const { user } = useStore();
   const [roles, setRoles] = useState<JobRole[]>(() => loadJobRoles());
+
+  const goToMainRoute = (path: string) => {
+    const clean = path.startsWith("/") ? path : `/${path}`;
+    if (
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ) {
+      navigate(clean);
+    } else {
+      window.location.href = `https://gamatfxacademy.com/#${clean}`;
+    }
+  };
   const [dept, setDept] = useState<"All" | JobDepartment>("All");
   const [activeSkill, setActiveSkill] = useState<string>("");
   const [activeSubSkill, setActiveSubSkill] = useState<string>("");
@@ -241,33 +256,25 @@ export default function JobsPage() {
           <div className="hidden lg:flex items-center gap-2">
             <button
               type="button"
-              onClick={() => scrollTo("roles")}
+              onClick={() => goToMainRoute("/faq")}
               className="inline-flex items-center gap-1.5 mr-1 text-[13px] font-medium text-rose-400 hover:text-rose-300 transition cursor-pointer"
             >
-              <Briefcase className="h-3.5 w-3.5" />
-              <span>Hiring ({allOpenRoles.length})</span>
+              <HelpCircle className="h-3.5 w-3.5" />
+              <span>FAQ?</span>
             </button>
-            <a
-              href="https://gamatfxacademy.com"
-              onClick={(e) => {
-                if (
-                  window.location.hostname === "localhost" ||
-                  window.location.hostname === "127.0.0.1"
-                ) {
-                  e.preventDefault();
-                  navigate("/");
-                }
-              }}
-              className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-[13px] font-medium text-white/95 transition hover:bg-white/10"
-            >
-              Main Site
-            </a>
             <button
               type="button"
-              onClick={() => scrollTo("roles")}
+              onClick={() => goToMainRoute(user ? "/dashboard" : "/signup")}
               className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-[13px] font-medium text-white/95 transition hover:bg-white/10 cursor-pointer"
             >
-              View Jobs
+              {user ? "Dashboard" : "Login"}
+            </button>
+            <button
+              type="button"
+              onClick={() => goToMainRoute("/contact")}
+              className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-[13px] font-medium text-white/95 transition hover:bg-white/10 cursor-pointer"
+            >
+              Contact Founder
             </button>
             <button
               type="button"
@@ -284,14 +291,14 @@ export default function JobsPage() {
             </button>
           </div>
 
-          {/* Mobile Right Controls (matches reference: 1 pill + Search + Hamburger) */}
+          {/* Mobile Right Controls (Login/Dashboard + Search + Hamburger) */}
           <div className="flex lg:hidden items-center gap-2">
             <button
               type="button"
-              onClick={() => scrollTo("roles")}
+              onClick={() => goToMainRoute(user ? "/dashboard" : "/signup")}
               className="rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10 cursor-pointer"
             >
-              View Jobs
+              {user ? "Dashboard" : "Login"}
             </button>
             <button
               type="button"
@@ -308,63 +315,67 @@ export default function JobsPage() {
             </button>
             <button
               type="button"
-              onClick={() => setMobileMenuOpen((v) => !v)}
-              aria-label="Toggle navigation menu"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
               className="flex h-9 w-9 items-center justify-center rounded-full text-white/90 hover:bg-white/10 cursor-pointer"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <Menu className="h-5 w-5" />
             </button>
           </div>
         </header>
 
-        {/* Mobile Dropdown Drawer */}
+        {/* Full-Viewport Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-white/10 bg-[#111215] px-4 py-4 space-y-2">
-            {[
-              { label: `Open Roles (${allOpenRoles.length})`, action: () => scrollTo("roles") },
-              { label: "Why GAMAT Fx", action: () => scrollTo("culture") },
-              {
-                label: "Trading Desk",
-                action: () => {
-                  setDept("Trading & Mentorship");
-                  scrollTo("roles");
-                },
-              },
-              {
-                label: "Engineering",
-                action: () => {
-                  setDept("Engineering & Product");
-                  scrollTo("roles");
-                },
-              },
-            ].map((item) => (
+          <div className="fixed inset-0 z-50 flex flex-col bg-[#111215] text-white lg:hidden">
+            <div className="flex min-h-[84px] items-center justify-between border-b border-white/10 px-4 py-4">
+              <Logo variant="light" size="md" asDiv />
               <button
-                key={item.label}
                 type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  item.action();
-                }}
-                className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-white/85 hover:bg-white/5 hover:text-white cursor-pointer"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Close navigation menu"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white hover:bg-white/10 cursor-pointer"
               >
-                {item.label}
+                <X className="h-5 w-5" />
               </button>
-            ))}
-            <a
-              href="https://gamatfxacademy.com"
-              onClick={(e) => {
-                if (
-                  window.location.hostname === "localhost" ||
-                  window.location.hostname === "127.0.0.1"
-                ) {
-                  e.preventDefault();
-                  navigate("/");
-                }
-              }}
-              className="block w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-center text-sm font-semibold text-white"
-            >
-              Visit Main Academy Site
-            </a>
+            </div>
+
+            <div className="flex flex-1 flex-col justify-between overflow-y-auto px-6 py-8">
+              <div className="space-y-3">
+                {[
+                  { label: `Open Roles (${allOpenRoles.length})`, action: () => scrollTo("roles") },
+                  { label: "Location & Culture", action: () => scrollTo("culture") },
+                  { label: "FAQ?", action: () => goToMainRoute("/faq") },
+                  { label: "Contact Founder", action: () => goToMainRoute("/contact") },
+                  { label: "Main Academy Site", action: () => goToMainRoute("/") },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      item.action();
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left text-base font-semibold text-white transition hover:border-brand/50 hover:bg-white/[0.06] cursor-pointer"
+                  >
+                    <span>{item.label}</span>
+                    <ArrowRight className="h-4 w-4 text-white/50" />
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-8 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    goToMainRoute(user ? "/dashboard" : "/signup");
+                  }}
+                  className="w-full rounded-full bg-brand py-4 text-sm font-bold text-white shadow-lg shadow-brand/30 cursor-pointer"
+                >
+                  {user ? "Go to Dashboard" : "Login / Create GAMAT Account"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
