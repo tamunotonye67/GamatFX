@@ -87,6 +87,35 @@ export default function JobsOpportunitiesPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
   const usingSpeechRef = useRef(false);
+  const waveBarRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  useEffect(() => {
+    if (!isPlayingWelcome) {
+      WAVEFORM_BARS.forEach((h, i) => {
+        const bar = waveBarRefs.current[i];
+        if (bar) bar.style.height = `${h}%`;
+      });
+      return;
+    }
+
+    let rafId = 0;
+    const start = performance.now();
+    const animateWave = (now: number) => {
+      const t = (now - start) / 1000;
+      WAVEFORM_BARS.forEach((base, i) => {
+        const bar = waveBarRefs.current[i];
+        if (!bar) return;
+        const wave =
+          Math.sin(t * 7.5 + i * 0.45) * 26 +
+          Math.cos(t * 4.8 - i * 0.28) * 18;
+        const nextHeight = Math.max(16, Math.min(100, base + wave));
+        bar.style.height = `${nextHeight.toFixed(1)}%`;
+      });
+      rafId = requestAnimationFrame(animateWave);
+    };
+    rafId = requestAnimationFrame(animateWave);
+    return () => cancelAnimationFrame(rafId);
+  }, [isPlayingWelcome]);
 
   const stopTimer = () => {
     if (timerRef.current !== null) {
@@ -429,12 +458,12 @@ export default function JobsOpportunitiesPage() {
                   {WAVEFORM_BARS.map((heightPct, idx) => {
                     const barRatio = (idx + 1) / WAVEFORM_BARS.length;
                     const isActive = barRatio <= welcomeProgress;
-                    const animatedScale = isPlayingWelcome
-                      ? 0.8 + ((idx % 4) * 0.12)
-                      : 1;
                     return (
                       <button
                         key={idx}
+                        ref={(el) => {
+                          waveBarRefs.current[idx] = el;
+                        }}
                         type="button"
                         onClick={() =>
                           seekWelcomeAudio(idx / WAVEFORM_BARS.length)
@@ -444,9 +473,8 @@ export default function JobsOpportunitiesPage() {
                         )}%`}
                         style={{
                           height: `${heightPct}%`,
-                          transform: `scaleY(${animatedScale})`,
                         }}
-                        className={`w-[3px] sm:w-[3.5px] rounded-full transition-all duration-150 cursor-pointer ${
+                        className={`w-[3px] sm:w-[3.5px] rounded-full transition-colors duration-150 cursor-pointer ${
                           isActive
                             ? "bg-brand"
                             : "bg-white/20 hover:bg-white/45"
