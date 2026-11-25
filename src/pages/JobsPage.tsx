@@ -14,7 +14,6 @@ import {
   PenTool,
   Search,
   Send,
-  Sparkles,
   TrendingUp,
   Users,
   X,
@@ -606,7 +605,7 @@ export default function JobsPage() {
                     body: "A remote-first desk built around clear ownership, async workflows, and live market execution.",
                   },
                   {
-                    icon: Sparkles,
+                    icon: TrendingUp,
                     title: "Grow at massive scale",
                     body: "Direct impact on thousands of traders, live broadcasts, and institutional tools. No corporate bloat.",
                   },

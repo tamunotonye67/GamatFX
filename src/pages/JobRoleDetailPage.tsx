@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   ArrowLeft,
   Award,
+  Briefcase,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -11,7 +12,6 @@ import {
   MessageSquare,
   Send,
   ShieldCheck,
-  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -136,7 +136,7 @@ export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
       <section className="border-b border-line bg-cream/60 px-4 py-14 sm:py-20 text-center">
         <div className="mx-auto max-w-3xl">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-light px-3.5 py-1 text-xs font-bold text-brand">
-            <Sparkles className="h-3.5 w-3.5" /> {guide.engagementType}
+            <Briefcase className="h-3.5 w-3.5" /> {guide.engagementType}
           </span>
           <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-ink sm:text-5xl">
             {guide.title}
