@@ -412,7 +412,15 @@ export default function JobsPage() {
       </div>
 
       {/* Architectural Dark Continuation Section */}
-      <div className="mt-4 sm:mt-6 w-full border-t-2 border-dashed border-white/20">
+      <div className="mt-4 sm:mt-6 w-full">
+        <div
+          aria-hidden="true"
+          className="h-[2px] w-full"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(to right, rgba(255,255,255,0.22) 0 14px, transparent 14px 24px)",
+          }}
+        />
         <div className="mx-auto max-w-[1440px] px-2 sm:px-3">
           <div className="border-x border-dashed border-white/15">
           {/* Location Doesn't Matter + Dotted Globe */}
