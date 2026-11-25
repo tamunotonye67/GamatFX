@@ -365,7 +365,7 @@ export default function JobsPage() {
             </div>
 
             {/* Full Revolving Dotted Globe */}
-            <div className="relative mx-auto mt-10 max-w-xl">
+            <div className="relative mx-auto mt-10 max-w-3xl">
               <style>{`
                 @keyframes gamatGlobeSpin {
                   0% { transform: translateX(0px); }
@@ -378,7 +378,7 @@ export default function JobsPage() {
               `}</style>
               <svg
                 viewBox="0 0 520 460"
-                className="mx-auto h-auto w-full max-w-[480px]"
+                className="mx-auto h-auto w-full max-w-[340px] sm:max-w-[540px] lg:max-w-[740px]"
                 fill="none"
                 aria-hidden="true"
               >
@@ -521,7 +521,7 @@ export default function JobsPage() {
             </div>
 
             {/* 3-Column Architectural Grid with Corner Square Markers */}
-            <div className="relative mx-auto -mt-10 max-w-5xl border border-white/10 bg-[#111215]/95 backdrop-blur-xs text-left">
+            <div className="relative mx-auto -mt-8 sm:-mt-16 lg:-mt-24 max-w-5xl border border-white/10 bg-[#111215]/95 backdrop-blur-xs text-left">
               {/* 4 Corner Square Markers */}
               <span className="absolute -top-1 -left-1 h-2 w-2 border border-white/25 bg-[#111215]" />
               <span className="absolute -top-1 -right-1 h-2 w-2 border border-white/25 bg-[#111215]" />
