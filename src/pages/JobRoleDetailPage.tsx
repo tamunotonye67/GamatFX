@@ -113,9 +113,12 @@ export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
             <button
               type="button"
               onClick={goBackToJobs}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-3.5 py-1.5 text-xs font-semibold text-ink hover:border-brand/40 hover:text-brand transition cursor-pointer"
+              aria-label="All Roles"
+              title="All Roles"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-cream text-xs font-semibold text-ink hover:border-brand/40 hover:text-brand transition cursor-pointer sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3.5 sm:py-1.5"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> All Roles
+              <ArrowLeft className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+              <span className="hidden sm:inline">All Roles</span>
             </button>
             <button
               type="button"

@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Award,
+  Briefcase,
   CheckCircle2,
   ChevronDown,
   FileCheck2,
@@ -220,20 +221,26 @@ export default function JobsInfoPage({
             <Logo variant="light" size="md" asDiv />
           </button>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => navigate("/jobs")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.04] px-4 py-1.5 text-xs font-semibold text-white/90 hover:bg-white/10 transition cursor-pointer"
+              aria-label="Back to Careers"
+              title="Back to Careers"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/[0.04] text-xs font-semibold text-white/90 hover:bg-white/10 transition cursor-pointer sm:h-auto sm:w-auto sm:gap-1.5 sm:px-4 sm:py-1.5"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to Careers
+              <ArrowLeft className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+              <span className="hidden sm:inline">Back to Careers</span>
             </button>
             <button
               type="button"
               onClick={() => navigate("/jobs/opportunities")}
-              className="rounded-full bg-brand px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer"
+              aria-label="Explore Opportunities"
+              title="Explore Opportunities"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand text-xs font-bold text-white hover:bg-brand-dark transition cursor-pointer sm:h-auto sm:w-auto sm:gap-1.5 sm:px-4 sm:py-1.5"
             >
-              Explore Opportunities
+              <Briefcase className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Explore Opportunities</span>
             </button>
           </div>
         </div>
