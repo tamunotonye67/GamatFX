@@ -926,12 +926,9 @@ export default function JobsPage() {
                 </div>
               </div>
             </section>
-          </div>
-        </div>
-      </div>
 
       {/* Build without boundaries CTA Banner */}
-      <section className="mx-auto w-full max-w-[1440px] px-3 pb-10 pt-2 sm:px-6 sm:pb-14">
+      <section className="w-full px-3 pb-10 pt-2 sm:px-6 sm:pb-14">
         <style>{`
           @keyframes gamatTickerScroll {
             0% { transform: translateX(0); }
@@ -1083,35 +1080,10 @@ export default function JobsPage() {
       </section>
 
       {/* Structured Dark Careers Footer */}
-      <footer className="bg-[#0b0c0e] text-white/75">
-        <div className="mx-auto max-w-[1440px] border-white/15 md:border-x md:border-dashed">
-          <div className="px-5 py-12 sm:px-8 sm:py-16">
-            {/* Top header row: Brand left + CTA pill right */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-10">
-              <button
-                type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="inline-flex items-center gap-2 text-left"
-              >
-                <span className="font-display text-xl font-bold tracking-tight text-white">
-                  GAMAT <span className="text-brand">Fx</span>
-                </span>
-                <span className="rounded border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                  Careers
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleExploreOpportunities}
-                className="rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#c82d3d] active:scale-[0.99]"
-              >
-                Start volunteering
-              </button>
-            </div>
-
-            {/* 4-column link grid (offset on desktop like reference) */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-2 md:grid-cols-4 lg:pl-48">
+      <footer className="bg-[#0b0c0e]/70 text-white/75">
+        <div className="px-5 py-12 sm:px-8 sm:py-16">
+          {/* 4-column link grid (offset on desktop like reference) */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-2 md:grid-cols-4 lg:pl-48">
               {/* Row 1 */}
               <div>
                 <h3 className="text-xs font-medium text-white/45">
@@ -1447,8 +1419,16 @@ export default function JobsPage() {
             </div>
           </div>
 
-          {/* Dashed horizontal divider + bottom legal bar */}
-          <div className="border-t border-dashed border-white/15 px-5 py-5 sm:px-8">
+          {/* Matching dashed horizontal divider + bottom legal bar */}
+          <div
+            aria-hidden="true"
+            className="h-[2px] w-full"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(to right, rgba(255,255,255,0.22) 0 14px, transparent 14px 24px)",
+            }}
+          />
+          <div className="px-5 py-5 sm:px-8">
             <div className="flex flex-col items-start justify-between gap-3 text-xs text-white/45 sm:flex-row sm:items-center">
               <div>
                 © {new Date().getFullYear()} GAMAT Fx Academy. All rights
@@ -1488,8 +1468,10 @@ export default function JobsPage() {
               </div>
             </div>
           </div>
-        </div>
       </footer>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
