@@ -930,6 +930,158 @@ export default function JobsPage() {
         </div>
       </div>
 
+      {/* Build without boundaries CTA Banner */}
+      <section className="mx-auto w-full max-w-[1440px] px-3 pb-10 pt-2 sm:px-6 sm:pb-14">
+        <style>{`
+          @keyframes gamatTickerScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .gamat-ticker-track {
+            display: flex;
+            width: max-content;
+            animation: gamatTickerScroll 34s linear infinite;
+          }
+          .gamat-ticker-track:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+        <div
+          className="relative overflow-hidden rounded-2xl border border-white/15 shadow-2xl sm:rounded-3xl"
+          style={{
+            background:
+              "linear-gradient(135deg, #dc3545 0%, #c82d3d 52%, #a92230 100%)",
+          }}
+        >
+          {/* Dot-matrix texture */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-20"
+            style={{
+              backgroundImage:
+                "radial-gradient(rgba(255,255,255,0.65) 1px, transparent 1px)",
+              backgroundSize: "18px 18px",
+            }}
+          />
+
+          {/* Warm bottom-center glow */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 left-1/2 h-64 w-[520px] -translate-x-1/2 rounded-full bg-amber-300/25 blur-3xl"
+          />
+
+          {/* Left floating tilted icon tiles */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-6 top-10 hidden h-14 w-14 -rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:left-14"
+          >
+            <Code2 className="h-6 w-6" />
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-16 top-1/2 hidden h-12 w-12 -translate-y-1/2 rotate-6 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:left-32"
+          >
+            <TrendingUp className="h-5 w-5" />
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-20 left-8 hidden h-13 w-13 rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:left-20"
+          >
+            <BarChart3 className="h-5 w-5" />
+          </div>
+
+          {/* Right floating tilted icon tiles */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-6 top-10 hidden h-14 w-14 rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:right-14"
+          >
+            <Briefcase className="h-6 w-6" />
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-16 top-1/2 hidden h-12 w-12 -translate-y-1/2 -rotate-6 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:right-32"
+          >
+            <Users className="h-5 w-5" />
+          </div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-20 right-8 hidden h-13 w-13 -rotate-12 items-center justify-center rounded-2xl border border-white/25 bg-white/10 text-white shadow-lg backdrop-blur-md md:flex lg:right-20"
+          >
+            <PenTool className="h-5 w-5" />
+          </div>
+
+          {/* Centered CTA Content */}
+          <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center px-6 pb-14 pt-16 text-center sm:px-10 sm:pb-16 sm:pt-20">
+            <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
+              Build without boundaries
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">
+              Join volunteers, analysts, and builders contributing globally with
+              GAMAT Fx. Start your fellowship today — zero barriers, real
+              execution.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleExploreOpportunities}
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#111215] shadow-lg transition hover:bg-white/90 active:scale-[0.99]"
+              >
+                Explore opportunities
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/jobs/team")}
+                className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/20 active:scale-[0.99]"
+              >
+                Meet the team
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom horizontal ticker bar */}
+          <div className="relative z-10 overflow-hidden border-t border-white/15 bg-black/15 py-3.5 backdrop-blur-sm">
+            <div className="gamat-ticker-track">
+              {[0, 1].map((dupIdx) => (
+                <div
+                  key={dupIdx}
+                  className="flex shrink-0 items-center gap-8 pr-8 text-xs font-medium text-white/85 sm:gap-12 sm:pr-12"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-white/75" />
+                    Remote-first across all sessions
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-white/75" />
+                    Direct mentor &amp; team feedback
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Briefcase className="h-3.5 w-3.5 text-white/75" />
+                    Verified experience certificates
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <TrendingUp className="h-3.5 w-3.5 text-white/75" />
+                    Complimentary academy &amp; course access
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Megaphone className="h-3.5 w-3.5 text-white/75" />
+                    Priority path to paid roles
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Headphones className="h-3.5 w-3.5 text-white/75" />
+                    Live desk collaboration
+                  </span>
+                  <span className="inline-flex items-center gap-2">
+                    <Palette className="h-3.5 w-3.5 text-white/75" />
+                    Real portfolio deliverables
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Clean Careers Footer */}
       <footer className="border-t border-white/10 bg-[#0b0c0e] py-8 text-white/55">
         <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-4 text-xs sm:flex-row sm:px-6">
