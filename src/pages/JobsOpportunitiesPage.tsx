@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  Award,
   Briefcase,
   Check,
   CheckCircle2,
@@ -25,6 +26,7 @@ import {
   fetchSupabaseJobRoles,
   loadJobApplications,
   loadJobRoles,
+  makeFellowshipCertificateCode,
   saveJobApplications,
   submitSupabaseJobApplication,
   type JobApplication,
@@ -964,6 +966,27 @@ export default function JobsOpportunitiesPage() {
                               >
                                 <FileText className="h-3 w-3" />{" "}
                                 {a.cvFileName || "Uploaded CV"}
+                              </a>
+                            )}
+                            {(a.status === "hired" || a.certificateIssued) && (
+                              <a
+                                href={
+                                  typeof window !== "undefined" &&
+                                  (window.location.hostname === "localhost" ||
+                                    window.location.hostname === "127.0.0.1")
+                                    ? `/verify-certificate?id=${encodeURIComponent(
+                                        makeFellowshipCertificateCode(a.ref)
+                                      )}`
+                                    : `https://gamatfxacademy.com/verify-certificate?id=${encodeURIComponent(
+                                        makeFellowshipCertificateCode(a.ref)
+                                      )}`
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/25"
+                              >
+                                <Award className="h-3 w-3" />
+                                Cert: {makeFellowshipCertificateCode(a.ref)} · Verify
                               </a>
                             )}
                           </div>

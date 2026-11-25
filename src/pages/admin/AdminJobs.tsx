@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  Award,
   Briefcase,
   CheckCircle2,
   ExternalLink,
@@ -19,8 +20,10 @@ import {
   fetchSupabaseJobRoles,
   loadJobApplications,
   loadJobRoles,
+  makeFellowshipCertificateCode,
   saveJobApplications,
   saveJobRoles,
+  updateSupabaseJobApplicationCertificate,
   updateSupabaseJobApplicationStatus,
   upsertSupabaseJobRole,
   type JobApplication,
@@ -169,6 +172,19 @@ export function AdminJobs() {
     setApps(next);
     saveJobApplications(next);
     await updateSupabaseJobApplicationStatus(id, status);
+  };
+
+  const toggleFellowshipCertificate = async (app: JobApplication) => {
+    const issued = !(app.certificateIssued || app.status === "hired");
+    const issuedAt = issued ? app.certificateIssuedAt || new Date().toISOString() : undefined;
+    const next = apps.map((a) =>
+      a.id === app.id
+        ? { ...a, certificateIssued: issued, certificateIssuedAt: issuedAt }
+        : a
+    );
+    setApps(next);
+    saveJobApplications(next);
+    await updateSupabaseJobApplicationCertificate(app, issued, issuedAt);
   };
 
   return (
@@ -490,32 +506,68 @@ export function AdminJobs() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a
-                      href={`mailto:${a.email}?subject=${encodeURIComponent(
-                        `GAMAT Fx Application (${a.ref}) — ${a.jobTitle}`
-                      )}&body=${encodeURIComponent(
-                        `Hi ${a.name},\n\nThank you for applying for ${a.jobTitle} (${a.ref}) at GAMAT Fx.\n\nCurrent status: ${a.status.toUpperCase()}\n\nBest regards,\nGAMAT Fx Hiring Team`
-                      )}`}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-3 py-2 text-xs font-semibold text-ink hover:border-brand hover:text-brand"
-                      title="Email Candidate"
-                    >
-                      <Mail className="h-3.5 w-3.5" /> Email
-                    </a>
-                    <select
-                      value={a.status}
-                      onChange={(e) =>
-                        updateAppStatus(a.id, e.target.value as JobApplicationStatus)
-                      }
-                      className="rounded-xl border border-line bg-cream/40 px-3 py-2 text-xs font-bold text-ink outline-none focus:border-brand"
-                    >
-                      <option value="new">New</option>
-                      <option value="reviewing">Reviewing</option>
-                      <option value="shortlisted">Shortlisted</option>
-                      <option value="hired">Hired</option>
-                      <option value="rejected">Rejected</option>
-                    </select>
-                  </div>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      {(() => {
+                        const certActive = Boolean(a.certificateIssued || a.status === "hired");
+                        const certCode = makeFellowshipCertificateCode(a.ref);
+                        return (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => toggleFellowshipCertificate(a)}
+                              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                                certActive
+                                  ? "border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                  : "border-line bg-cream/40 text-ink hover:border-brand hover:text-brand"
+                              }`}
+                              title={
+                                certActive
+                                  ? `Fellowship Certificate active (${certCode})`
+                                  : "Issue verifiable Fellowship Certificate"
+                              }
+                            >
+                              <Award className="h-3.5 w-3.5" />
+                              {certActive ? certCode : "Issue Cert"}
+                            </button>
+                            {certActive && (
+                              <a
+                                href={`/verify-certificate?id=${encodeURIComponent(certCode)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 rounded-xl border border-line bg-white px-2.5 py-2 text-xs font-semibold text-brand hover:border-brand"
+                                title="Open public verification page"
+                              >
+                                Verify <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </>
+                        );
+                      })()}
+                      <a
+                        href={`mailto:${a.email}?subject=${encodeURIComponent(
+                          `GAMAT Fx Application (${a.ref}) — ${a.jobTitle}`
+                        )}&body=${encodeURIComponent(
+                          `Hi ${a.name},\n\nThank you for applying for ${a.jobTitle} (${a.ref}) at GAMAT Fx.\n\nCurrent status: ${a.status.toUpperCase()}\n\nBest regards,\nGAMAT Fx Hiring Team`
+                        )}`}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-cream/40 px-3 py-2 text-xs font-semibold text-ink hover:border-brand hover:text-brand"
+                        title="Email Candidate"
+                      >
+                        <Mail className="h-3.5 w-3.5" /> Email
+                      </a>
+                      <select
+                        value={a.status}
+                        onChange={(e) =>
+                          updateAppStatus(a.id, e.target.value as JobApplicationStatus)
+                        }
+                        className="rounded-xl border border-line bg-cream/40 px-3 py-2 text-xs font-bold text-ink outline-none focus:border-brand"
+                      >
+                        <option value="new">New</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="shortlisted">Shortlisted</option>
+                        <option value="hired">Hired</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
                 </div>
               </div>
             ))

@@ -68,8 +68,15 @@ export type JobApplication = {
   experience: string;
   coverNote: string;
   status: JobApplicationStatus;
+  certificateIssued?: boolean;
+  certificateIssuedAt?: string;
   createdAt: string;
 };
+
+export function makeFellowshipCertificateCode(ref: string): string {
+  const clean = ref.replace(/[^a-zA-Z0-9]/g, "").toUpperCase() || "FELLOW";
+  return `GMX-FEL-${clean}`;
+}
 
 const JOBS_STORAGE_KEY = "gamat.job_roles.v1";
 const APPS_STORAGE_KEY = "gamat.job_applications.v1";
@@ -380,6 +387,10 @@ export async function fetchSupabaseJobApplications(): Promise<JobApplication[]> 
           experience: String(r.budget || ""),
           coverNote: String(parsed.coverNote || r.message || ""),
           status: (r.status as JobApplicationStatus) || "new",
+          ...(parsed.certificateIssued ? { certificateIssued: true } : {}),
+          ...(parsed.certificateIssuedAt
+            ? { certificateIssuedAt: String(parsed.certificateIssuedAt) }
+            : {}),
           createdAt: r.created_at || new Date().toISOString(),
         };
       });
@@ -409,6 +420,10 @@ export async function submitSupabaseJobApplication(
       coverNote: app.coverNote,
       ...(app.cvUrl ? { cvUrl: app.cvUrl } : {}),
       ...(app.cvFileName ? { cvFileName: app.cvFileName } : {}),
+      ...(app.certificateIssued ? { certificateIssued: true } : {}),
+      ...(app.certificateIssuedAt
+        ? { certificateIssuedAt: app.certificateIssuedAt }
+        : {}),
     }),
     user_id: null,
     status: app.status,
@@ -438,6 +453,29 @@ export async function updateSupabaseJobApplicationStatus(
       .from("service_enquiries")
       .update({ status })
       .eq("id", id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function updateSupabaseJobApplicationCertificate(
+  app: JobApplication,
+  issued: boolean,
+  issuedAt?: string
+): Promise<boolean> {
+  try {
+    const message = JSON.stringify({
+      coverNote: app.coverNote,
+      ...(app.cvUrl ? { cvUrl: app.cvUrl } : {}),
+      ...(app.cvFileName ? { cvFileName: app.cvFileName } : {}),
+      certificateIssued: issued,
+      ...(issuedAt ? { certificateIssuedAt: issuedAt } : {}),
+    });
+    const { error } = await supabase
+      .from("service_enquiries")
+      .update({ message })
+      .eq("id", app.id);
     return !error;
   } catch {
     return false;

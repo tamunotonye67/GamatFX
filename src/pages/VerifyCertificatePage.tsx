@@ -1,9 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Award, CheckCircle2, Search, ShieldAlert, ArrowUpRight } from "lucide-react";
 import { useStore } from "../lib/store";
 import { getCourse } from "../lib/courses";
 import { formatAccountName } from "../lib/formatName";
 import { navigate } from "../lib/router";
+import {
+  fetchSupabaseJobApplications,
+  loadJobApplications,
+  makeFellowshipCertificateCode,
+  type JobApplication,
+} from "../lib/jobs";
 
 export function makeCertificateCode(userId: string, courseId: string): string {
   return `GMX-${userId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase()}-${courseId.toUpperCase()}`;
@@ -11,6 +17,14 @@ export function makeCertificateCode(userId: string, courseId: string): string {
 
 export default function VerifyCertificatePage() {
   const { admin } = useStore();
+  const [jobApps, setJobApps] = useState<JobApplication[]>(() => loadJobApplications());
+
+  useEffect(() => {
+    void fetchSupabaseJobApplications().then((remote) => {
+      setJobApps(remote);
+    });
+  }, []);
+
   const initialQuery = useMemo(() => {
     const hashQ = window.location.hash.split("?")[1] || "";
     const params = new URLSearchParams(hashQ || window.location.search);
@@ -24,6 +38,7 @@ export default function VerifyCertificatePage() {
     const clean = submitted.trim().toUpperCase();
     if (!clean) return null;
 
+    // 1. Check Academy course completion certificates
     for (const acc of admin.accounts) {
       const userAttempts = admin.attempts.filter((a) => a.userId === acc.id && a.passed);
       for (const att of userAttempts) {
@@ -31,17 +46,37 @@ export default function VerifyCertificatePage() {
         if (clean === expected) {
           const course = getCourse(att.courseId);
           return {
+            kind: "course" as const,
             code: expected,
             studentName: formatAccountName(acc),
-            courseTitle: course?.title || att.courseId,
-            score: att.score,
+            title: course?.title || att.courseId,
+            detailLabel: "Exam Score",
+            detailValue: `${att.score}% (Passed)`,
             issuedAt: att.createdAt,
           };
         }
       }
     }
+
+    // 2. Check GAMAT Fx Volunteer Fellowship certificates
+    for (const app of jobApps) {
+      if (app.status !== "hired" && !app.certificateIssued) continue;
+      const expected = makeFellowshipCertificateCode(app.ref);
+      if (clean === expected) {
+        return {
+          kind: "fellowship" as const,
+          code: expected,
+          studentName: app.name,
+          title: app.jobTitle,
+          detailLabel: "Program",
+          detailValue: "GAMAT Fx Volunteer Fellowship",
+          issuedAt: app.certificateIssuedAt || app.createdAt,
+        };
+      }
+    }
+
     return null;
-  }, [submitted, admin.accounts, admin.attempts]);
+  }, [submitted, admin.accounts, admin.attempts, jobApps]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +94,7 @@ export default function VerifyCertificatePage() {
             Verify a GAMAT Fx Certificate
           </h1>
           <p className="mt-2 text-sm sm:text-base text-muted">
-            Enter a student’s certificate ID to confirm completion and exam mastery.
+            Enter a student or fellow’s certificate ID to confirm course mastery or Volunteer Fellowship completion.
           </p>
         </div>
 
@@ -73,7 +108,7 @@ export default function VerifyCertificatePage() {
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="e.g. GMX-U1A2B3C4-PRICE-ACTION"
+              placeholder="e.g. GMX-U1A2B3C4-PRICE-ACTION or GMX-FEL-JOB9X2"
               className="w-full rounded-xl bg-cream/60 py-3 pl-10 pr-4 text-sm font-mono text-ink outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
@@ -88,13 +123,16 @@ export default function VerifyCertificatePage() {
               <div className="text-center">
                 <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-500" />
                 <p className="mt-4 text-xs font-bold uppercase tracking-wider text-emerald-600">
-                  Verified Official Certificate
+                  {match.kind === "fellowship"
+                    ? "Verified Fellowship Certificate"
+                    : "Verified Official Certificate"}
                 </p>
                 <h2 className="mt-2 font-display text-2xl font-extrabold text-ink">
                   {match.studentName}
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  Successfully completed <strong className="text-ink">{match.courseTitle}</strong>
+                  {match.kind === "fellowship" ? "Completed Fellowship Track: " : "Successfully completed "}
+                  <strong className="text-ink">{match.title}</strong>
                 </p>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-3 rounded-2xl border border-line bg-cream p-4 text-left text-xs">
@@ -103,8 +141,8 @@ export default function VerifyCertificatePage() {
                     <strong className="font-mono text-ink">{match.code}</strong>
                   </div>
                   <div>
-                    <span className="block text-muted">Exam Score</span>
-                    <strong className="text-ink">{match.score}% (Passed)</strong>
+                    <span className="block text-muted">{match.detailLabel}</span>
+                    <strong className="text-ink">{match.detailValue}</strong>
                   </div>
                   <div>
                     <span className="block text-muted">Issued Date</span>
