@@ -115,6 +115,7 @@ export default function JobsPage() {
   const [pillCount, setPillCount] = useState(BUILDING_PILL_ITEMS[0].target);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const navWrapRef = useRef<HTMLDivElement | null>(null);
+  const globeOrbitRefs = useRef<Array<HTMLDivElement | null>>([]);
 
   useEffect(() => {
     const target = BUILDING_PILL_ITEMS[pillIdx].target;
@@ -956,29 +957,30 @@ export default function JobsPage() {
                 </p>
               </div>
 
-              {/* True 3D Revolving Globe (X/Y/Z axes) + Front-Overlaid Callout Box */}
+              {/* True 3D Revolving Globe (X/Y/Z axes) + 2 Orbiting Callout Boxes */}
               <div className="relative mx-auto mt-8 max-w-4xl">
-                <style>{`
-                  @keyframes gamatCalloutFloat {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-6px); }
-                  }
-                `}</style>
-                <RevolvingGlobe3D />
+                <RevolvingGlobe3D orbitRefs={globeOrbitRefs} />
 
-                <div
-                  style={{ animation: "gamatCalloutFloat 4.5s ease-in-out infinite" }}
-                  className="absolute right-2 bottom-10 z-20 max-w-[195px] border border-dashed border-brand/60 bg-[#13151a]/92 p-3 text-left shadow-xl backdrop-blur-xs sm:right-4 sm:bottom-auto sm:top-1/2 sm:max-w-[265px] sm:p-4 sm:-translate-y-1/2"
-                >
-                  <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 border-t-2 border-l-2 border-brand" />
-                  <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 border-t-2 border-r-2 border-brand" />
-                  <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 border-b-2 border-l-2 border-brand" />
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 border-b-2 border-r-2 border-brand" />
-                  <p className="text-[11px] sm:text-xs leading-relaxed font-medium text-rose-400">
-                    Remote-first collaboration connects our mentors, engineers, and
-                    creators across every trading session.
-                  </p>
-                </div>
+                {[
+                  "Remote-first collaboration connects our mentors, engineers, and creators across every trading session.",
+                  "Async-first workflows empower global contributors to ship real impact from Lagos, LDN, and NY.",
+                ].map((copy, idx) => (
+                  <div
+                    key={copy}
+                    ref={(el) => {
+                      globeOrbitRefs.current[idx] = el;
+                    }}
+                    className="pointer-events-none absolute w-[185px] sm:w-[250px] border border-dashed border-brand/60 bg-[#13151a]/92 p-3 text-left shadow-xl backdrop-blur-xs sm:p-4 transition-opacity duration-75"
+                  >
+                    <span className="absolute -top-0.5 -left-0.5 h-2.5 w-2.5 border-t-2 border-l-2 border-brand" />
+                    <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 border-t-2 border-r-2 border-brand" />
+                    <span className="absolute -bottom-0.5 -left-0.5 h-2.5 w-2.5 border-b-2 border-l-2 border-brand" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 border-b-2 border-r-2 border-brand" />
+                    <p className="text-[11px] sm:text-xs leading-relaxed font-medium text-rose-400">
+                      {copy}
+                    </p>
+                  </div>
+                ))}
               </div>
 
               {/* 3-Column Architectural Grid with Corner Square Markers */}

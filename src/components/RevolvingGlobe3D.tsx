@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 type LatLon = { lat: number; lon: number };
 
@@ -105,7 +105,11 @@ function rotate3D(
   };
 }
 
-export default function RevolvingGlobe3D() {
+export default function RevolvingGlobe3D({
+  orbitRefs,
+}: {
+  orbitRefs?: RefObject<Array<HTMLDivElement | null>>;
+} = {}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -361,6 +365,33 @@ export default function RevolvingGlobe3D() {
         ctx.restore();
       }
 
+      // Project two orbital callout card anchors so they revolve in 3D with the globe
+      if (orbitRefs?.current) {
+        const anchors: LatLon[] = [
+          { lat: 14, lon: 24 },
+          { lat: -14, lon: 204 },
+        ];
+        const orbitR = radius * 1.06;
+        const offX = canvas.offsetLeft;
+        const offY = canvas.offsetTop;
+
+        anchors.forEach((anchor, idx) => {
+          const el = orbitRefs.current?.[idx];
+          if (!el) return;
+          const p3 = rotate3D(latLonTo3D(anchor.lat, anchor.lon, orbitR), rotY, tiltX, tiltZ);
+          const proj = project(p3);
+          const depth = Math.max(-1, Math.min(1, p3.z / orbitR));
+          const cardScale = 0.78 + ((depth + 1) / 2) * 0.24;
+          const opacity = depth > -0.15 ? 0.38 + ((depth + 0.15) / 1.15) * 0.62 : 0.28;
+
+          el.style.left = `${(offX + proj.sx).toFixed(1)}px`;
+          el.style.top = `${(offY + proj.sy).toFixed(1)}px`;
+          el.style.transform = `translate(-50%, -50%) scale(${cardScale.toFixed(3)})`;
+          el.style.opacity = opacity.toFixed(2);
+          el.style.zIndex = p3.z >= 0 ? "25" : "5";
+        });
+      }
+
       if (!isDragging) {
         rotY += velY;
         tiltX = Math.max(-1.1, Math.min(1.1, tiltX + velX));
@@ -379,12 +410,12 @@ export default function RevolvingGlobe3D() {
       canvas.removeEventListener("pointerup", endDrag);
       canvas.removeEventListener("pointercancel", endDrag);
     };
-  }, []);
+  }, [orbitRefs]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="mx-auto block h-[340px] w-[340px] sm:h-[520px] sm:w-[520px] lg:h-[680px] lg:w-[680px] cursor-grab active:cursor-grabbing touch-none select-none"
+      className="relative z-10 mx-auto block h-[340px] w-[340px] sm:h-[520px] sm:w-[520px] lg:h-[680px] lg:w-[680px] cursor-grab active:cursor-grabbing touch-none select-none"
     />
   );
 }
