@@ -705,29 +705,23 @@ export default function JobsOpportunitiesPage() {
                               <path d="M14 14 L48 48 M48 22 L48 48 L22 48" />
                             </svg>
 
-                            {/* Stacked uppercase skill label */}
-                            <div
-                              className={`relative z-10 px-2 pt-8 sm:pt-11 text-left ${theme.text}`}
-                            >
-                              <span className="block text-[8px] sm:text-[9px] font-semibold uppercase tracking-widest opacity-80">
-                                {theme.sub}
-                              </span>
-                              <span className="mt-0.5 block truncate text-[10px] sm:text-xs font-black uppercase leading-tight tracking-tight">
-                                {item.label}
-                              </span>
+                            {/* Tall portrait image rising from bottom with seamless top & bottom gradient blends */}
+                            <div className="absolute inset-x-0 bottom-0 h-[72%] w-full overflow-hidden">
+                              <img
+                                src={item.image}
+                                alt={item.label}
+                                loading="lazy"
+                                className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
+                              />
+                              <div
+                                aria-hidden="true"
+                                className={`pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b ${theme.fade} to-transparent`}
+                              />
+                              <div
+                                aria-hidden="true"
+                                className={`pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t ${theme.fade} to-transparent`}
+                              />
                             </div>
-
-                            {/* Tall portrait image rising from bottom */}
-                            <img
-                              src={item.image}
-                              alt={item.label}
-                              loading="lazy"
-                              className="absolute inset-x-0 bottom-0 h-[72%] w-full object-cover object-top transition duration-500 group-hover:scale-105"
-                            />
-                            <div
-                              aria-hidden="true"
-                              className={`pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t ${theme.fade} to-transparent`}
-                            />
                           </button>
 
                           {idx < SKILL_SHOWCASE.length - 1 && (
