@@ -423,7 +423,7 @@ export default function JobsPage() {
       </div>
 
       {/* Architectural Dark Continuation Section */}
-      <div className="mt-7 sm:mt-2 w-full">
+      <div className="mt-12 sm:mt-2 w-full">
         <div
           aria-hidden="true"
           className="h-[2px] w-full"
