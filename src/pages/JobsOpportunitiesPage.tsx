@@ -138,60 +138,198 @@ export default function JobsOpportunitiesPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
   const usingSpeechRef = useRef(false);
-  const sinePathRefs = useRef<Array<SVGPathElement | null>>([]);
+  const hologramCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const buildSinePath = (
-      t: number,
-      amp: number,
-      freq: number,
-      speed: number,
-      phaseOffset: number
-    ) => {
-      const width = 360;
-      const midY = 60;
-      const points: string[] = [];
-      for (let x = 0; x <= width; x += 6) {
-        const u = x / width;
-        // Taper smoothly at both ends so the wave swells in the center
-        const envelope = Math.sin(Math.PI * u);
-        const y =
-          midY +
-          Math.sin(u * Math.PI * freq - t * speed + phaseOffset) *
-            amp *
-            envelope;
-        points.push(`${x === 0 ? "M" : "L"}${x} ${y.toFixed(2)}`);
-      }
-      return points.join(" ");
-    };
-
-    if (!isPlayingWelcome) {
-      const resting = [
-        buildSinePath(0, 10, 4, 0, 0),
-        buildSinePath(0, 7, 5, 0, 1.4),
-        buildSinePath(0, 5, 3, 0, 2.6),
-      ];
-      resting.forEach((d, idx) => {
-        sinePathRefs.current[idx]?.setAttribute("d", d);
-      });
-      return;
-    }
+    const canvas = hologramCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
     let rafId = 0;
     const start = performance.now();
-    const animateSine = (now: number) => {
+
+    const particles = Array.from({ length: 28 }, (_, i) => ({
+      angle: (i / 28) * Math.PI * 2,
+      radiusOffset: (i % 5) * 7 - 12,
+      speed: (i % 2 === 0 ? 1 : -1) * (0.25 + (i % 4) * 0.12),
+      size: 1 + (i % 3) * 0.65,
+    }));
+
+    const drawHologram = (now: number) => {
       const t = (now - start) / 1000;
-      const paths = [
-        buildSinePath(t, 36 + Math.sin(t * 3.1) * 8, 5.5, 7.5, 0),
-        buildSinePath(t, 26 + Math.cos(t * 2.4) * 7, 7.0, -5.8, 1.3),
-        buildSinePath(t, 18 + Math.sin(t * 4.2) * 5, 4.0, 4.6, 2.5),
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(260, rect.width);
+      const height = Math.max(180, rect.height);
+
+      if (
+        canvas.width !== Math.round(width * dpr) ||
+        canvas.height !== Math.round(height * dpr)
+      ) {
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+      }
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      const cx = width / 2;
+      const cy = height / 2;
+      const baseR = Math.min(width, height) * 0.29;
+
+      // Speech cadence envelope (calm breathing when idle, dynamic vocal energy when speaking)
+      const speechEnergy = isPlayingWelcome
+        ? 0.55 +
+          0.45 *
+            Math.abs(
+              Math.sin(t * 5.4) * 0.6 +
+                Math.sin(t * 9.1 + 1.2) * 0.4
+            )
+        : 0.12 + 0.06 * Math.sin(t * 1.6);
+
+      // 1. Holographic core ambient aura
+      const aura = ctx.createRadialGradient(
+        cx,
+        cy,
+        baseR * 0.25,
+        cx,
+        cy,
+        baseR * 2.15
+      );
+      aura.addColorStop(
+        0,
+        isPlayingWelcome
+          ? "rgba(220, 53, 69, 0.36)"
+          : "rgba(220, 53, 69, 0.18)"
+      );
+      aura.addColorStop(
+        0.55,
+        isPlayingWelcome
+          ? "rgba(56, 189, 248, 0.10)"
+          : "rgba(56, 189, 248, 0.04)"
+      );
+      aura.addColorStop(1, "rgba(17, 18, 21, 0)");
+      ctx.fillStyle = aura;
+      ctx.beginPath();
+      ctx.arc(cx, cy, baseR * 2.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Subtle horizontal hologram scanlines
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.028)";
+      ctx.lineWidth = 1;
+      for (let y = 6; y < height; y += 6) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // 3. Outer rotating segmented HUD ring
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(t * (isPlayingWelcome ? 0.45 : 0.15));
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+      ctx.lineWidth = 1.1;
+      ctx.setLineDash([8, 10]);
+      ctx.beginPath();
+      ctx.arc(0, 0, baseR * 1.48, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.rotate(-t * (isPlayingWelcome ? 0.9 : 0.3));
+      ctx.strokeStyle = "rgba(220, 53, 69, 0.45)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([22, 28]);
+      ctx.beginPath();
+      ctx.arc(0, 0, baseR * 1.32, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // 4. Expanding voice pulse ring when speaking
+      if (isPlayingWelcome) {
+        for (let p = 0; p < 2; p++) {
+          const phase = (t * 0.85 + p * 0.5) % 1;
+          const pulseR = baseR * (1.0 + phase * 0.95);
+          ctx.strokeStyle = `rgba(251, 113, 133, ${(1 - phase) * 0.38})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      // 5. Three layered organic polar harmonic wave rings (AI Voice Hologram)
+      const layers = [
+        {
+          color: "rgba(125, 211, 252, 0.55)",
+          lineWidth: 1.4,
+          freqA: 5,
+          freqB: 3,
+          speed: 3.2,
+          scale: 0.92,
+          phase: 0.8,
+        },
+        {
+          color: "rgba(251, 113, 133, 0.72)",
+          lineWidth: 2.0,
+          freqA: 4,
+          freqB: 6,
+          speed: -4.1,
+          scale: 1.0,
+          phase: 2.1,
+        },
+        {
+          color: "#dc3545",
+          lineWidth: 2.4,
+          freqA: 3,
+          freqB: 5,
+          speed: 5.0,
+          scale: 1.08,
+          phase: 0,
+        },
       ];
-      paths.forEach((d, idx) => {
-        sinePathRefs.current[idx]?.setAttribute("d", d);
-      });
-      rafId = requestAnimationFrame(animateSine);
+
+      const steps = 96;
+      for (const layer of layers) {
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const theta = (i / steps) * Math.PI * 2;
+          const wave =
+            Math.sin(theta * layer.freqA + t * layer.speed + layer.phase) *
+              0.55 +
+            Math.cos(theta * layer.freqB - t * layer.speed * 0.7) * 0.45;
+          const r =
+            baseR * layer.scale +
+            wave * (isPlayingWelcome ? 15 : 3.5) * speechEnergy;
+          const x = cx + Math.cos(theta) * r;
+          const y = cy + Math.sin(theta) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = layer.color;
+        ctx.lineWidth = layer.lineWidth;
+        ctx.stroke();
+      }
+
+      // 6. Orbiting holographic micro-particles
+      for (const pt of particles) {
+        const a = pt.angle + t * pt.speed * (isPlayingWelcome ? 2.1 : 1);
+        const r = baseR * 1.24 + pt.radiusOffset + Math.sin(t * 2 + pt.angle) * 3;
+        const px = cx + Math.cos(a) * r;
+        const py = cy + Math.sin(a) * r;
+        ctx.fillStyle = isPlayingWelcome
+          ? "rgba(255, 255, 255, 0.75)"
+          : "rgba(255, 255, 255, 0.32)";
+        ctx.beginPath();
+        ctx.arc(px, py, pt.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      rafId = requestAnimationFrame(drawHologram);
     };
-    rafId = requestAnimationFrame(animateSine);
+
+    rafId = requestAnimationFrame(drawHologram);
     return () => cancelAnimationFrame(rafId);
   }, [isPlayingWelcome]);
 
@@ -549,7 +687,7 @@ export default function JobsOpportunitiesPage() {
               />
 
               <div className="grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
-                {/* Left part: Sinusoidal waveform with Play/Pause button on top of it */}
+                {/* Left part: AI Speaking Hologram with Play/Pause orb core */}
                 <div className="flex flex-col justify-center lg:col-span-5">
                   <div
                     onClick={(e) => {
@@ -557,53 +695,41 @@ export default function JobsOpportunitiesPage() {
                       const ratio = (e.clientX - rect.left) / rect.width;
                       seekWelcomeAudio(ratio);
                     }}
-                    className="relative flex h-44 sm:h-52 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#111215]/90 px-4"
+                    className="relative flex h-52 sm:h-60 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#0d0f14]"
                     role="slider"
-                    aria-label="Founder welcome message sinusoidal waveform"
+                    aria-label="Founder AI voice hologram"
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={Math.round(welcomeProgress * 100)}
                   >
-                    {/* 3-layer live sinusoidal wave SVG */}
-                    <svg
-                      viewBox="0 0 360 120"
-                      preserveAspectRatio="none"
+                    {/* Live AI Speaking Hologram Canvas */}
+                    <canvas
+                      ref={hologramCanvasRef}
                       aria-hidden="true"
-                      className="h-full w-full"
-                    >
-                      <path
-                        ref={(el) => {
-                          sinePathRefs.current[2] = el;
-                        }}
-                        d="M0 60 L360 60"
-                        fill="none"
-                        stroke="rgba(255,255,255,0.18)"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        ref={(el) => {
-                          sinePathRefs.current[1] = el;
-                        }}
-                        d="M0 60 L360 60"
-                        fill="none"
-                        stroke="rgba(251,113,133,0.45)"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        ref={(el) => {
-                          sinePathRefs.current[0] = el;
-                        }}
-                        d="M0 60 L360 60"
-                        fill="none"
-                        stroke="#dc3545"
-                        strokeWidth="2.75"
-                        strokeLinecap="round"
-                      />
-                    </svg>
+                      className="h-full w-full block"
+                    />
 
-                    {/* Play/Pause button centered right on top of the sinusoidal wave */}
+                    {/* Subtle HUD corner accents */}
+                    <span aria-hidden="true" className="pointer-events-none absolute left-3 top-3 h-3 w-3 border-l-2 border-t-2 border-brand/50 rounded-tl" />
+                    <span aria-hidden="true" className="pointer-events-none absolute right-3 top-3 h-3 w-3 border-r-2 border-t-2 border-brand/50 rounded-tr" />
+                    <span aria-hidden="true" className="pointer-events-none absolute left-3 bottom-3 h-3 w-3 border-l-2 border-b-2 border-brand/50 rounded-bl" />
+                    <span aria-hidden="true" className="pointer-events-none absolute right-3 bottom-3 h-3 w-3 border-r-2 border-b-2 border-brand/50 rounded-br" />
+
+                    {/* Top-left Hologram Status */}
+                    <div className="pointer-events-none absolute left-4 top-3.5 flex items-center gap-2">
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          isPlayingWelcome
+                            ? "bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.9)]"
+                            : "bg-brand"
+                        }`}
+                      />
+                      <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-white/65">
+                        {isPlayingWelcome ? "Hologram Active · Speaking" : "AI Voice Hologram"}
+                      </span>
+                    </div>
+
+                    {/* Play/Pause button centered inside the hologram core */}
                     <button
                       type="button"
                       onClick={(e) => {
@@ -615,7 +741,7 @@ export default function JobsOpportunitiesPage() {
                           ? "Pause founder welcome message"
                           : "Play founder welcome message"
                       }
-                      className="absolute z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/30 bg-brand text-white shadow-[0_0_28px_rgba(220,53,69,0.65)] transition hover:scale-105 hover:bg-brand-dark active:scale-95 cursor-pointer"
+                      className="absolute z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/35 bg-brand/85 backdrop-blur-md text-white shadow-[0_0_32px_rgba(220,53,69,0.75)] transition hover:scale-105 hover:bg-brand active:scale-95 cursor-pointer"
                     >
                       {isPlayingWelcome ? (
                         <Pause className="h-6 w-6 fill-current" />
@@ -624,11 +750,19 @@ export default function JobsOpportunitiesPage() {
                       )}
                     </button>
 
-                    {/* Subtle timer in bottom-right */}
-                    <span className="pointer-events-none absolute bottom-3 right-4 font-mono text-[11px] text-white/55">
-                      {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
-                      {formatAudioTime(welcomeDuration)}
-                    </span>
+                    {/* Bottom progress bar & timer */}
+                    <div className="pointer-events-none absolute inset-x-4 bottom-3 flex items-center gap-3">
+                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-brand via-rose-400 to-sky-300 transition-[width] duration-150"
+                          style={{ width: `${Math.round(welcomeProgress * 100)}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-[11px] text-white/60 shrink-0">
+                        {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
+                        {formatAudioTime(welcomeDuration)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
