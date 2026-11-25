@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
+  BarChart3,
   Briefcase,
   CheckCircle2,
   Clock,
+  Code2,
+  Headphones,
   MapPin,
+  Megaphone,
   Menu,
+  Palette,
+  PenTool,
   Search,
   Send,
   Sparkles,
+  TrendingUp,
   Users,
   X,
 } from "lucide-react";
@@ -36,6 +43,7 @@ const DEPARTMENTS: Array<"All" | JobDepartment> = [
 export default function JobsPage() {
   const [roles, setRoles] = useState<JobRole[]>(() => loadJobRoles());
   const [dept, setDept] = useState<"All" | JobDepartment>("All");
+  const [activeSkill, setActiveSkill] = useState<string>("All");
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -567,6 +575,53 @@ export default function JobsPage() {
               <p className="mt-4 text-sm text-white/65 sm:text-base">
                 We love risks that brings profit, but we recognize potentials
               </p>
+            </div>
+
+            {/* Interactive Skill Category Strip (matches reference) */}
+            <div className="mx-auto mt-10 max-w-5xl overflow-x-auto no-scrollbar">
+              <div className="inline-flex min-w-full items-stretch justify-between border-b border-white/10">
+                {[
+                  { id: "All", label: "All Roles", icon: Briefcase, mapDept: "All" as const },
+                  { id: "Dev & IT", label: "Dev & IT", icon: Code2, mapDept: "Engineering & Product" as const },
+                  { id: "Trading", label: "Trading & Analysis", icon: TrendingUp, mapDept: "Trading & Mentorship" as const },
+                  { id: "Design", label: "Design & Creative", icon: Palette, mapDept: "Content & Media" as const },
+                  { id: "Marketing", label: "Marketing", icon: Megaphone, mapDept: "Content & Media" as const },
+                  { id: "Data", label: "Data & Analytics", icon: BarChart3, mapDept: "Trading & Mentorship" as const },
+                  { id: "Admin", label: "Admin & Support", icon: Headphones, mapDept: "Operations & Support" as const },
+                  { id: "Writing", label: "Writing & Content", icon: PenTool, mapDept: "Content & Media" as const },
+                ].map((tab) => {
+                  const isActive = activeSkill === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveSkill(tab.id);
+                        setDept(tab.mapDept);
+                      }}
+                      className={`group relative flex min-w-[116px] flex-1 flex-col items-center gap-2.5 px-3 pb-4 pt-2 transition cursor-pointer ${
+                        isActive ? "text-white" : "text-white/55 hover:text-white/85"
+                      }`}
+                    >
+                      <span
+                        className={`flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                          isActive
+                            ? "border-brand/70 bg-gradient-to-br from-brand/35 to-rose-400/20 text-white shadow-md shadow-brand/20"
+                            : "border-white/15 bg-white/[0.03] text-white/65 group-hover:border-white/30 group-hover:text-white"
+                        }`}
+                      >
+                        <tab.icon className="h-4 w-4" />
+                      </span>
+                      <span className="whitespace-nowrap text-xs font-medium">
+                        {tab.label}
+                      </span>
+                      {isActive && (
+                        <span className="absolute bottom-0 inset-x-0 h-[2.5px] rounded-full bg-brand" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </section>
 
