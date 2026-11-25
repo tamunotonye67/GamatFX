@@ -164,52 +164,13 @@ export default function JobsPage() {
       {/* Dark top header + framed brand-red hero */}
       <div className="bg-[#111215]">
         <header className="mx-auto flex min-h-[84px] w-full max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
-          <div className="flex items-center gap-8">
-            <button
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="cursor-pointer"
-            >
-              <Logo variant="light" size="md" asDiv />
-            </button>
-
-            <nav className="hidden lg:flex items-center gap-6 text-[13px] font-medium text-white/85">
-              <button
-                type="button"
-                onClick={() => scrollTo("roles")}
-                className="hover:text-white transition cursor-pointer"
-              >
-                Open Roles
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollTo("culture")}
-                className="hover:text-white transition cursor-pointer"
-              >
-                Why GAMAT Fx
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDept("Trading & Mentorship");
-                  scrollTo("roles");
-                }}
-                className="hover:text-white transition cursor-pointer"
-              >
-                Trading Desk
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDept("Engineering & Product");
-                  scrollTo("roles");
-                }}
-                className="hover:text-white transition cursor-pointer"
-              >
-                Engineering
-              </button>
-            </nav>
-          </div>
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="cursor-pointer"
+          >
+            <Logo variant="light" size="md" asDiv />
+          </button>
 
           {/* Desktop Right Controls */}
           <div className="hidden lg:flex items-center gap-2">
