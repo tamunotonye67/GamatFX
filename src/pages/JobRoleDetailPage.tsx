@@ -558,15 +558,17 @@ export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
       {/* Apply Modal */}
       {applyOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 backdrop-blur-xs">
-          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-line bg-white p-6 sm:p-8 shadow-2xl">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-white shadow-2xl">
             <button
               type="button"
               onClick={() => setApplyOpen(false)}
               aria-label="Close modal"
-              className="absolute right-5 top-5 rounded-full p-2 text-muted hover:bg-cream hover:text-ink cursor-pointer"
+              className="absolute right-5 top-5 z-10 rounded-full p-2 text-muted hover:bg-cream hover:text-ink cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
+
+            <div className="max-h-[90vh] overflow-y-auto no-scrollbar p-6 sm:p-8">
 
             {submittedRef ? (
               <div className="py-6 text-center">
@@ -701,6 +703,7 @@ export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
                 </form>
               </>
             )}
+            </div>
           </div>
         </div>
       )}

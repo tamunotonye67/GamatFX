@@ -1185,15 +1185,17 @@ export default function JobsOpportunitiesPage() {
       {/* Application Modal */}
       {selectedRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
-          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/15 bg-[#16181d] p-6 sm:p-8 text-white shadow-2xl">
+          <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/15 bg-[#16181d] text-white shadow-2xl">
             <button
               type="button"
               onClick={() => setSelectedRole(null)}
               aria-label="Close modal"
-              className="absolute right-5 top-5 rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white cursor-pointer"
+              className="absolute right-5 top-5 z-10 rounded-full p-2 text-white/50 hover:bg-white/10 hover:text-white cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
+
+            <div className="max-h-[90vh] overflow-y-auto no-scrollbar p-6 sm:p-8">
 
             {submittedRef ? (
               <div className="py-6 text-center">
@@ -1358,6 +1360,7 @@ export default function JobsOpportunitiesPage() {
                 </form>
               </>
             )}
+            </div>
           </div>
         </div>
       )}
