@@ -105,11 +105,13 @@ const crossSubdomainAuthStorage = {
     if (domain) {
       const fromCookie = readChunkedCookie(key);
       if (fromCookie !== null) return fromCookie;
-      // Seamless one-time migration from existing localStorage session
+      // Seamless one-time migration from existing localStorage session;
+      // remove the legacy copy so signing out on any subdomain cannot be undone.
       try {
         const legacy = window.localStorage.getItem(key);
         if (legacy) {
           writeChunkedCookie(key, legacy, domain);
+          window.localStorage.removeItem(key);
           return legacy;
         }
       } catch {}
@@ -122,13 +124,17 @@ const crossSubdomainAuthStorage = {
     }
   },
   setItem(key: string, value: string): void {
-    try {
-      window.localStorage.setItem(key, value);
-    } catch {}
     const domain = getSharedCookieDomain();
     if (domain) {
       writeChunkedCookie(key, value, domain);
+      try {
+        window.localStorage.removeItem(key);
+      } catch {}
+      return;
     }
+    try {
+      window.localStorage.setItem(key, value);
+    } catch {}
   },
   removeItem(key: string): void {
     try {
