@@ -83,6 +83,13 @@ const SKILL_SUBCATEGORIES: Record<
 
 type FlyoutMenu = "roles" | "why" | null;
 
+const JOIN_US_PHRASES = [
+  "build real skills, ship live work, and grow fast",
+  "learn with mentors, earn verified proof, and stand out",
+  "collaborate globally across London and New York desks",
+  "turn volunteer impact into real career momentum",
+];
+
 export default function JobsPage() {
   const { user } = useStore();
   const [activeSkill, setActiveSkill] = useState<string>("");
@@ -90,8 +97,43 @@ export default function JobsPage() {
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFlyout, setOpenFlyout] = useState<FlyoutMenu>(null);
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [typedCount, setTypedCount] = useState(JOIN_US_PHRASES[0].length);
+  const [typePhase, setTypePhase] = useState<"settled" | "deleting" | "typing">("settled");
   const heroRef = useRef<HTMLDivElement | null>(null);
   const navWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const current = JOIN_US_PHRASES[phraseIdx];
+    let timeoutId = 0;
+
+    if (typePhase === "settled") {
+      timeoutId = window.setTimeout(() => {
+        setTypePhase("deleting");
+      }, 2200);
+    } else if (typePhase === "deleting") {
+      if (typedCount > 0) {
+        timeoutId = window.setTimeout(() => {
+          setTypedCount((c) => c - 1);
+        }, 22);
+      } else {
+        setPhraseIdx((idx) => (idx + 1) % JOIN_US_PHRASES.length);
+        setTypePhase("typing");
+      }
+    } else if (typePhase === "typing") {
+      if (typedCount < current.length) {
+        timeoutId = window.setTimeout(() => {
+          setTypedCount((c) => c + 1);
+        }, 42);
+      } else {
+        timeoutId = window.setTimeout(() => {
+          setTypePhase("settled");
+        }, 400);
+      }
+    }
+
+    return () => window.clearTimeout(timeoutId);
+  }, [phraseIdx, typedCount, typePhase]);
 
   const goToMainRoute = (path: string) => {
     const clean = path.startsWith("/") ? path : `/${path}`;
@@ -817,10 +859,24 @@ export default function JobsPage() {
                 <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
                   Why should you join us?
                 </h2>
-                <p className="mt-4 text-sm text-white/65 sm:text-base">
+                <p className="mt-4 min-h-[32px] text-sm text-white/65 sm:text-base">
                   Everything needed to{" "}
-                  <span className="inline-block rounded-md border border-brand/30 bg-brand/15 px-2.5 py-0.5 text-rose-400 font-medium">
-                    build real skills, ship live work, and grow fast
+                  <span
+                    className={`inline-flex items-center transition-all duration-200 ${
+                      typePhase === "settled"
+                        ? "text-white/65 font-normal"
+                        : "rounded-md border border-brand/30 bg-brand/15 px-2.5 py-0.5 text-rose-400 font-medium"
+                    }`}
+                  >
+                    <span>
+                      {JOIN_US_PHRASES[phraseIdx].slice(0, typedCount)}
+                    </span>
+                    {typePhase !== "settled" && (
+                      <span
+                        aria-hidden="true"
+                        className="ml-0.5 inline-block h-4 w-[1.5px] animate-pulse bg-rose-400"
+                      />
+                    )}
                   </span>
                 </p>
 
