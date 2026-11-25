@@ -57,11 +57,6 @@ function getRoleThumbnail(role: JobRole): string {
   return role.image || DEPARTMENT_THUMBNAILS[role.department];
 }
 
-const WAVEFORM_BARS = [
-  24, 42, 30, 62, 84, 48, 32, 74, 92, 54, 36, 68, 82, 46, 28, 60, 88, 64, 40,
-  76, 94, 52, 34, 66, 80, 48, 38, 72, 56, 36, 62, 44, 30, 50, 36, 24,
-];
-
 const SKILL_SHOWCASE: Array<{
   label: string;
   dept: JobDepartment;
@@ -129,33 +124,60 @@ export default function JobsOpportunitiesPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<number | null>(null);
   const usingSpeechRef = useRef(false);
-  const waveBarRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const sinePathRefs = useRef<Array<SVGPathElement | null>>([]);
 
   useEffect(() => {
+    const buildSinePath = (
+      t: number,
+      amp: number,
+      freq: number,
+      speed: number,
+      phaseOffset: number
+    ) => {
+      const width = 360;
+      const midY = 60;
+      const points: string[] = [];
+      for (let x = 0; x <= width; x += 6) {
+        const u = x / width;
+        // Taper smoothly at both ends so the wave swells in the center
+        const envelope = Math.sin(Math.PI * u);
+        const y =
+          midY +
+          Math.sin(u * Math.PI * freq - t * speed + phaseOffset) *
+            amp *
+            envelope;
+        points.push(`${x === 0 ? "M" : "L"}${x} ${y.toFixed(2)}`);
+      }
+      return points.join(" ");
+    };
+
     if (!isPlayingWelcome) {
-      WAVEFORM_BARS.forEach((h, i) => {
-        const bar = waveBarRefs.current[i];
-        if (bar) bar.style.height = `${h}%`;
+      const resting = [
+        buildSinePath(0, 10, 4, 0, 0),
+        buildSinePath(0, 7, 5, 0, 1.4),
+        buildSinePath(0, 5, 3, 0, 2.6),
+      ];
+      resting.forEach((d, idx) => {
+        sinePathRefs.current[idx]?.setAttribute("d", d);
       });
       return;
     }
 
     let rafId = 0;
     const start = performance.now();
-    const animateWave = (now: number) => {
+    const animateSine = (now: number) => {
       const t = (now - start) / 1000;
-      WAVEFORM_BARS.forEach((base, i) => {
-        const bar = waveBarRefs.current[i];
-        if (!bar) return;
-        const wave =
-          Math.sin(t * 7.5 + i * 0.45) * 26 +
-          Math.cos(t * 4.8 - i * 0.28) * 18;
-        const nextHeight = Math.max(16, Math.min(100, base + wave));
-        bar.style.height = `${nextHeight.toFixed(1)}%`;
+      const paths = [
+        buildSinePath(t, 36 + Math.sin(t * 3.1) * 8, 5.5, 7.5, 0),
+        buildSinePath(t, 26 + Math.cos(t * 2.4) * 7, 7.0, -5.8, 1.3),
+        buildSinePath(t, 18 + Math.sin(t * 4.2) * 5, 4.0, 4.6, 2.5),
+      ];
+      paths.forEach((d, idx) => {
+        sinePathRefs.current[idx]?.setAttribute("d", d);
       });
-      rafId = requestAnimationFrame(animateWave);
+      rafId = requestAnimationFrame(animateSine);
     };
-    rafId = requestAnimationFrame(animateWave);
+    rafId = requestAnimationFrame(animateSine);
     return () => cancelAnimationFrame(rafId);
   }, [isPlayingWelcome]);
 
@@ -451,72 +473,67 @@ export default function JobsOpportunitiesPage() {
               />
 
               <div className="grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
-                {/* Left part: Waveform signature with Play/Pause button on top of it */}
+                {/* Left part: Sinusoidal waveform with Play/Pause button on top of it */}
                 <div className="flex flex-col justify-center lg:col-span-5">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-gradient-to-br from-brand to-rose-700 text-xs font-bold text-white shadow-inner">
-                        TT
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-white">
-                          Tonye S. Taylor
-                        </div>
-                        <div className="text-[11px] text-white/55">
-                          Founder · Welcome Voice Note
-                        </div>
-                      </div>
-                    </div>
-                    <div className="font-mono text-xs text-white/60">
-                      {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
-                      {formatAudioTime(welcomeDuration)}
-                    </div>
-                  </div>
-
-                  {/* Waveform signature with Play/Pause button overlaid on top */}
-                  <div className="relative flex h-24 items-center justify-center rounded-2xl border border-white/10 bg-[#111215]/90 px-4">
-                    {/* Live animated waveform signature */}
-                    <div
-                      className="flex h-16 w-full items-center justify-between gap-[3px]"
-                      role="slider"
-                      aria-label="Founder welcome message waveform"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={Math.round(welcomeProgress * 100)}
+                  <div
+                    onClick={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const ratio = (e.clientX - rect.left) / rect.width;
+                      seekWelcomeAudio(ratio);
+                    }}
+                    className="relative flex h-44 sm:h-52 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[#111215]/90 px-4"
+                    role="slider"
+                    aria-label="Founder welcome message sinusoidal waveform"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(welcomeProgress * 100)}
+                  >
+                    {/* 3-layer live sinusoidal wave SVG */}
+                    <svg
+                      viewBox="0 0 360 120"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                      className="h-full w-full"
                     >
-                      {WAVEFORM_BARS.map((heightPct, idx) => {
-                        const barRatio = (idx + 1) / WAVEFORM_BARS.length;
-                        const isActive = barRatio <= welcomeProgress;
-                        return (
-                          <button
-                            key={idx}
-                            ref={(el) => {
-                              waveBarRefs.current[idx] = el;
-                            }}
-                            type="button"
-                            onClick={() =>
-                              seekWelcomeAudio(idx / WAVEFORM_BARS.length)
-                            }
-                            aria-label={`Seek to ${Math.round(
-                              (idx / WAVEFORM_BARS.length) * 100
-                            )}%`}
-                            style={{
-                              height: `${heightPct}%`,
-                            }}
-                            className={`w-[3px] rounded-full transition-colors duration-150 cursor-pointer ${
-                              isActive
-                                ? "bg-brand"
-                                : "bg-white/25 hover:bg-white/50"
-                            }`}
-                          />
-                        );
-                      })}
-                    </div>
+                      <path
+                        ref={(el) => {
+                          sinePathRefs.current[2] = el;
+                        }}
+                        d="M0 60 L360 60"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.18)"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        ref={(el) => {
+                          sinePathRefs.current[1] = el;
+                        }}
+                        d="M0 60 L360 60"
+                        fill="none"
+                        stroke="rgba(251,113,133,0.45)"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        ref={(el) => {
+                          sinePathRefs.current[0] = el;
+                        }}
+                        d="M0 60 L360 60"
+                        fill="none"
+                        stroke="#dc3545"
+                        strokeWidth="2.75"
+                        strokeLinecap="round"
+                      />
+                    </svg>
 
-                    {/* Play/Pause button centered right on top of the waveform */}
+                    {/* Play/Pause button centered right on top of the sinusoidal wave */}
                     <button
                       type="button"
-                      onClick={toggleWelcomeAudio}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWelcomeAudio();
+                      }}
                       aria-label={
                         isPlayingWelcome
                           ? "Pause founder welcome message"
@@ -530,6 +547,12 @@ export default function JobsOpportunitiesPage() {
                         <Play className="h-6 w-6 translate-x-[1.5px] fill-current" />
                       )}
                     </button>
+
+                    {/* Subtle timer in bottom-right */}
+                    <span className="pointer-events-none absolute bottom-3 right-4 font-mono text-[11px] text-white/55">
+                      {formatAudioTime(welcomeProgress * welcomeDuration)} /{" "}
+                      {formatAudioTime(welcomeDuration)}
+                    </span>
                   </div>
                 </div>
 
