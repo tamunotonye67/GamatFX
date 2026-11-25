@@ -43,7 +43,7 @@ const DEPARTMENTS: Array<"All" | JobDepartment> = [
 export default function JobsPage() {
   const [roles, setRoles] = useState<JobRole[]>(() => loadJobRoles());
   const [dept, setDept] = useState<"All" | JobDepartment>("All");
-  const [activeSkill, setActiveSkill] = useState<string>("All");
+  const [activeSkill, setActiveSkill] = useState<string>("");
   const [query, setQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -588,12 +588,10 @@ export default function JobsPage() {
             <div className="mx-auto mt-10 max-w-5xl overflow-x-auto no-scrollbar">
               <div className="inline-flex min-w-full items-stretch justify-between border-b border-white/10">
                 {[
-                  { id: "All", label: "All Roles", icon: Briefcase, mapDept: "All" as const },
                   { id: "Dev & IT", label: "Dev & IT", icon: Code2, mapDept: "Engineering & Product" as const },
                   { id: "Trading", label: "Trading & Analysis", icon: TrendingUp, mapDept: "Trading & Mentorship" as const },
                   { id: "Design", label: "Design & Creative", icon: Palette, mapDept: "Content & Media" as const },
                   { id: "Marketing", label: "Marketing", icon: Megaphone, mapDept: "Content & Media" as const },
-                  { id: "Data", label: "Data & Analytics", icon: BarChart3, mapDept: "Trading & Mentorship" as const },
                   { id: "Admin", label: "Admin & Support", icon: Headphones, mapDept: "Operations & Support" as const },
                   { id: "Writing", label: "Writing & Content", icon: PenTool, mapDept: "Content & Media" as const },
                 ].map((tab) => {
@@ -603,8 +601,13 @@ export default function JobsPage() {
                       key={tab.id}
                       type="button"
                       onClick={() => {
-                        setActiveSkill(tab.id);
-                        setDept(tab.mapDept);
+                        if (isActive) {
+                          setActiveSkill("");
+                          setDept("All");
+                        } else {
+                          setActiveSkill(tab.id);
+                          setDept(tab.mapDept);
+                        }
                       }}
                       className={`group relative flex min-w-[116px] flex-1 flex-col items-center gap-2.5 px-3 pb-4 pt-2 transition cursor-pointer ${
                         isActive ? "text-white" : "text-white/55 hover:text-white/85"
