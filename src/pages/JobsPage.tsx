@@ -1383,6 +1383,27 @@ export default function JobsPage() {
               </div>
             </section>
 
+            {/* Two evenly spaced horizontal dashed lines joining left & right vertical dashed rails */}
+            <div
+              aria-hidden="true"
+              className="flex flex-col justify-evenly py-6 sm:py-8 gap-5 sm:gap-7"
+            >
+              <div
+                className="h-[2px] w-full"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(to right, rgba(255,255,255,0.22) 0 14px, transparent 14px 24px)",
+                }}
+              />
+              <div
+                className="h-[2px] w-full"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(to right, rgba(255,255,255,0.22) 0 14px, transparent 14px 24px)",
+                }}
+              />
+            </div>
+
       {/* Build without boundaries CTA Banner */}
       <section className="w-full px-3 pb-10 pt-2 sm:px-6 sm:pb-14">
         <style>{`
