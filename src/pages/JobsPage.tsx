@@ -560,9 +560,12 @@ export default function JobsPage() {
             </div>
 
             {/* Centered Impact Statement below 3-column box */}
-            <div className="mx-auto mt-16 sm:mt-20 max-w-3xl">
-              <p className="font-display text-2xl font-bold tracking-tight text-white sm:text-4xl">
+            <div className="mx-auto mt-16 sm:mt-24 max-w-3xl">
+              <h2 className="font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
                 GAMAT Fx needs your unique skills
+              </h2>
+              <p className="mt-4 text-sm text-white/65 sm:text-base">
+                We love risks that brings profit, but we recognize potentials
               </p>
             </div>
           </section>
