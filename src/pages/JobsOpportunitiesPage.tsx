@@ -27,21 +27,27 @@ import { useStore } from "../lib/store";
 
 const DEPARTMENTS: Array<"All" | JobDepartment> = [
   "All",
-  "Trading & Mentorship",
-  "Content & Media",
-  "Engineering & Product",
-  "Operations & Support",
+  "Dev & IT",
+  "Trading & Analysis",
+  "Design & Creative",
+  "Marketing",
+  "Admin & Support",
+  "Writing & Content",
 ];
 
 const DEPARTMENT_THUMBNAILS: Record<JobDepartment, string> = {
-  "Trading & Mentorship":
-    "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=900&q=80",
-  "Content & Media":
-    "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=900&q=80",
-  "Engineering & Product":
+  "Dev & IT":
     "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=900&q=80",
-  "Operations & Support":
+  "Trading & Analysis":
+    "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=900&q=80",
+  "Design & Creative":
+    "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=900&q=80",
+  Marketing:
+    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
+  "Admin & Support":
     "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=900&q=80",
+  "Writing & Content":
+    "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=80",
 };
 
 function getRoleThumbnail(role: JobRole): string {

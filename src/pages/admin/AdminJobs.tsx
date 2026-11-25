@@ -32,7 +32,7 @@ export function AdminJobs() {
 
   // New role form
   const [title, setTitle] = useState("");
-  const [department, setDepartment] = useState<JobDepartment>("Trading & Mentorship");
+  const [department, setDepartment] = useState<JobDepartment>("Trading & Analysis");
   const [location, setLocation] = useState("Remote");
   const [type, setType] = useState<JobType>("Full-time");
   const [compensation, setCompensation] = useState("");
@@ -191,10 +191,12 @@ export function AdminJobs() {
                   onChange={(e) => setDepartment(e.target.value as JobDepartment)}
                   className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
                 >
-                  <option value="Trading & Mentorship">Trading &amp; Mentorship</option>
-                  <option value="Content & Media">Content &amp; Media</option>
-                  <option value="Engineering & Product">Engineering &amp; Product</option>
-                  <option value="Operations & Support">Operations &amp; Support</option>
+                  <option value="Dev & IT">Dev &amp; IT</option>
+                  <option value="Trading & Analysis">Trading &amp; Analysis</option>
+                  <option value="Design & Creative">Design &amp; Creative</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Admin & Support">Admin &amp; Support</option>
+                  <option value="Writing & Content">Writing &amp; Content</option>
                 </select>
               </div>
               <div>

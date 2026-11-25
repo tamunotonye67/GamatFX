@@ -1,10 +1,35 @@
 import { supabase, supabaseKey, supabaseUrl } from "./supabase";
 
 export type JobDepartment =
-  | "Trading & Mentorship"
-  | "Content & Media"
-  | "Engineering & Product"
-  | "Operations & Support";
+  | "Dev & IT"
+  | "Trading & Analysis"
+  | "Design & Creative"
+  | "Marketing"
+  | "Admin & Support"
+  | "Writing & Content";
+
+export function normalizeJobDepartment(raw?: string): JobDepartment {
+  switch (raw) {
+    case "Dev & IT":
+    case "Engineering & Product":
+      return "Dev & IT";
+    case "Trading & Analysis":
+    case "Trading & Mentorship":
+      return "Trading & Analysis";
+    case "Design & Creative":
+    case "Content & Media":
+      return "Design & Creative";
+    case "Marketing":
+      return "Marketing";
+    case "Admin & Support":
+    case "Operations & Support":
+      return "Admin & Support";
+    case "Writing & Content":
+      return "Writing & Content";
+    default:
+      return "Trading & Analysis";
+  }
+}
 
 export type JobType = "Full-time" | "Part-time" | "Contract" | "Internship";
 
@@ -52,8 +77,8 @@ const SUPABASE_JOB_APP_SLUG = "__gamat_job_application__";
 export const SEED_JOB_ROLES: JobRole[] = [
   {
     id: "job_react_builder",
-    title: "React & TypeScript Platform Builder",
-    department: "Engineering & Product",
+    title: "React & TypeScript Engineers",
+    department: "Dev & IT",
     location: "Remote · Global",
     type: "Part-time",
     compensation: "Volunteer Fellowship · Certificate",
@@ -68,8 +93,8 @@ export const SEED_JOB_ROLES: JobRole[] = [
   },
   {
     id: "job_senior_analyst",
-    title: "Senior FX Market Analyst & Session Lead",
-    department: "Trading & Mentorship",
+    title: "Senior FX Market Analysts",
+    department: "Trading & Analysis",
     location: "Remote · London / NY",
     type: "Part-time",
     compensation: "Fellowship + Academy Access",
@@ -84,8 +109,8 @@ export const SEED_JOB_ROLES: JobRole[] = [
   },
   {
     id: "job_video_editor",
-    title: "Short-Form Video & Motion Designer",
-    department: "Content & Media",
+    title: "Short-Form Video Editors",
+    department: "Design & Creative",
     location: "Remote · Global",
     type: "Part-time",
     compensation: "Fellowship · Portfolio Credit",
@@ -99,9 +124,25 @@ export const SEED_JOB_ROLES: JobRole[] = [
     createdAt: "2026-11-10T10:00:00.000Z",
   },
   {
+    id: "job_growth_ads",
+    title: "Paid Ads & Funnel Specialists",
+    department: "Marketing",
+    location: "Remote · Global",
+    type: "Part-time",
+    compensation: "Fellowship + Growth Bonus",
+    summary:
+      "Launch high-converting Meta & YouTube acquisition funnels and track cohort sign-ups across our global campaigns.",
+    requirements:
+      "Hands-on experience with Meta Ads Manager, YouTube campaign analytics, and conversion copywriting.",
+    image:
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
+    open: true,
+    createdAt: "2026-11-09T10:00:00.000Z",
+  },
+  {
     id: "job_community_lead",
-    title: "Student Success & Community Moderator",
-    department: "Operations & Support",
+    title: "Student Success Leads",
+    department: "Admin & Support",
     location: "Remote · Global",
     type: "Part-time",
     compensation: "Volunteer · Priority Paid Path",
@@ -115,25 +156,9 @@ export const SEED_JOB_ROLES: JobRole[] = [
     createdAt: "2026-11-08T10:00:00.000Z",
   },
   {
-    id: "job_mql5_dev",
-    title: "MQL5 & Trading Tooling Developer",
-    department: "Engineering & Product",
-    location: "Remote · Global",
-    type: "Contract",
-    compensation: "Fellowship + Revenue Share Path",
-    summary:
-      "Build custom MetaTrader 5 indicators, risk calculators, and session utilities used daily by GAMAT Fx students.",
-    requirements:
-      "Hands-on MQL5/MQL4 scripting experience, clean risk-math logic, and attention to execution reliability.",
-    image:
-      "https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&w=900&q=80",
-    open: true,
-    createdAt: "2026-11-06T10:00:00.000Z",
-  },
-  {
     id: "job_curriculum_writer",
-    title: "Trading Curriculum & Playbook Writer",
-    department: "Content & Media",
+    title: "Trading Curriculum Writers",
+    department: "Writing & Content",
     location: "Remote · Global",
     type: "Part-time",
     compensation: "Volunteer Fellowship · Certificate",
@@ -153,7 +178,12 @@ export function loadJobRoles(): JobRole[] {
     const raw = localStorage.getItem(JOBS_STORAGE_KEY);
     if (!raw) return SEED_JOB_ROLES;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : SEED_JOB_ROLES;
+    return Array.isArray(parsed) && parsed.length > 0
+      ? parsed.map((r: JobRole) => ({
+          ...r,
+          department: normalizeJobDepartment(r.department),
+        }))
+      : SEED_JOB_ROLES;
   } catch {
     return SEED_JOB_ROLES;
   }
@@ -222,7 +252,7 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
         return {
           id: String(r.id),
           title: String(r.service_title || "Open Role"),
-          department: (r.package_name as JobDepartment) || "Trading & Mentorship",
+          department: normalizeJobDepartment(r.package_name),
           location: String(r.company || "Remote"),
           type: (r.ref as JobType) || "Full-time",
           compensation: String(r.budget || "Competitive"),
