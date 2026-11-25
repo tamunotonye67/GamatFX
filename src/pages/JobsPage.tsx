@@ -92,6 +92,13 @@ const JOIN_US_PHRASES = [
   "turn volunteer impact into real career momentum",
 ];
 
+const BUILDING_PILL_ITEMS = [
+  { target: 120, suffix: "+", text: "Live projects & tools shipped" },
+  { target: 45, suffix: "+", text: "Global mentors & builders" },
+  { target: 100, suffix: "%", text: "Verified fellowship growth" },
+  { target: 24, suffix: "/7", text: "Async collaboration & support" },
+];
+
 export default function JobsPage() {
   const { user, logout } = useStore();
   const [activeSkill, setActiveSkill] = useState<string>("");
@@ -104,8 +111,38 @@ export default function JobsPage() {
   const [phraseIdx, setPhraseIdx] = useState(0);
   const [typedCount, setTypedCount] = useState(JOIN_US_PHRASES[0].length);
   const [typePhase, setTypePhase] = useState<"settled" | "deleting" | "typing">("settled");
+  const [pillIdx, setPillIdx] = useState(0);
+  const [pillCount, setPillCount] = useState(BUILDING_PILL_ITEMS[0].target);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const navWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const target = BUILDING_PILL_ITEMS[pillIdx].target;
+    let rafId = 0;
+    const duration = 900;
+    const start = performance.now();
+
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setPillCount(Math.round(target * eased));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(step);
+      }
+    };
+
+    setPillCount(0);
+    rafId = requestAnimationFrame(step);
+
+    const cycleId = window.setTimeout(() => {
+      setPillIdx((prev) => (prev + 1) % BUILDING_PILL_ITEMS.length);
+    }, 3200);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.clearTimeout(cycleId);
+    };
+  }, [pillIdx]);
 
   useEffect(() => {
     const current = JOIN_US_PHRASES[phraseIdx];
@@ -1324,10 +1361,16 @@ export default function JobsPage() {
                         GAMAT Fx
                       </h3>
 
-                      <div className="relative z-10 my-auto">
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-5 py-3 text-xs sm:text-sm font-semibold text-white shadow-lg backdrop-blur-xs">
-                          <span>✓</span>
-                          <span>Real projects, live mentorship &amp; growth</span>
+                      {/* Centered Pill sitting directly on the dotted horizon line */}
+                      <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 w-[calc(100%-2.5rem)] max-w-max -translate-x-1/2 -translate-y-1/2">
+                        <div className="inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/35 bg-[#c62233]/95 px-4 py-2.5 sm:px-5 sm:py-3 text-xs sm:text-sm font-semibold text-white shadow-xl backdrop-blur-xs">
+                          <span className="inline-flex items-center rounded-lg bg-white/20 px-2 py-0.5 font-mono text-xs sm:text-sm font-extrabold tabular-nums text-white">
+                            {pillCount}
+                            {BUILDING_PILL_ITEMS[pillIdx].suffix}
+                          </span>
+                          <span className="truncate">
+                            {BUILDING_PILL_ITEMS[pillIdx].text}
+                          </span>
                         </div>
                       </div>
 
