@@ -78,15 +78,17 @@ function drawRoundedRect(
   ctx.closePath();
 }
 
-function downloadStreakCardPng({
+async function downloadStreakCardPng({
   handle,
   initials,
+  avatarUrl,
   state,
   tier,
   isUpgrade,
 }: {
   handle: string;
   initials: string;
+  avatarUrl?: string;
   state: DailyStreakState;
   tier: StreakTier;
   isUpgrade: boolean;
@@ -205,7 +207,7 @@ function downloadStreakCardPng({
   ctx.bezierCurveTo(-34, 35, -28, -5, 0, -35);
   ctx.fill();
 
-  // Left held badge (initials)
+  // Left held badge (user avatar with initials fallback)
   ctx.fillStyle = "#111215";
   ctx.beginPath();
   ctx.arc(-198, -75, 72, 0, Math.PI * 2);
@@ -214,11 +216,40 @@ function downloadStreakCardPng({
   ctx.beginPath();
   ctx.arc(-198, -75, 63, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = "#111215";
-  ctx.font = "900 38px system-ui, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(initials, -198, -73);
+
+  let drewAvatar = false;
+  if (avatarUrl) {
+    try {
+      const avatarImg = new Image();
+      avatarImg.crossOrigin = "anonymous";
+      await new Promise<void>((resolve, reject) => {
+        avatarImg.onload = () => resolve();
+        avatarImg.onerror = () => reject();
+        avatarImg.src = avatarUrl;
+      });
+      const r = 63;
+      const side = Math.min(avatarImg.naturalWidth || 126, avatarImg.naturalHeight || 126);
+      const sx = ((avatarImg.naturalWidth || side) - side) / 2;
+      const sy = ((avatarImg.naturalHeight || side) - side) / 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(-198, -75, r, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(avatarImg, sx, sy, side, side, -198 - r, -75 - r, r * 2, r * 2);
+      ctx.restore();
+      drewAvatar = true;
+    } catch {
+      drewAvatar = false;
+    }
+  }
+  if (!drewAvatar) {
+    ctx.fillStyle = "#111215";
+    ctx.font = "900 38px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(initials, -198, -73);
+  }
 
   // Right held badge (Tier)
   ctx.fillStyle = "#111215";
@@ -445,6 +476,9 @@ export function StreakCelebrationHost() {
                   <stop offset="0%" stopColor={tier.flameFrom} />
                   <stop offset="100%" stopColor={tier.flameTo} />
                 </linearGradient>
+                <clipPath id="gamatStreakAvatarClip">
+                  <circle cx="56" cy="58" r="30" />
+                </clipPath>
               </defs>
               {/* Ground shadow */}
               <ellipse cx="160" cy="162" rx="54" ry="8" fill="rgba(17,18,21,0.14)" />
@@ -490,17 +524,29 @@ export function StreakCelebrationHost() {
 
               {/* Left held circle: User Avatar / Initials */}
               <circle cx="56" cy="58" r="34" fill="#ffffff" stroke="#111215" strokeWidth="5" />
-              <text
-                x="56"
-                y="63"
-                textAnchor="middle"
-                fill="#111215"
-                fontWeight="900"
-                fontSize="20"
-                fontFamily="system-ui, sans-serif"
-              >
-                {initials}
-              </text>
+              {user?.avatar ? (
+                <image
+                  href={user.avatar}
+                  x="26"
+                  y="28"
+                  width="60"
+                  height="60"
+                  preserveAspectRatio="xMidYMid slice"
+                  clipPath="url(#gamatStreakAvatarClip)"
+                />
+              ) : (
+                <text
+                  x="56"
+                  y="63"
+                  textAnchor="middle"
+                  fill="#111215"
+                  fontWeight="900"
+                  fontSize="20"
+                  fontFamily="system-ui, sans-serif"
+                >
+                  {initials}
+                </text>
+              )}
 
               {/* Right held circle: GAMAT Fx Tier */}
               <circle cx="264" cy="58" r="34" fill={tier.accent} stroke="#111215" strokeWidth="5" />
@@ -577,9 +623,10 @@ export function StreakCelebrationHost() {
           <button
             type="button"
             onClick={() =>
-              downloadStreakCardPng({
+              void downloadStreakCardPng({
                 handle,
                 initials,
+                avatarUrl: user?.avatar,
                 state,
                 tier,
                 isUpgrade,
