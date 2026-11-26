@@ -65,6 +65,13 @@ const HELP_ARTICLES: HelpArticle[] = [
     actionTo: "/jobs/opportunities",
   },
   {
+    id: "install-pwa",
+    q: "How do I install GAMAT Fx on my phone & get notifications?",
+    a: "Open your Dashboard and tap Install App (Android/Chrome) or Share → Add to Home Screen (iPhone/Safari). Once added, tap Enable on the notification prompt or turn on Browser Push Notifications in Profile.",
+    actionLabel: "Open Dashboard",
+    actionTo: "/dashboard",
+  },
+  {
     id: "affiliate-program",
     q: "How do I earn with the Affiliate Ambassador card?",
     a: "Generate your personalized referral card and share link from your Dashboard. Every confirmed student signup and purchase using your code earns tracked commissions.",
@@ -88,9 +95,50 @@ type ChangelogEntry = {
 
 const CHANGELOG_UPDATES: ChangelogEntry[] = [
   {
+    id: "upd-pwa-push",
+    date: "NOV 26",
+    isNew: true,
+    title: "Installable Mobile App (PWA) & Phone Push Alerts",
+    summary:
+      "Add GAMAT Fx directly to your phone's home screen for full-screen access and enable push notifications for academy broadcasts and live updates.",
+    tag: "Mobile App",
+    previewTitle: "GAMAT Fx Mobile Web App",
+    previewSubtitle:
+      "One-tap home screen install on Android & iOS with background push notifications.",
+    gradient: "from-rose-100 via-orange-50 to-white",
+    to: "/dashboard",
+  },
+  {
+    id: "upd-whiteboard-pro",
+    date: "NOV 26",
+    isNew: true,
+    title: "Whiteboard Teaching Tracer, Pattern Step-Back & Saved Settings",
+    summary:
+      "Toggle a subtle live cursor tracer while teaching, press Backspace to step back points on Pattern Paths, and keep your whiteboard preferences saved.",
+    tag: "Whiteboard",
+    previewTitle: "Pro Teaching Whiteboard",
+    previewSubtitle:
+      "Subtle cursor spotlight, Backspace path undo, cleaner New Canvas modal & persistent settings.",
+    gradient: "from-indigo-100 via-sky-50 to-white",
+    to: "/whiteboard",
+  },
+  {
+    id: "upd-platform-fixes",
+    date: "NOV 26",
+    isNew: true,
+    title: "Redesigned Walkthrough Video, Multi-Day Certs & Switcher Fix",
+    summary:
+      "Rebuilt the How GAMAT Fx Works motion video, enforced complete-day check-in for multi-session event certificates, fixed EVT-/GX- verification, and made account switching rock-solid.",
+    tag: "Improvements",
+    previewTitle: "Platform & Video Upgrades",
+    previewSubtitle:
+      "Motion-designed walkthrough, reliable account switching, and faster initial load.",
+    gradient: "from-emerald-100 via-teal-50 to-white",
+    to: "/how-it-works",
+  },
+  {
     id: "upd-streak-sync",
     date: "NOV 25",
-    isNew: true,
     title: "Cross-Device Daily Streaks & 3× HD Badges",
     summary:
       "Your daily play, learning, and forum streaks now sync automatically across all phones and browsers, with 3× high-res downloadable badge cards.",
@@ -104,7 +152,6 @@ const CHANGELOG_UPDATES: ChangelogEntry[] = [
   {
     id: "upd-fellowship-certs",
     date: "NOV 24",
-    isNew: true,
     title: "Careers Portal, CV Upload & Fellowship Certificates",
     summary:
       "Apply directly with PDF/DOCX CVs, track your application status live, and verify GMX-FEL- Volunteer Fellowship certificates publicly.",
@@ -130,6 +177,12 @@ const CHANGELOG_UPDATES: ChangelogEntry[] = [
 ];
 
 const ROADMAP_ITEMS = [
+  {
+    status: "Shipped",
+    color: "bg-emerald-100 text-emerald-800",
+    title: "Installable Phone App & Push Notifications",
+    desc: "Home-screen PWA install on Android & iOS with background broadcast push alerts.",
+  },
   {
     status: "Shipped",
     color: "bg-emerald-100 text-emerald-800",
