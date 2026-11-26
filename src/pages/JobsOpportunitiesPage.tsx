@@ -406,10 +406,10 @@ export default function JobsOpportunitiesPage() {
                     {SKILL_SHOWCASE.map((item, idx) => {
                       const themes = [
                         {
-                          bg: "bg-[#e2a72e]",
-                          fade: "from-[#e2a72e] via-[#e2a72e]/40",
-                          text: "text-[#1a1204]",
-                          arrow: "text-[#1a1204]/10",
+                          bg: "bg-[#059669]",
+                          fade: "from-[#059669] via-[#059669]/40",
+                          text: "text-white",
+                          arrow: "text-black/20",
                           sub: "TRACK 01",
                         },
                         {
@@ -434,10 +434,10 @@ export default function JobsOpportunitiesPage() {
                           sub: "TRACK 04",
                         },
                         {
-                          bg: "bg-[#e2a72e]",
-                          fade: "from-[#e2a72e] via-[#e2a72e]/40",
-                          text: "text-[#1a1204]",
-                          arrow: "text-[#1a1204]/10",
+                          bg: "bg-[#047857]",
+                          fade: "from-[#047857] via-[#047857]/40",
+                          text: "text-white",
+                          arrow: "text-black/20",
                           sub: "TRACK 05",
                         },
                         {
