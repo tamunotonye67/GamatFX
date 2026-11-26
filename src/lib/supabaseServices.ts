@@ -270,7 +270,7 @@ export async function saveSupabaseRegistration(reg: Registration): Promise<void>
 
 export async function fetchSupabaseThreads(): Promise<ForumThread[]> {
   try {
-    const { data, error } = await supabase.from("forum_threads").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("forum_threads").select("*").order("created_at", { ascending: false }).limit(150);
     if (error || !data) return [];
     return data.map((r: any) => ({
       id: r.id,
@@ -322,9 +322,9 @@ export async function deleteSupabaseThread(id: string): Promise<void> {
 
 export async function fetchSupabaseReplies(): Promise<ForumReply[]> {
   try {
-    const { data, error } = await supabase.from("forum_replies").select("*").order("created_at", { ascending: true });
+    const { data, error } = await supabase.from("forum_replies").select("*").order("created_at", { ascending: false }).limit(300);
     if (error || !data) return [];
-    return data.map((r: any) => ({
+    return data.reverse().map((r: any) => ({
       id: r.id,
       threadId: r.thread_id,
       authorId: r.author_id,
@@ -419,9 +419,9 @@ export async function saveSupabaseClub(c: TradingClub): Promise<void> {
 
 export async function fetchSupabaseClubMessages(): Promise<ClubMessage[]> {
   try {
-    const { data, error } = await supabase.from("club_messages").select("*").order("created_at", { ascending: true });
+    const { data, error } = await supabase.from("club_messages").select("*").order("created_at", { ascending: false }).limit(300);
     if (error || !data) return [];
-    return data.map((r: any) => ({
+    return data.reverse().map((r: any) => ({
       id: r.id,
       clubId: r.club_id,
       userId: r.user_id,
@@ -471,7 +471,7 @@ export async function saveSupabaseClubMessage(m: ClubMessage): Promise<void> {
 
 export async function fetchSupabaseNews(): Promise<NewsItem[]> {
   try {
-    const { data, error } = await supabase.from("news").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("news").select("*").order("created_at", { ascending: false }).limit(100);
     if (error || !data) return [];
     return data.map((r: any) => ({
       id: r.id,
@@ -525,7 +525,7 @@ export async function deleteSupabaseNews(id: string): Promise<void> {
 
 export async function fetchSupabaseOutlooks(): Promise<OutlookItem[]> {
   try {
-    const { data, error } = await supabase.from("outlooks").select("*").order("date", { ascending: false });
+    const { data, error } = await supabase.from("outlooks").select("*").order("date", { ascending: false }).limit(100);
     if (error || !data) return [];
     return data.map((r: any) => ({
       id: r.id,

@@ -2516,8 +2516,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     refreshOnLoginRef.current = () => refreshAllFromSupabase(true);
 
-    // 1. Fetch initial records
-    refreshAllFromSupabase(true);
+    // 1. Fetch initial records (skip if synced within the last 2 minutes in this tab session)
+    let skipInitialSync = false;
+    try {
+      const prevSync = Number(sessionStorage.getItem("gamat.last_full_sync_at") || 0);
+      if (Number.isFinite(prevSync) && Date.now() - prevSync < 120_000) {
+        skipInitialSync = true;
+        lastFullSyncAt = prevSync;
+      }
+    } catch {}
+    if (!skipInitialSync) {
+      refreshAllFromSupabase(true);
+      try {
+        sessionStorage.setItem("gamat.last_full_sync_at", String(Date.now()));
+      } catch {}
+    }
 
     // 2. Auto-seed Supabase database once per browser if not already verified
     try {
@@ -2569,9 +2582,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, [reconcileAccountsWithSupabase]);
 
+  const prevSessionIdRef = useRef<string | null>(sessionId);
   useEffect(() => {
-    if (sessionId) {
+    const prev = prevSessionIdRef.current;
+    prevSessionIdRef.current = sessionId;
+    if (sessionId && sessionId !== prev) {
       refreshOnLoginRef.current?.();
+      try {
+        sessionStorage.setItem("gamat.last_full_sync_at", String(Date.now()));
+      } catch {}
     }
   }, [sessionId]);
 
