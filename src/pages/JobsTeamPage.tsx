@@ -55,88 +55,158 @@ export default function JobsTeamPage() {
       </header>
 
       {/* Team Showcase */}
-      <main className="mx-auto max-w-[1440px] px-4 py-14 sm:px-8 sm:py-20">
-        <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/15 px-3 py-1 text-xs font-bold text-rose-300">
-            <Users className="h-3.5 w-3.5" /> GAMAT Fx Leadership &amp; Mentors
-          </span>
-          <h1 className="mt-4 font-sans text-3xl font-medium tracking-tight text-white sm:text-5xl">
-            Meet the Team
-          </h1>
-          <p className="mt-4 text-sm leading-relaxed text-white/65 sm:text-base">
-            The traders, mentors, educators, and builders driving GAMAT Fx
-            Academy forward. Click any profile to explore their full portfolio
-            and milestones.
-          </p>
-        </div>
+      <main className="relative overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_at_top_left,_rgba(220,53,69,0.16),_transparent_55%),radial-gradient(ellipse_at_top_right,_rgba(56,189,248,0.08),_transparent_50%)]"
+        />
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {publishedTeam.map((member) => (
-            <div
-              key={member.id}
-              className="group flex flex-col justify-between rounded-2xl border border-white/10 bg-[#16181d] p-6 transition hover:border-brand/50 hover:bg-[#191c23]"
-            >
-              <div>
-                <div className="flex items-center gap-4">
-                  {member.avatar ? (
-                    <img
-                      src={member.avatar}
-                      alt={member.name}
-                      className="h-16 w-16 shrink-0 rounded-full object-cover border-2 border-brand/40"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand/20 font-display text-lg font-bold text-rose-300 border-2 border-brand/40">
-                      {member.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join("")}
+        <div className="relative mx-auto max-w-[1440px] px-4 py-14 sm:px-8 sm:py-20">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3.5 py-1 text-xs font-bold text-rose-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
+                <Users className="h-3.5 w-3.5" />
+                GAMAT Fx Leadership &amp; Mentors
+              </span>
+              <h1 className="mt-4 font-sans text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                Meet the{" "}
+                <span className="bg-gradient-to-r from-white via-rose-200 to-rose-400 bg-clip-text text-transparent">
+                  Team
+                </span>
+              </h1>
+              <p className="mt-4 text-sm leading-relaxed text-white/65 sm:text-base">
+                The traders, mentors, educators, and builders driving GAMAT Fx
+                Academy forward. Select any profile to explore their full
+                portfolio and milestones.
+              </p>
+            </div>
+
+            <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-sm">
+              <div className="text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45">
+                  Core Leaders
+                </p>
+                <p className="font-display text-xl font-extrabold text-white tabular-nums">
+                  {publishedTeam.length}
+                </p>
+              </div>
+              <div className="h-8 w-px bg-white/10" />
+              <span className="text-xs font-semibold text-emerald-400">
+                Active Mentors
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {publishedTeam.map((member, idx) => {
+              const cardTones = [
+                {
+                  card: "border-rose-500/20 bg-gradient-to-br from-[#23141a] via-[#17141a] to-[#121318] hover:border-rose-400/50",
+                  glow: "from-rose-500/15",
+                  avatar: "from-rose-500/30 to-brand/10 border-rose-400/40 text-rose-200",
+                },
+                {
+                  card: "border-sky-500/20 bg-gradient-to-br from-[#131d2b] via-[#141720] to-[#111318] hover:border-sky-400/50",
+                  glow: "from-sky-500/15",
+                  avatar: "from-sky-500/30 to-indigo-500/10 border-sky-400/40 text-sky-200",
+                },
+                {
+                  card: "border-violet-500/20 bg-gradient-to-br from-[#1f152b] via-[#17141f] to-[#121218] hover:border-violet-400/50",
+                  glow: "from-violet-500/15",
+                  avatar: "from-violet-500/30 to-fuchsia-500/10 border-violet-400/40 text-violet-200",
+                },
+                {
+                  card: "border-emerald-500/20 bg-gradient-to-br from-[#12241d] via-[#131b18] to-[#101414] hover:border-emerald-400/50",
+                  glow: "from-emerald-500/15",
+                  avatar: "from-emerald-500/30 to-teal-500/10 border-emerald-400/40 text-emerald-200",
+                },
+              ];
+              const tone = cardTones[idx % cardTones.length];
+              return (
+                <div
+                  key={member.id}
+                  onClick={() => goToMainRoute(`/team/${member.slug}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      goToMainRoute(`/team/${member.slug}`);
+                    }
+                  }}
+                  className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border p-6 shadow-xl transition duration-300 hover:-translate-y-1 cursor-pointer ${tone.card}`}
+                >
+                  {/* Subtle top-right ambient radial glow */}
+                  <div
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-gradient-to-br ${tone.glow} to-transparent blur-2xl opacity-70 transition group-hover:opacity-100`}
+                  />
+
+                  <div className="relative">
+                    <div className="flex items-center gap-4">
+                      {member.avatar ? (
+                        <img
+                          src={member.avatar}
+                          alt={member.name}
+                          className="h-16 w-16 shrink-0 rounded-2xl object-cover border border-white/20 shadow-md"
+                        />
+                      ) : (
+                        <div
+                          className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br font-display text-lg font-black shadow-md ${tone.avatar}`}
+                        >
+                          {member.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .slice(0, 2)
+                            .join("")}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h2 className="truncate font-display text-lg font-bold text-white">
+                          {member.name}
+                        </h2>
+                        <span className="mt-1 inline-block truncate rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-bold text-rose-300 border border-white/10">
+                          {member.role}
+                        </span>
+                        {member.focus && (
+                          <p className="truncate text-[11px] text-white/50 mt-1">
+                            {member.focus}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="min-w-0">
-                    <h2 className="truncate font-display text-lg font-bold text-white">
-                      {member.name}
-                    </h2>
-                    <p className="truncate text-xs font-semibold text-rose-400">
-                      {member.role}
+
+                    <p className="mt-5 text-sm leading-relaxed text-white/75">
+                      {member.bio}
                     </p>
-                    {member.focus && (
-                      <p className="truncate text-[11px] text-white/50 mt-0.5">
-                        {member.focus}
-                      </p>
+
+                    {member.expertise && member.expertise.length > 0 && (
+                      <div className="mt-5 flex flex-wrap gap-1.5">
+                        {member.expertise.slice(0, 4).map((skill) => (
+                          <span
+                            key={skill}
+                            className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-white/80"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <p className="mt-5 text-sm leading-relaxed text-white/70">
-                  {member.bio}
-                </p>
-
-                {member.expertise && member.expertise.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {member.expertise.slice(0, 4).map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded-md border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-[11px] font-medium text-white/75"
-                      >
-                        {skill}
-                      </span>
-                    ))}
+                  <div className="relative mt-6 flex items-center justify-between pt-4 border-t border-white/10">
+                    <span className="text-xs font-bold text-white/85 group-hover:text-white transition">
+                      View Full Portfolio
+                    </span>
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/[0.05] text-white transition group-hover:border-brand group-hover:bg-brand group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </span>
                   </div>
-                )}
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => goToMainRoute(`/team/${member.slug}`)}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white group-hover:text-brand transition cursor-pointer"
-                >
-                  View Full Portfolio <ArrowUpRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </main>
 
