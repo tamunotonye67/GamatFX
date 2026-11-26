@@ -18,6 +18,7 @@ import {
   deleteSupabaseJobRole,
   fetchSupabaseJobApplications,
   fetchSupabaseJobRoles,
+  getLastJobSyncError,
   loadJobApplications,
   loadJobRoles,
   makeFellowshipCertificateCode,
@@ -136,7 +137,10 @@ export function AdminJobs() {
       setRoleNotice(
         synced
           ? { ok: true, text: `"${updatedRole.title}" updated and published live to jobs.gamatfxacademy.com.` }
-          : { ok: false, text: "Saved locally, but Supabase sync failed. Please try again." }
+          : {
+              ok: false,
+              text: `Saved locally, but Supabase sync failed (${getLastJobSyncError() || "network/permission error"}). Please try again.`,
+            }
       );
       if (synced) resetForm();
       return;
@@ -163,7 +167,10 @@ export function AdminJobs() {
     setRoleNotice(
       synced
         ? { ok: true, text: `"${newRole.title}" published live to jobs.gamatfxacademy.com.` }
-        : { ok: false, text: "Saved locally, but Supabase sync failed. Please check your connection and try again." }
+        : {
+            ok: false,
+            text: `Saved locally, but Supabase sync failed (${getLastJobSyncError() || "network/permission error"}). Please try again.`,
+          }
     );
     if (synced) resetForm();
   };

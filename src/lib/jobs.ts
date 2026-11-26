@@ -332,7 +332,14 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
   }
 }
 
+let lastJobSyncError: string | null = null;
+
+export function getLastJobSyncError(): string | null {
+  return lastJobSyncError;
+}
+
 export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
+  lastJobSyncError = null;
   const payload = {
     id: role.id,
     ref: role.type,
@@ -359,7 +366,10 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
       .from("service_enquiries")
       .upsert(payload, { onConflict: "id" });
     if (!error) return true;
-  } catch {}
+    lastJobSyncError = `${error.code || "SB"}: ${error.message}`;
+  } catch (err) {
+    lastJobSyncError = err instanceof Error ? err.message : String(err);
+  }
 
   try {
     const res = await fetch(`${supabaseUrl}/rest/v1/service_enquiries?on_conflict=id`, {
@@ -372,10 +382,59 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
       },
       body: JSON.stringify(payload),
     });
-    return res.ok;
-  } catch {
-    return false;
+    if (res.ok) {
+      lastJobSyncError = null;
+      return true;
+    }
+    const errText = await res.text().catch(() => "");
+    lastJobSyncError = `HTTP ${res.status}: ${errText || res.statusText}`;
+  } catch (err) {
+    lastJobSyncError = err instanceof Error ? err.message : String(err);
   }
+
+  // Fallback: try PATCH on existing row, else plain INSERT without on_conflict
+  try {
+    const patchRes = await fetch(
+      `${supabaseUrl}/rest/v1/service_enquiries?id=eq.${encodeURIComponent(role.id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+    if (patchRes.ok) {
+      const updated = await patchRes.json().catch(() => []);
+      if (Array.isArray(updated) && updated.length > 0) {
+        lastJobSyncError = null;
+        return true;
+      }
+    }
+
+    const insertRes = await fetch(`${supabaseUrl}/rest/v1/service_enquiries`, {
+      method: "POST",
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (insertRes.ok) {
+      lastJobSyncError = null;
+      return true;
+    }
+    const errText = await insertRes.text().catch(() => "");
+    lastJobSyncError = `HTTP ${insertRes.status}: ${errText || insertRes.statusText}`;
+  } catch (err) {
+    lastJobSyncError = err instanceof Error ? err.message : String(err);
+  }
+
+  return false;
 }
 
 export async function deleteSupabaseJobRole(id: string): Promise<boolean> {
