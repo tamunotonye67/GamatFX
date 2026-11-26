@@ -389,12 +389,7 @@ export default function JobsOpportunitiesPage() {
               <div className="relative z-10 grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
                 {/* Left part: Welcome, onboard! with writeups */}
                 <div className="flex flex-col justify-center lg:col-span-5 lg:pr-4">
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-black/15 bg-black/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#111215]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#111215]" />
-                    GAMAT Fx Careers &amp; Fellowship
-                  </span>
-
-                  <h2 className="mt-4 font-sans text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight text-[#111215]">
+                  <h2 className="font-sans text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight text-[#111215]">
                     Welcome, onboard!
                   </h2>
 
