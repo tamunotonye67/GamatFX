@@ -1982,6 +1982,30 @@ export default function WhiteboardPage() {
     { id: "g2", orientation: "vertical", position: 500, color: "#3b82f6" },
   ]);
   const [showGuidelines, setShowGuidelines] = useState(true);
+  const [showMouseTracer, setShowMouseTracer] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("gamat_whiteboard_mouse_tracer") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [tracerPos, setTracerPos] = useState<{ x: number; y: number; down: boolean; visible: boolean }>({
+    x: -200,
+    y: -200,
+    down: false,
+    visible: false,
+  });
+  const [tracerRipples, setTracerRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const toggleMouseTracer = () => {
+    setShowMouseTracer((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("gamat_whiteboard_mouse_tracer", next ? "1" : "0");
+      } catch {}
+      showToast(next ? "Teaching Cursor Tracer: ON" : "Teaching Cursor Tracer: OFF");
+      return next;
+    });
+  };
   const [snapToGuides, setSnapToGuides] = useState(true);
   const [snapToObjects, setSnapToObjects] = useState(true);
   const [snapToAngles, setSnapToAngles] = useState(true);
@@ -12208,6 +12232,22 @@ export default function WhiteboardPage() {
 
                   <button
                     type="button"
+                    onClick={toggleMouseTracer}
+                    className="flex w-full items-center justify-between rounded-none px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-200 hover:text-slate-950 transition cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-slate-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+                      </span>
+                      Teaching Cursor Tracer
+                    </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-none ${showMouseTracer ? "bg-slate-300 text-slate-900" : "bg-slate-200 text-slate-500"}`}>
+                      {showMouseTracer ? "ON" : "OFF"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => {
                       setShowCursorCoords(!showCursorCoords);
                       showToast(showCursorCoords ? "Disabled coordinates" : "Enabled coordinates");
@@ -12552,15 +12592,30 @@ export default function WhiteboardPage() {
               )}
             </div>
 
-            {/* 6. SNAP BUTTON */}
-            <div className="h-full hidden sm:flex items-center">
+            {/* 6. SNAP & TRACE BUTTONS */}
+            <div className="h-full flex items-center gap-1">
+              <button
+                type="button"
+                onClick={toggleMouseTracer}
+                className={`h-full flex items-center justify-center gap-1.5 px-2.5 rounded-lg transition cursor-pointer text-xs ${
+                  showMouseTracer
+                    ? "bg-brand hover:bg-brand-dark text-white shadow-xs font-bold"
+                    : "font-semibold text-slate-700 hover:bg-white/70 hover:text-slate-950"
+                }`}
+                title={showMouseTracer ? "Turn off Teaching Cursor Tracer" : "Turn on Teaching Cursor Tracer"}
+              >
+                <span className={`relative flex h-3.5 w-3.5 items-center justify-center rounded-full border ${showMouseTracer ? "border-white" : "border-slate-600"}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${showMouseTracer ? "bg-white" : "bg-brand"}`} />
+                </span>
+                <span className="hidden sm:inline">Trace</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setSnapToGrid(!snapToGrid);
                   showToast(snapToGrid ? "Snap to Grid: Disabled" : `Snap to Grid: Enabled (${gridSnapSize}px)`);
                 }}
-                className={`h-full flex items-center justify-center gap-1 px-2.5 rounded-lg transition cursor-pointer text-xs ${
+                className={`h-full hidden sm:flex items-center justify-center gap-1 px-2.5 rounded-lg transition cursor-pointer text-xs ${
                   snapToGrid
                     ? "bg-brand hover:bg-brand-dark text-white shadow-xs font-bold"
                     : "font-semibold text-slate-700 hover:bg-white/70 hover:text-slate-950"
@@ -14211,9 +14266,60 @@ export default function WhiteboardPage() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchEnd}
+            onPointerMove={(e) => {
+              if (!showMouseTracer || !canvasRef.current) return;
+              const rect = canvasRef.current.getBoundingClientRect();
+              setTracerPos((prev) => ({
+                ...prev,
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top,
+                visible: true,
+              }));
+            }}
+            onPointerDown={(e) => {
+              if (!showMouseTracer || !canvasRef.current) return;
+              const rect = canvasRef.current.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
+              setTracerPos({ x, y, down: true, visible: true });
+              const id = Date.now() + Math.random();
+              setTracerRipples((prev) => [...prev.slice(-4), { id, x, y }]);
+              setTimeout(() => {
+                setTracerRipples((prev) => prev.filter((r) => r.id !== id));
+              }, 450);
+            }}
+            onPointerUp={() => {
+              if (!showMouseTracer) return;
+              setTracerPos((prev) => ({ ...prev, down: false }));
+            }}
+            onPointerLeave={() => {
+              if (!showMouseTracer) return;
+              setTracerPos((prev) => ({ ...prev, down: false, visible: false }));
+            }}
             style={getToolCursorStyle(isSpaceHeld || isSpacePressed.current ? "hand" : activeTool, hoveredResizeHandle?.handle || activeResizeHandle?.handle, isAltHeld)}
             className="w-full h-full block"
           />
+
+          {/* Live Teaching Mouse Tracer Overlay */}
+          {showMouseTracer && tracerPos.visible && (
+            <div className="pointer-events-none absolute inset-0 overflow-hidden z-20 select-none">
+              {tracerRipples.map((r) => (
+                <span
+                  key={r.id}
+                  style={{ left: r.x, top: r.y }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 h-11 w-11 rounded-full border-2 border-brand/70 animate-ping"
+                />
+              ))}
+              <div
+                style={{
+                  transform: `translate3d(${tracerPos.x}px, ${tracerPos.y}px, 0) translate(-50%, -50%) scale(${tracerPos.down ? 0.78 : 1})`,
+                }}
+                className="absolute left-0 top-0 h-11 w-11 rounded-full border-2 border-brand/85 bg-brand/12 shadow-[0_0_18px_rgba(220,53,69,0.35)] transition-transform duration-75 ease-out flex items-center justify-center"
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-brand ring-2 ring-white shadow-sm" />
+              </div>
+            </div>
+          )}
 
           {/* Contextual Right-Click Popover Menu */}
           {contextMenu && (() => {
