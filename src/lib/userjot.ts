@@ -30,6 +30,7 @@ declare global {
   }
 }
 
+const DEFAULT_USERJOT_PROJECT_ID = "cmwx0tn8e061j0ko8i8d3zf3z";
 const USERJOT_PROJECT_STORAGE_KEY = "gamat.userjot_project_id.v1";
 const USERJOT_SDK_URL = "https://cdn.userjot.com/sdk/v3/uj.js";
 
@@ -39,10 +40,11 @@ export function getConfiguredUserJotId(): string {
   if (fromEnv) return fromEnv;
   if (typeof window !== "undefined") {
     try {
-      return (window.localStorage.getItem(USERJOT_PROJECT_STORAGE_KEY) || "").trim();
+      const stored = (window.localStorage.getItem(USERJOT_PROJECT_STORAGE_KEY) || "").trim();
+      if (stored) return stored;
     } catch {}
   }
-  return "";
+  return DEFAULT_USERJOT_PROJECT_ID;
 }
 
 let sdkLoaded = false;
