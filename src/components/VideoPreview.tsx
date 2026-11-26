@@ -107,7 +107,7 @@ export default function VideoPreview() {
               <p className="mt-0.5 text-[11px] sm:text-xs text-white/60">Full walkthrough · click to watch</p>
             </div>
             <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs font-semibold backdrop-blur-sm">
-              <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> 6 min
+              <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> 2:41
             </span>
           </div>
         </div>

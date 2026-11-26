@@ -20,182 +20,498 @@ import {
   LineChart,
   ShieldCheck,
   TrendingUp,
+  X,
 } from "lucide-react";
 
 export const HOW_IT_WORKS_FPS = 30;
-// 160.56s voiceover -> 4818 frames @ 30fps
+// 160.56s voiceover -> 4818 frames @ 30fps (scene timings are locked to the narration)
 export const HOW_IT_WORKS_DURATION_IN_FRAMES = 4818;
 
-const CLIPS = {
-  mainDesk:
-    "https://videos.pexels.com/video-files/38484636/16343740_3840_2160_50fps.mp4",
-  liveBreakdown:
-    "https://videos.pexels.com/video-files/38581107/16386444_3840_2160_50fps.mp4",
-  multiScreen:
-    "https://videos.pexels.com/video-files/38358369/16288463_3840_2160_25fps.mp4",
-  onTheGo:
-    "https://videos.pexels.com/video-files/35606120/15089547_3840_2160_25fps.mp4",
+/* ============================================================================
+   DESIGN TOKENS
+   ========================================================================== */
+
+const C = {
+  ink: "#0B0D11",
+  panel: "#12151B",
+  line: "rgba(255,255,255,0.08)",
+  brand: "#DC3545",
+  brandSoft: "#FF6B7A",
+  emerald: "#34D399",
+  emeraldDeep: "#059669",
+  amber: "#FBBF24",
+  text: "#F8FAFC",
+  muted: "rgba(248,250,252,0.68)",
+  faint: "rgba(248,250,252,0.42)",
+  uiInk: "#16181C",
+  uiMuted: "#64748B",
+  uiLine: "#E2E8F0",
+  uiSoft: "#F8FAFC",
 };
+
+const FONT_DISPLAY = '"Sora", "Inter", system-ui, sans-serif';
+const FONT_BODY = '"Inter", system-ui, sans-serif';
+
+const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
+const EASE_IN_OUT = Easing.bezier(0.65, 0, 0.35, 1);
+
+/** Frames each scene overlaps the next one for a crossfade instead of a dip to black. */
+const OVERLAP = 16;
 
 const PHOTOS = {
   aboutHero: "/images/about-hero.jpg",
   community: "/images/community.jpg",
-  campusLab: "/images/gallery/campus-lab.jpg",
   chartReview: "/images/gallery/chart-review.jpg",
-  graduation: "/images/gallery/graduation.jpg",
   liveWorkshop: "/images/gallery/live-workshop.jpg",
   mentorshipSession: "/images/gallery/mentorship-session.jpg",
   tradingFloor: "/images/gallery/trading-floor.jpg",
 };
 
-/* ----------------------- Continuous Camera Motion Layer ----------------------- */
+/** Narration-locked scene timeline (start frame, nominal duration). */
+const T = {
+  problem: { from: 0, dur: 345 },
+  system: { from: 345, dur: 405 },
+  enroll: { from: 750, dur: 564 },
+  live: { from: 1314, dur: 765 },
+  journal: { from: 2079, dur: 747 },
+  scale: { from: 2826, dur: 660 },
+  clipA: { from: 3486, dur: 360 },
+  clipB: { from: 3846, dur: 249 },
+  clipC: { from: 4095, dur: 234 },
+  outro: { from: 4329, dur: 489 },
+};
 
-const CameraBackdrop: React.FC<{
-  videoSrc?: string;
-  photoSrc?: string;
-  panX?: [number, number];
-  panY?: [number, number];
-  zoom?: [number, number];
-  dim?: number;
-}> = ({
-  videoSrc,
-  photoSrc,
-  panX = [0, -28],
-  panY = [0, -14],
-  zoom = [1.04, 1.14],
-  dim = 0.62,
-}) => {
+/* ============================================================================
+   MOTION PRIMITIVES
+   ========================================================================== */
+
+/** Wraps a scene with a soft scale/blur crossfade on enter and exit. */
+const SceneShell: React.FC<{
+  duration: number;
+  children: React.ReactNode;
+  enterFrames?: number;
+  exitFrames?: number;
+}> = ({ duration, children, enterFrames = 18, exitFrames = OVERLAP }) => {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-
-  const progress = interpolate(frame, [0, durationInFrames], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const scale = interpolate(progress, [0, 1], zoom);
-  const tx = interpolate(progress, [0, 1], panX);
-  const ty = interpolate(progress, [0, 1], panY);
+  const enter = interpolate(frame, [0, enterFrames], [0, 1], { ...CLAMP, easing: EASE_OUT });
+  const exit =
+    exitFrames > 0
+      ? interpolate(frame, [duration - exitFrames, duration], [0, 1], {
+          ...CLAMP,
+          easing: Easing.in(Easing.cubic),
+        })
+      : 0;
+  const opacity = enter * (1 - exit);
+  const scale = interpolate(enter, [0, 1], [1.035, 1]) * interpolate(exit, [0, 1], [1, 0.975]);
+  const blur = (1 - enter) * 8 + exit * 6;
 
   return (
-    <AbsoluteFill style={{ overflow: "hidden", backgroundColor: "#0d0f13" }}>
-      <div
+    <AbsoluteFill
+      style={{
+        opacity,
+        transform: `scale(${scale})`,
+        filter: blur > 0.05 ? `blur(${blur}px)` : undefined,
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+/** Masked word-by-word kinetic type reveal. */
+const KineticText: React.FC<{
+  text: string;
+  start?: number;
+  stagger?: number;
+  highlight?: string[];
+  highlightColor?: string;
+  style?: React.CSSProperties;
+}> = ({ text, start = 0, stagger = 3, highlight = [], highlightColor = C.brand, style }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const words = text.split(" ");
+
+  return (
+    <span style={style}>
+      {words.map((word, i) => {
+        const s = spring({
+          frame: frame - start - i * stagger,
+          fps,
+          config: { damping: 18, stiffness: 140, mass: 0.7 },
+        });
+        const clean = word.replace(/[^A-Za-z0-9’']/g, "");
+        const isHighlight = highlight.includes(clean);
+        return (
+          <span
+            key={`${word}-${i}`}
+            style={{
+              display: "inline-block",
+              overflow: "hidden",
+              verticalAlign: "top",
+              paddingBottom: "0.1em",
+              marginRight: i === words.length - 1 ? 0 : "0.26em",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                transform: `translateY(${(1 - s) * 105}%)`,
+                opacity: interpolate(s, [0, 0.35, 1], [0, 1, 1]),
+                color: isHighlight ? highlightColor : undefined,
+              }}
+            >
+              {word}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+};
+
+/** Fade + rise reveal for any block. */
+const Reveal: React.FC<{
+  start?: number;
+  distance?: number;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}> = ({ start = 0, distance = 22, children, style }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame: frame - start, fps, config: { damping: 20, stiffness: 120 } });
+  return (
+    <div
+      style={{
+        opacity: interpolate(s, [0, 1], [0, 1]),
+        transform: `translateY(${(1 - s) * distance}px)`,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+const Eyebrow: React.FC<{ label: string; color?: string; start?: number }> = ({
+  label,
+  color = C.brand,
+  start = 0,
+}) => {
+  const frame = useCurrentFrame();
+  const pulse = 0.55 + 0.45 * Math.sin((frame / 30) * Math.PI * 1.4);
+  return (
+    <Reveal start={start} distance={12}>
+      <span
         style={{
-          width: "100%",
-          height: "100%",
-          transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`,
-          transformOrigin: "center center",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 9,
+          padding: "7px 14px",
+          borderRadius: 999,
+          border: `1px solid ${color}55`,
+          backgroundColor: `${color}1A`,
+          color,
+          fontFamily: FONT_BODY,
+          fontSize: 12.5,
+          fontWeight: 800,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
         }}
       >
-        {videoSrc ? (
-          <video
-            src={videoSrc}
-            muted
-            autoPlay
-            loop
-            playsInline
-            preload="auto"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : photoSrc ? (
-          <Img
-            src={photoSrc}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : null}
-      </div>
+        <span
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            backgroundColor: color,
+            boxShadow: `0 0 ${10 * pulse}px ${color}`,
+            opacity: 0.6 + pulse * 0.4,
+          }}
+        />
+        {label}
+      </span>
+    </Reveal>
+  );
+};
 
-      {/* Smooth cinematic vignette */}
+/** Animated check row used to sync bullet points with on-screen actions. */
+const CheckRow: React.FC<{ label: string; at: number }> = ({ label, at }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame: frame - at, fps, config: { damping: 14, stiffness: 160 } });
+  const done = frame >= at;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        opacity: interpolate(s, [0, 1], [0.38, 1]),
+        transform: `translateX(${(1 - s) * -10}px)`,
+      }}
+    >
+      <span
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: done ? C.emerald : "rgba(255,255,255,0.08)",
+          border: done ? "none" : `1px solid ${C.line}`,
+          transform: `scale(${done ? interpolate(s, [0, 1], [0.6, 1]) : 1})`,
+        }}
+      >
+        {done && <CheckCircle2 size={15} color={C.ink} strokeWidth={3} />}
+      </span>
+      <span style={{ color: C.text, fontFamily: FONT_BODY, fontSize: 16.5, fontWeight: 600 }}>
+        {label}
+      </span>
+    </div>
+  );
+};
+
+/** Animated number counter. */
+const useCount = (from: number, to: number, start: number, end: number) => {
+  const frame = useCurrentFrame();
+  return interpolate(frame, [start, end], [from, to], { ...CLAMP, easing: EASE_OUT });
+};
+
+/** Character typewriter. */
+const useTyped = (text: string, start: number, cps = 1.4) => {
+  const frame = useCurrentFrame();
+  const chars = Math.max(0, Math.floor((frame - start) * cps));
+  return text.slice(0, chars);
+};
+
+/* ============================================================================
+   PERSISTENT LAYERS
+   ========================================================================== */
+
+/** Living brand backdrop shared by every scene — removes the "dip to black" feel. */
+const BrandBackdrop: React.FC = () => {
+  const frame = useCurrentFrame();
+  const t = frame / 30;
+  const g1x = 22 + Math.sin(t * 0.16) * 9;
+  const g1y = 28 + Math.cos(t * 0.12) * 7;
+  const g2x = 78 + Math.cos(t * 0.13) * 8;
+  const g2y = 72 + Math.sin(t * 0.11) * 7;
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: C.ink, overflow: "hidden" }}>
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle at 50% 45%, rgba(13,15,19,${
-            dim - 0.14
-          }) 0%, rgba(13,15,19,${Math.min(0.94, dim + 0.18)}) 100%)`,
+          background: `radial-gradient(520px circle at ${g1x}% ${g1y}%, rgba(220,53,69,0.22), transparent 70%), radial-gradient(560px circle at ${g2x}% ${g2y}%, rgba(52,211,153,0.10), transparent 70%)`,
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+          backgroundPosition: `${(frame * 0.25) % 56}px ${(frame * 0.18) % 56}px`,
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 78%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 78%)",
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          background:
+            "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%)",
         }}
       />
     </AbsoluteFill>
   );
 };
 
-/* ------------------------- Minimalist Top Watermark ------------------------- */
+const LogoMark: React.FC<{ size?: number }> = ({ size = 30 }) => (
+  <div
+    style={{
+      width: size,
+      height: size,
+      borderRadius: size * 0.3,
+      background: `linear-gradient(135deg, ${C.brand}, #A92230)`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#ffffff",
+      fontWeight: 900,
+      fontSize: size * 0.5,
+      fontFamily: FONT_DISPLAY,
+      boxShadow: `0 ${size * 0.25}px ${size * 0.7}px rgba(220,53,69,0.45)`,
+    }}
+  >
+    G
+  </div>
+);
 
-const MinimalBrandWatermark: React.FC = () => {
+const BrandWatermark: React.FC = () => {
+  const frame = useCurrentFrame();
+  const opacity = interpolate(
+    frame,
+    [10, 30, T.outro.from - 10, T.outro.from + 10],
+    [0, 0.92, 0.92, 0],
+    CLAMP
+  );
   return (
     <div
       style={{
         position: "absolute",
-        top: 30,
-        left: 44,
+        top: 28,
+        left: 40,
         display: "flex",
         alignItems: "center",
         gap: 10,
         zIndex: 40,
-        opacity: 0.9,
+        opacity,
       }}
     >
-      <div
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 9,
-          backgroundColor: "#dc3545",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#ffffff",
-          fontWeight: 900,
-          fontSize: 15,
-          fontFamily: '"Sora", system-ui, sans-serif',
-        }}
-      >
-        G
-      </div>
+      <LogoMark size={28} />
       <span
         style={{
-          color: "#ffffff",
+          color: C.text,
           fontWeight: 800,
           fontSize: 15,
           letterSpacing: "-0.02em",
-          fontFamily: '"Sora", system-ui, sans-serif',
-          textShadow: "0 2px 12px rgba(0,0,0,0.6)",
+          fontFamily: FONT_DISPLAY,
         }}
       >
-        GAMAT <span style={{ color: "#dc3545" }}>Fx</span>
+        GAMAT <span style={{ color: C.brand }}>Fx</span>
       </span>
     </div>
   );
 };
 
-/* ------------------------- Realistic Dashboard Cursor ------------------------- */
+const CHAPTERS = [
+  { n: "01", label: "Enroll", from: T.enroll.from, to: T.live.from },
+  { n: "02", label: "Learn Live", from: T.live.from, to: T.journal.from },
+  { n: "03", label: "Journal", from: T.journal.from, to: T.scale.from },
+  { n: "04", label: "Scale", from: T.scale.from, to: T.clipA.from },
+];
 
-type CursorKeyframe = {
-  frame: number;
-  x: number;
-  y: number;
-  click?: boolean;
+/** Bottom chapter rail for the 4-step walkthrough + global progress hairline. */
+const ChapterRail: React.FC = () => {
+  const frame = useCurrentFrame();
+  const railOpacity = interpolate(
+    frame,
+    [T.enroll.from - 10, T.enroll.from + 20, T.clipA.from - 10, T.clipA.from + 10],
+    [0, 1, 1, 0],
+    CLAMP
+  );
+  const total = interpolate(frame, [0, HOW_IT_WORKS_DURATION_IN_FRAMES], [0, 100], CLAMP);
+
+  return (
+    <>
+      {railOpacity > 0.01 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 30,
+            left: "50%",
+            transform: `translateX(-50%) translateY(${(1 - railOpacity) * 12}px)`,
+            display: "flex",
+            gap: 14,
+            opacity: railOpacity,
+            zIndex: 40,
+          }}
+        >
+          {CHAPTERS.map((ch) => {
+            const p = interpolate(frame, [ch.from, ch.to], [0, 1], CLAMP);
+            const active = frame >= ch.from && frame < ch.to;
+            return (
+              <div key={ch.n} style={{ width: 150 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: 7,
+                    marginBottom: 7,
+                    fontFamily: FONT_BODY,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: active ? C.brand : C.faint,
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    {ch.n}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      color: active ? C.text : C.faint,
+                    }}
+                  >
+                    {ch.label}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: 3,
+                    borderRadius: 3,
+                    backgroundColor: "rgba(255,255,255,0.12)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${p * 100}%`,
+                      height: "100%",
+                      backgroundColor: p >= 1 ? C.emerald : C.brand,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          bottom: 0,
+          height: 3,
+          width: `${total}%`,
+          background: `linear-gradient(90deg, ${C.brand}, ${C.brandSoft})`,
+          zIndex: 41,
+          opacity: 0.85,
+        }}
+      />
+    </>
+  );
 };
 
-const AnimatedMouseCursor: React.FC<{
-  keyframes: CursorKeyframe[];
-}> = ({ keyframes }) => {
-  const frame = useCurrentFrame();
+/* ============================================================================
+   CURSOR (coordinates are relative to fixed-size UI mocks, so clicks land)
+   ========================================================================== */
 
+type CursorKeyframe = { frame: number; x: number; y: number; click?: boolean };
+
+const AnimatedMouseCursor: React.FC<{ keyframes: CursorKeyframe[]; showFrom?: number }> = ({
+  keyframes,
+  showFrom = 0,
+}) => {
+  const frame = useCurrentFrame();
   if (keyframes.length === 0) return null;
 
   let x = keyframes[0].x;
   let y = keyframes[0].y;
-
   for (let i = 0; i < keyframes.length - 1; i++) {
     const a = keyframes[i];
     const b = keyframes[i + 1];
     if (frame >= a.frame && frame <= b.frame) {
-      const t = interpolate(frame, [a.frame, b.frame], [0, 1], {
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      });
+      const t = interpolate(frame, [a.frame, b.frame], [0, 1], { ...CLAMP, easing: EASE_IN_OUT });
+      // Slight arc so the motion feels hand-driven rather than robotic
+      const arc = Math.sin(t * Math.PI) * Math.min(28, Math.abs(b.x - a.x) * 0.08);
       x = a.x + (b.x - a.x) * t;
-      y = a.y + (b.y - a.y) * t;
+      y = a.y + (b.y - a.y) * t - arc;
       break;
     } else if (frame > b.frame) {
       x = b.x;
@@ -203,24 +519,19 @@ const AnimatedMouseCursor: React.FC<{
     }
   }
 
-  // Click ripple effect
-  const activeClick = keyframes.find(
-    (k) => k.click && frame >= k.frame && frame <= k.frame + 18
-  );
+  const activeClick = keyframes.find((k) => k.click && frame >= k.frame && frame <= k.frame + 20);
   const clickProgress = activeClick
-    ? interpolate(frame, [activeClick.frame, activeClick.frame + 18], [0, 1], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      })
+    ? interpolate(frame, [activeClick.frame, activeClick.frame + 20], [0, 1], CLAMP)
     : 0;
-  const cursorScale = activeClick
+  const press = activeClick
     ? interpolate(
         frame,
-        [activeClick.frame, activeClick.frame + 5, activeClick.frame + 12],
-        [1, 0.86, 1],
-        { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+        [activeClick.frame, activeClick.frame + 4, activeClick.frame + 10],
+        [1, 0.82, 1],
+        CLAMP
       )
     : 1;
+  const opacity = interpolate(frame, [showFrom, showFrom + 12], [0, 1], CLAMP);
 
   return (
     <div
@@ -229,32 +540,37 @@ const AnimatedMouseCursor: React.FC<{
         left: 0,
         top: 0,
         transform: `translate3d(${x}px, ${y}px, 0)`,
-        zIndex: 50,
+        zIndex: 60,
         pointerEvents: "none",
+        opacity,
       }}
     >
       {activeClick && (
         <div
           style={{
             position: "absolute",
-            left: -14,
-            top: -14,
-            width: 34,
-            height: 34,
+            left: -18,
+            top: -18,
+            width: 40,
+            height: 40,
             borderRadius: "50%",
-            border: "2.5px solid #dc3545",
-            transform: `scale(${0.4 + clickProgress * 1.4})`,
+            backgroundColor: "rgba(220,53,69,0.18)",
+            border: `2px solid ${C.brand}`,
+            transform: `scale(${0.3 + clickProgress * 1.3})`,
             opacity: 1 - clickProgress,
           }}
         />
       )}
       <svg
-        width="26"
-        height="26"
+        width="24"
+        height="24"
         viewBox="0 0 24 24"
         style={{
-          transform: `scale(${cursorScale})`,
-          filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.45))",
+          transform: `scale(${press})`,
+          transformOrigin: "4px 3px",
+          filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.4))",
+          marginLeft: -4,
+          marginTop: -3,
         }}
       >
         <path
@@ -269,1310 +585,1790 @@ const AnimatedMouseCursor: React.FC<{
   );
 };
 
-/* ==========================================================================
-   SCENE 1 (0.0s - 11.5s | Frames 0 - 345):
-   "Most aspiring traders don't fail because they lack information..."
+/* ============================================================================
+   SHARED SCENE LAYOUT
    ========================================================================== */
 
-const Scene1Problem: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const titleIn = spring({ frame, fps, config: { damping: 16 } });
-  const drift = interpolate(frame, [0, 345], [0, -18]);
-  const fadeOut = interpolate(frame, [320, 345], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      <CameraBackdrop
-        videoSrc={CLIPS.mainDesk}
-        panX={[15, -25]}
-        panY={[8, -10]}
-        zoom={[1.03, 1.12]}
-        dim={0.66}
-      />
-
-      <div
+const CopyColumn: React.FC<{
+  step: string;
+  title: string;
+  highlight?: string[];
+  body: string;
+  accent?: string;
+  width?: number;
+  children?: React.ReactNode;
+}> = ({ step, title, highlight = [], body, accent = C.brand, width = 430, children }) => (
+  <div
+    style={{
+      position: "absolute",
+      left: 64,
+      top: "46%",
+      transform: "translateY(-50%)",
+      width,
+      zIndex: 10,
+    }}
+  >
+    <Eyebrow label={step} color={accent} start={4} />
+    <h2
+      style={{
+        color: C.text,
+        fontFamily: FONT_DISPLAY,
+        fontSize: 44,
+        fontWeight: 800,
+        lineHeight: 1.1,
+        letterSpacing: "-0.03em",
+        margin: "18px 0 0 0",
+      }}
+    >
+      <KineticText text={title} start={10} highlight={highlight} highlightColor={accent} />
+    </h2>
+    <Reveal start={34}>
+      <p
         style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "0 96px",
-          maxWidth: 980,
-          zIndex: 10,
-          transform: `translateY(${drift}px)`,
+          color: C.muted,
+          fontFamily: FONT_BODY,
+          fontSize: 17.5,
+          lineHeight: 1.6,
+          margin: "16px 0 0 0",
         }}
       >
-        <div
-          style={{
-            opacity: titleIn,
-            transform: `translateY(${interpolate(titleIn, [0, 1], [28, 0])}px)`,
-          }}
-        >
-          <p
-            style={{
-              color: "#ff7583",
-              fontSize: 14,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              marginBottom: 18,
-            }}
-          >
-            Why Most Traders Struggle
-          </p>
-          <h1
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 58,
-              fontWeight: 800,
-              lineHeight: 1.12,
-              margin: 0,
-              letterSpacing: "-0.03em",
-              textShadow: "0 10px 30px rgba(0,0,0,0.45)",
-            }}
-          >
-            Information isn’t the problem.{" "}
-            <span style={{ color: "#dc3545" }}>Lack of structure</span> is.
-          </h1>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.78)",
-              fontSize: 22,
-              lineHeight: 1.5,
-              marginTop: 22,
-              maxWidth: 720,
-            }}
-          >
-            Random videos without real-time application or mentor accountability
-            keep aspiring traders stuck in guesswork.
-          </p>
-        </div>
+        {body}
+      </p>
+    </Reveal>
+    {children}
+  </div>
+);
+
+/** Floating app window with an entrance tilt — gives UI mocks depth. */
+const UiWindow: React.FC<{
+  width: number;
+  height: number;
+  duration: number;
+  children: React.ReactNode;
+  enterAt?: number;
+  dark?: boolean;
+}> = ({ width, height, duration, children, enterAt = 14, dark = false }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame: frame - enterAt, fps, config: { damping: 22, stiffness: 90 } });
+  const rotY = interpolate(s, [0, 1], [-14, -4]) + interpolate(frame, [0, duration], [0, 3]);
+  const rotX = interpolate(s, [0, 1], [8, 2]);
+  const drift = interpolate(frame, [0, duration], [6, -6]);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        right: 56,
+        top: "46%",
+        width,
+        height,
+        marginTop: -height / 2,
+        perspective: 1600,
+        zIndex: 10,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          borderRadius: 20,
+          overflow: "hidden",
+          backgroundColor: dark ? C.panel : "#ffffff",
+          border: dark ? `1px solid ${C.line}` : "1px solid rgba(255,255,255,0.4)",
+          boxShadow:
+            "0 50px 100px -20px rgba(0,0,0,0.65), 0 30px 60px -30px rgba(220,53,69,0.35)",
+          opacity: s,
+          transform: `translateY(${(1 - s) * 40 + drift}px) rotateY(${rotY}deg) rotateX(${rotX}deg)`,
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {children}
       </div>
-    </AbsoluteFill>
+    </div>
   );
 };
 
-/* ==========================================================================
-   SCENE 2 (11.5s - 25.0s | Frames 345 - 750):
-   "At GamatFX, we replaced guesswork with one complete, accountable trading system..."
+/* ============================================================================
+   SCENE 1 — THE PROBLEM (0 – 345)
    ========================================================================== */
 
-const Scene2SystemIntro: React.FC = () => {
+const FRAGMENTS = [
+  { text: "Random YouTube tips", x: 70, y: 96, r: -6 },
+  { text: "Paid signal groups", x: 930, y: 84, r: 5 },
+  { text: "17 indicators, one chart", x: 1000, y: 560, r: -4 },
+  { text: "No risk plan", x: 92, y: 560, r: 4 },
+  { text: "Revenge trades", x: 520, y: 616, r: -3 },
+  { text: "Zero feedback", x: 520, y: 46, r: 3 },
+];
+
+const Scene1Problem: React.FC<{ duration: number }> = ({ duration }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headIn = spring({ frame, fps, config: { damping: 16 } });
-  const cameraFloat = interpolate(frame, [0, 405], [14, -14]);
-  const fadeOut = interpolate(frame, [380, 405], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
   return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      <CameraBackdrop
-        photoSrc={PHOTOS.tradingFloor}
-        panX={[-20, 20]}
-        panY={[10, -12]}
-        zoom={[1.05, 1.16]}
-        dim={0.64}
-      />
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "0 110px",
-          zIndex: 10,
-          transform: `translateY(${cameraFloat}px)`,
-        }}
-      >
-        <div
-          style={{
-            opacity: headIn,
-            transform: `scale(${interpolate(headIn, [0, 1], [0.95, 1])})`,
-          }}
-        >
-          <p
-            style={{
-              color: "#34d399",
-              fontSize: 14,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              marginBottom: 16,
-            }}
-          >
-            The GAMAT Fx Method
-          </p>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 56,
-              fontWeight: 800,
-              lineHeight: 1.13,
-              margin: 0,
-              letterSpacing: "-0.03em",
-              maxWidth: 960,
-            }}
-          >
-            One Complete System From{" "}
-            <span style={{ color: "#dc3545" }}>Theory to Live Execution</span>
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.78)",
-              fontSize: 22,
-              lineHeight: 1.5,
-              marginTop: 20,
-              maxWidth: 760,
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
-          >
-            Here’s how it actually works from day one.
-          </p>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-/* ==========================================================================
-   SCENE 3 (25.0s - 43.8s | Frames 750 - 1314):
-   Step 1: Enroll & Get Instant Access + Dashboard Mouse Motion
-   ========================================================================== */
-
-const Scene3StepOneDashboard: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const textIn = spring({ frame, fps, config: { damping: 16 } });
-  const uiIn = spring({ frame: frame - 18, fps, config: { damping: 16 } });
-  const fadeOut = interpolate(frame, [535, 564], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  // Camera gentle pan across the workspace
-  const uiPanX = interpolate(frame, [0, 564], [12, -10]);
-  const uiScale = interpolate(frame, [0, 564], [0.98, 1.03]);
-
-  // Dashboard interactive state driven by mouse clicks
-  const activeTab = frame >= 150 ? "courses" : "overview";
-  const workbookDownloaded = frame >= 360;
-
-  const cursorKeyframes: CursorKeyframe[] = [
-    { frame: 40, x: 460, y: 260 },
-    { frame: 140, x: 105, y: 158, click: true }, // Click "My Courses"
-    { frame: 250, x: 350, y: 175 }, // Hover Module 1
-    { frame: 350, x: 485, y: 292, click: true }, // Click "Download Workbook"
-    { frame: 470, x: 340, y: 365 }, // Hover Community channel
-  ];
-
-  return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      <CameraBackdrop
-        photoSrc={PHOTOS.campusLab}
-        panX={[-15, 18]}
-        panY={[6, -10]}
-        zoom={[1.04, 1.13]}
-        dim={0.72}
-      />
-
-      <div
-        style={{
-          flex: 1,
-          display: "grid",
-          gridTemplateColumns: "0.85fr 1.15fr",
-          alignItems: "center",
-          gap: 48,
-          padding: "0 64px",
-          zIndex: 10,
-        }}
-      >
-        {/* Clean Left Copy */}
-        <div
-          style={{
-            opacity: textIn,
-            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
-          }}
-        >
-          <span
-            style={{
-              color: "#dc3545",
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-            }}
-          >
-            Step 01
-          </span>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 46,
-              fontWeight: 800,
-              lineHeight: 1.14,
-              margin: "12px 0 0 0",
-            }}
-          >
-            Enroll & Get Instant Access
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.75)",
-              fontSize: 19,
-              lineHeight: 1.55,
-              marginTop: 18,
-            }}
-          >
-            Your full dashboard unlocks immediately—structured modules,
-            workbooks, checklists, and the private community.
-          </p>
-        </div>
-
-        {/* Right: Clean GamatFX Dashboard Window with Live Mouse Motion */}
-        <div
-          style={{
-            opacity: uiIn,
-            transform: `translateX(${uiPanX}px) scale(${uiScale})`,
-            position: "relative",
-            borderRadius: 22,
-            backgroundColor: "#f8fafc",
-            boxShadow: "0 35px 80px rgba(0,0,0,0.6)",
-            overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.2)",
-            height: 430,
-          }}
-        >
-          <AnimatedMouseCursor keyframes={cursorKeyframes} />
-
-          {/* Browser / App Top Bar */}
+    <SceneShell duration={duration} enterFrames={24}>
+      {FRAGMENTS.map((f, i) => {
+        const appear = spring({ frame: frame - 6 - i * 5, fps, config: { damping: 16 } });
+        const strikeAt = 175 + i * 7;
+        const strike = interpolate(frame, [strikeAt, strikeAt + 14], [0, 1], {
+          ...CLAMP,
+          easing: EASE_OUT,
+        });
+        const floatY = Math.sin((frame + i * 23) / 26) * 6;
+        const floatX = Math.cos((frame + i * 17) / 34) * 4;
+        return (
           <div
+            key={f.text}
             style={{
-              height: 40,
-              backgroundColor: "#ffffff",
-              borderBottom: "1px solid #e2e8f0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 18px",
-            }}
-          >
-            <div style={{ display: "flex", gap: 7 }}>
-              <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#ef4444" }} />
-              <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#f59e0b" }} />
-              <span style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#10b981" }} />
-            </div>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: "#64748b" }}>
-              gamatfx.com/dashboard
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>
-              ● Enrolled
-            </span>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "185px 1fr", height: 390 }}>
-            {/* Soft Ash Sidebar matching our real app */}
-            <div
-              style={{
-                backgroundColor: "#f1f5f9",
-                borderRight: "1px solid #e2e8f0",
-                padding: 14,
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-              }}
-            >
-              {[
-                { id: "overview", label: "Overview", icon: LayoutDashboard },
-                { id: "courses", label: "My Courses", icon: BookOpenCheck },
-                { id: "journal", label: "Trade Journal", icon: TrendingUp },
-                { id: "events", label: "My Events", icon: CalendarCheck },
-                { id: "certs", label: "Certificates", icon: Award },
-              ].map((item) => {
-                const isActive = activeTab === item.id;
-                return (
-                  <div
-                    key={item.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 9,
-                      padding: "9px 11px",
-                      borderRadius: 10,
-                      backgroundColor: isActive ? "#dc3545" : "transparent",
-                      color: isActive ? "#ffffff" : "#334155",
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    <item.icon size={15} />
-                    <span>{item.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Dashboard Main Panel */}
-            <div style={{ padding: 22, backgroundColor: "#ffffff" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 16,
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#16181c" }}>
-                    {activeTab === "courses" ? "My Courses & Workbooks" : "Student Workspace"}
-                  </div>
-                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
-                    Institutional Forex Mentorship · Full Access
-                  </div>
-                </div>
-                <span
-                  style={{
-                    padding: "5px 10px",
-                    borderRadius: 999,
-                    backgroundColor: "#ecfdf5",
-                    color: "#059669",
-                    fontSize: 11,
-                    fontWeight: 800,
-                  }}
-                >
-                  Unlocked
-                </span>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div
-                  style={{
-                    padding: "14px 16px",
-                    borderRadius: 14,
-                    border: "1px solid #e2e8f0",
-                    backgroundColor: "#f8fafc",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c" }}>
-                      Module 01 · Market Structure & Liquidity
-                    </div>
-                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
-                      12 HD Lessons · Video Stream Ready
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#dc3545" }}>
-                    Watch →
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    padding: "14px 16px",
-                    borderRadius: 14,
-                    border: workbookDownloaded ? "1px solid #10b981" : "1px solid #e2e8f0",
-                    backgroundColor: workbookDownloaded ? "#ecfdf5" : "#f8fafc",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c" }}>
-                      PDF Workbooks & Pre-Trade Checklists
-                    </div>
-                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
-                      Institutional Execution Playbook
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      padding: "6px 12px",
-                      borderRadius: 8,
-                      backgroundColor: workbookDownloaded ? "#10b981" : "#16181c",
-                      color: "#ffffff",
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {workbookDownloaded ? "Downloaded ✓" : "Download PDF"}
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    padding: "14px 16px",
-                    borderRadius: 14,
-                    border: "1px solid #e2e8f0",
-                    backgroundColor: "#f8fafc",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c" }}>
-                      Private Trader Community Floor
-                    </div>
-                    <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
-                      Daily markups & live Q&A channels
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 11.5, fontWeight: 800, color: "#059669" }}>
-                    Active ●
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-/* ==========================================================================
-   SCENE 4 (43.8s - 69.3s | Frames 1314 - 2079):
-   Step 2: Learn, Then Apply Live (Realistic live market footage + clean callout)
-   ========================================================================== */
-
-const Scene4StepTwoLive: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const copyIn = spring({ frame, fps, config: { damping: 16 } });
-  const workshopIn = spring({ frame: frame - 180, fps, config: { damping: 16 } });
-  const fadeOut = interpolate(frame, [735, 765], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      {/* First half: Realistic live trading footage; Second half: Real academy workshop */}
-      {frame < 380 ? (
-        <CameraBackdrop
-          videoSrc={CLIPS.liveBreakdown}
-          panX={[-20, 22]}
-          panY={[8, -8]}
-          zoom={[1.04, 1.15]}
-          dim={0.58}
-        />
-      ) : (
-        <CameraBackdrop
-          photoSrc={PHOTOS.liveWorkshop}
-          panX={[18, -22]}
-          panY={[-8, 10]}
-          zoom={[1.04, 1.16]}
-          dim={0.6}
-        />
-      )}
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "0 72px 76px 72px",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 780,
-            opacity: copyIn,
-            transform: `translateY(${interpolate(copyIn, [0, 1], [24, 0])}px)`,
-          }}
-        >
-          <span
-            style={{
-              color: "#dc3545",
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-            }}
-          >
-            Step 02 · Weekly Live Sessions
-          </span>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 48,
-              fontWeight: 800,
-              lineHeight: 1.14,
-              margin: "10px 0 0 0",
-              textShadow: "0 8px 28px rgba(0,0,0,0.6)",
-            }}
-          >
-            Learn, Then Apply Live
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.85)",
-              fontSize: 20,
-              lineHeight: 1.5,
-              marginTop: 14,
-              textShadow: "0 4px 16px rgba(0,0,0,0.6)",
-            }}
-          >
-            Watch institutional order flow, liquidity sweeps, and market
-            structure unfold in real time—knowing why a setup qualifies and when
-            to stay out.
-          </p>
-
-          <div
-            style={{
-              marginTop: 20,
+              position: "absolute",
+              left: f.x,
+              top: f.y,
+              transform: `translate(${floatX}px, ${floatY + (1 - appear) * 30}px) rotate(${f.r}deg) scale(${interpolate(appear, [0, 1], [0.8, 1])})`,
+              opacity: appear * interpolate(strike, [0, 1], [1, 0.32]),
+              filter: strike > 0.5 ? `blur(${(strike - 0.5) * 2}px)` : undefined,
               display: "inline-flex",
               alignItems: "center",
-              gap: 12,
-              padding: "10px 18px",
-              borderRadius: 999,
-              backgroundColor: "rgba(13,15,19,0.78)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              opacity: workshopIn,
-            }}
-          >
-            <LineChart size={18} color="#34d399" />
-            <span style={{ color: "#ffffff", fontSize: 14, fontWeight: 700 }}>
-              Live Mentor Breakdowns · London & New York Sessions
-            </span>
-          </div>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-/* ==========================================================================
-   SCENE 5 (69.3s - 94.2s | Frames 2079 - 2826):
-   Step 3: Journal Every Trade & Get Reviewed (Interactive Journal + Mouse Motion)
-   ========================================================================== */
-
-const Scene5StepThreeJournal: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const textIn = spring({ frame, fps, config: { damping: 16 } });
-  const uiIn = spring({ frame: frame - 16, fps, config: { damping: 16 } });
-  const fadeOut = interpolate(frame, [718, 747], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const uiPan = interpolate(frame, [0, 747], [-10, 12]);
-  const tradeLogged = frame >= 360;
-  const mentorFeedbackVisible = frame >= 470;
-
-  const cursorKeyframes: CursorKeyframe[] = [
-    { frame: 40, x: 420, y: 120 },
-    { frame: 140, x: 125, y: 165, click: true }, // Select Entry
-    { frame: 230, x: 380, y: 165, click: true }, // Select Risk : Reward 1:3
-    { frame: 350, x: 465, y: 245, click: true }, // Click "Log Trade"
-    { frame: 480, x: 280, y: 345 }, // Hover Mentor Feedback
-  ];
-
-  return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      <CameraBackdrop
-        photoSrc={PHOTOS.chartReview}
-        panX={[16, -20]}
-        panY={[-6, 10]}
-        zoom={[1.04, 1.14]}
-        dim={0.74}
-      />
-
-      <div
-        style={{
-          flex: 1,
-          display: "grid",
-          gridTemplateColumns: "0.85fr 1.15fr",
-          alignItems: "center",
-          gap: 48,
-          padding: "0 64px",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            opacity: textIn,
-            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
-          }}
-        >
-          <span
-            style={{
-              color: "#dc3545",
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-            }}
-          >
-            Step 03
-          </span>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 46,
-              fontWeight: 800,
-              lineHeight: 1.14,
-              margin: "12px 0 0 0",
-            }}
-          >
-            Journal Every Trade & Get Reviewed
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.75)",
-              fontSize: 19,
-              lineHeight: 1.55,
-              marginTop: 18,
-            }}
-          >
-            Log entry, stop loss, take profit, and risk-to-reward inside your
-            Trade Journal so mentors can audit your setups and sharpen your
-            habits.
-          </p>
-        </div>
-
-        {/* Right: Trade Journal Dashboard with Mouse Motion */}
-        <div
-          style={{
-            opacity: uiIn,
-            transform: `translateX(${uiPan}px)`,
-            position: "relative",
-            borderRadius: 22,
-            backgroundColor: "#ffffff",
-            boxShadow: "0 35px 80px rgba(0,0,0,0.6)",
-            overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.2)",
-            padding: 24,
-          }}
-        >
-          <AnimatedMouseCursor keyframes={cursorKeyframes} />
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingBottom: 14,
-              borderBottom: "1px solid #e2e8f0",
-              marginBottom: 18,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <BrainCircuit size={20} color="#dc3545" />
-              <span style={{ fontSize: 16, fontWeight: 800, color: "#16181c" }}>
-                GamatFX Trade Journal
-              </span>
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#059669" }}>
-              Win Rate: 74% · +14.5R
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 10,
-              marginBottom: 14,
-            }}
-          >
-            {[
-              { label: "Pair", val: "EURUSD · Buy" },
-              { label: "Entry", val: "1.08450" },
-              { label: "Stop / Target", val: "20p / 60p" },
-              { label: "Risk : Reward", val: "1:3" },
-            ].map((f) => (
-              <div
-                key={f.label}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  backgroundColor: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: "#64748b" }}>
-                  {f.label}
-                </div>
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: "#16181c", marginTop: 3 }}>
-                  {f.val}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "12px 14px",
-              borderRadius: 12,
-              backgroundColor: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              marginBottom: 16,
-            }}
-          >
-            <span style={{ fontSize: 12.5, color: "#475569", fontWeight: 600 }}>
-              Setup: London sweep + M5 FVG mitigation
-            </span>
-            <span
-              style={{
-                padding: "7px 14px",
-                borderRadius: 9,
-                backgroundColor: tradeLogged ? "#10b981" : "#dc3545",
-                color: "#ffffff",
-                fontSize: 12,
-                fontWeight: 800,
-              }}
-            >
-              {tradeLogged ? "Logged ✓" : "+ Log Trade"}
-            </span>
-          </div>
-
-          <div
-            style={{
-              opacity: mentorFeedbackVisible ? 1 : 0.25,
-              transform: `translateY(${mentorFeedbackVisible ? 0 : 8}px)`,
-              transition: "all 0.3s ease",
-              padding: "14px 16px",
+              gap: 9,
+              padding: "10px 16px",
               borderRadius: 14,
-              backgroundColor: "#ecfdf5",
-              border: "1px solid #a7f3d0",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 12,
+              backgroundColor: "rgba(18,21,27,0.82)",
+              border: `1px solid ${C.line}`,
+              boxShadow: "0 14px 30px rgba(0,0,0,0.35)",
+              fontFamily: FONT_BODY,
+              fontSize: 15,
+              fontWeight: 600,
+              color: C.muted,
+              zIndex: 5,
             }}
           >
-            <CheckCircle2 size={20} color="#059669" style={{ flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <div style={{ fontSize: 12.5, fontWeight: 800, color: "#065f46" }}>
-                Mentor Audit · Approved Execution
-              </div>
-              <div style={{ fontSize: 12.5, color: "#047857", marginTop: 3 }}>
-                “Clean confirmation entry. Risk stayed strictly at 1% with zero
-                emotional chasing.”
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-/* ==========================================================================
-   SCENE 6 (94.2s - 116.2s | Frames 2826 - 3486):
-   Step 4: Scale With Accountability (Certificate & Check-in Dashboard Motion)
-   ========================================================================== */
-
-const Scene6StepFourScale: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const textIn = spring({ frame, fps, config: { damping: 16 } });
-  const uiIn = spring({ frame: frame - 16, fps, config: { damping: 16 } });
-  const fadeOut = interpolate(frame, [632, 660], [1, 0], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const certOpened = frame >= 320;
-  const cursorKeyframes: CursorKeyframe[] = [
-    { frame: 50, x: 420, y: 260 },
-    { frame: 180, x: 210, y: 145 }, // Hover workshop check-in
-    { frame: 310, x: 410, y: 215, click: true }, // Click "Attendance Certificate"
-    { frame: 480, x: 290, y: 310 },
-  ];
-
-  return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      <CameraBackdrop
-        photoSrc={PHOTOS.graduation}
-        panX={[-18, 22]}
-        panY={[8, -10]}
-        zoom={[1.04, 1.15]}
-        dim={0.72}
-      />
-
-      <div
-        style={{
-          flex: 1,
-          display: "grid",
-          gridTemplateColumns: "0.85fr 1.15fr",
-          alignItems: "center",
-          gap: 48,
-          padding: "0 64px",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            opacity: textIn,
-            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
-          }}
-        >
-          <span
-            style={{
-              color: "#34d399",
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-            }}
-          >
-            Step 04
-          </span>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 46,
-              fontWeight: 800,
-              lineHeight: 1.14,
-              margin: "12px 0 0 0",
-            }}
-          >
-            Scale With Accountability
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.75)",
-              fontSize: 19,
-              lineHeight: 1.55,
-              marginTop: 18,
-            }}
-          >
-            Earn verified GamatFX certificates and graduate to live capital or
-            funded-account challenges backed by ongoing mentor support.
-          </p>
-        </div>
-
-        {/* Right: Clean Certification & Scaling Card with Mouse Motion */}
-        <div
-          style={{
-            opacity: uiIn,
-            transform: `translateX(${interpolate(frame, [0, 660], [10, -10])}px)`,
-            position: "relative",
-            borderRadius: 22,
-            backgroundColor: "#ffffff",
-            boxShadow: "0 35px 80px rgba(0,0,0,0.6)",
-            padding: 26,
-          }}
-        >
-          <AnimatedMouseCursor keyframes={cursorKeyframes} />
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <span style={{ fontSize: 15, fontWeight: 800, color: "#16181c" }}>
-              Workshop Check-In & Certification
-            </span>
             <span
               style={{
-                padding: "4px 10px",
-                borderRadius: 999,
-                backgroundColor: "#ecfdf5",
-                color: "#059669",
-                fontSize: 11,
-                fontWeight: 800,
+                width: 20,
+                height: 20,
+                borderRadius: 6,
+                backgroundColor: "rgba(220,53,69,0.18)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              Attended ✓
+              <X size={12} color={C.brandSoft} strokeWidth={3} />
             </span>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-            {["Day 1 ✓", "Day 2 ✓", "Day 3 ✓", "Day 4 ✓", "Quiz Passed ✓"].map(
-              (d) => (
-                <span
-                  key={d}
-                  style={{
-                    padding: "5px 10px",
-                    borderRadius: 8,
-                    backgroundColor: "#f0fdf4",
-                    border: "1px solid #bbf7d0",
-                    color: "#15803d",
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                  }}
-                >
-                  {d}
-                </span>
-              )
-            )}
-          </div>
-
-          <div
-            style={{
-              padding: "16px 18px",
-              borderRadius: 16,
-              backgroundColor: certOpened ? "#ecfdf5" : "#f8fafc",
-              border: certOpened ? "1px solid #10b981" : "1px solid #e2e8f0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <Award size={26} color="#dc3545" />
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#16181c" }}>
-                  Verified GAMAT Fx Certificate
-                </div>
-                <div style={{ fontSize: 11.5, color: "#64748b" }}>
-                  Serial: EVT-GX-SSTR-EIQJ
-                </div>
-              </div>
-            </div>
-            <span
-              style={{
-                padding: "7px 12px",
-                borderRadius: 9,
-                backgroundColor: certOpened ? "#059669" : "#16181c",
-                color: "#ffffff",
-                fontSize: 11.5,
-                fontWeight: 700,
-              }}
-            >
-              {certOpened ? "Certificate Ready ✓" : "View Certificate"}
-            </span>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-            {[
-              { label: "Max Risk / Trade", val: "1.0%" },
-              { label: "Drawdown Cap", val: "2.0% Daily" },
-              { label: "Capital Track", val: "Live & Funded" },
-            ].map((item) => (
-              <div
-                key={item.label}
+            <span style={{ position: "relative" }}>
+              {f.text}
+              <span
                 style={{
-                  padding: "12px",
-                  borderRadius: 12,
-                  backgroundColor: "#f8fafc",
-                  border: "1px solid #e2e8f0",
+                  position: "absolute",
+                  left: 0,
+                  top: "55%",
+                  height: 2,
+                  width: `${strike * 100}%`,
+                  backgroundColor: C.brand,
                 }}
-              >
-                <div style={{ fontSize: 10.5, color: "#64748b", fontWeight: 600 }}>
-                  {item.label}
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#16181c", marginTop: 3 }}>
-                  {item.val}
-                </div>
-              </div>
-            ))}
+              />
+            </span>
           </div>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
+        );
+      })}
 
-/* ==========================================================================
-   SCENE 7 (116.2s - 144.3s | Frames 3486 - 4329):
-   Inside the Academy — 3 Pure Cinematic Real-World Footage Clips with Camera Motion
-   ========================================================================== */
-
-const CinematicFootageClip: React.FC<{
-  videoSrc: string;
-  eyebrow: string;
-  title: string;
-  subtitle: string;
-  panX: [number, number];
-}> = ({ videoSrc, eyebrow, title, subtitle, panX }) => {
-  const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
-
-  const textIn = spring({ frame, fps, config: { damping: 16 } });
-  const fadeOut = interpolate(
-    frame,
-    [durationInFrames - 22, durationInFrames],
-    [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
-  return (
-    <AbsoluteFill style={{ opacity: fadeOut }}>
-      <CameraBackdrop
-        videoSrc={videoSrc}
-        panX={panX}
-        panY={[6, -8]}
-        zoom={[1.05, 1.15]}
-        dim={0.44}
-      />
-
-      <div
+      <AbsoluteFill
         style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "0 72px 72px 72px",
-          zIndex: 10,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 740,
-            opacity: textIn,
-            transform: `translateY(${interpolate(textIn, [0, 1], [24, 0])}px)`,
-          }}
-        >
-          <span
-            style={{
-              color: "#ff7583",
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              textShadow: "0 2px 10px rgba(0,0,0,0.65)",
-            }}
-          >
-            {eyebrow}
-          </span>
-          <h3
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 44,
-              fontWeight: 800,
-              lineHeight: 1.14,
-              margin: "10px 0 0 0",
-              textShadow: "0 8px 26px rgba(0,0,0,0.65)",
-            }}
-          >
-            {title}
-          </h3>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.88)",
-              fontSize: 19,
-              lineHeight: 1.5,
-              marginTop: 12,
-              textShadow: "0 4px 16px rgba(0,0,0,0.65)",
-            }}
-          >
-            {subtitle}
-          </p>
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-/* ==========================================================================
-   SCENE 8 (144.3s - 160.6s | Frames 4329 - 4818):
-   Clean Closing CTA with Smooth Camera Zoom
-   ========================================================================== */
-
-const Scene8Outro: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const titleIn = spring({ frame, fps, config: { damping: 16 } });
-  const ctaIn = spring({ frame: frame - 35, fps, config: { damping: 16 } });
-  const drift = interpolate(frame, [0, 489], [10, -10]);
-
-  return (
-    <AbsoluteFill>
-      <CameraBackdrop
-        photoSrc={PHOTOS.aboutHero}
-        panX={[-18, 18]}
-        panY={[10, -10]}
-        zoom={[1.04, 1.15]}
-        dim={0.7}
-      />
-
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
-          padding: "0 96px",
+          padding: "0 150px",
           zIndex: 10,
-          transform: `translateY(${drift}px)`,
         }}
       >
-        <div style={{ opacity: titleIn }}>
-          <p
-            style={{
-              color: "#ff7583",
-              fontSize: 14,
-              fontWeight: 800,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              marginBottom: 16,
-            }}
-          >
-            GamatFX Academy
-          </p>
-          <h2
-            style={{
-              color: "#ffffff",
-              fontFamily: '"Sora", system-ui, sans-serif',
-              fontSize: 54,
-              fontWeight: 800,
-              lineHeight: 1.13,
-              margin: 0,
-              maxWidth: 920,
-            }}
-          >
-            Build Your Edge—<span style={{ color: "#dc3545" }}>The Right Way.</span>
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.78)",
-              fontSize: 21,
-              lineHeight: 1.5,
-              marginTop: 18,
-              maxWidth: 720,
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
-          >
-            Structure, live mentorship, and accountability to trade with
-            confidence.
-          </p>
-        </div>
-
-        <div
+        <Eyebrow label="Why most traders struggle" start={8} />
+        <h1
           style={{
-            marginTop: 34,
-            opacity: ctaIn,
-            transform: `scale(${interpolate(ctaIn, [0, 1], [0.94, 1])})`,
-            padding: "15px 36px",
-            borderRadius: 999,
-            backgroundColor: "#dc3545",
-            color: "#ffffff",
+            color: C.text,
+            fontFamily: FONT_DISPLAY,
+            fontSize: 60,
             fontWeight: 800,
-            fontSize: 18,
-            boxShadow: "0 18px 40px rgba(220,53,69,0.45)",
+            lineHeight: 1.08,
+            letterSpacing: "-0.035em",
+            margin: "22px 0 0 0",
           }}
         >
-          Choose Your Program · gamatfx.com
-        </div>
-      </div>
-    </AbsoluteFill>
+          <KineticText text="Information isn’t the problem." start={18} />
+          <br />
+          <KineticText text="Lack of structure is." start={62} highlight={["structure"]} />
+        </h1>
+        <Reveal start={118}>
+          <p
+            style={{
+              color: C.muted,
+              fontFamily: FONT_BODY,
+              fontSize: 20,
+              lineHeight: 1.55,
+              margin: "22px auto 0 auto",
+              maxWidth: 700,
+            }}
+          >
+            Random content, no live application and zero accountability keep aspiring traders
+            stuck in guesswork.
+          </p>
+        </Reveal>
+      </AbsoluteFill>
+    </SceneShell>
   );
 };
 
-/* --------------------------- Main Composition --------------------------- */
+/* ============================================================================
+   SCENE 2 — THE SYSTEM (345 – 750)
+   ========================================================================== */
+
+const SYSTEM_NODES = [
+  { icon: LayoutDashboard, label: "Enroll", sub: "Instant access" },
+  { icon: LineChart, label: "Learn Live", sub: "Weekly sessions" },
+  { icon: BrainCircuit, label: "Journal", sub: "Mentor reviews" },
+  { icon: ShieldCheck, label: "Scale", sub: "With accountability" },
+];
+
+const Scene2System: React.FC<{ duration: number }> = ({ duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const trackWidth = 860;
+  const lineStart = 90;
+  const lineEnd = 230;
+  const lineP = interpolate(frame, [lineStart, lineEnd], [0, 1], { ...CLAMP, easing: EASE_IN_OUT });
+  const pulseP = frame > lineEnd + 10 ? ((frame - lineEnd - 10) % 80) / 80 : -1;
+
+  return (
+    <SceneShell duration={duration}>
+      <AbsoluteFill style={{ alignItems: "center", paddingTop: 128, zIndex: 10 }}>
+        <Eyebrow label="The GAMAT Fx method" color={C.emerald} start={4} />
+        <h2
+          style={{
+            color: C.text,
+            fontFamily: FONT_DISPLAY,
+            fontSize: 52,
+            fontWeight: 800,
+            lineHeight: 1.1,
+            letterSpacing: "-0.035em",
+            margin: "20px 0 0 0",
+            textAlign: "center",
+            maxWidth: 980,
+          }}
+        >
+          <KineticText text="One complete system —" start={10} />
+          <br />
+          <KineticText
+            text="from theory to live execution."
+            start={34}
+            highlight={["live", "execution"]}
+          />
+        </h2>
+
+        <div style={{ position: "relative", width: trackWidth, height: 150, marginTop: 64 }}>
+          {/* base + progress line */}
+          <div
+            style={{
+              position: "absolute",
+              left: 40,
+              right: 40,
+              top: 36,
+              height: 2,
+              backgroundColor: "rgba(255,255,255,0.1)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              left: 40,
+              top: 36,
+              height: 2,
+              width: (trackWidth - 80) * lineP,
+              background: `linear-gradient(90deg, ${C.brand}, ${C.emerald})`,
+              boxShadow: `0 0 14px ${C.brand}`,
+            }}
+          />
+          {pulseP >= 0 && (
+            <div
+              style={{
+                position: "absolute",
+                left: 40 + (trackWidth - 80) * pulseP - 6,
+                top: 31,
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                backgroundColor: "#fff",
+                boxShadow: `0 0 18px 6px ${C.brandSoft}`,
+                opacity: interpolate(pulseP, [0, 0.1, 0.9, 1], [0, 1, 1, 0]),
+              }}
+            />
+          )}
+
+          {SYSTEM_NODES.map((n, i) => {
+            const at = lineStart + i * ((lineEnd - lineStart) / 3) - 6;
+            const s = spring({ frame: frame - at, fps, config: { damping: 12, stiffness: 160 } });
+            const lit = frame >= at;
+            const cx = 40 + i * ((trackWidth - 80) / 3);
+            return (
+              <div
+                key={n.label}
+                style={{
+                  position: "absolute",
+                  left: cx - 70,
+                  top: 0,
+                  width: 140,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  opacity: interpolate(s, [0, 1], [0.25, 1]),
+                }}
+              >
+                <div
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 22,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: lit ? C.brand : C.panel,
+                    border: `1px solid ${lit ? "transparent" : C.line}`,
+                    boxShadow: lit ? "0 18px 40px rgba(220,53,69,0.45)" : "none",
+                    transform: `scale(${interpolate(s, [0, 1], [0.7, 1])})`,
+                  }}
+                >
+                  <n.icon size={30} color="#fff" />
+                </div>
+                <span
+                  style={{
+                    marginTop: 14,
+                    fontFamily: FONT_DISPLAY,
+                    fontSize: 17,
+                    fontWeight: 800,
+                    color: C.text,
+                  }}
+                >
+                  {n.label}
+                </span>
+                <span
+                  style={{ marginTop: 3, fontFamily: FONT_BODY, fontSize: 13, color: C.faint }}
+                >
+                  0{i + 1} · {n.sub}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <Reveal start={270}>
+          <p
+            style={{
+              marginTop: 26,
+              color: C.muted,
+              fontFamily: FONT_BODY,
+              fontSize: 19,
+              textAlign: "center",
+            }}
+          >
+            Here’s how it actually works — from day one.
+          </p>
+        </Reveal>
+      </AbsoluteFill>
+    </SceneShell>
+  );
+};
+
+/* ============================================================================
+   SCENE 3 — STEP 01 ENROLL (750 – 1314)
+   Mock is a fixed 640×410 canvas, so cursor targets are exact.
+   ========================================================================== */
+
+const Scene3Enroll: React.FC<{ duration: number }> = ({ duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const coursesAt = 124;
+  const downloadAt = 334;
+  const activeTab = frame >= coursesAt ? "courses" : "overview";
+  const dlProgress = interpolate(frame, [downloadAt + 4, downloadAt + 44], [0, 1], {
+    ...CLAMP,
+    easing: EASE_IN_OUT,
+  });
+  const downloaded = frame >= downloadAt + 44;
+  const toast = spring({ frame: frame - (downloadAt + 50), fps, config: { damping: 16 } });
+  const toastOut = interpolate(frame, [downloadAt + 170, downloadAt + 190], [1, 0], CLAMP);
+  const headerSwap = interpolate(frame, [coursesAt, coursesAt + 12], [0, 1], CLAMP);
+  const courseProgress = useCount(0, 18, coursesAt + 10, coursesAt + 70);
+
+  const cursor: CursorKeyframe[] = [
+    { frame: 30, x: 430, y: 330 },
+    { frame: coursesAt - 4, x: 86, y: 106, click: true },
+    { frame: 230, x: 400, y: 140 },
+    { frame: downloadAt - 4, x: 552, y: 213, click: true },
+    { frame: 450, x: 420, y: 288 },
+    { frame: 540, x: 470, y: 330 },
+  ];
+
+  const sidebar = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "courses", label: "My Courses", icon: BookOpenCheck },
+    { id: "journal", label: "Trade Journal", icon: TrendingUp },
+    { id: "events", label: "My Events", icon: CalendarCheck },
+    { id: "certs", label: "Certificates", icon: Award },
+  ];
+
+  const cards = [
+    {
+      title: "Module 01 · Market Structure & Liquidity",
+      sub: "12 HD lessons · Ready to stream",
+      right: <span style={{ fontSize: 12, fontWeight: 800, color: C.brand }}>Watch →</span>,
+    },
+    {
+      title: "PDF Workbooks & Pre-Trade Checklists",
+      sub: "Institutional execution playbook",
+      right: (
+        <span
+          style={{
+            position: "relative",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 112,
+            height: 30,
+            borderRadius: 9,
+            overflow: "hidden",
+            backgroundColor: downloaded ? C.emerald : C.uiInk,
+            color: downloaded ? C.uiInk : "#fff",
+            fontSize: 11.5,
+            fontWeight: 800,
+          }}
+        >
+          {!downloaded && dlProgress > 0 && (
+            <span
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: `${dlProgress * 100}%`,
+                backgroundColor: C.brand,
+              }}
+            />
+          )}
+          <span style={{ position: "relative" }}>
+            {downloaded ? "Downloaded ✓" : dlProgress > 0 ? `${Math.round(dlProgress * 100)}%` : "Download PDF"}
+          </span>
+        </span>
+      ),
+      highlight: downloaded,
+    },
+    {
+      title: "Private Trader Community",
+      sub: "Daily markups & live Q&A channels",
+      right: <span style={{ fontSize: 11.5, fontWeight: 800, color: C.emeraldDeep }}>● 1.2k online</span>,
+    },
+  ];
+
+  return (
+    <SceneShell duration={duration}>
+      <CopyColumn
+        step="Step 01 · Enroll"
+        title="Enroll & get instant access"
+        highlight={["instant", "access"]}
+        body="The moment you enroll, your full dashboard unlocks — structured modules, workbooks, checklists and the private community."
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 26 }}>
+          <CheckRow label="HD video modules" at={coursesAt + 8} />
+          <CheckRow label="Workbooks & checklists" at={downloadAt + 44} />
+          <CheckRow label="Private trader community" at={450} />
+        </div>
+      </CopyColumn>
+
+      <UiWindow width={640} height={410} duration={duration}>
+        {/* top bar */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            right: 0,
+            height: 36,
+            borderBottom: `1px solid ${C.uiLine}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 16px",
+            backgroundColor: "#fff",
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <div style={{ display: "flex", gap: 6 }}>
+            {["#ef4444", "#f59e0b", "#10b981"].map((c) => (
+              <span key={c} style={{ width: 9, height: 9, borderRadius: "50%", backgroundColor: c }} />
+            ))}
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: C.uiMuted }}>
+            gamatfxacademy.com/dashboard
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: C.emeraldDeep }}>● Enrolled</span>
+        </div>
+
+        {/* sidebar */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 36,
+            width: 170,
+            bottom: 0,
+            backgroundColor: "#F1F5F9",
+            borderRight: `1px solid ${C.uiLine}`,
+          }}
+        />
+        {sidebar.map((item, i) => {
+          const isActive = activeTab === item.id;
+          return (
+            <div
+              key={item.id}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: 50 + i * 38,
+                width: 146,
+                height: 32,
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 9,
+                padding: "0 11px",
+                backgroundColor: isActive ? C.brand : "transparent",
+                color: isActive ? "#fff" : "#334155",
+                fontFamily: FONT_BODY,
+                fontSize: 12.5,
+                fontWeight: 700,
+                boxShadow: isActive ? "0 8px 18px rgba(220,53,69,0.35)" : "none",
+              }}
+            >
+              <item.icon size={15} />
+              {item.label}
+            </div>
+          );
+        })}
+
+        {/* header */}
+        <div style={{ position: "absolute", left: 190, top: 52, right: 20, fontFamily: FONT_BODY }}>
+          <div style={{ position: "relative", height: 22 }}>
+            <div style={{ position: "absolute", fontSize: 16, fontWeight: 800, color: C.uiInk, opacity: 1 - headerSwap }}>
+              Student Workspace
+            </div>
+            <div style={{ position: "absolute", fontSize: 16, fontWeight: 800, color: C.uiInk, opacity: headerSwap }}>
+              My Courses & Workbooks
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: C.uiMuted, marginTop: 2 }}>
+            Institutional Forex Mentorship · Full access
+          </div>
+          <span
+            style={{
+              position: "absolute",
+              right: 0,
+              top: 2,
+              padding: "4px 10px",
+              borderRadius: 999,
+              backgroundColor: "#ECFDF5",
+              color: C.emeraldDeep,
+              fontSize: 11,
+              fontWeight: 800,
+            }}
+          >
+            Unlocked
+          </span>
+        </div>
+
+        {/* cards */}
+        {cards.map((card, j) => {
+          const s = spring({ frame: frame - 26 - j * 6, fps, config: { damping: 18 } });
+          return (
+            <div
+              key={card.title}
+              style={{
+                position: "absolute",
+                left: 190,
+                top: 106 + j * 74,
+                width: 430,
+                height: 62,
+                borderRadius: 14,
+                border: `1px solid ${card.highlight ? C.emerald : C.uiLine}`,
+                backgroundColor: card.highlight ? "#ECFDF5" : C.uiSoft,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 14px 0 16px",
+                fontFamily: FONT_BODY,
+                opacity: s,
+                transform: `translateY(${(1 - s) * 14}px)`,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: C.uiInk }}>{card.title}</div>
+                <div style={{ fontSize: 11.5, color: C.uiMuted, marginTop: 2 }}>{card.sub}</div>
+              </div>
+              {card.right}
+            </div>
+          );
+        })}
+
+        {/* course progress */}
+        <div
+          style={{
+            position: "absolute",
+            left: 190,
+            top: 338,
+            width: 430,
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontWeight: 700, color: C.uiMuted }}>
+            <span>Course progress</span>
+            <span style={{ color: C.uiInk }}>{Math.round(courseProgress)}%</span>
+          </div>
+          <div style={{ marginTop: 7, height: 7, borderRadius: 7, backgroundColor: C.uiLine, overflow: "hidden" }}>
+            <div style={{ width: `${courseProgress}%`, height: "100%", backgroundColor: C.brand, borderRadius: 7 }} />
+          </div>
+        </div>
+
+        {/* toast */}
+        <div
+          style={{
+            position: "absolute",
+            right: 18,
+            bottom: 16,
+            padding: "10px 14px",
+            borderRadius: 12,
+            backgroundColor: C.uiInk,
+            color: "#fff",
+            fontFamily: FONT_BODY,
+            fontSize: 12,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            boxShadow: "0 14px 30px rgba(0,0,0,0.3)",
+            opacity: toast * toastOut,
+            transform: `translateY(${(1 - toast) * 20}px)`,
+          }}
+        >
+          <CheckCircle2 size={15} color={C.emerald} /> Workbook saved to your library
+        </div>
+
+        <AnimatedMouseCursor keyframes={cursor} showFrom={24} />
+      </UiWindow>
+    </SceneShell>
+  );
+};
+
+/* ============================================================================
+   SCENE 4 — STEP 02 LEARN LIVE (1314 – 2079)
+   Self-drawing candlestick chart with a liquidity sweep → BOS → entry story.
+   ========================================================================== */
+
+type Candle = { open: number; close: number; high: number; low: number };
+
+const CANDLES: Candle[] = (() => {
+  const out: Candle[] = [];
+  let prev = 1.0902;
+  for (let i = 0; i < 44; i++) {
+    let target: number;
+    if (i <= 14) target = 1.0902 - (i / 14) * 0.0048;
+    else if (i < 28) target = 1.0857 + Math.sin(i * 1.3) * 0.0005;
+    else if (i === 28) target = 1.0849;
+    else target = 1.085 + ((i - 28) / 15) * 0.0062;
+    const close = target + Math.sin(i * 2.1) * 0.00035;
+    const open = prev;
+    const wick = 0.00018 + Math.abs(Math.sin(i * 1.7)) * 0.00035;
+    const high = Math.max(open, close) + wick;
+    const low = i === 28 ? 1.0832 : Math.min(open, close) - wick * 0.9;
+    out.push({ open, close, high, low });
+    prev = close;
+  }
+  return out;
+})();
+
+const SWEEP_INDEX = 28;
+const ENTRY_INDEX = 30;
+const RANGE_HIGH = Math.max(...CANDLES.slice(15, 28).map((c) => c.high));
+const BOS_INDEX = CANDLES.findIndex((c, i) => i > SWEEP_INDEX && c.close > RANGE_HIGH);
+const LIQUIDITY_LEVEL = 1.085;
+
+const LiveChart: React.FC<{ width: number; height: number }> = ({ width, height }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const min = 1.0826;
+  const max = 1.0922;
+  const y = (p: number) => height - ((p - min) / (max - min)) * height;
+  const step = width / CANDLES.length;
+  const candleAt = (i: number) => 24 + i * 7;
+  const xOf = (i: number) => i * step + step / 2;
+
+  const liqAt = candleAt(20);
+  const liqP = interpolate(frame, [liqAt, liqAt + 24], [0, 1], { ...CLAMP, easing: EASE_OUT });
+  const sweepAt = candleAt(SWEEP_INDEX) + 6;
+  const sweepS = spring({ frame: frame - sweepAt, fps, config: { damping: 10 } });
+  const entryAt = candleAt(ENTRY_INDEX) + 6;
+  const entryS = spring({ frame: frame - entryAt, fps, config: { damping: 14 } });
+  const bosAt = candleAt(Math.max(BOS_INDEX, 0)) + 6;
+  const bosP = interpolate(frame, [bosAt, bosAt + 18], [0, 1], { ...CLAMP, easing: EASE_OUT });
+  const tpAt = entryAt + 12;
+  const tpP = interpolate(frame, [tpAt, tpAt + 20], [0, 1], CLAMP);
+  const lastAt = candleAt(CANDLES.length - 1) + 14;
+  const rS = spring({ frame: frame - lastAt, fps, config: { damping: 12 } });
+  const r = useCount(0, 3.2, lastAt, lastAt + 40);
+
+  const tpTop = y(1.0916);
+  const tpBottom = y(1.0906);
+
+  return (
+    <svg width={width} height={height} style={{ overflow: "visible" }}>
+      {/* grid */}
+      {[0.2, 0.4, 0.6, 0.8].map((g) => (
+        <line key={g} x1={0} x2={width} y1={height * g} y2={height * g} stroke="rgba(255,255,255,0.06)" />
+      ))}
+
+      {/* TP zone */}
+      <rect
+        x={xOf(ENTRY_INDEX)}
+        y={tpTop}
+        width={(width - xOf(ENTRY_INDEX)) * tpP}
+        height={tpBottom - tpTop}
+        fill="rgba(52,211,153,0.14)"
+        stroke="rgba(52,211,153,0.5)"
+        strokeDasharray="4 4"
+      />
+      <text x={width - 6} y={tpTop - 6} textAnchor="end" fill={C.emerald} fontSize={11} fontWeight={800} fontFamily={FONT_BODY} opacity={tpP}>
+        TAKE PROFIT
+      </text>
+
+      {/* liquidity line */}
+      <line
+        x1={xOf(15)}
+        x2={xOf(15) + (width - xOf(15)) * liqP}
+        y1={y(LIQUIDITY_LEVEL)}
+        y2={y(LIQUIDITY_LEVEL)}
+        stroke={C.amber}
+        strokeWidth={1.5}
+        strokeDasharray="6 5"
+      />
+      <text x={xOf(15)} y={y(LIQUIDITY_LEVEL) + 18} fill={C.amber} fontSize={11} fontWeight={800} fontFamily={FONT_BODY} opacity={liqP}>
+        SELL-SIDE LIQUIDITY
+      </text>
+
+      {/* BOS line */}
+      {BOS_INDEX > 0 && (
+        <>
+          <line
+            x1={xOf(18)}
+            x2={xOf(18) + (xOf(BOS_INDEX) - xOf(18)) * bosP}
+            y1={y(RANGE_HIGH)}
+            y2={y(RANGE_HIGH)}
+            stroke="rgba(255,255,255,0.7)"
+            strokeWidth={1.2}
+          />
+          <text x={xOf(BOS_INDEX) + 6} y={y(RANGE_HIGH) + 4} fill="#fff" fontSize={11} fontWeight={800} fontFamily={FONT_BODY} opacity={bosP}>
+            BOS
+          </text>
+        </>
+      )}
+
+      {/* candles */}
+      {CANDLES.map((c, i) => {
+        const at = candleAt(i);
+        const p = interpolate(frame, [at, at + 6], [0, 1], { ...CLAMP, easing: EASE_OUT });
+        if (p <= 0) return null;
+        const up = c.close >= c.open;
+        const color = up ? C.emerald : C.brand;
+        const bodyTop = y(Math.max(c.open, c.open + (c.close - c.open) * p));
+        const bodyBottom = y(Math.min(c.open, c.open + (c.close - c.open) * p));
+        const cx = xOf(i);
+        return (
+          <g key={i} opacity={interpolate(p, [0, 0.3], [0, 1], CLAMP)}>
+            <line x1={cx} x2={cx} y1={y(c.high)} y2={y(c.low)} stroke={color} strokeWidth={1.3} />
+            <rect
+              x={cx - step * 0.3}
+              y={bodyTop}
+              width={step * 0.6}
+              height={Math.max(1.5, bodyBottom - bodyTop)}
+              rx={1.5}
+              fill={color}
+            />
+          </g>
+        );
+      })}
+
+      {/* sweep marker */}
+      <g opacity={sweepS} transform={`translate(${xOf(SWEEP_INDEX)}, ${y(CANDLES[SWEEP_INDEX].low)})`}>
+        <circle r={10 + (1 - sweepS) * 14} fill="none" stroke={C.amber} strokeWidth={2} />
+        <circle r={4} fill={C.amber} />
+        <text x={14} y={22} fill={C.amber} fontSize={12} fontWeight={800} fontFamily={FONT_BODY}>
+          Liquidity sweep
+        </text>
+      </g>
+
+      {/* entry marker */}
+      <g
+        opacity={entryS}
+        transform={`translate(${xOf(ENTRY_INDEX)}, ${y(CANDLES[ENTRY_INDEX].low) + 26 + (1 - entryS) * 12})`}
+      >
+        <path d="M0 -14 L7 -4 L-7 -4 Z" fill={C.emerald} />
+        <rect x={-26} y={0} width={52} height={20} rx={6} fill={C.emerald} />
+        <text x={0} y={14} textAnchor="middle" fill={C.ink} fontSize={11} fontWeight={900} fontFamily={FONT_BODY}>
+          ENTRY
+        </text>
+      </g>
+
+      {/* R badge */}
+      <g opacity={rS} transform={`translate(${width - 70}, ${tpBottom + 34}) scale(${interpolate(rS, [0, 1], [0.7, 1])})`}>
+        <rect x={-46} y={-18} width={92} height={36} rx={11} fill={C.emerald} />
+        <text x={0} y={6} textAnchor="middle" fill={C.ink} fontSize={17} fontWeight={900} fontFamily={FONT_DISPLAY}>
+          +{r.toFixed(1)}R
+        </text>
+      </g>
+    </svg>
+  );
+};
+
+const Scene4Live: React.FC<{ duration: number }> = ({ duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const livePulse = 0.5 + 0.5 * Math.sin((frame / 30) * Math.PI * 2);
+  const photo = spring({ frame: frame - 380, fps, config: { damping: 18 } });
+  const photoZoom = interpolate(frame, [380, duration], [1.12, 1.0], CLAMP);
+
+  return (
+    <SceneShell duration={duration}>
+      <CopyColumn
+        step="Step 02 · Weekly live sessions"
+        title="Learn, then apply it live"
+        highlight={["live"]}
+        body="Watch order flow, liquidity sweeps and market structure unfold in real time — and learn exactly why a setup qualifies, and when to stay out."
+        width={400}
+      >
+        <div
+          style={{
+            marginTop: 24,
+            width: 380,
+            height: 132,
+            borderRadius: 16,
+            overflow: "hidden",
+            position: "relative",
+            border: `1px solid ${C.line}`,
+            opacity: photo,
+            transform: `translateY(${(1 - photo) * 24}px)`,
+          }}
+        >
+          <Img
+            src={PHOTOS.liveWorkshop}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: `scale(${photoZoom})`,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(0deg, rgba(11,13,17,0.9), rgba(11,13,17,0.1) 70%)",
+            }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              left: 14,
+              bottom: 12,
+              color: C.text,
+              fontFamily: FONT_BODY,
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            Live mentor breakdowns · London & New York
+          </span>
+        </div>
+      </CopyColumn>
+
+      <UiWindow width={690} height={420} duration={duration} dark>
+        <div
+          style={{
+            position: "absolute",
+            left: 22,
+            right: 22,
+            top: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "5px 11px",
+                borderRadius: 8,
+                backgroundColor: C.brand,
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: "0.08em",
+              }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: "#fff", opacity: 0.4 + livePulse * 0.6 }} />
+              LIVE
+            </span>
+            <span style={{ color: C.text, fontSize: 14, fontWeight: 800 }}>EURUSD · M15</span>
+          </div>
+          <span
+            style={{
+              padding: "5px 12px",
+              borderRadius: 999,
+              border: `1px solid ${C.line}`,
+              color: C.muted,
+              fontSize: 11.5,
+              fontWeight: 700,
+            }}
+          >
+            London → New York session
+          </span>
+        </div>
+        <div style={{ position: "absolute", left: 22, top: 70 }}>
+          <LiveChart width={646} height={320} />
+        </div>
+      </UiWindow>
+    </SceneShell>
+  );
+};
+
+/* ============================================================================
+   SCENE 5 — STEP 03 JOURNAL (2079 – 2826)
+   Fixed 600×400 mock.
+   ========================================================================== */
+
+const JOURNAL_FIELDS = [
+  { label: "Pair", value: "EURUSD · Buy", at: 60 },
+  { label: "Entry", value: "1.08450", at: 120 },
+  { label: "Stop / Target", value: "20p / 60p", at: 180 },
+  { label: "Risk : Reward", value: "1 : 3", at: 240 },
+];
+
+const Scene5Journal: React.FC<{ duration: number }> = ({ duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const logAt = 336;
+  const logged = frame >= logAt;
+  const logPop = spring({ frame: frame - logAt, fps, config: { damping: 9, stiffness: 200 } });
+  const feedback = spring({ frame: frame - 400, fps, config: { damping: 18 } });
+  const quote = useTyped("Clean confirmation entry. Risk held at 1% — zero emotional chasing.", 420, 0.9);
+  const winRate = useCount(0, 74, 360, 470);
+  const avgR = useCount(0, 2.4, 360, 470);
+  const rules = useCount(0, 96, 360, 470);
+
+  const cursor: CursorKeyframe[] = [
+    { frame: 24, x: 320, y: 300 },
+    { frame: JOURNAL_FIELDS[0].at - 4, x: 86, y: 101, click: true },
+    { frame: JOURNAL_FIELDS[1].at - 4, x: 228, y: 101, click: true },
+    { frame: JOURNAL_FIELDS[2].at - 4, x: 370, y: 101, click: true },
+    { frame: JOURNAL_FIELDS[3].at - 4, x: 512, y: 101, click: true },
+    { frame: logAt - 4, x: 520, y: 171, click: true },
+    { frame: 470, x: 330, y: 256 },
+    { frame: 620, x: 360, y: 346 },
+  ];
+
+  return (
+    <SceneShell duration={duration}>
+      <CopyColumn
+        step="Step 03 · Journal & review"
+        title="Journal every trade. Get it reviewed."
+        highlight={["reviewed"]}
+        body="Log entry, stop, target and risk-to-reward in your Trade Journal so mentors can audit every setup and sharpen your habits."
+        width={420}
+      />
+
+      <UiWindow width={600} height={400} duration={duration}>
+        {/* header */}
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            right: 20,
+            top: 20,
+            height: 32,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderBottom: `1px solid ${C.uiLine}`,
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 9, paddingBottom: 12 }}>
+            <BrainCircuit size={18} color={C.brand} />
+            <span style={{ fontSize: 15, fontWeight: 800, color: C.uiInk }}>Trade Journal</span>
+          </div>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: C.uiMuted, paddingBottom: 12 }}>
+            Week 3 · 12 trades logged
+          </span>
+        </div>
+
+        {/* fields */}
+        {JOURNAL_FIELDS.map((f, k) => {
+          const typed = useTypedStatic(f.value, f.at, frame);
+          const focused = frame >= f.at - 4 && frame < f.at + 40;
+          return (
+            <div
+              key={f.label}
+              style={{
+                position: "absolute",
+                left: 20 + k * 142,
+                top: 72,
+                width: 132,
+                height: 58,
+                borderRadius: 12,
+                border: `1.5px solid ${focused ? C.brand : C.uiLine}`,
+                backgroundColor: focused ? "#FFF5F6" : C.uiSoft,
+                padding: "9px 12px",
+                boxSizing: "border-box",
+                fontFamily: FONT_BODY,
+              }}
+            >
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: C.uiMuted }}>{f.label}</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: C.uiInk, marginTop: 4, height: 18 }}>
+                {typed}
+                {focused && typed.length < f.value.length && (
+                  <span style={{ display: "inline-block", width: 2, height: 15, marginLeft: 1, backgroundColor: C.brand, verticalAlign: "middle" }} />
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* setup row */}
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 146,
+            width: 560,
+            height: 50,
+            borderRadius: 12,
+            backgroundColor: C.uiSoft,
+            border: `1px solid ${C.uiLine}`,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "0 12px",
+            boxSizing: "border-box",
+            fontFamily: FONT_BODY,
+          }}
+        >
+          {["London sweep", "M5 FVG", "1% risk"].map((tag, i) => {
+            const s = spring({ frame: frame - (270 + i * 10), fps, config: { damping: 14 } });
+            return (
+              <span
+                key={tag}
+                style={{
+                  padding: "5px 10px",
+                  borderRadius: 8,
+                  backgroundColor: "#fff",
+                  border: `1px solid ${C.uiLine}`,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  color: "#334155",
+                  opacity: s,
+                  transform: `scale(${interpolate(s, [0, 1], [0.7, 1])})`,
+                }}
+              >
+                {tag}
+              </span>
+            );
+          })}
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 460,
+            top: 156,
+            width: 110,
+            height: 30,
+            borderRadius: 9,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: logged ? C.emerald : C.brand,
+            color: logged ? C.uiInk : "#fff",
+            fontFamily: FONT_BODY,
+            fontSize: 12,
+            fontWeight: 800,
+            transform: `scale(${logged ? interpolate(logPop, [0, 1], [0.85, 1]) : 1})`,
+            boxShadow: logged ? "0 8px 20px rgba(52,211,153,0.4)" : "0 8px 20px rgba(220,53,69,0.35)",
+          }}
+        >
+          {logged ? "Logged ✓" : "+ Log trade"}
+        </div>
+
+        {/* mentor feedback */}
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 212,
+            width: 560,
+            height: 84,
+            borderRadius: 14,
+            backgroundColor: "#ECFDF5",
+            border: "1px solid #A7F3D0",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+            padding: "14px 16px",
+            boxSizing: "border-box",
+            fontFamily: FONT_BODY,
+            opacity: feedback,
+            transform: `translateY(${(1 - feedback) * 18}px)`,
+          }}
+        >
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: C.emeraldDeep,
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 13,
+              fontWeight: 800,
+              flexShrink: 0,
+            }}
+          >
+            MR
+          </div>
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: "#065F46" }}>
+              Mentor review · Approved execution
+            </div>
+            <div style={{ fontSize: 12.5, color: "#047857", marginTop: 4, lineHeight: 1.45 }}>
+              “{quote}”
+            </div>
+          </div>
+        </div>
+
+        {/* stats */}
+        {[
+          { label: "Win rate", value: `${Math.round(winRate)}%` },
+          { label: "Average R", value: `${avgR.toFixed(1)}R` },
+          { label: "Rules followed", value: `${Math.round(rules)}%` },
+        ].map((s, i) => (
+          <div
+            key={s.label}
+            style={{
+              position: "absolute",
+              left: 20 + i * 190,
+              top: 312,
+              width: 180,
+              height: 68,
+              borderRadius: 12,
+              border: `1px solid ${C.uiLine}`,
+              backgroundColor: C.uiSoft,
+              padding: "12px 14px",
+              boxSizing: "border-box",
+              fontFamily: FONT_BODY,
+            }}
+          >
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: C.uiMuted }}>{s.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: C.uiInk, marginTop: 2, fontFamily: FONT_DISPLAY }}>
+              {s.value}
+            </div>
+          </div>
+        ))}
+
+        <AnimatedMouseCursor keyframes={cursor} showFrom={20} />
+      </UiWindow>
+    </SceneShell>
+  );
+};
+
+/** Non-hook typewriter helper (safe to call inside .map). */
+function useTypedStatic(text: string, start: number, frame: number) {
+  const chars = Math.max(0, Math.floor((frame - start) * 1.2));
+  return text.slice(0, chars);
+}
+
+/* ============================================================================
+   SCENE 6 — STEP 04 SCALE (2826 – 3486)
+   Fixed 600×400 mock.
+   ========================================================================== */
+
+const EQUITY = [0, 0.6, 0.4, 1.1, 1.6, 1.3, 2.1, 2.6, 2.4, 3.2, 3.8, 3.6, 4.4, 5.1];
+
+const Scene6Scale: React.FC<{ duration: number }> = ({ duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const checkpoints = ["Day 1", "Day 2", "Day 3", "Day 4", "Quiz"];
+  const tickAt = (i: number) => 40 + i * 28;
+  const allDone = frame >= tickAt(checkpoints.length - 1);
+  const progress = interpolate(frame, [tickAt(0), tickAt(checkpoints.length - 1)], [0, 1], CLAMP);
+  const badge = spring({ frame: frame - (tickAt(4) + 8), fps, config: { damping: 12 } });
+
+  const certAt = 300;
+  const certOpen = frame >= certAt;
+  const certPop = spring({ frame: frame - certAt, fps, config: { damping: 12 } });
+  const shine = interpolate(frame, [certAt + 4, certAt + 34], [-40, 140], CLAMP);
+
+  const eqP = interpolate(frame, [340, 470], [0, 1], { ...CLAMP, easing: EASE_IN_OUT });
+  const riskFill = interpolate(frame, [360, 420], [0, 1], { ...CLAMP, easing: EASE_OUT });
+
+  const eqW = 260;
+  const eqH = 70;
+  const eqPts = EQUITY.map((v, i) => [
+    (i / (EQUITY.length - 1)) * eqW,
+    eqH - (v / 5.1) * eqH,
+  ]);
+  const eqPath = eqPts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  const eqLen = 420;
+
+  const cursor: CursorKeyframe[] = [
+    { frame: 30, x: 420, y: 330 },
+    { frame: 160, x: 300, y: 86 },
+    { frame: certAt - 4, x: 512, y: 192, click: true },
+    { frame: 420, x: 430, y: 330 },
+    { frame: 580, x: 470, y: 340 },
+  ];
+
+  return (
+    <SceneShell duration={duration}>
+      <CopyColumn
+        step="Step 04 · Scale"
+        title="Scale with accountability"
+        highlight={["accountability"]}
+        accent={C.emerald}
+        body="Earn verified GAMAT Fx certificates, then graduate to live capital or funded challenges — with a rules-based plan and ongoing mentor support."
+        width={420}
+      />
+
+      <UiWindow width={600} height={400} duration={duration}>
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            right: 20,
+            top: 20,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <span style={{ fontSize: 15, fontWeight: 800, color: C.uiInk }}>Program progress</span>
+          <span
+            style={{
+              padding: "4px 10px",
+              borderRadius: 999,
+              backgroundColor: "#ECFDF5",
+              color: C.emeraldDeep,
+              fontSize: 11,
+              fontWeight: 800,
+              opacity: badge,
+              transform: `scale(${interpolate(badge, [0, 1], [0.6, 1])})`,
+            }}
+          >
+            Fully attended ✓
+          </span>
+        </div>
+
+        {checkpoints.map((c, i) => {
+          const at = tickAt(i);
+          const s = spring({ frame: frame - at, fps, config: { damping: 12, stiffness: 180 } });
+          const done = frame >= at;
+          return (
+            <div
+              key={c}
+              style={{
+                position: "absolute",
+                left: 20 + i * 114,
+                top: 64,
+                width: 104,
+                height: 34,
+                borderRadius: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                backgroundColor: done ? "#F0FDF4" : C.uiSoft,
+                border: `1px solid ${done ? "#BBF7D0" : C.uiLine}`,
+                color: done ? "#15803D" : C.uiMuted,
+                fontFamily: FONT_BODY,
+                fontSize: 12,
+                fontWeight: 800,
+                transform: `scale(${done ? interpolate(s, [0, 1], [0.85, 1]) : 1})`,
+              }}
+            >
+              {done && <CheckCircle2 size={13} />}
+              {c}
+            </div>
+          );
+        })}
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 110,
+            width: 560,
+            height: 5,
+            borderRadius: 5,
+            backgroundColor: C.uiLine,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ width: `${progress * 100}%`, height: "100%", backgroundColor: allDone ? C.emerald : C.brand }} />
+        </div>
+
+        {/* certificate */}
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 132,
+            width: 560,
+            height: 120,
+            borderRadius: 16,
+            overflow: "hidden",
+            border: `1.5px solid ${certOpen ? C.emerald : C.uiLine}`,
+            background: certOpen
+              ? "linear-gradient(135deg, #ECFDF5, #FFFFFF 60%)"
+              : C.uiSoft,
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            padding: "0 20px",
+            boxSizing: "border-box",
+            fontFamily: FONT_BODY,
+            transform: `scale(${certOpen ? interpolate(certPop, [0, 1], [0.97, 1]) : 1})`,
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${C.brand}, #A92230)`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 10px 24px rgba(220,53,69,0.35)",
+              flexShrink: 0,
+            }}
+          >
+            <Award size={30} color="#fff" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.uiInk }}>Verified GAMAT Fx Certificate</div>
+            <div style={{ fontSize: 12, color: C.uiMuted, marginTop: 3 }}>
+              Serial EVT-GMX-2841 · verify at gamatfxacademy.com
+            </div>
+          </div>
+          <span
+            style={{
+              width: 128,
+              height: 32,
+              borderRadius: 9,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: certOpen ? C.emeraldDeep : C.uiInk,
+              color: "#fff",
+              fontSize: 11.5,
+              fontWeight: 800,
+              flexShrink: 0,
+            }}
+          >
+            {certOpen ? "Certificate ready ✓" : "View certificate"}
+          </span>
+          {certOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: `${shine}%`,
+                width: 80,
+                background: "linear-gradient(100deg, transparent, rgba(255,255,255,0.85), transparent)",
+                transform: "skewX(-18deg)",
+              }}
+            />
+          )}
+        </div>
+
+        {/* risk rules */}
+        <div
+          style={{
+            position: "absolute",
+            left: 20,
+            top: 270,
+            width: 270,
+            height: 110,
+            borderRadius: 14,
+            border: `1px solid ${C.uiLine}`,
+            backgroundColor: C.uiSoft,
+            padding: "14px 16px",
+            boxSizing: "border-box",
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.uiMuted, letterSpacing: "0.06em" }}>RISK RULES</div>
+          {[
+            { label: "Max risk / trade", value: "1.0%", w: 0.33 },
+            { label: "Daily drawdown cap", value: "2.0%", w: 0.5 },
+          ].map((r) => (
+            <div key={r.label} style={{ marginTop: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, fontWeight: 700, color: "#334155" }}>
+                <span>{r.label}</span>
+                <span>{r.value}</span>
+              </div>
+              <div style={{ marginTop: 5, height: 5, borderRadius: 5, backgroundColor: C.uiLine }}>
+                <div style={{ width: `${r.w * riskFill * 100}%`, height: "100%", borderRadius: 5, backgroundColor: C.emerald }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* equity curve */}
+        <div
+          style={{
+            position: "absolute",
+            left: 304,
+            top: 270,
+            width: 276,
+            height: 110,
+            borderRadius: 14,
+            border: `1px solid ${C.uiLine}`,
+            backgroundColor: C.uiSoft,
+            padding: "12px 8px 0 8px",
+            boxSizing: "border-box",
+            fontFamily: FONT_BODY,
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 800, color: C.uiMuted, letterSpacing: "0.06em", paddingLeft: 8 }}>
+            FUNDED TRACK · EQUITY
+          </div>
+          <svg width={eqW} height={eqH} style={{ marginTop: 6, overflow: "visible" }}>
+            <path
+              d={`${eqPath} L${eqW} ${eqH} L0 ${eqH} Z`}
+              fill="rgba(52,211,153,0.14)"
+              opacity={eqP}
+            />
+            <path
+              d={eqPath}
+              fill="none"
+              stroke={C.emeraldDeep}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray={eqLen}
+              strokeDashoffset={eqLen * (1 - eqP)}
+            />
+          </svg>
+        </div>
+
+        <AnimatedMouseCursor keyframes={cursor} showFrom={24} />
+      </UiWindow>
+    </SceneShell>
+  );
+};
+
+/* ============================================================================
+   SCENE 7 — INSIDE THE ACADEMY (3486 – 4329)
+   Cinematic photo montage (frame-accurate, no buffering 4K streams).
+   ========================================================================== */
+
+const AcademyClip: React.FC<{
+  duration: number;
+  photo: string;
+  index: number;
+  title: string;
+  subtitle: string;
+  pan: [number, number];
+}> = ({ duration, photo, index, title, subtitle, pan }) => {
+  const frame = useCurrentFrame();
+  const p = interpolate(frame, [0, duration], [0, 1], CLAMP);
+  const scale = interpolate(p, [0, 1], [1.08, 1.2]);
+  const tx = interpolate(p, [0, 1], pan);
+  const bar = interpolate(frame, [10, 34], [0, 1], { ...CLAMP, easing: EASE_OUT });
+
+  return (
+    <SceneShell duration={duration} enterFrames={14}>
+      <AbsoluteFill style={{ overflow: "hidden" }}>
+        <Img
+          src={photo}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            transform: `translateX(${tx}px) scale(${scale})`,
+          }}
+        />
+        <AbsoluteFill
+          style={{
+            background:
+              "linear-gradient(0deg, rgba(11,13,17,0.92) 0%, rgba(11,13,17,0.35) 45%, rgba(11,13,17,0.15) 100%)",
+          }}
+        />
+      </AbsoluteFill>
+
+      {/* letterbox */}
+      <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 40, backgroundColor: "#000" }} />
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 40, backgroundColor: "#000" }} />
+
+      <div style={{ position: "absolute", left: 72, bottom: 92, maxWidth: 760, zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <Eyebrow label="Inside the academy" start={4} />
+          <Reveal start={8} distance={8}>
+            <span style={{ color: C.faint, fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700 }}>
+              0{index} / 03
+            </span>
+          </Reveal>
+        </div>
+        <div style={{ display: "flex", alignItems: "stretch", gap: 18, marginTop: 18 }}>
+          <div
+            style={{
+              width: 4,
+              borderRadius: 4,
+              backgroundColor: C.brand,
+              transform: `scaleY(${bar})`,
+              transformOrigin: "top",
+            }}
+          />
+          <div>
+            <h3
+              style={{
+                color: C.text,
+                fontFamily: FONT_DISPLAY,
+                fontSize: 46,
+                fontWeight: 800,
+                lineHeight: 1.08,
+                letterSpacing: "-0.03em",
+                margin: 0,
+              }}
+            >
+              <KineticText text={title} start={10} />
+            </h3>
+            <Reveal start={30}>
+              <p style={{ color: C.muted, fontFamily: FONT_BODY, fontSize: 18.5, lineHeight: 1.55, margin: "12px 0 0 0" }}>
+                {subtitle}
+              </p>
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </SceneShell>
+  );
+};
+
+/* ============================================================================
+   SCENE 8 — OUTRO (4329 – 4818)
+   ========================================================================== */
+
+const Scene8Outro: React.FC<{ duration: number }> = ({ duration }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const mark = spring({ frame: frame - 6, fps, config: { damping: 11, stiffness: 120 } });
+  const cta = spring({ frame: frame - 96, fps, config: { damping: 14 } });
+  const shimmer = interpolate((frame - 110) % 90, [0, 40], [-60, 160], CLAMP);
+  const ring = interpolate(frame % 60, [0, 60], [0, 1]);
+  const fadeEnd = interpolate(frame, [duration - 18, duration], [1, 0], CLAMP);
+
+  return (
+    <SceneShell duration={duration} exitFrames={0}>
+      <AbsoluteFill
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          zIndex: 10,
+          opacity: fadeEnd,
+        }}
+      >
+        <div style={{ position: "relative", transform: `scale(${mark}) rotate(${(1 - mark) * -20}deg)` }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: -14,
+              borderRadius: 30,
+              border: `2px solid ${C.brand}`,
+              opacity: (1 - ring) * 0.6 * mark,
+              transform: `scale(${1 + ring * 0.4})`,
+            }}
+          />
+          <LogoMark size={76} />
+        </div>
+        <Reveal start={24} distance={10}>
+          <p
+            style={{
+              marginTop: 26,
+              color: C.brandSoft,
+              fontFamily: FONT_BODY,
+              fontSize: 13.5,
+              fontWeight: 800,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+            }}
+          >
+            GAMAT Fx Academy
+          </p>
+        </Reveal>
+        <h2
+          style={{
+            color: C.text,
+            fontFamily: FONT_DISPLAY,
+            fontSize: 60,
+            fontWeight: 800,
+            lineHeight: 1.06,
+            letterSpacing: "-0.035em",
+            margin: "14px 0 0 0",
+          }}
+        >
+          <KineticText text="Build your edge —" start={34} />
+          <br />
+          <KineticText text="the right way." start={52} highlight={["right", "way"]} />
+        </h2>
+        <Reveal start={78}>
+          <p style={{ marginTop: 18, color: C.muted, fontFamily: FONT_BODY, fontSize: 19 }}>
+            Structure, live mentorship and accountability — in one system.
+          </p>
+        </Reveal>
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            marginTop: 34,
+            padding: "16px 38px",
+            borderRadius: 999,
+            backgroundColor: C.brand,
+            color: "#fff",
+            fontFamily: FONT_BODY,
+            fontWeight: 800,
+            fontSize: 18,
+            boxShadow: "0 20px 44px rgba(220,53,69,0.5)",
+            opacity: cta,
+            transform: `translateY(${(1 - cta) * 16}px) scale(${interpolate(cta, [0, 1], [0.92, 1])})`,
+          }}
+        >
+          Choose your program →
+          <span
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: `${shimmer}%`,
+              width: 60,
+              background: "linear-gradient(100deg, transparent, rgba(255,255,255,0.45), transparent)",
+              transform: "skewX(-18deg)",
+            }}
+          />
+        </div>
+        <Reveal start={120} distance={8}>
+          <p style={{ marginTop: 16, color: C.faint, fontFamily: FONT_BODY, fontSize: 15, fontWeight: 600 }}>
+            gamatfxacademy.com
+          </p>
+        </Reveal>
+      </AbsoluteFill>
+    </SceneShell>
+  );
+};
+
+/* ============================================================================
+   MAIN COMPOSITION
+   ========================================================================== */
+
+const withOverlap = (dur: number) => dur + OVERLAP;
 
 export const HowGamatWorksVideo: React.FC = () => {
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0d0f13" }}>
+    <AbsoluteFill style={{ backgroundColor: C.ink, fontFamily: FONT_BODY }}>
       <Audio
         src="/audio/how-gamatfx-works.mp3"
         acceptableTimeShiftInSeconds={2.5}
         pauseWhenBuffering={false}
       />
 
-      <MinimalBrandWatermark />
+      <BrandBackdrop />
 
-      {/* 0.0s - 11.5s */}
-      <Sequence from={0} durationInFrames={345}>
-        <Scene1Problem />
+      <Sequence from={T.problem.from} durationInFrames={withOverlap(T.problem.dur)}>
+        <Scene1Problem duration={withOverlap(T.problem.dur)} />
       </Sequence>
 
-      {/* 11.5s - 25.0s */}
-      <Sequence from={345} durationInFrames={405}>
-        <Scene2SystemIntro />
+      <Sequence from={T.system.from} durationInFrames={withOverlap(T.system.dur)}>
+        <Scene2System duration={withOverlap(T.system.dur)} />
       </Sequence>
 
-      {/* 25.0s - 43.8s: Dashboard + Mouse Motion */}
-      <Sequence from={750} durationInFrames={564}>
-        <Scene3StepOneDashboard />
+      <Sequence from={T.enroll.from} durationInFrames={withOverlap(T.enroll.dur)}>
+        <Scene3Enroll duration={withOverlap(T.enroll.dur)} />
       </Sequence>
 
-      {/* 43.8s - 69.3s: Realistic Live Market & Workshop Footage */}
-      <Sequence from={1314} durationInFrames={765}>
-        <Scene4StepTwoLive />
+      <Sequence from={T.live.from} durationInFrames={withOverlap(T.live.dur)}>
+        <Scene4Live duration={withOverlap(T.live.dur)} />
       </Sequence>
 
-      {/* 69.3s - 94.2s: Trade Journal + Mouse Motion */}
-      <Sequence from={2079} durationInFrames={747}>
-        <Scene5StepThreeJournal />
+      <Sequence from={T.journal.from} durationInFrames={withOverlap(T.journal.dur)}>
+        <Scene5Journal duration={withOverlap(T.journal.dur)} />
       </Sequence>
 
-      {/* 94.2s - 116.2s: Check-In & Certificate + Mouse Motion */}
-      <Sequence from={2826} durationInFrames={660}>
-        <Scene6StepFourScale />
+      <Sequence from={T.scale.from} durationInFrames={withOverlap(T.scale.dur)}>
+        <Scene6Scale duration={withOverlap(T.scale.dur)} />
       </Sequence>
 
-      {/* 116.2s - 128.2s */}
-      <Sequence from={3486} durationInFrames={360}>
-        <CinematicFootageClip
-          videoSrc={CLIPS.liveBreakdown}
-          eyebrow="Inside The Academy"
-          title="Live Market Breakdowns"
+      <Sequence from={T.clipA.from} durationInFrames={withOverlap(T.clipA.dur)}>
+        <AcademyClip
+          duration={withOverlap(T.clipA.dur)}
+          photo={PHOTOS.liveWorkshop}
+          index={1}
+          title="Live market breakdowns"
           subtitle="We mark key levels and wait patiently for confirmation before risking a single dollar."
-          panX={[-15, 22]}
+          pan={[-20, 24]}
         />
       </Sequence>
 
-      {/* 128.2s - 136.5s */}
-      <Sequence from={3846} durationInFrames={249}>
-        <CinematicFootageClip
-          videoSrc={CLIPS.multiScreen}
-          eyebrow="Inside The Academy"
-          title="Reading Multi-Screen Market Data"
-          subtitle="Macro news, higher-timeframe bias, and lower-timeframe execution working together."
-          panX={[18, -18]}
+      <Sequence from={T.clipB.from} durationInFrames={withOverlap(T.clipB.dur)}>
+        <AcademyClip
+          duration={withOverlap(T.clipB.dur)}
+          photo={PHOTOS.chartReview}
+          index={2}
+          title="Reading multi-screen market data"
+          subtitle="Macro news, higher-timeframe bias and lower-timeframe execution working together."
+          pan={[22, -20]}
         />
       </Sequence>
 
-      {/* 136.5s - 144.3s */}
-      <Sequence from={4095} durationInFrames={234}>
-        <CinematicFootageClip
-          videoSrc={CLIPS.onTheGo}
-          eyebrow="Inside The Academy"
-          title="Analysis On The Go"
-          subtitle="Courses, trade journal, daily outlooks, and community tools accessible wherever you are."
-          panX={[-18, 16]}
+      <Sequence from={T.clipC.from} durationInFrames={withOverlap(T.clipC.dur)}>
+        <AcademyClip
+          duration={withOverlap(T.clipC.dur)}
+          photo={PHOTOS.mentorshipSession}
+          index={3}
+          title="Analysis on the go"
+          subtitle="Courses, trade journal, daily outlooks and community tools — wherever you are."
+          pan={[-18, 18]}
         />
       </Sequence>
 
-      {/* 144.3s - 160.6s */}
-      <Sequence from={4329} durationInFrames={489}>
-        <Scene8Outro />
+      <Sequence from={T.outro.from} durationInFrames={T.outro.dur}>
+        <Scene8Outro duration={T.outro.dur} />
       </Sequence>
+
+      <BrandWatermark />
+      <ChapterRail />
     </AbsoluteFill>
   );
 };
