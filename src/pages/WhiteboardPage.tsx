@@ -6393,240 +6393,199 @@ export default function WhiteboardPage() {
   const renderCreateCanvasModal = () => {
     if (!createCanvasModalOpen) return null;
     return (
-      <div className="fixed inset-0 z-[250] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-        <div className="w-full max-w-xl rounded-3xl border border-line bg-white p-6 shadow-2xl space-y-5 text-left my-auto max-h-[92vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-line pb-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-brand-light text-brand flex items-center justify-center font-extrabold shadow-xs">
-                <Plus className="h-5 w-5" />
+      <div
+        className="fixed inset-0 z-[250] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-sm animate-in fade-in"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) setCreateCanvasModalOpen(false);
+        }}
+      >
+        <div className="w-full max-w-lg rounded-3xl border border-line bg-white shadow-2xl overflow-hidden text-left">
+          <div className="p-5 space-y-4 max-h-[88vh] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-brand-light text-brand flex items-center justify-center font-extrabold">
+                  <Plus className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-extrabold text-ink text-sm sm:text-base">Create New Canvas</h3>
+                  <p className="text-[11px] text-muted">Name your workspace and pick a starting style.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-display font-extrabold text-ink text-base">Create New Canvas</h3>
-                <p className="text-xs text-muted font-medium">Configure diagram name, theme, and trading setup.</p>
-              </div>
+              <button
+                type="button"
+                onClick={() => setCreateCanvasModalOpen(false)}
+                aria-label="Close"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setCreateCanvasModalOpen(false)}
-              className="h-8 w-8 rounded-full flex items-center justify-center text-muted hover:text-ink hover:bg-cream transition cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
 
-          {/* Canvas Name & Quick Presets */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-ink flex items-center justify-between">
-              <span>Canvas Name</span>
-              <span className="text-[10px] text-muted font-normal">Press Enter to create</span>
-            </label>
-            <input
-              autoFocus
-              type="text"
-              value={newCanvasName}
-              onChange={(e) => setNewCanvasName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleConfirmCreateCustomCanvas();
-              }}
-              placeholder="e.g. EUR/USD London Session Markup"
-              className="w-full rounded-xl border border-line bg-cream p-3 text-xs font-bold text-ink outline-none focus:border-brand transition"
-            />
-            {/* Quick Preset Pills */}
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {[
-                "EUR/USD Technical Breakdown",
-                "London Killzone Setup",
-                "SMC Liquidity Markup",
-                "Gold (XAU/USD) Scalp",
-                "Weekly Trade Journal",
-              ].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setNewCanvasName(preset)}
-                  className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-brand-light hover:text-brand transition cursor-pointer"
-                >
-                  + {preset}
-                </button>
-              ))}
+            {/* Canvas Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-ink flex items-center justify-between">
+                <span>Canvas Name</span>
+                <span className="text-[10px] text-muted font-normal">Press Enter to create</span>
+              </label>
+              <input
+                autoFocus
+                type="text"
+                value={newCanvasName}
+                onChange={(e) => setNewCanvasName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleConfirmCreateCustomCanvas();
+                }}
+                placeholder="e.g. EUR/USD London Session"
+                className="w-full rounded-xl border border-line bg-cream px-3.5 py-2.5 text-xs font-bold text-ink outline-none focus:border-brand transition"
+              />
             </div>
-          </div>
 
-          {/* Workspace Theme & Grid Picker */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-ink">Choose Canvas Theme</label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {[
-                {
-                  id: "dots" as const,
-                  name: "Dots Grid",
-                  desc: "Clean dot layout",
-                  bgClass: "bg-white border-slate-300",
-                  indicator: "radial-gradient(#94a3b8 1.5px, transparent 1.5px)",
-                  indicatorSize: "8px 8px",
-                },
-                {
-                  id: "lines" as const,
-                  name: "Tech Lines",
-                  desc: "Graph paper",
-                  bgClass: "bg-white border-slate-300",
-                  indicator: "linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)",
-                  indicatorSize: "10px 10px",
-                },
-                {
-                  id: "blank" as const,
-                  name: "Clean Blank",
-                  desc: "Pure white",
-                  bgClass: "bg-slate-50 border-slate-300",
-                  indicator: "none",
-                  indicatorSize: "auto",
-                },
-                {
-                  id: "dark" as const,
-                  name: "Obsidian",
-                  desc: "Dark mode",
-                  bgClass: "bg-slate-900 border-slate-700 text-white",
-                  indicator: "radial-gradient(#475569 1px, transparent 1px)",
-                  indicatorSize: "8px 8px",
-                },
-                {
-                  id: "chalkboard" as const,
-                  name: "Chalkboard",
-                  desc: "Classic green",
-                  bgClass: "bg-emerald-950 border-emerald-800 text-white",
-                  indicator: "none",
-                  indicatorSize: "auto",
-                },
-              ].map((th) => {
-                const isSelected = newCanvasTheme === th.id;
-                return (
-                  <button
-                    key={th.id}
-                    type="button"
-                    onClick={() => setNewCanvasTheme(th.id)}
-                    className={`relative flex flex-col items-center justify-between p-2.5 rounded-2xl border-2 transition cursor-pointer text-center ${
-                      isSelected
-                        ? "border-brand bg-brand-light/30 shadow-xs ring-2 ring-brand/20"
-                        : "border-line hover:border-slate-300 bg-white"
-                    }`}
-                  >
-                    {/* Theme Preview Swatch */}
-                    <div
-                      className={`h-10 w-full rounded-xl border ${th.bgClass} flex items-center justify-center relative overflow-hidden mb-1.5`}
-                      style={{
-                        backgroundImage: th.indicator,
-                        backgroundSize: th.indicatorSize,
-                      }}
-                    >
-                      {isSelected && (
-                        <div className="h-5 w-5 rounded-full bg-brand text-white flex items-center justify-center shadow-xs">
-                          <Check className="h-3 w-3 stroke-[3]" />
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[11px] font-bold text-ink leading-tight">{th.name}</span>
-                    <span className="text-[9px] text-muted">{th.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Starter Template Pack */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-ink">Starter Template Setup</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {[
-                {
-                  id: "blank" as const,
-                  title: "Blank Clean Slate",
-                  desc: "Pure empty workspace ready for freehand technical analysis.",
-                },
-                {
-                  id: "risk_1_3" as const,
-                  title: "1:3 Risk Management Plan",
-                  desc: "Pre-places 1:3 Long setup with SL invalidation & risk note.",
-                },
-                {
-                  id: "smc_zones" as const,
-                  title: "SMC Liquidity & Order Blocks",
-                  desc: "Pre-loads Bullish OB demand zone, FVG imbalance & BOS arrow.",
-                },
-                {
-                  id: "killzones" as const,
-                  title: "London & NY Session Killzones",
-                  desc: "Pre-places Asian, London & New York session time boxes.",
-                },
-                {
-                  id: "top_down" as const,
-                  title: "Multi-Timeframe Top-Down",
-                  desc: "3-column structured template for HTF, ITF & LTF alignment.",
-                },
-              ].map((tpl) => {
-                const isSelected = newCanvasTemplate === tpl.id;
-                return (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    onClick={() => setNewCanvasTemplate(tpl.id)}
-                    className={`flex items-start gap-2.5 p-2.5 rounded-2xl border text-left transition cursor-pointer ${
-                      isSelected
-                        ? "border-brand bg-brand-light/30 ring-2 ring-brand/20 shadow-xs"
-                        : "border-line bg-white hover:border-slate-300"
-                    }`}
-                  >
-                    <div
-                      className={`h-5 w-5 rounded-full mt-0.5 flex items-center justify-center shrink-0 border ${
-                        isSelected ? "border-brand bg-brand text-white" : "border-slate-300 bg-slate-50"
+            {/* Theme Picker */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-ink">Theme</label>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  {
+                    id: "dots" as const,
+                    name: "Dots",
+                    bgClass: "bg-white border-slate-300",
+                    indicator: "radial-gradient(#94a3b8 1.4px, transparent 1.4px)",
+                    indicatorSize: "8px 8px",
+                  },
+                  {
+                    id: "lines" as const,
+                    name: "Lines",
+                    bgClass: "bg-white border-slate-300",
+                    indicator: "linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)",
+                    indicatorSize: "10px 10px",
+                  },
+                  {
+                    id: "blank" as const,
+                    name: "Blank",
+                    bgClass: "bg-slate-50 border-slate-300",
+                    indicator: "none",
+                    indicatorSize: "auto",
+                  },
+                  {
+                    id: "dark" as const,
+                    name: "Dark",
+                    bgClass: "bg-slate-900 border-slate-700",
+                    indicator: "radial-gradient(#475569 1px, transparent 1px)",
+                    indicatorSize: "8px 8px",
+                  },
+                  {
+                    id: "chalkboard" as const,
+                    name: "Chalk",
+                    bgClass: "bg-emerald-950 border-emerald-800",
+                    indicator: "none",
+                    indicatorSize: "auto",
+                  },
+                ].map((th) => {
+                  const isSelected = newCanvasTheme === th.id;
+                  return (
+                    <button
+                      key={th.id}
+                      type="button"
+                      onClick={() => setNewCanvasTheme(th.id)}
+                      className={`flex flex-col items-center p-1.5 rounded-xl border transition cursor-pointer ${
+                        isSelected
+                          ? "border-brand bg-brand-light/25 ring-1 ring-brand/30"
+                          : "border-line hover:border-slate-300 bg-white"
                       }`}
                     >
-                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-bold text-ink">{tpl.title}</div>
-                      <div className="text-[10px] text-muted leading-tight mt-0.5">{tpl.desc}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Grid Snapping Preference */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-cream border border-line">
-            <div className="flex items-center gap-2.5">
-              <Magnet className="h-4 w-4 text-brand" />
-              <div>
-                <span className="text-xs font-bold text-ink block">Snap Elements to Grid</span>
-                <span className="text-[10px] text-muted">Automatically align objects to clean 20px grid increments</span>
+                      <div
+                        className={`h-8 w-full rounded-lg border ${th.bgClass} flex items-center justify-center mb-1`}
+                        style={{
+                          backgroundImage: th.indicator,
+                          backgroundSize: th.indicatorSize,
+                        }}
+                      >
+                        {isSelected && (
+                          <span className="h-4 w-4 rounded-full bg-brand text-white flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5 stroke-[3]" />
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[11px] font-semibold text-ink">{th.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <input
-              type="checkbox"
-              checked={newCanvasSnapToGrid}
-              onChange={(e) => setNewCanvasSnapToGrid(e.target.checked)}
-              className="h-4 w-4 rounded text-brand focus:ring-brand cursor-pointer"
-            />
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2.5 pt-2 border-t border-line">
-            <button
-              type="button"
-              onClick={() => setCreateCanvasModalOpen(false)}
-              className="flex-1 rounded-xl bg-cream py-2.5 text-xs font-bold text-muted hover:text-ink transition cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmCreateCustomCanvas}
-              className="btn-primary flex-1 !py-2.5 text-xs font-bold shadow-md cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>Create & Open Canvas</span>
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            {/* Starter Template */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-ink">Starter Template</label>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { id: "blank" as const, title: "Blank Slate", hint: "Empty canvas", span: true },
+                  { id: "risk_1_3" as const, title: "1:3 Risk Plan", hint: "Long setup + SL/TP" },
+                  { id: "smc_zones" as const, title: "SMC & Order Blocks", hint: "OB, FVG & BOS" },
+                  { id: "killzones" as const, title: "Session Killzones", hint: "Asian, London & NY" },
+                  { id: "top_down" as const, title: "Top-Down Analysis", hint: "HTF / ITF / LTF" },
+                ].map((tpl) => {
+                  const isSelected = newCanvasTemplate === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => setNewCanvasTemplate(tpl.id)}
+                      className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl border text-left transition cursor-pointer ${
+                        tpl.span ? "col-span-2" : ""
+                      } ${
+                        isSelected
+                          ? "border-brand bg-brand-light/25 ring-1 ring-brand/30"
+                          : "border-line bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-bold text-ink truncate">{tpl.title}</div>
+                        <div className="text-[10px] text-muted truncate">{tpl.hint}</div>
+                      </div>
+                      {isSelected && (
+                        <span className="h-4 w-4 rounded-full bg-brand text-white flex items-center justify-center shrink-0">
+                          <Check className="h-2.5 w-2.5 stroke-[3]" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Snap Toggle */}
+            <label className="flex items-center justify-between px-3 py-2 rounded-xl bg-cream border border-line cursor-pointer">
+              <span className="flex items-center gap-2 text-xs font-semibold text-ink">
+                <Magnet className="h-3.5 w-3.5 text-brand" />
+                Snap elements to grid
+              </span>
+              <input
+                type="checkbox"
+                checked={newCanvasSnapToGrid}
+                onChange={(e) => setNewCanvasSnapToGrid(e.target.checked)}
+                className="h-4 w-4 rounded text-brand focus:ring-brand cursor-pointer"
+              />
+            </label>
+
+            {/* Actions */}
+            <div className="flex gap-2.5 pt-2 border-t border-line">
+              <button
+                type="button"
+                onClick={() => setCreateCanvasModalOpen(false)}
+                className="flex-1 rounded-xl bg-cream py-2 text-xs font-bold text-muted hover:text-ink transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCreateCustomCanvas}
+                className="btn-primary flex-1 !py-2 text-xs font-bold shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <span>Create Canvas</span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
