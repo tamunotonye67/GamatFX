@@ -171,7 +171,7 @@ export default function GamatAssistantWidget() {
       isNew: i === 0,
       title: n.title,
       summary: n.summary,
-      tag: n.tag || "Announcement",
+      tag: n.category || "Announcement",
       previewTitle: n.title,
       previewSubtitle: n.summary,
       gradient: "from-rose-50 via-amber-50/70 to-white",

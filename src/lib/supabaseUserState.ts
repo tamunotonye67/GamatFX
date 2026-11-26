@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { CombatStats } from "./combat";
+import type { CombatStats } from "./store";
 import type {
   AffiliateCommission,
   AffiliateProfile,
