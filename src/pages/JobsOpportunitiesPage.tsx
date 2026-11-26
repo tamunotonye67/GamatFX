@@ -406,9 +406,9 @@ export default function JobsOpportunitiesPage() {
                   </p>
                 </div>
 
-                {/* Right part: 6 tall slim vertical portrait cards matching reference height & style */}
+                {/* Right part: Mobile swipeable snap carousel; sm+ 6 tall slim vertical portrait cards */}
                 <div className="lg:col-span-7">
-                  <div className="flex h-[320px] sm:h-[380px] lg:h-[400px] items-stretch gap-1.5 sm:gap-2">
+                  <div className="flex h-[250px] sm:h-[380px] lg:h-[400px] items-stretch gap-2.5 sm:gap-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
                     {SKILL_SHOWCASE.map((item, idx) => {
                       const themes = [
                         {
@@ -458,7 +458,7 @@ export default function JobsOpportunitiesPage() {
                       return (
                         <div
                           key={item.label}
-                          className="flex flex-1 min-w-0 items-stretch gap-1.5 sm:gap-2"
+                          className="flex shrink-0 w-[148px] snap-start sm:w-auto sm:shrink sm:flex-1 sm:min-w-0 items-stretch gap-2.5 sm:gap-2"
                         >
                           <button
                             type="button"
@@ -508,6 +508,9 @@ export default function JobsOpportunitiesPage() {
                       );
                     })}
                   </div>
+                  <p className="mt-2.5 flex items-center justify-end gap-1 text-[11px] font-bold uppercase tracking-wider text-[#111215]/60 sm:hidden">
+                    Swipe to explore tracks <ArrowRight className="h-3 w-3" />
+                  </p>
                 </div>
               </div>
             </div>
