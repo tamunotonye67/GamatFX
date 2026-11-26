@@ -21,6 +21,7 @@ import { useRoute, segments, isJobsSubdomain } from "./lib/router";
 import { findRoleGuideBySlug, ROLE_GUIDES } from "./lib/jobRoleGuides";
 import DiscoverySurveyModal from "./components/DiscoverySurveyModal";
 import { StreakCelebrationHost } from "./components/StreakBadgeModal";
+import GamatAssistantWidget from "./components/GamatAssistantWidget";
 
 function lazyWithRetry<T extends React.ComponentType<any>>(
   importer: () => Promise<{ default: T }>
@@ -349,7 +350,10 @@ export default function App() {
   if (isJobsView) {
     return (
       <ErrorBoundary>
-        <div className="min-h-screen bg-cream">{suspendedContent}</div>
+        <div className="min-h-screen bg-cream">
+          {suspendedContent}
+          <GamatAssistantWidget />
+        </div>
       </ErrorBoundary>
     );
   }
@@ -384,6 +388,7 @@ export default function App() {
             Copyright © {new Date().getFullYear()}{" "}
             <span className="font-semibold text-white/75">GAMAT Fx Academy</span>. All rights reserved.
           </div>
+          {!route.startsWith("/whiteboard") && <GamatAssistantWidget />}
         </div>
       </ErrorBoundary>
     );
@@ -406,6 +411,7 @@ export default function App() {
         )}
         <DiscoverySurveyModal />
         <StreakCelebrationHost />
+        <GamatAssistantWidget />
       </div>
     </ErrorBoundary>
   );
