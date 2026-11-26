@@ -369,18 +369,6 @@ export default function JobsOpportunitiesPage() {
                     Pick a track below, share your work or CV, and build real
                     products alongside our global team.
                   </p>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
-                      Remote-First
-                    </span>
-                    <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
-                      Verifiable Fellowship Cert
-                    </span>
-                    <span className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
-                      Real Ownership
-                    </span>
-                  </div>
                 </div>
 
                 {/* Right part: 6 tall slim vertical portrait cards matching reference height & style */}
