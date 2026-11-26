@@ -3115,11 +3115,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const toggleLesson: Ctx["toggleLesson"] = useCallback((courseId, lessonId) => {
-    let completedNow = false;
+    const current = myEnrollments.find((e) => e.courseId === courseId);
+    const completedNow = !!current && !current.completedLessons.includes(lessonId);
     setAllEnrollments((p) => p.map((e) => {
       if (e.userId !== sessionId || e.courseId !== courseId) return e;
       const has = e.completedLessons.includes(lessonId);
-      if (!has) completedNow = true;
       const updated: Enrollment = { ...e, completedLessons: has ? e.completedLessons.filter((l) => l !== lessonId) : [...e.completedLessons, lessonId] };
       saveSupabaseEnrollment(updated);
       return updated;
@@ -3127,7 +3127,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (completedNow) {
       recordStreakActivity(sessionId, "learning");
     }
-  }, [sessionId]);
+  }, [myEnrollments, sessionId]);
 
   const setLastLesson: Ctx["setLastLesson"] = useCallback((courseId, lessonId) => {
     setAllEnrollments((p) => p.map((e) => {
@@ -4495,6 +4495,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setThreads((p) => [t, ...p]);
       saveSupabaseThread(t);
       notifyMentionedUsers(t.body, `Forum: ${t.title}`, "/#/forum");
+      recordStreakActivity(user.id, "forum");
       return { ok: true, id: t.id };
     },
     createReply: (threadId, body, image) => {
@@ -4524,6 +4525,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
       }
       notifyMentionedUsers(r.body, thread ? `Forum: ${thread.title}` : "GAMAT FX Forum", "/#/forum", excludeFromMention);
+      recordStreakActivity(user.id, "forum");
       return { ok: true };
     },
     toggleThreadLike: (id) => {

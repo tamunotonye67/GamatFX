@@ -52,8 +52,8 @@ const GAMES = [
 
 export default function FunZonePage() {
   const { ref, visible } = useReveal<HTMLDivElement>();
-  const { user, sessionId } = useStore();
-  const uid = user?.id || sessionId;
+  const { user } = useStore();
+  const uid = user?.id;
 
   return (
     <>

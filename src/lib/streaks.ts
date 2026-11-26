@@ -119,7 +119,17 @@ export function loadStreakState(userId?: string | null): DailyStreakState {
     const raw = localStorage.getItem(`${STORAGE_PREFIX}${userId}`);
     if (!raw) return { ...DEFAULT_STATE };
     const parsed = JSON.parse(raw) as Partial<DailyStreakState>;
-    const state: DailyStreakState = { ...DEFAULT_STATE, ...parsed };
+    const state: DailyStreakState = {
+      ...DEFAULT_STATE,
+      ...parsed,
+      currentStreak: Math.max(0, Number(parsed.currentStreak) || 0),
+      bestStreak: Math.max(0, Number(parsed.bestStreak) || 0),
+      totalActiveDays: Math.max(0, Number(parsed.totalActiveDays) || 0),
+      gamesPlayed: Math.max(0, Number(parsed.gamesPlayed) || 0),
+      lessonsCompleted: Math.max(0, Number(parsed.lessonsCompleted) || 0),
+      forumMessages: Math.max(0, Number(parsed.forumMessages) || 0),
+      lastCelebratedTier: Math.max(0, Number(parsed.lastCelebratedTier) || 0),
+    };
     // Reset currentStreak display if user missed yesterday AND hasn't played today
     const today = localDateKey();
     const yesterday = yesterdayDateKey();
@@ -128,7 +138,7 @@ export function loadStreakState(userId?: string | null): DailyStreakState {
       state.lastActiveDate !== today &&
       state.lastActiveDate !== yesterday
     ) {
-      return { ...state, currentStreak: 0 };
+      return { ...state, currentStreak: 0, lastCelebratedTier: 0 };
     }
     return state;
   } catch {
@@ -162,6 +172,7 @@ export function recordStreakActivity(
 
   let currentStreak = prev.currentStreak;
   let totalActiveDays = prev.totalActiveDays;
+  let prevTierBaseline = prev.lastCelebratedTier;
 
   if (prev.lastActiveDate === today) {
     // Already active today — keep streak count
@@ -172,6 +183,7 @@ export function recordStreakActivity(
   } else {
     currentStreak = 1;
     totalActiveDays += 1;
+    prevTierBaseline = 0;
   }
 
   const bestStreak = Math.max(prev.bestStreak, currentStreak);
@@ -180,7 +192,7 @@ export function recordStreakActivity(
   const forumMessages = prev.forumMessages + (kind === "forum" ? 1 : 0);
 
   const tier = getStreakTier(currentStreak);
-  const upgraded = currentStreak > 0 && tier.min > prev.lastCelebratedTier;
+  const upgraded = currentStreak > 0 && tier.min > prevTierBaseline;
 
   const next: DailyStreakState = {
     currentStreak,
@@ -190,7 +202,7 @@ export function recordStreakActivity(
     gamesPlayed,
     lessonsCompleted,
     forumMessages,
-    lastCelebratedTier: upgraded ? tier.min : prev.lastCelebratedTier,
+    lastCelebratedTier: upgraded ? tier.min : prevTierBaseline,
   };
 
   saveStreakState(userId, next);

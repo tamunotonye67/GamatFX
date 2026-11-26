@@ -16,13 +16,17 @@ export function StreakFlamePill({
   scrolled?: boolean;
   className?: string;
 }) {
-  const { user, sessionId } = useStore();
-  const uid = user?.id || sessionId;
+  const { user } = useStore();
+  const uid = user?.id;
   const [state, setState] = useState<DailyStreakState>(() => loadStreakState(uid));
 
   useEffect(() => {
     setState(loadStreakState(uid));
-    const onUpdate = () => setState(loadStreakState(uid));
+    const onUpdate = (e: Event) => {
+      const detail = (e as CustomEvent<{ userId?: string }>).detail;
+      if (detail?.userId && uid && detail.userId !== uid) return;
+      setState(loadStreakState(uid));
+    };
     window.addEventListener("gamat:streak-updated", onUpdate);
     window.addEventListener("storage", onUpdate);
     return () => {
@@ -366,8 +370,8 @@ async function downloadStreakCardPng({
 }
 
 export function StreakCelebrationHost() {
-  const { user, sessionId } = useStore();
-  const uid = user?.id || sessionId;
+  const { user } = useStore();
+  const uid = user?.id;
   const [open, setOpen] = useState(false);
   const [isUpgrade, setIsUpgrade] = useState(false);
   const [state, setState] = useState<DailyStreakState>(() => loadStreakState(uid));
@@ -383,7 +387,7 @@ export function StreakCelebrationHost() {
         state: DailyStreakState;
         upgradedTier: StreakTier | null;
       }>).detail;
-      if (!detail) return;
+      if (!detail || !uid || detail.userId !== uid) return;
       setState(detail.state);
       if (detail.upgradedTier) {
         setIsUpgrade(true);
@@ -392,6 +396,7 @@ export function StreakCelebrationHost() {
     };
 
     const onOpen = () => {
+      if (!uid) return;
       setState(loadStreakState(uid));
       setIsUpgrade(false);
       setOpen(true);
@@ -416,8 +421,8 @@ export function StreakCelebrationHost() {
     state.gamesPlayed + state.lessonsCompleted + state.forumMessages;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
+      <div className="relative my-auto w-full max-w-sm">
         {/* Close button */}
         <button
           type="button"
