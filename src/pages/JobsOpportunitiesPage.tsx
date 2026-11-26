@@ -384,7 +384,7 @@ export default function JobsOpportunitiesPage() {
                 {/* Left part: Welcome, onboard! with writeups */}
                 <div className="flex flex-col justify-center lg:col-span-5 lg:pr-4">
                   <h2 className="font-sans text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight text-[#111215]">
-                    Welcome, onboard!
+                    {user?.firstName ? `Welcome aboard, ${user.firstName}!` : "Welcome aboard!"}
                   </h2>
 
                   <p className="mt-4 text-sm sm:text-base leading-relaxed text-[#111215]/85 font-medium">
