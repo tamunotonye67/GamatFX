@@ -289,12 +289,18 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
       try {
         parsed = JSON.parse(String(r.message || "{}"));
       } catch {}
+      const validTypes: JobType[] = ["Full-time", "Part-time", "Contract", "Internship"];
+      const rawType = validTypes.includes(r.phone as JobType)
+        ? (r.phone as JobType)
+        : validTypes.includes(r.ref as JobType)
+        ? (r.ref as JobType)
+        : "Full-time";
       const role: JobRole = {
         id: String(r.id),
         title: String(r.service_title || "Open Role"),
         department: normalizeJobDepartment(r.package_name),
         location: String(r.company || "Remote"),
-        type: (r.ref as JobType) || "Full-time",
+        type: rawType,
         compensation: String(r.budget || "Competitive"),
         summary: String(parsed.summary || r.message || ""),
         requirements: String(parsed.requirements || ""),
@@ -342,7 +348,7 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
   lastJobSyncError = null;
   const payload = {
     id: role.id,
-    ref: role.type,
+    ref: `JOB-${role.id}`,
     service_slug: SUPABASE_JOB_ROLE_SLUG,
     service_title: role.title,
     package_name: role.department,
@@ -449,7 +455,7 @@ export async function deleteSupabaseJobRole(id: string): Promise<boolean> {
         await supabase.from("service_enquiries").upsert(
           {
             id,
-            ref: "Part-time",
+            ref: `JOB-${id}`,
             service_slug: SUPABASE_JOB_ROLE_SLUG,
             service_title: id,
             package_name: "Trading & Analysis",
