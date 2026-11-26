@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, Users } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import Logo from "../components/Logo";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
@@ -62,40 +62,18 @@ export default function JobsTeamPage() {
         />
 
         <div className="relative mx-auto max-w-[1440px] px-4 py-14 sm:px-8 sm:py-20">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3.5 py-1 text-xs font-bold text-rose-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
-                <Users className="h-3.5 w-3.5" />
-                GAMAT Fx Leadership &amp; Mentors
+          <div className="max-w-2xl">
+            <h1 className="font-sans text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Meet the{" "}
+              <span className="bg-gradient-to-r from-white via-rose-200 to-rose-400 bg-clip-text text-transparent">
+                Team
               </span>
-              <h1 className="mt-4 font-sans text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Meet the{" "}
-                <span className="bg-gradient-to-r from-white via-rose-200 to-rose-400 bg-clip-text text-transparent">
-                  Team
-                </span>
-              </h1>
-              <p className="mt-4 text-sm leading-relaxed text-white/65 sm:text-base">
-                The traders, mentors, educators, and builders driving GAMAT Fx
-                Academy forward. Select any profile to explore their full
-                portfolio and milestones.
-              </p>
-            </div>
-
-            <div className="inline-flex w-fit items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-sm">
-              <div className="text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/45">
-                  Core Leaders
-                </p>
-                <p className="font-display text-xl font-extrabold text-white tabular-nums">
-                  {publishedTeam.length}
-                </p>
-              </div>
-              <div className="h-8 w-px bg-white/10" />
-              <span className="text-xs font-semibold text-emerald-400">
-                Active Mentors
-              </span>
-            </div>
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-white/65 sm:text-base">
+              The traders, mentors, educators, and builders driving GAMAT Fx
+              Academy forward. Select any profile to explore their full
+              portfolio and milestones.
+            </p>
           </div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
