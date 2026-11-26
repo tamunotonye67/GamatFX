@@ -256,7 +256,7 @@ async function downloadStreakCardPng({
     ctx.fillText(initials, -198, -73);
   }
 
-  // Right held badge (Tier)
+  // Right held badge (Faceted Diamond Gem)
   ctx.fillStyle = "#111215";
   ctx.beginPath();
   ctx.arc(198, -75, 72, 0, Math.PI * 2);
@@ -265,9 +265,58 @@ async function downloadStreakCardPng({
   ctx.beginPath();
   ctx.arc(198, -75, 63, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "900 23px system-ui, sans-serif";
-  ctx.fillText(tier.name.toUpperCase(), 198, -73);
+
+  ctx.save();
+  ctx.translate(198, -73);
+  // Outer diamond body
+  ctx.beginPath();
+  ctx.moveTo(-22, -26);
+  ctx.lineTo(22, -26);
+  ctx.lineTo(38, -8);
+  ctx.lineTo(0, 34);
+  ctx.lineTo(-38, -8);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#111215";
+  ctx.stroke();
+
+  // Shading facets
+  ctx.fillStyle = "rgba(17, 18, 21, 0.14)";
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(38, -8);
+  ctx.lineTo(0, 34);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+  ctx.beginPath();
+  ctx.moveTo(-22, -26);
+  ctx.lineTo(0, -26);
+  ctx.lineTo(-12, -8);
+  ctx.lineTo(-38, -8);
+  ctx.closePath();
+  ctx.fill();
+
+  // Facet cut lines
+  ctx.strokeStyle = "rgba(17, 18, 21, 0.55)";
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  ctx.moveTo(-38, -8);
+  ctx.lineTo(38, -8);
+  ctx.moveTo(-22, -26);
+  ctx.lineTo(-12, -8);
+  ctx.lineTo(0, -26);
+  ctx.lineTo(12, -8);
+  ctx.lineTo(22, -26);
+  ctx.moveTo(-12, -8);
+  ctx.lineTo(0, 34);
+  ctx.lineTo(12, -8);
+  ctx.stroke();
+  ctx.restore();
   ctx.restore();
 
   // Cloud bubble (stroke outer silhouette first, then fill cleanly so inner arcs don't overlap)
@@ -572,19 +621,25 @@ export function StreakCelebrationHost() {
                 </text>
               )}
 
-              {/* Right held circle: GAMAT Fx Tier */}
+              {/* Right held circle: Faceted Diamond Gem */}
               <circle cx="264" cy="58" r="34" fill={tier.accent} stroke="#111215" strokeWidth="5" />
-              <text
-                x="264"
-                y="62"
-                textAnchor="middle"
-                fill="#ffffff"
-                fontWeight="900"
-                fontSize="11"
-                fontFamily="system-ui, sans-serif"
-              >
-                {tier.name.toUpperCase()}
-              </text>
+              <g transform="translate(264, 59)">
+                <polygon
+                  points="-11,-14 11,-14 20,-4 0,18 -20,-4"
+                  fill="rgba(255,255,255,0.94)"
+                  stroke="#111215"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                />
+                <polygon points="0,-4 20,-4 0,18" fill="rgba(17,18,21,0.14)" />
+                <path
+                  d="M-20 -4 L20 -4 M-11 -14 L-6 -4 L0 -14 L6 -4 L11 -14 M-6 -4 L0 18 L6 -4"
+                  fill="none"
+                  stroke="rgba(17,18,21,0.55)"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                />
+              </g>
             </svg>
           </div>
 
