@@ -718,10 +718,20 @@ export default function JobsOpportunitiesPage() {
               {/* Role rows with left-side picture thumbnails */}
               {openRoles.length > 0 ? (
                 <div className="space-y-4">
-                  {openRoles.map((role) => (
+                  {openRoles.map((role, idx) => {
+                    const cardTones = [
+                      "border-rose-500/25 bg-gradient-to-br from-[#28141b] via-[#1b1318] to-[#141216] hover:border-rose-400/55",
+                      "border-sky-500/25 bg-gradient-to-br from-[#131d2e] via-[#131823] to-[#11131a] hover:border-sky-400/55",
+                      "border-emerald-500/25 bg-gradient-to-br from-[#12261e] via-[#121c18] to-[#101514] hover:border-emerald-400/55",
+                      "border-violet-500/25 bg-gradient-to-br from-[#21152e] via-[#181322] to-[#131118] hover:border-violet-400/55",
+                      "border-amber-500/25 bg-gradient-to-br from-[#291f12] via-[#1d1711] to-[#161310] hover:border-amber-400/55",
+                      "border-cyan-500/25 bg-gradient-to-br from-[#12242b] via-[#121b20] to-[#101418] hover:border-cyan-400/55",
+                    ];
+                    const tone = cardTones[idx % cardTones.length];
+                    return (
                     <article
                       key={role.id}
-                      className="group rounded-2xl border border-white/10 bg-[#16181d] p-4 sm:p-5 transition hover:border-brand/50"
+                      className={`group rounded-2xl border p-4 sm:p-5 transition ${tone}`}
                     >
                       <div className="flex flex-col md:flex-row md:items-center gap-5">
                         {/* Left thumbnail picture */}
@@ -799,7 +809,8 @@ export default function JobsOpportunitiesPage() {
                         </div>
                       </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="rounded-2xl border border-white/10 bg-[#16181d] p-10 text-center">
