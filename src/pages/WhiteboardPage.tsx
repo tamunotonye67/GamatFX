@@ -2841,6 +2841,40 @@ export default function WhiteboardPage() {
         return;
       }
 
+      if (e.key === "Backspace" && currentShape && currentShape.type === "bezier") {
+        e.preventDefault();
+        if (currentShape.points.length > 2) {
+          setCurrentShape({
+            ...currentShape,
+            points: currentShape.points.slice(0, -1),
+          });
+          showToast("Stepped back 1 point");
+        } else {
+          setCurrentShape(null);
+          showToast("Cancelled pattern path");
+        }
+        return;
+      }
+
+      if (e.key === "Backspace" && activeTool === "bezier" && selectedShapeIds.length === 0) {
+        const last = shapes[shapes.length - 1];
+        if (last && last.type === "bezier" && !last.isLocked) {
+          e.preventDefault();
+          if (last.points.length > 2) {
+            setShapes((prev) =>
+              prev.map((s, i) =>
+                i === prev.length - 1 ? { ...s, points: s.points.slice(0, -1) } : s
+              )
+            );
+            showToast("Stepped back 1 point");
+          } else {
+            setShapes((prev) => prev.slice(0, -1));
+            showToast("Removed pattern path");
+          }
+          return;
+        }
+      }
+
       if ((e.key === "Delete" || e.key === "Backspace") && selectedShapeIds.length > 0) {
         e.preventDefault();
         const deletable = selectedShapeIds.filter((id) => {
@@ -3060,7 +3094,7 @@ export default function WhiteboardPage() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
     };
-  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize, strokeColor, fillColor, layerGroups]);
+  }, [selectedShapeIds, shapes, redoStack, snapToGrid, gridSnapSize, strokeColor, fillColor, layerGroups, currentShape, activeTool]);
 
   /* -------------------------- Canvas Render Loop -------------------------- */
 
