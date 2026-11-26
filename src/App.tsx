@@ -336,8 +336,14 @@ export default function App() {
   ) {
     content = <JobsInfoPage section={second} />;
   } else if (first === "jobs" && second) {
-    const guide = findRoleGuideBySlug(second) || ROLE_GUIDES[0];
-    content = <JobRoleDetailPage guide={guide} />;
+    const matched = findRoleGuideBySlug(second);
+    content = (
+      <JobRoleDetailPage
+        guide={matched || ROLE_GUIDES[0]}
+        slug={second}
+        isExactGuide={Boolean(matched)}
+      />
+    );
   } else if (route === "/" && isJobsSubdomain()) {
     content = <JobsPage />;
   } else {

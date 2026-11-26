@@ -49,6 +49,8 @@ export function AdminJobs() {
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [summary, setSummary] = useState("");
   const [requirements, setRequirements] = useState("");
+  const [savingRole, setSavingRole] = useState(false);
+  const [roleNotice, setRoleNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
     void fetchSupabaseJobRoles().then((r) => {
@@ -89,6 +91,7 @@ export function AdminJobs() {
     setImage(role.image || "");
     setSummary(role.summary);
     setRequirements(role.requirements);
+    setRoleNotice(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -106,7 +109,9 @@ export function AdminJobs() {
 
   const addRole = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !summary.trim()) return;
+    if (!title.trim() || !summary.trim() || savingRole) return;
+    setSavingRole(true);
+    setRoleNotice(null);
 
     if (editingId) {
       const existing = roles.find((r) => r.id === editingId);
@@ -126,8 +131,14 @@ export function AdminJobs() {
       const next = roles.map((r) => (r.id === editingId ? updatedRole : r));
       setRoles(next);
       saveJobRoles(next);
-      await upsertSupabaseJobRole(updatedRole);
-      resetForm();
+      const synced = await upsertSupabaseJobRole(updatedRole);
+      setSavingRole(false);
+      setRoleNotice(
+        synced
+          ? { ok: true, text: `"${updatedRole.title}" updated and published live to jobs.gamatfxacademy.com.` }
+          : { ok: false, text: "Saved locally, but Supabase sync failed. Please try again." }
+      );
+      if (synced) resetForm();
       return;
     }
 
@@ -147,9 +158,14 @@ export function AdminJobs() {
     const next = [newRole, ...roles];
     setRoles(next);
     saveJobRoles(next);
-    await upsertSupabaseJobRole(newRole);
-
-    resetForm();
+    const synced = await upsertSupabaseJobRole(newRole);
+    setSavingRole(false);
+    setRoleNotice(
+      synced
+        ? { ok: true, text: `"${newRole.title}" published live to jobs.gamatfxacademy.com.` }
+        : { ok: false, text: "Saved locally, but Supabase sync failed. Please check your connection and try again." }
+    );
+    if (synced) resetForm();
   };
 
   const toggleOpen = async (role: JobRole) => {
@@ -362,9 +378,22 @@ export function AdminJobs() {
                 className="w-full rounded-xl border border-line bg-cream/40 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
               />
             </div>
+            {roleNotice && (
+              <div
+                className={`rounded-xl border px-3.5 py-2.5 text-xs font-semibold ${
+                  roleNotice.ok
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-rose-200 bg-rose-50 text-rose-700"
+                }`}
+              >
+                {roleNotice.text}
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3">
-              <button type="submit" className="btn-primary">
-                {editingId ? (
+              <button type="submit" disabled={savingRole} className="btn-primary disabled:opacity-60">
+                {savingRole ? (
+                  "Publishing..."
+                ) : editingId ? (
                   <>
                     <CheckCircle2 className="h-4 w-4" /> Save Changes
                   </>

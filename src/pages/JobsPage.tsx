@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -22,6 +22,12 @@ import {
 } from "lucide-react";
 import { navigate } from "../lib/router";
 import { slugifyRoleTitle } from "../lib/jobRoleGuides";
+import {
+  fetchSupabaseJobRoles,
+  loadJobRoles,
+  normalizeJobDepartment,
+  type JobRole,
+} from "../lib/jobs";
 import { useStore } from "../lib/store";
 import Logo from "../components/Logo";
 import RevolvingGlobe3D from "../components/RevolvingGlobe3D";
@@ -101,6 +107,7 @@ const BUILDING_PILL_ITEMS = [
 
 export default function JobsPage() {
   const { user, logout } = useStore();
+  const [liveRoles, setLiveRoles] = useState<JobRole[]>(() => loadJobRoles());
   const [activeSkill, setActiveSkill] = useState<string>("");
   const [activeSubSkill, setActiveSubSkill] = useState<string>("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -113,6 +120,48 @@ export default function JobsPage() {
   const [typePhase, setTypePhase] = useState<"settled" | "deleting" | "typing">("settled");
   const [pillIdx, setPillIdx] = useState(0);
   const [pillCount, setPillCount] = useState(BUILDING_PILL_ITEMS[0].target);
+
+  useEffect(() => {
+    void fetchSupabaseJobRoles().then((remote) => {
+      if (remote.length > 0) setLiveRoles(remote);
+    });
+  }, []);
+
+  const mergedSubcategories = useMemo(() => {
+    const deptToCategoryId: Record<string, string> = {
+      "Dev & IT": "Dev & IT",
+      "Trading & Analysis": "Trading",
+      "Design & Creative": "Design",
+      Marketing: "Marketing",
+      "Admin & Support": "Admin",
+      "Writing & Content": "Writing",
+    };
+
+    const next: Record<string, Array<{ title: string; subtitle: string }>> = {};
+    for (const [key, list] of Object.entries(SKILL_SUBCATEGORIES)) {
+      next[key] = [...list];
+    }
+
+    for (const role of liveRoles) {
+      if (!role.open) continue;
+      const catId = deptToCategoryId[normalizeJobDepartment(role.department)];
+      if (!catId) continue;
+      if (!next[catId]) next[catId] = [];
+      const alreadyExists = next[catId].some(
+        (item) =>
+          item.title.toLowerCase() === role.title.trim().toLowerCase() ||
+          slugifyRoleTitle(item.title) === slugifyRoleTitle(role.title)
+      );
+      if (!alreadyExists) {
+        next[catId].push({
+          title: role.title,
+          subtitle: role.summary || `${role.type} · ${role.location}`,
+        });
+      }
+    }
+
+    return next;
+  }, [liveRoles]);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const ctaBannerRef = useRef<HTMLElement | null>(null);
   const navWrapRef = useRef<HTMLDivElement | null>(null);
@@ -416,7 +465,7 @@ export default function JobsPage() {
                         {cat.label}
                       </p>
                       <div className="space-y-5">
-                        {(SKILL_SUBCATEGORIES[cat.id] || []).map((sub) => (
+                        {(mergedSubcategories[cat.id] || []).map((sub) => (
                           <button
                             key={sub.title}
                             type="button"
@@ -849,7 +898,7 @@ export default function JobsPage() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-                          {(SKILL_SUBCATEGORIES[mobileRoleCat] || []).map((sub) => (
+                          {(mergedSubcategories[mobileRoleCat] || []).map((sub) => (
                             <button
                               key={sub.title}
                               type="button"
@@ -1058,7 +1107,7 @@ export default function JobsPage() {
                           } else {
                             setActiveSkill(tab.id);
                             setActiveSubSkill(
-                              SKILL_SUBCATEGORIES[tab.id]?.[0]?.title || ""
+                              mergedSubcategories[tab.id]?.[0]?.title || ""
                             );
                           }
                         }}
@@ -1090,9 +1139,9 @@ export default function JobsPage() {
               </div>
 
               {/* Subcategories Grid shown when a skill category is selected */}
-              {activeSkill && SKILL_SUBCATEGORIES[activeSkill] && (
+              {activeSkill && mergedSubcategories[activeSkill] && (
                 <div className="mx-auto mt-6 max-w-5xl grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 text-left">
-                  {SKILL_SUBCATEGORIES[activeSkill].map((sub) => {
+                  {mergedSubcategories[activeSkill].map((sub) => {
                     const selected = activeSubSkill === sub.title;
                     return (
                       <button

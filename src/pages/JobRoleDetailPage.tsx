@@ -20,6 +20,7 @@ import {
 import Logo from "../components/Logo";
 import {
   ROLE_GUIDES,
+  slugifyRoleTitle,
   type RoleGuide,
 } from "../lib/jobRoleGuides";
 import {
@@ -34,7 +35,83 @@ import {
 } from "../lib/jobs";
 import { navigate } from "../lib/router";
 
-export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
+function departmentToCategoryId(department: string): string {
+  const norm = normalizeJobDepartment(department);
+  if (norm === "Trading & Analysis") return "Trading";
+  if (norm === "Design & Creative") return "Design";
+  if (norm === "Admin & Support") return "Admin";
+  if (norm === "Writing & Content") return "Writing";
+  return norm;
+}
+
+function buildDynamicGuideFromRole(role: JobRole, slug: string): RoleGuide {
+  const categoryId = departmentToCategoryId(role.department);
+  const parsedRequirements = role.requirements
+    ? role.requirements
+        .split(/\r?\n|;|•/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const requirementsList =
+    parsedRequirements.length > 0
+      ? parsedRequirements
+      : [
+          `Strong foundational skills relevant to ${role.title}.`,
+          "Reliable communication and self-driven execution in a remote-first team.",
+          "Passion for trading education, fintech, or community-driven learning.",
+        ];
+  const responsibilitiesList = [
+    `Execute core ${role.title} deliverables with the ${role.department} team.`,
+    "Collaborate asynchronously with mentors and contributors.",
+    "Document workflows and ship reliable milestones on schedule.",
+  ];
+
+  return {
+    slug,
+    category: role.department,
+    categoryId,
+    title: role.title,
+    subtitle: role.summary || `Join GAMAT Fx Academy as a ${role.title}.`,
+    engagementType: `${role.type} · ${role.location}`,
+    weeklyHours: role.type === "Full-time" ? "35-40 hrs / week" : "5-12 hrs / week (Flexible)",
+    overview:
+      role.summary ||
+      `We are looking for a motivated ${role.title} to join our ${role.department} team at GAMAT Fx Academy.`,
+    whatTheyDo:
+      role.summary ||
+      `Collaborate with the ${role.department} team to deliver high-impact work across GAMAT Fx Academy.`,
+    responsibilities: responsibilitiesList,
+    requirements: requirementsList,
+    tracks: [
+      {
+        name: role.type,
+        commitment: role.location,
+        level: role.compensation || "Open Track",
+        points: requirementsList.slice(0, 3),
+      },
+    ],
+    faqs: [
+      {
+        q: `How do I apply for ${role.title}?`,
+        a: "Click 'Apply for this Role' on this page and submit your details, portfolio or CV link, and a short note about your experience.",
+      },
+      {
+        q: "Where is this role based?",
+        a: `This role is listed as ${role.location} (${role.type}).`,
+      },
+    ],
+  };
+}
+
+export default function JobRoleDetailPage({
+  guide: propGuide,
+  slug,
+  isExactGuide = true,
+}: {
+  guide: RoleGuide;
+  slug?: string;
+  isExactGuide?: boolean;
+}) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [applyOpen, setApplyOpen] = useState(false);
   const [liveRoles, setLiveRoles] = useState<JobRole[]>(() => loadJobRoles());
@@ -44,6 +121,20 @@ export default function JobRoleDetailPage({ guide }: { guide: RoleGuide }) {
       if (remote.length > 0) setLiveRoles(remote);
     });
   }, []);
+
+  const matchedLiveRole =
+    !isExactGuide && slug
+      ? liveRoles.find(
+          (r) =>
+            slugifyRoleTitle(r.title) === slug ||
+            r.id === slug ||
+            slugifyRoleTitle(r.id) === slug
+        )
+      : undefined;
+
+  const guide = matchedLiveRole
+    ? buildDynamicGuideFromRole(matchedLiveRole, slug || propGuide.slug)
+    : propGuide;
 
   const trackDepartment = normalizeJobDepartment(
     guide.categoryId === "Trading"
