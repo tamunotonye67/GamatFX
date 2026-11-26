@@ -345,27 +345,27 @@ export default function JobsOpportunitiesPage() {
         <main className="mx-auto max-w-[1440px] px-4 py-14 sm:px-8">
           {/* Welcome, onboard! & 6 portrait cards */}
           <section className="mb-12">
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[#16181d] via-[#181b22] to-[#13151a] p-5 sm:p-7 shadow-2xl">
+            <div className="relative overflow-hidden rounded-2xl border border-amber-300/60 bg-gradient-to-br from-[#fde047] via-[#facc15] to-[#f59e0b] p-5 sm:p-7 shadow-2xl">
               <div className="grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
                 {/* Left part: Welcome, onboard! with writeups */}
                 <div className="flex flex-col justify-center lg:col-span-5 lg:pr-4">
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-rose-300">
-                    <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-black/15 bg-black/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#111215]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#111215]" />
                     GAMAT Fx Careers &amp; Fellowship
                   </span>
 
-                  <h2 className="mt-4 font-sans text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight text-white">
+                  <h2 className="mt-4 font-sans text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight text-[#111215]">
                     Welcome, onboard!
                   </h2>
 
-                  <p className="mt-4 text-sm sm:text-base leading-relaxed text-white/75">
+                  <p className="mt-4 text-sm sm:text-base leading-relaxed text-[#111215]/85 font-medium">
                     We are building the next generation of disciplined traders,
                     engineers, designers, and market educators. Whether you are
                     joining a volunteer fellowship track or a core team role,
                     your work directly shapes how students learn and grow.
                   </p>
 
-                  <p className="mt-3 text-xs sm:text-sm leading-relaxed text-white/55">
+                  <p className="mt-3 text-xs sm:text-sm leading-relaxed text-[#111215]/70 font-medium">
                     Pick a track below, share your work or CV, and build real
                     products alongside our global team.
                   </p>
