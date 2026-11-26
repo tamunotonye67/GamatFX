@@ -15,7 +15,7 @@
       ],
       "destination": "/api/preview?path=/$1"
     },
-    { "source": "/((?!api/|assets/|images/|favicon\\.svg).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|images/|icons/|favicon\\.svg|manifest\\.webmanifest|sw\\.js).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

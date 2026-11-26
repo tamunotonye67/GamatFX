@@ -27,6 +27,7 @@ import MentorshipBookingTab from "../components/MentorshipBookingTab";
 import { getNotifPrefs, setNotifPrefs, hydrateNotifPrefsFromSupabase, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 import GuideVideoGrid from "../components/GuideVideoGrid";
 import PwaInstallBanner from "../components/PwaInstallBanner";
+import { subscribeToPush, unsubscribeFromPush } from "../lib/push";
 
 type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile" | "guide";
 
@@ -542,7 +543,7 @@ export default function DashboardPage() {
         </aside>
 
         <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
-          <PwaInstallBanner />
+          <PwaInstallBanner userId={user.id} />
           {!user.birthday && tab !== "profile" && (
             <BirthdayOnboardingBanner userId={user.id} onGoToProfile={() => setTab("profile")} />
           )}
@@ -3070,21 +3071,31 @@ function NotificationPreferencesCard({ userId }: { userId: string }) {
     void hydrateNotifPrefsFromSupabase(userId).then((merged) => setPrefs(merged));
   }, [userId]);
 
-  const updatePref = async (key: keyof NotifPrefs, value: boolean) => {
+  const updatePref = async (key: Exclude<keyof NotifPrefs, "pushSubscriptions">, value: boolean) => {
     let nextVal = value;
-    if (key === "browserNotifications" && value) {
-      if (typeof Notification === "undefined") {
-        setPermState("unsupported");
-        return;
-      }
-      if (Notification.permission !== "granted") {
-        const res = await Notification.requestPermission();
-        setPermState(res);
-        if (res !== "granted") {
+    if (key === "browserNotifications") {
+      if (value) {
+        if (typeof Notification === "undefined") {
+          setPermState("unsupported");
+          return;
+        }
+        const subRes = await subscribeToPush(userId);
+        setPermState(Notification.permission);
+        if (Notification.permission !== "granted") {
           nextVal = false;
+        } else if (subRes.ok) {
+          // subscribeToPush already updated localStorage + Supabase with pushSubscriptions
+          setPrefs(getNotifPrefs(userId));
+          setSavedToast(true);
+          setTimeout(() => setSavedToast(false), 1800);
+          return;
         }
       } else {
-        setPermState("granted");
+        await unsubscribeFromPush(userId);
+        setPrefs(getNotifPrefs(userId));
+        setSavedToast(true);
+        setTimeout(() => setSavedToast(false), 1800);
+        return;
       }
     }
     if (key === "soundEnabled" && value) {
@@ -3098,7 +3109,7 @@ function NotificationPreferencesCard({ userId }: { userId: string }) {
   };
 
   const rows: {
-    key: keyof NotifPrefs;
+    key: Exclude<keyof NotifPrefs, "pushSubscriptions">;
     title: string;
     desc: string;
     icon: React.ElementType;

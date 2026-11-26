@@ -4,6 +4,7 @@ import { AdminShell, Card, StatCard, Select, Field } from "./AdminShell";
 import { useStore } from "../../lib/store";
 import { COURSES, COURSE_ALIASES } from "../../lib/courses";
 import { sendBroadcastEmail } from "../../lib/email";
+import { sendWebPush } from "../../lib/push";
 import { fetchSupabaseBroadcastLogs, saveSupabaseBroadcastLog } from "../../lib/supabaseServices";
 
 type BroadcastLog = {
@@ -142,6 +143,13 @@ export function AdminBroadcast() {
       ctaLabel: ctaLabel.trim() || undefined,
       ctaUrl: ctaUrl.trim() || undefined,
     });
+    const pushRes = await sendWebPush({
+      title: subject.trim(),
+      body: message.trim().slice(0, 180),
+      url: ctaUrl.trim() || "/#/dashboard",
+      tag: "gamatfx-broadcast",
+      emails: recipients,
+    });
     setSending(false);
     if (!res.ok) {
       setStatus({ ok: false, text: res.error || "Failed to send broadcast." });
@@ -160,7 +168,8 @@ export function AdminBroadcast() {
       localStorage.setItem(LOG_KEY, JSON.stringify(nextLogs));
     } catch {}
     saveSupabaseBroadcastLog(entry);
-    setStatus({ ok: true, text: `Broadcast sent to ${entry.count} recipient(s).` });
+    const pushNote = pushRes.sent ? ` + ${pushRes.sent} push notification(s)` : "";
+    setStatus({ ok: true, text: `Broadcast sent to ${entry.count} recipient(s)${pushNote}.` });
     setSubject("");
     setMessage("");
   };

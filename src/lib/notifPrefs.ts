@@ -1,5 +1,15 @@
 import { supabase } from "./supabase";
 
+export type PushSubscriptionRecord = {
+  endpoint: string;
+  expirationTime?: number | null;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+  updatedAt?: string;
+};
+
 export type NotifPrefs = {
   browserNotifications: boolean;
   soundEnabled: boolean;
@@ -8,6 +18,7 @@ export type NotifPrefs = {
   emailBirthdays: boolean;
   emailMentions: boolean;
   emailEvents: boolean;
+  pushSubscriptions?: PushSubscriptionRecord[];
 };
 
 export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
