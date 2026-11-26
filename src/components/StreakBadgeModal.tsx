@@ -97,8 +97,8 @@ async function downloadStreakCardPng({
   tier: StreakTier;
   isUpgrade: boolean;
 }) {
-  // Match Affiliate Card dimensions: 2.76 x 4.75 in @ 600 DPI (2x supersampled 828 x 1425 = 1656 x 2850 px)
-  const SCALE = 2;
+  // Match Affiliate Card aspect ratio (2.76 x 4.75 in) at 3x supersampled high resolution (2484 x 4275 px)
+  const SCALE = 3;
   const width = 828;
   const height = 1425;
   const cardRadius = 60;
@@ -363,10 +363,27 @@ async function downloadStreakCardPng({
 
   ctx.restore();
 
-  const link = document.createElement("a");
-  link.download = `gamatfx-streak-${state.currentStreak}d.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
+  const filename = `gamatfx-streak-${state.currentStreak}d.png`;
+  if (typeof canvas.toBlob === "function") {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = url;
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+      },
+      "image/png",
+      1.0
+    );
+  } else {
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = canvas.toDataURL("image/png", 1.0);
+    link.click();
+  }
 }
 
 export function StreakCelebrationHost() {
