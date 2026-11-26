@@ -1051,21 +1051,35 @@ export default async function handler(req, res) {
 
       let sent = 0;
       let failed = 0;
+      let lastError = "";
       for (let i = 0; i < list.length; i += 40) {
         const batch = list.slice(i, i + 40);
-        const r = await sendResendEmail(apiKey, {
-          from: fromEmail,
-          to: [adminEmail],
-          bcc: batch,
-          reply_to: adminEmail,
-          subject: String(subject),
-          html,
-        });
+        const payload =
+          batch.length === 1
+            ? {
+                from: fromEmail,
+                to: batch,
+                reply_to: adminEmail,
+                subject: String(subject),
+                html,
+              }
+            : {
+                from: fromEmail,
+                to: [adminEmail],
+                bcc: batch.filter((e) => e !== adminEmail.toLowerCase()),
+                reply_to: adminEmail,
+                subject: String(subject),
+                html,
+              };
+        const r = await sendResendEmail(apiKey, payload);
         if (r.ok) sent += batch.length;
-        else failed += batch.length;
+        else {
+          failed += batch.length;
+          lastError = r.data?.message || lastError;
+        }
       }
       if (sent === 0 && failed > 0) {
-        return res.status(502).json({ ok: false, message: "Failed to deliver broadcast emails." });
+        return res.status(502).json({ ok: false, message: lastError || "Failed to deliver broadcast emails." });
       }
       return res.status(200).json({ ok: true, sent, failed });
     }
