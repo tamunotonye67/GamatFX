@@ -364,7 +364,7 @@ export default function GamatAssistantWidget() {
 
   return (
     <>
-      {/* Floating Launcher Button */}
+      {/* Floating Launcher Icon Button */}
       <button
         type="button"
         onClick={() => {
@@ -373,12 +373,12 @@ export default function GamatAssistantWidget() {
           if (next && tab === "whatsnew") markUpdatesSeen();
         }}
         aria-label={open ? "Close assistant and updates" : "Open AI assistant and What's New"}
-        className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-40 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-3 text-xs font-extrabold text-white shadow-[0_12px_32px_rgba(220,53,69,0.45)] transition hover:scale-105 hover:bg-brand-dark active:scale-95 cursor-pointer"
+        title={open ? "Close" : "Help & Updates"}
+        className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-[0_12px_32px_rgba(220,53,69,0.45)] transition hover:scale-105 hover:bg-brand-dark active:scale-95 cursor-pointer"
       >
-        {open ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-        <span className="hidden sm:inline">{open ? "Close" : "Help & Updates"}</span>
+        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
         {!open && hasUnreadUpdate && (
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white animate-pulse" />
+          <span className="absolute right-0.5 top-0.5 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-white animate-pulse" />
         )}
       </button>
 
