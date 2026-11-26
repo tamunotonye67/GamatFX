@@ -2,7 +2,12 @@
  * Vercel Cron Function: 24-Hour Event Reminder Emails
  * Runs daily via vercel.json cron (`0 8 * * *`) and emails confirmed attendees
  * whose event starts tomorrow.
+ *
+ * Also handles `/api/push` (via `vercel.json` rewrite `?__push=1`) to stay
+ * within the 12-function Vercel Hobby limit.
  */
+
+import webpush from "web-push";
 
 const MONTHS = {
   january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
@@ -26,7 +31,171 @@ function parseEventDateUtc(ev) {
   return new Date(Date.UTC(year, month, day));
 }
 
+function getVapidConfig() {
+  let publicKey = (process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY || "").trim();
+  let privateKey = (process.env.VAPID_PRIVATE_KEY || "").trim();
+  const combined = (process.env.VAPID_KEYS || "").trim();
+
+  if (combined && (!publicKey || !privateKey)) {
+    if (combined.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(combined);
+        publicKey = publicKey || String(parsed.publicKey || "").trim();
+        privateKey = privateKey || String(parsed.privateKey || "").trim();
+      } catch {}
+    } else if (combined.includes(":")) {
+      const [pub, priv] = combined.split(":");
+      publicKey = publicKey || String(pub || "").trim();
+      privateKey = privateKey || String(priv || "").trim();
+    }
+  }
+
+  const subject = (process.env.VAPID_SUBJECT || "mailto:hello@gamatfxacademy.com").trim();
+  return { publicKey, privateKey, subject };
+}
+
+async function handlePush(req, res) {
+  const { publicKey, privateKey, subject } = getVapidConfig();
+
+  if (req.method === "GET") {
+    return res.status(200).json({
+      ok: Boolean(publicKey),
+      publicKey: publicKey || null,
+    });
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ ok: false, error: "Method not allowed" });
+  }
+
+  if (!publicKey || !privateKey) {
+    return res.status(200).json({
+      ok: false,
+      skipped: true,
+      sent: 0,
+      message: "VAPID_KEYS not configured",
+    });
+  }
+
+  let bodyData = req.body || {};
+  if (typeof bodyData === "string") {
+    try {
+      bodyData = JSON.parse(bodyData);
+    } catch {
+      bodyData = {};
+    }
+  }
+
+  const title = String(bodyData.title || "GAMAT Fx Academy").trim();
+  const body = String(bodyData.body || "").trim();
+  const url = String(bodyData.url || "/#/dashboard").trim();
+  const tag = String(bodyData.tag || "gamatfx-update").trim();
+  const targetEmails = Array.isArray(bodyData.emails)
+    ? new Set(bodyData.emails.map((e) => String(e || "").trim().toLowerCase()).filter(Boolean))
+    : null;
+  const targetUserIds = Array.isArray(bodyData.userIds)
+    ? new Set(bodyData.userIds.map((id) => String(id || "").trim()).filter(Boolean))
+    : null;
+
+  if (!body) {
+    return res.status(400).json({ ok: false, error: "Notification body is required" });
+  }
+
+  webpush.setVapidDetails(subject, publicKey, privateKey);
+
+  const supabaseUrl =
+    (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "").trim() ||
+    "https://pbbtiazbpolvajjsqirs.supabase.co";
+  const supabaseKey =
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "").trim() ||
+    "sb_publishable_FnEN-7WZtC0_qvoNApQNSw__c9KqANV";
+
+  try {
+    const accRes = await fetch(
+      `${supabaseUrl}/rest/v1/accounts?select=id,email,status,notif_prefs`,
+      { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
+    );
+    if (!accRes.ok) {
+      return res.status(200).json({ ok: false, sent: 0, message: "Could not query accounts" });
+    }
+
+    const accounts = await accRes.json();
+    const payload = JSON.stringify({
+      title,
+      body,
+      url,
+      tag,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+    });
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const acc of accounts || []) {
+      if (acc.status && acc.status !== "active") continue;
+      if (targetEmails && !targetEmails.has(String(acc.email || "").trim().toLowerCase())) continue;
+      if (targetUserIds && !targetUserIds.has(String(acc.id || "").trim())) continue;
+
+      const prefs = acc.notif_prefs && typeof acc.notif_prefs === "object" ? acc.notif_prefs : null;
+      if (!prefs || prefs.browserNotifications === false) continue;
+
+      const subs = Array.isArray(prefs.pushSubscriptions) ? prefs.pushSubscriptions : [];
+      if (!subs.length) continue;
+
+      const deadEndpoints = new Set();
+
+      await Promise.all(
+        subs.map(async (sub) => {
+          if (!sub || !sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) return;
+          try {
+            await webpush.sendNotification(
+              {
+                endpoint: sub.endpoint,
+                expirationTime: sub.expirationTime ?? null,
+                keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+              },
+              payload
+            );
+            sent += 1;
+          } catch (err) {
+            failed += 1;
+            const code = err?.statusCode;
+            if (code === 404 || code === 410) deadEndpoints.add(sub.endpoint);
+          }
+        })
+      );
+
+      if (deadEndpoints.size > 0) {
+        const cleaned = subs.filter((s) => s && !deadEndpoints.has(s.endpoint));
+        const nextPrefs = { ...prefs, pushSubscriptions: cleaned };
+        await fetch(`${supabaseUrl}/rest/v1/accounts?id=eq.${encodeURIComponent(acc.id)}`, {
+          method: "PATCH",
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ notif_prefs: nextPrefs }),
+        }).catch(() => undefined);
+      }
+    }
+
+    return res.status(200).json({ ok: true, sent, failed });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      error: err instanceof Error ? err.message : "Failed to send push notifications",
+    });
+  }
+}
+
 export default async function handler(req, res) {
+  if (req.query?.__push === "1" || String(req.url || "").includes("__push=1")) {
+    return handlePush(req, res);
+  }
+
   const apiKey = (process.env.RESEND_API_KEY || "").trim();
   if (!apiKey) {
     return res.status(200).json({ ok: false, skipped: true, message: "RESEND_API_KEY not set" });
