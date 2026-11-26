@@ -26,6 +26,7 @@ import TradeJournalTab from "../components/TradeJournalTab";
 import MentorshipBookingTab from "../components/MentorshipBookingTab";
 import { getNotifPrefs, setNotifPrefs, hydrateNotifPrefsFromSupabase, playNotificationChime, type NotifPrefs } from "../lib/notifPrefs";
 import GuideVideoGrid from "../components/GuideVideoGrid";
+import PwaInstallBanner from "../components/PwaInstallBanner";
 
 type Tab = "overview" | "courses" | "journal" | "booking" | "certificates" | "affiliate" | "wallet" | "events" | "billing" | "posts" | "team-bio" | "profile" | "guide";
 
@@ -541,6 +542,7 @@ export default function DashboardPage() {
         </aside>
 
         <div className="min-w-0 min-h-[500px] lg:min-h-[calc(100vh-10rem)]">
+          <PwaInstallBanner />
           {!user.birthday && tab !== "profile" && (
             <BirthdayOnboardingBanner userId={user.id} onGoToProfile={() => setTab("profile")} />
           )}
