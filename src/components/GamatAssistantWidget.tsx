@@ -15,6 +15,7 @@ import {
   Send,
   X,
 } from "lucide-react";
+import { COURSES } from "../lib/courses";
 import { navigate } from "../lib/router";
 import { useStore } from "../lib/store";
 import {
@@ -160,7 +161,7 @@ type ChatMsg = {
 const LAST_SEEN_UPDATE_KEY = "gamat.uj_last_seen_update.v1";
 
 export default function GamatAssistantWidget() {
-  const { user, courses, submitEnquiry } = useStore();
+  const { user, submitEnquiry } = useStore();
   const externalUserJotId = useMemo(() => getConfiguredUserJotId(), []);
 
   // If external UserJot Project ID is configured, activate official UserJot SDK v3
@@ -217,7 +218,7 @@ export default function GamatAssistantWidget() {
   if (externalUserJotId) return null;
 
   const firstName = user?.firstName?.trim() || "Trader";
-  const openCoursesCount = courses.length;
+  const openCoursesCount = COURSES.length;
 
   const filteredArticles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
