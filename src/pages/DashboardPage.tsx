@@ -1462,14 +1462,32 @@ export default function DashboardPage() {
     const mine = teamBios.filter((b) => b.userId === u?.id);
     const latest = mine[0];
     const fileRef = useRef<HTMLInputElement | null>(null);
-    const [form, setForm] = useState({
-      role: latest?.role || u?.jobTitle || "",
-      focus: latest?.focus || "",
-      bio: latest?.bio || u?.bio || "",
-      longBio: latest?.longBio || "",
-      expertiseText: latest?.expertiseText || "",
-      milestonesText: latest?.milestonesText || "",
+    const draftKey = `gamat_team_bio_draft_${u?.id || "anon"}`;
+    const [form, setForm] = useState(() => {
+      const defaults = {
+        role: latest?.role || u?.jobTitle || "",
+        focus: latest?.focus || "",
+        bio: latest?.bio || u?.bio || "",
+        longBio: latest?.longBio || "",
+        expertiseText: latest?.expertiseText || "",
+        milestonesText: latest?.milestonesText || "",
+      };
+      try {
+        const raw = sessionStorage.getItem(draftKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            return { ...defaults, ...parsed };
+          }
+        }
+      } catch {}
+      return defaults;
     });
+    useEffect(() => {
+      try {
+        sessionStorage.setItem(draftKey, JSON.stringify(form));
+      } catch {}
+    }, [draftKey, form]);
     const [photo, setPhoto] = useState(u?.avatar || latest?.avatar || "");
     const [msg, setMsg] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -1491,6 +1509,9 @@ export default function DashboardPage() {
       const res = submitTeamBio(form);
       setSaving(false);
       if (!res.ok) { setError(res.error ?? "Could not submit."); setMsg(null); return; }
+      try {
+        sessionStorage.removeItem(draftKey);
+      } catch {}
       setError(null);
       setMsg("Bio and photo submitted for admin review. Your photo already updates your account and any linked team page.");
     };
@@ -2645,16 +2666,34 @@ function ProfileTab({
   openCropModal: (file: File, target: "profile" | "team") => void;
 }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [form, setForm] = useState({
-    firstName: user.firstName,
-    middleName: user.middleName ?? "",
-    lastName: user.lastName,
-    nickname: user.nickname ?? "",
-    phone: user.phone ?? "",
-    country: user.country ?? "",
-    birthday: user.birthday ?? "",
-    bio: user.bio ?? "",
+  const draftKey = `gamat_profile_draft_${user.id}`;
+  const [form, setForm] = useState(() => {
+    const defaults = {
+      firstName: user.firstName,
+      middleName: user.middleName ?? "",
+      lastName: user.lastName,
+      nickname: user.nickname ?? "",
+      phone: user.phone ?? "",
+      country: user.country ?? "",
+      birthday: user.birthday ?? "",
+      bio: user.bio ?? "",
+    };
+    try {
+      const raw = sessionStorage.getItem(draftKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          return { ...defaults, ...parsed };
+        }
+      }
+    } catch {}
+    return defaults;
   });
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(draftKey, JSON.stringify(form));
+    } catch {}
+  }, [draftKey, form]);
   const [avatar, setAvatar] = useState(user.avatar ?? "");
   useEffect(() => {
     setAvatar(user.avatar ?? "");
@@ -2666,7 +2705,7 @@ function ProfileTab({
     if (!m) return { y: "", mo: "", d: "" };
     return { y: m[1], mo: m[2], d: m[3] };
   };
-  const [dobParts, setDobParts] = useState(() => parseBday(user.birthday ?? ""));
+  const [dobParts, setDobParts] = useState(() => parseBday(form.birthday ?? ""));
 
   const updateDobPart = (part: "y" | "mo" | "d", val: string) => {
     setDobParts((prev) => {
@@ -2675,9 +2714,9 @@ function ProfileTab({
         const maxDay = new Date(Number(next.y), Number(next.mo), 0).getDate();
         const clampedDay = String(Math.min(Number(next.d), maxDay)).padStart(2, "0");
         next.d = clampedDay;
-        setForm((f) => ({ ...f, birthday: `${next.y}-${next.mo}-${clampedDay}` }));
+        setForm((f: typeof form) => ({ ...f, birthday: `${next.y}-${next.mo}-${clampedDay}` }));
       } else if (!next.y && !next.mo && !next.d) {
-        setForm((f) => ({ ...f, birthday: "" }));
+        setForm((f: typeof form) => ({ ...f, birthday: "" }));
       }
       return next;
     });
@@ -2728,6 +2767,9 @@ function ProfileTab({
         bio: form.bio.trim() || undefined,
         avatar: avatar || undefined,
       });
+      try {
+        sessionStorage.removeItem(draftKey);
+      } catch {}
       setSaving(false);
       setSaved(true);
       window.setTimeout(() => setSaved(false), 3000);
