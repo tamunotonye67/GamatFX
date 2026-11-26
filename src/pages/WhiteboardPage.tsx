@@ -1893,21 +1893,30 @@ export default function WhiteboardPage() {
     showToast(`Stamped "${event.title}" onto whiteboard!`);
   };
 
-  const [strokeColor, setStrokeColor] = useState("#000000");
-  const [strokeWidth, setStrokeWidth] = useState(1);
-  const [lineStyle, setLineStyle] = useState<"solid" | "dashed">("solid");
-  const [fillColor, setFillColor] = useState("#ffffff");
-  const [fillStyle, setFillStyle] = useState<"solid" | "gradient" | "none" | "translucent">("translucent");
+  const savedWbSettings = useMemo<Record<string, any>>(() => {
+    try {
+      const raw = localStorage.getItem("gamat_whiteboard_settings_v1");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }, []);
+
+  const [strokeColor, setStrokeColor] = useState<string>(() => savedWbSettings.strokeColor ?? "#000000");
+  const [strokeWidth, setStrokeWidth] = useState<number>(() => savedWbSettings.strokeWidth ?? 1);
+  const [lineStyle, setLineStyle] = useState<"solid" | "dashed">(() => savedWbSettings.lineStyle ?? "solid");
+  const [fillColor, setFillColor] = useState<string>(() => savedWbSettings.fillColor ?? "#ffffff");
+  const [fillStyle, setFillStyle] = useState<"solid" | "gradient" | "none" | "translucent">(() => savedWbSettings.fillStyle ?? "translucent");
   const [activeColorTarget, setActiveColorTarget] = useState<"stroke" | "fill">("stroke");
   const strokeColorInputRef = useRef<HTMLInputElement>(null);
   const fillColorInputRef = useRef<HTMLInputElement>(null);
-  const [gradientEndColor, setGradientEndColor] = useState("#8b5cf6");
-  const [opacity, setOpacity] = useState<number>(1);
-  const [cornerRadius, setCornerRadius] = useState<number>(0);
+  const [gradientEndColor, setGradientEndColor] = useState<string>(() => savedWbSettings.gradientEndColor ?? "#8b5cf6");
+  const [opacity, setOpacity] = useState<number>(() => savedWbSettings.opacity ?? 1);
+  const [cornerRadius, setCornerRadius] = useState<number>(() => savedWbSettings.cornerRadius ?? 0);
   const [upperWickLength] = useState<number>(25);
   const [lowerWickLength] = useState<number>(25);
-  const [wickColor, setWickColor] = useState<string>("#10b981");
-  const [highlighterColor, setHighlighterColor] = useState<string>("#facc15");
+  const [wickColor, setWickColor] = useState<string>(() => savedWbSettings.wickColor ?? "#10b981");
+  const [highlighterColor, setHighlighterColor] = useState<string>(() => savedWbSettings.highlighterColor ?? "#facc15");
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">(() => {
     try {
       const savedTabsStr = localStorage.getItem("gamat_whiteboard_active_tabs");
@@ -1920,7 +1929,7 @@ export default function WhiteboardPage() {
     } catch {}
     return "dots";
   });
-  const [stickyColor, setStickyColor] = useState<StickyColor>("#fef08a");
+  const [stickyColor, setStickyColor] = useState<StickyColor>(() => savedWbSettings.stickyColor ?? "#fef08a");
   const [zoom, setZoom] = useState(1);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
   const [zoomInputValue, setZoomInputValue] = useState("100");
@@ -1934,16 +1943,16 @@ export default function WhiteboardPage() {
   }, [zoom]);
 
   /* ---------------------- WHITEBOARD SETTINGS PREFERENCES ------------------- */
-  const [showTooltips, setShowTooltips] = useState(true);
-  const [showFavoritesBar, setShowFavoritesBar] = useState(true);
-  const [showCursorCoords, setShowCursorCoords] = useState(true);
-  const [snapToGrid, setSnapToGrid] = useState(true);
-  const [gridSnapSize, setGridSnapSize] = useState<number>(10);
-  const [eraserSize, setEraserSize] = useState<number>(18);
-  const [defaultRiskReward, setDefaultRiskReward] = useState<number>(3);
-  const [mouseWheelMode, setMouseWheelMode] = useState<"zoom" | "pan">("zoom");
-  const [highDpiExport, setHighDpiExport] = useState(true);
-  const [autoLockObjects, setAutoLockObjects] = useState(false);
+  const [showTooltips, setShowTooltips] = useState<boolean>(() => savedWbSettings.showTooltips ?? true);
+  const [showFavoritesBar, setShowFavoritesBar] = useState<boolean>(() => savedWbSettings.showFavoritesBar ?? true);
+  const [showCursorCoords, setShowCursorCoords] = useState<boolean>(() => savedWbSettings.showCursorCoords ?? true);
+  const [snapToGrid, setSnapToGrid] = useState<boolean>(() => savedWbSettings.snapToGrid ?? true);
+  const [gridSnapSize, setGridSnapSize] = useState<number>(() => savedWbSettings.gridSnapSize ?? 10);
+  const [eraserSize, setEraserSize] = useState<number>(() => savedWbSettings.eraserSize ?? 18);
+  const [defaultRiskReward, setDefaultRiskReward] = useState<number>(() => savedWbSettings.defaultRiskReward ?? 3);
+  const [mouseWheelMode, setMouseWheelMode] = useState<"zoom" | "pan">(() => savedWbSettings.mouseWheelMode ?? "zoom");
+  const [highDpiExport, setHighDpiExport] = useState<boolean>(() => savedWbSettings.highDpiExport ?? true);
+  const [autoLockObjects, setAutoLockObjects] = useState<boolean>(() => savedWbSettings.autoLockObjects ?? false);
   const [settingsTab, setSettingsTab] = useState<"general" | "canvas" | "forex">("general");
 
   // Individual Detachable & Attachable Floating Panels System
@@ -1981,7 +1990,7 @@ export default function WhiteboardPage() {
     { id: "g1", orientation: "horizontal", position: 300, color: "#3b82f6" },
     { id: "g2", orientation: "vertical", position: 500, color: "#3b82f6" },
   ]);
-  const [showGuidelines, setShowGuidelines] = useState(true);
+  const [showGuidelines, setShowGuidelines] = useState<boolean>(() => savedWbSettings.showGuidelines ?? true);
   const [showMouseTracer, setShowMouseTracer] = useState<boolean>(() => {
     try {
       return localStorage.getItem("gamat_whiteboard_mouse_tracer") === "1";
@@ -2006,34 +2015,95 @@ export default function WhiteboardPage() {
       return next;
     });
   };
-  const [snapToGuides, setSnapToGuides] = useState(true);
-  const [snapToObjects, setSnapToObjects] = useState(true);
-  const [snapToAngles, setSnapToAngles] = useState(true);
+  const [snapToGuides, setSnapToGuides] = useState<boolean>(() => savedWbSettings.snapToGuides ?? true);
+  const [snapToObjects, setSnapToObjects] = useState<boolean>(() => savedWbSettings.snapToObjects ?? true);
+  const [snapToAngles, setSnapToAngles] = useState<boolean>(() => savedWbSettings.snapToAngles ?? true);
   const [canvasAspectRatio] = useState<"infinite" | "16:9" | "4:3" | "1:1" | "9:16" | "21:9">("infinite");
   
   // Line Patterns & Vector Stroke Modifiers State
-  const [activeLinePattern, setActiveLinePattern] = useState<"solid" | "dashed" | "dotted" | "dash-dot" | "long-dash">("solid");
-  const [activeDashLength, setActiveDashLength] = useState<number>(8);
-  const [activeLineCap, setActiveLineCap] = useState<"round" | "butt" | "square">("butt");
+  const [activeLinePattern, setActiveLinePattern] = useState<"solid" | "dashed" | "dotted" | "dash-dot" | "long-dash">(() => savedWbSettings.activeLinePattern ?? "solid");
+  const [activeDashLength, setActiveDashLength] = useState<number>(() => savedWbSettings.activeDashLength ?? 8);
+  const [activeLineCap, setActiveLineCap] = useState<"round" | "butt" | "square">(() => savedWbSettings.activeLineCap ?? "butt");
   const [activeLineJoin] = useState<"round" | "miter" | "bevel">("miter");
-  const [activeArrowStart, setActiveArrowStart] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("none");
-  const [activeArrowEnd, setActiveArrowEnd] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("arrow");
-  const [activeLineGlow, setActiveLineGlow] = useState<boolean>(false);
-  const [activeIsRay, setActiveIsRay] = useState<boolean>(false);
+  const [activeArrowStart, setActiveArrowStart] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">(() => savedWbSettings.activeArrowStart ?? "none");
+  const [activeArrowEnd, setActiveArrowEnd] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">(() => savedWbSettings.activeArrowEnd ?? "arrow");
+  const [activeLineGlow, setActiveLineGlow] = useState<boolean>(() => savedWbSettings.activeLineGlow ?? false);
+  const [activeIsRay, setActiveIsRay] = useState<boolean>(() => savedWbSettings.activeIsRay ?? false);
 
 
   // Character & Typography Formatting State
-  const [activeFontFamily, setActiveFontFamily] = useState<string>("Inter, sans-serif");
-  const [activeFontSize, setActiveFontSize] = useState<number>(16);
-  const [activeFontWeight, setActiveFontWeight] = useState<"normal" | "bold">("normal");
-  const [activeFontStyle, setActiveFontStyle] = useState<"normal" | "italic">("normal");
-  const [activeTextDecoration, setActiveTextDecoration] = useState<"none" | "underline" | "line-through">("none");
-  const [activeTextAlign, setActiveTextAlign] = useState<"left" | "center" | "right">("left");
-  const [activeTextTransform, setActiveTextTransform] = useState<"none" | "uppercase" | "lowercase" | "capitalize">("none");
+  const [activeFontFamily, setActiveFontFamily] = useState<string>(() => savedWbSettings.activeFontFamily ?? "Inter, sans-serif");
+  const [activeFontSize, setActiveFontSize] = useState<number>(() => savedWbSettings.activeFontSize ?? 16);
+  const [activeFontWeight, setActiveFontWeight] = useState<"normal" | "bold">(() => savedWbSettings.activeFontWeight ?? "normal");
+  const [activeFontStyle, setActiveFontStyle] = useState<"normal" | "italic">(() => savedWbSettings.activeFontStyle ?? "normal");
+  const [activeTextDecoration, setActiveTextDecoration] = useState<"none" | "underline" | "line-through">(() => savedWbSettings.activeTextDecoration ?? "none");
+  const [activeTextAlign, setActiveTextAlign] = useState<"left" | "center" | "right">(() => savedWbSettings.activeTextAlign ?? "left");
+  const [activeTextTransform, setActiveTextTransform] = useState<"none" | "uppercase" | "lowercase" | "capitalize">(() => savedWbSettings.activeTextTransform ?? "none");
   const [, setActiveLetterSpacing] = useState<number>(0);
   const [, setActiveLineHeight] = useState<number>(1.4);
-  const [activeTextColor, setActiveTextColor] = useState<string>("#1e293b");
-  const [activeTextBgColor, setActiveTextBgColor] = useState<string>("transparent");
+  const [activeTextColor, setActiveTextColor] = useState<string>(() => savedWbSettings.activeTextColor ?? "#1e293b");
+  const [activeTextBgColor, setActiveTextBgColor] = useState<string>(() => savedWbSettings.activeTextBgColor ?? "transparent");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "gamat_whiteboard_settings_v1",
+        JSON.stringify({
+          strokeColor,
+          strokeWidth,
+          lineStyle,
+          fillColor,
+          fillStyle,
+          gradientEndColor,
+          opacity,
+          cornerRadius,
+          wickColor,
+          highlighterColor,
+          stickyColor,
+          showTooltips,
+          showFavoritesBar,
+          showCursorCoords,
+          snapToGrid,
+          gridSnapSize,
+          eraserSize,
+          defaultRiskReward,
+          mouseWheelMode,
+          highDpiExport,
+          autoLockObjects,
+          showGuidelines,
+          snapToGuides,
+          snapToObjects,
+          snapToAngles,
+          activeLinePattern,
+          activeDashLength,
+          activeLineCap,
+          activeArrowStart,
+          activeArrowEnd,
+          activeLineGlow,
+          activeIsRay,
+          activeFontFamily,
+          activeFontSize,
+          activeFontWeight,
+          activeFontStyle,
+          activeTextDecoration,
+          activeTextAlign,
+          activeTextTransform,
+          activeTextColor,
+          activeTextBgColor,
+        })
+      );
+    } catch {}
+  }, [
+    strokeColor, strokeWidth, lineStyle, fillColor, fillStyle, gradientEndColor,
+    opacity, cornerRadius, wickColor, highlighterColor, stickyColor,
+    showTooltips, showFavoritesBar, showCursorCoords, snapToGrid, gridSnapSize,
+    eraserSize, defaultRiskReward, mouseWheelMode, highDpiExport, autoLockObjects,
+    showGuidelines, snapToGuides, snapToObjects, snapToAngles,
+    activeLinePattern, activeDashLength, activeLineCap, activeArrowStart, activeArrowEnd,
+    activeLineGlow, activeIsRay, activeFontFamily, activeFontSize, activeFontWeight,
+    activeFontStyle, activeTextDecoration, activeTextAlign, activeTextTransform,
+    activeTextColor, activeTextBgColor,
+  ]);
 
   // Layer Renaming State
   const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
