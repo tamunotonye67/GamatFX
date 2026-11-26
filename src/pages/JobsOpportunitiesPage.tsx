@@ -354,6 +354,10 @@ export default function JobsOpportunitiesPage() {
                     GAMAT Fx Careers &amp; Fellowship
                   </span>
 
+                  <h2 className="mt-4 font-sans text-4xl sm:text-5xl lg:text-[3.25rem] font-bold leading-[1.08] tracking-tight text-white">
+                    Welcome, onboard!
+                  </h2>
+
                   <p className="mt-4 text-sm sm:text-base leading-relaxed text-white/75">
                     We are building the next generation of disciplined traders,
                     engineers, designers, and market educators. Whether you are
