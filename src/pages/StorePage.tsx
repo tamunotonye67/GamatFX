@@ -41,9 +41,6 @@ import {
   Calculator,
   BookMarked,
   Gift,
-  User,
-  Mail,
-  Phone,
 } from "lucide-react";
 import { payWithBachs, generateTxRef } from "../lib/bachs";
 import { sendReceiptEmail } from "../lib/email";
@@ -149,7 +146,7 @@ interface StorePageProps {
 }
 
 export default function StorePage({ categoryParam }: StorePageProps) {
-  const { publishedStoreProducts, recordPayment, coupons, validateCoupon, user, isAuthed, myStorePurchases } = useStore();
+  const { publishedStoreProducts, recordPayment, validateCoupon, user } = useStore();
 
   // Determine initial page view: "hub" (category cards page) or "catalog" (products showcase page)
   const isCatalogInitial = Boolean(categoryParam) || window.location.hash.includes("/store/catalog");
@@ -274,7 +271,7 @@ export default function StorePage({ categoryParam }: StorePageProps) {
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer" | "crypto">("card");
+  const [paymentMethod] = useState<"card" | "transfer" | "crypto">("card");
   const [purchasedProduct, setPurchasedProduct] = useState<StoreProduct | null>(null);
   const [purchasedTxRef, setPurchasedTxRef] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);

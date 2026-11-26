@@ -24,7 +24,7 @@ import {
   getSignupReferralUrl,
   exportAffiliateCardAsPng,
 } from "../lib/affiliate";
-import { formatAffiliateCardName, formatStudentName } from "../lib/formatName";
+import { formatAffiliateCardName } from "../lib/formatName";
 
 function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
   return (

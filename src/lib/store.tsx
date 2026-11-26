@@ -44,7 +44,7 @@ import {
   type Quiz, type Question,
 } from "./quizzes";
 import { SCENARIOS, pointsFor, outcomeOf, type CombatPrediction } from "./combat";
-import { loadStoredProducts, saveStoredProducts, SEED_STORE_PRODUCTS, type StoreProduct } from "./storeProducts";
+import { loadStoredProducts, saveStoredProducts, type StoreProduct } from "./storeProducts";
 import { fetchSupabaseStoreProducts, saveSupabaseStoreProduct, deleteSupabaseStoreProduct } from "./supabaseStoreProducts";
 import {
   loadAffiliateProfiles,

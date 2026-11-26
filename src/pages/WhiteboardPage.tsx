@@ -143,48 +143,6 @@ import { loadWhiteboardFromCloud, saveWhiteboardToCloud } from "../lib/whiteboar
 import GuideVideoGrid from "../components/GuideVideoGrid";
 
 /* Custom Forex SVG Icons (Ultra-Minimalist Lucide-Style Line Art) */
-const FvgCandlesIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {/* Left candle base */}
-    <line x1="5" y1="12" x2="5" y2="20" />
-    <rect x="3.5" y="14" width="3" height="4" rx="0.5" />
-
-    {/* Center impulse candle (creates the imbalance gap) */}
-    <line x1="12" y1="3" x2="12" y2="21" />
-    <rect x="10.5" y="6" width="3" height="12" rx="0.5" />
-
-    {/* Right candle high */}
-    <line x1="19" y1="4" x2="19" y2="12" />
-    <rect x="17.5" y="6" width="3" height="4" rx="0.5" />
-  </svg>
-);
-
-const BosIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    {/* Structural resistance line */}
-    <line x1="8" y1="9" x2="21" y2="9" strokeDasharray="2 2" strokeWidth="1.5" />
-    {/* Clean breakout pathway */}
-    <polyline points="3 17 8 9 13 13 21 5" />
-    <polyline points="16 5 21 5 21 10" />
-  </svg>
-);
-
 const LongPositionIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
   <svg
     className={className}
@@ -276,40 +234,6 @@ const BosToolIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
     <polyline points="2 19 8 9 13 14 20 4" strokeWidth="2.2" />
     {/* Breakout Arrowhead */}
     <polyline points="15 4 20 4 20 9" strokeWidth="2.2" />
-  </svg>
-);
-
-const BullishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="2" x2="12" y2="6" />
-    <rect x="7" y="6" width="10" height="11" rx="1" />
-    <line x1="12" y1="17" x2="12" y2="22" />
-    <polyline points="10 11 12 9 14 11" strokeWidth="1.5" />
-  </svg>
-);
-
-const BearishCandleIcon = ({ className = "h-3.5 w-3.5" }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" y1="2" x2="12" y2="7" />
-    <rect x="7" y="7" width="10" height="11" rx="1" />
-    <line x1="12" y1="18" x2="12" y2="22" />
-    <polyline points="10 13 12 15 14 13" strokeWidth="1.5" />
   </svg>
 );
 
@@ -1338,7 +1262,6 @@ function MarketSessionsRadarTab() {
 
   const utcH = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
   const utcStr = `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}:${String(now.getUTCSeconds()).padStart(2, "0")} UTC`;
-  const localStr = now.toLocaleTimeString();
 
   const sessions = [
     {
@@ -1703,12 +1626,10 @@ export default function WhiteboardPage() {
   const [mobileMenuTab, setMobileMenuTab] = useState<"file" | "edit" | "view" | "insert">("file");
   const [mobileToolsDrawerOpen, setMobileToolsDrawerOpen] = useState(false);
   const [mobilePanelsDrawerOpen, setMobilePanelsDrawerOpen] = useState(false);
-  const [activeMenuTab, setActiveMenuTab] = useState<"drafts" | "samples" | "trash">("drafts");
 
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeSelectTool, setActiveSelectTool] = useState<"select" | "node" | "hand">("select");
   const [activeNodeIndex, setActiveNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
-  const [hoveredNodeIndex, setHoveredNodeIndex] = useState<{ shapeId: string; index: number } | null>(null);
   const [activeShapeTool, setActiveShapeTool] = useState<"rectangle" | "circle" | "diamond" | "image">("rectangle");
   const [activeLineTool, setActiveLineTool] = useState<"line" | "arrow" | "bezier">("bezier");
   const [activePenTool, setActivePenTool] = useState<"pencil" | "highlighter">("pencil");
@@ -1983,8 +1904,8 @@ export default function WhiteboardPage() {
   const [gradientEndColor, setGradientEndColor] = useState("#8b5cf6");
   const [opacity, setOpacity] = useState<number>(1);
   const [cornerRadius, setCornerRadius] = useState<number>(0);
-  const [upperWickLength, setUpperWickLength] = useState<number>(25);
-  const [lowerWickLength, setLowerWickLength] = useState<number>(25);
+  const [upperWickLength] = useState<number>(25);
+  const [lowerWickLength] = useState<number>(25);
   const [wickColor, setWickColor] = useState<string>("#10b981");
   const [highlighterColor, setHighlighterColor] = useState<string>("#facc15");
   const [bgGrid, setBgGrid] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">(() => {
@@ -2061,25 +1982,20 @@ export default function WhiteboardPage() {
     { id: "g2", orientation: "vertical", position: 500, color: "#3b82f6" },
   ]);
   const [showGuidelines, setShowGuidelines] = useState(true);
-  const [lockGuidelines, setLockGuidelines] = useState(false);
   const [snapToGuides, setSnapToGuides] = useState(true);
   const [snapToObjects, setSnapToObjects] = useState(true);
   const [snapToAngles, setSnapToAngles] = useState(true);
-  const [canvasAspectRatio, setCanvasAspectRatio] = useState<"infinite" | "16:9" | "4:3" | "1:1" | "9:16" | "21:9">("infinite");
+  const [canvasAspectRatio] = useState<"infinite" | "16:9" | "4:3" | "1:1" | "9:16" | "21:9">("infinite");
   
   // Line Patterns & Vector Stroke Modifiers State
   const [activeLinePattern, setActiveLinePattern] = useState<"solid" | "dashed" | "dotted" | "dash-dot" | "long-dash">("solid");
   const [activeDashLength, setActiveDashLength] = useState<number>(8);
   const [activeLineCap, setActiveLineCap] = useState<"round" | "butt" | "square">("butt");
-  const [activeLineJoin, setActiveLineJoin] = useState<"round" | "miter" | "bevel">("miter");
+  const [activeLineJoin] = useState<"round" | "miter" | "bevel">("miter");
   const [activeArrowStart, setActiveArrowStart] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("none");
   const [activeArrowEnd, setActiveArrowEnd] = useState<"none" | "arrow" | "circle" | "diamond" | "bar">("arrow");
   const [activeLineGlow, setActiveLineGlow] = useState<boolean>(false);
-  const [activeLineCurvature, setActiveLineCurvature] = useState<number>(0);
   const [activeIsRay, setActiveIsRay] = useState<boolean>(false);
-
-  const [patternSearch, setPatternSearch] = useState("");
-  const [patternCategory, setPatternCategory] = useState<"all" | "reversal" | "wedges" | "harmonic" | "smc" | "candles">("all");
 
 
   // Character & Typography Formatting State
@@ -2090,8 +2006,8 @@ export default function WhiteboardPage() {
   const [activeTextDecoration, setActiveTextDecoration] = useState<"none" | "underline" | "line-through">("none");
   const [activeTextAlign, setActiveTextAlign] = useState<"left" | "center" | "right">("left");
   const [activeTextTransform, setActiveTextTransform] = useState<"none" | "uppercase" | "lowercase" | "capitalize">("none");
-  const [activeLetterSpacing, setActiveLetterSpacing] = useState<number>(0);
-  const [activeLineHeight, setActiveLineHeight] = useState<number>(1.4);
+  const [, setActiveLetterSpacing] = useState<number>(0);
+  const [, setActiveLineHeight] = useState<number>(1.4);
   const [activeTextColor, setActiveTextColor] = useState<string>("#1e293b");
   const [activeTextBgColor, setActiveTextBgColor] = useState<string>("transparent");
 
@@ -2109,7 +2025,7 @@ export default function WhiteboardPage() {
   const [pendingGroupName, setPendingGroupName] = useState("Group 1");
   // Image Tool state
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const [sampledColor, setSampledColor] = useState<string>("#3b82f6");
+  const [, setSampledColor] = useState<string>("#3b82f6");
 
   // Modals & Flyout Dropdowns
   const [exportOpen, setExportOpen] = useState(false);
@@ -2135,10 +2051,6 @@ export default function WhiteboardPage() {
   const [newCanvasTheme, setNewCanvasTheme] = useState<"dots" | "lines" | "blank" | "dark" | "chalkboard">("dots");
   const [newCanvasTemplate, setNewCanvasTemplate] = useState<"blank" | "risk_1_3" | "smc_zones" | "killzones" | "top_down">("blank");
   const [newCanvasSnapToGrid, setNewCanvasSnapToGrid] = useState(true);
-
-  // Custom New Tab Naming Modal State
-  const [newTabModalOpen, setNewTabModalOpen] = useState(false);
-  const [newTabInputName, setNewTabInputName] = useState("");
 
   const [flyoutGroup, setFlyoutGroup] = useState<"shapes" | "lines" | "pen" | "forex" | "notes" | "single" | "selection" | "colortools" | null>(null);
 
@@ -3723,13 +3635,6 @@ export default function WhiteboardPage() {
     setShapes((ss) => ss.map((s) => (grp.shapeIds.includes(s.id) ? { ...s, isHidden: nextHidden } : s)));
   };
 
-  const addShapeToGroup = (groupId: string, shapeId: string) => {
-    setLayerGroups((prev) => prev.map((g) => (g.id === groupId && !g.shapeIds.includes(shapeId) ? { ...g, shapeIds: [...g.shapeIds, shapeId] } : g)));
-  };
-
-  const removeShapeFromGroup = (groupId: string, shapeId: string) => {
-    setLayerGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, shapeIds: g.shapeIds.filter((id) => id !== shapeId) } : g)));
-  };
 
   /* ─────────────────────────────────────────────────────────────────────── */
 
@@ -5391,9 +5296,6 @@ export default function WhiteboardPage() {
     showToast(`Created canvas: "${finalName}"!`);
   };
 
-  const handleConfirmCreateTab = () => {
-    handleConfirmCreateCustomCanvas();
-  };
 
   const handleStartRenameTab = (tabId: string, currentName: string) => {
     setEditingTabId(tabId);
@@ -8178,77 +8080,6 @@ export default function WhiteboardPage() {
 
   
   
-  const handleInsertPattern = (patternId: string, patternTitle: string) => {
-    const cx = Math.round((-pan.x + window.innerWidth / 2) / zoom);
-    const cy = Math.round((-pan.y + window.innerHeight / 2) / zoom);
-
-    let patternShapes: Shape[] = [];
-
-    if (patternId === "double_bottom") {
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "bezier" as Tool, color: "#10b981", strokeWidth: 3, points: [{ x: cx - 120, y: cy - 60 }, { x: cx - 60, y: cy + 40 }, { x: cx, y: cy - 10 }, { x: cx + 60, y: cy + 40 }, { x: cx + 120, y: cy - 70 }] },
-        { id: `pat_${Date.now()}_2`, type: "line" as Tool, color: "#3b82f6", strokeWidth: 1.5, lineStyle: "dashed" as const, points: [{ x: cx - 130, y: cy - 10 }, { x: cx + 130, y: cy - 10 }] },
-        { id: `pat_${Date.now()}_3`, type: "text" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: cx + 65, y: cy - 75 }], text: "BOS ↗ (Neckline Breakout)" },
-      ];
-    } else if (patternId === "double_top") {
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "bezier" as Tool, color: "#ef4444", strokeWidth: 3, points: [{ x: cx - 120, y: cy + 60 }, { x: cx - 60, y: cy - 40 }, { x: cx, y: cy + 10 }, { x: cx + 60, y: cy - 40 }, { x: cx + 120, y: cy + 70 }] },
-        { id: `pat_${Date.now()}_2`, type: "line" as Tool, color: "#3b82f6", strokeWidth: 1.5, lineStyle: "dashed" as const, points: [{ x: cx - 130, y: cy + 10 }, { x: cx + 130, y: cy + 10 }] },
-        { id: `pat_${Date.now()}_3`, type: "text" as Tool, color: "#ef4444", strokeWidth: 2, points: [{ x: cx + 65, y: cy + 75 }], text: "BOS ↘ (Neckline Breakdown)" },
-      ];
-    } else if (patternId === "head_and_shoulders") {
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "bezier" as Tool, color: "#ef4444", strokeWidth: 3, points: [{ x: cx - 150, y: cy + 40 }, { x: cx - 90, y: cy - 20 }, { x: cx - 40, y: cy + 20 }, { x: cx, y: cy - 60 }, { x: cx + 40, y: cy + 20 }, { x: cx + 90, y: cy - 20 }, { x: cx + 150, y: cy + 60 }] },
-        { id: `pat_${Date.now()}_2`, type: "line" as Tool, color: "#64748b", strokeWidth: 1.5, lineStyle: "dashed" as const, points: [{ x: cx - 160, y: cy + 20 }, { x: cx + 160, y: cy + 20 }] },
-        { id: `pat_${Date.now()}_3`, type: "text" as Tool, color: "#64748b", strokeWidth: 2, points: [{ x: cx - 15, y: cy - 75 }], text: "Head" },
-        { id: `pat_${Date.now()}_4`, type: "text" as Tool, color: "#64748b", strokeWidth: 2, points: [{ x: cx - 105, y: cy - 35 }], text: "Left Shoulder" },
-        { id: `pat_${Date.now()}_5`, type: "text" as Tool, color: "#64748b", strokeWidth: 2, points: [{ x: cx + 75, y: cy - 35 }], text: "Right Shoulder" },
-      ];
-    } else if (patternId === "bull_flag") {
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "line" as Tool, color: "#10b981", strokeWidth: 4, points: [{ x: cx - 100, y: cy + 70 }, { x: cx - 40, y: cy - 50 }] },
-        { id: `pat_${Date.now()}_2`, type: "line" as Tool, color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: cx - 40, y: cy - 50 }, { x: cx + 30, y: cy - 10 }] },
-        { id: `pat_${Date.now()}_3`, type: "line" as Tool, color: "#3b82f6", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: cx - 50, y: cy - 10 }, { x: cx + 20, y: cy + 30 }] },
-        { id: `pat_${Date.now()}_4`, type: "arrow" as Tool, color: "#10b981", strokeWidth: 3, points: [{ x: cx + 30, y: cy - 10 }, { x: cx + 90, y: cy - 80 }] },
-        { id: `pat_${Date.now()}_5`, type: "text" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: cx + 40, y: cy - 95 }], text: "Flag Breakout ↗" },
-      ];
-    } else if (patternId === "elliott_wave") {
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "line" as Tool, color: "#0284c7", strokeWidth: 2.5, points: [{ x: cx - 140, y: cy + 50 }, { x: cx - 80, y: cy - 10 }] },
-        { id: `pat_${Date.now()}_2`, type: "line" as Tool, color: "#0284c7", strokeWidth: 2.5, points: [{ x: cx - 80, y: cy - 10 }, { x: cx - 50, y: cy + 20 }] },
-        { id: `pat_${Date.now()}_3`, type: "line" as Tool, color: "#0284c7", strokeWidth: 3, points: [{ x: cx - 50, y: cy + 20 }, { x: cx + 40, y: cy - 70 }] },
-        { id: `pat_${Date.now()}_4`, type: "line" as Tool, color: "#0284c7", strokeWidth: 2.5, points: [{ x: cx + 40, y: cy - 70 }, { x: cx + 80, y: cy - 20 }] },
-        { id: `pat_${Date.now()}_5`, type: "line" as Tool, color: "#0284c7", strokeWidth: 2.5, points: [{ x: cx + 80, y: cy - 20 }, { x: cx + 140, y: cy - 80 }] },
-        { id: `pat_${Date.now()}_6`, type: "text" as Tool, color: "#0284c7", strokeWidth: 2, points: [{ x: cx - 85, y: cy - 25 }], text: "(1)" },
-        { id: `pat_${Date.now()}_7`, type: "text" as Tool, color: "#0284c7", strokeWidth: 2, points: [{ x: cx - 55, y: cy + 35 }], text: "(2)" },
-        { id: `pat_${Date.now()}_8`, type: "text" as Tool, color: "#0284c7", strokeWidth: 2, points: [{ x: cx + 35, y: cy - 85 }], text: "(3) Impulse" },
-        { id: `pat_${Date.now()}_9`, type: "text" as Tool, color: "#0284c7", strokeWidth: 2, points: [{ x: cx + 75, y: cy - 5 }], text: "(4)" },
-        { id: `pat_${Date.now()}_10`, type: "text" as Tool, color: "#0284c7", strokeWidth: 2, points: [{ x: cx + 135, y: cy - 95 }], text: "(5)" },
-      ];
-    } else if (patternId === "smc_liquidity") {
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "line" as Tool, color: "#f59e0b", strokeWidth: 2, lineStyle: "dashed" as const, points: [{ x: cx - 130, y: cy - 40 }, { x: cx + 130, y: cy - 40 }] },
-        { id: `pat_${Date.now()}_2`, type: "text" as Tool, color: "#f59e0b", strokeWidth: 2, points: [{ x: cx - 120, y: cy - 55 }], text: "$$ Buy-Side Liquidity Pool $$" },
-        { id: `pat_${Date.now()}_3`, type: "bezier" as Tool, color: "#ef4444", strokeWidth: 3, points: [{ x: cx - 80, y: cy + 20 }, { x: cx - 10, y: cy - 65 }, { x: cx + 60, y: cy + 50 }] },
-        { id: `pat_${Date.now()}_4`, type: "rectangle" as Tool, color: "#3b82f6", strokeWidth: 1.5, fillStyle: "translucent" as const, fillColor: "#3b82f6", points: [{ x: cx - 30, y: cy - 35 }, { x: cx + 30, y: cy + 5 }] },
-        { id: `pat_${Date.now()}_5`, type: "text" as Tool, color: "#ef4444", strokeWidth: 2, points: [{ x: cx + 45, y: cy + 65 }], text: "BOS Displacement ↘" },
-      ];
-    } else {
-      // Default Ascending Wedge / Generic
-      patternShapes = [
-        { id: `pat_${Date.now()}_1`, type: "line" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: cx - 100, y: cy + 40 }, { x: cx + 80, y: cy - 10 }] },
-        { id: `pat_${Date.now()}_2`, type: "line" as Tool, color: "#ef4444", strokeWidth: 2, points: [{ x: cx - 120, y: cy + 60 }, { x: cx + 60, y: cy + 10 }] },
-        { id: `pat_${Date.now()}_3`, type: "arrow" as Tool, color: "#10b981", strokeWidth: 2.5, points: [{ x: cx + 80, y: cy - 10 }, { x: cx + 130, y: cy - 50 }] },
-        { id: `pat_${Date.now()}_4`, type: "text" as Tool, color: "#10b981", strokeWidth: 2, points: [{ x: cx + 60, y: cy - 65 }], text: `${patternTitle} ↗` },
-      ];
-    }
-
-    setShapes((prev) => [...prev, ...patternShapes]);
-    setSelectedShapeIds(patternShapes.map((s) => s.id));
-    setActiveTool("select");
-    showToast(`Inserted "${patternTitle}" onto canvas!`);
-  };
-
   const renderTabBody = (tabKey: "inspector" | "layers" | "character" | "drafts" | "samples" | "trash" | "grid_guides" | "theme" | "patterns" | "geometry" | "sessions" | "risk_calc" | "economic_calendar") => {
     return (
       <div className="space-y-3">
@@ -10786,7 +10617,6 @@ export default function WhiteboardPage() {
           const microLots = Math.round(standardLots * 100);
           const units = Math.round(standardLots * activeSpec.contract);
           const rewardDollars = riskDollars * calcTargetRR;
-          const rewardPips = calcSlPips * calcTargetRR;
           const projectedBalanceWin = calcBalance + rewardDollars;
           const projectedBalanceLoss = calcBalance - riskDollars;
 
@@ -16997,7 +16827,7 @@ export default function WhiteboardPage() {
                         { h: "ml", cls: "top-1/2 -translate-y-1/2 -left-1.5 cursor-ew-resize" },
                       ] as const
                     ).map(({ h, cls }) => {
-                      const startParagraphHandleResize = (clientX: number, clientY: number) => {
+                      const startParagraphHandleResize = (_clientX: number, _clientY: number) => {
                         textCreatedTimeRef.current = Date.now();
                         const canvasEl = canvasRef.current;
                         if (!canvasEl) return;
@@ -19699,7 +19529,6 @@ function resizeShapePoints(
       const curUpperW = shape.upperWickLength !== undefined ? shape.upperWickLength : Math.round(origH * 0.19);
       const curLowerW = shape.lowerWickLength !== undefined ? shape.lowerWickLength : Math.round(origH * 0.19);
       const curBodyH = shape.candleBodyHeight !== undefined ? shape.candleBodyHeight : Math.max(6, origH - curUpperW - curLowerW);
-      const curBodyW = shape.candleBodyWidth ?? Math.max(14, origW);
 
       // Handle individual handle manipulations
       if (handle === "tm") {
