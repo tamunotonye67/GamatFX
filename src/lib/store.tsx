@@ -10,6 +10,13 @@ import {
 import { supabase, hasSharedSignOutFlag, setSharedSignOutFlag } from "./supabase";
 import { isJobsSubdomain } from "./router";
 import { recordStreakActivity } from "./streaks";
+import {
+  fetchAffiliateStateFromSupabase,
+  fetchAllCombatFromSupabase,
+  saveAffiliateLedgerToSupabase,
+  saveAffiliateProfileToSupabase,
+  saveCombatToSupabase,
+} from "./supabaseUserState";
 import { COURSES, getCourse, totalLessons, COURSE_ALIASES, asCourse } from "./courses";
 import { fetchSupabaseCourses, saveSupabaseCourse, deleteSupabaseCourse } from "./supabaseCourses";
 import { signUpSupabaseUser, signInSupabaseUser, signOutSupabaseUser, fetchSupabaseAccounts, saveSupabaseAccount, deleteSupabaseAccount, rowToAccount, type SupabaseAccountRow } from "./supabaseAuth";
@@ -1650,6 +1657,94 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => savePayoutRequests(payoutRequests), [payoutRequests]);
   useEffect(() => saveAffiliateCommissions(affiliateCommissions), [affiliateCommissions]);
   useEffect(() => saveAffiliateSettings(affiliateSettings), [affiliateSettings]);
+
+  const userStateHydratedRef = useRef(false);
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      fetchAllCombatFromSupabase(),
+      fetchAffiliateStateFromSupabase(),
+    ]).then(([remoteCombat, remoteAff]) => {
+      if (!active) return;
+      if (remoteCombat) {
+        setCombatByUser((prev) => {
+          const merged = { ...prev };
+          for (const [uid, r] of Object.entries(remoteCombat)) {
+            const loc = merged[uid];
+            if (!loc) {
+              merged[uid] = r;
+            } else {
+              const predMap = new Map<string, any>();
+              for (const p of r.predictions || []) predMap.set(p.scenarioId, p);
+              for (const p of loc.predictions || []) predMap.set(p.scenarioId, p);
+              merged[uid] = {
+                xp: Math.max(loc.xp || 0, r.xp || 0),
+                wins: Math.max(loc.wins || 0, r.wins || 0),
+                losses: Math.max(loc.losses || 0, r.losses || 0),
+                streak: Math.max(loc.streak || 0, r.streak || 0),
+                bestStreak: Math.max(loc.bestStreak || 0, r.bestStreak || 0),
+                predictions: Array.from(predMap.values()),
+              };
+            }
+          }
+          return merged;
+        });
+      }
+      if (remoteAff) {
+        if (remoteAff.profiles.length > 0) {
+          setAffiliateProfiles((prev) => {
+            const byId = new Map<string, AffiliateProfile>();
+            for (const p of prev) byId.set(p.userId, p);
+            for (const rp of remoteAff.profiles) {
+              const lp = byId.get(rp.userId);
+              if (!lp || (rp.totalEarned || 0) >= (lp.totalEarned || 0)) {
+                byId.set(rp.userId, rp);
+              }
+            }
+            return Array.from(byId.values());
+          });
+        }
+        if (remoteAff.commissions.length > 0) {
+          setAffiliateCommissions((prev) => {
+            const map = new Map<string, AffiliateCommission>();
+            for (const c of prev) map.set(c.id, c);
+            for (const rc of remoteAff.commissions) map.set(rc.id, rc);
+            return Array.from(map.values());
+          });
+        }
+        if (remoteAff.payouts.length > 0) {
+          setPayoutRequests((prev) => {
+            const map = new Map<string, PayoutRequest>();
+            for (const p of prev) map.set(p.id, p);
+            for (const rp of remoteAff.payouts) map.set(rp.id, rp);
+            return Array.from(map.values());
+          });
+        }
+        if (remoteAff.settings) {
+          setAffiliateSettings(remoteAff.settings);
+        }
+      }
+      userStateHydratedRef.current = true;
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!userStateHydratedRef.current || !sessionId) return;
+    const mine = affiliateProfiles.find((p) => p.userId === sessionId);
+    if (mine) void saveAffiliateProfileToSupabase(mine);
+  }, [affiliateProfiles, sessionId]);
+
+  useEffect(() => {
+    if (!userStateHydratedRef.current) return;
+    void saveAffiliateLedgerToSupabase({
+      commissions: affiliateCommissions,
+      payouts: payoutRequests,
+      settings: affiliateSettings,
+    });
+  }, [affiliateCommissions, payoutRequests, affiliateSettings]);
   useEffect(() => write(K.accounts, accounts), [accounts]);
   useEffect(() => write(K.session, sessionId), [sessionId]);
   useEffect(() => write(K.enrollments, allEnrollments), [allEnrollments]);
@@ -4033,9 +4128,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         return { ...p, status: won ? "won" as const : "lost" as const, points: pts };
       });
 
+      const nextStats = { xp, wins, losses, streak, bestStreak, predictions };
+      void saveCombatToSupabase(sessionId, nextStats);
       return {
         ...prev,
-        [sessionId]: { xp, wins, losses, streak, bestStreak, predictions },
+        [sessionId]: nextStats,
       };
     });
     recordStreakActivity(sessionId, "game");
@@ -5353,7 +5450,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     // 5. Service Enquiries & Job Applications
     enquiries.forEach((e) => {
-      if (e.serviceSlug === "sys_discovery_survey" || e.serviceSlug === "__gamat_job_role__" || e.serviceSlug === "__gamat_user_streak__") return;
+      if (e.serviceSlug === "sys_discovery_survey" || e.serviceSlug === "__gamat_job_role__" || e.serviceSlug === "__gamat_user_streak__" || e.serviceSlug === "__gamat_user_combat__" || e.serviceSlug === "__gamat_affiliate_state__") return;
       if (e.serviceSlug === "__gamat_job_application__") {
         list.push({
           id: `notif_jobapp_${e.id}`,

@@ -161,8 +161,24 @@ type ChatMsg = {
 const LAST_SEEN_UPDATE_KEY = "gamat.uj_last_seen_update.v1";
 
 export default function GamatAssistantWidget() {
-  const { user, submitEnquiry } = useStore();
+  const { user, news, submitEnquiry } = useStore();
   const externalUserJotId = useMemo(() => getConfiguredUserJotId(), []);
+
+  const mergedUpdates = useMemo<ChangelogEntry[]>(() => {
+    const dynamicEntries: ChangelogEntry[] = (news || []).slice(0, 4).map((n, i) => ({
+      id: `news_${n.id}`,
+      date: (n.publishedAt || "").slice(0, 10) || "UPDATE",
+      isNew: i === 0,
+      title: n.title,
+      summary: n.summary,
+      tag: n.tag || "Announcement",
+      previewTitle: n.title,
+      previewSubtitle: n.summary,
+      gradient: "from-rose-50 via-amber-50/70 to-white",
+      to: "/news",
+    }));
+    return [...dynamicEntries, ...CHANGELOG_UPDATES];
+  }, [news]);
 
   // If external UserJot Project ID is configured, activate official UserJot SDK v3
   useEffect(() => {
@@ -438,7 +454,7 @@ export default function GamatAssistantWidget() {
                         )}
                       </p>
                       <p className="text-[11px] text-slate-500 line-clamp-1">
-                        {CHANGELOG_UPDATES[0].title}
+                        {mergedUpdates[0].title}
                       </p>
                     </div>
                   </div>
@@ -677,7 +693,7 @@ export default function GamatAssistantWidget() {
               <div className="flex-1 overflow-y-auto p-5">
                 {whatsNewSub === "updates" && (
                   <div className="relative space-y-6 border-l border-dashed border-slate-200 pl-4">
-                    {CHANGELOG_UPDATES.map((entry) => (
+                    {mergedUpdates.map((entry) => (
                       <div key={entry.id} className="relative">
                         <span
                           className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ring-4 ring-white ${

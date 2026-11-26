@@ -584,7 +584,7 @@ export async function fetchSupabaseEnquiries(): Promise<ServiceEnquiry[] | null>
     const { data, error } = await supabase.from("service_enquiries").select("*").order("created_at", { ascending: false });
     if (error || !data) return null;
     return data
-      .filter((r: any) => r.service_slug !== "sys_discovery_survey" && r.service_slug !== "sys_broadcast_log" && r.service_slug !== "sys_team_profile" && r.service_slug !== "__gamat_user_streak__")
+      .filter((r: any) => r.service_slug !== "sys_discovery_survey" && r.service_slug !== "sys_broadcast_log" && r.service_slug !== "sys_team_profile" && r.service_slug !== "__gamat_user_streak__" && r.service_slug !== "__gamat_user_combat__" && r.service_slug !== "__gamat_affiliate_state__")
       .map((r: any) => ({
         id: r.id,
         ref: r.ref,
