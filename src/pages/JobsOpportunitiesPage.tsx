@@ -113,6 +113,49 @@ export default function JobsOpportunitiesPage() {
   const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
   const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const deepLinkHandledRef = useRef(false);
+  const showcaseScrollRef = useRef<HTMLDivElement | null>(null);
+  const showcasePausedUntilRef = useRef(0);
+  const showcaseDirRef = useRef<1 | -1>(1);
+
+  const pauseShowcaseAutoScroll = () => {
+    showcasePausedUntilRef.current = Date.now() + 2200;
+  };
+
+  useEffect(() => {
+    let rafId = 0;
+    let lastTs = performance.now();
+
+    const step = (now: number) => {
+      const dt = Math.min(0.05, (now - lastTs) / 1000);
+      lastTs = now;
+
+      const el = showcaseScrollRef.current;
+      if (
+        el &&
+        window.innerWidth < 640 &&
+        Date.now() >= showcasePausedUntilRef.current
+      ) {
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 4) {
+          const speedPxPerSec = 155;
+          let next = el.scrollLeft + showcaseDirRef.current * speedPxPerSec * dt;
+          if (next >= maxScroll) {
+            next = maxScroll;
+            showcaseDirRef.current = -1;
+          } else if (next <= 0) {
+            next = 0;
+            showcaseDirRef.current = 1;
+          }
+          el.scrollLeft = next;
+        }
+      }
+
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
   // Application form state
   const [name, setName] = useState(
@@ -400,9 +443,16 @@ export default function JobsOpportunitiesPage() {
                   </p>
                 </div>
 
-                {/* Right part: Mobile square-box ping-pong marquee; sm+ 6 tall slim vertical portrait cards */}
-                <div className="lg:col-span-7 overflow-hidden sm:overflow-visible">
-                  <div className="mobile-pingpong-track flex h-[156px] sm:h-[380px] lg:h-[400px] items-stretch gap-2.5 sm:gap-2">
+                {/* Right part: Mobile swipeable + auto-scrolling square boxes; sm+ 6 tall slim vertical portrait cards */}
+                <div className="lg:col-span-7">
+                  <div
+                    ref={showcaseScrollRef}
+                    onTouchStart={pauseShowcaseAutoScroll}
+                    onTouchMove={pauseShowcaseAutoScroll}
+                    onPointerDown={pauseShowcaseAutoScroll}
+                    onWheel={pauseShowcaseAutoScroll}
+                    className="flex h-[156px] sm:h-[380px] lg:h-[400px] items-stretch gap-2.5 sm:gap-2 overflow-x-auto sm:overflow-visible no-scrollbar touch-pan-x"
+                  >
                     {SKILL_SHOWCASE.map((item, idx) => {
                       const themes = [
                         {
