@@ -32,7 +32,10 @@ export function initPwa() {
   const isProd = (import.meta as ImportMeta & { env?: { PROD?: boolean } }).env?.PROD;
   if ("serviceWorker" in navigator && isProd) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+      navigator.serviceWorker
+        .register("/sw.js", { updateViaCache: "none" })
+        .then((reg) => reg.update().catch(() => undefined))
+        .catch(() => undefined);
     });
   }
 }

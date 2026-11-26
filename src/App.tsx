@@ -29,9 +29,14 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
   return lazy(async () => {
     const key = "gamat:chunk_reload_at";
     try {
-      const mod = await importer();
-      return mod;
-    } catch (err: any) {
+      return await importer();
+    } catch (firstErr: any) {
+      // Retry once after a brief pause in case of transient network hiccup
+      try {
+        await new Promise((r) => setTimeout(r, 300));
+        return await importer();
+      } catch (err: any) {
+        err = err || firstErr;
       const msg = String(err?.message || err || "");
       const isChunkError =
         msg.includes("Failed to fetch dynamically imported module") ||
@@ -52,6 +57,7 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
         }
       }
       throw err;
+      }
     }
   });
 }
