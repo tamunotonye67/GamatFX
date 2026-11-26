@@ -346,7 +346,47 @@ export default function JobsOpportunitiesPage() {
           {/* Welcome, onboard! & 6 portrait cards */}
           <section className="mb-12">
             <div className="relative overflow-hidden rounded-2xl border border-amber-300/60 bg-gradient-to-br from-[#fde047] via-[#facc15] to-[#f59e0b] p-5 sm:p-7 shadow-2xl">
-              <div className="grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
+              {/* Organic wobble, paint splash & subtle watermark layers */}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+                {/* Soft sunlit highlight splash top-left */}
+                <div className="absolute -left-16 -top-20 h-72 w-72 rounded-full bg-white/30 blur-3xl" />
+                {/* Deep warm amber wobble bottom-center */}
+                <div className="absolute -bottom-24 left-1/4 h-80 w-80 rounded-full bg-[#d97706]/25 blur-3xl" />
+
+                {/* Organic liquid splash & paint wobble SVG */}
+                <svg
+                  viewBox="0 0 800 500"
+                  preserveAspectRatio="none"
+                  className="absolute inset-0 h-full w-full"
+                >
+                  <path
+                    d="M-30,110 C70,40 160,170 250,95 C340,20 420,140 520,85 C610,35 710,120 840,60 L840,-30 L-30,-30 Z"
+                    fill="rgba(255,255,255,0.16)"
+                  />
+                  <path
+                    d="M-40,420 C60,340 140,450 260,375 C380,300 470,440 610,360 C710,305 780,360 840,330 L840,530 L-40,530 Z"
+                    fill="rgba(180,83,9,0.12)"
+                  />
+                  {/* Playful organic splash blob behind left writeup */}
+                  <path
+                    d="M330,180 C375,145 435,175 450,225 C465,275 425,335 365,345 C305,355 255,310 265,255 C272,215 295,205 330,180 Z"
+                    fill="rgba(255,255,255,0.18)"
+                  />
+                  {/* Micro splash droplets */}
+                  <circle cx="475" cy="155" r="10" fill="rgba(17,18,21,0.06)" />
+                  <circle cx="496" cy="176" r="5" fill="rgba(255,255,255,0.35)" />
+                  <circle cx="92" cy="390" r="14" fill="rgba(17,18,21,0.05)" />
+                  <circle cx="122" cy="408" r="6" fill="rgba(255,255,255,0.30)" />
+                  <circle cx="415" cy="68" r="8" fill="rgba(180,83,9,0.14)" />
+                </svg>
+
+                {/* Subtle oversized GAMAT watermark */}
+                <span className="absolute -bottom-6 left-6 select-none font-display text-[88px] sm:text-[120px] font-black uppercase tracking-tighter text-[#111215]/[0.05] leading-none">
+                  GAMAT Fx
+                </span>
+              </div>
+
+              <div className="relative z-10 grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-center">
                 {/* Left part: Welcome, onboard! with writeups */}
                 <div className="flex flex-col justify-center lg:col-span-5 lg:pr-4">
                   <span className="inline-flex w-fit items-center gap-2 rounded-full border border-black/15 bg-black/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#111215]">
