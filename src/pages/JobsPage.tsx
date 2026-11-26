@@ -114,6 +114,7 @@ export default function JobsPage() {
   const [pillIdx, setPillIdx] = useState(0);
   const [pillCount, setPillCount] = useState(BUILDING_PILL_ITEMS[0].target);
   const heroRef = useRef<HTMLDivElement | null>(null);
+  const ctaBannerRef = useRef<HTMLElement | null>(null);
   const navWrapRef = useRef<HTMLDivElement | null>(null);
   const globeOrbitRefs = useRef<Array<HTMLDivElement | null>>([]);
 
@@ -203,16 +204,22 @@ export default function JobsPage() {
   useEffect(() => {
     const onScroll = () => {
       const heroEl = heroRef.current;
-      if (heroEl) {
-        const rect = heroEl.getBoundingClientRect();
-        setScrolledPastHero(rect.bottom <= 24);
-      } else {
-        setScrolledPastHero(window.scrollY > window.innerHeight * 1.05);
-      }
+      const ctaEl = ctaBannerRef.current;
+      const pastHero = heroEl
+        ? heroEl.getBoundingClientRect().bottom <= 24
+        : window.scrollY > window.innerHeight * 1.05;
+      const reachedCta = ctaEl
+        ? ctaEl.getBoundingClientRect().top <= 80
+        : false;
+      setScrolledPastHero(pastHero && !reachedCta);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   // Close flyout on Escape or outside click
@@ -1411,7 +1418,7 @@ export default function JobsPage() {
             </div>
 
       {/* Build without boundaries CTA Banner */}
-      <section className="w-full px-3 pb-10 pt-2 sm:px-6 sm:pb-14">
+      <section ref={ctaBannerRef} className="w-full px-3 pb-10 pt-2 sm:px-6 sm:pb-14">
         <style>{`
           @keyframes gamatTickerScroll {
             0% { transform: translateX(0); }
