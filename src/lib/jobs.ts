@@ -221,19 +221,45 @@ export function saveJobApplications(apps: JobApplication[]): void {
   } catch {}
 }
 
+const DELETED_JOBS_STORAGE_KEY = "gamatfx_deleted_job_roles_v1";
+
+function loadLocalDeletedJobIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_JOBS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed.map(String)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function addLocalDeletedJobId(id: string): void {
+  try {
+    const ids = loadLocalDeletedJobIds();
+    ids.add(id);
+    localStorage.setItem(DELETED_JOBS_STORAGE_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
+}
+
 export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
   const local = loadJobRoles();
+  const localDeletedIds = loadLocalDeletedJobIds();
   try {
     let rows: any[] | null = null;
-    const { data, error } = await supabase
-      .from("service_enquiries")
-      .select("*")
-      .eq("service_slug", SUPABASE_JOB_ROLE_SLUG)
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("service_enquiries")
+        .select("*")
+        .eq("service_slug", SUPABASE_JOB_ROLE_SLUG)
+        .order("created_at", { ascending: false });
 
-    if (!error && Array.isArray(data)) {
-      rows = data;
-    } else {
+      if (!error && Array.isArray(data)) {
+        rows = data;
+      }
+    } catch {}
+
+    if (!rows) {
       const res = await fetch(
         `${supabaseUrl}/rest/v1/service_enquiries?service_slug=eq.${SUPABASE_JOB_ROLE_SLUG}&order=created_at.desc&select=*`,
         {
@@ -251,9 +277,10 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
 
     if (!rows || rows.length === 0) return local;
 
-    const deletedIds = new Set(
-      rows.filter((r: any) => r.status === "deleted").map((r: any) => String(r.id))
-    );
+    const deletedIds = new Set<string>([
+      ...localDeletedIds,
+      ...rows.filter((r: any) => r.status === "deleted").map((r: any) => String(r.id)),
+    ]);
 
     const remoteMap = new Map<string, JobRole>();
     for (const r of rows) {
@@ -278,11 +305,22 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
       remoteMap.set(role.id, role);
     }
 
-    // Merge remote roles with seed roles (excluding explicitly deleted ones)
+    // Merge remote roles with seed roles and any unsynced local roles (excluding deleted ones)
+    const seedIds = new Set(SEED_JOB_ROLES.map((s) => s.id));
     const merged: JobRole[] = Array.from(remoteMap.values());
     for (const seed of SEED_JOB_ROLES) {
       if (!remoteMap.has(seed.id) && !deletedIds.has(seed.id)) {
         merged.push(seed);
+      }
+    }
+    for (const localRole of local) {
+      if (
+        !remoteMap.has(localRole.id) &&
+        !seedIds.has(localRole.id) &&
+        !deletedIds.has(localRole.id)
+      ) {
+        merged.push(localRole);
+        void upsertSupabaseJobRole(localRole);
       }
     }
     merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -321,13 +359,9 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
       .from("service_enquiries")
       .upsert(payload, { onConflict: "id" });
     if (!error) return true;
+  } catch {}
 
-    const { error: insertErr } = await supabase
-      .from("service_enquiries")
-      .insert(payload);
-    if (!insertErr || insertErr.code === "23505") return true;
-
-    // Direct REST fallback
+  try {
     const res = await fetch(`${supabaseUrl}/rest/v1/service_enquiries?on_conflict=id`, {
       method: "POST",
       headers: {
@@ -345,13 +379,13 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
 }
 
 export async function deleteSupabaseJobRole(id: string): Promise<boolean> {
+  addLocalDeletedJobId(id);
   try {
     const { error } = await supabase
       .from("service_enquiries")
       .delete()
       .eq("id", id);
     if (!error) {
-      // If it was a seed role, also record a deleted tombstone so it stays removed across devices
       if (SEED_JOB_ROLES.some((s) => s.id === id)) {
         await supabase.from("service_enquiries").upsert(
           {
