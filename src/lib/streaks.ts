@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export type StreakActivityKind = "game" | "learning" | "forum";
 
 export type DailyStreakState = {
@@ -206,6 +208,7 @@ export function recordStreakActivity(
   };
 
   saveStreakState(userId, next);
+  void saveStreakToSupabase(userId, next);
 
   if (typeof window !== "undefined") {
     window.dispatchEvent(
@@ -220,6 +223,126 @@ export function recordStreakActivity(
   }
 
   return { state: next, upgradedTier: upgraded ? tier : null };
+}
+
+const STREAK_SERVICE_SLUG = "__gamat_user_streak__";
+
+function sanitizeStreakState(raw: Partial<DailyStreakState> | null | undefined): DailyStreakState {
+  const s: DailyStreakState = {
+    ...DEFAULT_STATE,
+    ...(raw || {}),
+    currentStreak: Math.max(0, Number(raw?.currentStreak) || 0),
+    bestStreak: Math.max(0, Number(raw?.bestStreak) || 0),
+    totalActiveDays: Math.max(0, Number(raw?.totalActiveDays) || 0),
+    gamesPlayed: Math.max(0, Number(raw?.gamesPlayed) || 0),
+    lessonsCompleted: Math.max(0, Number(raw?.lessonsCompleted) || 0),
+    forumMessages: Math.max(0, Number(raw?.forumMessages) || 0),
+    lastCelebratedTier: Math.max(0, Number(raw?.lastCelebratedTier) || 0),
+  };
+  const today = localDateKey();
+  const yesterday = yesterdayDateKey();
+  if (s.lastActiveDate && s.lastActiveDate !== today && s.lastActiveDate !== yesterday) {
+    return { ...s, currentStreak: 0, lastCelebratedTier: 0 };
+  }
+  return s;
+}
+
+export async function saveStreakToSupabase(
+  userId: string | null | undefined,
+  state: DailyStreakState
+): Promise<void> {
+  if (!userId) return;
+  try {
+    const rowId = `streak_${userId}`;
+    const payload = {
+      id: rowId,
+      ref: `STRK-${userId.slice(0, 8)}`,
+      service_slug: STREAK_SERVICE_SLUG,
+      service_title: "Daily Streak",
+      name: "Streak Sync",
+      email: "streak@gamatfxacademy.com",
+      phone: "-",
+      message: JSON.stringify(state),
+      user_id: userId,
+      status: "resolved",
+    };
+    const { error } = await supabase
+      .from("service_enquiries")
+      .upsert(payload, { onConflict: "id" });
+    if (error) {
+      await supabase
+        .from("service_enquiries")
+        .update({ message: payload.message })
+        .eq("id", rowId);
+    }
+  } catch {
+    // Non-fatal: localStorage copy remains intact
+  }
+}
+
+export async function syncStreakFromSupabase(
+  userId: string | null | undefined
+): Promise<DailyStreakState | null> {
+  if (!userId) return null;
+  try {
+    const rowId = `streak_${userId}`;
+    const { data, error } = await supabase
+      .from("service_enquiries")
+      .select("message")
+      .eq("id", rowId)
+      .maybeSingle();
+
+    if (error || !data?.message) return null;
+
+    const remoteRaw = JSON.parse(data.message) as Partial<DailyStreakState>;
+    const remote = sanitizeStreakState(remoteRaw);
+    const local = loadStreakState(userId);
+
+    // Merge remote + local keeping the most recent active date & highest cumulative stats
+    const localDate = local.lastActiveDate || "";
+    const remoteDate = remote.lastActiveDate || "";
+    const useRemoteDate = remoteDate > localDate;
+    const sameDate = remoteDate === localDate;
+
+    const mergedRaw: DailyStreakState = {
+      currentStreak: sameDate
+        ? Math.max(local.currentStreak, remote.currentStreak)
+        : useRemoteDate
+        ? remote.currentStreak
+        : local.currentStreak,
+      bestStreak: Math.max(local.bestStreak, remote.bestStreak),
+      lastActiveDate: useRemoteDate ? remote.lastActiveDate : local.lastActiveDate,
+      totalActiveDays: Math.max(local.totalActiveDays, remote.totalActiveDays),
+      gamesPlayed: Math.max(local.gamesPlayed, remote.gamesPlayed),
+      lessonsCompleted: Math.max(local.lessonsCompleted, remote.lessonsCompleted),
+      forumMessages: Math.max(local.forumMessages, remote.forumMessages),
+      lastCelebratedTier: Math.max(local.lastCelebratedTier, remote.lastCelebratedTier),
+    };
+
+    const merged = sanitizeStreakState(mergedRaw);
+    saveStreakState(userId, merged);
+
+    // If local had newer progress than remote, push merged back up
+    if (!useRemoteDate && (local.bestStreak > remote.bestStreak || localDate > remoteDate)) {
+      void saveStreakToSupabase(userId, merged);
+    }
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("gamat:streak-updated", {
+          detail: {
+            userId,
+            state: merged,
+            upgradedTier: null,
+          },
+        })
+      );
+    }
+
+    return merged;
+  } catch {
+    return null;
+  }
 }
 
 export function openStreakModal() {

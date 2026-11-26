@@ -5353,7 +5353,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     // 5. Service Enquiries & Job Applications
     enquiries.forEach((e) => {
-      if (e.serviceSlug === "sys_discovery_survey" || e.serviceSlug === "__gamat_job_role__") return;
+      if (e.serviceSlug === "sys_discovery_survey" || e.serviceSlug === "__gamat_job_role__" || e.serviceSlug === "__gamat_user_streak__") return;
       if (e.serviceSlug === "__gamat_job_application__") {
         list.push({
           id: `notif_jobapp_${e.id}`,

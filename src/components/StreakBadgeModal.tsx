@@ -5,6 +5,7 @@ import {
   getStreakTier,
   loadStreakState,
   openStreakModal,
+  syncStreakFromSupabase,
   type DailyStreakState,
   type StreakTier,
 } from "../lib/streaks";
@@ -395,6 +396,7 @@ export function StreakCelebrationHost() {
 
   useEffect(() => {
     setState(loadStreakState(uid));
+    if (uid) void syncStreakFromSupabase(uid);
   }, [uid]);
 
   useEffect(() => {
