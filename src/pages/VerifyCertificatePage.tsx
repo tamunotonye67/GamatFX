@@ -58,7 +58,9 @@ export default function VerifyCertificatePage() {
         }
       }
 
-      const userEnrollments = admin.enrollments.filter((e) => e.userId === acc.id && e.certified);
+      const userEnrollments = admin.enrollments.filter(
+        (e) => e.userId === acc.id && admin.isUserCertified(acc.id, e.courseId)
+      );
       for (const enr of userEnrollments) {
         const expected = makeCertificateCode(acc.id, enr.courseId);
         const dashboardSerial = `GX-${enr.courseId.slice(0, 4).toUpperCase()}-${acc.id.slice(-5).toUpperCase()}`;
@@ -71,7 +73,7 @@ export default function VerifyCertificatePage() {
             title: course?.title || enr.courseId,
             detailLabel: "Status",
             detailValue: "Certified Graduate",
-            issuedAt: enr.certifiedAt || enr.enrolledAt,
+            issuedAt: enr.enrolledAt,
           };
         }
       }
