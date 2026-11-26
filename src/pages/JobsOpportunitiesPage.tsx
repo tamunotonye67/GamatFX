@@ -400,9 +400,9 @@ export default function JobsOpportunitiesPage() {
                   </p>
                 </div>
 
-                {/* Right part: Mobile swipeable snap carousel; sm+ 6 tall slim vertical portrait cards */}
-                <div className="lg:col-span-7">
-                  <div className="flex h-[250px] sm:h-[380px] lg:h-[400px] items-stretch gap-2.5 sm:gap-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none no-scrollbar -mx-1 px-1 sm:mx-0 sm:px-0">
+                {/* Right part: Mobile square-box ping-pong marquee; sm+ 6 tall slim vertical portrait cards */}
+                <div className="lg:col-span-7 overflow-hidden sm:overflow-visible">
+                  <div className="mobile-pingpong-track flex h-[156px] sm:h-[380px] lg:h-[400px] items-stretch gap-2.5 sm:gap-2">
                     {SKILL_SHOWCASE.map((item, idx) => {
                       const themes = [
                         {
@@ -452,13 +452,13 @@ export default function JobsOpportunitiesPage() {
                       return (
                         <div
                           key={item.label}
-                          className="flex shrink-0 w-[148px] snap-start sm:w-auto sm:shrink sm:flex-1 sm:min-w-0 items-stretch gap-2.5 sm:gap-2"
+                          className="flex shrink-0 w-[152px] h-[152px] sm:w-auto sm:h-auto sm:shrink sm:flex-1 sm:min-w-0 items-stretch gap-2.5 sm:gap-2"
                         >
                           <button
                             type="button"
                             onClick={() => setDept(item.dept)}
                             title={`Filter ${item.dept} roles`}
-                            className={`group relative flex-1 min-w-0 overflow-hidden rounded-xl sm:rounded-2xl ${theme.bg} shadow-xl cursor-pointer`}
+                            className={`group relative flex-1 min-w-0 overflow-hidden rounded-2xl ${theme.bg} shadow-xl cursor-pointer`}
                           >
                             {/* Large subtle angled arrow watermark (desktop/tablet only) */}
                             <svg
@@ -473,8 +473,8 @@ export default function JobsOpportunitiesPage() {
                               <path d="M14 14 L48 48 M48 22 L48 48 L22 48" />
                             </svg>
 
-                            {/* Tall portrait image rising from bottom with seamless top & bottom gradient blends */}
-                            <div className="absolute inset-x-0 bottom-0 h-[86%] sm:h-[72%] w-full overflow-hidden">
+                            {/* Square portrait on mobile, tall portrait rising from bottom on sm+ */}
+                            <div className="absolute inset-x-0 bottom-0 h-full sm:h-[72%] w-full overflow-hidden">
                               <img
                                 src={item.image}
                                 alt={item.label}

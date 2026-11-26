@@ -764,3 +764,25 @@ video { -webkit-user-select: none; user-select: none; -webkit-touch-callout: non
     z-index: 999999 !important;
   }
 }
+
+@keyframes gamatMobilePingPong {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-52%);
+  }
+}
+
+@media (max-width: 639px) {
+  .mobile-pingpong-track {
+    width: max-content;
+    animation: gamatMobilePingPong 3.8s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+  .mobile-pingpong-track:hover,
+  .mobile-pingpong-track:active {
+    animation-play-state: paused;
+  }
+}
+
