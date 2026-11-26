@@ -1,4 +1,7 @@
 import { getNotifPrefs, setNotifPrefs, type PushSubscriptionRecord } from "./notifPrefs";
+import { supabase } from "./supabase";
+
+const PUSH_SUB_SLUG = "sys_push_sub";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -34,8 +37,52 @@ async function fetchVapidPublicKey(): Promise<string | null> {
   }
 }
 
-/** Subscribes this device to Web Push and stores the subscription in the user's notif_prefs. */
-export async function subscribeToPush(userId: string): Promise<{ ok: boolean; reason?: string }> {
+async function persistPushSubscriptionsToSupabase(
+  userId: string,
+  email: string | undefined,
+  subs: PushSubscriptionRecord[]
+): Promise<void> {
+  let cleanEmail = String(email || "").trim().toLowerCase();
+  if (!cleanEmail) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      cleanEmail = String(data?.user?.email || "").trim().toLowerCase();
+    } catch {}
+  }
+
+  const rowId = `push_${userId}`;
+  const payload = {
+    id: rowId,
+    ref: rowId,
+    service_slug: PUSH_SUB_SLUG,
+    service_title: "Web Push Subscription",
+    package_name: "pwa",
+    name: "Push Subscriber",
+    email: cleanEmail || `${userId}@push.local`,
+    phone: "/dashboard",
+    company: null,
+    budget: String(subs.length),
+    message: JSON.stringify(subs),
+    user_id: userId,
+    status: subs.length > 0 ? "active" : "inactive",
+    created_at: new Date().toISOString(),
+  };
+
+  try {
+    const { error } = await supabase
+      .from("service_enquiries")
+      .upsert(payload, { onConflict: "id" });
+    if (error && error.code !== "23505") {
+      await supabase.from("service_enquiries").insert(payload);
+    }
+  } catch {}
+}
+
+/** Subscribes this device to Web Push and stores the subscription in Supabase. */
+export async function subscribeToPush(
+  userId: string,
+  userEmail?: string
+): Promise<{ ok: boolean; reason?: string }> {
   if (!isPushSupported()) return { ok: false, reason: "unsupported" };
 
   let perm = Notification.permission;
@@ -46,14 +93,13 @@ export async function subscribeToPush(userId: string): Promise<{ ok: boolean; re
 
   const publicKey = await fetchVapidPublicKey();
   if (!publicKey) {
-    // Still keep browserNotifications enabled locally even if server VAPID keys aren't configured yet
     return { ok: false, reason: "missing_vapid_key" };
   }
 
   try {
     let reg = await navigator.serviceWorker.getRegistration();
     if (!reg) {
-      reg = await navigator.serviceWorker.register("/sw.js");
+      reg = await navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" });
     }
     await navigator.serviceWorker.ready;
 
@@ -83,13 +129,14 @@ export async function subscribeToPush(userId: string): Promise<{ ok: boolean; re
     const current = getNotifPrefs(userId);
     const existing = Array.isArray(current.pushSubscriptions) ? current.pushSubscriptions : [];
     const filtered = existing.filter((s) => s.endpoint !== record.endpoint);
-    // Keep up to 5 most recent devices per account
     const nextSubs = [record, ...filtered].slice(0, 5);
+
     setNotifPrefs(userId, {
       ...current,
       browserNotifications: true,
       pushSubscriptions: nextSubs,
     });
+    await persistPushSubscriptionsToSupabase(userId, userEmail, nextSubs);
 
     return { ok: true };
   } catch {
@@ -97,8 +144,8 @@ export async function subscribeToPush(userId: string): Promise<{ ok: boolean; re
   }
 }
 
-/** Unsubscribes this device from Web Push and removes its endpoint from notif_prefs. */
-export async function unsubscribeFromPush(userId: string): Promise<void> {
+/** Unsubscribes this device from Web Push and removes its endpoint from Supabase. */
+export async function unsubscribeFromPush(userId: string, userEmail?: string): Promise<void> {
   if (!isPushSupported()) return;
   try {
     const reg = await navigator.serviceWorker.getRegistration();
@@ -108,11 +155,13 @@ export async function unsubscribeFromPush(userId: string): Promise<void> {
       await sub.unsubscribe().catch(() => undefined);
       const current = getNotifPrefs(userId);
       const existing = Array.isArray(current.pushSubscriptions) ? current.pushSubscriptions : [];
+      const nextSubs = existing.filter((s) => s.endpoint !== endpoint);
       setNotifPrefs(userId, {
         ...current,
         browserNotifications: false,
-        pushSubscriptions: existing.filter((s) => s.endpoint !== endpoint),
+        pushSubscriptions: nextSubs,
       });
+      await persistPushSubscriptionsToSupabase(userId, userEmail, nextSubs);
     }
   } catch {}
 }

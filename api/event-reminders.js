@@ -113,15 +113,15 @@ async function handlePush(req, res) {
     "sb_publishable_FnEN-7WZtC0_qvoNApQNSw__c9KqANV";
 
   try {
-    const accRes = await fetch(
-      `${supabaseUrl}/rest/v1/accounts?select=id,email,status,notif_prefs`,
+    const subRes = await fetch(
+      `${supabaseUrl}/rest/v1/service_enquiries?select=id,email,user_id,message,status&service_slug=eq.sys_push_sub&status=eq.active`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` } }
     );
-    if (!accRes.ok) {
-      return res.status(200).json({ ok: false, sent: 0, message: "Could not query accounts" });
+    if (!subRes.ok) {
+      return res.status(200).json({ ok: false, sent: 0, message: "Could not query push subscriptions" });
     }
 
-    const accounts = await accRes.json();
+    const rows = await subRes.json();
     const payload = JSON.stringify({
       title,
       body,
@@ -134,16 +134,19 @@ async function handlePush(req, res) {
     let sent = 0;
     let failed = 0;
 
-    for (const acc of accounts || []) {
-      if (acc.status && acc.status !== "active") continue;
-      if (targetEmails && !targetEmails.has(String(acc.email || "").trim().toLowerCase())) continue;
-      if (targetUserIds && !targetUserIds.has(String(acc.id || "").trim())) continue;
+    for (const row of rows || []) {
+      const rowEmail = String(row.email || "").trim().toLowerCase();
+      const rowUserId = String(row.user_id || "").trim();
+      if (targetEmails && !targetEmails.has(rowEmail)) continue;
+      if (targetUserIds && !targetUserIds.has(rowUserId)) continue;
 
-      const prefs = acc.notif_prefs && typeof acc.notif_prefs === "object" ? acc.notif_prefs : null;
-      if (!prefs || prefs.browserNotifications === false) continue;
-
-      const subs = Array.isArray(prefs.pushSubscriptions) ? prefs.pushSubscriptions : [];
-      if (!subs.length) continue;
+      let subs = [];
+      try {
+        subs = JSON.parse(row.message || "[]");
+      } catch {
+        subs = [];
+      }
+      if (!Array.isArray(subs) || !subs.length) continue;
 
       const deadEndpoints = new Set();
 
@@ -170,8 +173,7 @@ async function handlePush(req, res) {
 
       if (deadEndpoints.size > 0) {
         const cleaned = subs.filter((s) => s && !deadEndpoints.has(s.endpoint));
-        const nextPrefs = { ...prefs, pushSubscriptions: cleaned };
-        await fetch(`${supabaseUrl}/rest/v1/accounts?id=eq.${encodeURIComponent(acc.id)}`, {
+        await fetch(`${supabaseUrl}/rest/v1/service_enquiries?id=eq.${encodeURIComponent(row.id)}`, {
           method: "PATCH",
           headers: {
             apikey: supabaseKey,
@@ -179,7 +181,11 @@ async function handlePush(req, res) {
             "Content-Type": "application/json",
             Prefer: "return=minimal",
           },
-          body: JSON.stringify({ notif_prefs: nextPrefs }),
+          body: JSON.stringify({
+            message: JSON.stringify(cleaned),
+            budget: String(cleaned.length),
+            status: cleaned.length > 0 ? "active" : "inactive",
+          }),
         }).catch(() => undefined);
       }
     }
