@@ -52,14 +52,14 @@ export default function PageCta({
             >
               {body}
             </p>
-            <div className="mt-7 sm:mt-8 flex flex-wrap justify-center gap-3 sm:gap-4">
+            <div className="mt-7 sm:mt-8 flex flex-col min-[400px]:flex-row flex-wrap justify-center gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={() => navigate(primaryTo)}
                 className={
                   red
-                    ? "inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-brand transition hover:-translate-y-0.5 hover:shadow-md"
-                    : "btn-primary"
+                    ? "inline-flex w-full min-[400px]:w-auto min-h-[42px] items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-brand transition hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+                    : "btn-primary w-full min-[400px]:w-auto"
                 }
               >
                 {primaryLabel} <ArrowUpRight className="h-4 w-4" />
@@ -70,8 +70,8 @@ export default function PageCta({
                 rel="noreferrer"
                 className={
                   red
-                    ? "inline-flex items-center justify-center gap-2 rounded-full border border-white/35 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
-                    : "btn-outline-dark"
+                    ? "inline-flex w-full min-[400px]:w-auto min-h-[42px] items-center justify-center gap-2 rounded-full border border-white/35 px-5 py-2.5 sm:px-7 sm:py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+                    : "btn-outline-dark w-full min-[400px]:w-auto"
                 }
               >
                 <Send className="h-4 w-4" /> Join Telegram

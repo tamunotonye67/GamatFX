@@ -238,16 +238,24 @@ img, video, canvas {
     @apply py-14 sm:py-20 md:py-28;
   }
 
+  button,
+  [role="button"],
+  a.btn-primary,
+  a.btn-ghost,
+  a.btn-outline-dark {
+    touch-action: manipulation;
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-brand px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
+    @apply inline-flex min-h-[40px] sm:min-h-[42px] max-w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 sm:px-6 text-center text-xs sm:text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-dark hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
+    @apply inline-flex min-h-[40px] sm:min-h-[42px] max-w-full items-center justify-center gap-2 rounded-full border border-white/25 px-4 py-2.5 sm:px-6 text-center text-xs sm:text-sm font-semibold text-white transition-all duration-200 hover:border-white hover:bg-white/10 focus:outline-none;
   }
 
   .btn-outline-dark {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
+    @apply inline-flex min-h-[40px] sm:min-h-[42px] max-w-full items-center justify-center gap-2 rounded-full border border-ink/15 px-4 py-2.5 sm:px-6 text-center text-xs sm:text-sm font-semibold text-ink transition-all duration-200 hover:border-brand hover:text-brand focus:outline-none;
   }
 
   /* Well-padded dropdown selects with clean modern chevron icon */

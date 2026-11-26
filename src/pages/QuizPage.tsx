@@ -344,7 +344,7 @@ export default function QuizPage({ courseId }: { courseId: string }) {
                     <button
                       type="button"
                       onClick={() => setShowPaymentModal(true)}
-                      className="btn-primary !py-1.5 !px-3 text-xs flex items-center gap-1 cursor-pointer"
+                      className="btn-primary w-full sm:w-auto !py-2 !px-3.5 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <ShieldCheck className="h-3.5 w-3.5" /> Claim Certificate
                     </button>

@@ -321,7 +321,7 @@ function Wall({ onOpenModal }: { onOpenModal: () => void }) {
           <button
             type="button"
             onClick={onOpenModal}
-            className="btn-primary inline-flex items-center gap-2 shrink-0"
+            className="btn-primary w-full md:w-auto inline-flex items-center justify-center gap-2 shrink-0"
           >
             <Plus className="h-4 w-4" /> Rate a Course or Service
           </button>
