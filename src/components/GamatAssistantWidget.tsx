@@ -391,7 +391,7 @@ export default function GamatAssistantWidget() {
         >
           {/* TAB 1: HOME (Matches screenshot 2 style) */}
           {tab === "home" && (
-            <div className="flex flex-1 flex-col overflow-y-auto bg-slate-50">
+            <div className="flex flex-1 flex-col overflow-y-auto no-scrollbar bg-slate-50">
               {/* Branded Greeting Header */}
               <div className="relative bg-gradient-to-br from-[#83141f] via-[#b02a37] to-[#dc3545] px-5 pb-12 pt-5 text-white">
                 <div className="flex items-center justify-between">
@@ -557,7 +557,7 @@ export default function GamatAssistantWidget() {
                 </button>
               </div>
 
-              <div className="flex-1 space-y-3 overflow-y-auto p-4">
+              <div className="flex-1 space-y-3 overflow-y-auto no-scrollbar p-4">
                 {messages.map((m) => (
                   <div
                     key={m.id}
@@ -690,7 +690,7 @@ export default function GamatAssistantWidget() {
                 ))}
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-5">
                 {whatsNewSub === "updates" && (
                   <div className="relative space-y-6 border-l border-dashed border-slate-200 pl-4">
                     {mergedUpdates.map((entry) => (
