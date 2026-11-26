@@ -73,38 +73,32 @@ const SKILL_SHOWCASE: Array<{
   {
     label: "Dev & IT",
     dept: "Dev & IT",
-    image:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+    image: "/images/fellows/dev-it.jpg",
   },
   {
     label: "Trading",
     dept: "Trading & Analysis",
-    image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80",
+    image: "/images/fellows/trading.jpg",
   },
   {
     label: "Design",
     dept: "Design & Creative",
-    image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    image: "/images/fellows/design.jpg",
   },
   {
     label: "Marketing",
     dept: "Marketing",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+    image: "/images/fellows/marketing.jpg",
   },
   {
     label: "Support",
     dept: "Admin & Support",
-    image:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
+    image: "/images/fellows/support.jpg",
   },
   {
     label: "Writing",
     dept: "Writing & Content",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+    image: "/images/fellows/writing.jpg",
   },
 ];
 
