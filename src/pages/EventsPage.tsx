@@ -200,9 +200,13 @@ function EventCard({ e, onRegister }: { e: EventItem; onRegister: (id: string) =
                   <p className="font-display text-sm font-extrabold text-brand">{mine.ticket}</p>
                 </div>
                 <div className="ml-auto flex flex-wrap items-center gap-2">
-                  {mine.checkedIn ? (
+                  {(!e.sessions?.length ? mine.checkedIn : e.sessions.every((ses) => (mine.attendedSessions || []).some((a) => a.sessionId === ses.id))) ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white">
                       <CheckCircle2 className="h-3 w-3" /> Attended
+                    </span>
+                  ) : e.sessions?.length && (mine.attendedSessions?.length || 0) > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-[11px] font-bold text-amber-800">
+                      <CheckCircle2 className="h-3 w-3" /> {mine.attendedSessions?.length}/{e.sessions.length} Sessions
                     </span>
                   ) : mine.seatConfirmed ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-[11px] font-bold text-amber-800">
@@ -916,9 +920,13 @@ export default function EventsPage() {
                       <p className="text-xs text-muted">{lookupResult.eventTitle} ({lookupResult.eventDate})</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      {lookupResult.checkedIn ? (
+                      {(!evObj?.sessions?.length ? lookupResult.checkedIn : evObj.sessions.every((ses) => (lookupResult.attendedSessions || []).some((a) => a.sessionId === ses.id))) ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white">
                           <CheckCircle2 className="h-3 w-3" /> Attended ✓
+                        </span>
+                      ) : evObj?.sessions?.length && (lookupResult.attendedSessions?.length || 0) > 0 ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-[11px] font-bold text-amber-800">
+                          <CheckCircle2 className="h-3 w-3" /> {lookupResult.attendedSessions?.length}/{evObj.sessions.length} Sessions
                         </span>
                       ) : lookupResult.seatConfirmed ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-[11px] font-bold text-amber-800">

@@ -3534,10 +3534,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   },
                 ]
               : r.attendedSessions;
+            const allSessionsDone =
+              sessions.length === 0 ||
+              sessions.every((ses) => (nextAttended || []).some((a) => a.sessionId === ses.id));
             const updated: Registration = {
               ...r,
-              checkedIn: true,
-              checkedInAt: Date.now(),
+              checkedIn: allSessionsDone,
+              checkedInAt: allSessionsDone ? Date.now() : r.checkedInAt,
               checkInMethod: "code",
               seatConfirmed: true,
               seatConfirmedAt: r.seatConfirmedAt || Date.now(),
@@ -5215,12 +5218,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                       method: "admin" as const,
                     },
                   ];
+              const evSessions = evObj?.sessions || [];
+              const allSessionsDone =
+                evSessions.length === 0
+                  ? nextList.length > 0
+                  : evSessions.every((ses) => nextList.some((a) => a.sessionId === ses.id));
               const updated: Registration = {
                 ...r,
                 attendedSessions: nextList,
-                checkedIn: nextList.length > 0,
-                checkedInAt: nextList.length > 0 ? Date.now() : undefined,
-                checkInMethod: nextList.length > 0 ? "admin" : undefined,
+                checkedIn: allSessionsDone,
+                checkedInAt: allSessionsDone ? Date.now() : undefined,
+                checkInMethod: allSessionsDone ? "admin" : undefined,
                 seatConfirmed: nextList.length > 0 ? true : r.seatConfirmed,
                 seatConfirmedAt: nextList.length > 0 ? (r.seatConfirmedAt || Date.now()) : r.seatConfirmedAt,
               };

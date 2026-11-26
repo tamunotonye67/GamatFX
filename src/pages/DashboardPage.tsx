@@ -1028,6 +1028,13 @@ export default function DashboardPage() {
             (a.label || "").localeCompare(b.label || "", undefined, { numeric: true, sensitivity: "base" })
           );
           const totalSessionsCount = evObj?.sessions?.length || 0;
+          const isMultiSession = totalSessionsCount > 0;
+          const allSessionsCompleted =
+            !isMultiSession ||
+            evObj!.sessions!.every((ses) =>
+              (r.attendedSessions || []).some((a) => a.sessionId === ses.id)
+            );
+          const isFullyAttended = isMultiSession ? allSessionsCompleted : Boolean(r.checkedIn);
           return (
             <div key={r.id} className="overflow-hidden rounded-2xl border border-line bg-white shadow-2xs">
               {/* Top Row: Status & Ticket */}
@@ -1036,12 +1043,17 @@ export default function DashboardPage() {
                   <span className={`chip ${r.status === "cancelled" ? "!bg-line/60 !text-muted" : ""}`}>
                     {r.status === "confirmed" ? "Confirmed" : "Cancelled"}
                   </span>
-                  {r.status === "confirmed" && r.checkedIn && (
+                  {r.status === "confirmed" && isFullyAttended && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[11px] font-bold text-white">
                       Attended ✓
                     </span>
                   )}
-                  {r.status === "confirmed" && !r.checkedIn && r.seatConfirmed && (
+                  {r.status === "confirmed" && !isFullyAttended && isMultiSession && sortedSessions.length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                      {sortedSessions.length}/{totalSessionsCount} Sessions
+                    </span>
+                  )}
+                  {r.status === "confirmed" && !isFullyAttended && !(isMultiSession && sortedSessions.length > 0) && r.seatConfirmed && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
                       Seat Confirmed
                     </span>
@@ -1066,7 +1078,7 @@ export default function DashboardPage() {
 
                 {r.status === "confirmed" && (
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    {r.checkedIn && (
+                    {isFullyAttended && (
                       <button
                         type="button"
                         onClick={() =>
@@ -1085,7 +1097,7 @@ export default function DashboardPage() {
                         <Award className="h-3.5 w-3.5" /> Attendance Certificate
                       </button>
                     )}
-                    {!r.seatConfirmed && !r.checkedIn && (
+                    {!r.seatConfirmed && !isFullyAttended && sortedSessions.length === 0 && (
                       <button
                         type="button"
                         onClick={() => store.confirmEventSeat(r.id)}
@@ -1134,7 +1146,7 @@ export default function DashboardPage() {
               )}
 
               {/* Footer: Live Check-In */}
-              {r.status === "confirmed" && (
+              {r.status === "confirmed" && !isFullyAttended && (
                 <form
                   onSubmit={(evForm) => {
                     evForm.preventDefault();
