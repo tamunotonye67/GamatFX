@@ -211,7 +211,7 @@ export default function JobsInfoPage({
 
   return (
     <div className="min-h-screen bg-[#111215] text-white selection:bg-brand selection:text-white">
-      <header className="border-b border-white/10 bg-[#111215]">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#111215]/95 backdrop-blur-md">
         <div className="mx-auto flex min-h-[84px] max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6">
           <button
             type="button"

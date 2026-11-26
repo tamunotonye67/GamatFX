@@ -276,7 +276,7 @@ export default function JobsOpportunitiesPage() {
   return (
     <div className="min-h-screen bg-[#111215] text-white selection:bg-brand selection:text-white">
       {/* Header */}
-      <header className="border-b border-white/10 bg-[#111215]">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#111215]/95 backdrop-blur-md">
         <div className="mx-auto flex min-h-[84px] max-w-[1440px] items-center justify-between px-4 py-4 sm:px-6">
           <button
             type="button"
@@ -671,7 +671,7 @@ export default function JobsOpportunitiesPage() {
           ) : (
             <>
               {/* Sticky Search + Category Filter Bar on mobile */}
-              <div className="sticky top-0 z-30 -mx-4 mb-6 border-b border-white/10 bg-[#111215]/95 px-4 py-3 backdrop-blur-md sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:mb-8 lg:border-none lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+              <div className="sticky top-[84px] z-30 -mx-4 mb-6 border-b border-white/10 bg-[#111215]/95 px-4 py-3 backdrop-blur-md sm:-mx-8 sm:px-8 lg:static lg:mx-0 lg:mb-8 lg:border-none lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
                   {/* Department filter pills (single scrollable row on mobile, wrap on desktop) */}
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar lg:flex-wrap lg:overflow-visible">
