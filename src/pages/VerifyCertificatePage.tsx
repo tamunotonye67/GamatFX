@@ -16,7 +16,7 @@ export function makeCertificateCode(userId: string, courseId: string): string {
 }
 
 export default function VerifyCertificatePage() {
-  const { admin } = useStore();
+  const { admin, allEvents } = useStore();
   const [jobApps, setJobApps] = useState<JobApplication[]>(() => loadJobApplications());
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function VerifyCertificatePage() {
   const initialQuery = useMemo(() => {
     const hashQ = window.location.hash.split("?")[1] || "";
     const params = new URLSearchParams(hashQ || window.location.search);
-    return (params.get("id") || "").trim();
+    return (params.get("id") || params.get("serial") || "").trim();
   }, []);
 
   const [code, setCode] = useState(initialQuery);
@@ -38,16 +38,17 @@ export default function VerifyCertificatePage() {
     const clean = submitted.trim().toUpperCase();
     if (!clean) return null;
 
-    // 1. Check Academy course completion certificates
+    // 1. Check Academy course completion certificates (GMX-... and GX-... serials)
     for (const acc of admin.accounts) {
       const userAttempts = admin.attempts.filter((a) => a.userId === acc.id && a.passed);
       for (const att of userAttempts) {
         const expected = makeCertificateCode(acc.id, att.courseId);
-        if (clean === expected) {
+        const dashboardSerial = `GX-${att.courseId.slice(0, 4).toUpperCase()}-${acc.id.slice(-5).toUpperCase()}`;
+        if (clean === expected || clean === dashboardSerial) {
           const course = getCourse(att.courseId);
           return {
             kind: "course" as const,
-            code: expected,
+            code: clean === dashboardSerial ? dashboardSerial : expected,
             studentName: formatAccountName(acc),
             title: course?.title || att.courseId,
             detailLabel: "Exam Score",
@@ -56,9 +57,57 @@ export default function VerifyCertificatePage() {
           };
         }
       }
+
+      const userEnrollments = admin.enrollments.filter((e) => e.userId === acc.id && e.certified);
+      for (const enr of userEnrollments) {
+        const expected = makeCertificateCode(acc.id, enr.courseId);
+        const dashboardSerial = `GX-${enr.courseId.slice(0, 4).toUpperCase()}-${acc.id.slice(-5).toUpperCase()}`;
+        if (clean === expected || clean === dashboardSerial) {
+          const course = getCourse(enr.courseId);
+          return {
+            kind: "course" as const,
+            code: clean === dashboardSerial ? dashboardSerial : expected,
+            studentName: formatAccountName(acc),
+            title: course?.title || enr.courseId,
+            detailLabel: "Status",
+            detailValue: "Certified Graduate",
+            issuedAt: enr.certifiedAt || enr.enrolledAt,
+          };
+        }
+      }
     }
 
-    // 2. Check GAMAT Fx Volunteer Fellowship certificates
+    // 2. Check Event Attendance certificates (EVT-<TICKET>)
+    for (const r of admin.registrations) {
+      if (r.status !== "confirmed") continue;
+      const evObj = allEvents.find((e) => e.id === r.eventId);
+      const isMultiSession = (evObj?.sessions?.length || 0) > 0;
+      const allSessionsDone =
+        !isMultiSession ||
+        evObj!.sessions!.every((ses) =>
+          (r.attendedSessions || []).some((a) => a.sessionId === ses.id)
+        );
+      const isFullyAttended = isMultiSession ? allSessionsDone : Boolean(r.checkedIn);
+      if (!isFullyAttended) continue;
+
+      const expected = `EVT-${r.ticket.trim().toUpperCase()}`;
+      if (clean === expected) {
+        const acc = admin.accounts.find(
+          (a) => a.id === r.userId || a.email.toLowerCase() === r.email.toLowerCase()
+        );
+        return {
+          kind: "event" as const,
+          code: expected,
+          studentName: acc ? formatAccountName(acc) : r.name,
+          title: r.eventTitle,
+          detailLabel: "Event Date",
+          detailValue: r.eventDate,
+          issuedAt: r.checkedInAt || r.createdAt,
+        };
+      }
+    }
+
+    // 3. Check GAMAT Fx Volunteer Fellowship certificates
     for (const app of jobApps) {
       if (app.status !== "hired" && !app.certificateIssued) continue;
       const expected = makeFellowshipCertificateCode(app.ref);
@@ -76,7 +125,7 @@ export default function VerifyCertificatePage() {
     }
 
     return null;
-  }, [submitted, admin.accounts, admin.attempts, jobApps]);
+  }, [submitted, admin.accounts, admin.attempts, admin.enrollments, admin.registrations, allEvents, jobApps]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +143,7 @@ export default function VerifyCertificatePage() {
             Verify a GAMAT Fx Certificate
           </h1>
           <p className="mt-2 text-sm sm:text-base text-muted">
-            Enter a student or fellow’s certificate ID to confirm course mastery or Volunteer Fellowship completion.
+            Enter a certificate ID to confirm course mastery, event attendance, or Volunteer Fellowship completion.
           </p>
         </div>
 
@@ -108,7 +157,7 @@ export default function VerifyCertificatePage() {
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              placeholder="e.g. GMX-U1A2B3C4-PRICE-ACTION or GMX-FEL-JOB9X2"
+              placeholder="e.g. EVT-GMX1234, GX-..., or GMX-FEL-JOB9X2"
               className="w-full rounded-xl bg-cream/60 py-3 pl-10 pr-4 text-sm font-mono text-ink outline-none focus:ring-2 focus:ring-brand/20"
             />
           </div>
@@ -125,13 +174,19 @@ export default function VerifyCertificatePage() {
                 <p className="mt-4 text-xs font-bold uppercase tracking-wider text-emerald-600">
                   {match.kind === "fellowship"
                     ? "Verified Fellowship Certificate"
-                    : "Verified Official Certificate"}
+                    : match.kind === "event"
+                      ? "Verified Event Attendance Certificate"
+                      : "Verified Official Certificate"}
                 </p>
                 <h2 className="mt-2 font-display text-2xl font-extrabold text-ink">
                   {match.studentName}
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  {match.kind === "fellowship" ? "Completed Fellowship Track: " : "Successfully completed "}
+                  {match.kind === "fellowship"
+                    ? "Completed Fellowship Track: "
+                    : match.kind === "event"
+                      ? "Attended "
+                      : "Successfully completed "}
                   <strong className="text-ink">{match.title}</strong>
                 </p>
 
