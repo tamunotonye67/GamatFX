@@ -693,7 +693,11 @@ export function StreakCelebrationHost() {
           </div>
 
           <p className="mt-3 text-center text-[11px] font-semibold text-ink/60">
-            Play any Fun Zone game, finish a lesson, or post in Forum daily to keep your flame alive!
+            {state.currentStreak > 0 &&
+            state.lastActiveDate ===
+              `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(new Date().getDate()).padStart(2, "0")}`
+              ? `Today's streak is locked in! Come back tomorrow to reach Day ${state.currentStreak + 1}.`
+              : "Play any Fun Zone game, finish a lesson, or post in Forum daily to keep your flame alive!"}
           </p>
         </div>
 
