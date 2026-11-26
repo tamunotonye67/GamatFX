@@ -5,17 +5,23 @@ import { isPushSupported, subscribeToPush } from "../lib/push";
 
 const DISMISS_INSTALL_KEY = "gamat_pwa_banner_dismissed_v1";
 const DISMISS_PUSH_KEY = "gamat_push_banner_dismissed_v1";
+const INSTALL_REPROMPT_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function isInstallSnoozed(): boolean {
+  try {
+    const raw = localStorage.getItem(DISMISS_INSTALL_KEY);
+    if (!raw || raw === "1") return false;
+    const ts = Number(raw);
+    return Number.isFinite(ts) && Date.now() - ts < INSTALL_REPROMPT_MS;
+  } catch {
+    return false;
+  }
+}
 
 /** Subtle, dashboard-only banner for PWA installation and phone push opt-in. */
 export default function PwaInstallBanner({ userId }: { userId?: string }) {
   const { canInstall, isIos, isStandalone, promptInstall } = usePwaInstall();
-  const [installDismissed, setInstallDismissed] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(DISMISS_INSTALL_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
+  const [installDismissed, setInstallDismissed] = useState<boolean>(() => isInstallSnoozed());
   const [pushDismissed, setPushDismissed] = useState<boolean>(() => {
     try {
       return localStorage.getItem(DISMISS_PUSH_KEY) === "1";
@@ -42,7 +48,7 @@ export default function PwaInstallBanner({ userId }: { userId?: string }) {
   const dismissInstall = () => {
     setInstallDismissed(true);
     try {
-      localStorage.setItem(DISMISS_INSTALL_KEY, "1");
+      localStorage.setItem(DISMISS_INSTALL_KEY, String(Date.now()));
     } catch {}
   };
 
