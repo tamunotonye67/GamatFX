@@ -2,19 +2,6 @@ import React, { useEffect, Suspense, lazy, Component, type ErrorInfo, type React
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
-import AboutUs from "./pages/AboutUs";
-import CommunityPage from "./pages/CommunityPage";
-import CoursesPage from "./pages/CoursesPage";
-import CourseDetailPage from "./pages/CourseDetailPage";
-import ServicesPage from "./pages/ServicesPage";
-import ReviewsPage from "./pages/ReviewsPage";
-import EventsPage from "./pages/EventsPage";
-import HowItWorksPage from "./pages/HowItWorksPage";
-import FaqPage from "./pages/FaqPage";
-import ContactPage from "./pages/ContactPage";
-import { TermsPage, PrivacyPage } from "./pages/LegalPage";
-import { LoginPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/AuthPage";
-import ServiceDetailPage from "./pages/ServiceDetailPage";
 import { captureReferralFromUrl } from "./lib/affiliate";
 import { useStore } from "./lib/store";
 import { useRoute, segments, isJobsSubdomain } from "./lib/router";
@@ -61,6 +48,25 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
     }
   });
 }
+
+const AboutUs = lazyWithRetry(() => import("./pages/AboutUs"));
+const CommunityPage = lazyWithRetry(() => import("./pages/CommunityPage"));
+const CoursesPage = lazyWithRetry(() => import("./pages/CoursesPage"));
+const CourseDetailPage = lazyWithRetry(() => import("./pages/CourseDetailPage"));
+const ServicesPage = lazyWithRetry(() => import("./pages/ServicesPage"));
+const ServiceDetailPage = lazyWithRetry(() => import("./pages/ServiceDetailPage"));
+const ReviewsPage = lazyWithRetry(() => import("./pages/ReviewsPage"));
+const EventsPage = lazyWithRetry(() => import("./pages/EventsPage"));
+const HowItWorksPage = lazyWithRetry(() => import("./pages/HowItWorksPage"));
+const FaqPage = lazyWithRetry(() => import("./pages/FaqPage"));
+const ContactPage = lazyWithRetry(() => import("./pages/ContactPage"));
+const TermsPage = lazyWithRetry(() => import("./pages/LegalPage").then((m) => ({ default: m.TermsPage })));
+const PrivacyPage = lazyWithRetry(() => import("./pages/LegalPage").then((m) => ({ default: m.PrivacyPage })));
+const LoginPage = lazyWithRetry(() => import("./pages/AuthPage").then((m) => ({ default: m.LoginPage })));
+const SignUpPage = lazyWithRetry(() => import("./pages/AuthPage").then((m) => ({ default: m.SignUpPage })));
+const ForgotPasswordPage = lazyWithRetry(() => import("./pages/AuthPage").then((m) => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazyWithRetry(() => import("./pages/AuthPage").then((m) => ({ default: m.ResetPasswordPage })));
+const VerifyEmailPage = lazyWithRetry(() => import("./pages/AuthPage").then((m) => ({ default: m.VerifyEmailPage })));
 
 const CheckoutPage = lazyWithRetry(() => import("./pages/CheckoutPage"));
 const LearnPage = lazyWithRetry(() => import("./pages/LearnPage"));
