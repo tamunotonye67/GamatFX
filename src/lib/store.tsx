@@ -2057,6 +2057,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setSharedSignOutFlag(false);
           setAuthError(null);
+          if (session.user.email) saveAccountTokens(session.user.email, session);
           await syncAuthUser(session.user);
         } else if (isJobsSubdomain() || hasSharedSignOutFlag()) {
           setSessionId(null);
@@ -2076,6 +2077,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         setSharedSignOutFlag(false);
+        if (session.user.email) saveAccountTokens(session.user.email, session);
         if (authActionInProgressRef.current) return;
         setAuthError(null);
         await syncAuthUser(session.user);
@@ -3014,8 +3016,46 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const SAVED_ACCOUNTS_KEY = "gamat.saved_accounts.v1";
+  const ACCOUNT_TOKENS_KEY = "gamat.account_tokens.v1";
   const LAST_ACTIVITY_KEY = "gamat.last_activity.v1";
   const INACTIVITY_TIMEOUT_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+
+  function saveAccountTokens(
+    email: string,
+    session: { access_token?: string; refresh_token?: string } | null
+  ) {
+    if (!email || !session?.access_token || !session?.refresh_token) return;
+    try {
+      const raw = localStorage.getItem(ACCOUNT_TOKENS_KEY);
+      const map = raw ? JSON.parse(raw) : {};
+      map[email.trim().toLowerCase()] = {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem(ACCOUNT_TOKENS_KEY, JSON.stringify(map));
+    } catch {}
+  }
+
+  function getAccountTokens(email: string): { access_token: string; refresh_token: string } | null {
+    try {
+      const raw = localStorage.getItem(ACCOUNT_TOKENS_KEY);
+      const map = raw ? JSON.parse(raw) : {};
+      const entry = map?.[email.trim().toLowerCase()];
+      if (entry?.access_token && entry?.refresh_token) return entry;
+    } catch {}
+    return null;
+  }
+
+  function removeAccountTokens(email: string) {
+    try {
+      const raw = localStorage.getItem(ACCOUNT_TOKENS_KEY);
+      if (!raw) return;
+      const map = JSON.parse(raw);
+      delete map[email.trim().toLowerCase()];
+      localStorage.setItem(ACCOUNT_TOKENS_KEY, JSON.stringify(map));
+    } catch {}
+  }
 
   const [savedAccounts, setSavedAccounts] = useState<
     { id: string; email: string; name: string; avatar?: string; role: string; lastUsedAt: number }[]
@@ -3053,20 +3093,61 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (target.status === "suspended") {
         return { ok: false, error: "This account has been suspended." };
       }
-      setSessionId(target.id);
-      write(K.session, target.id);
-      try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch {}
-      const savedPass = getStoredCredential(target.email) || target.password;
-      if (savedPass) {
-        signInSupabaseUser(target.email, savedPass).catch(() => {});
+
+      authActionInProgressRef.current = true;
+      try {
+        let switched = false;
+
+        // 1. Try restoring saved Supabase session tokens (works for both Google OAuth and email/password)
+        const tokens = getAccountTokens(target.email);
+        if (tokens) {
+          try {
+            const { data, error } = await supabase.auth.setSession(tokens);
+            if (!error && data?.session?.user) {
+              saveAccountTokens(target.email, data.session);
+              switched = true;
+            }
+          } catch {}
+        }
+
+        // 2. Fall back to stored password sign-in if session token expired or wasn't saved yet
+        if (!switched) {
+          const savedPass = getStoredCredential(target.email) || target.password;
+          if (savedPass && savedPass !== "password123") {
+            const res = await signInSupabaseUser(target.email, savedPass);
+            if (res.ok) {
+              const { data } = await supabase.auth.getSession();
+              if (data?.session) saveAccountTokens(target.email, data.session);
+              switched = true;
+            }
+          }
+        }
+
+        if (!switched) {
+          return {
+            ok: false,
+            error: "Session expired for this account. Please sign in to switch.",
+          };
+        }
+
+        setSharedSignOutFlag(false);
+        setSessionId(target.id);
+        write(K.session, target.id);
+        try { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); } catch {}
+        return { ok: true };
+      } finally {
+        setTimeout(() => {
+          authActionInProgressRef.current = false;
+        }, 400);
       }
-      return { ok: true };
     },
     [accounts]
   );
 
   const removeSavedAccount: Ctx["removeSavedAccount"] = useCallback((accountId) => {
     setSavedAccounts((prev) => {
+      const target = prev.find((a) => a.id === accountId);
+      if (target?.email) removeAccountTokens(target.email);
       const next = prev.filter((a) => a.id !== accountId);
       write(SAVED_ACCOUNTS_KEY, next);
       return next;

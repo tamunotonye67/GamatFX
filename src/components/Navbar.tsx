@@ -137,6 +137,7 @@ export default function Navbar() {
   const [switchPass, setSwitchPass] = useState("");
   const [switchErr, setSwitchErr] = useState("");
   const [switchLoading, setSwitchLoading] = useState(false);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
   const requestedSolid = useNavbarForcedSolid();
 
   useEffect(() => {
@@ -934,17 +935,26 @@ export default function Navbar() {
           </div>
 
           <div className="p-3 space-y-2 max-h-72 overflow-y-auto">
+            {switchErr && !addAccOpen && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-medium text-rose-700">
+                {switchErr}
+              </div>
+            )}
             {savedAccounts.map((acc) => {
               const isCurrent = acc.id === user.id;
+              const isSwitching = switchingId === acc.id;
               return (
                 <div
                   key={acc.id}
                   onClick={async () => {
-                    if (isCurrent) { setSwitcherOpen(false); return; }
+                    if (isCurrent || switchingId) { if (isCurrent) setSwitcherOpen(false); return; }
                     setSwitchErr("");
+                    setSwitchingId(acc.id);
                     const res = await switchAccount(acc.id);
+                    setSwitchingId(null);
                     if (res.ok) {
                       setSwitcherOpen(false);
+                      setAddAccOpen(false);
                     } else {
                       setSwitchEmail(acc.email);
                       setSwitchPass("");
@@ -955,6 +965,8 @@ export default function Navbar() {
                   className={`group flex items-center justify-between gap-2.5 rounded-xl p-2.5 transition cursor-pointer border ${
                     isCurrent
                       ? "border-brand/30 bg-brand-light/25"
+                      : isSwitching
+                      ? "border-brand/30 bg-cream"
                       : "border-transparent hover:border-line hover:bg-cream"
                   }`}
                 >
@@ -967,12 +979,30 @@ export default function Navbar() {
                       </span>
                     )}
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-ink truncate">{acc.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-ink truncate">{acc.name}</p>
+                        <span
+                          className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                            acc.role === "admin"
+                              ? "bg-brand/10 text-brand"
+                              : acc.role === "staff"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {acc.role}
+                        </span>
+                      </div>
                       <p className="text-[11px] text-muted truncate">{acc.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    {isCurrent ? (
+                    {isSwitching ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-0.5 text-[10px] font-bold text-brand">
+                        <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+                        Switching…
+                      </span>
+                    ) : isCurrent ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
                         <Check className="h-3 w-3" /> Active
                       </span>
