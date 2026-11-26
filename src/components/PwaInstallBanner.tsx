@@ -67,7 +67,7 @@ export default function PwaInstallBanner({ userId }: { userId?: string }) {
     setEnablingPush(true);
     const res = await subscribeToPush(userId);
     setEnablingPush(false);
-    if (res.ok || Notification.permission === "granted") {
+    if (res.ok) {
       setPushEnabled(true);
     } else if (Notification.permission === "denied") {
       dismissPush();

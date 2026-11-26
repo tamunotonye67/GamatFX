@@ -7,7 +7,10 @@
  * within the 12-function Vercel Hobby limit.
  */
 
-import webpush from "web-push";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const webpush = require("web-push");
 
 const MONTHS = {
   january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
