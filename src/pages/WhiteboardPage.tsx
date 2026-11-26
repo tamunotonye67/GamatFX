@@ -14307,16 +14307,16 @@ export default function WhiteboardPage() {
                 <span
                   key={r.id}
                   style={{ left: r.x, top: r.y }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 h-11 w-11 rounded-full border-2 border-brand/70 animate-ping"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-full border border-brand/35 animate-ping"
                 />
               ))}
               <div
                 style={{
-                  transform: `translate3d(${tracerPos.x}px, ${tracerPos.y}px, 0) translate(-50%, -50%) scale(${tracerPos.down ? 0.78 : 1})`,
+                  transform: `translate3d(${tracerPos.x}px, ${tracerPos.y}px, 0) translate(-50%, -50%) scale(${tracerPos.down ? 0.85 : 1})`,
                 }}
-                className="absolute left-0 top-0 h-11 w-11 rounded-full border-2 border-brand/85 bg-brand/12 shadow-[0_0_18px_rgba(220,53,69,0.35)] transition-transform duration-75 ease-out flex items-center justify-center"
+                className="absolute left-0 top-0 h-8 w-8 rounded-full border border-brand/45 bg-brand/[0.04] shadow-[0_0_8px_rgba(220,53,69,0.12)] transition-transform duration-75 ease-out flex items-center justify-center"
               >
-                <span className="h-2.5 w-2.5 rounded-full bg-brand ring-2 ring-white shadow-sm" />
+                <span className="h-1.5 w-1.5 rounded-full bg-brand/50" />
               </div>
             </div>
           )}
