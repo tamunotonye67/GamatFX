@@ -460,11 +460,11 @@ export default function JobsOpportunitiesPage() {
                             title={`Filter ${item.dept} roles`}
                             className={`group relative flex-1 min-w-0 overflow-hidden rounded-xl sm:rounded-2xl ${theme.bg} shadow-xl cursor-pointer`}
                           >
-                            {/* Large subtle angled arrow watermark */}
+                            {/* Large subtle angled arrow watermark (desktop/tablet only) */}
                             <svg
                               aria-hidden="true"
                               viewBox="0 0 64 64"
-                              className={`pointer-events-none absolute -right-2 top-3 h-20 w-20 sm:h-24 sm:w-24 ${theme.arrow}`}
+                              className={`pointer-events-none hidden sm:block absolute -right-2 top-3 h-20 w-20 sm:h-24 sm:w-24 ${theme.arrow}`}
                               fill="none"
                               stroke="currentColor"
                               strokeWidth="7"
@@ -474,7 +474,7 @@ export default function JobsOpportunitiesPage() {
                             </svg>
 
                             {/* Tall portrait image rising from bottom with seamless top & bottom gradient blends */}
-                            <div className="absolute inset-x-0 bottom-0 h-[72%] w-full overflow-hidden">
+                            <div className="absolute inset-x-0 bottom-0 h-[86%] sm:h-[72%] w-full overflow-hidden">
                               <img
                                 src={item.image}
                                 alt={item.label}
