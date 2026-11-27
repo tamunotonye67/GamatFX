@@ -213,7 +213,7 @@ export async function uploadJobFile(
       const {
         data: { publicUrl },
       } = supabase.storage.from("company-assets").getPublicUrl(filePath);
-      return { ok: true, url: toEdgeMediaUrl(publicUrl), fileName: file.name };
+      return { ok: true, url: publicUrl, fileName: file.name };
     }
 
     if (file.size <= 2 * 1024 * 1024) {

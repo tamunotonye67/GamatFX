@@ -596,7 +596,14 @@ export async function fetchSupabaseJobApplications(): Promise<JobApplication[]> 
           email: String(r.email || ""),
           phone: String(r.phone || ""),
           portfolioUrl: String(r.company || ""),
-          ...(parsed.cvUrl ? { cvUrl: String(parsed.cvUrl) } : {}),
+          ...(parsed.cvUrl
+            ? {
+                cvUrl: String(parsed.cvUrl).replace(
+                  /^https?:\/\/media\.gamatfxacademy\.com\/storage\/v1\/object\/public\//i,
+                  `${supabaseUrl}/storage/v1/object/public/`
+                ),
+              }
+            : {}),
           ...(parsed.cvFileName ? { cvFileName: String(parsed.cvFileName) } : {}),
           experience: String(r.budget || ""),
           coverNote: String(parsed.coverNote || r.message || ""),
