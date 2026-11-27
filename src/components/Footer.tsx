@@ -4,7 +4,7 @@ import Logo from "./Logo";
 import { navigate, type Route } from "../lib/router";
 import { CONTACT } from "../lib/contact";
 
-type FooterItem = { label: string; to: Route };
+type FooterItem = { label: string; to: Route; externalUrl?: string };
 
 const footerLinks: { title: string; items: FooterItem[] }[] = [
   {
@@ -13,6 +13,7 @@ const footerLinks: { title: string; items: FooterItem[] }[] = [
       { label: "Home", to: "/" },
       { label: "About Us", to: "/about" },
       { label: "About the Team", to: "/team" },
+      { label: "Careers & Jobs", to: "/jobs", externalUrl: "https://jobs.gamatfxacademy.com" },
       { label: "Courses", to: "/courses" },
       { label: "Services", to: "/services" },
       { label: "Store & Tools", to: "/store" },
@@ -175,7 +176,18 @@ export default function Footer() {
                   <li key={`${col.title}-${item.label}`}>
                     <button
                       type="button"
-                      onClick={() => navigate(item.to)}
+                      onClick={() => {
+                        if (
+                          item.externalUrl &&
+                          typeof window !== "undefined" &&
+                          window.location.hostname !== "localhost" &&
+                          window.location.hostname !== "127.0.0.1"
+                        ) {
+                          window.location.href = item.externalUrl;
+                        } else {
+                          navigate(item.to);
+                        }
+                      }}
                       className="text-left text-sm text-white/60 transition hover:text-brand-light"
                     >
                       {item.label}
