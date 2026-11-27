@@ -284,7 +284,12 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
 
     const remoteMap = new Map<string, JobRole>();
     for (const r of rows) {
+      const rowId = String(r.id);
       if (r.status === "deleted") continue;
+      if (localDeletedIds.has(rowId)) {
+        void deleteSupabaseJobRole(rowId);
+        continue;
+      }
       let parsed: any = {};
       try {
         parsed = JSON.parse(String(r.message || "{}"));
@@ -445,35 +450,86 @@ export async function upsertSupabaseJobRole(role: JobRole): Promise<boolean> {
 
 export async function deleteSupabaseJobRole(id: string): Promise<boolean> {
   addLocalDeletedJobId(id);
+  const isSeed = SEED_JOB_ROLES.some((s) => s.id === id);
+  const tombstone = {
+    id,
+    ref: `JOB-${id}`,
+    service_slug: SUPABASE_JOB_ROLE_SLUG,
+    service_title: id,
+    package_name: "Trading & Analysis",
+    name: "GAMAT Hiring",
+    email: "careers@gamatfxacademy.com",
+    phone: "Part-time",
+    company: "Remote",
+    budget: "",
+    message: "{}",
+    user_id: null,
+    status: "deleted",
+    created_at: new Date().toISOString(),
+  };
+
+  if (isSeed) {
+    try {
+      const { error } = await supabase
+        .from("service_enquiries")
+        .upsert(tombstone, { onConflict: "id" });
+      if (!error) return true;
+    } catch {}
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/service_enquiries?on_conflict=id`, {
+        method: "POST",
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify(tombstone),
+      });
+      if (res.ok) return true;
+    } catch {}
+  }
+
+  // Try actual DELETE and verify rows were deleted
   try {
-    const { error } = await supabase
-      .from("service_enquiries")
-      .delete()
-      .eq("id", id);
-    if (!error) {
-      if (SEED_JOB_ROLES.some((s) => s.id === id)) {
-        await supabase.from("service_enquiries").upsert(
-          {
-            id,
-            ref: `JOB-${id}`,
-            service_slug: SUPABASE_JOB_ROLE_SLUG,
-            service_title: id,
-            package_name: "Trading & Analysis",
-            name: "GAMAT Hiring",
-            email: "careers@gamatfxacademy.com",
-            phone: "Part-time",
-            company: "Remote",
-            budget: "",
-            message: "{}",
-            user_id: null,
-            status: "deleted",
-            created_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
+    const delRes = await fetch(
+      `${supabaseUrl}/rest/v1/service_enquiries?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          Prefer: "return=representation",
+        },
       }
-      return true;
+    );
+    if (delRes.ok) {
+      const deletedRows = await delRes.json().catch(() => []);
+      if (Array.isArray(deletedRows) && deletedRows.length > 0) {
+        return true;
+      }
     }
+  } catch {}
+
+  // Fallback: mark status = "deleted" via PATCH (in case RLS blocks DELETE)
+  try {
+    const patchRes = await fetch(
+      `${supabaseUrl}/rest/v1/service_enquiries?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ status: "deleted" }),
+      }
+    );
+    if (patchRes.ok) return true;
+  } catch {}
+
+  try {
     const { error: updateErr } = await supabase
       .from("service_enquiries")
       .update({ status: "deleted" })
