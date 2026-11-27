@@ -248,21 +248,10 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
   try {
     let rows: any[] | null = null;
     try {
-      const { data, error } = await supabase
-        .from("service_enquiries")
-        .select("*")
-        .eq("service_slug", SUPABASE_JOB_ROLE_SLUG)
-        .order("created_at", { ascending: false });
-
-      if (!error && Array.isArray(data)) {
-        rows = data;
-      }
-    } catch {}
-
-    if (!rows) {
       const res = await fetch(
         `${supabaseUrl}/rest/v1/service_enquiries?service_slug=eq.${SUPABASE_JOB_ROLE_SLUG}&order=created_at.desc&select=*`,
         {
+          cache: "no-store",
           headers: {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
@@ -273,6 +262,20 @@ export async function fetchSupabaseJobRoles(): Promise<JobRole[]> {
         const json = await res.json();
         if (Array.isArray(json)) rows = json;
       }
+    } catch {}
+
+    if (!rows || rows.length === 0) {
+      try {
+        const { data, error } = await supabase
+          .from("service_enquiries")
+          .select("*")
+          .eq("service_slug", SUPABASE_JOB_ROLE_SLUG)
+          .order("created_at", { ascending: false });
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          rows = data;
+        }
+      } catch {}
     }
 
     if (!rows || rows.length === 0) return local;

@@ -122,9 +122,22 @@ export default function JobsPage() {
   const [pillCount, setPillCount] = useState(BUILDING_PILL_ITEMS[0].target);
 
   useEffect(() => {
-    void fetchSupabaseJobRoles().then((remote) => {
-      if (remote.length > 0) setLiveRoles(remote);
-    });
+    const sync = () => {
+      void fetchSupabaseJobRoles().then((remote) => {
+        if (remote.length > 0) setLiveRoles(remote);
+      });
+    };
+    sync();
+    const onFocus = () => sync();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   const mergedSubcategories = useMemo(() => {

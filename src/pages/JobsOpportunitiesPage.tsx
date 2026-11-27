@@ -174,12 +174,25 @@ export default function JobsOpportunitiesPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    void fetchSupabaseJobRoles().then((remote) => {
-      if (remote.length > 0) setRoles(remote);
-    });
+    const sync = () => {
+      void fetchSupabaseJobRoles().then((remote) => {
+        if (remote.length > 0) setRoles(remote);
+      });
+    };
+    sync();
     void fetchSupabaseJobApplications().then((remoteApps) => {
       setApps(remoteApps);
     });
+    const onFocus = () => sync();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, []);
 
   const allOpenRoles = useMemo(() => roles.filter((r) => r.open), [roles]);
