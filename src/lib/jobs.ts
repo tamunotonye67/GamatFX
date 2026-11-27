@@ -547,18 +547,11 @@ export async function fetchSupabaseJobApplications(): Promise<JobApplication[]> 
   const local = loadJobApplications();
   try {
     let rows: any[] | null = null;
-    const { data, error } = await supabase
-      .from("service_enquiries")
-      .select("*")
-      .eq("service_slug", SUPABASE_JOB_APP_SLUG)
-      .order("created_at", { ascending: false });
-
-    if (!error && Array.isArray(data)) {
-      rows = data;
-    } else {
+    try {
       const res = await fetch(
         `${supabaseUrl}/rest/v1/service_enquiries?service_slug=eq.${SUPABASE_JOB_APP_SLUG}&order=created_at.desc&select=*`,
         {
+          cache: "no-store",
           headers: {
             apikey: supabaseKey,
             Authorization: `Bearer ${supabaseKey}`,
@@ -569,6 +562,20 @@ export async function fetchSupabaseJobApplications(): Promise<JobApplication[]> 
         const json = await res.json();
         if (Array.isArray(json)) rows = json;
       }
+    } catch {}
+
+    if (!rows || rows.length === 0) {
+      try {
+        const { data, error } = await supabase
+          .from("service_enquiries")
+          .select("*")
+          .eq("service_slug", SUPABASE_JOB_APP_SLUG)
+          .order("created_at", { ascending: false });
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          rows = data;
+        }
+      } catch {}
     }
 
     if (!rows || rows.length === 0) return local;
@@ -642,19 +649,49 @@ export async function submitSupabaseJobApplication(
       .from("service_enquiries")
       .upsert(payload, { onConflict: "id" });
     if (!error) return true;
-    const { error: insertErr } = await supabase
-      .from("service_enquiries")
-      .insert(payload);
-    return !insertErr;
-  } catch {
-    return false;
-  }
+  } catch {}
+
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/service_enquiries?on_conflict=id`, {
+      method: "POST",
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return true;
+  } catch {}
+
+  return false;
 }
 
 export async function updateSupabaseJobApplicationStatus(
   id: string,
   status: JobApplicationStatus
 ): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/service_enquiries?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+    if (res.ok) {
+      const updated = await res.json().catch(() => []);
+      if (Array.isArray(updated) && updated.length > 0) return true;
+    }
+  } catch {}
+
   try {
     const { error } = await supabase
       .from("service_enquiries")
@@ -671,14 +708,35 @@ export async function updateSupabaseJobApplicationCertificate(
   issued: boolean,
   issuedAt?: string
 ): Promise<boolean> {
+  const message = JSON.stringify({
+    coverNote: app.coverNote,
+    ...(app.cvUrl ? { cvUrl: app.cvUrl } : {}),
+    ...(app.cvFileName ? { cvFileName: app.cvFileName } : {}),
+    certificateIssued: issued,
+    ...(issuedAt ? { certificateIssuedAt: issuedAt } : {}),
+  });
+
   try {
-    const message = JSON.stringify({
-      coverNote: app.coverNote,
-      ...(app.cvUrl ? { cvUrl: app.cvUrl } : {}),
-      ...(app.cvFileName ? { cvFileName: app.cvFileName } : {}),
-      certificateIssued: issued,
-      ...(issuedAt ? { certificateIssuedAt: issuedAt } : {}),
-    });
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/service_enquiries?id=eq.${encodeURIComponent(app.id)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({ message }),
+      }
+    );
+    if (res.ok) {
+      const updated = await res.json().catch(() => []);
+      if (Array.isArray(updated) && updated.length > 0) return true;
+    }
+  } catch {}
+
+  try {
     const { error } = await supabase
       .from("service_enquiries")
       .update({ message })

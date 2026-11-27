@@ -178,11 +178,11 @@ export default function JobsOpportunitiesPage() {
       void fetchSupabaseJobRoles().then((remote) => {
         if (remote.length > 0) setRoles(remote);
       });
+      void fetchSupabaseJobApplications().then((remoteApps) => {
+        setApps(remoteApps);
+      });
     };
     sync();
-    void fetchSupabaseJobApplications().then((remoteApps) => {
-      setApps(remoteApps);
-    });
     const onFocus = () => sync();
     const onVisible = () => {
       if (document.visibilityState === "visible") sync();
