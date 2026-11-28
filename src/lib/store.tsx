@@ -2447,7 +2447,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           break;
         case "store_products":
           fetchSupabaseStoreProducts().then((supaProds) => {
-            if (supaProds && supaProds.length > 0) {
+            if (Array.isArray(supaProds)) {
               try {
                 const rawDel = localStorage.getItem("gamat.deleted_store_products.v1");
                 const delSet = new Set<string>(rawDel ? JSON.parse(rawDel) : []);
